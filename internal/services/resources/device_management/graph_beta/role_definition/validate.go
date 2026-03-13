@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -41,7 +42,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 	}
 
 	if len(invalidPermissions) > 0 {
-		return nil, fmt.Errorf("invalid resource operation ID(s) %v. Valid operations are: %v", invalidPermissions, validOperationsList)
+		return nil, fmt.Errorf("%w: %v. Valid operations are: %v", sentinels.ErrInvalidResourceOperations, invalidPermissions, validOperationsList)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Validated %d permissions successfully", len(permissions)))

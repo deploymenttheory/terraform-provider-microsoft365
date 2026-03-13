@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -146,7 +147,7 @@ func validateUsersExist(ctx context.Context, client *msgraphbetasdk.GraphService
 	}
 
 	if len(missing) > 0 {
-		return fmt.Errorf("b2b_direct_connect_outbound validation failed: user IDs not found in tenant: %s", strings.Join(missing, ", "))
+		return fmt.Errorf("b2b_direct_connect_outbound validation failed: %w: %s", sentinels.ErrInvalidUserGUIDs, strings.Join(missing, ", "))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Validated %d user IDs exist in tenant", len(userIDs)))
@@ -206,7 +207,7 @@ func validateGroupsExist(ctx context.Context, client *msgraphbetasdk.GraphServic
 	}
 
 	if len(missing) > 0 {
-		return fmt.Errorf("b2b_direct_connect_outbound validation failed: group IDs not found in tenant: %s", strings.Join(missing, ", "))
+		return fmt.Errorf("b2b_direct_connect_outbound validation failed: %w: %s", sentinels.ErrInvalidGroupGUIDs, strings.Join(missing, ", "))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Validated %d group IDs exist in tenant", len(groupIDs)))

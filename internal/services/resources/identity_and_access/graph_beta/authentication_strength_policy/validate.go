@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -15,7 +16,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 	tflog.Debug(ctx, fmt.Sprintf("Validating %s request for display_name: %s (excludeID: %s)", ResourceName, displayName, excludeID))
 
 	if displayName == "" {
-		return fmt.Errorf("display_name cannot be empty")
+		return sentinels.ErrEmptyDisplayName
 	}
 
 	policies, err := client.
@@ -56,8 +57,9 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 
 		if existingDisplayName == displayName {
 			return fmt.Errorf(
-				"an authentication strength policy with display_name '%s' already exists (ID: %s). "+
+				"%w: an authentication strength policy with display_name '%s' already exists (ID: %s). "+
 					"Only one policy per display_name is allowed. Please use a different display_name or import the existing policy",
+				sentinels.ErrDuplicateDisplayName,
 				displayName,
 				policyID,
 			)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -46,7 +47,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 				"proposedId": proposedId,
 				"existingId": *context.GetId(),
 			})
-			return fmt.Errorf("authentication context class reference with ID '%s' already exists", proposedId)
+			return fmt.Errorf("%w: '%s'", sentinels.ErrAuthContextIDExists, proposedId)
 		}
 	}
 

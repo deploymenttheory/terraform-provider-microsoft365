@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -29,7 +30,7 @@ func validateMicrosoftEntraOrganization(ctx context.Context, client *msgraphbeta
 	tenantInfo, err := getTenantInformationByTenantID(ctx, client, tenantID)
 	if err != nil {
 		tflog.Warn(ctx, fmt.Sprintf("Error validating tenant ID %s: %v", tenantID, err))
-		return fmt.Errorf("invalid Microsoft Entra organization tenant ID: %s. Please verify this tenant ID is valid", tenantID)
+		return fmt.Errorf("%w: %s. Please verify this tenant ID is valid", sentinels.ErrInvalidTenantID, tenantID)
 	}
 
 	displayName := "Unknown"

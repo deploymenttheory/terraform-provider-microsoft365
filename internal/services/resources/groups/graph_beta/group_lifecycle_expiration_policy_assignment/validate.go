@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
@@ -64,7 +65,7 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) validateTenantPolicyE
 			"No lifecycle policy found",
 			"No lifecycle policy exists in the tenant. You must create a group lifecycle policy before assigning groups to it.",
 		)
-		return "", fmt.Errorf("no lifecycle policy found")
+		return "", sentinels.ErrNoLifecyclePolicy
 	}
 
 	policy := policies.GetValue()[0]
@@ -75,7 +76,7 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) validateTenantPolicyE
 			"Invalid policy ID",
 			"The lifecycle policy ID is null",
 		)
-		return "", fmt.Errorf("policy ID is null")
+		return "", sentinels.ErrLifecyclePolicyIDNull
 	}
 
 	managedGroupTypes := policy.GetManagedGroupTypes()
@@ -89,7 +90,7 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) validateTenantPolicyE
 			fmt.Sprintf("The lifecycle policy must have managedGroupTypes set to 'Selected' to assign individual groups. Current value: %v. "+
 				"This resource is only applicable when the policy is configured to manage selected groups, not all groups.", managedGroupTypes),
 		)
-		return "", fmt.Errorf("lifecycle policy managedGroupTypes is not 'Selected'")
+		return "", sentinels.ErrLifecyclePolicyNotSelected
 	}
 
 	tflog.Debug(ctx, "Tenant lifecycle policy validated", map[string]any{
@@ -137,7 +138,7 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) validateGroupIsOfType
 			"Group not found",
 			fmt.Sprintf("Group %s does not exist", groupID),
 		)
-		return fmt.Errorf("group %s not found", groupID)
+		return fmt.Errorf("%w: %s", sentinels.ErrGroupNotFound, groupID)
 	}
 
 	groupTypes := group.GetGroupTypes()
@@ -158,7 +159,7 @@ func (r *GroupLifecycleExpirationPolicyAssignmentResource) validateGroupIsOfType
 			"Invalid group type",
 			fmt.Sprintf("Group %s is not a Microsoft 365 group. Only Microsoft 365 (Unified) groups can be assigned to lifecycle policies. Group types: %v", groupID, groupTypes),
 		)
-		return fmt.Errorf("group %s is not a Microsoft 365 group", groupID)
+		return fmt.Errorf("%w: %s", sentinels.ErrGroupNotM365, groupID)
 	}
 
 	tflog.Debug(ctx, "Group validated as Microsoft 365 type", map[string]any{

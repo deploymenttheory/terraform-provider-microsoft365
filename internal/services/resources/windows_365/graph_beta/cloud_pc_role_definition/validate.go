@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -144,7 +145,7 @@ func validateCloudPCPermissionsStatic(ctx context.Context, permissions []string)
 		for operation := range validCloudPCOperations {
 			validOperationsList = append(validOperationsList, operation)
 		}
-		return nil, fmt.Errorf("invalid Cloud PC resource operation(s) %v. Valid operations include: %v", invalidPermissions, validOperationsList[:10]) // Show first 10 for readability
+		return nil, fmt.Errorf("%w: %v. Valid operations include: %v", sentinels.ErrInvalidCloudPCResourceOperations, invalidPermissions, validOperationsList[:10])
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Static validation passed for %d Cloud PC permissions", len(permissions)))
@@ -168,7 +169,7 @@ func checkRoleNameUniqueness(ctx context.Context, client *msgraphbetasdk.GraphSe
 	roles := existingRoles.GetValue()
 	for _, role := range roles {
 		if role.GetDisplayName() != nil && *role.GetDisplayName() == displayName {
-			return fmt.Errorf("a role definition with the display name '%s' already exists - role names must be unique", displayName)
+			return fmt.Errorf("%w: '%s' - role names must be unique", sentinels.ErrRoleDefinitionNameExists, displayName)
 		}
 	}
 

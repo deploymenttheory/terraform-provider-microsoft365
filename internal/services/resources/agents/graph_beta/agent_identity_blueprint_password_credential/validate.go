@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -51,7 +52,8 @@ func validateCredentialStartDateIsNotInThePast(ctx context.Context, data *AgentI
 	allowedStartTime := now.Add(bufferDuration)
 
 	if startDate.Before(allowedStartTime) {
-		return fmt.Errorf("start_date_time '%s' is in the past. Microsoft Graph requires that credential start dates are either now or in the future. Current time (UTC): %s",
+		return fmt.Errorf("%w: '%s'. Microsoft Graph requires that credential start dates are either now or in the future. Current time (UTC): %s",
+			sentinels.ErrStartDateInPast,
 			startDateStr,
 			now.Format(time.RFC3339))
 	}
@@ -85,7 +87,7 @@ func validateCredentialEndDateIsAfterStartDate(ctx context.Context, data *AgentI
 	}
 
 	if !endDate.After(startDate) {
-		return fmt.Errorf("end_date_time '%s' must be after start_date_time '%s'", endDateStr, startDateStr)
+		return fmt.Errorf("%w: end_date_time '%s', start_date_time '%s'", sentinels.ErrEndDateBeforeStartDate, endDateStr, startDateStr)
 	}
 
 	tflog.Debug(ctx, "Date order validation passed: end_date_time is after start_date_time")
