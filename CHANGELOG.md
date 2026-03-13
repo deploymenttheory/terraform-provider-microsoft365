@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.49.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.49.0-alpha...v0.49.1-alpha) (2026-03-13)
+
+
+### Bug Fixes
+
+* migrated all dynamic errors in validate.go implementations to use sentinel errors. ([#2545](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2545)) ([32f4cf1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/32f4cf101a8404c242bca0f8cb808487ba95ff95))
+
 ## [0.49.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.48.0-alpha...v0.49.0-alpha) (2026-03-13)
 
 
