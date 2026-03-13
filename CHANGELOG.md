@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.49.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.48.0-alpha...v0.49.0-alpha) (2026-03-13)
+
+
+### Features
+
+* add added resource microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy ([9f9b7b2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9f9b7b2664aa3d2e8b1f67feb0dcfde883203765))
+* add added resource microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy ([#2539](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2539)) ([22b68c0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/22b68c080c30709a375afee50538e60a116ade63))
+* added resource graph_beta_identity_and_access_cross_tenant_access_default_settings ([#2540](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2540)) ([0edaa28](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0edaa285c0dc19b0d24a2e55c8015174b85a5d96))
+* added resource graph_beta_identity_and_access_cross_tenant_access_default_settings.md ([5f63cd4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5f63cd44c65d6056af05f9148a6e4e32fa6fbd7b))
+* added resource graph_beta_identity_and_access_cross_tenant_access_partner_settings ([#2544](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2544)) ([8ee428e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8ee428e6c2dea3155756420511a1f1c37204f837))
+* added resource graph_beta_identity_and_access_cross_tenant_access_partner_user_sync_settings ([#2542](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2542)) ([4b44750](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4b44750ecf607bb2d5b98965f05c0a873768615f))
+* enhance CrossTenantAccessDefaultSettingsMock with additional user and group mock registrations ([aeace3b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/aeace3b3d0cb2f09fddb8cb4c6bebfc3a962185d))
+* implement validation for CrossTenantAccessPartnerUserSyncSettings resource ([#2543](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2543)) ([b6a1ff4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b6a1ff450513e7a3ad727c093f1a869d9f1b558c))
+
+
+### Bug Fixes
+
+* for schema validation for device config assignments ([19d4a90](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/19d4a90d08d8ef31fda8fb6e10eb141198de07c0))
+* for schema validation for resources using DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema ([#2537](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2537)) ([122dc46](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/122dc4666811ed662685e7d3c92e95b42760f24a))
+
 ## [0.48.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.47.0-alpha...v0.48.0-alpha) (2026-03-06)
 
 
