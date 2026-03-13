@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -21,7 +22,7 @@ func ValidateValues(ctx context.Context, client *msgraphbetasdk.GraphServiceClie
 	// Get resolved presentations from AdditionalData (set by resolver)
 	resolvedPresentations, ok := data.AdditionalData["resolvedPresentations"].([]ResolvedPresentation)
 	if !ok || len(resolvedPresentations) == 0 {
-		return fmt.Errorf("validation failed: no presentations found for policy '%s'", data.PolicyName.ValueString())
+		return fmt.Errorf("%w for policy '%s'", sentinels.ErrNoPresentationsFound, data.PolicyName.ValueString())
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("[VALIDATE] Validating %d resolved presentations", len(resolvedPresentations)))
@@ -50,8 +51,8 @@ func ValidateValues(ctx context.Context, client *msgraphbetasdk.GraphServiceClie
 			for l := range labelToPres {
 				availableLabels = append(availableLabels, l)
 			}
-			return fmt.Errorf("validation failed for value[%d]: label '%s' not found in policy. Available labels: %s",
-				i, label, strings.Join(availableLabels, ", "))
+			return fmt.Errorf("validation failed for value[%d]: %w: '%s'. Available labels: %s",
+				i, sentinels.ErrLabelNotFound, label, strings.Join(availableLabels, ", "))
 		}
 
 		// Validate value format based on presentation type
@@ -72,7 +73,7 @@ func validateValueForType(ctx context.Context, label, value, odataType string) e
 	case "#microsoft.graph.groupPolicyPresentationCheckBox":
 		// Must be a boolean
 		if _, err := strconv.ParseBool(value); err != nil {
-			return fmt.Errorf("checkbox '%s' requires a boolean value ('true' or 'false'), got '%s'", label, value)
+			return fmt.Errorf("%w for checkbox '%s', got '%s'", sentinels.ErrCheckboxRequiresBooleanValue, label, value)
 		}
 
 	case "#microsoft.graph.groupPolicyPresentationTextBox":
@@ -99,13 +100,13 @@ func validateValueForType(ctx context.Context, label, value, odataType string) e
 		// Would need to validate against allowed options, but that requires fetching dropdown items
 		// For now, just ensure non-empty
 		if value == "" {
-			return fmt.Errorf("dropdown/combobox '%s' requires a non-empty value", label)
+			return fmt.Errorf("%w: '%s'", sentinels.ErrDropdownRequiresNonEmptyValue, label)
 		}
 
 	case "#microsoft.graph.groupPolicyPresentationText",
 		"#microsoft.graph.groupPolicyPresentationLabel":
 		// Read-only presentation types - users shouldn't provide values for these
-		return fmt.Errorf("presentation '%s' is read-only (type: %s) and cannot have a value set", label, odataType)
+		return fmt.Errorf("%w: '%s' (type: %s)", sentinels.ErrPresentationReadOnly, label, odataType)
 
 	default:
 		// Unknown type - log warning but don't fail
@@ -195,7 +196,7 @@ func ConvertValueForType(ctx context.Context, label, value, odataType string) (g
 		return presValue, nil
 
 	default:
-		return nil, fmt.Errorf("unsupported presentation type '%s' for label '%s'", odataType, label)
+		return nil, fmt.Errorf("%w: '%s' for label '%s'", sentinels.ErrUnsupportedPresentationType, odataType, label)
 	}
 }
 

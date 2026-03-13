@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -17,11 +18,11 @@ import (
 // validateRequest validates the plan data before the API request is constructed.
 //
 // This function performs two types of validation:
-// 1. Validates that the partner tenant_id exists via the Microsoft Graph API
-// 2. When b2b_direct_connect_outbound.users_and_groups is configured with access_type = "blocked"
-//    and one or more targets are specific user or group GUIDs (i.e. not the special value "AllUsers"),
-//    this function batches the GUIDs by type and verifies each exists in the tenant via paginated
-//    Graph API list calls with an OData id-in filter.
+//  1. Validates that the partner tenant_id exists via the Microsoft Graph API
+//  2. When b2b_direct_connect_outbound.users_and_groups is configured with access_type = "blocked"
+//     and one or more targets are specific user or group GUIDs (i.e. not the special value "AllUsers"),
+//     this function batches the GUIDs by type and verifies each exists in the tenant via paginated
+//     Graph API list calls with an OData id-in filter.
 func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, data *CrossTenantAccessPartnerSettingsResourceModel) error {
 	tflog.Debug(ctx, "Starting partner settings request validation")
 
@@ -124,7 +125,7 @@ func validateMicrosoftEntraOrganization(ctx context.Context, client *msgraphbeta
 	}
 
 	if tenantInfo == nil {
-		return fmt.Errorf("tenant ID '%s' does not exist or is not accessible", tenantID)
+		return fmt.Errorf("%w: '%s' does not exist or is not accessible", sentinels.ErrInvalidTenantID, tenantID)
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully validated tenant ID: %s", tenantID))
@@ -157,7 +158,7 @@ func validateUsersExist(ctx context.Context, client *msgraphbetasdk.GraphService
 
 	requestParams := &users.UsersRequestBuilderGetRequestConfiguration{
 		QueryParameters: &users.UsersRequestBuilderGetQueryParameters{
-			Filter:  &filter,
+			Filter: &filter,
 			Select: selectFields,
 		},
 	}
@@ -196,7 +197,7 @@ func validateUsersExist(ctx context.Context, client *msgraphbetasdk.GraphService
 	}
 
 	if len(missing) > 0 {
-		return fmt.Errorf("b2b_direct_connect_outbound validation failed: user IDs not found in tenant: %s", strings.Join(missing, ", "))
+		return fmt.Errorf("b2b_direct_connect_outbound validation failed: %w: %s", sentinels.ErrInvalidUserGUIDs, strings.Join(missing, ", "))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Validated %d user IDs exist in tenant", len(userIDs)))
@@ -217,7 +218,7 @@ func validateGroupsExist(ctx context.Context, client *msgraphbetasdk.GraphServic
 
 	requestParams := &groups.GroupsRequestBuilderGetRequestConfiguration{
 		QueryParameters: &groups.GroupsRequestBuilderGetQueryParameters{
-			Filter:  &filter,
+			Filter: &filter,
 			Select: selectFields,
 		},
 	}
@@ -256,7 +257,7 @@ func validateGroupsExist(ctx context.Context, client *msgraphbetasdk.GraphServic
 	}
 
 	if len(missing) > 0 {
-		return fmt.Errorf("b2b_direct_connect_outbound validation failed: group IDs not found in tenant: %s", strings.Join(missing, ", "))
+		return fmt.Errorf("b2b_direct_connect_outbound validation failed: %w: %s", sentinels.ErrInvalidGroupGUIDs, strings.Join(missing, ", "))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Validated %d group IDs exist in tenant", len(groupIDs)))

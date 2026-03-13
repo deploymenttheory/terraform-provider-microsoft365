@@ -14,8 +14,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-const baseURL = "https://graph.microsoft.com/beta/policies/crossTenantAccessPolicy/partners"
-
 // mockState holds the in-memory state for partner user sync settings.
 var mockState struct {
 	sync.Mutex

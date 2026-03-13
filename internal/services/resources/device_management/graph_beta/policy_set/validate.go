@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	deviceappmanagement "github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
@@ -56,7 +57,7 @@ func validatePolicySetItem(ctx context.Context, client *msgraphbetasdk.GraphServ
 	case "windows_autopilot_deployment_profile":
 		return validateWindowsAutopilotDeploymentProfileId(ctx, client, payloadId, index, resp, requiredPermissions)
 	default:
-		return fmt.Errorf("unsupported policy set item type at index %d: %s", index, itemType)
+		return fmt.Errorf("%w at index %d: %s", sentinels.ErrInvalidPolicySetItemType, index, itemType)
 	}
 }
 
@@ -86,7 +87,7 @@ func validateMobileAppId(ctx context.Context, client *msgraphbetasdk.GraphServic
 	}
 
 	if apps == nil || apps.GetValue() == nil {
-		return fmt.Errorf("mobile app ID %s at index %d is not a valid Intune mobile app ID", appId, index)
+		return fmt.Errorf("mobile app ID %s at index %d %w", appId, index, sentinels.ErrInvalidMobileAppID)
 	}
 
 	for _, app := range apps.GetValue() {
@@ -96,7 +97,7 @@ func validateMobileAppId(ctx context.Context, client *msgraphbetasdk.GraphServic
 		}
 	}
 
-	return fmt.Errorf("mobile app ID %s at index %d is not a valid Intune mobile app ID", appId, index)
+	return fmt.Errorf("mobile app ID %s at index %d %w", appId, index, sentinels.ErrInvalidMobileAppID)
 }
 
 // validateManagedAppPolicyId validates that a managed app policy ID exists in Intune
@@ -119,7 +120,7 @@ func validateManagedAppPolicyId(ctx context.Context, client *msgraphbetasdk.Grap
 	}
 
 	if policies == nil || policies.GetValue() == nil {
-		return fmt.Errorf("managed app policy ID %s at index %d is not a valid Intune managed app policy ID", policyId, index)
+		return fmt.Errorf("managed app policy ID %s at index %d %w", policyId, index, sentinels.ErrInvalidManagedAppPolicyID)
 	}
 
 	// Check if the policy ID exists in the returned list
@@ -130,7 +131,7 @@ func validateManagedAppPolicyId(ctx context.Context, client *msgraphbetasdk.Grap
 		}
 	}
 
-	return fmt.Errorf("managed app policy ID %s at index %d is not a valid Intune managed app policy ID", policyId, index)
+	return fmt.Errorf("managed app policy ID %s at index %d %w", policyId, index, sentinels.ErrInvalidManagedAppPolicyID)
 }
 
 // validateDeviceConfigurationId validates that a device configuration ID exists in Intune
@@ -159,7 +160,7 @@ func validateDeviceConfigurationId(ctx context.Context, client *msgraphbetasdk.G
 	}
 
 	if configurations == nil || configurations.GetValue() == nil {
-		return fmt.Errorf("device configuration ID %s at index %d is not a valid Intune device configuration ID", configId, index)
+		return fmt.Errorf("device configuration ID %s at index %d %w", configId, index, sentinels.ErrInvalidDeviceConfigurationID)
 	}
 
 	// Check if the configuration ID exists in the returned list
@@ -170,7 +171,7 @@ func validateDeviceConfigurationId(ctx context.Context, client *msgraphbetasdk.G
 		}
 	}
 
-	return fmt.Errorf("device configuration ID %s at index %d is not a valid Intune device configuration ID", configId, index)
+	return fmt.Errorf("device configuration ID %s at index %d %w", configId, index, sentinels.ErrInvalidDeviceConfigurationID)
 }
 
 // validateWindowsAutopilotDeploymentProfileId validates that a Windows Autopilot deployment profile ID exists in Intune
@@ -193,7 +194,7 @@ func validateWindowsAutopilotDeploymentProfileId(ctx context.Context, client *ms
 	}
 
 	if profiles == nil || profiles.GetValue() == nil {
-		return fmt.Errorf("Windows Autopilot deployment profile ID %s at index %d is not a valid Intune deployment profile ID", profileId, index)
+		return fmt.Errorf("Windows Autopilot deployment profile ID %s at index %d %w", profileId, index, sentinels.ErrInvalidAutopilotProfileID)
 	}
 
 	// Check if the profile ID exists in the returned list
@@ -204,7 +205,7 @@ func validateWindowsAutopilotDeploymentProfileId(ctx context.Context, client *ms
 		}
 	}
 
-	return fmt.Errorf("Windows Autopilot deployment profile ID %s at index %d is not a valid Intune deployment profile ID", profileId, index)
+	return fmt.Errorf("Windows Autopilot deployment profile ID %s at index %d %w", profileId, index, sentinels.ErrInvalidAutopilotProfileID)
 }
 
 // validateDeviceCompliancePolicyId validates that a device compliance policy ID exists in Intune
@@ -249,7 +250,7 @@ func validateDeviceCompliancePolicyId(ctx context.Context, client *msgraphbetasd
 	}
 
 	if policies == nil || policies.GetValue() == nil {
-		return fmt.Errorf("device compliance policy ID %s at index %d is not a valid Intune compliance policy ID", policyId, index)
+		return fmt.Errorf("device compliance policy ID %s at index %d %w", policyId, index, sentinels.ErrInvalidCompliancePolicyID)
 	}
 
 	// Check if the policy ID exists in the returned list
@@ -260,5 +261,5 @@ func validateDeviceCompliancePolicyId(ctx context.Context, client *msgraphbetasd
 		}
 	}
 
-	return fmt.Errorf("device compliance policy ID %s at index %d is not a valid Intune compliance policy ID", policyId, index)
+	return fmt.Errorf("device compliance policy ID %s at index %d %w", policyId, index, sentinels.ErrInvalidCompliancePolicyID)
 }

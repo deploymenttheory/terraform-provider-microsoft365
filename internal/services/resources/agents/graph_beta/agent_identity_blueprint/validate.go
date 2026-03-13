@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -28,17 +29,17 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 // validateSponsorIsTypeUser validates that all sponsor IDs are users
 func validateSponsorIsTypeUser(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, sponsorUserIds types.Set) error {
 	if sponsorUserIds.IsNull() || sponsorUserIds.IsUnknown() {
-		return fmt.Errorf("sponsor_user_ids cannot be null or unknown")
+		return sentinels.ErrSponsorUserIDsNullOrUnknown
 	}
 
 	var sponsorIds []string
 	diags := sponsorUserIds.ElementsAs(ctx, &sponsorIds, false)
 	if diags.HasError() {
-		return fmt.Errorf("failed to extract sponsor_user_ids: %v", diags.Errors())
+		return fmt.Errorf("failed to extract sponsor_user_ids: %v", diags.Errors()[0])
 	}
 
 	if len(sponsorIds) == 0 {
-		return fmt.Errorf("at least one sponsor is required")
+		return sentinels.ErrAtLeastOneSponsorRequired
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Validating %d sponsor IDs", len(sponsorIds)))
@@ -54,7 +55,7 @@ func validateSponsorIsTypeUser(ctx context.Context, client *msgraphbetasdk.Graph
 		}
 
 		if user.GetId() == nil {
-			return fmt.Errorf("sponsor ID %s returned a null user object", sponsorID)
+			return fmt.Errorf("%w for sponsor ID %s", sentinels.ErrSponsorUserObjectNull, sponsorID)
 		}
 
 		tflog.Debug(ctx, fmt.Sprintf("Successfully validated sponsor ID %s as user", sponsorID))
@@ -66,17 +67,17 @@ func validateSponsorIsTypeUser(ctx context.Context, client *msgraphbetasdk.Graph
 // validateOwnerIsTypeUser validates that all owner IDs are users
 func validateOwnerIsTypeUser(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, ownerUserIds types.Set) error {
 	if ownerUserIds.IsNull() || ownerUserIds.IsUnknown() {
-		return fmt.Errorf("owner_user_ids cannot be null or unknown")
+		return sentinels.ErrOwnerUserIDsNullOrUnknown
 	}
 
 	var ownerIds []string
 	diags := ownerUserIds.ElementsAs(ctx, &ownerIds, false)
 	if diags.HasError() {
-		return fmt.Errorf("failed to extract owner_user_ids: %v", diags.Errors())
+		return fmt.Errorf("failed to extract owner_user_ids: %v", diags.Errors()[0])
 	}
 
 	if len(ownerIds) == 0 {
-		return fmt.Errorf("at least one owner is required")
+		return sentinels.ErrAtLeastOneOwnerRequired
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Validating %d owner IDs", len(ownerIds)))
@@ -92,7 +93,7 @@ func validateOwnerIsTypeUser(ctx context.Context, client *msgraphbetasdk.GraphSe
 		}
 
 		if user.GetId() == nil {
-			return fmt.Errorf("owner ID %s returned a null user object", ownerID)
+			return fmt.Errorf("%w for owner ID %s", sentinels.ErrOwnerUserObjectNull, ownerID)
 		}
 
 		tflog.Debug(ctx, fmt.Sprintf("Successfully validated owner ID %s as user", ownerID))

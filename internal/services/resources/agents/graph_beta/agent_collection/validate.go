@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -23,7 +24,7 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 // validateDisplayName validates that no other agent collection exists with the same display name
 func validateDisplayName(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, displayName string, currentID string) error {
 	if displayName == "" {
-		return fmt.Errorf("display_name cannot be empty")
+		return sentinels.ErrEmptyDisplayName
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Validating display name uniqueness: %s", displayName))
@@ -56,7 +57,7 @@ func validateDisplayName(ctx context.Context, client *msgraphbetasdk.GraphServic
 		}
 
 		if *collectionDisplayName == displayName {
-			return fmt.Errorf("an agent collection with display name '%s' already exists (ID: %s)", displayName, *collectionID)
+			return fmt.Errorf("%w: an agent collection with display name '%s' already exists (ID: %s)", sentinels.ErrDuplicateDisplayName, displayName, *collectionID)
 		}
 	}
 
