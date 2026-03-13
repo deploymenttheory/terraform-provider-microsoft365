@@ -26,10 +26,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *CrossTenantAcc
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 
 	if userSyncInbound := remoteResource.GetUserSyncInbound(); userSyncInbound != nil {
-		if data.UserSyncInbound == nil {
-			data.UserSyncInbound = &CrossTenantUserSyncInbound{}
+		data.UserSyncInbound = &CrossTenantUserSyncInbound{
+			IsSyncAllowed: convert.GraphToFrameworkBool(userSyncInbound.GetIsSyncAllowed()),
 		}
-		data.UserSyncInbound.IsSyncAllowed = convert.GraphToFrameworkBool(userSyncInbound.GetIsSyncAllowed())
 	} else {
 		data.UserSyncInbound = nil
 	}

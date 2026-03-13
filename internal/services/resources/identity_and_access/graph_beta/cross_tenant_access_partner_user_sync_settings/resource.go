@@ -17,9 +17,16 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-var _ resource.Resource = &CrossTenantAccessPartnerUserSyncSettingsResource{}
-var _ resource.ResourceWithConfigure = &CrossTenantAccessPartnerUserSyncSettingsResource{}
-var _ resource.ResourceWithImportState = &CrossTenantAccessPartnerUserSyncSettingsResource{}
+var (
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &CrossTenantAccessPartnerUserSyncSettingsResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &CrossTenantAccessPartnerUserSyncSettingsResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &CrossTenantAccessPartnerUserSyncSettingsResource{}
+)
 
 const (
 	ResourceName  = "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_user_sync_settings"
@@ -33,7 +40,6 @@ func NewCrossTenantAccessPartnerUserSyncSettingsResource() resource.Resource {
 	return &CrossTenantAccessPartnerUserSyncSettingsResource{
 		ReadPermissions: []string{
 			"Policy.Read.All",
-			"Policy.ReadWrite.CrossTenantAccess",
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.CrossTenantAccess",
@@ -47,16 +53,6 @@ type CrossTenantAccessPartnerUserSyncSettingsResource struct {
 	TypeName         string
 	ReadPermissions  []string
 	WritePermissions []string
-}
-
-// GetID returns the ID of the resource.
-func (r *CrossTenantAccessPartnerUserSyncSettingsResource) GetID() string {
-	return ResourceName
-}
-
-// GetTypeName returns the type name of the resource from the state.
-func (r *CrossTenantAccessPartnerUserSyncSettingsResource) GetTypeName() string {
-	return r.TypeName
 }
 
 // Metadata returns the resource type name.

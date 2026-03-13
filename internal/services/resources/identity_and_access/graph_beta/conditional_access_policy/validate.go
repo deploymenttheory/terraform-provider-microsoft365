@@ -73,28 +73,24 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 		}
 	}
 
-	// Validate user inclusion assignment requirements
 	if data.Conditions != nil && data.Conditions.Users != nil {
 		if err := validateUserInclusionAssignments(ctx, data.Conditions.Users); err != nil {
 			return fmt.Errorf("validation failed for 'include_users': %w", err)
 		}
 	}
 
-	// Validate application inclusion assignment requirements
 	if data.Conditions != nil && data.Conditions.Applications != nil {
 		if err := validateApplicationInclusionAssignments(ctx, data.Conditions.Applications); err != nil {
 			return fmt.Errorf("validation failed for 'include_applications': %w", err)
 		}
 	}
 
-	// Validate trusted locations
 	if data.Conditions != nil && data.Conditions.Locations != nil {
 		if err := validateTrustedLocations(ctx, client, data.Conditions.Locations); err != nil {
 			return fmt.Errorf("validation failed for 'include_locations' or 'exclude_locations': %w", err)
 		}
 	}
 
-	// Validate session controls
 	if data.SessionControls != nil {
 		if err := validateSessionControls(ctx, data.SessionControls); err != nil {
 			return fmt.Errorf("validation failed for 'session_controls': %w", err)
@@ -148,13 +144,11 @@ func validateRoles(ctx context.Context, client *msgraphbetasdk.GraphServiceClien
 		return nil
 	}
 
-	// Fetch role definitions from Microsoft Graph API using SDK
 	roleDefinitions, err := getRoleDefinitions(ctx, client)
 	if err != nil {
 		return fmt.Errorf("failed to fetch role definitions from Microsoft Graph: %w", err)
 	}
 
-	// Create a map of valid role GUIDs for quick lookup
 	validRoleGUIDs := make(map[string]graphmodels.UnifiedRoleDefinitionable)
 	for _, role := range roleDefinitions {
 		if role.GetId() != nil {
@@ -173,7 +167,6 @@ func validateRoles(ctx context.Context, client *msgraphbetasdk.GraphServiceClien
 		}
 	}
 
-	// Return error if any invalid roles found
 	if len(invalidRoles) > 0 {
 		return fmt.Errorf("invalid role GUIDs found in %s: %v. Please verify these built in roles exist in your Microsoft Entra ID tenant", fieldName, invalidRoles)
 	}
@@ -222,7 +215,6 @@ func validateUsers(ctx context.Context, client *msgraphbetasdk.GraphServiceClien
 		}
 	}
 
-	// Return error if any invalid users found
 	if len(invalidUsers) > 0 {
 		return fmt.Errorf("invalid user GUIDs found in %s: %v. Please verify these users exist in your Microsoft Entra ID tenant", fieldName, invalidUsers)
 	}
@@ -240,6 +232,7 @@ func getRoleDefinitions(ctx context.Context, client *msgraphbetasdk.GraphService
 		Directory().
 		RoleDefinitions().
 		Get(ctx, nil)
+
 	if err != nil {
 		return nil, fmt.Errorf("error fetching role definitions: %w", err)
 	}
@@ -273,7 +266,6 @@ func validateMicrosoftEntraOrganization(ctx context.Context, client *msgraphbeta
 		return nil
 	}
 
-	// Validate each tenant ID
 	var invalidTenantIDs []string
 	var tenantDetails []string
 
@@ -300,14 +292,12 @@ func validateMicrosoftEntraOrganization(ctx context.Context, client *msgraphbeta
 			tenantID, displayName, domainName))
 	}
 
-	// Log validated tenant details
 	if len(tenantDetails) > 0 {
 		tflog.Debug(ctx, "Validated tenant information:", map[string]any{
 			"tenants": tenantDetails,
 		})
 	}
 
-	// Return error if any invalid tenant IDs found
 	if len(invalidTenantIDs) > 0 {
 		return fmt.Errorf("invalid Microsoft Entra organization tenant ID found: %v. Please verify these tenant IDs are valid", invalidTenantIDs)
 	}
@@ -320,8 +310,11 @@ func validateMicrosoftEntraOrganization(ctx context.Context, client *msgraphbeta
 func getTenantInformationByTenantID(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, tenantID string) (graphmodels.TenantInformationable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Validating tenant ID: %s", tenantID))
 
-	// Use the SDK to find tenant information by tenant ID
-	tenantInfo, err := client.TenantRelationships().FindTenantInformationByTenantIdWithTenantId(&tenantID).Get(ctx, nil)
+	tenantInfo, err := client.
+		TenantRelationships().
+		FindTenantInformationByTenantIdWithTenantId(&tenantID).
+		Get(ctx, nil)
+
 	if err != nil {
 		return nil, fmt.Errorf("tenant ID validation failed: %w", err)
 	}
@@ -333,14 +326,12 @@ func getTenantInformationByTenantID(ctx context.Context, client *msgraphbetasdk.
 func validateUserExists(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, userGUID string) error {
 	tflog.Debug(ctx, fmt.Sprintf("Validating user GUID: %s", userGUID))
 
-	// Use SDK to fetch user - the SDK automatically handles the request
 	user, err := client.
 		Users().
 		ByUserId(userGUID).
 		Get(ctx, nil)
 
 	if err != nil {
-		// Check if it's a not found error
 		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "not found") {
 			return fmt.Errorf("user not found")
 		}
@@ -367,7 +358,6 @@ func validateUserExists(ctx context.Context, client *msgraphbetasdk.GraphService
 func validateUserInclusionAssignments(ctx context.Context, users *ConditionalAccessUsers) error {
 	tflog.Debug(ctx, "Starting conditional access policy user inclusion assignment validation")
 
-	// Helper function to check if a set has non-empty values
 	hasNonEmptyValues := func(set types.Set) bool {
 		if set.IsNull() || set.IsUnknown() {
 			return false
@@ -453,14 +443,12 @@ func validateUserInclusionAssignments(ctx context.Context, users *ConditionalAcc
 func validateTrustedLocations(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, locations *ConditionalAccessLocations) error {
 	tflog.Debug(ctx, "Starting trusted locations validation")
 
-	// Validate include_locations
 	if !locations.IncludeLocations.IsNull() && !locations.IncludeLocations.IsUnknown() {
 		if err := validateLocationSet(ctx, client, locations.IncludeLocations, "include_locations"); err != nil {
 			return fmt.Errorf("validation failed for include_locations: %w", err)
 		}
 	}
 
-	// Validate exclude_locations
 	if !locations.ExcludeLocations.IsNull() && !locations.ExcludeLocations.IsUnknown() {
 		if err := validateLocationSet(ctx, client, locations.ExcludeLocations, "exclude_locations"); err != nil {
 			return fmt.Errorf("validation failed for exclude_locations: %w", err)
@@ -503,7 +491,7 @@ func validateLocationSet(ctx context.Context, client *msgraphbetasdk.GraphServic
 	}
 
 	// Fetch named locations from Microsoft Graph API using SDK
-	namedLocations, err := fetchNamedLocations(ctx, client)
+	namedLocations, err := getNamedLocations(ctx, client)
 	if err != nil {
 		return fmt.Errorf("failed to fetch named locations from Microsoft Graph: %w", err)
 	}
@@ -533,7 +521,6 @@ func validateLocationSet(ctx context.Context, client *msgraphbetasdk.GraphServic
 		}
 	}
 
-	// Return error if any invalid locations found
 	if len(invalidLocations) > 0 {
 		return fmt.Errorf("invalid location GUIDs found in %s: %v. Please verify these named locations exist in your Microsoft Entra ID tenant", fieldName, invalidLocations)
 	}
@@ -542,12 +529,16 @@ func validateLocationSet(ctx context.Context, client *msgraphbetasdk.GraphServic
 	return nil
 }
 
-// fetchNamedLocations retrieves named locations from Microsoft Graph API using SDK
-func fetchNamedLocations(ctx context.Context, client *msgraphbetasdk.GraphServiceClient) ([]graphmodels.NamedLocationable, error) {
+// getNamedLocations retrieves named locations from Microsoft Graph API using SDK
+func getNamedLocations(ctx context.Context, client *msgraphbetasdk.GraphServiceClient) ([]graphmodels.NamedLocationable, error) {
 	tflog.Debug(ctx, "Fetching named locations from Microsoft Graph API")
 
-	// Use SDK to fetch named locations
-	result, err := client.Identity().ConditionalAccess().NamedLocations().Get(ctx, nil)
+	result, err := client.
+		Identity().
+		ConditionalAccess().
+		NamedLocations().
+		Get(ctx, nil)
+
 	if err != nil {
 		return nil, fmt.Errorf("error fetching named locations: %w", err)
 	}
