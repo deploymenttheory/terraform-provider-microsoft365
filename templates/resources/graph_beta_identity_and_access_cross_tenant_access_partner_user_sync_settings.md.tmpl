@@ -1,0 +1,53 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [crossTenantIdentitySyncPolicyPartner resource type](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantidentitysyncpolicypartner?view=graph-rest-beta)
+- [Create identitySynchronization](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationpartner-put-identitysynchronization?view=graph-rest-beta)
+- [Get crossTenantIdentitySyncPolicyPartner](https://learn.microsoft.com/en-us/graph/api/crosstenantidentitysyncpolicypartner-get?view=graph-rest-beta)
+- [Update crossTenantIdentitySyncPolicyPartner](https://learn.microsoft.com/en-us/graph/api/crosstenantidentitysyncpolicypartner-update?view=graph-rest-beta)
+- [Delete crossTenantIdentitySyncPolicyPartner](https://learn.microsoft.com/en-us/graph/api/crosstenantidentitysyncpolicypartner-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.ReadWrite.CrossTenantAccess`
+
+**Optional (for read operations):**
+- `Policy.Read.All`
+
+Find out more about the permissions required for managing cross-tenant access policies at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantidentitysyncpolicypartner?view=graph-rest-beta).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.49.0 | Experimental | Initial release |
+
+## Important Notes
+
+- **Partner-Specific Configuration**: This resource manages user synchronization settings for a specific partner tenant. Each partner tenant requires its own resource instance.
+- **Tenant ID Validation**: The `tenant_id` is validated against Microsoft Entra ID to ensure it represents a valid organization before creating the resource.
+- **RequiresReplace**: Changing the `tenant_id` will force replacement of the resource, as it's used as the identifier.
+- **User Sync Direction**: Currently, only inbound user synchronization (from partner to your tenant) is supported via the `user_sync_inbound` configuration.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_user_sync_settings/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_user_sync_settings/import.sh" }}

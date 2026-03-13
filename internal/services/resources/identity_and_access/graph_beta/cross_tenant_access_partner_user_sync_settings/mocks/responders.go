@@ -42,6 +42,9 @@ func (m *CrossTenantAccessPartnerUserSyncSettingsMock) RegisterMocks() {
 	mockState.settings = make(map[string]map[string]any)
 	mockState.Unlock()
 
+	// Register tenant validation mock
+	m.registerTenantValidationMock()
+
 	// PUT /beta/policies/crossTenantAccessPolicy/partners/{tenantId}/identitySynchronization - Create
 	httpmock.RegisterResponder("PUT", `=~^https://graph\.microsoft\.com/beta/policies/crossTenantAccessPolicy/partners/([^/]+)/identitySynchronization$`,
 		m.putSettingsResponder())
@@ -155,6 +158,26 @@ func (m *CrossTenantAccessPartnerUserSyncSettingsMock) RegisterErrorMocks() {
 
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/policies/crossTenantAccessPolicy/partners/([^/]+)/identitySynchronization$`,
 		factories.ErrorResponse(403, "Forbidden", "Insufficient privileges to delete identity synchronization"))
+}
+
+// registerTenantValidationMock registers mock response for tenant validation
+func (m *CrossTenantAccessPartnerUserSyncSettingsMock) registerTenantValidationMock() {
+	// GET /beta/tenantRelationships/findTenantInformationByTenantId(tenantId='{id}') - Validate tenant
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/tenantRelationships/findTenantInformationByTenantId\(tenantId='([^']+)'\)$`,
+		func(req *http.Request) (*http.Response, error) {
+			response := map[string]any{
+				"@odata.context":     "https://graph.microsoft.com/beta/$metadata#microsoft.graph.tenantInformation",
+				"tenantId":           "12345678-1234-1234-1234-123456789012",
+				"displayName":        "Partner Organization",
+				"defaultDomainName":  "partner.onmicrosoft.com",
+				"federationBrandName": "Partner Org",
+			}
+			resp, err := httpmock.NewJsonResponse(200, response)
+			if err != nil {
+				return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to create JSON response: %s"}}`, err.Error())), nil
+			}
+			return resp, nil
+		})
 }
 
 // CleanupMockState resets the mock state.

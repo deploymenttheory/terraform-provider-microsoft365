@@ -36,6 +36,14 @@ func (r *CrossTenantAccessPartnerUserSyncSettingsResource) Create(ctx context.Co
 	}
 	defer cancel()
 
+	if err := validateRequest(ctx, r.client, &object); err != nil {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("Pre-request validation failed for resource %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -161,6 +169,14 @@ func (r *CrossTenantAccessPartnerUserSyncSettingsResource) Update(ctx context.Co
 		return
 	}
 	defer cancel()
+
+	if err := validateRequest(ctx, r.client, &object); err != nil {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("Pre-request validation failed for resource %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
 
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
