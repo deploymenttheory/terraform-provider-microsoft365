@@ -1,0 +1,55 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [crossTenantAccessPolicyConfigurationPartner resource type](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantaccesspolicyconfigurationpartner?view=graph-rest-beta)
+- [Create crossTenantAccessPolicyConfigurationPartner](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicy-post-partners?view=graph-rest-beta&tabs=http)
+- [Get crossTenantAccessPolicyConfigurationPartner](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationpartner-get?view=graph-rest-beta&tabs=http)
+- [Update crossTenantAccessPolicyConfigurationPartner](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationpartner-update?view=graph-rest-beta&tabs=http)
+- [Delete crossTenantAccessPolicyConfigurationPartner](https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationpartner-delete?view=graph-rest-beta&tabs=http)
+- [Hard Delete (policydeletableitem-delete)](https://learn.microsoft.com/en-us/graph/api/policydeletableitem-delete?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.Read.All`
+- `Policy.ReadWrite.CrossTenantAccess`
+
+Find out more about the permissions required for managing cross-tenant access policies at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantaccesspolicyconfigurationpartner?view=graph-rest-beta).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.49.0 | Experimental | Initial release |
+
+## Important Notes
+
+- **Partner-Specific Configuration**: This resource configures cross-tenant access settings for a specific partner tenant identified by `tenant_id`. Each partner can have unique B2B collaboration, B2B direct connect, inbound trust, tenant restrictions, and automatic user consent settings.
+- **Create Behavior**: The `create` operation uses a POST request (`/policies/crossTenantAccessPolicy/partners`) to create a new partner configuration.
+- **Update Behavior**: The `update` operation uses a PATCH request to modify the partner configuration.
+- **Delete Behavior**: The `delete` operation supports both soft delete (default) and hard delete:
+  - **Soft Delete** (`hard_delete = false`, default): Moves the partner configuration to deleted items (can be restored within 30 days).
+  - **Hard Delete** (`hard_delete = true`): Permanently removes the partner configuration from deleted items using `/directory/deletedItems/{tenantId}`.
+- **Import with Hard Delete**: When importing, use the format `tenant_id:hard_delete=true` to enable hard delete on destroy. Example: `terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings.example "12345678-1234-1234-1234-123456789012:hard_delete=true"`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/import.sh" }}

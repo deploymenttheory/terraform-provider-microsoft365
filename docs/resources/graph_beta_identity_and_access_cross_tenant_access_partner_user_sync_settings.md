@@ -33,7 +33,7 @@ Find out more about the permissions required for managing cross-tenant access po
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| v0.50.0 | Experimental | Initial release |
+| v0.49.0 | Experimental | Initial release |
 
 ## Important Notes
 
