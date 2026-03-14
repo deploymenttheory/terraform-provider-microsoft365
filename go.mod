@@ -17,7 +17,7 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.14.0
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/lithammer/fuzzysearch v1.1.8
-	github.com/microsoft/kiota-abstractions-go v1.9.3
+	github.com/microsoft/kiota-abstractions-go v1.9.4
 	github.com/microsoft/kiota-http-go v1.5.5
 	github.com/microsoft/kiota-serialization-json-go v1.1.2
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.159.0
