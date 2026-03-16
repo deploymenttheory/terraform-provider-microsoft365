@@ -186,7 +186,7 @@ func TestUnitDatasourceRoleDefinitions_07_ValidationError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigAll(),
-				ExpectError: regexp.MustCompile("Forbidden - 403"),
+				ExpectError: regexp.MustCompile("Insufficient privileges to complete the operation"),
 			},
 		},
 	})

@@ -303,7 +303,7 @@ func TestUnitResourceGroupPolicyDefinition_08_Validation_InvalidLabel(t *testing
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("008_validation_invalid_label.tf"),
-				ExpectError: regexp.MustCompile(`(?s)label.*not found in policy`),
+				ExpectError: regexp.MustCompile(`label not found`),
 			},
 		},
 	})

@@ -26,6 +26,7 @@ func NewConditionalAccessPolicyListResource() list.ListResource {
 	return &ConditionalAccessPolicyListResource{
 		ReadPermissions: []string{
 			"Policy.Read.All",
+			"Policy.Read.ConditionalAccess",
 		},
 		ResourcePath: "/identity/conditionalAccess/policies",
 	}
