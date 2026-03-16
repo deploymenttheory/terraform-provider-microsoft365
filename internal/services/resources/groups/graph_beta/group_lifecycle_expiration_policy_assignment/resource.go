@@ -44,6 +44,7 @@ func NewGroupLifecycleExpirationPolicyAssignmentResource() resource.Resource {
 	return &GroupLifecycleExpirationPolicyAssignmentResource{
 		ReadPermissions: []string{
 			"Directory.Read.All",
+			"Group.ManageProtection.All",
 			"Group.Read.All",
 			"GroupMember.Read.All",
 		},

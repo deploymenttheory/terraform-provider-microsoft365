@@ -45,6 +45,7 @@ func NewGroupOwnerAssignmentResource() resource.Resource {
 		ReadPermissions: []string{
 			"Application.Read.All",
 			"Directory.Read.All",
+			"Group.ManageProtection.All",
 			"Group.Read.All",
 			"GroupMember.Read.All",
 			"User.Read.All",

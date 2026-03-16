@@ -44,6 +44,7 @@ func NewGroupMemberAssignmentResource() resource.Resource {
 	return &GroupMemberAssignmentResource{
 		ReadPermissions: []string{
 			"Directory.Read.All",
+			"Group.ManageProtection.All",
 			"Group.Read.All",
 			"GroupMember.Read.All",
 		},
