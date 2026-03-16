@@ -467,4 +467,3 @@ func mapMicrosoftDefenderForEndpointToState(ctx context.Context, data *DeviceCom
 		"device_threat_protection_required_security_level": convert.GraphToFrameworkEnum(policy.GetDeviceThreatProtectionRequiredSecurityLevel()),
 	})
 }
-

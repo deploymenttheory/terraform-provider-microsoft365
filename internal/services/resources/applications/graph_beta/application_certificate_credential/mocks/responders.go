@@ -175,12 +175,12 @@ func (m *ApplicationCertificateCredentialMock) AddPreExistingCertificates(applic
 		if creds, ok := app["keyCredentials"].([]any); ok {
 			existingCreds = creds
 		}
-		
+
 		// Add new pre-existing certificates
 		for _, cert := range certificates {
 			existingCreds = append(existingCreds, cert)
 		}
-		
+
 		app["keyCredentials"] = existingCreds
 		mockState.applications[applicationID] = app
 	}

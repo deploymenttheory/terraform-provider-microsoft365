@@ -36,7 +36,7 @@ var _ mocks.MockRegistrar = (*SettingsCatalogPolicyMock)(nil)
 // For update tests, the isUpdate parameter indicates if this is an UPDATE operation (vs initial CREATE)
 func getJSONFileForPolicyName(name string, isUpdate bool) string {
 	nameUpper := strings.ToUpper(name)
-	
+
 	// Handle update tests specially - they need different JSON for initial vs updated state
 	if strings.Contains(nameUpper, "UPDATE") && strings.Contains(nameUpper, "REVERSE") {
 		// Test 19: maximal -> minimal
@@ -56,7 +56,7 @@ func getJSONFileForPolicyName(name string, isUpdate bool) string {
 		// Initial state: minimal (file explorer)
 		return "post_settings_catalog_policy_file_explorer_success.json"
 	}
-	
+
 	// Simple policies
 	if strings.Contains(nameUpper, "CAMERA") {
 		return "post_settings_catalog_policy_camera_success.json"
@@ -79,7 +79,7 @@ func getJSONFileForPolicyName(name string, isUpdate bool) string {
 	if strings.Contains(nameUpper, "CREDENTIAL USER INTERFACE") {
 		return "post_settings_catalog_policy_credential_user_interface_success.json"
 	}
-	
+
 	// Medium complexity
 	if strings.Contains(nameUpper, "REMOTE DESKTOP AVD") || strings.Contains(nameUpper, "AVD URL") {
 		return "post_settings_catalog_policy_remote_desktop_avd_url_success.json"
@@ -108,7 +108,7 @@ func getJSONFileForPolicyName(name string, isUpdate bool) string {
 	if strings.Contains(nameUpper, "OFFICE") && strings.Contains(nameUpper, "CONFIGURATION") {
 		return "post_settings_catalog_policy_office_configuration_macos_success.json"
 	}
-	
+
 	// Complex nested structures
 	if strings.Contains(nameUpper, "DEFENDER ANTIVIRUS") && strings.Contains(nameUpper, "SECURITY BASELINE") {
 		return "post_settings_catalog_policy_defender_antivirus_baseline_success.json"
@@ -137,7 +137,7 @@ func getJSONFileForPolicyName(name string, isUpdate bool) string {
 	if strings.Contains(nameUpper, "LOCAL POLICIES") && strings.Contains(nameUpper, "SECURITY OPTIONS") {
 		return "post_settings_catalog_policy_local_policies_security_maximal_success.json"
 	}
-	
+
 	// Default fallback
 	return "post_settings_catalog_policy_minimal_success.json"
 }
@@ -189,13 +189,13 @@ func (m *SettingsCatalogPolicyMock) registerCreatePolicyMock() {
 		// Generate a UUID for the new resource and update the response
 		newId := uuid.New().String()
 		responseObj["id"] = newId
-		
+
 		// Update name and description from request
 		responseObj["name"] = name
 		if desc, ok := requestBody["description"].(string); ok {
 			responseObj["description"] = desc
 		}
-		
+
 		// Extract settings from response and store separately
 		if settings, ok := responseObj["settings"].([]any); ok {
 			settingsObj := map[string]any{
@@ -204,7 +204,7 @@ func (m *SettingsCatalogPolicyMock) registerCreatePolicyMock() {
 			mockState.Lock()
 			mockState.settings[newId] = settingsObj
 			mockState.Unlock()
-			
+
 			// Remove settings from main response as they're fetched separately
 			delete(responseObj, "settings")
 		}
@@ -261,7 +261,7 @@ func (m *SettingsCatalogPolicyMock) registerGetSettingsMocks() {
 		// Return the stored settings data
 		return httpmock.NewJsonResponse(200, settings)
 	})
-	
+
 	// Get settings catalog policy settings - GET /deviceManagement/configurationPolicies('id')/settings (OData format)
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies\('[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'\)/settings`, func(req *http.Request) (*http.Response, error) {
 		path := req.URL.Path
@@ -311,13 +311,13 @@ func (m *SettingsCatalogPolicyMock) registerUpdatePolicyMocks() {
 			}
 		}
 		policy["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
-		
+
 		// For update operations, load the updated JSON to get properly formatted settings
 		if _, ok := requestBody["settings"]; ok {
 			policyName, _ := policy["name"].(string)
 			jsonFileName := getJSONFileForPolicyName(policyName, true)
 			responsesPath := filepath.Join("tests", "responses", "validate_create", jsonFileName)
-			
+
 			if jsonData, err := os.ReadFile(responsesPath); err == nil {
 				var updateResponseObj map[string]any
 				if err := json.Unmarshal(jsonData, &updateResponseObj); err == nil {
@@ -330,13 +330,13 @@ func (m *SettingsCatalogPolicyMock) registerUpdatePolicyMocks() {
 				}
 			}
 		}
-		
+
 		mockState.policies[policyId] = policy
 		mockState.Unlock()
 
 		return httpmock.NewStringResponse(204, ""), nil
 	})
-	
+
 	// Update settings catalog policy - PUT /deviceManagement/configurationPolicies('id') (OData format)
 	httpmock.RegisterResponder("PUT", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies\('[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'\)$`, func(req *http.Request) (*http.Response, error) {
 		path := req.URL.Path
@@ -366,13 +366,13 @@ func (m *SettingsCatalogPolicyMock) registerUpdatePolicyMocks() {
 			}
 		}
 		policy["lastModifiedDateTime"] = "2024-01-02T00:00:00Z"
-		
+
 		// For update operations, load the updated JSON to get properly formatted settings
 		if _, ok := requestBody["settings"]; ok {
 			policyName, _ := policy["name"].(string)
 			jsonFileName := getJSONFileForPolicyName(policyName, true)
 			responsesPath := filepath.Join("tests", "responses", "validate_create", jsonFileName)
-			
+
 			if jsonData, err := os.ReadFile(responsesPath); err == nil {
 				var updateResponseObj map[string]any
 				if err := json.Unmarshal(jsonData, &updateResponseObj); err == nil {
@@ -385,7 +385,7 @@ func (m *SettingsCatalogPolicyMock) registerUpdatePolicyMocks() {
 				}
 			}
 		}
-		
+
 		mockState.policies[policyId] = policy
 		mockState.Unlock()
 
@@ -425,7 +425,7 @@ func (m *SettingsCatalogPolicyMock) registerAssignmentMocks() {
 				if assignmentMap, ok := assignment.(map[string]any); ok {
 					// Generate a unique assignment ID
 					assignmentId := uuid.New().String()
-					
+
 					// Extract target data
 					var target map[string]any
 					if targetData, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
@@ -434,7 +434,7 @@ func (m *SettingsCatalogPolicyMock) registerAssignmentMocks() {
 							target[k] = v
 						}
 					}
-					
+
 					// Create Graph API formatted assignment
 					graphAssignment := map[string]any{
 						"id":          assignmentId,
@@ -442,7 +442,7 @@ func (m *SettingsCatalogPolicyMock) registerAssignmentMocks() {
 						"source":      "direct",
 						"@odata.type": "#microsoft.graph.deviceManagementConfigurationPolicyAssignment",
 					}
-					
+
 					// Add filter information if present
 					if filterType, hasFilterType := assignmentMap["deviceAndAppManagementAssignmentFilterType"]; hasFilterType {
 						graphAssignment["deviceAndAppManagementAssignmentFilterType"] = filterType
@@ -450,16 +450,16 @@ func (m *SettingsCatalogPolicyMock) registerAssignmentMocks() {
 					if filterId, hasFilterId := assignmentMap["deviceAndAppManagementAssignmentFilterId"]; hasFilterId {
 						graphAssignment["deviceAndAppManagementAssignmentFilterId"] = filterId
 					}
-					
+
 					graphAssignments = append(graphAssignments, graphAssignment)
 				}
 			}
-			
+
 			// Store assignments wrapped in value array
 			mockState.assignments[policyId] = map[string]any{
 				"value": graphAssignments,
 			}
-			
+
 			// Update policy's isAssigned field
 			policy["isAssigned"] = len(graphAssignments) > 0
 			mockState.policies[policyId] = policy
@@ -475,7 +475,7 @@ func (m *SettingsCatalogPolicyMock) registerAssignmentMocks() {
 
 		return httpmock.NewStringResponse(200, ""), nil
 	})
-	
+
 	// Get settings catalog policy assignments - GET /deviceManagement/configurationPolicies/{id}/assignments
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/assignments$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
@@ -570,7 +570,7 @@ func (m *SettingsCatalogPolicyMock) registerMockGroups() {
 
 		return httpmock.NewJsonResponse(200, response)
 	})
-	
+
 	// Mock group DELETE - for acceptance tests
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/groups/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		return httpmock.NewStringResponse(204, ""), nil

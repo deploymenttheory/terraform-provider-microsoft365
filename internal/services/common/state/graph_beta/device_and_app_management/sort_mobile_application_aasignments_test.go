@@ -11,11 +11,11 @@ import (
 // TestSortMobileAppAssignments tests the SortMobileAppAssignments function
 func TestSortMobileAppAssignments(t *testing.T) {
 	tests := []struct {
-		name              string
-		assignments       []sharedmodels.MobileAppAssignmentResourceModel
-		expectedOrder     []string // Expected intent order after sort
-		expectedGroupIds  []string // Expected group IDs after sort (for group assignments)
-		validateFunc      func(t *testing.T, sorted []sharedmodels.MobileAppAssignmentResourceModel)
+		name             string
+		assignments      []sharedmodels.MobileAppAssignmentResourceModel
+		expectedOrder    []string // Expected intent order after sort
+		expectedGroupIds []string // Expected group IDs after sort (for group assignments)
+		validateFunc     func(t *testing.T, sorted []sharedmodels.MobileAppAssignmentResourceModel)
 	}{
 		{
 			name:        "Empty assignments list",
@@ -98,24 +98,24 @@ func TestSortMobileAppAssignments(t *testing.T) {
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-123"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-123"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-123"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-123"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("include"),
 					},
 				},
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-123"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-123"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("exclude"),
 					},
 				},
@@ -133,24 +133,24 @@ func TestSortMobileAppAssignments(t *testing.T) {
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-zzz"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-zzz"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-aaa"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-aaa"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-mmm"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-mmm"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
@@ -169,61 +169,61 @@ func TestSortMobileAppAssignments(t *testing.T) {
 				{
 					Intent: types.StringValue("available"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("allDevices"),
+						TargetType: types.StringValue("allDevices"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-zzz"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-zzz"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("include"),
 					},
 				},
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-aaa"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-aaa"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("exclude"),
 					},
 				},
 				{
 					Intent: types.StringValue("uninstall"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("allLicensedUsers"),
+						TargetType: types.StringValue("allLicensedUsers"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("exclusionGroupAssignment"),
-						GroupId:                                    types.StringValue("group-bbb"),
+						TargetType: types.StringValue("exclusionGroupAssignment"),
+						GroupId:    types.StringValue("group-bbb"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
 			},
 			validateFunc: func(t *testing.T, sorted []sharedmodels.MobileAppAssignmentResourceModel) {
 				assert.Len(t, sorted, 5)
-				
+
 				// First by intent: required comes first
 				assert.Equal(t, "required", sorted[0].Intent.ValueString())
 				assert.Equal(t, "required", sorted[1].Intent.ValueString())
 				assert.Equal(t, "required", sorted[2].Intent.ValueString())
 				assert.Equal(t, "available", sorted[3].Intent.ValueString())
 				assert.Equal(t, "uninstall", sorted[4].Intent.ValueString())
-				
+
 				// Within required: groupAssignment, then exclusionGroupAssignment
 				assert.Equal(t, "groupAssignment", sorted[0].Target.TargetType.ValueString())
 				assert.Equal(t, "groupAssignment", sorted[1].Target.TargetType.ValueString())
 				assert.Equal(t, "exclusionGroupAssignment", sorted[2].Target.TargetType.ValueString())
-				
+
 				// Within groupAssignments: exclude before include
 				assert.Equal(t, "exclude", sorted[0].Target.DeviceAndAppManagementAssignmentFilterType.ValueString())
 				assert.Equal(t, "include", sorted[1].Target.DeviceAndAppManagementAssignmentFilterType.ValueString())
-				
+
 				// Group IDs sorted alphabetically
 				assert.Equal(t, "group-aaa", sorted[0].Target.GroupId.ValueString())
 				assert.Equal(t, "group-zzz", sorted[1].Target.GroupId.ValueString())
@@ -250,16 +250,16 @@ func TestSortMobileAppAssignments(t *testing.T) {
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringNull(),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringNull(),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
 				{
 					Intent: types.StringValue("required"),
 					Target: sharedmodels.AssignmentTargetResourceModel{
-						TargetType:                                 types.StringValue("groupAssignment"),
-						GroupId:                                    types.StringValue("group-123"),
+						TargetType: types.StringValue("groupAssignment"),
+						GroupId:    types.StringValue("group-123"),
 						DeviceAndAppManagementAssignmentFilterType: types.StringValue("none"),
 					},
 				},
@@ -276,9 +276,9 @@ func TestSortMobileAppAssignments(t *testing.T) {
 			// Make a copy to avoid modifying the original
 			assignmentsCopy := make([]sharedmodels.MobileAppAssignmentResourceModel, len(tt.assignments))
 			copy(assignmentsCopy, tt.assignments)
-			
+
 			SortMobileAppAssignments(assignmentsCopy)
-			
+
 			if tt.validateFunc != nil {
 				tt.validateFunc(t, assignmentsCopy)
 			}

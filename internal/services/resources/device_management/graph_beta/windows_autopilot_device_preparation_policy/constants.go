@@ -7,7 +7,7 @@ const (
 
 	// Template IDs for different deployment types
 	// Self-deploying/automatic mode uses the automatic template
-	TemplateIDAutomatic  = "a6157a7f-aa00-42d9-ac82-7d2479f545db_1"
+	TemplateIDAutomatic = "a6157a7f-aa00-42d9-ac82-7d2479f545db_1"
 	// User-driven mode uses the user-driven template
 	TemplateIDUserDriven = "80d33118-b7b4-40d8-b15f-81be745e053f_1"
 

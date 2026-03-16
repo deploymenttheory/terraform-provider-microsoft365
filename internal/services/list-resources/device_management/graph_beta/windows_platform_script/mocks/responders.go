@@ -18,7 +18,7 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	scripts           []map[string]any
+	scripts            []map[string]any
 	filterExpectations []string
 }
 

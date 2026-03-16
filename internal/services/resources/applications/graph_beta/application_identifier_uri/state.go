@@ -21,7 +21,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *ApplicationIde
 
 	// For identifier URIs, we just maintain the state as-is
 	// The identifier URI presence is validated during read
-	
+
 	// Set the ID as a composite of application_id/identifier_uri
 	if !data.ApplicationID.IsNull() && !data.IdentifierUri.IsNull() {
 		data.Id = types.StringValue(fmt.Sprintf("%s/%s", data.ApplicationID.ValueString(), data.IdentifierUri.ValueString()))

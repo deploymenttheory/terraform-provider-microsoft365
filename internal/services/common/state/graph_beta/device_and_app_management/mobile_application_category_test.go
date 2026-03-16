@@ -6,9 +6,9 @@ import (
 
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // TestMapMobileAppCategoriesStateToTerraform tests the MapMobileAppCategoriesStateToTerraform function
@@ -69,13 +69,13 @@ func TestMapMobileAppCategoriesStateToTerraform(t *testing.T) {
 			categories: func() []graphmodels.MobileAppCategoryable {
 				businessID := construct.BuiltInCategoryMapping["Business"]
 				customID := "12345678-1234-1234-1234-123456789012"
-				
+
 				cat1 := graphmodels.NewMobileAppCategory()
 				cat1.SetId(&businessID)
-				
+
 				cat2 := graphmodels.NewMobileAppCategory()
 				cat2.SetId(&customID)
-				
+
 				return []graphmodels.MobileAppCategoryable{cat1, cat2}
 			}(),
 			validate: func(t *testing.T, result types.Set) {
@@ -90,7 +90,7 @@ func TestMapMobileAppCategoriesStateToTerraform(t *testing.T) {
 				businessID := construct.BuiltInCategoryMapping["Business"]
 				cat1 := graphmodels.NewMobileAppCategory()
 				cat1.SetId(&businessID)
-				
+
 				return []graphmodels.MobileAppCategoryable{cat1, nil}
 			}(),
 			validate: func(t *testing.T, result types.Set) {
@@ -118,10 +118,10 @@ func TestMapMobileAppCategoriesStateToTerraform(t *testing.T) {
 				businessID := construct.BuiltInCategoryMapping["Business"]
 				validCat := graphmodels.NewMobileAppCategory()
 				validCat.SetId(&businessID)
-				
+
 				invalidCat := graphmodels.NewMobileAppCategory()
 				invalidCat.SetId(nil)
-				
+
 				return []graphmodels.MobileAppCategoryable{invalidCat, validCat, nil}
 			}(),
 			validate: func(t *testing.T, result types.Set) {

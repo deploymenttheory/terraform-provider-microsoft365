@@ -1,0 +1,4 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdates.deploymentAudience",
+  "id": "test-audience-id-001"
+}

@@ -1,0 +1,22 @@
+---
+page_title: "{{.Type}} {{.Name}} {{.ProviderName}}"
+subcategory: "Device Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Type}}: {{.Name}}
+
+{{ .Description | trimspace }}
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_autopatch_deployment/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_windows_autopatch_deployment/import.sh" }}

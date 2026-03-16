@@ -315,4 +315,3 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMinimal
 		},
 	})
 }
-
