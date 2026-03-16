@@ -57,7 +57,9 @@ var (
 func NewCrossTenantAccessDefaultSettingsResource() resource.Resource {
 	return &CrossTenantAccessDefaultSettingsResource{
 		ReadPermissions: []string{
-			"Policy.Read.All",
+			"Directory.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.CrossTenantAccess",

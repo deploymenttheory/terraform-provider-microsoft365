@@ -30,6 +30,7 @@ func NewGroupDataSource() datasource.DataSource {
 	return &GroupDataSource{
 		ReadPermissions: []string{
 			"Directory.Read.All",
+			"Group.ManageProtection.All",
 			"Group.Read.All",
 			"GroupMember.Read.All",
 		},

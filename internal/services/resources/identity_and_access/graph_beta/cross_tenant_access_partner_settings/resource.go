@@ -50,8 +50,10 @@ var (
 func NewCrossTenantAccessPartnerSettingsResource() resource.Resource {
 	return &CrossTenantAccessPartnerSettingsResource{
 		ReadPermissions: []string{
+			"Directory.Read.All",
 			"Policy.Read.All",
-			"Policy.ReadWrite.CrossTenantAccess",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.CrossTenantAccess",

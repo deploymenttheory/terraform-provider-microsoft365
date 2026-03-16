@@ -54,11 +54,13 @@ func NewGroupResource() resource.Resource {
 	return &GroupResource{
 		ReadPermissions: []string{
 			"Directory.Read.All",
+			"Group.ManageProtection.All",
 			"Group.Read.All",
 			"GroupMember.Read.All",
 		},
 		WritePermissions: []string{
 			"Directory.ReadWrite.All",
+			"Group.ManageProtection.All",
 			"Group.ReadWrite.All",
 		},
 		ResourcePath: "/groups",
