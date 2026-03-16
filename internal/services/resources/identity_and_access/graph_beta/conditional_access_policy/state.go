@@ -437,8 +437,9 @@ func mapSessionControls(ctx context.Context, sessionControls graphmodels.Conditi
 		result.SecureSignInSession = mapSecureSignInSession(ctx, secureSignInSession)
 	}
 
-	// GlobalSecureAccessFilteringProfile might be in AdditionalData or future SDK
-	result.GlobalSecureAccessFilteringProfile = nil
+	if globalSecureAccessFilteringProfile := sessionControls.GetGlobalSecureAccessFilteringProfile(); globalSecureAccessFilteringProfile != nil {
+		result.GlobalSecureAccessFilteringProfile = mapGlobalSecureAccessFilteringProfile(ctx, globalSecureAccessFilteringProfile)
+	}
 
 	if disableResilienceDefaults := sessionControls.GetDisableResilienceDefaults(); disableResilienceDefaults != nil {
 		result.DisableResilienceDefaults = convert.GraphToFrameworkBool(disableResilienceDefaults)
@@ -594,6 +595,15 @@ func mapSecureSignInSession(ctx context.Context, secureSignInSession graphmodels
 	result := &ConditionalAccessSecureSignInSession{}
 
 	result.IsEnabled = convert.GraphToFrameworkBool(secureSignInSession.GetIsEnabled())
+
+	return result
+}
+
+func mapGlobalSecureAccessFilteringProfile(ctx context.Context, profile graphmodels.GlobalSecureAccessFilteringProfileSessionControlable) *ConditionalAccessGlobalSecureAccessFilteringProfile {
+	result := &ConditionalAccessGlobalSecureAccessFilteringProfile{}
+
+	result.IsEnabled = convert.GraphToFrameworkBool(profile.GetIsEnabled())
+	result.ProfileId = convert.GraphToFrameworkString(profile.GetProfileId())
 
 	return result
 }
