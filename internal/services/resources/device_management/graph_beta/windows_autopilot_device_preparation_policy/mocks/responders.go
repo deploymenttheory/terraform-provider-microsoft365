@@ -48,6 +48,64 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	mockState.policyAssignments = make(map[string][]any)
 	mockState.Unlock()
 
+	// 0a. Mobile apps - called during validateAllowedApps
+	// Returns the apps referenced in test fixtures (IDs 001-003) with matching types.
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps`,
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(200, map[string]any{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
+				"value": []map[string]any{
+					{
+						"@odata.type": "#microsoft.graph.winGetApp",
+						"id":          "00000000-0000-0000-0000-000000000001",
+						"displayName": "Test WinGet App",
+					},
+					{
+						"@odata.type": "#microsoft.graph.win32LobApp",
+						"id":          "00000000-0000-0000-0000-000000000002",
+						"displayName": "Test Win32 LOB App",
+					},
+					{
+						"@odata.type": "#microsoft.graph.officeSuiteApp",
+						"id":          "00000000-0000-0000-0000-000000000003",
+						"displayName": "Test Office Suite App",
+					},
+				},
+			})
+		},
+	)
+
+	// 0b. Device management scripts - called during validateAllowedScripts
+	// Returns the scripts referenced in test fixtures (IDs 004-006).
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceManagementScripts`,
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewJsonResponse(200, map[string]any{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceManagementScripts",
+				"value": []map[string]any{
+					{
+						"id":          "00000000-0000-0000-0000-000000000004",
+						"displayName": "Test Script 4",
+						"description": "",
+					},
+					{
+						"id":          "00000000-0000-0000-0000-000000000005",
+						"displayName": "Test Script 5",
+						"description": "",
+					},
+					{
+						"id":          "00000000-0000-0000-0000-000000000006",
+						"displayName": "Test Script 6",
+						"description": "",
+					},
+				},
+			})
+		},
+	)
+
 	// 1a. Group owners - called during validateSecurityGroupOwnership
 	// Returns the Intune Provisioning Client as an owner so validation passes.
 	httpmock.RegisterResponder(
