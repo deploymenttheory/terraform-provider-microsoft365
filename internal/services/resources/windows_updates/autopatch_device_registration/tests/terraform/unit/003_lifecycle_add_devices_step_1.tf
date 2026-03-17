@@ -1,0 +1,6 @@
+resource "microsoft365_graph_beta_windows_updates_autopatch_device_registration" "test_003" {
+  update_category = "feature"
+  device_ids = [
+    "12345678-1234-1234-1234-123456789001"
+  ]
+}

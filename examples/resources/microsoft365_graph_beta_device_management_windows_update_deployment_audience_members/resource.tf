@@ -11,7 +11,7 @@ provider "microsoft365" {
 }
 
 # Example 1: Create an audience container
-resource "microsoft365_graph_beta_device_management_windows_autopatch_deployment_audience" "example" {
+resource "microsoft365_graph_beta_windows_updates_autopatch_deployment_audience" "example" {
   timeouts = {
     create = "10m"
     read   = "5m"
@@ -20,8 +20,8 @@ resource "microsoft365_graph_beta_device_management_windows_autopatch_deployment
 }
 
 # Example 2: Populate the audience with device members and exclusions
-resource "microsoft365_graph_beta_device_management_windows_autopatch_deployment_audience_members" "example_devices" {
-  audience_id = microsoft365_graph_beta_device_management_windows_autopatch_deployment_audience.example.id
+resource "microsoft365_graph_beta_windows_updates_autopatch_deployment_audience_members" "example_devices" {
+  audience_id = microsoft365_graph_beta_windows_updates_autopatch_deployment_audience.example.id
   member_type = "azureADDevice"
 
   members = [
@@ -42,8 +42,8 @@ resource "microsoft365_graph_beta_device_management_windows_autopatch_deployment
 }
 
 # Example 3: Use updatable asset groups (for group-based targeting)
-resource "microsoft365_graph_beta_device_management_windows_autopatch_deployment_audience_members" "example_groups" {
-  audience_id = microsoft365_graph_beta_device_management_windows_autopatch_deployment_audience.example.id
+resource "microsoft365_graph_beta_windows_updates_autopatch_deployment_audience_members" "example_groups" {
+  audience_id = microsoft365_graph_beta_windows_updates_autopatch_deployment_audience.example.id
   member_type = "updatableAssetGroup"
 
   members = [

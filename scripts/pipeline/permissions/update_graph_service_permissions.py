@@ -129,6 +129,9 @@ _DOMAIN_PERM_PREFIXES: dict[str, tuple[str, ...]] = {
     'windows_365': (
         'CloudPC.', 'Directory.', 'RoleManagement.',
     ),
+    'windows_updates': (
+        'WindowsUpdates.',
+    ),
 }
 
 # Permission-name suffixes that indicate purely read-only access.

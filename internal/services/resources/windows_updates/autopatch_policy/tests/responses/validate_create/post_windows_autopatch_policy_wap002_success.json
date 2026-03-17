@@ -1,0 +1,29 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/policies/$entity",
+  "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdatePolicy",
+  "id": "00000000-0000-0000-0000-000000000002",
+  "displayName": "WAP002: Windows Autopatch Policy With Approval Rules-v1.0",
+  "description": "Policy with all approval rule types",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "approvalRules": [
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateApprovalRule",
+      "deferralInDays": 0,
+      "classification": "security",
+      "cadence": "monthly"
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateApprovalRule",
+      "deferralInDays": 7,
+      "classification": "nonSecurity",
+      "cadence": "monthly"
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateApprovalRule",
+      "deferralInDays": 0,
+      "classification": "security",
+      "cadence": "outOfBand"
+    }
+  ]
+}

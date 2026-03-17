@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DataSourceName = "microsoft365_graph_beta_device_management_windows_update_catalog_enteries_item"
+	DataSourceName = "microsoft365_graph_beta_windows_updates_catalog_enteries_item"
 	ReadTimeout    = 180
 )
 
