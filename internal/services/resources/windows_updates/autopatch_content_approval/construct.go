@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
@@ -29,7 +30,7 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchContent
 		catalogEntry.SetId(&catalogEntryId)
 		content.SetCatalogEntry(catalogEntry)
 	default:
-		return nil, fmt.Errorf("invalid catalog_entry_type: %s", catalogEntryType)
+		return nil, fmt.Errorf("%w: %s", sentinels.ErrInvalidCatalogEntryType, catalogEntryType)
 	}
 
 	requestBody.SetContent(content)

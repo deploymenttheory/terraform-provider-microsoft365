@@ -123,8 +123,13 @@ func (r *WindowsUpdatesAutopatchDeploymentResource) Schema(ctx context.Context, 
 				},
 			},
 			"settings": schema.SingleNestedAttribute{
-				Optional:            true,
-				MarkdownDescription: "Settings specified on the deployment governing how to deploy content.",
+				Optional: true,
+				MarkdownDescription: "Settings specified on the deployment governing how to deploy content. " +
+					"Settings may be added to a deployment that was created without them, but once configured " +
+					"they cannot be modified in place — changes will require the resource to be replaced.",
+				PlanModifiers: []planmodifier.Object{
+					planmodifiers.RequiresReplaceIfStateNonNullObject(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"schedule": schema.SingleNestedAttribute{
 						Optional:            true,
@@ -186,8 +191,10 @@ func (r *WindowsUpdatesAutopatchDeploymentResource) Schema(ctx context.Context, 
 											},
 										},
 										"threshold": schema.Int32Attribute{
-											Required:            true,
-											MarkdownDescription: "The threshold value that triggers the action.",
+											Optional: true,
+											MarkdownDescription: "The percentage of devices that trigger the action. " +
+												"Required for `rollback` signal. Must not be set when `action` is `offerFallback` " +
+												"(the fallback is offered to all ineligible devices unconditionally).",
 											Validators: []validator.Int32{
 												int32validator.AtLeast(1),
 											},
@@ -233,6 +240,14 @@ func (r *WindowsUpdatesAutopatchDeploymentResource) ConfigValidators(_ context.C
 			map[string]string{
 				"ineligible": "offerFallback",
 			},
+		),
+		// "offerFallback" applies to all ineligible devices unconditionally — threshold is not accepted.
+		resourcevalidator.SetNestedFieldNullWhen(
+			path.Root("settings"),
+			monitoringRules,
+			"action",
+			"offerFallback",
+			"threshold",
 		),
 	}
 }

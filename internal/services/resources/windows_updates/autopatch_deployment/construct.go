@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
@@ -29,7 +30,7 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchDeploym
 			catalogEntry.SetId(&catalogEntryId)
 			content.SetCatalogEntry(catalogEntry)
 		default:
-			return nil, fmt.Errorf("invalid catalog_entry_type: %s", data.Content.CatalogEntryType.ValueString())
+			return nil, fmt.Errorf("%w: %s", sentinels.ErrInvalidCatalogEntryType, data.Content.CatalogEntryType.ValueString())
 		}
 
 		requestBody.SetContent(content)
@@ -111,7 +112,7 @@ func constructDeploymentSettings(ctx context.Context, data *DeploymentSettings) 
 			var ruleModels []MonitoringRule
 			diags := data.Monitoring.MonitoringRules.ElementsAs(ctx, &ruleModels, false)
 			if diags.HasError() {
-				return nil, fmt.Errorf("failed to extract monitoring_rules: %s", diags.Errors())
+				return nil, fmt.Errorf("%w: %s", sentinels.ErrExtractMonitoringRules, diags.Errors())
 			}
 
 			rules := make([]graphmodelswindowsupdates.MonitoringRuleable, 0, len(ruleModels))
@@ -127,7 +128,9 @@ func constructDeploymentSettings(ctx context.Context, data *DeploymentSettings) 
 					return nil, fmt.Errorf("failed to parse monitoring signal: %w", err)
 				}
 
+				if !ruleData.Threshold.IsNull() {
 				convert.FrameworkToGraphInt32(ruleData.Threshold, rule.SetThreshold)
+			}
 
 				if err := convert.FrameworkToGraphEnum(
 					ruleData.Action,

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -66,7 +67,7 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateRequest(
 				"Please ensure all IDs are valid Entra ID device object IDs, not Intune managed device IDs.",
 				strings.Join(notFoundEntraDeviceIDs, ", ")),
 		)
-		return fmt.Errorf("entra device validation failed: %d Entra ID devices not found", len(notFoundEntraDeviceIDs))
+		return fmt.Errorf("%w: %d Entra ID devices not found", sentinels.ErrEntraDeviceValidationFailed, len(notFoundEntraDeviceIDs))
 	}
 
 	if len(invalidEntraDeviceIDs) > 0 {
@@ -79,7 +80,7 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateRequest(
 				"Please check the Entra ID device IDs and try again.",
 				strings.Join(invalidEntraDeviceIDs, ", ")),
 		)
-		return fmt.Errorf("entra device validation failed: %d Entra ID devices could not be validated", len(invalidEntraDeviceIDs))
+		return fmt.Errorf("%w: %d Entra ID devices could not be validated", sentinels.ErrEntraDeviceValidationFailed, len(invalidEntraDeviceIDs))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Entra ID device validation completed successfully for %d devices", len(elements)))
@@ -111,17 +112,17 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateEntraDeviceE
 		})
 
 		if errorInfo.StatusCode == 404 {
-			return fmt.Errorf("entra device %s not found", entraDeviceID)
+			return fmt.Errorf("%w: %s", sentinels.ErrEntraDeviceNotFound, entraDeviceID)
 		}
 
-		return fmt.Errorf("failed to retrieve Entra ID device %s: %s", entraDeviceID, err.Error())
+		return fmt.Errorf("%w %s: %w", sentinels.ErrRetrieveEntraDevice, entraDeviceID, err)
 	}
 
 	if entraDevice == nil {
 		tflog.Error(ctx, "Entra ID device not found", map[string]any{
 			"entraDeviceId": entraDeviceID,
 		})
-		return fmt.Errorf("entra device %s not found", entraDeviceID)
+		return fmt.Errorf("%w: %s", sentinels.ErrEntraDeviceNotFound, entraDeviceID)
 	}
 
 	tflog.Debug(ctx, "Entra ID device validated successfully", map[string]any{

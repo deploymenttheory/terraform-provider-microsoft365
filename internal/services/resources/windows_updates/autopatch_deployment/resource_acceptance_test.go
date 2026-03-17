@@ -105,7 +105,7 @@ func TestAccResourceWindowsUpdateDeployment_03_FullToMinimal(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Create full deployment with multiple monitoring rules")
+					testlog.StepAction(resourceType, "Create full deployment with multiple monitoring rules (rollback + ineligible/offerFallback)")
 				},
 				Config: loadAcceptanceTestTerraform("03_feature_update_multiple_rules.tf"),
 				Check: resource.ComposeTestCheckFunc(
@@ -141,7 +141,7 @@ func TestAccResourceWindowsUpdateDeployment_04_MultipleMonitoringRules(t *testin
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Create deployment with multiple monitoring rules")
+					testlog.StepAction(resourceType, "Create deployment with multiple monitoring rules (rollback + ineligible/offerFallback)")
 				},
 				Config: loadAcceptanceTestTerraform("03_feature_update_multiple_rules.tf"),
 				Check: resource.ComposeTestCheckFunc(
@@ -166,3 +166,67 @@ func TestAccResourceWindowsUpdateDeployment_04_MultipleMonitoringRules(t *testin
 		},
 	})
 }
+
+func TestAccResourceWindowsUpdateDeployment_05_RollbackAlertError(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Create deployment with rollback/alertError monitoring rule")
+				},
+				Config: loadAcceptanceTestTerraform("05_rollback_alert_error.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("content.catalog_entry_type").HasValue("featureUpdate"),
+					check.That(resourceType+".test").Key("settings.schedule.gradual_rollout.duration_between_offers").HasValue("P7D"),
+					check.That(resourceType+".test").Key("settings.monitoring.monitoring_rules.#").HasValue("1"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Import deployment")
+				},
+				ResourceName:            resourceType + ".test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+func TestAccResourceWindowsUpdateDeployment_06_IneligibleOfferFallback(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Create deployment with ineligible/offerFallback monitoring rule (no threshold)")
+				},
+				Config: loadAcceptanceTestTerraform("06_ineligible_offer_fallback.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("content.catalog_entry_type").HasValue("featureUpdate"),
+					check.That(resourceType+".test").Key("settings.monitoring.monitoring_rules.#").HasValue("1"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Import deployment")
+				},
+				ResourceName:            resourceType + ".test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+

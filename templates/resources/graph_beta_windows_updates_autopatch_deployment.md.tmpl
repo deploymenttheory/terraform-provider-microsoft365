@@ -1,0 +1,84 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [deployment resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-deployment?view=graph-rest-beta)
+- [Create deployment](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updates-post-deployments?view=graph-rest-beta)
+- [Get deployment](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-get?view=graph-rest-beta)
+- [Update deployment](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-update?view=graph-rest-beta)
+- [Delete deployment](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Monitoring Rule Constraints
+
+The `signal` and `action` fields within each monitoring rule must satisfy the following pairing rules, which are enforced at plan time:
+
+| Signal | Required Action | Threshold |
+|--------|----------------|-----------|
+| `rollback` | `pauseDeployment` or `alertError` | Required (≥ 1) |
+| `ineligible` | `offerFallback` | Must not be set |
+
+The `offerFallback` action is only supported on feature update deployments targeting Windows 11 and automatically offers Windows 10 22H2 to ineligible devices.
+
+## Settings Mutability
+
+Deployment settings (`schedule`, `monitoring`) may be added to a deployment that was created without them via an in-place update. However, once settings are configured they cannot be modified — any subsequent change to `settings` will require the resource to be **replaced** (destroyed and re-created).
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Scenario 1: Minimal Deployment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment/resource_minimal.tf" }}
+
+### Scenario 2: Feature Update with Rollback / Pause Deployment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment/resource_feature_update_rollback_pause.tf" }}
+
+### Scenario 3: Feature Update with Rollback / Alert Error
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment/resource_feature_update_rollback_alert.tf" }}
+
+### Scenario 4: Feature Update with Ineligible / Offer Fallback
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment/resource_feature_update_ineligible_fallback.tf" }}
+
+### Scenario 5: Feature Update with Multiple Monitoring Rules
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment/resource_feature_update_multiple_rules.tf" }}
+
+### Scenario 6: Quality Update with Date-Driven Rollout
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment/resource_quality_update.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment/import.sh" }}

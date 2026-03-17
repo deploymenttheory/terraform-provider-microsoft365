@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -91,14 +92,14 @@ func mapApprovalRulesToState(rules []graphmodelswindowsupdates.ApprovalRuleable)
 
 		ruleValue, diags := types.ObjectValue(ruleType.(types.ObjectType).AttrTypes, ruleAttrs)
 		if diags.HasError() {
-			return types.SetNull(ruleType), fmt.Errorf("failed to create approval rule object")
+			return types.SetNull(ruleType), sentinels.ErrCreateApprovalRuleObject
 		}
 		ruleValues = append(ruleValues, ruleValue)
 	}
 
 	set, diags := types.SetValue(ruleType, ruleValues)
 	if diags.HasError() {
-		return types.SetNull(ruleType), fmt.Errorf("failed to create approval rules set")
+		return types.SetNull(ruleType), sentinels.ErrCreateApprovalRulesSet
 	}
 
 	return set, nil

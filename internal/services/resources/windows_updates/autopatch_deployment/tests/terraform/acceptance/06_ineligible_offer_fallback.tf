@@ -10,19 +10,8 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_deployment" "test" {
   }
 
   settings = {
-    schedule = {
-      gradual_rollout = {
-        duration_between_offers = "P14D"
-        devices_per_offer       = 200
-      }
-    }
     monitoring = {
       monitoring_rules = [
-        {
-          signal    = "rollback"
-          threshold = 5
-          action    = "pauseDeployment"
-        },
         {
           signal = "ineligible"
           action = "offerFallback"

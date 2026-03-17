@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
@@ -23,7 +24,7 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchPolicyR
 		var ruleModels []ApprovalRuleModel
 		diags := data.ApprovalRules.ElementsAs(ctx, &ruleModels, false)
 		if diags.HasError() {
-			return nil, fmt.Errorf("failed to extract approval_rules: %s", diags.Errors())
+			return nil, fmt.Errorf("%w: %s", sentinels.ErrExtractApprovalRules, diags.Errors())
 		}
 
 		approvalRules := make([]graphmodelswindowsupdates.ApprovalRuleable, 0, len(ruleModels))
@@ -34,11 +35,11 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchPolicyR
 			rule.SetDeferralInDays(&deferralInDays)
 
 			if err := convert.FrameworkToGraphEnum(rm.Classification, graphmodelswindowsupdates.ParseQualityUpdateClassification, rule.SetClassification); err != nil {
-				return nil, fmt.Errorf("failed to set classification: %v", err)
+				return nil, fmt.Errorf("%w: %v", sentinels.ErrSetClassification, err)
 			}
 
 			if err := convert.FrameworkToGraphEnum(rm.Cadence, graphmodelswindowsupdates.ParseQualityUpdateCadence, rule.SetCadence); err != nil {
-				return nil, fmt.Errorf("failed to set cadence: %v", err)
+				return nil, fmt.Errorf("%w: %v", sentinels.ErrSetCadence, err)
 			}
 
 			approvalRules = append(approvalRules, rule)

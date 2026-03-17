@@ -82,6 +82,36 @@ func createDefaultObject(defaultValue map[string]attr.Value) types.Object {
 	return types.ObjectValueMust(map[string]attr.Type{}, defaultValue)
 }
 
+// RequiresReplaceIfStateNonNullObject requires replacement whenever the prior state value is
+// non-null — i.e. once the attribute has been configured, any change (including removal)
+// forces a new resource. When the state is null (first-time configuration), in-place updates
+// are allowed.
+type requiresReplaceIfStateNonNullObject struct {
+	objectModifier
+}
+
+func (m requiresReplaceIfStateNonNullObject) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
+	if req.PlanValue.Equal(req.StateValue) {
+		return
+	}
+	resp.RequiresReplace = true
+}
+
+// RequiresReplaceIfStateNonNullObject returns a plan modifier that requires resource replacement
+// when the state already has the attribute configured and the plan differs from the state.
+// First-time configuration (state is null) allows in-place update.
+func RequiresReplaceIfStateNonNullObject() planmodifier.Object {
+	return requiresReplaceIfStateNonNullObject{
+		objectModifier: objectModifier{
+			description:         "Requires replacement if the attribute was previously configured and has changed.",
+			markdownDescription: "Requires replacement if the attribute was previously configured and has changed.",
+		},
+	}
+}
+
 // ---- Object Attribute Implementation ----
 
 // RequiresOtherAttributeEnabledObject returns a plan modifier that ensures an object attribute

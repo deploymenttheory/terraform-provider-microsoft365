@@ -1,0 +1,78 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [deployment resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-deployment?view=graph-rest-beta)
+- [Update deployment](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-update?view=graph-rest-beta)
+- [Get deployment](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-get?view=graph-rest-beta)
+- [deploymentState resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-deploymentstate?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Relationship to Deployment Resource
+
+This resource manages only the lifecycle state of a deployment created by the
+`microsoft365_graph_beta_windows_updates_autopatch_deployment` resource. The
+`deployment_id` must reference an existing deployment.
+
+On destroy, this resource resets the deployment state to `none` (active/offering)
+rather than deleting the deployment itself. To delete the deployment, destroy the
+`microsoft365_graph_beta_windows_updates_autopatch_deployment` resource.
+
+## State Values
+
+| `requested_value` | Description |
+|-------------------|-------------|
+| `none` | Active — the deployment is offering updates to devices |
+| `paused` | Paused — no further devices are offered the update until resumed |
+| `archived` | Archived — permanently stopped; cannot be resumed |
+
+The `effective_value` attribute reflects the actual state reported by the Graph API
+(e.g. `scheduled`, `offering`, `paused`, `faulted`, `archived`) and may differ from
+`requested_value` while the service processes the state transition.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Scenario 1: Pause a Deployment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment_state/resource_pause_deployment.tf" }}
+
+### Scenario 2: Resume a Deployment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment_state/resource_resume_deployment.tf" }}
+
+### Scenario 3: Archive a Deployment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment_state/resource_archive_deployment.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment_state/import.sh" }}

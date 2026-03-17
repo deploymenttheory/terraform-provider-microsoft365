@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -138,14 +139,14 @@ func mapMonitoringRulesToState(rules []graphmodelswindowsupdates.MonitoringRulea
 
 		ruleValue, diags := types.ObjectValue(ruleType.(types.ObjectType).AttrTypes, ruleAttrs)
 		if diags.HasError() {
-			return types.SetNull(ruleType), fmt.Errorf("failed to create monitoring rule object")
+			return types.SetNull(ruleType), sentinels.ErrCreateMonitoringRuleObject
 		}
 		ruleValues = append(ruleValues, ruleValue)
 	}
 
 	set, diags := types.SetValue(ruleType, ruleValues)
 	if diags.HasError() {
-		return types.SetNull(ruleType), fmt.Errorf("failed to create monitoring rules set")
+		return types.SetNull(ruleType), sentinels.ErrCreateMonitoringRulesSet
 	}
 
 	return set, nil

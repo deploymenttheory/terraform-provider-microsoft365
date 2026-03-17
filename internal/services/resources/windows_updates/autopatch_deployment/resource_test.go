@@ -118,6 +118,78 @@ func TestUnitResourceWindowsUpdateDeployment_03_MinimalDeployment(t *testing.T) 
 	})
 }
 
+func TestUnitResourceWindowsUpdateDeployment_04_IneligibleOfferFallback(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, deploymentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer deploymentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("04_ineligible_offer_fallback.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("content.catalog_entry_type").HasValue("featureUpdate"),
+					check.That(resourceType+".test").Key("settings.monitoring.monitoring_rules.#").HasValue("1"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceWindowsUpdateDeployment_06_ValidationIneligibleWrongAction(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, deploymentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer deploymentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("05_invalid_ineligible_wrong_action.tf"),
+				ExpectError: regexp.MustCompile(`ineligible.*offerFallback|offerFallback.*ineligible|Invalid field combination`),
+			},
+		},
+	})
+}
+
+func TestUnitResourceWindowsUpdateDeployment_07_ValidationRollbackOfferFallback(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, deploymentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer deploymentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("06_invalid_rollback_offer_fallback.tf"),
+				ExpectError: regexp.MustCompile(`offerFallback.*ineligible|ineligible.*offerFallback|Invalid field combination`),
+			},
+		},
+	})
+}
+
+func TestUnitResourceWindowsUpdateDeployment_08_ValidationOfferFallbackWithThreshold(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, deploymentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer deploymentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("07_invalid_offer_fallback_with_threshold.tf"),
+				ExpectError: regexp.MustCompile(`threshold.*offerFallback|offerFallback.*threshold|Invalid field combination`),
+			},
+		},
+	})
+}
+
 func TestUnitResourceWindowsUpdateDeployment_05_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, deploymentMock := setupErrorMockEnvironment()

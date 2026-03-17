@@ -53,6 +53,7 @@ import (
 
 	// Graph Beta - Windows Updates datasources
 	graphBetaWindowsUpdatesCatalogEnteries "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/catalog_enteries"
+	graphBetaWindowsUpdatesProduct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/product"
 
 	// Graph v1.0 - Directory Management datasources
 	graphBetaIdentityAndAccessSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_v1.0/subscribed_skus"
@@ -116,6 +117,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaDeviceManagementWindowsPlatformScript.NewWindowsPlatformScriptDataSource,
 		graphBetaDeviceManagementWindowsRemediationScript.NewWindowsRemediationScriptDataSource,
 		graphBetaWindowsUpdatesCatalogEnteries.NewWindowsUpdateCatalogEnteriesDataSource,
+		graphBetaWindowsUpdatesProduct.NewWindowsUpdateProductDataSource,
 		graphBetaDeviceManagementWindowsUpdateCatalogItem.NewWindowsUpdateCatalogItemDataSource,
 		graphBetaDeviceManagementWindowsQualityUpdateExpeditePolicy.NewWindowsQualityUpdateExpeditePolicyDataSource,
 		graphBetaDeviceManagementWindowsUpdateRing.NewWindowsUpdateRingDataSource,

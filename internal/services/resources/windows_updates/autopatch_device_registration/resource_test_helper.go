@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/exists"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/admin"
@@ -30,12 +31,12 @@ func (r WindowsAutopatchDeviceRegistrationTestResource) Exists(ctx context.Conte
 			})
 
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get updatable assets: %w", err)
 		}
 
 		devices := assetsResp.GetValue()
 		if len(devices) == 0 {
-			return fmt.Errorf("no devices enrolled for update category: %s", updateCategory)
+			return fmt.Errorf("%w: %s", sentinels.ErrNoDevicesEnrolled, updateCategory)
 		}
 
 		return nil
