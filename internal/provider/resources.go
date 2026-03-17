@@ -170,6 +170,7 @@ import (
 	graphBetaWindowsUpdatesAutopatchDeploymentAudienceMembers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_deployment_audience_members"
 	graphBetaWindowsUpdatesAutopatchDeviceRegistration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_device_registration"
 	graphBetaWindowsUpdatesAutopatchPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_policy"
+	graphBetaWindowsUpdatesAutopatchPolicyApproval "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_policy_approval"
 
 	// Graph v1.0 - Intune resources
 	graphDeviceManagementDeviceConfigurationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment"
@@ -299,6 +300,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaWindowsUpdatesAutopatchDeployment.NewWindowsUpdatesAutopatchDeploymentResource,
 		graphBetaWindowsUpdatesAutopatchDeploymentState.NewWindowsUpdatesAutopatchDeploymentStateResource,
 		graphBetaWindowsUpdatesAutopatchPolicy.NewWindowsUpdatesAutopatchPolicyResource,
+		graphBetaWindowsUpdatesAutopatchPolicyApproval.NewWindowsUpdatesAutopatchPolicyApprovalResource,
 		graphBetaWindowsUpdatesAutopatchDeploymentAudience.NewWindowsUpdatesAutopatchDeploymentAudienceResource,
 		graphBetaWindowsUpdatesAutopatchDeploymentAudienceMembers.NewWindowsUpdatesAutopatchDeploymentAudienceMembersResource,
 		graphBetaWindowsUpdatesAutopatchDeviceRegistration.NewWindowsUpdatesAutopatchDeviceRegistrationResource,
