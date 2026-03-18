@@ -1,0 +1,8 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdates.operationalInsightsConnection",
+  "id": "c3d4e5f6-3456-7890-cdef-c3d4e5f6a7b8",
+  "state": "connected",
+  "azureResourceGroupName": "my-resource-group",
+  "azureSubscriptionId": "12345678-1234-1234-1234-123456789012",
+  "workspaceName": "my-log-analytics-workspace"
+}

@@ -171,6 +171,7 @@ import (
 	graphBetaWindowsUpdatesAutopatchDeviceRegistration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_device_registration"
 	graphBetaWindowsUpdatesAutopatchPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_policy"
 	graphBetaWindowsUpdatesAutopatchPolicyApproval "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_policy_approval"
+	graphBetaWindowsUpdatesAutopatchOperationalInsightsConnection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_operational_insights_connection"
 	graphBetaWindowsUpdatesAutopatchRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_ring"
 
 	// Graph v1.0 - Intune resources
@@ -302,6 +303,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaWindowsUpdatesAutopatchDeploymentState.NewWindowsUpdatesAutopatchDeploymentStateResource,
 		graphBetaWindowsUpdatesAutopatchPolicy.NewWindowsUpdatesAutopatchPolicyResource,
 		graphBetaWindowsUpdatesAutopatchPolicyApproval.NewWindowsUpdatesAutopatchPolicyApprovalResource,
+		graphBetaWindowsUpdatesAutopatchOperationalInsightsConnection.NewWindowsUpdatesAutopatchOperationalInsightsConnectionResource,
 		graphBetaWindowsUpdatesAutopatchRing.NewWindowsUpdatesAutopatchRingResource,
 		graphBetaWindowsUpdatesAutopatchDeploymentAudience.NewWindowsUpdatesAutopatchDeploymentAudienceResource,
 		graphBetaWindowsUpdatesAutopatchDeploymentAudienceMembers.NewWindowsUpdatesAutopatchDeploymentAudienceMembersResource,

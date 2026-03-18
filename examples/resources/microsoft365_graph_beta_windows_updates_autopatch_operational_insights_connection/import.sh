@@ -1,0 +1,2 @@
+# Import an Operational Insights connection using its ID
+terraform import microsoft365_graph_beta_windows_updates_autopatch_operational_insights_connection.example c3d4e5f6-3456-7890-cdef-c3d4e5f6a7b8

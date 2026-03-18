@@ -1,0 +1,62 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [operationalInsightsConnection resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-operationalinsightsconnection?view=graph-rest-beta)
+- [resourceConnection resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-resourceconnection?view=graph-rest-beta)
+- [Create resourceConnection](https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-resourceconnections?view=graph-rest-beta)
+- [Get resourceConnection](https://learn.microsoft.com/en-us/graph/api/windowsupdates-resourceconnection-get?view=graph-rest-beta)
+- [Delete resourceConnection](https://learn.microsoft.com/en-us/graph/api/windowsupdates-resourceconnection-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Dependency Notes
+
+The Azure Log Analytics workspace referenced by `azure_resource_group_name`, `azure_subscription_id`, and `workspace_name` must already exist before creating this resource. The Microsoft 365 tenant's service principal must be granted access to the workspace.
+
+## Field Mutability
+
+All fields on this resource require replacement — no in-place update is supported by the API. Any change to any attribute will destroy and recreate the connection.
+
+| Field | Mutable after creation |
+|-------|------------------------|
+| `azure_resource_group_name` | No — changes require resource replacement |
+| `azure_subscription_id` | No — changes require resource replacement |
+| `workspace_name` | No — changes require resource replacement |
+| `state` | Read-only (computed) |
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_operational_insights_connection/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_operational_insights_connection/import.sh" }}
