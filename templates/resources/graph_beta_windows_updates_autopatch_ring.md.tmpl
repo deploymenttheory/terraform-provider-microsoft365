@@ -1,0 +1,83 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [ring resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-ring?view=graph-rest-beta)
+- [qualityUpdateRing resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-qualityupdatering?view=graph-rest-beta)
+- [Create ring](https://learn.microsoft.com/en-us/graph/api/windowsupdates-policy-post-rings?view=graph-rest-beta)
+- [Get ring](https://learn.microsoft.com/en-us/graph/api/windowsupdates-ring-get?view=graph-rest-beta)
+- [Update ring](https://learn.microsoft.com/en-us/graph/api/windowsupdates-ring-update?view=graph-rest-beta)
+- [Delete ring](https://learn.microsoft.com/en-us/graph/api/windowsupdates-ring-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Dependency Notes
+
+This resource requires a parent `microsoft365_graph_beta_windows_updates_autopatch_policy` resource. The `policy_id` attribute must reference an existing policy.
+
+When setting `included_group_assignment` or `excluded_group_assignment`, the Microsoft Entra groups must already exist and have propagated before the ring is created. Use `time_sleep` with a 30-second `create_duration` and a `depends_on` referencing the groups, then set `depends_on = [time_sleep.wait_for_groups]` on the ring resource.
+
+Both `included_group_assignment` and `excluded_group_assignment` are optional. When omitted, the provider sends an empty assignment list to the API.
+
+## Field Mutability
+
+| Field | Mutable after creation |
+|-------|------------------------|
+| `policy_id` | No — changes require resource replacement |
+| `display_name` | Yes |
+| `description` | Yes |
+| `is_paused` | Yes |
+| `deferral_in_days` | Yes |
+| `included_group_assignment` | Yes |
+| `excluded_group_assignment` | Yes |
+| `is_hotpatch_enabled` | Yes |
+
+## Import ID Format
+
+This resource uses a composite import ID: `{policy_id}/{ring_id}`.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Inclusion Assignments
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_ring/resource_with_inclusion_assignments.tf" }}
+
+### Exclusion Assignments
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_ring/resource_with_exclusion_assignments.tf" }}
+
+### Maximal — Full Dependency Tree
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_ring/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_ring/import.sh" }}
