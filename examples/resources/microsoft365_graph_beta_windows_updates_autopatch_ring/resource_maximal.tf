@@ -53,11 +53,11 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_policy" "example" {
 resource "microsoft365_graph_beta_windows_updates_autopatch_ring" "example" {
   depends_on = [time_sleep.wait_for_groups]
 
-  policy_id          = microsoft365_graph_beta_windows_updates_autopatch_policy.example.id
-  display_name       = "Production Ring - ${random_string.suffix.result}"
-  description        = "Quality updates with 14-day deferral for the production audience"
-  is_paused          = false
-  deferral_in_days   = 14
+  policy_id           = microsoft365_graph_beta_windows_updates_autopatch_policy.example.id
+  display_name        = "Production Ring - ${random_string.suffix.result}"
+  description         = "Quality updates with 14-day deferral for the production audience"
+  is_paused           = false
+  deferral_in_days    = 14
   is_hotpatch_enabled = false
 
   included_group_assignment = {

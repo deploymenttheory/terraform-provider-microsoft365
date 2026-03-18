@@ -12,9 +12,9 @@
       "createdDateTime": "2026-03-18T10:00:00Z",
       "lastEvaluatedDateTime": "2026-03-18T10:00:00Z",
       "lastModifiedDateTime": "2026-03-18T10:00:00Z",
-      "durationBeforeDeploymentStart": "P14D",
+      "durationBeforeDeploymentStart": "P7D",
       "contentFilter": {
-        "@odata.type": "#microsoft.graph.windowsUpdates.windowsUpdateFilter"
+        "@odata.type": "#microsoft.graph.windowsUpdates.driverUpdateFilter"
       }
     }
   ],

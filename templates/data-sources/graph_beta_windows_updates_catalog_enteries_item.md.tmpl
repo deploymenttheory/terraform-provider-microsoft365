@@ -1,6 +1,6 @@
 ---
 page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
-subcategory: "Device Management"
+subcategory: "Windows Updates"
 
 description: |-
 {{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
@@ -12,14 +12,15 @@ description: |-
 
 ## Microsoft Documentation
 
-- [windowsUpdateCatalogItem resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-softwareupdate-windowsupdatecatalogitem?view=graph-rest-beta)
+- [catalogEntry resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-catalogentry?view=graph-rest-beta)
+- [Get catalogEntry](https://learn.microsoft.com/en-us/graph/api/windowsupdates-catalogentry-get?view=graph-rest-beta)
 
 ## Microsoft Graph API Permissions
 
 The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
 **Required:**
-- `DeviceManagementConfiguration.Read.All`
+- `WindowsUpdates.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`
@@ -28,10 +29,10 @@ The following client `application` permissions are needed in order to use this {
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| v0.42.0-alpha | Experimental | Added missing version history |
+| v0.50.0-alpha | Experimental | Initial release |
 
 ## Example Usage
 
-{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_catalog_enteries_item/datasource.tf" }}
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_catalog_enteries/by_id.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}

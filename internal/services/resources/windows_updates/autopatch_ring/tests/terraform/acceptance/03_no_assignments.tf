@@ -10,10 +10,10 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_policy" "base" {
 }
 
 resource "microsoft365_graph_beta_windows_updates_autopatch_ring" "test" {
-  policy_id    = microsoft365_graph_beta_windows_updates_autopatch_policy.base.id
-  display_name = "Acc Test Ring 03 No Assignments"
-  description  = "Acceptance test ring - no group assignments"
-  is_paused    = false
+  policy_id        = microsoft365_graph_beta_windows_updates_autopatch_policy.base.id
+  display_name     = "Acc Test Ring 03 No Assignments"
+  description      = "Acceptance test ring - no group assignments"
+  is_paused        = false
   deferral_in_days = 0
 
 }

@@ -36,10 +36,10 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_policy" "base" {
 resource "microsoft365_graph_beta_windows_updates_autopatch_ring" "test" {
   depends_on = [time_sleep.wait_for_groups]
 
-  policy_id    = microsoft365_graph_beta_windows_updates_autopatch_policy.base.id
-  display_name = "Acc Test Ring 05 Max Assignments"
-  description  = "Acceptance test ring - maximum assignments (2 groups)"
-  is_paused    = false
+  policy_id        = microsoft365_graph_beta_windows_updates_autopatch_policy.base.id
+  display_name     = "Acc Test Ring 05 Max Assignments"
+  description      = "Acceptance test ring - maximum assignments (2 groups)"
+  is_paused        = false
   deferral_in_days = 7
 
   included_group_assignment = {

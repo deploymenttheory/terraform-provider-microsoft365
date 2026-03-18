@@ -16,7 +16,7 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_policy" "example" {
 }
 
 resource "microsoft365_graph_beta_windows_updates_autopatch_policy_approval" "approved" {
-  policy_id       = microsoft365_graph_beta_windows_updates_autopatch_policy.example.id
+  policy_id        = microsoft365_graph_beta_windows_updates_autopatch_policy.example.id
   catalog_entry_id = data.microsoft365_graph_beta_windows_updates_catalog_enteries.quality_update.entries[0].id
-  status          = "approved"
+  status           = "approved"
 }

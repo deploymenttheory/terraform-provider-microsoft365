@@ -31,7 +31,7 @@ func (r *WindowsUpdatesAutopatchUpdatePolicyResource) Create(ctx context.Context
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -157,7 +157,7 @@ func (r *WindowsUpdatesAutopatchUpdatePolicyResource) Update(ctx context.Context
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",

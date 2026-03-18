@@ -11,7 +11,7 @@ import (
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
 
-func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchUpdatePolicyResourceModel) (graphmodelswindowsupdates.UpdatePolicyable, error) {
+func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchUpdatePolicyResourceModel, isUpdate bool) (graphmodelswindowsupdates.UpdatePolicyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 	tflog.Debug(ctx, "Input data", map[string]any{
 		"audience_id":         data.AudienceId.ValueString(),
@@ -26,23 +26,29 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchUpdateP
 	odataType := "#microsoft.graph.windowsUpdates.updatePolicy"
 	requestBody.SetOdataType(&odataType)
 
-	if !data.AudienceId.IsNull() && !data.AudienceId.IsUnknown() {
-		audience := graphmodelswindowsupdates.NewDeploymentAudience()
-		convert.FrameworkToGraphString(data.AudienceId, audience.SetId)
-		requestBody.SetAudience(audience)
-		tflog.Debug(ctx, "Set audience", map[string]any{"id": data.AudienceId.ValueString()})
-	}
-
-	// Set complianceChanges (required per API docs)
-	if !data.ComplianceChanges.IsNull() && data.ComplianceChanges.ValueBool() {
-		complianceChange := graphmodelswindowsupdates.NewContentApproval()
-		complianceChanges := []graphmodelswindowsupdates.ComplianceChangeable{
-			complianceChange,
+	// For UPDATE operations, don't send audience, complianceChanges, or complianceChangeRules
+	// API testing shows that UPDATE only accepts deploymentSettings, despite docs saying otherwise
+	if !isUpdate {
+		if !data.AudienceId.IsNull() && !data.AudienceId.IsUnknown() {
+			audience := graphmodelswindowsupdates.NewDeploymentAudience()
+			convert.FrameworkToGraphString(data.AudienceId, audience.SetId)
+			requestBody.SetAudience(audience)
+			tflog.Debug(ctx, "Set audience", map[string]any{"id": data.AudienceId.ValueString()})
 		}
-		requestBody.SetComplianceChanges(complianceChanges)
+
+		// Set complianceChanges (required for CREATE per API docs)
+		if !data.ComplianceChanges.IsNull() && data.ComplianceChanges.ValueBool() {
+			complianceChange := graphmodelswindowsupdates.NewContentApproval()
+			complianceChanges := []graphmodelswindowsupdates.ComplianceChangeable{
+				complianceChange,
+			}
+			requestBody.SetComplianceChanges(complianceChanges)
+		}
 	}
 
-	if !data.ComplianceChangeRules.IsNull() && !data.ComplianceChangeRules.IsUnknown() {
+	// complianceChangeRules can only be set during CREATE, not UPDATE
+	// API returns 400 "Schema validation failed for resource 'deploymentPolicy'" if included in UPDATE
+	if !isUpdate && !data.ComplianceChangeRules.IsNull() && !data.ComplianceChangeRules.IsUnknown() {
 		var rules []ComplianceChangeRuleModel
 		data.ComplianceChangeRules.ElementsAs(ctx, &rules, false)
 
@@ -92,10 +98,6 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchUpdateP
 		}
 
 		settings := graphmodelswindowsupdates.NewDeploymentSettings()
-		
-		// Set @odata.type for deploymentSettings
-		odataType := "microsoft.graph.windowsUpdates.deploymentSettings"
-		settings.SetOdataType(&odataType)
 
 		if !deploymentSettingsData.Schedule.IsNull() && !deploymentSettingsData.Schedule.IsUnknown() {
 			var scheduleData ScheduleSettingsModel
@@ -139,9 +141,9 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchUpdateP
 					}
 				}
 
-				// Set devices per offer via additional data as per api docs
+				// Set devicesPerOffer via additionalData (note: plural "devices", not singular as shown in some MS docs)
 				if !rolloutData.DevicesPerOffer.IsNull() {
-					additionalData["devicePerOffer"] = rolloutData.DevicesPerOffer.ValueInt32()
+					additionalData["devicesPerOffer"] = rolloutData.DevicesPerOffer.ValueInt32()
 				}
 
 				rollout.SetAdditionalData(additionalData)

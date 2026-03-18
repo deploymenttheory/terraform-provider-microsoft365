@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_windows_updates_autopatch_policy_approval" "test" {
-  policy_id       = "983f03cd-03cd-983f-cd03-3f98cd033f98"
+  policy_id        = "983f03cd-03cd-983f-cd03-3f98cd033f98"
   catalog_entry_id = "c1dec151-c151-c1de-51c1-dec151c1dec1"
-  status          = "approved"
+  status           = "approved"
 }

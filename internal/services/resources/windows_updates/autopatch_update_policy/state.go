@@ -3,6 +3,8 @@ package graphBetaWindowsUpdatesAutopatchUpdatePolicy
 import (
 	"context"
 	"fmt"
+	"regexp"
+	"strconv"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -10,6 +12,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
+
+// denormalizeISODuration converts SDK-normalized durations back to day-based format
+// to match user configuration (P1W -> P7D, P2W -> P14D, etc.)
+func denormalizeISODuration(duration string) string {
+	// Pattern for week-based durations (e.g., P1W, P2W)
+	weekPattern := regexp.MustCompile(`^P(\d+)W$`)
+	if matches := weekPattern.FindStringSubmatch(duration); len(matches) == 2 {
+		weeks, err := strconv.Atoi(matches[1])
+		if err != nil {
+			return duration
+		}
+
+		// Convert weeks to days
+		days := weeks * 7
+		return "P" + strconv.Itoa(days) + "D"
+	}
+
+	// For other formats, return as-is
+	return duration
+}
 
 func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatchUpdatePolicyResourceModel, remoteResource graphmodelswindowsupdates.UpdatePolicyable) {
 	tflog.Debug(ctx, fmt.Sprintf("Mapping remote state to Terraform state for %s", ResourceName))
@@ -22,6 +44,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
 
+	// Note: compliance_changes is write-only and not returned by the API
+	// The value from config/state is preserved automatically
+
 	// Map audience
 	if audience := remoteResource.GetAudience(); audience != nil {
 		data.AudienceId = convert.GraphToFrameworkString(audience.GetId())
@@ -31,7 +56,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 	rules := remoteResource.GetComplianceChangeRules()
 	if len(rules) > 0 {
 		ruleElements := make([]attr.Value, 0, len(rules))
-		
+
 		for _, rule := range rules {
 			ruleModel := ComplianceChangeRuleModel{
 				CreatedDateTime:       convert.GraphToFrameworkTime(rule.GetCreatedDateTime()),
@@ -39,15 +64,20 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 				LastModifiedDateTime:  convert.GraphToFrameworkTime(rule.GetLastModifiedDateTime()),
 			}
 
+			tflog.Debug(ctx, "Mapping compliance rule", map[string]any{
+				"created_date_time":        ruleModel.CreatedDateTime.ValueString(),
+				"last_evaluated_date_time": ruleModel.LastEvaluatedDateTime.ValueString(),
+				"last_modified_date_time":  ruleModel.LastModifiedDateTime.ValueString(),
+			})
+
 			// Type assert to ContentApprovalRule to access specific properties
 			if contentApprovalRule, ok := rule.(graphmodelswindowsupdates.ContentApprovalRuleable); ok {
-				// Map duration from additionalData to preserve raw format (avoid SDK normalization)
-				if additionalData := contentApprovalRule.GetAdditionalData(); additionalData != nil {
-					if rawDuration, ok := additionalData["durationBeforeDeploymentStart"]; ok {
-						if durationStr, ok := rawDuration.(string); ok {
-							ruleModel.DurationBeforeDeploymentStart = types.StringValue(durationStr)
-						}
-					}
+				// Map durationBeforeDeploymentStart using SDK getter
+				// Note: SDK normalizes durations (e.g., P7D becomes P1W)
+				// We denormalize back to days to match user config
+				if duration := contentApprovalRule.GetDurationBeforeDeploymentStart(); duration != nil {
+					durationStr := denormalizeISODuration(duration.String())
+					ruleModel.DurationBeforeDeploymentStart = types.StringValue(durationStr)
 				}
 
 				// Map content filter
@@ -140,28 +170,15 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 				if rateDriven, ok := rollout.(graphmodelswindowsupdates.RateDrivenRolloutSettingsable); ok {
 					gradualRolloutData := GradualRolloutModel{}
 
-					// Map both duration and devices from additionalData to preserve raw format
-					if additionalData := rateDriven.GetAdditionalData(); additionalData != nil {
-						// Map duration between offers from additionalData (avoid SDK normalization)
-						if rawDuration, ok := additionalData["durationBetweenOffers"]; ok {
-							if durationStr, ok := rawDuration.(string); ok {
-								gradualRolloutData.DurationBetweenOffers = types.StringValue(durationStr)
-							}
-						}
+					// SDK normalizes durations (P7D -> P1W), so we denormalize back to match hcl config which
+					// the request body expects.
+					if duration := rateDriven.GetDurationBetweenOffers(); duration != nil {
+						durationStr := denormalizeISODuration(duration.String())
+						gradualRolloutData.DurationBetweenOffers = types.StringValue(durationStr)
+					}
 
-						// Map devices per offer from additionalData (as per Microsoft docs)
-						if devicePerOffer, ok := additionalData["devicePerOffer"]; ok {
-							switch v := devicePerOffer.(type) {
-							case int32:
-								gradualRolloutData.DevicesPerOffer = types.Int32Value(v)
-							case float64:
-								gradualRolloutData.DevicesPerOffer = types.Int32Value(int32(v))
-							case int:
-								gradualRolloutData.DevicesPerOffer = types.Int32Value(int32(v))
-							case int64:
-								gradualRolloutData.DevicesPerOffer = types.Int32Value(int32(v))
-							}
-						}
+					if devices := rateDriven.GetDevicesPerOffer(); devices != nil {
+						gradualRolloutData.DevicesPerOffer = types.Int32Value(*devices)
 					}
 
 					gradualRolloutObj, diags := types.ObjectValueFrom(ctx, GradualRolloutAttrTypes, gradualRolloutData)

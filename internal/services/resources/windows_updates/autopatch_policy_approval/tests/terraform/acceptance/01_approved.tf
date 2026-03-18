@@ -9,7 +9,7 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_policy" "base" {
 }
 
 resource "microsoft365_graph_beta_windows_updates_autopatch_policy_approval" "test" {
-  policy_id       = microsoft365_graph_beta_windows_updates_autopatch_policy.base.id
+  policy_id        = microsoft365_graph_beta_windows_updates_autopatch_policy.base.id
   catalog_entry_id = data.microsoft365_graph_beta_windows_updates_catalog_enteries.quality_update.entries[0].id
-  status          = "approved"
+  status           = "approved"
 }

@@ -5,9 +5,9 @@ resource "microsoft365_graph_beta_windows_updates_update_policy" "test" {
   compliance_change_rules = [
     {
       content_filter = {
-        filter_type = "windowsUpdateFilter"
+        filter_type = "driverUpdateFilter"
       }
-      duration_before_deployment_start = "P14D"
+      duration_before_deployment_start = "P7D"
     }
   ]
 

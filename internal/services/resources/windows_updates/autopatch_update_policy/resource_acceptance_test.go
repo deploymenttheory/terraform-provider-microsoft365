@@ -40,10 +40,11 @@ func TestAccResourceWindowsUpdatesUpdatePolicy_01_CreateUpdatePolicy(t *testing.
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Import update policy")
 				},
-				ResourceName:            resourceType + ".test",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"timeouts"},
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// Compliance changes is write-only and not returned by the API
+				ImportStateVerifyIgnore: []string{"timeouts", "compliance_changes"},
 			},
 		},
 	})

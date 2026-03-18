@@ -57,11 +57,12 @@ func TestUnitResourceWindowsUpdatesUpdatePolicy_01_CreateUpdatePolicy(t *testing
 					check.That(resourceType+".test").Key("created_date_time").IsNotEmpty(),
 				),
 			},
-			{
-				ResourceName:      resourceType + ".test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+		{
+			ResourceName:            resourceType + ".test",
+			ImportState:             true,
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"compliance_changes"},
+		},
 		},
 	})
 }
