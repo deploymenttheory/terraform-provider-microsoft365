@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
@@ -26,7 +27,13 @@ func constructStateResource(ctx context.Context, data *WindowsUpdatesAutopatchDe
 
 	requestBody.SetState(deploymentState)
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing deployment settings for %s resource", ResourceName))
 	return requestBody, nil
 }
 
@@ -44,6 +51,12 @@ func constructResetStateResource(ctx context.Context) (graphmodelswindowsupdates
 	deploymentState.SetRequestedValue(noneValue.(*graphmodelswindowsupdates.RequestedDeploymentStateValue))
 	requestBody.SetState(deploymentState)
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing reset state request for %s", ResourceName))
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing deployment settings for %s resource", ResourceName))
 	return requestBody, nil
 }

@@ -1,0 +1,36 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/updatePolicies/$entity",
+  "@odata.type": "#microsoft.graph.windowsUpdates.updatePolicy",
+  "id": "a1b2c3d4-1234-5678-abcd-a1b2c3d4e5f6",
+  "createdDateTime": "2026-03-18T10:00:00Z",
+  "audience": {
+    "id": "8c4eb1eb-d7a3-4633-8e2f-f926e82df08e"
+  },
+  "complianceChangeRules": [
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.contentApprovalRule",
+      "createdDateTime": "2026-03-18T10:00:00Z",
+      "lastEvaluatedDateTime": "2026-03-18T10:00:00Z",
+      "lastModifiedDateTime": "2026-03-18T10:00:00Z",
+      "durationBeforeDeploymentStart": "P7D",
+      "contentFilter": {
+        "@odata.type": "#microsoft.graph.windowsUpdates.driverUpdateFilter"
+      }
+    }
+  ],
+  "deploymentSettings": {
+    "@odata.type": "microsoft.graph.windowsUpdates.deploymentSettings",
+    "monitoring": null,
+    "contentApplicability": null,
+    "userExperience": null,
+    "expedite": null,
+    "schedule": {
+      "startDateTime": null,
+      "gradualRollout": {
+        "@odata.type": "#microsoft.graph.windowsUpdates.rateDrivenRolloutSettings",
+        "durationBetweenOffers": "P1D",
+        "devicesPerOffer": 1000
+      }
+    }
+  }
+}

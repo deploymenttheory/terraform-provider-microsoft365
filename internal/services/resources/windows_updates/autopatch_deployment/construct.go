@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -44,7 +45,13 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchDeploym
 		requestBody.SetSettings(settings)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing deployment settings for %s resource", ResourceName))
 	return requestBody, nil
 }
 
@@ -129,8 +136,8 @@ func constructDeploymentSettings(ctx context.Context, data *DeploymentSettings) 
 				}
 
 				if !ruleData.Threshold.IsNull() {
-				convert.FrameworkToGraphInt32(ruleData.Threshold, rule.SetThreshold)
-			}
+					convert.FrameworkToGraphInt32(ruleData.Threshold, rule.SetThreshold)
+				}
 
 				if err := convert.FrameworkToGraphEnum(
 					ruleData.Action,

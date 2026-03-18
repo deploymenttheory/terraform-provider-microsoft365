@@ -24,6 +24,13 @@ func constructAddMembersRequest(ctx context.Context, deviceIDs []string) (grapha
 		})
 	}
 
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing deployment settings for %s resource", ResourceName))
 	return requestBody, nil
 }
 
@@ -41,6 +48,13 @@ func constructRemoveMembersRequest(ctx context.Context, deviceIDs []string) (gra
 		})
 	}
 
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing deployment settings for %s resource", ResourceName))
 	return requestBody, nil
 }
 

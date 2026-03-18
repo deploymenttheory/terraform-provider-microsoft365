@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -68,6 +69,12 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchContent
 		requestBody.SetIsRevoked(&isRevoked)
 	}
 
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 	return requestBody, nil
 }
@@ -108,6 +115,12 @@ func constructUpdateResource(ctx context.Context, plan *WindowsUpdatesAutopatchC
 		}
 
 		requestBody.SetDeploymentSettings(deploymentSettings)
+	}
+
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing update request for %s resource", ResourceName))

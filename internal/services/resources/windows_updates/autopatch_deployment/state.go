@@ -76,7 +76,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 
 			monitoringRulesSet, err := mapMonitoringRulesToState(monitoring.GetMonitoringRules())
 			if err != nil {
-				tflog.Error(ctx, "Failed to map monitoring rules to state", map[string]interface{}{
+				tflog.Error(ctx, "Failed to map monitoring rules to state", map[string]any{
 					"error": err.Error(),
 				})
 				data.Settings.Monitoring.MonitoringRules = types.SetNull(monitoringRuleAttrType())
