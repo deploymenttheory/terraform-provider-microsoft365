@@ -1,0 +1,59 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [updatableAssetGroup resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-updatableassetgroup?view=graph-rest-beta)
+- [updatableAsset resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-updatableasset?view=graph-rest-beta)
+- [Create updatableAsset](https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-updatableassets?view=graph-rest-beta)
+- [Get updatableAsset](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-get?view=graph-rest-beta)
+- [Delete updatableAsset](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Dependency Notes
+
+Group has no configurable properties. Membership is managed separately via `microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment`.
+
+## Field Mutability
+
+The resource has no user-configurable fields. The group is created as an empty container and its `id` is assigned by the service.
+
+| Field | Mutable after creation |
+|-------|------------------------|
+| `id` | Read-only (computed) |
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group/import.sh" }}

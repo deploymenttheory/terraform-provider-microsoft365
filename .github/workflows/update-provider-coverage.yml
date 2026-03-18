@@ -1,0 +1,100 @@
+name: maintenance | Update Provider Coverage Documentation
+
+permissions:
+  contents: write
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-provider-coverage:
+    name: '📊 Update Provider Coverage Documentation'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
+        with:
+          egress-policy: audit
+
+      - name: Check Out
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Generate Provider Coverage Documentation
+        id: generate_docs
+        run: |
+          echo "Generating provider coverage documentation..."
+          python3 scripts/pipeline/generate_provider_coverage.py
+          
+          # Check if there are any changes
+          if git diff --quiet docs/guides/provider_coverage.md; then
+            echo "changes_detected=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in provider coverage"
+          else
+            echo "changes_detected=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in provider coverage"
+            
+            # Extract statistics from the generated file
+            RESOURCES=$(grep -A 10 "## Summary Statistics" docs/guides/provider_coverage.md | grep "Resources" | grep -oE '[0-9]+' | head -1)
+            DATA_SOURCES=$(grep -A 10 "## Summary Statistics" docs/guides/provider_coverage.md | grep "Data Sources" | grep -oE '[0-9]+' | head -1)
+            LIST_RESOURCES=$(grep -A 10 "## Summary Statistics" docs/guides/provider_coverage.md | grep "List Resources" | grep -oE '[0-9]+' | head -1)
+            EPHEMERALS=$(grep -A 10 "## Summary Statistics" docs/guides/provider_coverage.md | grep "Ephemerals" | grep -oE '[0-9]+' | head -1)
+            ACTIONS=$(grep -A 10 "## Summary Statistics" docs/guides/provider_coverage.md | grep "Actions" | grep -oE '[0-9]+' | head -1)
+            TOTAL=$(grep -A 10 "## Summary Statistics" docs/guides/provider_coverage.md | grep "Total Components" | grep -oE '[0-9]+' | head -1)
+            
+            echo "resources_count=$RESOURCES" >> $GITHUB_OUTPUT
+            echo "data_sources_count=$DATA_SOURCES" >> $GITHUB_OUTPUT
+            echo "list_resources_count=$LIST_RESOURCES" >> $GITHUB_OUTPUT
+            echo "ephemerals_count=$EPHEMERALS" >> $GITHUB_OUTPUT
+            echo "actions_count=$ACTIONS" >> $GITHUB_OUTPUT
+            echo "total_count=$TOTAL" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit Changes
+        if: steps.generate_docs.outputs.changes_detected == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/guides/provider_coverage.md
+          git commit -m "chore: update provider coverage statistics"
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 📊 Provider Coverage Documentation Update" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.generate_docs.outputs.changes_detected }}" == "true" ]; then
+            echo "✅ **Changes Detected and Committed**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Current Statistics" >> $GITHUB_STEP_SUMMARY
+            echo "| Component Type | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Resources | ${{ steps.generate_docs.outputs.resources_count }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Data Sources | ${{ steps.generate_docs.outputs.data_sources_count }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| List Resources | ${{ steps.generate_docs.outputs.list_resources_count }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Ephemerals | ${{ steps.generate_docs.outputs.ephemerals_count }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Actions | ${{ steps.generate_docs.outputs.actions_count }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Total** | **${{ steps.generate_docs.outputs.total_count }}** |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Documentation has been updated and committed." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ **No Changes Detected**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The provider coverage documentation is already up to date." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📄 **Documentation**: [Provider Coverage](docs/guides/provider_coverage.md)" >> $GITHUB_STEP_SUMMARY

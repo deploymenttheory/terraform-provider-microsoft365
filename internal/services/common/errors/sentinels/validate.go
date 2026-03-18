@@ -175,4 +175,13 @@ var (
 
 	// ErrNoDevicesEnrolled indicates no devices are enrolled for an update category
 	ErrNoDevicesEnrolled = errors.New("no devices enrolled for update category")
+
+	// ErrUpdatableAssetGroupNotFound indicates a Windows Updates updatable asset group was not found
+	ErrUpdatableAssetGroupNotFound = errors.New("updatable asset group not found")
+
+	// ErrUpdatableAssetGroupValidationFailed indicates validation of a Windows Updates updatable asset group failed
+	ErrUpdatableAssetGroupValidationFailed = errors.New("updatable asset group validation failed")
+
+	// ErrInvalidEntraDeviceIDs indicates one or more Entra ID device IDs do not exist
+	ErrInvalidEntraDeviceIDs = errors.New("one or more Entra ID device IDs not found")
 )

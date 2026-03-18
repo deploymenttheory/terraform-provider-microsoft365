@@ -1,0 +1,2 @@
+# Import a group assignment using the group ID
+terraform import microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment.example d4e5f6a7-4567-8901-defa-d4e5f6a7b8c9
