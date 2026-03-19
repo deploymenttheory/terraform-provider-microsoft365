@@ -1,0 +1,42 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#devices",
+  "value": [
+    {
+      "id": "23ace577-ee29-416f-8566-11c948310bff",
+      "deletedDateTime": null,
+      "accountEnabled": true,
+      "approximateLastSignInDateTime": "2026-03-19T12:00:00Z",
+      "complianceExpirationDateTime": null,
+      "createdDateTime": "2024-01-15T10:30:00Z",
+      "deviceCategory": null,
+      "deviceId": "06771871-1375-494e-97f9-ab87ba64edeb",
+      "deviceMetadata": null,
+      "deviceOwnership": "Company",
+      "deviceVersion": 2,
+      "displayName": "DT-000481110457",
+      "domainName": null,
+      "enrollmentProfileName": null,
+      "enrollmentType": "AzureDomainJoined",
+      "isCompliant": true,
+      "isManaged": true,
+      "isManagementRestricted": null,
+      "isRooted": false,
+      "managementType": "MDM",
+      "manufacturer": "Microsoft Corporation",
+      "mdmAppId": "0000000a-0000-0000-c000-000000000000",
+      "model": "Virtual Machine",
+      "onPremisesLastSyncDateTime": null,
+      "onPremisesSyncEnabled": null,
+      "operatingSystem": "Windows",
+      "operatingSystemVersion": "10.0.19045.3693",
+      "physicalIds": [],
+      "platform": null,
+      "profileType": "RegisteredDevice",
+      "registrationDateTime": "2024-01-15T10:30:00Z",
+      "sourceType": null,
+      "systemLabels": [],
+      "trustType": "AzureAd",
+      "alternativeSecurityIds": []
+    }
+  ]
+}

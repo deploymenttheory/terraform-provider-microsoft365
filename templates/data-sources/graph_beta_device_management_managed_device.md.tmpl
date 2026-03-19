@@ -7,13 +7,14 @@ description: |-
 
 # {{.Name}} ({{.Type}})
 
-Retrieves managed devices from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. Supports filtering by all, id, device_name, serial_number, or user_id for comprehensive device management.
+Retrieves managed devices from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. This data source provides flexible lookup capabilities including list all, device ID, device name, operating system, OS version, Azure AD device ID, serial number, user display name, and custom OData queries.
 
-This data source allows you to list and filter managed devices in your tenant, providing details such as device name, operating system, compliance state, user, and more.
+This data source allows you to list and filter managed devices in your tenant, providing comprehensive details such as device name, operating system, compliance state, user information, hardware details, and more.
 
 ## Microsoft Documentation
 
 - [List managedDevices](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-list?view=graph-rest-beta)
+- [Get managedDevice](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-get?view=graph-rest-beta)
 
 ## Microsoft Graph API Permissions
 
@@ -31,9 +32,71 @@ The following client `application` permissions are needed in order to use this {
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.18.0-alpha | Experimental | Initial release |
+| v0.19.0-alpha | Experimental | Added flexible lookup patterns (device_id, device_name, operating_system, os_version, azure_ad_device_id, serial_number, user_display_name, odata_query, list_all) |
+| v0.50.0-alpha | Preview | **Breaking Change**: Refactored to flexible lookup pattern following groups data source design. Removed `filter_type` and `filter_value` attributes. Added mutually exclusive convenience lookup attributes: `device_id`, `device_name`, `operating_system`, `os_version`, `azure_ad_device_id`, `serial_number`, `user_principal_name`, and `list_all`. Consolidated all individual OData parameters (`odata_filter`, `odata_top`, `odata_orderby`, `odata_select`, `odata_count`, `odata_search`, `odata_expand`) into single `odata_query` attribute for custom filter expressions. Added operating system validator to ensure only valid device types are used. |
 
 ## Example Usage
 
-{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/datasource.tf" }}
+### Example 1: List All Managed Devices
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/01_list_all.tf" }}
+
+### Example 2: Get Device by ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/02_by_device_id.tf" }}
+
+### Example 3: Get Devices by Device Name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/03_by_device_name.tf" }}
+
+### Example 4: Get Devices by Operating System
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/04_by_operating_system.tf" }}
+
+### Example 5: Get Devices by OS and Version
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/05_by_os_and_version.tf" }}
+
+### Example 6: Get Device by Azure AD Device ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/06_by_azure_ad_device_id.tf" }}
+
+### Example 7: Get Devices by Serial Number
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/07_by_serial_number.tf" }}
+
+### Example 8: Get Devices by User Principal Name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/08_by_user_principal_name.tf" }}
+
+### Example 9: OData Query - Simple Filter
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/09_odata_simple_filter.tf" }}
+
+### Example 10: OData Query - AND Filter
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/10_odata_and_filter.tf" }}
+
+### Example 11: OData Query - StartsWith Filter
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/11_odata_startswith_filter.tf" }}
+
+### Example 12: OData Query - OR Filter
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_management_managed_device/12_odata_or_filter.tf" }}
+
+## Lookup Methods
+
+This data source supports multiple lookup methods. **Exactly one** of the following attributes must be specified:
+
+- `list_all` - List all managed devices in the tenant
+- `device_id` - Lookup by specific Intune device ID
+- `device_name` - Filter by device name (exact match via OData filter)
+- `operating_system` - Filter by operating system (e.g., "Windows", "iOS", "Android")
+- `os_version` - Filter by OS version (must be used with `operating_system`)
+- `azure_ad_device_id` - Lookup by Azure AD device ID
+- `serial_number` - Filter by device serial number
+- `user_principal_name` - Filter by user principal name (email address)
+- `odata_query` - Custom OData filter expression for advanced queries
 
 {{ .SchemaMarkdown | trimspace }} 

@@ -9,7 +9,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -39,13 +38,6 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Create(ctx co
 	defer cancel()
 
 	object.ID = types.StringValue(fmt.Sprintf("%s_%s", object.AudienceID.ValueString(), object.MemberType.ValueString()))
-
-	if object.Members.IsNull() || object.Members.IsUnknown() {
-		object.Members = types.SetValueMust(types.StringType, []attr.Value{})
-	}
-	if object.Exclusions.IsNull() || object.Exclusions.IsUnknown() {
-		object.Exclusions = types.SetValueMust(types.StringType, []attr.Value{})
-	}
 
 	requestBody, err := constructCreateRequest(ctx, &object)
 	if err != nil {
@@ -159,7 +151,42 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Read(ctx cont
 	members := membersResp.GetValue()
 	exclusions := exclusionsResp.GetValue()
 
+	// Record the prior member/exclusion counts to detect eventual consistency gaps.
+	// When called during Create/Update retries, the state already has the expected values.
+	// If the API returns empty when members were expected, we add a transient error to
+	// trigger ReadWithRetry to attempt another read.
+	priorMemberCount := 0
+	if !object.Members.IsNull() && !object.Members.IsUnknown() {
+		priorMemberCount = len(object.Members.Elements())
+	}
+	priorExclusionCount := 0
+	if !object.Exclusions.IsNull() && !object.Exclusions.IsUnknown() {
+		priorExclusionCount = len(object.Exclusions.Elements())
+	}
+
 	MapRemoteStateToTerraform(ctx, &object, members, exclusions)
+
+	// If the prior state had members/exclusions but the API returned none, the update
+	// has not yet propagated. Signal a transient error so ReadWithRetry will retry.
+	if operation != constants.TfOperationRead {
+		apiMemberCount := 0
+		if !object.Members.IsNull() && !object.Members.IsUnknown() {
+			apiMemberCount = len(object.Members.Elements())
+		}
+		apiExclusionCount := 0
+		if !object.Exclusions.IsNull() && !object.Exclusions.IsUnknown() {
+			apiExclusionCount = len(object.Exclusions.Elements())
+		}
+
+		if (priorMemberCount > 0 && apiMemberCount == 0) || (priorExclusionCount > 0 && apiExclusionCount == 0) {
+			resp.Diagnostics.AddError(
+				"Eventual consistency: audience members not yet propagated",
+				fmt.Sprintf("Expected %d members and %d exclusions but API returned %d members and %d exclusions. Will retry.",
+					priorMemberCount, priorExclusionCount, apiMemberCount, apiExclusionCount),
+			)
+			return
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -282,18 +309,26 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Delete(ctx co
 		return
 	}
 
-	err = r.client.
-		Admin().
-		Windows().
-		Updates().
-		DeploymentAudiences().
-		ByDeploymentAudienceId(object.AudienceID.ValueString()).
-		MicrosoftGraphWindowsUpdatesUpdateAudience().
-		Post(ctx, requestBody, nil)
+	// Only POST if there is something to remove. An empty update body is rejected by the API.
+	hasMembers := !object.Members.IsNull() && !object.Members.IsUnknown() && len(object.Members.Elements()) > 0
+	hasExclusions := !object.Exclusions.IsNull() && !object.Exclusions.IsUnknown() && len(object.Exclusions.Elements()) > 0
 
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
-		return
+	if hasMembers || hasExclusions {
+		err = r.client.
+			Admin().
+			Windows().
+			Updates().
+			DeploymentAudiences().
+			ByDeploymentAudienceId(object.AudienceID.ValueString()).
+			MicrosoftGraphWindowsUpdatesUpdateAudience().
+			Post(ctx, requestBody, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+			return
+		}
+	} else {
+		tflog.Debug(ctx, fmt.Sprintf("No members or exclusions to remove for %s, skipping API call", ResourceName))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))

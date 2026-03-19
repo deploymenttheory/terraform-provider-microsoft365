@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
@@ -31,7 +32,25 @@ func (m *WindowsAutopatchDeviceRegistrationMock) RegisterMocks() {
 	mockState.enrolledDevices = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/enrollAssetsById",
+	// Mock Entra ID device validation endpoint for known test device IDs
+	knownTestDeviceIDs := []string{
+		"12345678-1234-1234-1234-123456789001",
+		"12345678-1234-1234-1234-123456789002",
+		"12345678-1234-1234-1234-123456789003",
+	}
+	for _, deviceID := range knownTestDeviceIDs {
+		id := deviceID // capture loop variable
+		httpmock.RegisterResponder("GET",
+			fmt.Sprintf("https://graph.microsoft.com/beta/devices/%s", id),
+			httpmock.NewJsonResponderOrPanic(200, map[string]any{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#devices/$entity",
+				"id":             id,
+				"displayName":    fmt.Sprintf("TestDevice-%s", id),
+				"operatingSystem": "Windows",
+			}))
+	}
+
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.enrollAssetsById",
 		func(req *http.Request) (*http.Response, error) {
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
@@ -67,15 +86,12 @@ func (m *WindowsAutopatchDeviceRegistrationMock) RegisterMocks() {
 			for _, idAny := range ids {
 				if id, ok := idAny.(string); ok {
 					key := fmt.Sprintf("%s_%s", id, updateCategory)
+					enrollmentObj := map[string]any{}
+					enrollmentObj[updateCategory] = map[string]any{}
 					mockState.enrolledDevices[key] = map[string]any{
 						"id":             id,
 						"updateCategory": updateCategory,
-						"enrollments": []map[string]any{
-							{
-								"@odata.type":  "#microsoft.graph.windowsUpdates.updateManagementEnrollment",
-								"updateCategory": updateCategory,
-							},
-						},
+						"enrollment":     enrollmentObj,
 					}
 				}
 			}
@@ -84,7 +100,7 @@ func (m *WindowsAutopatchDeviceRegistrationMock) RegisterMocks() {
 			return httpmock.NewStringResponse(202, ""), nil
 		})
 
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/unenrollAssetsById",
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.unenrollAssetsById",
 		func(req *http.Request) (*http.Response, error) {
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
@@ -128,7 +144,36 @@ func (m *WindowsAutopatchDeviceRegistrationMock) RegisterMocks() {
 			return httpmock.NewStringResponse(202, ""), nil
 		})
 
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.azureADDevice",
+	// Mock individual updatable asset GET by device ID
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[^/]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			deviceID := parts[len(parts)-1]
+
+			mockState.Lock()
+			var found map[string]any
+			for _, data := range mockState.enrolledDevices {
+				if id, ok := data["id"].(string); ok && id == deviceID {
+					found = data
+					break
+				}
+			}
+			mockState.Unlock()
+
+			if found == nil {
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+			}
+
+			updateCategory, _ := found["updateCategory"].(string)
+			return httpmock.NewJsonResponse(200, map[string]any{
+				"@odata.type": "#microsoft.graph.windowsUpdates.azureADDevice",
+				"id":          deviceID,
+				"enrollment":  map[string]any{updateCategory: map[string]any{}},
+				"errors":      []any{},
+			})
+		})
+
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets",
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
 			devices := make([]map[string]any, 0, len(mockState.enrolledDevices))
@@ -136,7 +181,7 @@ func (m *WindowsAutopatchDeviceRegistrationMock) RegisterMocks() {
 				devices = append(devices, map[string]any{
 					"@odata.type": "#microsoft.graph.windowsUpdates.azureADDevice",
 					"id":          deviceData["id"],
-					"enrollments": deviceData["enrollments"],
+					"enrollment":  deviceData["enrollment"],
 					"errors":      []any{},
 				})
 			}
@@ -154,7 +199,25 @@ func (m *WindowsAutopatchDeviceRegistrationMock) RegisterErrorMocks() {
 	mockState.enrolledDevices = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/enrollAssetsById",
+	// Mock Entra ID device validation endpoint for known test device IDs so validation passes
+	knownTestDeviceIDs := []string{
+		"12345678-1234-1234-1234-123456789001",
+		"12345678-1234-1234-1234-123456789002",
+		"12345678-1234-1234-1234-123456789003",
+	}
+	for _, deviceID := range knownTestDeviceIDs {
+		id := deviceID // capture loop variable
+		httpmock.RegisterResponder("GET",
+			fmt.Sprintf("https://graph.microsoft.com/beta/devices/%s", id),
+			httpmock.NewJsonResponderOrPanic(200, map[string]any{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#devices/$entity",
+				"id":             id,
+				"displayName":    fmt.Sprintf("TestDevice-%s", id),
+				"operatingSystem": "Windows",
+			}))
+	}
+
+	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.enrollAssetsById",
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_create/post_error_scenario.json")
 			var errObj map[string]any
@@ -162,7 +225,7 @@ func (m *WindowsAutopatchDeviceRegistrationMock) RegisterErrorMocks() {
 			return httpmock.NewJsonResponse(400, errObj)
 		})
 
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.azureADDevice",
+	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/admin/windows/updates/updatableAssets",
 		func(req *http.Request) (*http.Response, error) {
 			return httpmock.NewJsonResponse(200, map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/updatableAssets",

@@ -6,6 +6,8 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
@@ -61,31 +63,41 @@ func constructUpdateResource(ctx context.Context, data *WindowsUpdatesAutopatchR
 	return requestBody, nil
 }
 
-// buildIncludedGroupAssignment converts the Terraform model to an SDK IncludedGroupAssignment.
-// If the model is nil or has no assignments, returns an empty assignment (sends [] to API).
-func buildIncludedGroupAssignment(ctx context.Context, model *GroupAssignmentModel) graphmodelswindowsupdates.IncludedGroupAssignmentable {
+// buildIncludedGroupAssignment converts a types.Object to an SDK IncludedGroupAssignment.
+// If the object is null/unknown, returns an empty assignment (sends [] to API).
+func buildIncludedGroupAssignment(ctx context.Context, obj types.Object) graphmodelswindowsupdates.IncludedGroupAssignmentable {
 	included := graphmodelswindowsupdates.NewIncludedGroupAssignment()
-	included.SetAssignments(extractAssignedGroups(ctx, model))
+	included.SetAssignments(extractAssignedGroupsFromObject(ctx, obj))
 	return included
 }
 
-// buildExcludedGroupAssignment converts the Terraform model to an SDK ExcludedGroupAssignment.
-// If the model is nil or has no assignments, returns an empty assignment (sends [] to API).
-func buildExcludedGroupAssignment(ctx context.Context, model *GroupAssignmentModel) graphmodelswindowsupdates.ExcludedGroupAssignmentable {
+// buildExcludedGroupAssignment converts a types.Object to an SDK ExcludedGroupAssignment.
+// If the object is null/unknown, returns an empty assignment (sends [] to API).
+func buildExcludedGroupAssignment(ctx context.Context, obj types.Object) graphmodelswindowsupdates.ExcludedGroupAssignmentable {
 	excluded := graphmodelswindowsupdates.NewExcludedGroupAssignment()
-	excluded.SetAssignments(extractAssignedGroups(ctx, model))
+	excluded.SetAssignments(extractAssignedGroupsFromObject(ctx, obj))
 	return excluded
 }
 
-// extractAssignedGroups extracts a slice of AssignedGroupable from the Terraform model.
-// Returns an empty slice if the model is nil or the set is null/unknown/empty.
-func extractAssignedGroups(ctx context.Context, model *GroupAssignmentModel) []graphmodelswindowsupdates.AssignedGroupable {
-	if model == nil || model.Assignments.IsNull() || model.Assignments.IsUnknown() {
+// extractAssignedGroupsFromObject extracts a slice of AssignedGroupable from a types.Object.
+// Returns an empty slice if the object is null/unknown or has no assignments.
+func extractAssignedGroupsFromObject(ctx context.Context, obj types.Object) []graphmodelswindowsupdates.AssignedGroupable {
+	if obj.IsNull() || obj.IsUnknown() {
+		return []graphmodelswindowsupdates.AssignedGroupable{}
+	}
+
+	var model GroupAssignmentModel
+	diags := obj.As(ctx, &model, basetypes.ObjectAsOptions{})
+	if diags.HasError() {
+		return []graphmodelswindowsupdates.AssignedGroupable{}
+	}
+
+	if model.Assignments.IsNull() || model.Assignments.IsUnknown() {
 		return []graphmodelswindowsupdates.AssignedGroupable{}
 	}
 
 	var agModels []AssignedGroupModel
-	diags := model.Assignments.ElementsAs(ctx, &agModels, false)
+	diags = model.Assignments.ElementsAs(ctx, &agModels, false)
 	if diags.HasError() {
 		return []graphmodelswindowsupdates.AssignedGroupable{}
 	}

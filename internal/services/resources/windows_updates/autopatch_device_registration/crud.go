@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/admin"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
 
 // Create handles the Create operation for Windows Updates autopatch device registration resources.
@@ -41,8 +41,8 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Create(ctx context.C
 
 	object.ID = types.StringValue(object.UpdateCategory.ValueString())
 
-	if object.DeviceIds.IsNull() || object.DeviceIds.IsUnknown() {
-		object.DeviceIds = types.SetValueMust(types.StringType, []attr.Value{})
+	if object.EntraDeviceObjectIds.IsNull() || object.EntraDeviceObjectIds.IsUnknown() {
+		object.EntraDeviceObjectIds = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
 	if err := r.validateRequest(ctx, &object, &resp.Diagnostics); err != nil {
@@ -99,9 +99,9 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Create(ctx context.C
 //
 // Operation: Retrieves enrolled devices and their enrollment status
 // API Calls:
-//   - GET /admin/windows/updates/updatableAssets?$filter=isof('microsoft.graph.windowsUpdates.azureADDevice')&$select=id,enrollments
+//   - GET /admin/windows/updates/updatableAssets/{updatableAssetId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-list-updatableassets?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-get?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchDeviceRegistrationResourceModel
 	var identity sharedmodels.ResourceIdentity
@@ -119,6 +119,13 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Con
 		return
 	}
 
+	// During import, update_category may not be set but id contains the update category value
+	if object.UpdateCategory.IsNull() || object.UpdateCategory.IsUnknown() || object.UpdateCategory.ValueString() == "" {
+		if !object.ID.IsNull() && !object.ID.IsUnknown() && object.ID.ValueString() != "" {
+			object.UpdateCategory = object.ID
+		}
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s for update category: %s", ResourceName, object.UpdateCategory.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
@@ -127,25 +134,60 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Con
 	}
 	defer cancel()
 
-	filterQuery := "$filter=isof('microsoft.graph.windowsUpdates.azureADDevice')"
-	assetsResp, err := r.client.
-		Admin().
-		Windows().
-		Updates().
-		UpdatableAssets().
-		Get(ctx, &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetRequestConfiguration{
-			QueryParameters: &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetQueryParameters{
-				Select: []string{"id", "enrollments"},
-				Filter: &filterQuery,
-			},
-		})
-
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
+	// Get the list of device IDs from state
+	var deviceIDs []string
+	if !object.EntraDeviceObjectIds.IsNull() && !object.EntraDeviceObjectIds.IsUnknown() {
+		resp.Diagnostics.Append(object.EntraDeviceObjectIds.ElementsAs(ctx, &deviceIDs, false)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
-	devices := assetsResp.GetValue()
+	var devices []windowsupdates.UpdatableAssetable
+
+	if len(deviceIDs) == 0 {
+		// Import scenario: no device IDs in state, fetch all enrolled assets and filter by category
+		result, err := r.client.
+			Admin().
+			Windows().
+			Updates().
+			UpdatableAssets().
+			Get(ctx, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+			return
+		}
+
+		if result != nil {
+			devices = result.GetValue()
+		}
+	} else {
+		// Normal case: fetch each known device individually
+		for _, deviceID := range deviceIDs {
+			device, err := r.client.
+				Admin().
+				Windows().
+				Updates().
+				UpdatableAssets().
+				ByUpdatableAssetId(deviceID).
+				Get(ctx, nil)
+
+			if err != nil {
+				errorInfo := errors.GraphError(ctx, err)
+				if errorInfo.StatusCode == 404 {
+					tflog.Warn(ctx, fmt.Sprintf("Device %s not found in Windows Updates, may have been unenrolled", deviceID))
+					continue
+				}
+				errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+				return
+			}
+
+			if device != nil {
+				devices = append(devices, device)
+			}
+		}
+	}
 
 	MapRemoteStateToTerraform(ctx, &object, devices)
 
@@ -194,8 +236,8 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.C
 	defer cancel()
 
 	planDeviceIDs := make(map[string]bool)
-	if !plan.DeviceIds.IsNull() && !plan.DeviceIds.IsUnknown() {
-		elements := plan.DeviceIds.Elements()
+	if !plan.EntraDeviceObjectIds.IsNull() && !plan.EntraDeviceObjectIds.IsUnknown() {
+		elements := plan.EntraDeviceObjectIds.Elements()
 		for _, elem := range elements {
 			if strVal, ok := elem.(types.String); ok {
 				planDeviceIDs[strVal.ValueString()] = true
@@ -204,8 +246,8 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.C
 	}
 
 	stateDeviceIDs := make(map[string]bool)
-	if !state.DeviceIds.IsNull() && !state.DeviceIds.IsUnknown() {
-		elements := state.DeviceIds.Elements()
+	if !state.EntraDeviceObjectIds.IsNull() && !state.EntraDeviceObjectIds.IsUnknown() {
+		elements := state.EntraDeviceObjectIds.Elements()
 		for _, elem := range elements {
 			if strVal, ok := elem.(types.String); ok {
 				stateDeviceIDs[strVal.ValueString()] = true
@@ -230,7 +272,7 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.C
 	if len(devicesToEnroll) > 0 {
 		enrollModel := WindowsUpdatesAutopatchDeviceRegistrationResourceModel{
 			UpdateCategory: plan.UpdateCategory,
-			DeviceIds:      types.SetValueMust(types.StringType, convertStringsToAttrValues(devicesToEnroll)),
+			EntraDeviceObjectIds: types.SetValueMust(types.StringType, convertStringsToAttrValues(devicesToEnroll)),
 		}
 
 		if err := r.validateRequest(ctx, &enrollModel, &resp.Diagnostics); err != nil {
@@ -263,7 +305,7 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.C
 	if len(devicesToUnenroll) > 0 {
 		unenrollModel := WindowsUpdatesAutopatchDeviceRegistrationResourceModel{
 			UpdateCategory: plan.UpdateCategory,
-			DeviceIds:      types.SetValueMust(types.StringType, convertStringsToAttrValues(devicesToUnenroll)),
+			EntraDeviceObjectIds: types.SetValueMust(types.StringType, convertStringsToAttrValues(devicesToUnenroll)),
 		}
 
 		unenrollRequest, err := constructUnenrollRequest(ctx, &unenrollModel)

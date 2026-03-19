@@ -27,8 +27,8 @@ func constructEnrollRequest(ctx context.Context, data *WindowsUpdatesAutopatchDe
 	requestBody.SetMemberEntityType(&memberEntityType)
 
 	var deviceIDs []string
-	if !data.DeviceIds.IsNull() && !data.DeviceIds.IsUnknown() {
-		elements := data.DeviceIds.Elements()
+	if !data.EntraDeviceObjectIds.IsNull() && !data.EntraDeviceObjectIds.IsUnknown() {
+		elements := data.EntraDeviceObjectIds.Elements()
 		deviceIDs = make([]string, 0, len(elements))
 		for _, elem := range elements {
 			if strVal, ok := elem.(types.String); ok {
@@ -66,8 +66,8 @@ func constructUnenrollRequest(ctx context.Context, data *WindowsUpdatesAutopatch
 	requestBody.SetMemberEntityType(&memberEntityType)
 
 	var deviceIDs []string
-	if !data.DeviceIds.IsNull() && !data.DeviceIds.IsUnknown() {
-		elements := data.DeviceIds.Elements()
+	if !data.EntraDeviceObjectIds.IsNull() && !data.EntraDeviceObjectIds.IsUnknown() {
+		elements := data.EntraDeviceObjectIds.Elements()
 		deviceIDs = make([]string, 0, len(elements))
 		for _, elem := range elements {
 			if strVal, ok := elem.(types.String); ok {

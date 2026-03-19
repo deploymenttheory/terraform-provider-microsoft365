@@ -6,8 +6,8 @@ import (
 )
 
 type WindowsUpdatesAutopatchDeviceRegistrationResourceModel struct {
-	ID             types.String   `tfsdk:"id"`
-	UpdateCategory types.String   `tfsdk:"update_category"`
-	DeviceIds      types.Set      `tfsdk:"device_ids"`
-	Timeouts       timeouts.Value `tfsdk:"timeouts"`
+	ID                   types.String   `tfsdk:"id"`
+	UpdateCategory       types.String   `tfsdk:"update_category"`
+	EntraDeviceObjectIds types.Set      `tfsdk:"entra_device_object_ids"`
+	Timeouts             timeouts.Value `tfsdk:"timeouts"`
 }

@@ -2,18 +2,19 @@
 page_title: "microsoft365_graph_beta_device_management_managed_device Data Source - terraform-provider-microsoft365"
 subcategory: "Device Management"
 description: |-
-  Retrieves Managed Devices from Microsoft Intune using the /deviceManagement/managedDevices endpoint. This data source enables querying managed devices with advanced filtering capabilities.
+  Retrieves Managed Devices from Microsoft Intune using the /deviceManagement/managedDevices endpoint. Supports flexible lookup by device ID, device name, operating system, OS version, Azure AD device ID, serial number, user principal name, or custom OData queries.
 ---
 
 # microsoft365_graph_beta_device_management_managed_device (Data Source)
 
-Retrieves managed devices from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. Supports filtering by all, id, device_name, serial_number, or user_id for comprehensive device management.
+Retrieves managed devices from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. This data source provides flexible lookup capabilities including list all, device ID, device name, operating system, OS version, Azure AD device ID, serial number, user display name, and custom OData queries.
 
-This data source allows you to list and filter managed devices in your tenant, providing details such as device name, operating system, compliance state, user, and more.
+This data source allows you to list and filter managed devices in your tenant, providing comprehensive details such as device name, operating system, compliance state, user information, hardware details, and more.
 
 ## Microsoft Documentation
 
 - [List managedDevices](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-list?view=graph-rest-beta)
+- [Get managedDevice](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-get?view=graph-rest-beta)
 
 ## Microsoft Graph API Permissions
 
@@ -31,136 +32,364 @@ The following client `application` permissions are needed in order to use this d
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.18.0-alpha | Experimental | Initial release |
+| v0.19.0-alpha | Experimental | Added flexible lookup patterns (device_id, device_name, operating_system, os_version, azure_ad_device_id, serial_number, user_display_name, odata_query, list_all) |
+| v0.50.0-alpha | Preview | **Breaking Change**: Refactored to flexible lookup pattern following groups data source design. Removed `filter_type` and `filter_value` attributes. Added mutually exclusive convenience lookup attributes: `device_id`, `device_name`, `operating_system`, `os_version`, `azure_ad_device_id`, `serial_number`, `user_principal_name`, and `list_all`. Consolidated all individual OData parameters (`odata_filter`, `odata_top`, `odata_orderby`, `odata_select`, `odata_count`, `odata_search`, `odata_expand`) into single `odata_query` attribute for custom filter expressions. Added operating system validator to ensure only valid device types are used. |
 
 ## Example Usage
 
+### Example 1: List All Managed Devices
+
 ```terraform
-# Example 1: Get all managed devices
+# Example: List all managed devices
 data "microsoft365_graph_beta_device_management_managed_device" "all" {
-  filter_type = "all"
+  list_all = true
 }
 
-# Example 2: Get a specific managed device by ID
-data "microsoft365_graph_beta_device_management_managed_device" "by_id" {
-  filter_type  = "id"
-  filter_value = "00000000-0000-0000-0000-000000000000"
-}
-
-# Example 3: Get managed devices by device name (partial match)
-data "microsoft365_graph_beta_device_management_managed_device" "by_device_name" {
-  filter_type  = "device_name"
-  filter_value = "DESKTOP"
-}
-
-# Example 4: Get managed devices by serial number (partial match)
-data "microsoft365_graph_beta_device_management_managed_device" "by_serial_number" {
-  filter_type  = "serial_number"
-  filter_value = "ABC123"
-}
-
-# Example 5: Get managed devices by user ID (partial match)
-data "microsoft365_graph_beta_device_management_managed_device" "by_user_id" {
-  filter_type  = "user_id"
-  filter_value = "user@example.com"
-}
-
-# Example 6: Get managed devices using OData filter (Windows devices only)
-data "microsoft365_graph_beta_device_management_managed_device" "odata_filter" {
-  filter_type  = "odata"
-  odata_filter = "operatingSystem eq 'Windows'"
-}
-
-# Example 7: Advanced OData query with filter, orderby, and select
-data "microsoft365_graph_beta_device_management_managed_device" "odata_advanced" {
-  filter_type   = "odata"
-  odata_filter  = "operatingSystem eq 'Windows'"
-  odata_orderby = "deviceName"
-  odata_select  = "id,deviceName,operatingSystem,complianceState"
-}
-
-# Example 8: Comprehensive OData query with top and orderby
-data "microsoft365_graph_beta_device_management_managed_device" "odata_comprehensive" {
-  filter_type   = "odata"
-  odata_filter  = "operatingSystem eq 'Windows'"
-  odata_top     = 50
-  odata_orderby = "lastSyncDateTime desc"
-}
-
-# Example 9: OData with count and filter
-data "microsoft365_graph_beta_device_management_managed_device" "odata_with_count" {
-  filter_type  = "odata"
-  odata_filter = "complianceState eq 'compliant'"
-  odata_count  = true
-}
-
-# Example 10: OData search query
-data "microsoft365_graph_beta_device_management_managed_device" "odata_search" {
-  filter_type  = "odata"
-  odata_search = "\"displayName:LAPTOP\""
-  odata_count  = true
-}
-
-# Example 11: OData with expand to include related entities
-data "microsoft365_graph_beta_device_management_managed_device" "odata_expand" {
-  filter_type  = "odata"
-  odata_filter = "operatingSystem eq 'iOS'"
-  odata_expand = "deviceCategory"
-}
-
-# Output examples
+# Output: Total number of managed devices
 output "all_managed_devices_count" {
   value       = length(data.microsoft365_graph_beta_device_management_managed_device.all.items)
-  description = "Total number of managed devices"
+  description = "Total number of managed devices in the tenant"
 }
 
+# Output: Device names
+output "all_device_names" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.all.items :
+    device.device_name
+  ]
+  description = "List of all device names"
+}
+```
+
+### Example 2: Get Device by ID
+
+```terraform
+# Example: Get a specific managed device by ID
+data "microsoft365_graph_beta_device_management_managed_device" "by_id" {
+  device_id = "00000000-0000-0000-0000-000000000001"
+}
+
+# Output: Device information by ID
+output "device_by_id_info" {
+  value = length(data.microsoft365_graph_beta_device_management_managed_device.by_id.items) > 0 ? {
+    id            = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].id
+    name          = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].device_name
+    os            = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].operating_system
+    os_version    = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].os_version
+    enrolled      = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].enrolled_date_time
+    compliance    = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].compliance_state
+    serial_number = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].serial_number
+    manufacturer  = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].manufacturer
+    model         = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].model
+  } : null
+  description = "Detailed device information for the specified device ID"
+}
+```
+
+### Example 3: Get Devices by Device Name
+
+```terraform
+# Example: Get managed devices by device name
+data "microsoft365_graph_beta_device_management_managed_device" "by_name" {
+  device_name = "DESKTOP-WIN-001"
+}
+
+# Output: Devices matching the name filter
+output "devices_by_name" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.by_name.items :
+    {
+      id          = device.id
+      device_name = device.device_name
+      os          = device.operating_system
+      user        = device.user_principal_name
+    }
+  ]
+  description = "List of devices matching the specified device name"
+}
+```
+
+### Example 4: Get Devices by Operating System
+
+```terraform
+# Example: Get managed devices by operating system
+data "microsoft365_graph_beta_device_management_managed_device" "windows" {
+  operating_system = "Windows"
+}
+
+# Output: Windows devices
 output "windows_devices" {
   value = [
-    for device in data.microsoft365_graph_beta_device_management_managed_device.odata_advanced.items :
+    for device in data.microsoft365_graph_beta_device_management_managed_device.windows.items :
     {
       id               = device.id
       device_name      = device.device_name
       operating_system = device.operating_system
+      os_version       = device.os_version
       compliance_state = device.compliance_state
+      last_sync        = device.last_sync_date_time
     }
   ]
-  description = "List of Windows devices with selected fields"
+  description = "List of Windows devices with key information"
 }
 
-output "compliant_devices_count" {
-  value       = length(data.microsoft365_graph_beta_device_management_managed_device.odata_with_count.items)
-  description = "Number of compliant devices"
-}
-
-output "device_by_id_info" {
-  value = length(data.microsoft365_graph_beta_device_management_managed_device.by_id.items) > 0 ? {
-    name       = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].device_name
-    os         = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].operating_system
-    enrolled   = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].enrolled_date_time
-    compliance = data.microsoft365_graph_beta_device_management_managed_device.by_id.items[0].compliance_state
-  } : null
-  description = "Device information by ID"
+# Output: Count of Windows devices
+output "windows_devices_count" {
+  value       = length(data.microsoft365_graph_beta_device_management_managed_device.windows.items)
+  description = "Total number of Windows devices"
 }
 ```
+
+### Example 5: Get Devices by OS and Version
+
+```terraform
+# Example: Get managed devices by operating system and version
+data "microsoft365_graph_beta_device_management_managed_device" "windows_10" {
+  operating_system = "Windows"
+  os_version       = "10.0.19045"
+}
+
+# Output: Windows 10 devices with specific version
+output "windows_10_devices" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.windows_10.items :
+    {
+      id          = device.id
+      device_name = device.device_name
+      os_version  = device.os_version
+      compliance  = device.compliance_state
+      encrypted   = device.is_encrypted
+    }
+  ]
+  description = "List of Windows 10 devices with the specified version"
+}
+```
+
+### Example 6: Get Device by Azure AD Device ID
+
+```terraform
+# Example: Get managed device by Azure AD Device ID
+data "microsoft365_graph_beta_device_management_managed_device" "by_aad_id" {
+  azure_ad_device_id = "aaaaaaaa-0000-0000-0000-000000000001"
+}
+
+# Output: Device information by Azure AD Device ID
+output "device_by_aad_id" {
+  value = length(data.microsoft365_graph_beta_device_management_managed_device.by_aad_id.items) > 0 ? {
+    intune_id          = data.microsoft365_graph_beta_device_management_managed_device.by_aad_id.items[0].id
+    azure_ad_device_id = data.microsoft365_graph_beta_device_management_managed_device.by_aad_id.items[0].azure_ad_device_id
+    device_name        = data.microsoft365_graph_beta_device_management_managed_device.by_aad_id.items[0].device_name
+    registration_state = data.microsoft365_graph_beta_device_management_managed_device.by_aad_id.items[0].device_registration_state
+    user               = data.microsoft365_graph_beta_device_management_managed_device.by_aad_id.items[0].user_principal_name
+  } : null
+  description = "Device information using Azure AD Device ID lookup"
+}
+```
+
+### Example 7: Get Devices by Serial Number
+
+```terraform
+# Example: Get managed devices by serial number
+data "microsoft365_graph_beta_device_management_managed_device" "by_serial" {
+  serial_number = "SN-WIN-001"
+}
+
+# Output: Devices with matching serial number
+output "devices_by_serial" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.by_serial.items :
+    {
+      id            = device.id
+      device_name   = device.device_name
+      serial_number = device.serial_number
+      manufacturer  = device.manufacturer
+      model         = device.model
+      user          = device.user_display_name
+    }
+  ]
+  description = "List of devices matching the specified serial number"
+}
+
+# Note: Multiple devices may share the same serial number in some scenarios
+output "serial_number_device_count" {
+  value       = length(data.microsoft365_graph_beta_device_management_managed_device.by_serial.items)
+  description = "Number of devices with this serial number"
+}
+```
+
+### Example 8: Get Devices by User Principal Name
+
+```terraform
+# Example: Get managed devices by user principal name (email)
+data "microsoft365_graph_beta_device_management_managed_device" "by_user" {
+  user_principal_name = "user@contoso.com"
+}
+
+# Output: Devices assigned to the specified user
+output "user_devices" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.by_user.items :
+    {
+      id                = device.id
+      device_name       = device.device_name
+      user_display_name = device.user_display_name
+      user_email        = device.user_principal_name
+      operating_system  = device.operating_system
+      compliance_state  = device.compliance_state
+      last_sync         = device.last_sync_date_time
+    }
+  ]
+  description = "List of devices assigned to the specified user"
+}
+```
+
+### Example 9: OData Query - Simple Filter
+
+```terraform
+# Example: Get managed devices using a simple OData filter
+data "microsoft365_graph_beta_device_management_managed_device" "compliant_devices" {
+  odata_query = "complianceState eq 'compliant'"
+}
+
+# Output: Compliant devices
+output "compliant_devices" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.compliant_devices.items :
+    {
+      id               = device.id
+      device_name      = device.device_name
+      compliance_state = device.compliance_state
+      operating_system = device.operating_system
+    }
+  ]
+  description = "List of compliant devices"
+}
+
+# Output: Compliant device count
+output "compliant_devices_count" {
+  value       = length(data.microsoft365_graph_beta_device_management_managed_device.compliant_devices.items)
+  description = "Total number of compliant devices"
+}
+```
+
+### Example 10: OData Query - AND Filter
+
+```terraform
+# Example: Get managed devices using OData filter with AND logic
+data "microsoft365_graph_beta_device_management_managed_device" "compliant_windows" {
+  odata_query = "operatingSystem eq 'Windows' and complianceState eq 'compliant'"
+}
+
+# Output: Compliant Windows devices
+output "compliant_windows_devices" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.compliant_windows.items :
+    {
+      id               = device.id
+      device_name      = device.device_name
+      operating_system = device.operating_system
+      os_version       = device.os_version
+      compliance_state = device.compliance_state
+      is_encrypted     = device.is_encrypted
+    }
+  ]
+  description = "List of compliant Windows devices"
+}
+```
+
+### Example 11: OData Query - StartsWith Filter
+
+```terraform
+# Example: Get managed devices using OData startswith filter
+data "microsoft365_graph_beta_device_management_managed_device" "desktop_devices" {
+  odata_query = "startswith(deviceName,'DESKTOP')"
+}
+
+# Output: Desktop devices
+output "desktop_devices" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.desktop_devices.items :
+    {
+      id          = device.id
+      device_name = device.device_name
+      os          = device.operating_system
+      user        = device.user_principal_name
+    }
+  ]
+  description = "List of devices with names starting with 'DESKTOP'"
+}
+```
+
+### Example 12: OData Query - OR Filter
+
+```terraform
+# Example: Get managed devices using OData filter with OR logic
+data "microsoft365_graph_beta_device_management_managed_device" "ios_or_android" {
+  odata_query = "operatingSystem eq 'iOS' or operatingSystem eq 'Android'"
+}
+
+# Output: iOS and Android devices
+output "mobile_devices" {
+  value = [
+    for device in data.microsoft365_graph_beta_device_management_managed_device.ios_or_android.items :
+    {
+      id               = device.id
+      device_name      = device.device_name
+      operating_system = device.operating_system
+      os_version       = device.os_version
+      model            = device.model
+      manufacturer     = device.manufacturer
+    }
+  ]
+  description = "List of iOS and Android mobile devices"
+}
+
+# Output: Device count by OS
+output "mobile_device_summary" {
+  value = {
+    total = length(data.microsoft365_graph_beta_device_management_managed_device.ios_or_android.items)
+    ios = length([
+      for device in data.microsoft365_graph_beta_device_management_managed_device.ios_or_android.items :
+      device if device.operating_system == "iOS"
+    ])
+    android = length([
+      for device in data.microsoft365_graph_beta_device_management_managed_device.ios_or_android.items :
+      device if device.operating_system == "Android"
+    ])
+  }
+  description = "Summary of mobile devices by operating system"
+}
+```
+
+## Lookup Methods
+
+This data source supports multiple lookup methods. **Exactly one** of the following attributes must be specified:
+
+- `list_all` - List all managed devices in the tenant
+- `device_id` - Lookup by specific Intune device ID
+- `device_name` - Filter by device name (exact match via OData filter)
+- `operating_system` - Filter by operating system (e.g., "Windows", "iOS", "Android")
+- `os_version` - Filter by OS version (must be used with `operating_system`)
+- `azure_ad_device_id` - Lookup by Azure AD device ID
+- `serial_number` - Filter by device serial number
+- `user_principal_name` - Filter by user principal name (email address)
+- `odata_query` - Custom OData filter expression for advanced queries
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
-### Required
-
-- `filter_type` (String) Type of filter to apply. Valid values are: `all`, `id`, `device_name`, `serial_number`, `user_id`, `odata`.
-
 ### Optional
 
-- `filter_value` (String) Value to filter by. Not required when filter_type is 'all' or 'odata'.
-- `odata_count` (Boolean) OData $count parameter to include count of total results. Only used when filter_type is 'odata'.
-- `odata_expand` (String) OData $expand parameter to include related entities. Only used when filter_type is 'odata'.
-- `odata_filter` (String) OData $filter parameter for filtering results. Only used when filter_type is 'odata'. Example: operatingSystem eq 'Windows'.
-- `odata_orderby` (String) OData $orderby parameter to sort results. Only used when filter_type is 'odata'. Example: deviceName.
-- `odata_search` (String) OData $search parameter for full-text search. Only used when filter_type is 'odata'.
-- `odata_select` (String) OData $select parameter to specify which fields to include. Only used when filter_type is 'odata'.
-- `odata_skip` (Number) OData $skip parameter for pagination. Only used when filter_type is 'odata'.
-- `odata_top` (Number) OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.
+- `azure_ad_device_id` (String) The Azure AD device ID (Entra ID device object ID). Conflicts with other lookup attributes.
+- `device_id` (String) The unique identifier of the managed device (Intune device ID). Conflicts with other lookup attributes.
+- `device_name` (String) The name of the managed device. Conflicts with other lookup attributes.
+- `list_all` (Boolean) Retrieve all managed devices. Conflicts with specific lookup attributes.
+- `odata_query` (String) Custom OData filter expression for advanced filtering. Example: `operatingSystem eq 'Windows' and osVersion startswith '10'`. Conflicts with other lookup attributes.
+- `operating_system` (String) Filter devices by operating system. Valid values: 'Windows', 'iOS', 'Android', 'macOS', 'androidForWork', 'androidEnterprise', 'chromeOS', 'linux', 'visionOS', 'tvOS', 'unknown', 'cloudPC'. Can be combined with os_version. Conflicts with device_id, list_all, and odata_query.
+- `os_version` (String) Filter devices by OS version. Can be combined with operating_system. Conflicts with device_id, list_all, and odata_query.
+- `serial_number` (String) The serial number of the managed device. Conflicts with other lookup attributes.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `user_principal_name` (String) The user principal name (email) of the user associated with the managed device. Filters devices by userPrincipalName. Conflicts with other lookup attributes.
 
 ### Read-Only
 

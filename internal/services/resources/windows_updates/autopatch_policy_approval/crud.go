@@ -223,9 +223,11 @@ func (r *WindowsUpdatesAutopatchPolicyApprovalResource) Update(ctx context.Conte
 
 // Delete handles the Delete operation for Windows Updates autopatch policy approval resources.
 //
-// Operation: Deletes a policy approval from a policy
-// API Calls:
-//   - DELETE /admin/windows/updates/policies/{policyId}/approvals/{policyApprovalId}
+// Note: The Microsoft Graph API does not support deletion of policy approvals.
+// Calling DELETE /admin/windows/updates/policies/{policyId}/approvals/{policyApprovalId}
+// returns a 400 Bad Request with "Deleting an approval is not supported."
+// As a result, this Delete implementation only removes the resource from Terraform state
+// without making any API call.
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-policyapproval-delete?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchPolicyApprovalResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -244,22 +246,10 @@ func (r *WindowsUpdatesAutopatchPolicyApprovalResource) Delete(ctx context.Conte
 	}
 	defer cancel()
 
-	err := r.client.
-		Admin().
-		Windows().
-		Updates().
-		Policies().
-		ByPolicyId(object.PolicyId.ValueString()).
-		Approvals().
-		ByPolicyApprovalId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	tflog.Warn(ctx, fmt.Sprintf("The Microsoft Graph API does not support deletion of policy approvals. "+
+		"Removing %s with ID %s (policy: %s) from Terraform state only — the approval will remain in the API.",
+		ResourceName, object.ID.ValueString(), object.PolicyId.ValueString()))
 
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
-		return
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
 	resp.State.RemoveResource(ctx)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

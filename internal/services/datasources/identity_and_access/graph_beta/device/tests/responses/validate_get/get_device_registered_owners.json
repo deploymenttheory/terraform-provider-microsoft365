@@ -1,0 +1,18 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.user",
+      "id": "7e9c394c-aa2d-4444-a782-a57d200d6c74",
+      "deletedDateTime": null,
+      "accountEnabled": true,
+      "displayName": "Dafydd Watkins",
+      "givenName": "Dafydd",
+      "mail": "dafydd.watkins@deploymenttheory.com",
+      "mailNickname": "dafydd.watkins",
+      "surname": "Watkins",
+      "userPrincipalName": "dafydd.watkins@deploymenttheory.com",
+      "userType": "Member"
+    }
+  ]
+}

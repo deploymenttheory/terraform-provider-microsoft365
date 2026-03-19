@@ -156,5 +156,69 @@ func constructDeploymentSettings(ctx context.Context, data *DeploymentSettings) 
 		settings.SetMonitoring(monitoring)
 	}
 
+	if data.UserExperience != nil {
+		userExperience := graphmodelswindowsupdates.NewUserExperienceSettings()
+
+		if !data.UserExperience.DaysUntilForcedReboot.IsNull() {
+			convert.FrameworkToGraphInt32(data.UserExperience.DaysUntilForcedReboot, userExperience.SetDaysUntilForcedReboot)
+		}
+
+		if !data.UserExperience.OfferAsOptional.IsNull() {
+			convert.FrameworkToGraphBool(data.UserExperience.OfferAsOptional, userExperience.SetOfferAsOptional)
+		}
+
+		settings.SetUserExperience(userExperience)
+	}
+
+	if data.Expedite != nil {
+		expedite := graphmodelswindowsupdates.NewExpediteSettings()
+
+		if !data.Expedite.IsExpedited.IsNull() {
+			convert.FrameworkToGraphBool(data.Expedite.IsExpedited, expedite.SetIsExpedited)
+		}
+
+		if !data.Expedite.IsReadinessTest.IsNull() {
+			convert.FrameworkToGraphBool(data.Expedite.IsReadinessTest, expedite.SetIsReadinessTest)
+		}
+
+		settings.SetExpedite(expedite)
+	}
+
+	if data.ContentApplicability != nil && data.ContentApplicability.Safeguard != nil {
+		contentApplicability := graphmodelswindowsupdates.NewContentApplicabilitySettings()
+		safeguard := graphmodelswindowsupdates.NewSafeguardSettings()
+
+		if !data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.IsNull() && 
+		   !data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.IsUnknown() && 
+		   len(data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.Elements()) > 0 {
+			var profileModels []SafeguardProfile
+			diags := data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.ElementsAs(ctx, &profileModels, false)
+			if diags.HasError() {
+				return nil, fmt.Errorf("failed to extract safeguard profiles: %s", diags.Errors())
+			}
+
+			profiles := make([]graphmodelswindowsupdates.SafeguardProfileable, 0, len(profileModels))
+
+			for _, profileData := range profileModels {
+				profile := graphmodelswindowsupdates.NewSafeguardProfile()
+
+				if err := convert.FrameworkToGraphEnum(
+					profileData.Category,
+					graphmodelswindowsupdates.ParseSafeguardCategory,
+					profile.SetCategory,
+				); err != nil {
+					return nil, fmt.Errorf("failed to parse safeguard category: %w", err)
+				}
+
+				profiles = append(profiles, profile)
+			}
+
+			safeguard.SetDisabledSafeguardProfiles(profiles)
+		}
+
+		contentApplicability.SetSafeguard(safeguard)
+		settings.SetContentApplicability(contentApplicability)
+	}
+
 	return settings, nil
 }

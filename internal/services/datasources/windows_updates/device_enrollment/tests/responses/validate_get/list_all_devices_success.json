@@ -1,0 +1,46 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/updatableAssets",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.azureADDevice",
+      "id": "983f03cd-03cd-983f-cd03-3f98cd033f98",
+      "errors": [],
+      "enrollment": {
+        "feature": {
+          "@odata.type": "#microsoft.graph.windowsUpdates.updateManagementEnrollment",
+          "updateCategory": "feature"
+        },
+        "quality": {
+          "@odata.type": "#microsoft.graph.windowsUpdates.updateManagementEnrollment",
+          "updateCategory": "quality"
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.azureADDevice",
+      "id": "90b91efa-6d46-42cd-ad4d-381831773a85",
+      "errors": [],
+      "enrollment": {
+        "driver": {
+          "@odata.type": "#microsoft.graph.windowsUpdates.updateManagementEnrollment",
+          "updateCategory": "driver"
+        },
+        "quality": {
+          "@odata.type": "#microsoft.graph.windowsUpdates.updateManagementEnrollment",
+          "updateCategory": "quality"
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.azureADDevice",
+      "id": "0ee3eb63-caf3-44ce-9769-b83188cc683d",
+      "errors": [],
+      "enrollment": {
+        "quality": {
+          "@odata.type": "#microsoft.graph.windowsUpdates.updateManagementEnrollment",
+          "updateCategory": "quality"
+        }
+      }
+    }
+  ]
+}

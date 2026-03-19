@@ -33,163 +33,172 @@ func (m *ManagedDeviceMock) RegisterMocks() {
 	mockState.managedDevices = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// 1. Get all managed devices - GET /deviceManagement/managedDevices
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDevices", func(req *http.Request) (*http.Response, error) {
-		queryParams, _ := url.ParseQuery(req.URL.RawQuery)
+	RegisterGetByIdMock()
+	RegisterListAndFilterMocks()
+}
 
-		// Handle different scenarios based on query parameters
-		if filter := queryParams.Get("$filter"); filter != "" {
-			if strings.Contains(filter, "complianceState eq 'compliant'") ||
-				strings.Contains(filter, "operatingSystem eq 'Windows'") {
-				// Return filtered results
+func RegisterGetByIdMock() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDevices/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			deviceId := parts[len(parts)-1]
+
+			switch deviceId {
+			case "00000000-0000-0000-0000-000000000001":
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_device_by_id.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			case "00000000-0000-0000-0000-000000000002":
+				responseObj := map[string]any{
+					"id":                        "00000000-0000-0000-0000-000000000002",
+					"userId":                    "user2@contoso.com",
+					"deviceName":                "DESKTOP-WIN-002",
+					"managedDeviceOwnerType":    "company",
+					"operatingSystem":           "Windows",
+					"complianceState":           "noncompliant",
+					"osVersion":                 "10.0.22621.2506",
+					"serialNumber":              "SN-WIN-002",
+					"manufacturer":              "Microsoft Corporation",
+					"model":                     "Surface Laptop 5",
+					"userPrincipalName":         "user2@contoso.com",
+					"enrolledDateTime":          "2024-02-20T14:15:00Z",
+					"lastSyncDateTime":          "2024-10-18T08:45:00Z",
+					"azureADDeviceId":           "aaaaaaaa-0000-0000-0000-000000000002",
+					"deviceRegistrationState":   "registered",
+					"deviceCategoryDisplayName": "Corporate",
+					"isEncrypted":               true,
+					"managementAgent":           "mdm",
+				}
+				return httpmock.NewJsonResponse(200, responseObj)
+			case "00000000-0000-0000-0000-000000000003":
+				responseObj := map[string]any{
+					"id":                        "00000000-0000-0000-0000-000000000003",
+					"userId":                    "user3@contoso.com",
+					"deviceName":                "LAPTOP-WIN-003",
+					"managedDeviceOwnerType":    "company",
+					"operatingSystem":           "Windows",
+					"complianceState":           "compliant",
+					"osVersion":                 "10.0.22631.4169",
+					"serialNumber":              "SN-WIN-003",
+					"manufacturer":              "Lenovo",
+					"model":                     "ThinkPad X1 Carbon",
+					"userPrincipalName":         "user3@contoso.com",
+					"enrolledDateTime":          "2024-03-10T11:20:00Z",
+					"lastSyncDateTime":          "2024-10-18T09:30:00Z",
+					"azureADDeviceId":           "aaaaaaaa-0000-0000-0000-000000000003",
+					"deviceRegistrationState":   "registered",
+					"deviceCategoryDisplayName": "Corporate",
+					"isEncrypted":               true,
+					"managementAgent":           "mdm",
+				}
+				return httpmock.NewJsonResponse(200, responseObj)
+			default:
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Managed device not found"}}`), nil
+			}
+		})
+}
+
+func RegisterListAndFilterMocks() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDevices`,
+		func(req *http.Request) (*http.Response, error) {
+			queryParams, _ := url.ParseQuery(req.URL.RawQuery)
+			filter := queryParams.Get("$filter")
+
+			// No filter - list all
+			if filter == "" {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_all.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// Combined OS and compliance state filter (check this BEFORE individual filters)
+			if strings.Contains(filter, "operatingSystem") && strings.Contains(filter, "complianceState") {
 				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_odata_filter.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				resp, err := httpmock.NewJsonResponse(200, responseObj)
-				if err != nil {
-					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// OS and version filter
+			if strings.Contains(filter, "operatingSystem") && strings.Contains(filter, "eq") && strings.Contains(filter, "osVersion") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_by_os_and_version.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// Operating system only filter
+			if strings.Contains(filter, "operatingSystem") && strings.Contains(filter, "eq") {
+				if strings.Contains(filter, "iOS") || strings.Contains(filter, "Android") {
+					responseObj := map[string]any{
+						"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/managedDevices",
+						"@odata.count":   0,
+						"value":          []any{},
+					}
+					return httpmock.NewJsonResponse(200, responseObj)
 				}
-				return resp, nil
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_by_operating_system.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
 			}
-		}
 
-		// Default: return all managed devices
-		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_all.json")
-		var responseObj map[string]any
-		json.Unmarshal([]byte(jsonStr), &responseObj)
-		resp, err := httpmock.NewJsonResponse(200, responseObj)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-		}
-		return resp, nil
-	})
+			// Compliance state filter (OData queries)
+			if strings.Contains(filter, "complianceState") && strings.Contains(filter, "eq") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_odata_filter.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
 
-	// 2. Get managed device by ID - GET /deviceManagement/managedDevices/{id}
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDevices/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
-		parts := strings.Split(req.URL.Path, "/")
-		deviceId := parts[len(parts)-1]
+			// Device name filter
+			if strings.Contains(filter, "deviceName") && strings.Contains(filter, "eq") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_device_by_device_name.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
 
-		// Return mock response for known IDs
-		switch deviceId {
-		case "00000000-0000-0000-0000-000000000001":
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_device_by_id.json")
+			// Serial number filter
+			if strings.Contains(filter, "serialNumber") && strings.Contains(filter, "eq") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_by_serial_number.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// Azure AD Device ID filter
+			if strings.Contains(filter, "azureADDeviceId") && strings.Contains(filter, "eq") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_device_by_azure_ad_device_id.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// User principal name filter
+			if strings.Contains(filter, "userPrincipalName") && strings.Contains(filter, "eq") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_by_user_principal_name.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// Startswith filter
+			if strings.Contains(filter, "startswith") {
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_all.json")
+				var responseObj map[string]any
+				json.Unmarshal([]byte(jsonStr), &responseObj)
+				return httpmock.NewJsonResponse(200, responseObj)
+			}
+
+			// Default fallback - return all devices
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_all.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		case "00000000-0000-0000-0000-000000000002":
-			// Return second device
-			responseObj := map[string]any{
-				"id":                        "00000000-0000-0000-0000-000000000002",
-				"userId":                    "user2@contoso.com",
-				"deviceName":                "DESKTOP-WIN-002",
-				"managedDeviceOwnerType":    "company",
-				"operatingSystem":           "Windows",
-				"complianceState":           "noncompliant",
-				"osVersion":                 "10.0.22621.2506",
-				"serialNumber":              "SN-WIN-002",
-				"manufacturer":              "Microsoft Corporation",
-				"model":                     "Surface Laptop 5",
-				"userPrincipalName":         "user2@contoso.com",
-				"enrolledDateTime":          "2024-02-20T14:15:00Z",
-				"lastSyncDateTime":          "2024-10-18T08:45:00Z",
-				"azureADDeviceId":           "aaaaaaaa-0000-0000-0000-000000000002",
-				"deviceRegistrationState":   "registered",
-				"deviceCategoryDisplayName": "Corporate",
-				"isEncrypted":               true,
-				"managementAgent":           "mdm",
-			}
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		case "00000000-0000-0000-0000-000000000003":
-			// Return third device
-			responseObj := map[string]any{
-				"id":                        "00000000-0000-0000-0000-000000000003",
-				"userId":                    "user3@contoso.com",
-				"deviceName":                "LAPTOP-WIN-003",
-				"managedDeviceOwnerType":    "company",
-				"operatingSystem":           "Windows",
-				"complianceState":           "compliant",
-				"osVersion":                 "10.0.22631.4169",
-				"serialNumber":              "SN-WIN-003",
-				"manufacturer":              "Lenovo",
-				"model":                     "ThinkPad X1 Carbon",
-				"userPrincipalName":         "user3@contoso.com",
-				"enrolledDateTime":          "2024-03-10T11:20:00Z",
-				"lastSyncDateTime":          "2024-10-18T09:30:00Z",
-				"azureADDeviceId":           "aaaaaaaa-0000-0000-0000-000000000003",
-				"deviceRegistrationState":   "registered",
-				"deviceCategoryDisplayName": "Corporate",
-				"isEncrypted":               true,
-				"managementAgent":           "mdm",
-			}
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		default:
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Managed device not found"}}`), nil
-		}
-	})
-
-	// 3. Handle OData queries with pagination simulation
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDevices\?.*`, func(req *http.Request) (*http.Response, error) {
-		queryParams, _ := url.ParseQuery(req.URL.RawQuery)
-
-		// Handle $count parameter
-		if queryParams.Get("$count") == "true" {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_odata_filter.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			responseObj["@odata.count"] = 2
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		}
-
-		// Handle $orderby parameter
-		if orderBy := queryParams.Get("$orderby"); orderBy != "" && (strings.Contains(orderBy, "deviceName") || strings.Contains(orderBy, "lastSyncDateTime")) {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_odata_filter.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		}
-
-		// Handle $select parameter
-		if selectFields := queryParams.Get("$select"); selectFields != "" {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_odata_filter.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		}
-
-		// Default OData response
-		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_managed_devices_all.json")
-		var responseObj map[string]any
-		json.Unmarshal([]byte(jsonStr), &responseObj)
-		resp, err := httpmock.NewJsonResponse(200, responseObj)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-		}
-		return resp, nil
-	})
+			return httpmock.NewJsonResponse(200, responseObj)
+		})
 }
 
 func (m *ManagedDeviceMock) RegisterErrorMocks() {
@@ -197,8 +206,8 @@ func (m *ManagedDeviceMock) RegisterErrorMocks() {
 	mockState.managedDevices = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Return errors for all operations
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/managedDevices", func(req *http.Request) (*http.Response, error) {
+	// Return errors for all list operations (with or without query params)
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDevices`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{
 				"code":    "Forbidden",
@@ -206,20 +215,6 @@ func (m *ManagedDeviceMock) RegisterErrorMocks() {
 			},
 		}
 		resp, err := httpmock.NewJsonResponse(403, errorObj)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-		}
-		return resp, nil
-	})
-
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/managedDevices/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
-		errorObj := map[string]any{
-			"error": map[string]any{
-				"code":    "NotFound",
-				"message": "Managed device not found",
-			},
-		}
-		resp, err := httpmock.NewJsonResponse(404, errorObj)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
 		}

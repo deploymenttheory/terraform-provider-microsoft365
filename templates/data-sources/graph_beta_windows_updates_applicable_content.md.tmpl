@@ -1,0 +1,110 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+Retrieves applicable content (driver, firmware, quality, and feature updates) for a Windows Autopatch deployment audience. This data source shows which updates are applicable to devices in the audience and which devices match each update.
+
+The data source supports filtering by catalog entry type, driver class, manufacturer, and specific devices to help you identify relevant updates for your deployment scenarios.
+
+## Microsoft Documentation
+
+- [Applicable Content Resource Type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-applicablecontent?view=graph-rest-beta)
+- [List Applicable Content](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-list-applicablecontent?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+| v0.51.0-alpha | Experimental | Added filtering capabilities: `catalog_entry_type`, `driver_class`, `manufacturer`, `device_id`, `include_no_matches`, `odata_filter` |
+
+## Example Usage
+
+### Example 1: Get All Applicable Content
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_applicable_content/01_all_content.tf" }}
+
+### Example 2: Filter by Driver Updates
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_applicable_content/02_driver_updates.tf" }}
+
+### Example 3: Filter by Display Drivers
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_applicable_content/03_display_drivers.tf" }}
+
+### Example 4: Filter by Manufacturer
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_applicable_content/04_by_manufacturer.tf" }}
+
+### Example 5: Get Content for Specific Device
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_applicable_content/05_device_specific.tf" }}
+
+### Example 6: Get Only Content with Matched Devices
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_applicable_content/06_with_matches_only.tf" }}
+
+### Example 7: Filter by Quality Updates
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_applicable_content/07_quality_updates.tf" }}
+
+## Filtering Options
+
+This data source supports multiple filtering options that can be combined to narrow down results:
+
+### By Catalog Entry Type
+- `catalog_entry_type` - Filter by update type: `driver`, `quality`, or `feature`
+- Useful for separating driver updates from Windows updates
+
+### By Driver Class
+- `driver_class` - Filter driver updates by class (e.g., `Display`, `Network`, `Storage`)
+- Only applicable when filtering for driver updates
+- Common values: `Display`, `Network`, `Storage`, `Audio`, `Bluetooth`, `System`, `HIDClass`
+
+### By Manufacturer
+- `manufacturer` - Filter by hardware manufacturer
+- Examples: `Intel`, `NVIDIA`, `AMD`, `Microsoft`, `Realtek`, `Qualcomm`
+- Works for both driver and firmware updates
+
+### By Device
+- `device_id` - Filter to show only content applicable to a specific Azure AD device
+- Useful for troubleshooting or checking what updates are available for one device
+
+### By Match Status
+- `include_no_matches` - Control whether to include content with no matched devices
+- Default: `true` (include all content)
+- Set to `false` to only see content that has at least one matched device
+
+### Advanced Filtering
+- `odata_filter` - Custom OData filter expression for advanced scenarios
+- Applied client-side after retrieving the applicable content
+- Example: `catalogEntry/displayName contains 'NVIDIA'`
+
+## Important Notes
+
+1. **Audience ID is Required**: The `audience_id` parameter is mandatory as applicable content is scoped to a specific deployment audience.
+
+2. **Client-Side Filtering**: All filtering (except the initial API query) is performed client-side. This means the data source retrieves all applicable content for the audience and then filters the results based on your criteria.
+
+3. **Matched Devices**: The `matched_devices` list shows which devices in the audience are compatible with each update. This helps identify deployment targets.
+
+4. **Catalog Entry Details**: Each applicable content entry includes detailed information about the update from the catalog, including version, release date, manufacturer, and more.
+
+5. **Empty Results**: If no content matches your filters, the `applicable_content` list will be empty. This is normal and indicates no updates meet your criteria.
+
+{{ .SchemaMarkdown | trimspace }}

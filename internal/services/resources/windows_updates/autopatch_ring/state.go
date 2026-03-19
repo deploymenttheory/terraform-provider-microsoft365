@@ -17,6 +17,11 @@ var assignedGroupAttrTypes = map[string]attr.Type{
 	"group_id": types.StringType,
 }
 
+// groupAssignmentAttrTypes defines the attribute types for the GroupAssignmentModel object.
+var groupAssignmentAttrTypes = map[string]attr.Type{
+	"assignments": types.SetType{ElemType: types.ObjectType{AttrTypes: assignedGroupAttrTypes}},
+}
+
 func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatchRingResourceModel, remoteResource graphmodelswindowsupdates.Ringable) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
@@ -44,26 +49,33 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping remote state to Terraform state for %s", ResourceName))
 }
 
-// mapGroupAssignment converts the SDK group assignment to a Terraform GroupAssignmentModel.
-// Returns a model with an empty set if the assignment is nil or has no assignments.
+// mapGroupAssignment converts the SDK group assignment to a Terraform types.Object.
+// Returns a types.Object with an empty set if the assignment is nil or has no assignments.
 func mapGroupAssignment(ctx context.Context, assignment interface {
 	GetAssignments() []graphmodelswindowsupdates.AssignedGroupable
-}) *GroupAssignmentModel {
+}) types.Object {
+	var set types.Set
+
 	if assignment == nil {
-		set := commonstate.BuildObjectSetFromSlice(ctx, assignedGroupAttrTypes, nil, 0)
-		return &GroupAssignmentModel{Assignments: set}
+		set = commonstate.BuildObjectSetFromSlice(ctx, assignedGroupAttrTypes, nil, 0)
+	} else {
+		assignments := assignment.GetAssignments()
+		set = commonstate.BuildObjectSetFromSlice(
+			ctx,
+			assignedGroupAttrTypes,
+			func(i int) map[string]attr.Value {
+				return map[string]attr.Value{
+					"group_id": convert.GraphToFrameworkString(assignments[i].GetGroupId()),
+				}
+			},
+			len(assignments),
+		)
 	}
 
-	assignments := assignment.GetAssignments()
-	set := commonstate.BuildObjectSetFromSlice(
-		ctx,
-		assignedGroupAttrTypes,
-		func(i int) map[string]attr.Value {
-			return map[string]attr.Value{
-				"group_id": convert.GraphToFrameworkString(assignments[i].GetGroupId()),
-			}
-		},
-		len(assignments),
-	)
-	return &GroupAssignmentModel{Assignments: set}
+	model := GroupAssignmentModel{Assignments: set}
+	obj, diags := types.ObjectValueFrom(ctx, groupAssignmentAttrTypes, model)
+	if diags.HasError() {
+		return types.ObjectNull(groupAssignmentAttrTypes)
+	}
+	return obj
 }

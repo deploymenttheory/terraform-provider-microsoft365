@@ -55,7 +55,7 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_01_Scenario_Minimal(t *t
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_001").Key("id").HasValue("feature"),
 					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_001").Key("update_category").HasValue("feature"),
-					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_001").Key("device_ids.#").HasValue("1"),
+					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_001").Key("entra_device_object_ids.#").HasValue("1"),
 				),
 			},
 			{
@@ -81,7 +81,7 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_02_Scenario_Maximal(t *t
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_002").Key("id").HasValue("quality"),
 					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_002").Key("update_category").HasValue("quality"),
-					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_002").Key("device_ids.#").HasValue("3"),
+					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_002").Key("entra_device_object_ids.#").HasValue("3"),
 				),
 			},
 			{
@@ -106,14 +106,14 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_03_Lifecycle_AddDevices(
 				Config: loadUnitTestTerraform("003_lifecycle_add_devices_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_003").Key("id").HasValue("feature"),
-					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_003").Key("device_ids.#").HasValue("1"),
+					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_003").Key("entra_device_object_ids.#").HasValue("1"),
 				),
 			},
 			{
 				Config: loadUnitTestTerraform("003_lifecycle_add_devices_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_003").Key("id").HasValue("feature"),
-					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_003").Key("device_ids.#").HasValue("3"),
+					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_003").Key("entra_device_object_ids.#").HasValue("3"),
 				),
 			},
 		},
@@ -133,14 +133,14 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_04_Lifecycle_RemoveDevic
 				Config: loadUnitTestTerraform("004_lifecycle_remove_devices_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_004").Key("id").HasValue("feature"),
-					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_004").Key("device_ids.#").HasValue("3"),
+					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_004").Key("entra_device_object_ids.#").HasValue("3"),
 				),
 			},
 			{
 				Config: loadUnitTestTerraform("004_lifecycle_remove_devices_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_004").Key("id").HasValue("feature"),
-					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_004").Key("device_ids.#").HasValue("1"),
+					check.That(graphBetaWindowsAutopatchDeviceRegistration.ResourceName+".test_004").Key("entra_device_object_ids.#").HasValue("1"),
 				),
 			},
 		},
