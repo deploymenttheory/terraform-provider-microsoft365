@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/admin"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
 
@@ -134,59 +135,30 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Con
 	}
 	defer cancel()
 
-	// Get the list of device IDs from state
-	var deviceIDs []string
-	if !object.EntraDeviceObjectIds.IsNull() && !object.EntraDeviceObjectIds.IsUnknown() {
-		resp.Diagnostics.Append(object.EntraDeviceObjectIds.ElementsAs(ctx, &deviceIDs, false)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
+	// Always fetch all updatable assets and filter by category
+	// This ensures we get the correct enrollment state from the API
+	// Use $select to ensure enrollment information is included in the response
+	requestConfig := &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetRequestConfiguration{
+		QueryParameters: &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetQueryParameters{
+			Select: []string{"id", "enrollments"},
+		},
+	}
+	
+	result, err := r.client.
+		Admin().
+		Windows().
+		Updates().
+		UpdatableAssets().
+		Get(ctx, requestConfig)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
 	}
 
 	var devices []windowsupdates.UpdatableAssetable
-
-	if len(deviceIDs) == 0 {
-		// Import scenario: no device IDs in state, fetch all enrolled assets and filter by category
-		result, err := r.client.
-			Admin().
-			Windows().
-			Updates().
-			UpdatableAssets().
-			Get(ctx, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
-			return
-		}
-
-		if result != nil {
-			devices = result.GetValue()
-		}
-	} else {
-		// Normal case: fetch each known device individually
-		for _, deviceID := range deviceIDs {
-			device, err := r.client.
-				Admin().
-				Windows().
-				Updates().
-				UpdatableAssets().
-				ByUpdatableAssetId(deviceID).
-				Get(ctx, nil)
-
-			if err != nil {
-				errorInfo := errors.GraphError(ctx, err)
-				if errorInfo.StatusCode == 404 {
-					tflog.Warn(ctx, fmt.Sprintf("Device %s not found in Windows Updates, may have been unenrolled", deviceID))
-					continue
-				}
-				errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
-				return
-			}
-
-			if device != nil {
-				devices = append(devices, device)
-			}
-		}
+	if result != nil {
+		devices = result.GetValue()
 	}
 
 	MapRemoteStateToTerraform(ctx, &object, devices)
