@@ -7,7 +7,7 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_grou
 }
 
 data "microsoft365_graph_beta_device_management_managed_device" "test_devices" {
-  filter_type = "all"
+  list_all = true
 
   timeouts = {
     read = "30s"
@@ -17,8 +17,8 @@ data "microsoft365_graph_beta_device_management_managed_device" "test_devices" {
 resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment" "test_003" {
   updatable_asset_group_id = microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group.test_003.id
 
-  entra_device_object_ids = [
-    data.microsoft365_graph_beta_device_management_managed_device.test_devices.items[0].azure_ad_device_id
+  entra_device_ids = [
+    data.microsoft365_graph_beta_device_management_managed_device.test_devices.items[0].azure_active_directory_device_id
   ]
 
   timeouts = {
