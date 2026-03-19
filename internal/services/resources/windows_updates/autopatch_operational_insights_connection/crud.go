@@ -13,6 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// Create handles the Create operation for Windows Updates autopatch operational insights connection resources.
+//
+// Operation: Creates a new resource connection for operational insights
+// API Calls:
+//   - POST /admin/windows/updates/resourceConnections
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-resourceconnections-operationalinsightsconnection?view=graph-rest-beta&tabs=http
 func (r *WindowsUpdatesAutopatchOperationalInsightsConnectionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchOperationalInsightsConnectionResourceModel
 
@@ -76,6 +83,13 @@ func (r *WindowsUpdatesAutopatchOperationalInsightsConnectionResource) Create(ct
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
+// Read handles the Read operation for Windows Updates autopatch operational insights connection resources.
+//
+// Operation: Retrieves a resource connection by ID
+// API Calls:
+//   - GET /admin/windows/updates/resourceConnections/{resourceConnectionId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-operationalinsightsconnection-get?view=graph-rest-beta&tabs=http
 func (r *WindowsUpdatesAutopatchOperationalInsightsConnectionResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchOperationalInsightsConnectionResourceModel
 
@@ -124,8 +138,13 @@ func (r *WindowsUpdatesAutopatchOperationalInsightsConnectionResource) Read(ctx 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update is not supported — all fields require replacement. Terraform will never call
-// this method because every attribute has RequiresReplaceString() set.
+// Update handles the Update operation for Windows Updates autopatch operational insights connection resources.
+//
+// Operation: Update is not supported — all fields require replacement
+// API Calls:
+//   - None (operation not supported)
+//
+// Note: Terraform will never call this method because every attribute has RequiresReplaceString() set
 func (r *WindowsUpdatesAutopatchOperationalInsightsConnectionResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	resp.Diagnostics.AddError(
 		"Update not supported",
@@ -133,6 +152,13 @@ func (r *WindowsUpdatesAutopatchOperationalInsightsConnectionResource) Update(ct
 	)
 }
 
+// Delete handles the Delete operation for Windows Updates autopatch operational insights connection resources.
+//
+// Operation: Deletes a resource connection
+// API Calls:
+//   - DELETE /admin/windows/updates/resourceConnections/{resourceConnectionId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-operationalinsightsconnection-delete?view=graph-rest-beta&tabs=http
 func (r *WindowsUpdatesAutopatchOperationalInsightsConnectionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchOperationalInsightsConnectionResourceModel
 

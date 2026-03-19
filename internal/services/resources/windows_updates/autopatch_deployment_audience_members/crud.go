@@ -15,7 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Windows Updates autopatch deployment audience members resources.
+//
+// Operation: Adds members and exclusions to a deployment audience
+// API Calls:
+//   - POST /admin/windows/updates/deploymentAudiences/{deploymentAudienceId}/microsoft.graph.windowsUpdates.updateAudience
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-updateaudience?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchDeploymentAudienceMembersResourceModel
 
@@ -88,7 +94,15 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Create(ctx co
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Windows Updates autopatch deployment audience members resources.
+//
+// Operation: Retrieves members and exclusions from a deployment audience
+// API Calls:
+//   - GET /admin/windows/updates/deploymentAudiences/{deploymentAudienceId}/members
+//   - GET /admin/windows/updates/deploymentAudiences/{deploymentAudienceId}/exclusions
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-list-members?view=graph-rest-beta
+// https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-list-exclusions?view=graph-rest-beta&tabs=http
 func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchDeploymentAudienceMembersResourceModel
 	var identity sharedmodels.ResourceIdentity
@@ -164,7 +178,13 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Read(ctx cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Windows Updates autopatch deployment audience members resources.
+//
+// Operation: Updates members and exclusions in a deployment audience
+// API Calls:
+//   - POST /admin/windows/updates/deploymentAudiences/{deploymentAudienceId}/microsoft.graph.windowsUpdates.updateAudience
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-updateaudience?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsUpdatesAutopatchDeploymentAudienceMembersResourceModel
 	var state WindowsUpdatesAutopatchDeploymentAudienceMembersResourceModel
@@ -230,7 +250,13 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Update(ctx co
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s for audience ID: %s", ResourceName, state.AudienceID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Windows Updates autopatch deployment audience members resources.
+//
+// Operation: Removes all members and exclusions from a deployment audience
+// API Calls:
+//   - POST /admin/windows/updates/deploymentAudiences/{deploymentAudienceId}/microsoft.graph.windowsUpdates.updateAudience
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-updateaudience?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchDeploymentAudienceMembersResourceModel
 

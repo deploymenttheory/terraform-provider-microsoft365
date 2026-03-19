@@ -15,7 +15,13 @@ import (
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Windows Updates autopatch updatable asset group assignment resources.
+//
+// Operation: Adds device members to an updatable asset group
+// API Calls:
+//   - POST /admin/windows/updates/updatableAssets/{updatableAssetId}/microsoft.graph.windowsUpdates.addMembersById
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableassetgroup-addmembersbyid?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResourceModel
 
@@ -93,7 +99,13 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResource) Create(ct
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Windows Updates autopatch updatable asset group assignment resources.
+//
+// Operation: Retrieves members of an updatable asset group
+// API Calls:
+//   - GET /admin/windows/updates/updatableAssets/{updatableAssetId}/microsoft.graph.windowsUpdates.updatableAssetGroup/members
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableassetgroup-list-members?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResourceModel
 
@@ -162,7 +174,14 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResource) Read(ctx 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Windows Updates autopatch updatable asset group assignment resources.
+//
+// Operation: Adds new members and removes existing members from an updatable asset group
+// API Calls:
+//   - POST /admin/windows/updates/updatableAssets/{updatableAssetId}/microsoft.graph.windowsUpdates.addMembersById
+//   - POST /admin/windows/updates/updatableAssets/{updatableAssetId}/microsoft.graph.windowsUpdates.removeMembersById
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableassetgroup-addmembersbyid?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResourceModel
 	var state WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResourceModel
@@ -295,7 +314,13 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResource) Update(ct
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Windows Updates autopatch updatable asset group assignment resources.
+//
+// Operation: Removes all device members from an updatable asset group
+// API Calls:
+//   - POST /admin/windows/updates/updatableAssets/{updatableAssetId}/microsoft.graph.windowsUpdates.removeMembersById
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableassetgroup-removemembersbyid?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchUpdatableAssetGroupAssignmentResourceModel
 

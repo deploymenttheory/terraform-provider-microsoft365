@@ -13,6 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// Create handles the Create operation for Windows Updates autopatch ring resources.
+//
+// Operation: Creates a new autopatch ring within a policy
+// API Calls:
+//   - POST /admin/windows/updates/policies/{policyId}/rings
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-policy-post-rings?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchRingResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchRingResourceModel
 
@@ -78,6 +85,13 @@ func (r *WindowsUpdatesAutopatchRingResource) Create(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
+// Read handles the Read operation for Windows Updates autopatch ring resources.
+//
+// Operation: Retrieves an autopatch ring by ID within a policy
+// API Calls:
+//   - GET /admin/windows/updates/policies/{policyId}/rings/{ringId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-ring-get?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchRingResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchRingResourceModel
 
@@ -128,6 +142,13 @@ func (r *WindowsUpdatesAutopatchRingResource) Read(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
+// Update handles the Update operation for Windows Updates autopatch ring resources.
+//
+// Operation: Updates an existing autopatch ring within a policy
+// API Calls:
+//   - PATCH /admin/windows/updates/policies/{policyId}/rings/{ringId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-ring-update?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchRingResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsUpdatesAutopatchRingResourceModel
 	var state WindowsUpdatesAutopatchRingResourceModel
@@ -135,10 +156,6 @@ func (r *WindowsUpdatesAutopatchRingResource) Update(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -200,6 +217,13 @@ func (r *WindowsUpdatesAutopatchRingResource) Update(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
+// Delete handles the Delete operation for Windows Updates autopatch ring resources.
+//
+// Operation: Deletes an autopatch ring from a policy
+// API Calls:
+//   - DELETE /admin/windows/updates/policies/{policyId}/rings/{ringId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-ring-delete?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchRingResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchRingResourceModel
 

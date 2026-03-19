@@ -3,6 +3,7 @@ package graphBetaWindowsUpdatesAutopatchDeploymentAudience
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -14,7 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Windows Update deployment audience resources.
+//
+// Operation: Creates a new deployment audience
+// API Calls:
+//   - POST /admin/windows/updates/deploymentAudiences
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-deploymentaudiences?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchDeploymentAudienceResourceModel
 
@@ -78,7 +85,13 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Create(ctx context.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Windows Update deployment audience resources.
+//
+// Operation: Retrieves a deployment audience by ID
+// API Calls:
+//   - GET /admin/windows/updates/deploymentAudiences/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-get?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchDeploymentAudienceResourceModel
 	var identity sharedmodels.ResourceIdentity
@@ -136,7 +149,13 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Read(ctx context.Con
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Windows Update deployment audience resources.
+//
+// Operation: Updates an existing deployment audience
+// API Calls:
+//   - N/A
+//
+// Reference: N/A
 func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsUpdatesAutopatchDeploymentAudienceResourceModel
 	var state WindowsUpdatesAutopatchDeploymentAudienceResourceModel
@@ -182,7 +201,18 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Update(ctx context.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Windows Update deployment audience resources.
+//
+// Operation: Deletes a deployment audience
+// API Calls:
+//   - DELETE /admin/windows/updates/deploymentAudiences/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-delete?view=graph-rest-beta
+//
+// Note: If the audience is still referenced by deployments (e.g. implicit deployments created
+// by a content_approval that have not yet been cleaned up by the Graph API), the delete
+// is retried with exponential backoff until the dependency clears or the context deadline
+// is exceeded.
 func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchDeploymentAudienceResourceModel
 
@@ -199,15 +229,41 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Delete(ctx context.C
 	}
 	defer cancel()
 
-	err := r.client.
-		Admin().
-		Windows().
-		Updates().
-		DeploymentAudiences().
-		ByDeploymentAudienceId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	const maxWait = 60 * time.Second
+	wait := 5 * time.Second
 
-	if err != nil {
+	for {
+		err := r.client.
+			Admin().
+			Windows().
+			Updates().
+			DeploymentAudiences().
+			ByDeploymentAudienceId(object.ID.ValueString()).
+			Delete(ctx, nil)
+
+		if err == nil {
+			break
+		}
+
+		if strings.Contains(err.Error(), "being used by deployments") {
+			tflog.Debug(ctx, fmt.Sprintf("Audience %s still referenced by deployments, waiting %s before retry", object.ID.ValueString(), wait))
+			select {
+			case <-time.After(wait):
+			case <-ctx.Done():
+				resp.Diagnostics.AddError(
+					"Timeout waiting for deployments to clear",
+					fmt.Sprintf("Audience %s is still referenced by deployments after waiting: %s", object.ID.ValueString(), ctx.Err()),
+				)
+				return
+			}
+			if wait*2 <= maxWait {
+				wait *= 2
+			} else {
+				wait = maxWait
+			}
+			continue
+		}
+
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

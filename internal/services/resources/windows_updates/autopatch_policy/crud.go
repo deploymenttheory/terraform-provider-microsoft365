@@ -14,7 +14,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Windows Updates autopatch policy resources.
+//
+// Operation: Creates a new Windows Update for Business policy
+// API Calls:
+//   - POST /admin/windows/updates/policies
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-adminwindowsupdates-post-policies?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchPolicyResourceModel
 
@@ -78,7 +84,13 @@ func (r *WindowsUpdatesAutopatchPolicyResource) Create(ctx context.Context, req 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Windows Updates autopatch policy resources.
+//
+// Operation: Retrieves a Windows Update for Business policy by ID
+// API Calls:
+//   - GET /admin/windows/updates/policies/{policyId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-policy-get?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchPolicyResourceModel
 	var identity sharedmodels.ResourceIdentity
@@ -136,7 +148,13 @@ func (r *WindowsUpdatesAutopatchPolicyResource) Read(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Windows Updates autopatch policy resources.
+//
+// Operation: Updates an existing Windows Update for Business policy
+// API Calls:
+//   - PATCH /admin/windows/updates/policies/{policyId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-policy-update?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsUpdatesAutopatchPolicyResourceModel
 	var state WindowsUpdatesAutopatchPolicyResourceModel
@@ -203,7 +221,13 @@ func (r *WindowsUpdatesAutopatchPolicyResource) Update(ctx context.Context, req 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Windows Updates autopatch policy resources.
+//
+// Operation: Deletes a Windows Update for Business policy
+// API Calls:
+//   - DELETE /admin/windows/updates/policies/{policyId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-policy-delete?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchPolicyResourceModel
 	tflog.Debug(ctx, fmt.Sprintf("Starting Delete of resource: %s", ResourceName))

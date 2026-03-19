@@ -11,6 +11,7 @@ import (
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
 
+// constructResource constructs a new ContentApproval object.
 func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchContentApprovalResourceModel) (graphmodelswindowsupdates.ComplianceChangeable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
@@ -79,12 +80,13 @@ func constructResource(ctx context.Context, data *WindowsUpdatesAutopatchContent
 	return requestBody, nil
 }
 
+// constructUpdateResource constructs a PATCH body for updating a ContentApproval object.
 func constructUpdateResource(ctx context.Context, plan *WindowsUpdatesAutopatchContentApprovalResourceModel, state *WindowsUpdatesAutopatchContentApprovalResourceModel) (graphmodelswindowsupdates.ComplianceChangeable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing update request for %s resource", ResourceName))
 
 	requestBody := graphmodelswindowsupdates.NewContentApproval()
 
-	if !plan.IsRevoked.Equal(state.IsRevoked) {
+	if !plan.IsRevoked.IsNull() && !plan.IsRevoked.IsUnknown() && !plan.IsRevoked.Equal(state.IsRevoked) {
 		isRevoked := plan.IsRevoked.ValueBool()
 		requestBody.SetIsRevoked(&isRevoked)
 	}

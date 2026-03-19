@@ -16,7 +16,13 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/admin"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for Windows Updates autopatch device registration resources.
+//
+// Operation: Enrolls devices into Windows Update for Business deployment service
+// API Calls:
+//   - POST /admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.enrollAssetsById
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-enrollassetsbyid?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchDeviceRegistrationResourceModel
 
@@ -89,7 +95,13 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Create(ctx context.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for Windows Updates autopatch device registration resources.
+//
+// Operation: Retrieves enrolled devices and their enrollment status
+// API Calls:
+//   - GET /admin/windows/updates/updatableAssets?$filter=isof('microsoft.graph.windowsUpdates.azureADDevice')&$select=id,enrollments
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-list-updatableassets?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchDeviceRegistrationResourceModel
 	var identity sharedmodels.ResourceIdentity
@@ -154,7 +166,15 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Con
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for Windows Updates autopatch device registration resources.
+//
+// Operation: Enrolls new devices and unenrolls removed devices from Windows Update for Business
+// API Calls:
+//   - POST /admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.enrollAssetsById
+//   - POST /admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.unenrollAssetsById
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-unenrollassetsbyid?view=graph-rest-beta&tabs=http
+// https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-enrollassetsbyid?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsUpdatesAutopatchDeviceRegistrationResourceModel
 	var state WindowsUpdatesAutopatchDeviceRegistrationResourceModel
@@ -293,7 +313,13 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s for update category: %s", ResourceName, state.UpdateCategory.ValueString()))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for Windows Updates autopatch device registration resources.
+//
+// Operation: Unenrolls all devices from Windows Update for Business deployment service
+// API Calls:
+//   - POST /admin/windows/updates/updatableAssets/microsoft.graph.windowsUpdates.unenrollAssetsById
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-unenrollassetsbyid?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchDeviceRegistrationResourceModel
 

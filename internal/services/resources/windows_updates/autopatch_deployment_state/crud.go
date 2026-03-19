@@ -12,6 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// Create handles the Create operation for Windows Updates autopatch deployment state resources.
+//
+// Operation: Sets the state of a deployment (e.g., scheduled, offering, paused)
+// API Calls:
+//   - PATCH /admin/windows/updates/deployments/{deploymentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-update?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentStateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchDeploymentStateResourceModel
 
@@ -78,6 +85,13 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Create(ctx context.Cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
+// Read handles the Read operation for Windows Updates autopatch deployment state resources.
+//
+// Operation: Retrieves the current state of a deployment
+// API Calls:
+//   - GET /admin/windows/updates/deployments/{deploymentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-get?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentStateResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchDeploymentStateResourceModel
 
@@ -126,6 +140,13 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Read(ctx context.Contex
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
+// Update handles the Update operation for Windows Updates autopatch deployment state resources.
+//
+// Operation: Updates the state of a deployment (e.g., transitions between scheduled, offering, paused)
+// API Calls:
+//   - PATCH /admin/windows/updates/deployments/{deploymentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-update?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentStateResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsUpdatesAutopatchDeploymentStateResourceModel
 	var state WindowsUpdatesAutopatchDeploymentStateResourceModel
@@ -198,6 +219,13 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Update(ctx context.Cont
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
+// Delete handles the Delete operation for Windows Updates autopatch deployment state resources.
+//
+// Operation: Resets the deployment state to default by patching the deployment
+// API Calls:
+//   - PATCH /admin/windows/updates/deployments/{deploymentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-update?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentStateResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchDeploymentStateResourceModel
 

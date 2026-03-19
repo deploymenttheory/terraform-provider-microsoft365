@@ -13,6 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// Create handles the Create operation for Windows Updates autopatch updatable asset group resources.
+//
+// Operation: Creates a new updatable asset group
+// API Calls:
+//   - POST /admin/windows/updates/updatableAssets
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-updatableassets-updatableassetgroup?view=graph-rest-beta&tabs=http
 func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object WindowsUpdatesAutopatchUpdatableAssetGroupResourceModel
 
@@ -76,6 +83,13 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Create(ctx context.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
+// Read handles the Read operation for Windows Updates autopatch updatable asset group resources.
+//
+// Operation: Retrieves an updatable asset group by ID
+// API Calls:
+//   - GET /admin/windows/updates/updatableAssets/{updatableAssetId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-get?view=graph-rest-beta&tabs=http
 func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchUpdatableAssetGroupResourceModel
 
@@ -124,8 +138,13 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Read(ctx context.Co
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update is not supported — the resource has no mutable fields. Terraform will never call
-// this method because the resource must be replaced on any change.
+// Update handles the Update operation for Windows Updates autopatch updatable asset group resources.
+//
+// Operation: Update is not supported — the resource has no mutable fields
+// API Calls:
+//   - None (operation not supported)
+//
+// Note: Terraform will never call this method because the resource must be replaced on any change
 func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	resp.Diagnostics.AddError(
 		"Update not supported",
@@ -133,6 +152,13 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Update(ctx context.
 	)
 }
 
+// Delete handles the Delete operation for Windows Updates autopatch updatable asset group resources.
+//
+// Operation: Deletes an updatable asset group
+// API Calls:
+//   - DELETE /admin/windows/updates/updatableAssets/{updatableAssetId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-delete?view=graph-rest-beta&tabs=http
 func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object WindowsUpdatesAutopatchUpdatableAssetGroupResourceModel
 
