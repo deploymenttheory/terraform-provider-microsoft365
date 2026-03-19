@@ -1,0 +1,10 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdates.azureADDevice",
+  "id": "0ee3eb63-caf3-44ce-9769-b83188cc683d",
+  "errors": [
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.azureADDeviceRegistrationError"
+    }
+  ],
+  "enrollment": {}
+}

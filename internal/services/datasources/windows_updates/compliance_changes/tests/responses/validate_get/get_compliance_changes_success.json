@@ -1,0 +1,48 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/updatePolicies('d7a89208-17c5-4daf-a164-ce176b00e4ef')/complianceChanges",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.contentApproval",
+      "id": "dbf29574-ffd9-49cf-87f2-f03629e596ba",
+      "createdDateTime": "2025-01-19T08:41:29.3840994Z",
+      "isRevoked": false,
+      "revokedDateTime": null,
+      "content": {
+        "@odata.type": "#microsoft.graph.windowsUpdates.catalogContent",
+        "catalogEntry": {
+          "@odata.type": "#microsoft.graph.windowsUpdates.driverUpdateCatalogEntry",
+          "id": "5d6dede684ba5c4a731d62d9c9c2a99db12c5e6015e9f8ad00f3e9387c7f399c"
+        }
+      },
+      "deploymentSettings": {
+        "schedule": {
+          "startDateTime": "2025-02-14T01:00:00Z",
+          "gradualRollout": {
+            "@odata.type": "#microsoft.graph.windowsUpdates.rateDrivenRolloutSettings",
+            "durationBetweenOffers": "P1D",
+            "devicesPerOffer": 100
+          }
+        }
+      }
+    },
+    {
+      "@odata.type": "#microsoft.graph.windowsUpdates.contentApproval",
+      "id": "ace30685-00ea-50d0-98g3-g14730f607cb",
+      "createdDateTime": "2025-01-10T10:30:00.0000000Z",
+      "isRevoked": true,
+      "revokedDateTime": "2025-01-15T14:22:00.0000000Z",
+      "content": {
+        "@odata.type": "#microsoft.graph.windowsUpdates.catalogContent",
+        "catalogEntry": {
+          "@odata.type": "#microsoft.graph.windowsUpdates.driverUpdateCatalogEntry",
+          "id": "6e7efef795cb6d5b842e73e0a0d3ba0ec23d6f7126f0g9be11g4f0498d8g400d"
+        }
+      },
+      "deploymentSettings": {
+        "schedule": {
+          "startDateTime": "2025-01-12T01:00:00Z"
+        }
+      }
+    }
+  ]
+}

@@ -57,6 +57,7 @@ func TestUnitResourceWindowsUpdateDeploymentAudienceMembers_01_BasicMembers(t *t
 			{
 				Config: loadUnitTestTerraform("01_basic_members.tf"),
 				Check: resource.ComposeTestCheckFunc(
+					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^.+_azureADDevice$`)),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_azureADDevice$`)),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("audience_id").HasValue("test-audience-id-001"),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("member_type").HasValue("azureADDevice"),
@@ -85,6 +86,7 @@ func TestUnitResourceWindowsUpdateDeploymentAudienceMembers_02_MembersWithExclus
 			{
 				Config: loadUnitTestTerraform("02_members_with_exclusions.tf"),
 				Check: resource.ComposeTestCheckFunc(
+					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^.+_azureADDevice$`)),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_azureADDevice$`)),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("member_type").HasValue("azureADDevice"),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("members.#").HasValue("2"),

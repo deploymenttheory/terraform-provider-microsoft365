@@ -84,6 +84,45 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 				data.Settings.Monitoring.MonitoringRules = monitoringRulesSet
 			}
 		}
+
+		if userExperience := settings.GetUserExperience(); userExperience != nil {
+			if data.Settings.UserExperience == nil {
+				data.Settings.UserExperience = &UserExperienceSettings{}
+			}
+
+			data.Settings.UserExperience.DaysUntilForcedReboot = convert.GraphToFrameworkInt32(userExperience.GetDaysUntilForcedReboot())
+			data.Settings.UserExperience.OfferAsOptional = convert.GraphToFrameworkBool(userExperience.GetOfferAsOptional())
+		}
+
+		if expedite := settings.GetExpedite(); expedite != nil {
+			if data.Settings.Expedite == nil {
+				data.Settings.Expedite = &ExpediteSettings{}
+			}
+
+			data.Settings.Expedite.IsExpedited = convert.GraphToFrameworkBool(expedite.GetIsExpedited())
+			data.Settings.Expedite.IsReadinessTest = convert.GraphToFrameworkBool(expedite.GetIsReadinessTest())
+		}
+
+		if contentApplicability := settings.GetContentApplicability(); contentApplicability != nil {
+			if safeguard := contentApplicability.GetSafeguard(); safeguard != nil {
+				if data.Settings.ContentApplicability == nil {
+					data.Settings.ContentApplicability = &ContentApplicabilitySettings{}
+				}
+				if data.Settings.ContentApplicability.Safeguard == nil {
+					data.Settings.ContentApplicability.Safeguard = &SafeguardSettings{}
+				}
+
+				safeguardProfilesSet, err := mapSafeguardProfilesToState(safeguard.GetDisabledSafeguardProfiles())
+				if err != nil {
+					tflog.Error(ctx, "Failed to map safeguard profiles to state", map[string]any{
+						"error": err.Error(),
+					})
+					data.Settings.ContentApplicability.Safeguard.DisabledSafeguardProfiles = types.SetNull(safeguardProfileAttrType())
+				} else {
+					data.Settings.ContentApplicability.Safeguard.DisabledSafeguardProfiles = safeguardProfilesSet
+				}
+			}
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping remote state to Terraform state for %s", ResourceName))
@@ -96,6 +135,15 @@ func monitoringRuleAttrType() attr.Type {
 			"signal":    types.StringType,
 			"threshold": types.Int32Type,
 			"action":    types.StringType,
+		},
+	}
+}
+
+// safeguardProfileAttrType returns the object type for SafeguardProfile.
+func safeguardProfileAttrType() attr.Type {
+	return types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"category": types.StringType,
 		},
 	}
 }
@@ -147,6 +195,47 @@ func mapMonitoringRulesToState(rules []graphmodelswindowsupdates.MonitoringRulea
 	set, diags := types.SetValue(ruleType, ruleValues)
 	if diags.HasError() {
 		return types.SetNull(ruleType), sentinels.ErrCreateMonitoringRulesSet
+	}
+
+	return set, nil
+}
+
+// mapSafeguardProfilesToState maps the SDK safeguard profiles collection to a Terraform types.Set.
+func mapSafeguardProfilesToState(profiles []graphmodelswindowsupdates.SafeguardProfileable) (types.Set, error) {
+	profileType := safeguardProfileAttrType()
+
+	if len(profiles) == 0 {
+		return types.SetNull(profileType), nil
+	}
+
+	profileValues := make([]attr.Value, 0, len(profiles))
+
+	for _, profile := range profiles {
+		if profile == nil {
+			continue
+		}
+
+		var category types.String
+		if c := profile.GetCategory(); c != nil {
+			category = types.StringValue(c.String())
+		} else {
+			category = types.StringNull()
+		}
+
+		profileAttrs := map[string]attr.Value{
+			"category": category,
+		}
+
+		profileValue, diags := types.ObjectValue(profileType.(types.ObjectType).AttrTypes, profileAttrs)
+		if diags.HasError() {
+			return types.SetNull(profileType), fmt.Errorf("failed to create safeguard profile object")
+		}
+		profileValues = append(profileValues, profileValue)
+	}
+
+	set, diags := types.SetValue(profileType, profileValues)
+	if diags.HasError() {
+		return types.SetNull(profileType), fmt.Errorf("failed to create safeguard profiles set")
 	}
 
 	return set, nil

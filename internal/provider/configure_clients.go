@@ -34,6 +34,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	if p.unitTestMode {
 		tflog.Info(ctx, "Provider is in unit test mode. Using mock clients.")
 
+		// Use http.DefaultClient which will have httpmock's transport after httpmock.Activate()
 		mockClients := client.NewMockGraphClients(http.DefaultClient)
 		p.clients = mockClients
 

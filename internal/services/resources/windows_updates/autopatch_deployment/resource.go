@@ -211,6 +211,64 @@ func (r *WindowsUpdatesAutopatchDeploymentResource) Schema(ctx context.Context, 
 							},
 						},
 					},
+					"user_experience": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "User experience settings for the deployment. These settings control how the update is presented to end users.",
+						Attributes: map[string]schema.Attribute{
+							"days_until_forced_reboot": schema.Int32Attribute{
+								Optional:            true,
+								MarkdownDescription: "Number of days after installation before the device is forced to reboot. Valid for expedited quality updates. If not specified, uses device policy defaults.",
+								Validators: []validator.Int32{
+									int32validator.AtLeast(0),
+								},
+							},
+							"offer_as_optional": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Whether to offer the update as optional to end users. When `true`, users can choose when to install. When `false` (default), the update is offered as recommended.",
+							},
+						},
+					},
+					"expedite": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Expedite settings for quality updates. Used to bypass Windows Update for Business deferral policies and deploy updates as quickly as possible.",
+						Attributes: map[string]schema.Attribute{
+							"is_expedited": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Whether this deployment should be expedited. When `true`, the update overrides device policies and installs as quickly as possible.",
+							},
+							"is_readiness_test": schema.BoolAttribute{
+								Optional:            true,
+								MarkdownDescription: "Whether this is a readiness test for expedited updates. Used to verify devices meet prerequisites before actual expedited deployment.",
+							},
+						},
+					},
+					"content_applicability": schema.SingleNestedAttribute{
+						Optional:            true,
+						MarkdownDescription: "Content applicability settings for the deployment, including safeguard configurations.",
+						Attributes: map[string]schema.Attribute{
+							"safeguard": schema.SingleNestedAttribute{
+								Optional:            true,
+								MarkdownDescription: "Safeguard settings to control which safeguard holds are applied to the deployment.",
+								Attributes: map[string]schema.Attribute{
+									"disabled_safeguard_profiles": schema.SetNestedAttribute{
+										Optional:            true,
+										MarkdownDescription: "List of safeguard profiles to disable for this deployment. By default, all safeguards are applied.",
+										NestedObject: schema.NestedAttributeObject{
+											Attributes: map[string]schema.Attribute{
+												"category": schema.StringAttribute{
+													Required:            true,
+													MarkdownDescription: "The category of safeguard to disable. Valid values are: `likelyIssues`.",
+													Validators: []validator.String{
+														stringvalidator.OneOf("likelyIssues"),
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 			"created_date_time": schema.StringAttribute{

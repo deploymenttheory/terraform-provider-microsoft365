@@ -4,7 +4,6 @@ package graphBetaManagedDevice
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -18,6 +17,21 @@ import (
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
 
+// lookupMethod represents the different ways to look up managed devices
+type lookupMethod int
+
+const (
+	lookupByODataQuery lookupMethod = iota
+	lookupByDeviceId
+	lookupByDeviceName
+	lookupByOperatingSystem
+	lookupByAzureADDeviceId
+	lookupBySerialNumber
+	lookupByUserPrincipalName
+	lookupListAll
+)
+
+// Read handles the Read operation.
 func (d *ManagedDeviceDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var object ManagedDeviceDataSourceModel
 
@@ -26,8 +40,7 @@ func (d *ManagedDeviceDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	filterType := object.FilterType.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s with filter_type: %s", DataSourceName, filterType))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s", DataSourceName))
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -35,82 +48,48 @@ func (d *ManagedDeviceDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 	defer cancel()
 
-	filteredItems := []ManagedDeviceDeviceDataItemModel{}
-	filterValue := object.FilterValue.ValueString()
+	var devices []graphmodels.ManagedDeviceable
+	var err error
 
-	switch filterType {
-	case "id":
-		managedDevice, err := d.client.
-			DeviceManagement().
-			ManagedDevices().
-			ByManagedDeviceId(filterValue).Get(ctx, nil)
+	method := determineLookupMethod(object)
+	switch method {
+	case lookupByODataQuery:
+		devices, err = d.getDevicesByODataQuery(ctx, object)
+	case lookupByDeviceId:
+		devices, err = d.getDeviceById(ctx, object)
+	case lookupByDeviceName:
+		devices, err = d.getDevicesByDeviceName(ctx, object)
+	case lookupByOperatingSystem:
+		devices, err = d.getDevicesByOperatingSystem(ctx, object)
+	case lookupByAzureADDeviceId:
+		devices, err = d.getDevicesByAzureADDeviceId(ctx, object)
+	case lookupBySerialNumber:
+		devices, err = d.getDevicesBySerialNumber(ctx, object)
+	case lookupByUserPrincipalName:
+		devices, err = d.getDevicesByUserPrincipalName(ctx, object)
+	case lookupListAll:
+		devices, err = d.listAllDevices(ctx)
+	}
 
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
+		return
+	}
 
-		mdItem := MapRemoteStateToDataSource(managedDevice)
+	if len(devices) == 0 {
+		resp.Diagnostics.AddWarning(
+			"No Managed Devices Found",
+			"The lookup did not return any managed devices matching the specified criteria.",
+		)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Successfully found %d managed device(s)", len(devices)))
+
+	// Map devices to items
+	filteredItems := make([]ManagedDeviceDeviceDataItemModel, 0, len(devices))
+	for _, device := range devices {
+		mdItem := MapRemoteStateToDataSource(device)
 		filteredItems = append(filteredItems, mdItem)
-
-	case "odata":
-		headers := abstractions.NewRequestHeaders()
-		headers.Add("ConsistencyLevel", "eventual")
-
-		requestParameters := d.buildODataRequestParameters(ctx, &object, headers)
-
-		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for managed devices")
-
-		allManagedDevices, err := d.listAllManagedDevicesWithPageIterator(ctx, requestParameters)
-		if err != nil {
-			tflog.Error(ctx, fmt.Sprintf("Error in OData query with pagination: %v", err))
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("PageIterator returned %d results", len(allManagedDevices)))
-
-		for _, managedDevice := range allManagedDevices {
-			mdItem := MapRemoteStateToDataSource(managedDevice)
-			filteredItems = append(filteredItems, mdItem)
-		}
-
-	default:
-		tflog.Debug(ctx, "Using Microsoft Graph SDK PageIterator for managed devices (all/basic filter)")
-
-		allManagedDevices, err := d.listAllManagedDevicesWithPageIterator(ctx, nil)
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		for _, managedDevice := range allManagedDevices {
-			mdItem := MapRemoteStateToDataSource(managedDevice)
-
-			switch filterType {
-			case "all":
-				filteredItems = append(filteredItems, mdItem)
-
-			case "device_name":
-				if managedDevice.GetDeviceName() != nil && strings.Contains(
-					strings.ToLower(*managedDevice.GetDeviceName()),
-					strings.ToLower(filterValue)) {
-					filteredItems = append(filteredItems, mdItem)
-				}
-			case "serial_number":
-				if managedDevice.GetSerialNumber() != nil && strings.Contains(
-					strings.ToLower(*managedDevice.GetSerialNumber()),
-					strings.ToLower(filterValue)) {
-					filteredItems = append(filteredItems, mdItem)
-				}
-			case "user_id":
-				if managedDevice.GetUserId() != nil && strings.Contains(
-					strings.ToLower(*managedDevice.GetUserId()),
-					strings.ToLower(filterValue)) {
-					filteredItems = append(filteredItems, mdItem)
-				}
-			}
-		}
 	}
 
 	object.Items = filteredItems
@@ -120,114 +99,237 @@ func (d *ManagedDeviceDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
+	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s", DataSourceName))
 }
 
-func (d *ManagedDeviceDataSource) buildODataRequestParameters(ctx context.Context, object *ManagedDeviceDataSourceModel, headers *abstractions.RequestHeaders) *devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration {
-	requestParameters := &devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration{
-		Headers:         headers,
-		QueryParameters: &devicemanagement.ManagedDevicesRequestBuilderGetQueryParameters{},
+// determineLookupMethod determines which lookup method to use based on provided attributes
+func determineLookupMethod(object ManagedDeviceDataSourceModel) lookupMethod {
+	switch {
+	case !object.ODataQuery.IsNull() && object.ODataQuery.ValueString() != "":
+		return lookupByODataQuery
+	case !object.DeviceId.IsNull() && object.DeviceId.ValueString() != "":
+		return lookupByDeviceId
+	case !object.DeviceName.IsNull() && object.DeviceName.ValueString() != "":
+		return lookupByDeviceName
+	case !object.OperatingSystem.IsNull() && object.OperatingSystem.ValueString() != "":
+		return lookupByOperatingSystem
+	case !object.AzureADDeviceId.IsNull() && object.AzureADDeviceId.ValueString() != "":
+		return lookupByAzureADDeviceId
+	case !object.SerialNumber.IsNull() && object.SerialNumber.ValueString() != "":
+		return lookupBySerialNumber
+	case !object.UserPrincipalName.IsNull() && object.UserPrincipalName.ValueString() != "":
+		return lookupByUserPrincipalName
+	case !object.ListAll.IsNull() && object.ListAll.ValueBool():
+		return lookupListAll
+	default:
+		return lookupByDeviceId // This should never happen due to schema validators
 	}
-
-	if !object.ODataFilter.IsNull() && object.ODataFilter.ValueString() != "" {
-		filter := object.ODataFilter.ValueString()
-		requestParameters.QueryParameters.Filter = &filter
-		tflog.Debug(ctx, fmt.Sprintf("Setting OData filter: %s", filter))
-	}
-
-	if !object.ODataTop.IsNull() {
-		topValue := object.ODataTop.ValueInt32()
-		requestParameters.QueryParameters.Top = &topValue
-		tflog.Debug(ctx, fmt.Sprintf("Setting OData top: %d", topValue))
-	}
-
-	if !object.ODataSkip.IsNull() {
-		skipValue := object.ODataSkip.ValueInt32()
-		requestParameters.QueryParameters.Skip = &skipValue
-		tflog.Debug(ctx, fmt.Sprintf("Setting OData skip: %d", skipValue))
-	}
-
-	if !object.ODataSelect.IsNull() && object.ODataSelect.ValueString() != "" {
-		selectFields := strings.Split(object.ODataSelect.ValueString(), ",")
-		for i, field := range selectFields {
-			selectFields[i] = strings.TrimSpace(field)
-		}
-		requestParameters.QueryParameters.Select = selectFields
-		tflog.Debug(ctx, fmt.Sprintf("Setting OData select: %v", selectFields))
-	}
-
-	if !object.ODataOrderBy.IsNull() && object.ODataOrderBy.ValueString() != "" {
-		orderbyFields := strings.Split(object.ODataOrderBy.ValueString(), ",")
-		for i, field := range orderbyFields {
-			orderbyFields[i] = strings.TrimSpace(field)
-		}
-		requestParameters.QueryParameters.Orderby = orderbyFields
-		tflog.Debug(ctx, fmt.Sprintf("Setting OData orderby: %v", orderbyFields))
-	}
-
-	if !object.ODataCount.IsNull() && object.ODataCount.ValueBool() {
-		count := true
-		requestParameters.QueryParameters.Count = &count
-		tflog.Debug(ctx, "Setting OData count: true")
-	}
-
-	if !object.ODataSearch.IsNull() && object.ODataSearch.ValueString() != "" {
-		search := object.ODataSearch.ValueString()
-		requestParameters.QueryParameters.Search = &search
-		tflog.Debug(ctx, fmt.Sprintf("Setting OData search: %s", search))
-	}
-
-	if !object.ODataExpand.IsNull() && object.ODataExpand.ValueString() != "" {
-		expandFields := strings.Split(object.ODataExpand.ValueString(), ",")
-		for i, field := range expandFields {
-			expandFields[i] = strings.TrimSpace(field)
-		}
-		requestParameters.QueryParameters.Expand = expandFields
-		tflog.Debug(ctx, fmt.Sprintf("Setting OData expand: %v", expandFields))
-	}
-
-	return requestParameters
 }
 
-func (d *ManagedDeviceDataSource) listAllManagedDevicesWithPageIterator(ctx context.Context, requestParameters *devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration) ([]graphmodels.ManagedDeviceable, error) {
-	var allManagedDevices []graphmodels.ManagedDeviceable
+// getDeviceById retrieves a managed device by its device ID
+func (d *ManagedDeviceDataSource) getDeviceById(ctx context.Context, object ManagedDeviceDataSourceModel) ([]graphmodels.ManagedDeviceable, error) {
+	deviceId := object.DeviceId.ValueString()
 
-	managedDevicesResponse, err := d.client.
+	tflog.Debug(ctx, fmt.Sprintf("Looking up managed device by ID: %s", deviceId))
+
+	device, err := d.client.
 		DeviceManagement().
 		ManagedDevices().
-		Get(ctx, requestParameters)
+		ByManagedDeviceId(deviceId).
+		Get(ctx, nil)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to get managed devices: %w", err)
+		return nil, err
+	}
+
+	if device == nil {
+		return []graphmodels.ManagedDeviceable{}, nil
+	}
+
+	return []graphmodels.ManagedDeviceable{device}, nil
+}
+
+// getDevicesByDeviceName retrieves managed devices by device name using OData filter
+func (d *ManagedDeviceDataSource) getDevicesByDeviceName(ctx context.Context, object ManagedDeviceDataSourceModel) ([]graphmodels.ManagedDeviceable, error) {
+	deviceName := object.DeviceName.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("Looking up managed devices by device name: %s", deviceName))
+
+	// Build OData filter for device name
+	filter := fmt.Sprintf("deviceName eq '%s'", deviceName)
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
+	requestConfig := &devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration{
+		Headers: headers,
+		QueryParameters: &devicemanagement.ManagedDevicesRequestBuilderGetQueryParameters{
+			Filter: &filter,
+		},
+	}
+
+	return d.listAllManagedDevicesWithPageIterator(ctx, requestConfig)
+}
+
+// getDevicesByOperatingSystem retrieves managed devices by operating system and optionally OS version
+func (d *ManagedDeviceDataSource) getDevicesByOperatingSystem(ctx context.Context, object ManagedDeviceDataSourceModel) ([]graphmodels.ManagedDeviceable, error) {
+	os := object.OperatingSystem.ValueString()
+	osVersion := object.OsVersion.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("Looking up managed devices by OS: %s, version: %s", os, osVersion))
+
+	// Build OData filter
+	var filter string
+	if osVersion != "" {
+		filter = fmt.Sprintf("operatingSystem eq '%s' and osVersion eq '%s'", os, osVersion)
+	} else {
+		filter = fmt.Sprintf("operatingSystem eq '%s'", os)
+	}
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
+	requestConfig := &devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration{
+		Headers: headers,
+		QueryParameters: &devicemanagement.ManagedDevicesRequestBuilderGetQueryParameters{
+			Filter: &filter,
+		},
+	}
+
+	return d.listAllManagedDevicesWithPageIterator(ctx, requestConfig)
+}
+
+// getDevicesByAzureADDeviceId retrieves managed devices by Azure AD device ID
+func (d *ManagedDeviceDataSource) getDevicesByAzureADDeviceId(ctx context.Context, object ManagedDeviceDataSourceModel) ([]graphmodels.ManagedDeviceable, error) {
+	azureADDeviceId := object.AzureADDeviceId.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("Looking up managed devices by Azure AD device ID: %s", azureADDeviceId))
+
+	// Build OData filter for Azure AD device ID
+	filter := fmt.Sprintf("azureADDeviceId eq '%s'", azureADDeviceId)
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
+	requestConfig := &devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration{
+		Headers: headers,
+		QueryParameters: &devicemanagement.ManagedDevicesRequestBuilderGetQueryParameters{
+			Filter: &filter,
+		},
+	}
+
+	return d.listAllManagedDevicesWithPageIterator(ctx, requestConfig)
+}
+
+// getDevicesBySerialNumber retrieves managed devices by serial number
+func (d *ManagedDeviceDataSource) getDevicesBySerialNumber(ctx context.Context, object ManagedDeviceDataSourceModel) ([]graphmodels.ManagedDeviceable, error) {
+	serialNumber := object.SerialNumber.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("Looking up managed devices by serial number: %s", serialNumber))
+
+	// Build OData filter for serial number
+	filter := fmt.Sprintf("serialNumber eq '%s'", serialNumber)
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
+	requestConfig := &devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration{
+		Headers: headers,
+		QueryParameters: &devicemanagement.ManagedDevicesRequestBuilderGetQueryParameters{
+			Filter: &filter,
+		},
+	}
+
+	return d.listAllManagedDevicesWithPageIterator(ctx, requestConfig)
+}
+
+// getDevicesByUserPrincipalName retrieves managed devices by user principal name
+func (d *ManagedDeviceDataSource) getDevicesByUserPrincipalName(ctx context.Context, object ManagedDeviceDataSourceModel) ([]graphmodels.ManagedDeviceable, error) {
+	userPrincipalName := object.UserPrincipalName.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("Looking up managed devices by user principal name: %s", userPrincipalName))
+
+	filter := fmt.Sprintf("userPrincipalName eq '%s'", userPrincipalName)
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
+	requestConfig := &devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration{
+		Headers: headers,
+		QueryParameters: &devicemanagement.ManagedDevicesRequestBuilderGetQueryParameters{
+			Filter: &filter,
+		},
+	}
+
+	return d.listAllManagedDevicesWithPageIterator(ctx, requestConfig)
+}
+
+// getDevicesByODataQuery retrieves managed devices using a custom OData query
+func (d *ManagedDeviceDataSource) getDevicesByODataQuery(ctx context.Context, object ManagedDeviceDataSourceModel) ([]graphmodels.ManagedDeviceable, error) {
+	filter := object.ODataQuery.ValueString()
+
+	tflog.Debug(ctx, fmt.Sprintf("Looking up managed devices with OData query: %s", filter))
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
+	requestConfig := &devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration{
+		Headers: headers,
+		QueryParameters: &devicemanagement.ManagedDevicesRequestBuilderGetQueryParameters{
+			Filter: &filter,
+		},
+	}
+
+	return d.listAllManagedDevicesWithPageIterator(ctx, requestConfig)
+}
+
+// listAllDevices retrieves all managed devices
+func (d *ManagedDeviceDataSource) listAllDevices(ctx context.Context) ([]graphmodels.ManagedDeviceable, error) {
+	tflog.Debug(ctx, "Listing all managed devices")
+
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
+	requestConfig := &devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration{
+		Headers: headers,
+	}
+
+	return d.listAllManagedDevicesWithPageIterator(ctx, requestConfig)
+}
+
+// listAllManagedDevicesWithPageIterator uses Microsoft Graph SDK's PageIterator to handle pagination
+func (d *ManagedDeviceDataSource) listAllManagedDevicesWithPageIterator(
+	ctx context.Context,
+	requestConfig *devicemanagement.ManagedDevicesRequestBuilderGetRequestConfiguration,
+) ([]graphmodels.ManagedDeviceable, error) {
+	var allDevices []graphmodels.ManagedDeviceable
+
+	resp, err := d.client.
+		DeviceManagement().
+		ManagedDevices().
+		Get(ctx, requestConfig)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get initial page of managed devices: %w", err)
 	}
 
 	pageIterator, err := graphcore.NewPageIterator[graphmodels.ManagedDeviceable](
-		managedDevicesResponse,
+		resp,
 		d.client.GetAdapter(),
 		graphmodels.CreateManagedDeviceCollectionResponseFromDiscriminatorValue,
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create page iterator: %w", err)
 	}
 
-	pageCount := 0
-	err = pageIterator.Iterate(ctx, func(item graphmodels.ManagedDeviceable) bool {
-		if item != nil {
-			allManagedDevices = append(allManagedDevices, item)
-
-			if len(allManagedDevices)%25 == 0 {
-				pageCount++
-				tflog.Debug(ctx, fmt.Sprintf("PageIterator: collected %d managed devices (estimated page %d)", len(allManagedDevices), pageCount))
-			}
-		}
+	err = pageIterator.Iterate(ctx, func(device graphmodels.ManagedDeviceable) bool {
+		allDevices = append(allDevices, device)
 		return true
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to iterate pages: %w", err)
+		return nil, fmt.Errorf("error during pagination: %w", err)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("PageIterator complete: collected %d total managed devices", len(allManagedDevices)))
-
-	return allManagedDevices, nil
+	return allDevices, nil
 }

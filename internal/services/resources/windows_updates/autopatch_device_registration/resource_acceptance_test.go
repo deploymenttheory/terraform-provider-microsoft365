@@ -50,7 +50,7 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_01_Scenario_Minimal(t *te
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_001").Key("id").HasValue("feature"),
 					check.That(resourceType+".test_001").Key("update_category").HasValue("feature"),
-					check.That(resourceType+".test_001").Key("device_ids.#").Exists(),
+					check.That(resourceType+".test_001").Key("entra_device_object_ids.#").Exists(),
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("windows autopatch device registration", 20*time.Second)
 						time.Sleep(20 * time.Second)
@@ -88,7 +88,7 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_02_Scenario_Maximal(t *te
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_002").Key("id").HasValue("quality"),
 					check.That(resourceType+".test_002").Key("update_category").HasValue("quality"),
-					check.That(resourceType+".test_002").Key("device_ids.#").MatchesRegex(regexp.MustCompile(`^[1-9]\d*$`)),
+					check.That(resourceType+".test_002").Key("entra_device_object_ids.#").MatchesRegex(regexp.MustCompile(`^[1-9]\d*$`)),
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("windows autopatch device registration", 20*time.Second)
 						time.Sleep(20 * time.Second)
@@ -125,7 +125,7 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_03_Lifecycle_AddDevices(t
 				Config: loadAcceptanceTestTerraform("003_lifecycle_add_devices_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_003").Key("id").HasValue("feature"),
-					check.That(resourceType+".test_003").Key("device_ids.#").Exists(),
+					check.That(resourceType+".test_003").Key("entra_device_object_ids.#").Exists(),
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("windows autopatch device registration", 20*time.Second)
 						time.Sleep(20 * time.Second)
@@ -137,7 +137,7 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_03_Lifecycle_AddDevices(t
 				Config: loadAcceptanceTestTerraform("003_lifecycle_add_devices_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_003").Key("id").HasValue("feature"),
-					check.That(resourceType+".test_003").Key("device_ids.#").MatchesRegex(regexp.MustCompile(`^[2-9]\d*$`)),
+					check.That(resourceType+".test_003").Key("entra_device_object_ids.#").MatchesRegex(regexp.MustCompile(`^[2-9]\d*$`)),
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("windows autopatch device registration", 20*time.Second)
 						time.Sleep(20 * time.Second)
@@ -174,7 +174,7 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_04_Lifecycle_RemoveDevice
 				Config: loadAcceptanceTestTerraform("004_lifecycle_remove_devices_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_004").Key("id").HasValue("feature"),
-					check.That(resourceType+".test_004").Key("device_ids.#").MatchesRegex(regexp.MustCompile(`^[2-9]\d*$`)),
+					check.That(resourceType+".test_004").Key("entra_device_object_ids.#").MatchesRegex(regexp.MustCompile(`^[2-9]\d*$`)),
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("windows autopatch device registration", 20*time.Second)
 						time.Sleep(20 * time.Second)
@@ -186,7 +186,7 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_04_Lifecycle_RemoveDevice
 				Config: loadAcceptanceTestTerraform("004_lifecycle_remove_devices_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_004").Key("id").HasValue("feature"),
-					check.That(resourceType+".test_004").Key("device_ids.#").Exists(),
+					check.That(resourceType+".test_004").Key("entra_device_object_ids.#").Exists(),
 					func(_ *terraform.State) error {
 						testlog.WaitForConsistency("windows autopatch device registration", 20*time.Second)
 						time.Sleep(20 * time.Second)

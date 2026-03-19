@@ -5,9 +5,11 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -48,50 +50,162 @@ func (d *ManagedDeviceDataSource) Configure(ctx context.Context, req datasource.
 
 func (d *ManagedDeviceDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Managed Devices from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. This data source enables querying managed devices with advanced filtering capabilities.",
+		MarkdownDescription: "Retrieves Managed Devices from Microsoft Intune using the `/deviceManagement/managedDevices` endpoint. " +
+			"Supports flexible lookup by device ID, device name, operating system, OS version, Azure AD device ID, serial number, " +
+			"user principal name, or custom OData queries.",
 		Attributes: map[string]schema.Attribute{
-			"filter_type": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `device_name`, `serial_number`, `user_id`, `odata`.",
+			"device_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The unique identifier of the managed device (Intune device ID). Conflicts with other lookup attributes.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "id", "device_name", "serial_number", "user_id", "odata"),
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("device_name"),
+						path.MatchRoot("operating_system"),
+						path.MatchRoot("os_version"),
+						path.MatchRoot("azure_ad_device_id"),
+						path.MatchRoot("serial_number"),
+						path.MatchRoot("user_principal_name"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+					stringvalidator.AtLeastOneOf(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("device_name"),
+						path.MatchRoot("operating_system"),
+						path.MatchRoot("os_version"),
+						path.MatchRoot("azure_ad_device_id"),
+						path.MatchRoot("serial_number"),
+						path.MatchRoot("user_principal_name"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
 				},
 			},
-			"filter_value": schema.StringAttribute{
+			"device_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all' or 'odata'.",
+				MarkdownDescription: "The name of the managed device. Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_filter": schema.StringAttribute{
+			"operating_system": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $filter parameter for filtering results. Only used when filter_type is 'odata'. Example: operatingSystem eq 'Windows'.",
+				MarkdownDescription: "Filter devices by operating system. Valid values: 'Windows', 'iOS', 'Android', 'macOS', 'androidForWork', 'androidEnterprise', 'chromeOS', 'linux', 'visionOS', 'tvOS', 'unknown', 'cloudPC'. Can be combined with os_version. Conflicts with device_id, list_all, and odata_query.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"Windows",
+						"iOS",
+						"Android",
+						"macOS",
+						"androidForWork",
+						"androidEnterprise",
+						"chromeOS",
+						"linux",
+						"visionOS",
+						"tvOS",
+						"windowsRT",
+						"winMO6",
+						"nokia",
+						"windowsPhone",
+						"winCE",
+						"winEmbedded",
+						"unix",
+						"macMDM",
+						"holoLens",
+						"surfaceHub",
+						"windows10x",
+						"androidnGMS",
+						"blackberry",
+						"palm",
+						"unknown",
+						"cloudPC",
+					),
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_top": schema.Int32Attribute{
+			"os_version": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "Filter devices by OS version. Can be combined with operating_system. Conflicts with device_id, list_all, and odata_query.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_skip": schema.Int32Attribute{
+			"azure_ad_device_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $skip parameter for pagination. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "The Azure AD device ID (Entra ID device object ID). Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_select": schema.StringAttribute{
+			"serial_number": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $select parameter to specify which fields to include. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "The serial number of the managed device. Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_orderby": schema.StringAttribute{
+			"user_principal_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $orderby parameter to sort results. Only used when filter_type is 'odata'. Example: deviceName.",
+				MarkdownDescription: "The user principal name (email) of the user associated with the managed device. Filters devices by userPrincipalName. Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_count": schema.BoolAttribute{
+			"list_all": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $count parameter to include count of total results. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "Retrieve all managed devices. Conflicts with specific lookup attributes.",
+				Validators: []validator.Bool{
+					boolvalidator.ConflictsWith(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("device_name"),
+						path.MatchRoot("operating_system"),
+						path.MatchRoot("os_version"),
+						path.MatchRoot("azure_ad_device_id"),
+						path.MatchRoot("serial_number"),
+						path.MatchRoot("user_principal_name"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_search": schema.StringAttribute{
+			"odata_query": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $search parameter for full-text search. Only used when filter_type is 'odata'.",
-			},
-			"odata_expand": schema.StringAttribute{
-				Optional:            true,
-				MarkdownDescription: "OData $expand parameter to include related entities. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "Custom OData filter expression for advanced filtering. Example: `operatingSystem eq 'Windows' and osVersion startswith '10'`. Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("device_id"),
+						path.MatchRoot("device_name"),
+						path.MatchRoot("operating_system"),
+						path.MatchRoot("os_version"),
+						path.MatchRoot("azure_ad_device_id"),
+						path.MatchRoot("serial_number"),
+						path.MatchRoot("user_principal_name"),
+						path.MatchRoot("list_all"),
+					),
+				},
 			},
 			"items": schema.ListNestedAttribute{
 				Computed:            true,

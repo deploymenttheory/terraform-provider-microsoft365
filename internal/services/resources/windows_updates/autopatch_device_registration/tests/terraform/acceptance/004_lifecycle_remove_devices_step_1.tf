@@ -7,6 +7,7 @@ resource "random_string" "test_suffix" {
 
 # Get managed devices from Intune which includes their Entra ID device IDs
 data "microsoft365_graph_beta_device_management_managed_device" "test_devices" {
+  filter_type = "all"
   timeouts = {
     read = "30s"
   }
@@ -16,8 +17,8 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_device_registration"
   update_category = "feature"
   # Use the azure_ad_device_id field which contains the Entra ID device object ID
   # Take up to 3 devices that have valid Entra ID device IDs
-  device_ids = [
-    for device in slice(data.microsoft365_graph_beta_device_management_managed_device.test_devices.managed_devices, 0, min(3, length(data.microsoft365_graph_beta_device_management_managed_device.test_devices.managed_devices))) :
+  entra_device_object_ids = [
+    for device in slice(data.microsoft365_graph_beta_device_management_managed_device.test_devices.items, 0, min(3, length(data.microsoft365_graph_beta_device_management_managed_device.test_devices.items))) :
     device.azure_ad_device_id
     if device.azure_ad_device_id != null && device.azure_ad_device_id != ""
   ]

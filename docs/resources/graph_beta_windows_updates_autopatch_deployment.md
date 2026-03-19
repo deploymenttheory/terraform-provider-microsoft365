@@ -320,8 +320,44 @@ Required:
 
 Optional:
 
+- `content_applicability` (Attributes) Content applicability settings for the deployment, including safeguard configurations. (see [below for nested schema](#nestedatt--settings--content_applicability))
+- `expedite` (Attributes) Expedite settings for quality updates. Used to bypass Windows Update for Business deferral policies and deploy updates as quickly as possible. (see [below for nested schema](#nestedatt--settings--expedite))
 - `monitoring` (Attributes) Monitoring settings for the deployment. (see [below for nested schema](#nestedatt--settings--monitoring))
 - `schedule` (Attributes) Schedule settings for the deployment. (see [below for nested schema](#nestedatt--settings--schedule))
+- `user_experience` (Attributes) User experience settings for the deployment. These settings control how the update is presented to end users. (see [below for nested schema](#nestedatt--settings--user_experience))
+
+<a id="nestedatt--settings--content_applicability"></a>
+### Nested Schema for `settings.content_applicability`
+
+Optional:
+
+- `safeguard` (Attributes) Safeguard settings to control which safeguard holds are applied to the deployment. (see [below for nested schema](#nestedatt--settings--content_applicability--safeguard))
+
+<a id="nestedatt--settings--content_applicability--safeguard"></a>
+### Nested Schema for `settings.content_applicability.safeguard`
+
+Optional:
+
+- `disabled_safeguard_profiles` (Attributes Set) List of safeguard profiles to disable for this deployment. By default, all safeguards are applied. (see [below for nested schema](#nestedatt--settings--content_applicability--safeguard--disabled_safeguard_profiles))
+
+<a id="nestedatt--settings--content_applicability--safeguard--disabled_safeguard_profiles"></a>
+### Nested Schema for `settings.content_applicability.safeguard.disabled_safeguard_profiles`
+
+Required:
+
+- `category` (String) The category of safeguard to disable. Valid values are: `likelyIssues`.
+
+
+
+
+<a id="nestedatt--settings--expedite"></a>
+### Nested Schema for `settings.expedite`
+
+Optional:
+
+- `is_expedited` (Boolean) Whether this deployment should be expedited. When `true`, the update overrides device policies and installs as quickly as possible.
+- `is_readiness_test` (Boolean) Whether this is a readiness test for expedited updates. Used to verify devices meet prerequisites before actual expedited deployment.
+
 
 <a id="nestedatt--settings--monitoring"></a>
 ### Nested Schema for `settings.monitoring`
@@ -361,6 +397,15 @@ Optional:
 - `duration_between_offers` (String) The duration between each offer in ISO 8601 format (e.g., `P7D` for 7 days).
 - `end_date_time` (String) The date and time when the gradual rollout should complete. Must be in ISO 8601 format.
 
+
+
+<a id="nestedatt--settings--user_experience"></a>
+### Nested Schema for `settings.user_experience`
+
+Optional:
+
+- `days_until_forced_reboot` (Number) Number of days after installation before the device is forced to reboot. Valid for expedited quality updates. If not specified, uses device policy defaults.
+- `offer_as_optional` (Boolean) Whether to offer the update as optional to end users. When `true`, users can choose when to install. When `false` (default), the update is offered as recommended.
 
 
 

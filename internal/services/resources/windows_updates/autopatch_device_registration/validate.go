@@ -22,12 +22,12 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateRequest(
 ) error {
 	tflog.Debug(ctx, fmt.Sprintf("Starting Entra ID device validation for %s resource", ResourceName))
 
-	if data.DeviceIds.IsNull() || data.DeviceIds.IsUnknown() {
+	if data.EntraDeviceObjectIds.IsNull() || data.EntraDeviceObjectIds.IsUnknown() {
 		tflog.Debug(ctx, "No Entra ID device IDs to validate")
 		return nil
 	}
 
-	elements := data.DeviceIds.Elements()
+	elements := data.EntraDeviceObjectIds.Elements()
 	if len(elements) == 0 {
 		tflog.Debug(ctx, "Empty Entra ID device IDs set")
 		return nil
@@ -47,7 +47,7 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateRequest(
 			continue
 		}
 
-		err := r.validateEntraDeviceExists(ctx, entraDeviceID, diagnostics)
+		err := r.validateEntraDeviceExists(ctx, entraDeviceID)
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {
 				notFoundEntraDeviceIDs = append(notFoundEntraDeviceIDs, entraDeviceID)
@@ -91,43 +91,42 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateRequest(
 // This queries the /devices endpoint (Entra ID), NOT the /deviceManagement/managedDevices endpoint (Intune).
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateEntraDeviceExists(
 	ctx context.Context,
-	entraDeviceID string,
-	diagnostics *diag.Diagnostics,
+	entraDeviceObjectID string,
 ) error {
 	tflog.Debug(ctx, "Validating Entra ID device exists", map[string]any{
-		"entraDeviceId": entraDeviceID,
+		"entraDeviceObjectId": entraDeviceObjectID,
 	})
 
 	entraDevice, err := r.client.
 		Devices().
-		ByDeviceId(entraDeviceID).
+		ByDeviceId(entraDeviceObjectID).
 		Get(ctx, nil)
 
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)
 		tflog.Error(ctx, "Failed to retrieve Entra ID device", map[string]any{
-			"entraDeviceId": entraDeviceID,
-			"statusCode":    errorInfo.StatusCode,
-			"errorCode":     errorInfo.ErrorCode,
+			"entraDeviceObjectId": entraDeviceObjectID,
+			"statusCode":          errorInfo.StatusCode,
+			"errorCode":           errorInfo.ErrorCode,
 		})
 
 		if errorInfo.StatusCode == 404 {
-			return fmt.Errorf("%w: %s", sentinels.ErrEntraDeviceNotFound, entraDeviceID)
+			return fmt.Errorf("%w: %s", sentinels.ErrEntraDeviceNotFound, entraDeviceObjectID)
 		}
 
-		return fmt.Errorf("%w %s: %w", sentinels.ErrRetrieveEntraDevice, entraDeviceID, err)
+		return fmt.Errorf("%w %s: %w", sentinels.ErrRetrieveEntraDevice, entraDeviceObjectID, err)
 	}
 
 	if entraDevice == nil {
 		tflog.Error(ctx, "Entra ID device not found", map[string]any{
-			"entraDeviceId": entraDeviceID,
+			"entraDeviceObjectId": entraDeviceObjectID,
 		})
-		return fmt.Errorf("%w: %s", sentinels.ErrEntraDeviceNotFound, entraDeviceID)
+		return fmt.Errorf("%w: %s", sentinels.ErrEntraDeviceNotFound, entraDeviceObjectID)
 	}
 
 	tflog.Debug(ctx, "Entra ID device validated successfully", map[string]any{
-		"entraDeviceId": entraDeviceID,
-		"displayName":   entraDevice.GetDisplayName(),
+		"entraDeviceObjectId": entraDeviceObjectID,
+		"displayName":         entraDevice.GetDisplayName(),
 	})
 
 	return nil

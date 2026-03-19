@@ -190,7 +190,96 @@ func TestUnitResourceWindowsUpdateDeployment_08_ValidationOfferFallbackWithThres
 	})
 }
 
-func TestUnitResourceWindowsUpdateDeployment_05_Error(t *testing.T) {
+func TestUnitResourceWindowsUpdateDeployment_09_WithUserExperience(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, deploymentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer deploymentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("08_with_user_experience.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("settings.user_experience.days_until_forced_reboot").HasValue("7"),
+					check.That(resourceType+".test").Key("settings.user_experience.offer_as_optional").HasValue("false"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceWindowsUpdateDeployment_10_WithExpedite(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, deploymentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer deploymentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("09_with_expedite.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("content.catalog_entry_type").HasValue("qualityUpdate"),
+					check.That(resourceType+".test").Key("settings.expedite.is_expedited").HasValue("true"),
+					check.That(resourceType+".test").Key("settings.expedite.is_readiness_test").HasValue("false"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceWindowsUpdateDeployment_11_WithSafeguards(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, deploymentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer deploymentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("10_with_safeguards.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("settings.content_applicability.safeguard.disabled_safeguard_profiles.#").HasValue("1"),
+					check.That(resourceType+".test").Key("settings.content_applicability.safeguard.disabled_safeguard_profiles.0.category").HasValue("likelyIssues"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceWindowsUpdateDeployment_12_AllSettings(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, deploymentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer deploymentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("11_all_settings.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").Exists(),
+					check.That(resourceType+".test").Key("settings.schedule.start_date_time").HasValue("2024-01-15T10:00:00Z"),
+					check.That(resourceType+".test").Key("settings.monitoring.monitoring_rules.#").HasValue("1"),
+					check.That(resourceType+".test").Key("settings.user_experience.days_until_forced_reboot").HasValue("14"),
+					check.That(resourceType+".test").Key("settings.user_experience.offer_as_optional").HasValue("true"),
+					check.That(resourceType+".test").Key("settings.expedite.is_expedited").HasValue("true"),
+					check.That(resourceType+".test").Key("settings.content_applicability.safeguard.disabled_safeguard_profiles.#").HasValue("1"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceWindowsUpdateDeployment_13_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, deploymentMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

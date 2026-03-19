@@ -17,7 +17,7 @@ data "microsoft365_graph_beta_device_management_managed_device" "test_devices" {
 resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment" "test_002" {
   updatable_asset_group_id = microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group.test_002.id
 
-  entra_device_ids = toset(compact([
+  entra_device_object_ids = toset(compact([
     data.microsoft365_graph_beta_device_management_managed_device.test_devices.items[0].azure_ad_device_id,
     try(data.microsoft365_graph_beta_device_management_managed_device.test_devices.items[1].azure_ad_device_id, null),
   ]))

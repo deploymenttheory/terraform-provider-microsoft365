@@ -17,11 +17,15 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 	enrolledDeviceIDs := make([]attr.Value, 0)
 
 	plannedDeviceIDs := make(map[string]bool)
-	if !data.DeviceIds.IsNull() && !data.DeviceIds.IsUnknown() {
-		elements := data.DeviceIds.Elements()
-		for _, elem := range elements {
-			if strVal, ok := elem.(types.String); ok {
-				plannedDeviceIDs[strVal.ValueString()] = true
+	filterByPlanned := false
+	if !data.EntraDeviceObjectIds.IsNull() && !data.EntraDeviceObjectIds.IsUnknown() {
+		elements := data.EntraDeviceObjectIds.Elements()
+		if len(elements) > 0 {
+			filterByPlanned = true
+			for _, elem := range elements {
+				if strVal, ok := elem.(types.String); ok {
+					plannedDeviceIDs[strVal.ValueString()] = true
+				}
 			}
 		}
 	}
@@ -41,7 +45,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 			continue
 		}
 
-		if !plannedDeviceIDs[*deviceID] {
+		if filterByPlanned && !plannedDeviceIDs[*deviceID] {
 			continue
 		}
 
@@ -66,9 +70,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 	}
 
 	if len(enrolledDeviceIDs) > 0 {
-		data.DeviceIds = types.SetValueMust(types.StringType, enrolledDeviceIDs)
+		data.EntraDeviceObjectIds = types.SetValueMust(types.StringType, enrolledDeviceIDs)
 	} else {
-		data.DeviceIds = types.SetValueMust(types.StringType, []attr.Value{})
+		data.EntraDeviceObjectIds = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
 	data.ID = types.StringValue(fmt.Sprintf("%s", data.UpdateCategory.ValueString()))

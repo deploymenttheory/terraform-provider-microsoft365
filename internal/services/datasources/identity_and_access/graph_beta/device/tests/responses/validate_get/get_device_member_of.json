@@ -1,0 +1,33 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.group",
+      "id": "3df4b46e-776a-4c46-9aef-7350661f6529",
+      "deletedDateTime": null,
+      "classification": null,
+      "createdDateTime": "2021-08-03T14:27:51Z",
+      "description": "Intune policy test group",
+      "displayName": "[Intune]-[ManagedDevices]-[Prod]-[Corp]-[TestGroup]-[Win10]-[DG]",
+      "mail": null,
+      "mailEnabled": false,
+      "mailNickname": "2f2dfd1e-1",
+      "securityEnabled": true,
+      "securityIdentifier": "S-1-12-1-1039447150-1279686506-1349775258-694493030"
+    },
+    {
+      "@odata.type": "#microsoft.graph.group",
+      "id": "aaaaaaaa-bbbb-cccc-dddd-111111111111",
+      "deletedDateTime": null,
+      "classification": null,
+      "createdDateTime": "2022-01-10T09:00:00Z",
+      "description": "Test group 2",
+      "displayName": "Test Group 2",
+      "mail": null,
+      "mailEnabled": false,
+      "mailNickname": "testgroup2",
+      "securityEnabled": true,
+      "securityIdentifier": "S-1-12-1-2222222222-3333333333-4444444444-555555555"
+    }
+  ]
+}

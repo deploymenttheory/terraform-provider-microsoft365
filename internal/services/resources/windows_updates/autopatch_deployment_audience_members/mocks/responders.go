@@ -3,6 +3,7 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
@@ -10,6 +11,23 @@ import (
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
+
+// extractAudienceID extracts the deployment audience ID from URL paths that may have
+// sub-resource segments (e.g., /members, /exclusions, /microsoft.graph...).
+// It finds the segment immediately following "deploymentAudiences/" in the URL path.
+func extractAudienceID(urlPath, _ string) string {
+	const marker = "deploymentAudiences/"
+	idx := strings.Index(urlPath, marker)
+	if idx < 0 {
+		return ""
+	}
+	rest := urlPath[idx+len(marker):]
+	parts := strings.SplitN(rest, "/", 2)
+	if len(parts) > 0 && parts[0] != "" {
+		return parts[0]
+	}
+	return ""
+}
 
 type WindowsUpdateDeploymentAudienceMembersMock struct{}
 
@@ -81,7 +99,7 @@ func (m *WindowsUpdateDeploymentAudienceMembersMock) createAudienceResponder() h
 
 func (m *WindowsUpdateDeploymentAudienceMembersMock) getAudienceResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		id := factories.ExtractIDFromURL(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
+		id := extractAudienceID(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
 
 		mockState.Lock()
 		audience, exists := mockState.audiences[id]
@@ -107,7 +125,7 @@ func (m *WindowsUpdateDeploymentAudienceMembersMock) getAudienceResponder() http
 
 func (m *WindowsUpdateDeploymentAudienceMembersMock) updateAudienceResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		id := factories.ExtractIDFromURL(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
+		id := extractAudienceID(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
 
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
@@ -211,7 +229,7 @@ func (m *WindowsUpdateDeploymentAudienceMembersMock) updateAudienceResponder() h
 
 func (m *WindowsUpdateDeploymentAudienceMembersMock) getMembersResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		id := factories.ExtractIDFromURL(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
+		id := extractAudienceID(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
 
 		mockState.Lock()
 		audience, exists := mockState.audiences[id]
@@ -243,7 +261,7 @@ func (m *WindowsUpdateDeploymentAudienceMembersMock) getMembersResponder() httpm
 
 func (m *WindowsUpdateDeploymentAudienceMembersMock) getExclusionsResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		id := factories.ExtractIDFromURL(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
+		id := extractAudienceID(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
 
 		mockState.Lock()
 		audience, exists := mockState.audiences[id]
@@ -275,7 +293,7 @@ func (m *WindowsUpdateDeploymentAudienceMembersMock) getExclusionsResponder() ht
 
 func (m *WindowsUpdateDeploymentAudienceMembersMock) deleteAudienceResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
-		id := factories.ExtractIDFromURL(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
+		id := extractAudienceID(req.URL.Path, "/admin/windows/updates/deploymentAudiences/")
 
 		mockState.Lock()
 		_, exists := mockState.audiences[id]

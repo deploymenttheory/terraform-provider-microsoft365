@@ -105,10 +105,10 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Schema(ctx context.C
 					stringvalidator.OneOf("driver", "feature", "quality"),
 				},
 			},
-			"device_ids": schema.SetAttribute{
+			"entra_device_object_ids": schema.SetAttribute{
 				ElementType:         types.StringType,
 				Required:            true,
-				MarkdownDescription: "Set of Entra ID device IDs to enroll in Windows Autopatch for the specified update category. These should be valid Entra ID device object IDs.",
+				MarkdownDescription: "Set of Entra ID device object IDs to enroll in Windows Autopatch for the specified update category. These are the 'id' property from the Entra ID device object, NOT the 'deviceId' property.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(

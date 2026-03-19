@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
-// Helper function to load acceptance test Terraform configurations
 func loadAcceptanceTestTerraform(filename string) string {
 	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
 	if err != nil {
@@ -23,12 +22,11 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-func TestAccDatasourceManagedDevice_01_All(t *testing.T) {
+func TestAccDatasourceManagedDevice_01_ListAll(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
-
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
@@ -38,9 +36,8 @@ func TestAccDatasourceManagedDevice_01_All(t *testing.T) {
 			{
 				Config: loadAcceptanceTestTerraform("01_all.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".all").Key("filter_type").HasValue("all"),
-					testCheckItemsCountExists(dataSourceType+".all"),
-					// Note: Not checking specific items.0.* fields as test environment may have zero managed devices
+					check.That(dataSourceType+".test").Key("list_all").HasValue("true"),
+					testCheckItemsCountExists(dataSourceType+".test"),
 				),
 			},
 		},
@@ -52,7 +49,6 @@ func TestAccDatasourceManagedDevice_02_ByDeviceName(t *testing.T) {
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
-
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
@@ -62,42 +58,15 @@ func TestAccDatasourceManagedDevice_02_ByDeviceName(t *testing.T) {
 			{
 				Config: loadAcceptanceTestTerraform("02_by_device_name.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".by_device_name").Key("filter_type").HasValue("device_name"),
-					check.That(dataSourceType+".by_device_name").Key("filter_value").HasValue("DESKTOP"),
-					testCheckItemsCountExists(dataSourceType+".by_device_name"),
-					// Note: Not checking specific items.0.* fields as filtered results may return zero devices depending on lab state
+					check.That(dataSourceType+".test").Key("device_name").Exists(),
+					testCheckItemsCountExists(dataSourceType+".test"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDatasourceManagedDevice_03_ODataFilter(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		ExternalProviders: map[string]resource.ExternalProvider{
-
-			"random": {
-				Source:            "hashicorp/random",
-				VersionConstraint: constants.ExternalProviderRandomVersion,
-			},
-		},
-		Steps: []resource.TestStep{
-			{
-				Config: loadAcceptanceTestTerraform("03_odata_filter.tf"),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".odata_filter").Key("filter_type").HasValue("odata"),
-					check.That(dataSourceType+".odata_filter").Key("odata_filter").HasValue("operatingSystem eq 'Windows'"),
-					testCheckItemsCountExists(dataSourceType+".odata_filter"),
-					// Note: Not checking specific items.0.* fields as filtered results may return zero devices
-				),
-			},
-		},
-	})
-}
-
-func TestAccDatasourceManagedDevice_04_ODataAdvanced(t *testing.T) {
+func TestAccDatasourceManagedDevice_03_ODataSimpleFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -109,21 +78,17 @@ func TestAccDatasourceManagedDevice_04_ODataAdvanced(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("04_odata_advanced.tf"),
+				Config: loadAcceptanceTestTerraform("03_odata_simple_filter.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".odata_advanced").Key("filter_type").HasValue("odata"),
-					check.That(dataSourceType+".odata_advanced").Key("odata_filter").HasValue("operatingSystem eq 'Windows'"),
-					check.That(dataSourceType+".odata_advanced").Key("odata_orderby").HasValue("deviceName"),
-					check.That(dataSourceType+".odata_advanced").Key("odata_select").HasValue("id,deviceName,operatingSystem,complianceState"),
-					testCheckItemsCountExists(dataSourceType+".odata_advanced"),
-					// Note: Not checking specific items.0.* fields as filtered results may return zero devices
+					check.That(dataSourceType+".test").Key("odata_query").HasValue("operatingSystem eq 'Windows'"),
+					testCheckItemsCountExists(dataSourceType+".test"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDatasourceManagedDevice_05_ODataComprehensive(t *testing.T) {
+func TestAccDatasourceManagedDevice_04_ODataAndFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -135,23 +100,195 @@ func TestAccDatasourceManagedDevice_05_ODataComprehensive(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("05_odata_comprehensive.tf"),
+				Config: loadAcceptanceTestTerraform("04_odata_and_filter.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".odata_comprehensive").Key("filter_type").HasValue("odata"),
-					check.That(dataSourceType+".odata_comprehensive").Key("odata_filter").HasValue("operatingSystem eq 'Windows'"),
-					check.That(dataSourceType+".odata_comprehensive").Key("odata_top").HasValue("50"),
-					check.That(dataSourceType+".odata_comprehensive").Key("odata_orderby").HasValue("lastSyncDateTime desc"),
-					testCheckItemsCountExists(dataSourceType+".odata_comprehensive"),
-					// Note: Not checking specific items.0.* fields as filtered results may return zero devices
+					check.That(dataSourceType+".test").Key("odata_query").HasValue("operatingSystem eq 'Windows' and complianceState eq 'compliant'"),
+					testCheckItemsCountExists(dataSourceType+".test"),
 				),
 			},
 		},
 	})
 }
 
-// Helper function to check for the condition that items.# exists and is >= 0
-// this is used in scenarios where the number of items is not known in advance
-// and we are asserting against a lab intune environment where the number of items may be zero.
+func TestAccDatasourceManagedDevice_05_ODataStartswithFilter(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("05_odata_startswith_filter.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("odata_query").HasValue("startswith(deviceName, 'WIN-')"),
+					testCheckItemsCountExists(dataSourceType+".test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatasourceManagedDevice_06_ODataOrFilter(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("06_odata_or_filter.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("odata_query").HasValue("operatingSystem eq 'iOS' or operatingSystem eq 'Android'"),
+					testCheckItemsCountExists(dataSourceType+".test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatasourceManagedDevice_07_ByDeviceId(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("07_by_device_id.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("device_id").Exists(),
+					check.That(dataSourceType+".test").Key("items.#").HasValue("1"),
+					check.That(dataSourceType+".test").Key("items.0.id").Exists(),
+					check.That(dataSourceType+".test").Key("items.0.device_name").Exists(),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatasourceManagedDevice_08_ByOperatingSystem(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("08_by_operating_system.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("operating_system").HasValue("Windows"),
+					testCheckItemsCountExists(dataSourceType+".test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatasourceManagedDevice_09_ByOsAndVersion(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("09_by_os_and_version.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("operating_system").Exists(),
+					check.That(dataSourceType+".test").Key("os_version").Exists(),
+					testCheckItemsCountExists(dataSourceType+".test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatasourceManagedDevice_10_ByAzureADDeviceId(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("10_by_azure_ad_device_id.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("azure_ad_device_id").Exists(),
+					testCheckItemsCountExists(dataSourceType+".test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatasourceManagedDevice_11_BySerialNumber(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("11_by_serial_number.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("serial_number").Exists(),
+					testCheckItemsCountExists(dataSourceType+".test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDatasourceManagedDevice_12_ByUserPrincipalName(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("12_by_user_principal_name.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".test").Key("user_principal_name").Exists(),
+					testCheckItemsCountExists(dataSourceType+".test"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckItemsCountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]

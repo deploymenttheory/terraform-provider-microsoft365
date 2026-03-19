@@ -1,0 +1,90 @@
+---
+page_title: "{{.Type}}: {{.Name}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Type}}: {{.Name}}
+
+{{ .Description | trimspace }}
+
+## API Documentation
+
+- [Device Resource Type](https://learn.microsoft.com/en-us/graph/api/resources/device?view=graph-rest-beta)
+- [List Devices](https://learn.microsoft.com/en-us/graph/api/device-list?view=graph-rest-beta)
+- [Get Device](https://learn.microsoft.com/en-us/graph/api/device-get?view=graph-rest-beta)
+- [List Device MemberOf](https://learn.microsoft.com/en-us/graph/api/device-list-memberof?view=graph-rest-beta)
+- [List Registered Owners](https://learn.microsoft.com/en-us/graph/api/device-list-registeredowners?view=graph-rest-beta)
+- [List Registered Users](https://learn.microsoft.com/en-us/graph/api/device-list-registeredusers?view=graph-rest-beta)
+
+## Permissions
+
+The following API permissions are required to use this data source:
+
+- `Device.Read.All` (Application or Delegated)
+- `Directory.Read.All` (Application or Delegated)
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release with flexible lookup patterns |
+
+## Example Usage
+
+### Example 1: List All Devices
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/01_list_all.tf" }}
+
+### Example 2: Get Device by Object ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/02_by_object_id.tf" }}
+
+### Example 3: Get Devices by Display Name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/03_by_display_name.tf" }}
+
+### Example 4: Get Devices by Device ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/04_by_device_id.tf" }}
+
+### Example 5: Get Devices with OData Query
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/05_odata_query.tf" }}
+
+### Example 6: Get Device with Group Memberships
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/06_with_member_of.tf" }}
+
+### Example 7: Get Device with Registered Owners
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/07_with_registered_owners.tf" }}
+
+### Example 8: Get Device with Registered Users
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/08_with_registered_users.tf" }}
+
+### Example 9: Get Device with All Related Information
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_device/09_comprehensive.tf" }}
+
+## Lookup Methods
+
+This data source supports multiple lookup methods. **Exactly one** of the following attributes must be specified:
+
+- `list_all` - List all devices in the tenant
+- `object_id` - Lookup by specific Microsoft Entra device object ID
+- `display_name` - Filter by device display name (exact match via OData filter)
+- `device_id` - Filter by device ID (Azure Device Registration Service ID)
+- `odata_query` - Custom OData filter expression for advanced queries
+
+### Additional Lookup Options
+
+When using `object_id`, you can optionally enable the following to retrieve related information:
+
+- `list_member_of` - Retrieve groups and administrative units the device is a member of
+- `list_registered_owners` - Retrieve the registered owners of the device
+- `list_registered_users` - Retrieve the registered users of the device
+
+{{ .SchemaMarkdown | trimspace }}

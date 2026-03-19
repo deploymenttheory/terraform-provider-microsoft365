@@ -1,0 +1,53 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/deploymentAudiences('f660d844-30b7-46e4-a6cf-47e36164d3cb')/applicableContent",
+  "value": [
+    {
+      "catalogEntryId": "5d6dede684ba5c4a731d62d9c9c2a99db12c5e6015e9f8ad00f3e9387c7f399c",
+      "catalogEntry": {
+        "@odata.type": "#microsoft.graph.windowsUpdates.driverUpdateCatalogEntry",
+        "id": "5d6dede684ba5c4a731d62d9c9c2a99db12c5e6015e9f8ad00f3e9387c7f399c",
+        "displayName": "Intel Corporation - Display - 30.0.101.1404",
+        "releaseDateTime": "2025-01-15T00:00:00Z",
+        "deployableUntilDateTime": null,
+        "description": "Intel Graphics Driver for Windows 11",
+        "driverClass": "Display",
+        "provider": "Intel Corporation",
+        "manufacturer": "Intel Corporation",
+        "version": "30.0.101.1404",
+        "versionDateTime": "2025-01-10T00:00:00Z"
+      },
+      "matchedDevices": [
+        {
+          "deviceId": "fb95f07d-9e73-411d-99ab-7eca3a5122b1",
+          "recommendedBy": ["Microsoft", "Intel"]
+        },
+        {
+          "deviceId": "fb95f07d-9e73-411d-99ab-7eca3a5122b2",
+          "recommendedBy": ["Microsoft"]
+        }
+      ]
+    },
+    {
+      "catalogEntryId": "6e7efef795cb6d5b842e73e0a0d3ba0ec23d6f7126f0g9be11g4f0498d8g400d",
+      "catalogEntry": {
+        "@odata.type": "#microsoft.graph.windowsUpdates.driverUpdateCatalogEntry",
+        "id": "6e7efef795cb6d5b842e73e0a0d3ba0ec23d6f7126f0g9be11g4f0498d8g400d",
+        "displayName": "Realtek Semiconductor Corp. - MEDIA - 6.0.9583.1",
+        "releaseDateTime": "2025-02-01T00:00:00Z",
+        "deployableUntilDateTime": null,
+        "description": "Realtek High Definition Audio Driver",
+        "driverClass": "MEDIA",
+        "provider": "Realtek Semiconductor Corp.",
+        "manufacturer": "Realtek",
+        "version": "6.0.9583.1",
+        "versionDateTime": "2025-01-28T00:00:00Z"
+      },
+      "matchedDevices": [
+        {
+          "deviceId": "fb95f07d-9e73-411d-99ab-7eca3a5122b1",
+          "recommendedBy": ["Microsoft"]
+        }
+      ]
+    }
+  ]
+}

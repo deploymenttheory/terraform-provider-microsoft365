@@ -1,0 +1,73 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [azureADDevice resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-azureaddevice?view=graph-rest-beta)
+- [updatableAsset resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-updatableasset?view=graph-rest-beta)
+- [List updatableAssets](https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-list-updatableassets?view=graph-rest-beta)
+- [Get updatableAsset](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-get?view=graph-rest-beta)
+- [updateManagementEnrollment resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-updatemanagementenrollment?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Lookup Methods
+
+This data source supports multiple lookup methods (mutually exclusive):
+
+1. **By Entra Device ID** - Look up a single device by its Entra ID object ID
+2. **By Device Name** - Look up a single device by resolving its name to an Entra ID
+3. **List All** - Retrieve all enrolled devices
+4. **OData Filter** - Use custom OData filter expressions for advanced queries
+
+### Optional Filters
+
+When using `list_all` or `odata_filter`, you can additionally filter by:
+- `update_category` - Filter devices enrolled in specific update categories (quality, feature, driver)
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Get Enrollment Status by Entra Device ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_device_enrollment/by_entra_device_id.tf" }}
+
+### Get Enrollment Status by Device Name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_device_enrollment/by_device_name.tf" }}
+
+### List All Enrolled Devices
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_device_enrollment/list_all.tf" }}
+
+### Filter by Update Category
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_device_enrollment/filter_by_update_category.tf" }}
+
+### Use OData Filter
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_device_enrollment/with_odata_filter.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

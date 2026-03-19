@@ -20,8 +20,11 @@ type DeploymentContent struct {
 }
 
 type DeploymentSettings struct {
-	Schedule   *ScheduleSettings   `tfsdk:"schedule"`
-	Monitoring *MonitoringSettings `tfsdk:"monitoring"`
+	Schedule             *ScheduleSettings             `tfsdk:"schedule"`
+	Monitoring           *MonitoringSettings           `tfsdk:"monitoring"`
+	UserExperience       *UserExperienceSettings       `tfsdk:"user_experience"`
+	Expedite             *ExpediteSettings             `tfsdk:"expedite"`
+	ContentApplicability *ContentApplicabilitySettings `tfsdk:"content_applicability"`
 }
 
 type ScheduleSettings struct {
@@ -43,4 +46,26 @@ type MonitoringRule struct {
 	Signal    types.String `tfsdk:"signal"`
 	Threshold types.Int32  `tfsdk:"threshold"`
 	Action    types.String `tfsdk:"action"`
+}
+
+type UserExperienceSettings struct {
+	DaysUntilForcedReboot types.Int32 `tfsdk:"days_until_forced_reboot"`
+	OfferAsOptional       types.Bool  `tfsdk:"offer_as_optional"`
+}
+
+type ExpediteSettings struct {
+	IsExpedited     types.Bool `tfsdk:"is_expedited"`
+	IsReadinessTest types.Bool `tfsdk:"is_readiness_test"`
+}
+
+type ContentApplicabilitySettings struct {
+	Safeguard *SafeguardSettings `tfsdk:"safeguard"`
+}
+
+type SafeguardSettings struct {
+	DisabledSafeguardProfiles types.Set `tfsdk:"disabled_safeguard_profiles"`
+}
+
+type SafeguardProfile struct {
+	Category types.String `tfsdk:"category"`
 }
