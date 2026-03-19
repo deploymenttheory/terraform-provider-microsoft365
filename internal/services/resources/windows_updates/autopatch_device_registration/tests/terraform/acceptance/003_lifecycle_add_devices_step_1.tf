@@ -5,8 +5,8 @@ resource "random_string" "test_suffix" {
   upper   = false
 }
 
-# Get managed devices from Intune which includes their Entra ID device IDs
-data "microsoft365_graph_beta_device_management_managed_device" "test_devices" {
+# Get Entra ID devices
+data "microsoft365_graph_beta_identity_and_access_device" "test_devices" {
   list_all = true
   timeouts = {
     read = "30s"
@@ -15,9 +15,9 @@ data "microsoft365_graph_beta_device_management_managed_device" "test_devices" {
 
 resource "microsoft365_graph_beta_windows_updates_autopatch_device_registration" "test_003" {
   update_category = "feature"
-  # Use the azure_active_directory_device_id field which contains the Entra ID device object ID
+  # Use the id field which contains the Entra ID device object ID
   entra_device_object_ids = [
-    data.microsoft365_graph_beta_device_management_managed_device.test_devices.items[0].azure_active_directory_device_id
+    data.microsoft365_graph_beta_identity_and_access_device.test_devices.items[0].id
   ]
 
   timeouts = {
