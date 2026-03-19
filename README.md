@@ -65,12 +65,17 @@ Please refer to the [Getting Started](https://registry.terraform.io/providers/de
 - **Multi-Cloud Compatibility**: Operates with Microsoft public cloud, US Government (GCC, GCC High, DoD), China, and other national cloud environments.
 - **Multiple Authentication Methods**: Provides support for client secret, client certificate, device code, interactive browser, managed identity, workload identity, OIDC (including GitHub Actions and Azure DevOps), and Azure Developer CLI authentication.
 - **Proxy and Network Configuration**: Allows configuration of HTTP proxy settings, custom user agents, request timeouts, and retry/redirect/compression policies.
-- **Microsoft Graph API Support**: Integrates with both v1.0 and beta Microsoft Graph API endpoint sets, to support both generally available and preview features.
+- **Microsoft Graph API Support**: Integrates with both v1.0 and beta Microsoft Graph API endpoint sets, to support both long lived and newly released resources.
 - **Microsoft Graph SDK Adoption**: The provider leverages the Microsoft Graph API through the Kiota-generated graphSDKs, allowing for a strongly typed development experience.
+- **Programatic RBAC Definition**: Microsoft Graph has a complex RBAC model, each resource in this providerhas automated RBAC generation so that if you receive a 403 error, you can easily identify permission gaps and add them to your authentication method.
+
+## Provider Coverage
+
+Given the large size of this project, you can find a comprehensive breakdown of available resources, data sources, list resources, ephemerals, and actions organized by service domain in the [Provider Coverage](./docs/guides/provider_coverage.md) documentation.
 
 ## Provider Comparison
 
-For information and a comparison between this provider in relation to the msft official `terraform-provider-msgraph provider`, see the [Provider Comparison](./docs/development/provider_comparison.md) documentation.
+For information and a comparison between this provider in relation to the microsoft's official `terraform-provider-msgraph provider`, see the [Provider Comparison](./docs/development/provider_comparison.md) documentation.
 
 ## Community Contributions
 

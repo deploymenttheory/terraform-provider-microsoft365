@@ -23,7 +23,7 @@ Examples:
     ./generate_test_matrix.py datasources
 
     # Explicit service list
-    ./generate_test_matrix.py resources device_management groups users
+    ./generate_test_matrix.py resources device_management groups users windows_updates
     ./generate_test_matrix.py datasources device_management utility
     ./generate_test_matrix.py list-resources device_management
     ./generate_test_matrix.py ephemerals multitenant_management

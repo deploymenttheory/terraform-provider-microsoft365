@@ -1,0 +1,45 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [product resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-product?view=graph-rest-beta)
+- [product: findByCatalogId](https://learn.microsoft.com/en-us/graph/api/windowsupdates-product-findbycatalogid?view=graph-rest-beta)
+- [product: findByKbNumber](https://learn.microsoft.com/en-us/graph/api/windowsupdates-product-findbykbnumber?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Find by Catalog ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_product/by_catalog_id.tf" }}
+
+### Find by KB Number
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_product/by_kb_number.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

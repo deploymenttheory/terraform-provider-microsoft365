@@ -1,0 +1,8 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdates.policyApproval",
+  "id": "b2c3d4e5-2345-6789-bcde-b2c3d4e5f6a7",
+  "catalogEntryId": "c1dec151-c151-c1de-51c1-dec151c1dec1",
+  "status": "suspended",
+  "createdDateTime": "2026-03-11T10:00:00Z",
+  "lastModifiedDateTime": "2026-03-11T10:00:00Z"
+}

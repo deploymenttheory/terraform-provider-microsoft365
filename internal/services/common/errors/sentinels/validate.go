@@ -163,4 +163,25 @@ var (
 
 	// ErrRoleDefinitionNameExists indicates a role definition with the same display name already exists
 	ErrRoleDefinitionNameExists = errors.New("a role definition with this display name already exists")
+
+	// ErrEntraDeviceValidationFailed indicates Entra ID device validation failed
+	ErrEntraDeviceValidationFailed = errors.New("entra device validation failed")
+
+	// ErrEntraDeviceNotFound indicates an Entra ID device was not found
+	ErrEntraDeviceNotFound = errors.New("entra device not found")
+
+	// ErrRetrieveEntraDevice indicates failure to retrieve an Entra ID device
+	ErrRetrieveEntraDevice = errors.New("failed to retrieve Entra ID device")
+
+	// ErrNoDevicesEnrolled indicates no devices are enrolled for an update category
+	ErrNoDevicesEnrolled = errors.New("no devices enrolled for update category")
+
+	// ErrUpdatableAssetGroupNotFound indicates a Windows Updates updatable asset group was not found
+	ErrUpdatableAssetGroupNotFound = errors.New("updatable asset group not found")
+
+	// ErrUpdatableAssetGroupValidationFailed indicates validation of a Windows Updates updatable asset group failed
+	ErrUpdatableAssetGroupValidationFailed = errors.New("updatable asset group validation failed")
+
+	// ErrInvalidEntraDeviceIDs indicates one or more Entra ID device IDs do not exist
+	ErrInvalidEntraDeviceIDs = errors.New("one or more Entra ID device IDs not found")
 )

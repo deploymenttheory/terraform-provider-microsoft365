@@ -22,6 +22,7 @@ Manages cross-tenant user synchronization settings for a specific partner tenant
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `Policy.Read.All`
 - `Policy.ReadWrite.CrossTenantAccess`
 
 **Optional (for read operations):**

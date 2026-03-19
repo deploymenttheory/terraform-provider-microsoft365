@@ -1,0 +1,270 @@
+package graphBetaWindowsUpdatesAutopatchDeployment
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+)
+
+// Create handles the Create operation for Windows Updates autopatch deployment resources.
+//
+// Operation: Creates a new deployment for Windows updates
+// API Calls:
+//   - POST /admin/windows/updates/deployments
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-deployments?view=graph-rest-beta
+func (r *WindowsUpdatesAutopatchDeploymentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object WindowsUpdatesAutopatchDeploymentResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
+	requestBody, err := constructResource(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing resource",
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	createdResource, err := r.client.
+		Admin().
+		Windows().
+		Updates().
+		Deployments().
+		Post(ctx, requestBody, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+
+	object.ID = convert.GraphToFrameworkString(createdResource.GetId())
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readReq := resource.ReadRequest{State: resp.State}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationCreate
+	opts.ResourceTypeName = ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
+}
+
+// Read handles the Read operation for Windows Updates autopatch deployment resources.
+//
+// Operation: Retrieves a deployment by ID
+// API Calls:
+//   - GET /admin/windows/updates/deployments/{deploymentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-get?view=graph-rest-beta
+func (r *WindowsUpdatesAutopatchDeploymentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object WindowsUpdatesAutopatchDeploymentResourceModel
+	var identity sharedmodels.ResourceIdentity
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read of resource: %s", ResourceName))
+
+	operation := constants.TfOperationRead
+	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
+		if opStr, ok := ctxOp.(string); ok {
+			operation = opStr
+		}
+	}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
+	remoteResource, err := r.client.
+		Admin().
+		Windows().
+		Updates().
+		Deployments().
+		ByDeploymentId(object.ID.ValueString()).
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+
+	MapRemoteStateToTerraform(ctx, &object, remoteResource)
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
+}
+
+// Update handles the Update operation for Windows Updates autopatch deployment resources.
+//
+// Operation: Updates an existing deployment
+// API Calls:
+//   - PATCH /admin/windows/updates/deployments/{deploymentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-update?view=graph-rest-beta
+func (r *WindowsUpdatesAutopatchDeploymentResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan WindowsUpdatesAutopatchDeploymentResourceModel
+	var state WindowsUpdatesAutopatchDeploymentResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting Update of resource: %s", ResourceName))
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
+	requestBody, err := constructUpdateResource(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing update request",
+			fmt.Sprintf("Could not construct update request: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	_, err = r.client.
+		Admin().
+		Windows().
+		Updates().
+		Deployments().
+		ByDeploymentId(state.ID.ValueString()).
+		Patch(ctx, requestBody, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readReq := resource.ReadRequest{State: resp.State}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
+
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationUpdate
+	opts.ResourceTypeName = ResourceName
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+}
+
+// Delete handles the Delete operation for Windows Updates autopatch deployment resources.
+//
+// Operation: Deletes a deployment
+// API Calls:
+//   - DELETE /admin/windows/updates/deployments/{deploymentId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deployment-delete?view=graph-rest-beta
+func (r *WindowsUpdatesAutopatchDeploymentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object WindowsUpdatesAutopatchDeploymentResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	if cancel == nil {
+		return
+	}
+	defer cancel()
+
+	err := r.client.
+		Admin().
+		Windows().
+		Updates().
+		Deployments().
+		ByDeploymentId(object.ID.ValueString()).
+		Delete(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+
+	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}

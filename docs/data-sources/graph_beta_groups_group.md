@@ -21,6 +21,7 @@ The following client `application` permissions are needed in order to use this d
 
 **Required:**
 - `Directory.Read.All`
+- `Group.ManageProtection.All`
 - `Group.Read.All`
 - `GroupMember.Read.All`
 

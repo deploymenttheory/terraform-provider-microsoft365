@@ -1,0 +1,58 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [catalog resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-catalog?view=graph-rest-beta)
+- [List catalog entries](https://learn.microsoft.com/en-us/graph/api/windowsupdates-catalog-list-entries?view=graph-rest-beta)
+- [featureUpdateCatalogEntry resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-featureupdatecatalogentry?view=graph-rest-beta)
+- [qualityUpdateCatalogEntry resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-qualityupdatecatalogentry?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Get All Windows Update Catalog Entries
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_catalog_enteries/all_entries.tf" }}
+
+### Get Feature Updates Only
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_catalog_enteries/feature_updates.tf" }}
+
+### Get Quality Updates Only
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_catalog_enteries/quality_updates.tf" }}
+
+### Filter by Windows Update Catalog Entry Display Name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_catalog_enteries/by_display_name.tf" }}
+
+### Get Specific Windows Update Catalog Entry by ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_windows_updates_catalog_enteries/by_id.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

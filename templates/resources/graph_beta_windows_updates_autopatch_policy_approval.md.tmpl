@@ -1,0 +1,64 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [policyApproval resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-policyapproval?view=graph-rest-beta)
+- [Create policyApproval](https://learn.microsoft.com/en-us/graph/api/windowsupdates-policy-post-approvals?view=graph-rest-beta)
+- [Get policyApproval](https://learn.microsoft.com/en-us/graph/api/windowsupdates-policyapproval-get?view=graph-rest-beta)
+- [Update policyApproval](https://learn.microsoft.com/en-us/graph/api/windowsupdates-policyapproval-update?view=graph-rest-beta)
+- [Delete policyApproval](https://learn.microsoft.com/en-us/graph/api/windowsupdates-policyapproval-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Field Mutability
+
+| Field | Mutable after creation |
+|-------|------------------------|
+| `catalog_entry_id` | No — changes require resource replacement |
+| `status` | Yes — can be updated in place (`approved` ↔ `suspended`) |
+
+## Import ID Format
+
+This resource uses a composite import ID: `{policy_id}/{approval_id}`.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Scenario 1: Approve a Quality Update
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_policy_approval/resource_approved.tf" }}
+
+### Scenario 2: Suspend an Approval
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_policy_approval/resource_suspended.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_policy_approval/import.sh" }}

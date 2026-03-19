@@ -27,8 +27,10 @@ See the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/gr
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Policy.Read.All`
+- `Directory.Read.All`
 - `Policy.ReadWrite.CrossTenantAccess`
+- `User.Read.All`
+- `User.ReadBasic.All`
 
 Find out more about the permissions required for managing cross-tenant access policies at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/crosstenantaccesspolicyconfigurationdefault?view=graph-rest-beta).
 

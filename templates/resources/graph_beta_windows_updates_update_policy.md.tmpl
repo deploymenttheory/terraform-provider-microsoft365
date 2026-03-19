@@ -1,0 +1,96 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [updatePolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-updatepolicy?view=graph-rest-beta)
+- [Create updatePolicy](https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-updatepolicies?view=graph-rest-beta)
+- [Get updatePolicy](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatepolicy-get?view=graph-rest-beta)
+- [Update updatePolicy](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatepolicy-update?view=graph-rest-beta)
+- [Delete updatePolicy](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatepolicy-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Important Behavioral Notes
+
+### Compliance Change Rules Immutability
+
+The `compliance_change_rules` block and its nested attributes (`filter_type`, `duration_before_deployment_start`) **cannot be modified** after the resource is created. Any attempt to change these values will trigger a resource replacement (destroy and recreate). This is enforced through the `RequiresReplace` plan modifier.
+
+### Filter Type Restrictions
+
+Despite what the Microsoft Graph API documentation may suggest, only `driverUpdateFilter` is valid for the `filter_type` attribute. Using `windowsUpdateFilter` will result in a schema validation error from the API. This has been validated through extensive API testing.
+
+### Duration Format and Validation
+
+Duration values must be specified in ISO 8601 duration format using day notation (e.g., `P7D` for 7 days):
+
+- **`duration_before_deployment_start`**: Valid range is P1D to P30D (1 to 30 days)
+- **`duration_between_offers`**: Valid range is P1D to P30D (1 to 30 days)
+
+The provider automatically handles SDK normalization issues where the Microsoft Graph SDK converts day-based durations to week-based formats (e.g., P7D → P1W) by denormalizing them back to the original day format to prevent spurious diffs.
+
+### Devices Per Offer Validation
+
+The `devices_per_offer` attribute must be a positive integer (minimum value of 1). Testing has confirmed that values up to 1,000,000 are accepted by the API.
+
+### Compliance Changes Field
+
+The `compliance_changes` field is **write-only** and is not returned by the API after creation. It will always show as changed during import operations and must be added to `ImportStateVerifyIgnore` in tests.
+
+### Update Operation Restrictions
+
+When updating an existing update policy, only the `deployment_settings` block can be modified. The API does not accept changes to `audience`, `compliance_changes`, or `compliance_change_rules` in PATCH operations, even though the documentation may suggest otherwise.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Scenario 1: Minimal Update Policy
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_update_policy/resource_minimal.tf" }}
+
+### Scenario 2: Update Policy with Compliance Change Rules
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_update_policy/resource_with_compliance_rules.tf" }}
+
+### Scenario 3: Update Policy with Gradual Rollout
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_update_policy/resource_with_gradual_rollout.tf" }}
+
+### Scenario 4: Update Policy with Scheduled Start Time
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_update_policy/resource_with_scheduled_start.tf" }}
+
+### Scenario 5: Complete Update Policy Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_update_policy/resource_complete.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_updates_update_policy/import.sh" }}

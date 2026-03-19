@@ -61,6 +61,7 @@ The following client `application` permissions are needed in order to use this r
 - `Application.Read.All`
 - `Directory.Read.All`
 - `Directory.ReadWrite.All`
+- `Group.ManageProtection.All`
 - `Group.Read.All`
 - `Group.ReadWrite.All`
 - `GroupMember.Read.All`

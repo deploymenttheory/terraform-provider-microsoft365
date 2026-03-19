@@ -1,0 +1,27 @@
+{
+  "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdateRing",
+  "id": "b2c3d4e5-2345-6789-bcde-b2c3d4e5f6a7",
+  "displayName": "Test Ring",
+  "description": "A test ring for unit tests",
+  "isPaused": false,
+  "deferralInDays": 7,
+  "isHotpatchEnabled": false,
+  "includedGroupAssignment": {
+    "@odata.type": "#microsoft.graph.windowsUpdates.includedGroupAssignment",
+    "assignments": [
+      {
+        "groupId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+      }
+    ]
+  },
+  "excludedGroupAssignment": {
+    "@odata.type": "#microsoft.graph.windowsUpdates.excludedGroupAssignment",
+    "assignments": [
+      {
+        "groupId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+      }
+    ]
+  },
+  "createdDateTime": "2026-03-10T10:00:00Z",
+  "lastModifiedDateTime": "2026-03-10T10:00:00Z"
+}

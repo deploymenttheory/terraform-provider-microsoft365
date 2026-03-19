@@ -1,0 +1,10 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/policies/$entity",
+  "@odata.type": "#microsoft.graph.windowsUpdates.qualityUpdatePolicy",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "WAP001: Minimal Windows Autopatch Policy-v1.0",
+  "description": "Minimal policy with no approval rules",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "approvalRules": []
+}

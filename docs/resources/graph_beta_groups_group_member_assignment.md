@@ -51,6 +51,7 @@ The following client `application` permissions are needed in order to use this r
 - `Device.ReadWrite.All`
 - `Directory.Read.All`
 - `Directory.ReadWrite.All`
+- `Group.ManageProtection.All`
 - `Group.Read.All`
 - `GroupMember.Read.All`
 - `GroupMember.ReadWrite.All`
