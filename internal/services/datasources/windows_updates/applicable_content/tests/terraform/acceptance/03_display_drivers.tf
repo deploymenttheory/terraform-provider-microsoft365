@@ -6,8 +6,8 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
-# Get managed devices from Intune
-data "microsoft365_graph_beta_device_management_managed_device" "test_devices" {
+# Get Entra ID devices
+data "microsoft365_graph_beta_identity_and_access_device" "test_devices" {
   list_all = true
   timeouts = {
     read = "30s"
@@ -27,7 +27,7 @@ resource "time_sleep" "wait_for_audience" {
 resource "microsoft365_graph_beta_windows_updates_autopatch_device_registration" "test" {
   update_category = "driver"
   entra_device_object_ids = [
-    data.microsoft365_graph_beta_device_management_managed_device.test_devices.items[0].azure_ad_device_id
+    data.microsoft365_graph_beta_identity_and_access_device.test_devices.items[0].id
   ]
 
   depends_on = [time_sleep.wait_for_audience]
@@ -52,7 +52,7 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_deployment_audience_
   member_type = "azureADDevice"
 
   members = [
-    data.microsoft365_graph_beta_device_management_managed_device.test_devices.items[0].azure_ad_device_id
+    data.microsoft365_graph_beta_identity_and_access_device.test_devices.items[0].id
   ]
 
   depends_on = [time_sleep.wait_for_registration]
