@@ -53,6 +53,7 @@ import (
 	graphBetaMultitenantManagementAuditEvents "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/multitenant_management/graph_beta/audit_events"
 
 	// Graph Beta - Windows Updates datasources
+
 	graphBetaWindowsUpdatesApplicableContent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/applicable_content"
 	graphBetaWindowsUpdatesCatalogEnteries "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/catalog_enteries"
 	graphBetaWindowsUpdatesComplianceChanges "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/compliance_changes"

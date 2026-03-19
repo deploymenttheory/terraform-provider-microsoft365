@@ -99,9 +99,9 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Create(ctx context.C
 //
 // Operation: Retrieves enrolled devices and their enrollment status
 // API Calls:
-//   - GET /admin/windows/updates/updatableAssets/{updatableAssetId}
+//   - GET /admin/windows/updates/updatableAssets?$filter=isof('microsoft.graph.windowsUpdates.azureADDevice')&$select=id,enrollments
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-get?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-list-updatableassets?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchDeviceRegistrationResourceModel
 	var identity sharedmodels.ResourceIdentity

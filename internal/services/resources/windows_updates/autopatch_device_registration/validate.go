@@ -87,8 +87,8 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateRequest(
 	return nil
 }
 
-// validateEntraDeviceExists validates that an Entra ID device exists by its object ID.
-// This queries GET /devices/{id} using the Entra ID device object ID (the 'id' property, NOT the 'deviceId' property).
+// validateEntraDeviceExists validates that an Entra ID device (Azure AD device object) exists.
+// This queries the /devices endpoint (Entra ID), NOT the /deviceManagement/managedDevices endpoint (Intune).
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateEntraDeviceExists(
 	ctx context.Context,
 	entraDeviceObjectID string,

@@ -20,10 +20,10 @@ type DeploymentContent struct {
 }
 
 type DeploymentSettings struct {
-	Schedule            *ScheduleSettings            `tfsdk:"schedule"`
-	Monitoring          *MonitoringSettings          `tfsdk:"monitoring"`
-	UserExperience      *UserExperienceSettings      `tfsdk:"user_experience"`
-	Expedite            *ExpediteSettings            `tfsdk:"expedite"`
+	Schedule             *ScheduleSettings             `tfsdk:"schedule"`
+	Monitoring           *MonitoringSettings           `tfsdk:"monitoring"`
+	UserExperience       *UserExperienceSettings       `tfsdk:"user_experience"`
+	Expedite             *ExpediteSettings             `tfsdk:"expedite"`
 	ContentApplicability *ContentApplicabilitySettings `tfsdk:"content_applicability"`
 }
 
@@ -54,8 +54,8 @@ type UserExperienceSettings struct {
 }
 
 type ExpediteSettings struct {
-	IsExpedited      types.Bool `tfsdk:"is_expedited"`
-	IsReadinessTest  types.Bool `tfsdk:"is_readiness_test"`
+	IsExpedited     types.Bool `tfsdk:"is_expedited"`
+	IsReadinessTest types.Bool `tfsdk:"is_readiness_test"`
 }
 
 type ContentApplicabilitySettings struct {

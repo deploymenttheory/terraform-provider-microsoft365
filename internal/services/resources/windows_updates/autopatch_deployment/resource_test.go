@@ -279,7 +279,7 @@ func TestUnitResourceWindowsUpdateDeployment_12_AllSettings(t *testing.T) {
 	})
 }
 
-func TestUnitResourceWindowsUpdateDeployment_05_Error(t *testing.T) {
+func TestUnitResourceWindowsUpdateDeployment_13_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, deploymentMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()

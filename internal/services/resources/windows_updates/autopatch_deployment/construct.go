@@ -188,9 +188,9 @@ func constructDeploymentSettings(ctx context.Context, data *DeploymentSettings) 
 		contentApplicability := graphmodelswindowsupdates.NewContentApplicabilitySettings()
 		safeguard := graphmodelswindowsupdates.NewSafeguardSettings()
 
-		if !data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.IsNull() && 
-		   !data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.IsUnknown() && 
-		   len(data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.Elements()) > 0 {
+		if !data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.IsNull() &&
+			!data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.IsUnknown() &&
+			len(data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.Elements()) > 0 {
 			var profileModels []SafeguardProfile
 			diags := data.ContentApplicability.Safeguard.DisabledSafeguardProfiles.ElementsAs(ctx, &profileModels, false)
 			if diags.HasError() {
