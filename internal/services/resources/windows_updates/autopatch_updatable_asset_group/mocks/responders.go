@@ -17,11 +17,11 @@ import (
 
 var mockState struct {
 	sync.Mutex
-	connections map[string]map[string]any
+	groups map[string]map[string]any
 }
 
 func init() {
-	mockState.connections = make(map[string]map[string]any)
+	mockState.groups = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("windows_update_updatable_asset_group", &WindowsUpdateUpdatableAssetGroupMock{})
 }
@@ -32,12 +32,16 @@ var _ mocks.MockRegistrar = (*WindowsUpdateUpdatableAssetGroupMock)(nil)
 
 func (m *WindowsUpdateUpdatableAssetGroupMock) RegisterMocks() {
 	mockState.Lock()
-	mockState.connections = make(map[string]map[string]any)
+	mockState.groups = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	m.registerCreateUpdatableAssetGroupResponder()
 	m.registerGetUpdatableAssetGroupResponder()
+	m.registerGetGroupMembersResponder()
+	m.registerAddMembersByIdResponder()
+	m.registerRemoveMembersByIdResponder()
 	m.registerDeleteUpdatableAssetGroupResponder()
+	m.registerListDevicesResponder()
 }
 
 func (m *WindowsUpdateUpdatableAssetGroupMock) registerCreateUpdatableAssetGroupResponder() {
@@ -59,7 +63,10 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerCreateUpdatableAssetGroup
 
 			mockState.Lock()
 			if id, ok := responseObj["id"].(string); ok {
-				mockState.connections[id] = responseObj
+				mockState.groups[id] = map[string]any{
+					"id":      id,
+					"members": map[string]bool{},
+				}
 			}
 			mockState.Unlock()
 
@@ -75,10 +82,10 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetUpdatableAssetGroupRes
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
-			connectionId := parts[len(parts)-1]
+			groupID := parts[len(parts)-1]
 
 			mockState.Lock()
-			connection, exists := mockState.connections[connectionId]
+			group, exists := mockState.groups[groupID]
 			mockState.Unlock()
 
 			if !exists {
@@ -95,10 +102,10 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetUpdatableAssetGroupRes
 				if err := json.Unmarshal(jsonData, &responseObj); err != nil {
 					return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to parse response: %s"}}`, err.Error())), nil
 				}
-				connection = responseObj
+				group = responseObj
 			}
 
-			resp, err := httpmock.NewJsonResponse(200, connection)
+			resp, err := httpmock.NewJsonResponse(200, group)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
 			}
@@ -106,23 +113,158 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetUpdatableAssetGroupRes
 		})
 }
 
-func (m *WindowsUpdateUpdatableAssetGroupMock) registerDeleteUpdatableAssetGroupResponder() {
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+$`,
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetGroupMembersResponder() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.updatableAssetGroup/members`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
-			connectionId := parts[len(parts)-1]
+			// path: .../updatableAssets/{groupId}/microsoft.graph.windowsUpdates.updatableAssetGroup/members
+			groupID := parts[len(parts)-3]
 
 			mockState.Lock()
-			delete(mockState.connections, connectionId)
+			group, exists := mockState.groups[groupID]
+			mockState.Unlock()
+
+			if exists && group != nil {
+				members, _ := group["members"].(map[string]bool)
+				memberList := make([]map[string]any, 0, len(members))
+				for id := range members {
+					memberList = append(memberList, map[string]any{
+						"@odata.type": "#microsoft.graph.windowsUpdates.azureADDevice",
+						"id":          id,
+					})
+				}
+				resp, err := httpmock.NewJsonResponse(200, map[string]any{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/updatableAssets/members",
+					"value":          memberList,
+				})
+				if err != nil {
+					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				}
+				return resp, nil
+			}
+
+			// Fall back to fixture when no in-memory state exists (e.g. import)
+			_, filename, _, _ := runtime.Caller(0)
+			sourceDir := filepath.Dir(filename)
+			responsesPath := filepath.Join(sourceDir, "..", "tests", "responses", constants.TfOperationRead, "get_members_empty.json")
+
+			jsonData, err := os.ReadFile(responsesPath)
+			if err != nil {
+				return httpmock.NewStringResponse(200, `{"value":[]}`), nil
+			}
+
+			var responseObj map[string]any
+			if err := json.Unmarshal(jsonData, &responseObj); err != nil {
+				return httpmock.NewStringResponse(200, `{"value":[]}`), nil
+			}
+
+			resp, err := httpmock.NewJsonResponse(200, responseObj)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
+		})
+}
+
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerAddMembersByIdResponder() {
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.addMembersById$`,
+		func(req *http.Request) (*http.Response, error) {
+			var body map[string]any
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				return httpmock.NewJsonResponse(400, map[string]any{
+					"error": map[string]any{"code": "BadRequest", "message": "Invalid request body"},
+				})
+			}
+
+			parts := strings.Split(req.URL.Path, "/")
+			groupID := parts[len(parts)-2]
+			ids, _ := body["ids"].([]any)
+
+			mockState.Lock()
+			if _, ok := mockState.groups[groupID]; !ok {
+				mockState.groups[groupID] = map[string]any{
+					"id":      groupID,
+					"members": map[string]bool{},
+				}
+			}
+			members, _ := mockState.groups[groupID]["members"].(map[string]bool)
+			for _, idAny := range ids {
+				if id, ok := idAny.(string); ok {
+					members[id] = true
+				}
+			}
+			mockState.groups[groupID]["members"] = members
 			mockState.Unlock()
 
 			return httpmock.NewStringResponse(204, ""), nil
 		})
 }
 
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerRemoveMembersByIdResponder() {
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.removeMembersById$`,
+		func(req *http.Request) (*http.Response, error) {
+			var body map[string]any
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				return httpmock.NewJsonResponse(400, map[string]any{
+					"error": map[string]any{"code": "BadRequest", "message": "Invalid request body"},
+				})
+			}
+
+			parts := strings.Split(req.URL.Path, "/")
+			groupID := parts[len(parts)-2]
+			ids, _ := body["ids"].([]any)
+
+			mockState.Lock()
+			if group, ok := mockState.groups[groupID]; ok {
+				members, _ := group["members"].(map[string]bool)
+				for _, idAny := range ids {
+					if id, ok := idAny.(string); ok {
+						delete(members, id)
+					}
+				}
+				mockState.groups[groupID]["members"] = members
+			}
+			mockState.Unlock()
+
+			return httpmock.NewStringResponse(204, ""), nil
+		})
+}
+
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerDeleteUpdatableAssetGroupResponder() {
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			groupID := parts[len(parts)-1]
+
+			mockState.Lock()
+			delete(mockState.groups, groupID)
+			mockState.Unlock()
+
+			return httpmock.NewStringResponse(204, ""), nil
+		})
+}
+
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerListDevicesResponder() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/devices\?`,
+		func(req *http.Request) (*http.Response, error) {
+			devices := []map[string]any{
+				{"id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "deviceId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"},
+				{"id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "deviceId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"},
+			}
+			resp, err := httpmock.NewJsonResponse(200, map[string]any{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#devices",
+				"value":          devices,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			}
+			return resp, nil
+		})
+}
+
 func (m *WindowsUpdateUpdatableAssetGroupMock) RegisterErrorMocks() {
 	mockState.Lock()
-	mockState.connections = make(map[string]map[string]any)
+	mockState.groups = make(map[string]map[string]any)
 	mockState.Unlock()
 
 	m.registerCreateUpdatableAssetGroupErrorResponder()
@@ -163,6 +305,6 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetUpdatableAssetGroupErr
 
 func (m *WindowsUpdateUpdatableAssetGroupMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.connections = make(map[string]map[string]any)
+	mockState.groups = make(map[string]map[string]any)
 	mockState.Unlock()
 }
