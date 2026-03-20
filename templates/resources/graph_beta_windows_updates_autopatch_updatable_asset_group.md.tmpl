@@ -16,6 +16,8 @@ description: |-
 - [updatableAsset resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-updatableasset?view=graph-rest-beta)
 - [Create updatableAsset](https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-updatableassets?view=graph-rest-beta)
 - [Get updatableAsset](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-get?view=graph-rest-beta)
+- [addMembersById](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableassetgroup-addmembersbyid?view=graph-rest-beta)
+- [removeMembersById](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableassetgroup-removemembersbyid?view=graph-rest-beta)
 - [Delete updatableAsset](https://learn.microsoft.com/en-us/graph/api/windowsupdates-updatableasset-delete?view=graph-rest-beta)
 
 ## Microsoft Graph API Permissions
@@ -30,25 +32,35 @@ The following client `application` permissions are needed in order to use this {
 
 ## Dependency Notes
 
-Group has no configurable properties. Membership is managed separately via `microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment`.
+Device membership is managed in-place via `entra_device_object_ids`. Devices can be added or removed without replacing the group. The Entra device object IDs must correspond to devices already enrolled in Windows Autopatch.
 
 ## Field Mutability
-
-The resource has no user-configurable fields. The group is created as an empty container and its `id` is assigned by the service.
 
 | Field | Mutable after creation |
 |-------|------------------------|
 | `id` | Read-only (computed) |
+| `entra_device_object_ids` | Yes — devices can be added or removed in-place |
 
 ## Version History
 
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.50.0-alpha | Experimental | Initial release |
+| v0.51.0-alpha | Experimental | Merged device membership into single resource |
 
 ## Example Usage
 
+### Minimal
+
 {{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group/resource.tf" }}
+
+### With Members
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group/resource_with_members.tf" }}
+
+### Multiple Devices
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group/resource_multiple_devices.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

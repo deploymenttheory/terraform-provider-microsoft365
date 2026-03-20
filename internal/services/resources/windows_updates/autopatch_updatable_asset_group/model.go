@@ -6,6 +6,7 @@ import (
 )
 
 type WindowsUpdatesAutopatchUpdatableAssetGroupResourceModel struct {
-	ID       types.String   `tfsdk:"id"`
-	Timeouts timeouts.Value `tfsdk:"timeouts"`
+	ID                    types.String   `tfsdk:"id"`
+	EntraDeviceObjectIds  types.Set      `tfsdk:"entra_device_object_ids"`
+	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 }
