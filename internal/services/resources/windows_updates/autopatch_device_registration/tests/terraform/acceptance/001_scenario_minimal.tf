@@ -13,9 +13,9 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_device_registration"
   ]
 
   timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+    delete = "5m"
   }
 }

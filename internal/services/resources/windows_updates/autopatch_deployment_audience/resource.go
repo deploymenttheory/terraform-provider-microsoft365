@@ -19,7 +19,7 @@ const (
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
-	DeleteTimeout = 180
+	DeleteTimeout = 600
 )
 
 var (

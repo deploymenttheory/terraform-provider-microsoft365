@@ -3,10 +3,13 @@ package graphBetaWindowsUpdatesAutopatchDeploymentAudienceMembers
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -123,6 +126,9 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Schema(ctx co
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+				},
 			},
 			"member_type": schema.StringAttribute{
 				Required:            true,
@@ -138,6 +144,11 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceMembersResource) Schema(ctx co
 				ElementType:         types.StringType,
 				Optional:            true,
 				MarkdownDescription: "Set of device or Entra group IDs to include in the deployment audience.",
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(
+						stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+					),
+				},
 			},
 			"exclusions": schema.SetAttribute{
 				ElementType:         types.StringType,

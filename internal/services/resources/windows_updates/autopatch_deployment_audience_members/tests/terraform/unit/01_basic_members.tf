@@ -1,5 +1,5 @@
 resource "microsoft365_graph_beta_windows_updates_autopatch_deployment_audience_members" "test" {
-  audience_id = "test-audience-id-001"
+  audience_id = "3ac1bab3-c634-4377-8290-6c9b729dd9a1"
   member_type = "azureADDevice"
 
   members = [

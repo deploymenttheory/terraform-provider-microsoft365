@@ -22,6 +22,10 @@ type ApplicableContentMock struct{}
 var _ mocks.MockRegistrar = (*ApplicableContentMock)(nil)
 
 func (m *ApplicableContentMock) RegisterMocks() {
+	m.registerGetApplicableContentResponder()
+}
+
+func (m *ApplicableContentMock) registerGetApplicableContentResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/[^/]+/applicableContent`, func(req *http.Request) (*http.Response, error) {
 		_, filename, _, _ := runtime.Caller(0)
 		sourceDir := filepath.Dir(filename)
@@ -46,6 +50,10 @@ func (m *ApplicableContentMock) RegisterMocks() {
 }
 
 func (m *ApplicableContentMock) RegisterErrorMocks() {
+	m.registerGetApplicableContentErrorResponder()
+}
+
+func (m *ApplicableContentMock) registerGetApplicableContentErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/[^/]+/applicableContent`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{

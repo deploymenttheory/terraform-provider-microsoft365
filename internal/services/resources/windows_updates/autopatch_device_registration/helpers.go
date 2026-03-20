@@ -53,6 +53,10 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) verifyEnrollmentComp
 			})
 
 		if err != nil {
+			if ctx.Err() != nil {
+				tflog.Warn(ctx, "Context expired during enrollment verification; enroll POST already completed successfully")
+				return nil
+			}
 			tflog.Warn(ctx, fmt.Sprintf("Error fetching devices for enrollment verification (attempt %d/%d): %v", attempt, maxAttempts, err))
 			time.Sleep(waitInterval)
 			continue
@@ -158,6 +162,10 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) verifyUnenrollmentCo
 			})
 
 		if err != nil {
+			if ctx.Err() != nil {
+				tflog.Warn(ctx, "Context expired during unenrollment verification; unenroll POST already completed successfully")
+				return nil
+			}
 			tflog.Error(ctx, "Failed to query devices for unenrollment verification", map[string]any{
 				"attempt": attempt,
 				"error":   err.Error(),

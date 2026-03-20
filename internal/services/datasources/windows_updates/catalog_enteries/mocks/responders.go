@@ -35,7 +35,11 @@ func (m *WindowsUpdateCatalogMock) RegisterMocks() {
 	mockState.catalogEntries = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// List catalog entries - GET /admin/windows/updates/catalog/entries
+	m.registerListCatalogEntriesResponder()
+	m.registerGetCatalogEntryByIdResponder()
+}
+
+func (m *WindowsUpdateCatalogMock) registerListCatalogEntriesResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/catalog/entries`, func(req *http.Request) (*http.Response, error) {
 		queryParams, _ := url.ParseQuery(req.URL.RawQuery)
 		filter := queryParams.Get("$filter")
@@ -87,8 +91,9 @@ func (m *WindowsUpdateCatalogMock) RegisterMocks() {
 		}
 		return resp, nil
 	})
+}
 
-	// Get specific catalog entry by ID - GET /admin/windows/updates/catalog/entries/{id}
+func (m *WindowsUpdateCatalogMock) registerGetCatalogEntryByIdResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/catalog/entries/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		entryId := parts[len(parts)-1]
@@ -129,7 +134,10 @@ func (m *WindowsUpdateCatalogMock) RegisterErrorMocks() {
 	mockState.catalogEntries = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Return errors for all operations
+	m.registerListCatalogEntriesErrorResponder()
+}
+
+func (m *WindowsUpdateCatalogMock) registerListCatalogEntriesErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/catalog/entries`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{

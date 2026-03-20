@@ -22,6 +22,10 @@ type ComplianceChangesMock struct{}
 var _ mocks.MockRegistrar = (*ComplianceChangesMock)(nil)
 
 func (m *ComplianceChangesMock) RegisterMocks() {
+	m.registerGetComplianceChangesResponder()
+}
+
+func (m *ComplianceChangesMock) registerGetComplianceChangesResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[^/]+/complianceChanges`, func(req *http.Request) (*http.Response, error) {
 		_, filename, _, _ := runtime.Caller(0)
 		sourceDir := filepath.Dir(filename)
@@ -46,6 +50,10 @@ func (m *ComplianceChangesMock) RegisterMocks() {
 }
 
 func (m *ComplianceChangesMock) RegisterErrorMocks() {
+	m.registerGetComplianceChangesErrorResponder()
+}
+
+func (m *ComplianceChangesMock) registerGetComplianceChangesErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[^/]+/complianceChanges`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{

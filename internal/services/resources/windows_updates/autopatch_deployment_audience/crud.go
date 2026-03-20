@@ -229,10 +229,14 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Delete(ctx context.C
 	}
 	defer cancel()
 
-	const maxWait = 60 * time.Second
-	wait := 5 * time.Second
+	const maxWait = 30 * time.Second
+	wait := 2 * time.Second
+	attempt := 0
 
 	for {
+		attempt++
+		tflog.Debug(ctx, fmt.Sprintf("Delete attempt %d for audience %s", attempt, object.ID.ValueString()))
+
 		err := r.client.
 			Admin().
 			Windows().
@@ -242,28 +246,58 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Delete(ctx context.C
 			Delete(ctx, nil)
 
 		if err == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Successfully deleted audience %s after %d attempts", object.ID.ValueString(), attempt))
 			break
 		}
 
-		if strings.Contains(err.Error(), "being used by deployments") {
-			tflog.Debug(ctx, fmt.Sprintf("Audience %s still referenced by deployments, waiting %s before retry", object.ID.ValueString(), wait))
+		errorInfo := errors.GraphError(ctx, err)
+		
+		// Special case: Deployment audience deletion can fail with 400 or 409 when still referenced by deployments
+		// This is retryable as the deployments may be in the process of being deleted
+		isDeploymentReferenceError := (errorInfo.StatusCode == 400 || errorInfo.StatusCode == 409) &&
+			(strings.Contains(errorInfo.ErrorMessage, "being used by deployments") ||
+				strings.Contains(errorInfo.ErrorMessage, "referenced by") ||
+				strings.Contains(errorInfo.ErrorMessage, "delete deployments before proceeding") ||
+				strings.Contains(errorInfo.ErrorCode, "Conflict"))
+
+		if isDeploymentReferenceError {
+			tflog.Warn(ctx, fmt.Sprintf("Audience %s still referenced by deployments (attempt %d, status %d, code '%s', msg: '%s'), waiting %s before retry", 
+				object.ID.ValueString(), attempt, errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage, wait))
 			select {
 			case <-time.After(wait):
 			case <-ctx.Done():
 				resp.Diagnostics.AddError(
 					"Timeout waiting for deployments to clear",
-					fmt.Sprintf("Audience %s is still referenced by deployments after waiting: %s", object.ID.ValueString(), ctx.Err()),
+					fmt.Sprintf("Audience %s is still referenced by deployments after %d attempts and %d seconds: %s\nLast error: %s", 
+						object.ID.ValueString(), attempt, DeleteTimeout, ctx.Err(), errorInfo.ErrorMessage),
 				)
 				return
 			}
 			if wait*2 <= maxWait {
 				wait *= 2
-			} else {
-				wait = maxWait
 			}
 			continue
 		}
 
+		if errors.IsRetryableDeleteError(&errorInfo) {
+			tflog.Debug(ctx, fmt.Sprintf("Retryable delete error (attempt %d, status %d, code %s), waiting %s before retry",
+				attempt, errorInfo.StatusCode, errorInfo.ErrorCode, wait))
+			select {
+			case <-time.After(wait):
+			case <-ctx.Done():
+				resp.Diagnostics.AddError(
+					"Timeout during delete operation",
+					fmt.Sprintf("Delete operation timed out after %d attempts: %s", attempt, ctx.Err()),
+				)
+				return
+			}
+			if wait*2 <= maxWait {
+				wait *= 2
+			}
+			continue
+		}
+
+		// Non-retryable error
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

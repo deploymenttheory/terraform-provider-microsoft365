@@ -59,7 +59,7 @@ func TestUnitResourceWindowsUpdateDeploymentAudienceMembers_01_BasicMembers(t *t
 				Check: resource.ComposeTestCheckFunc(
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^.+_azureADDevice$`)),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+_azureADDevice$`)),
-					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("audience_id").HasValue("test-audience-id-001"),
+					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("audience_id").HasValue("3ac1bab3-c634-4377-8290-6c9b729dd9a1"),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("member_type").HasValue("azureADDevice"),
 					check.That(WindowsUpdatesAutopatchDeploymentResourceAudienceMembers.ResourceName+".test").Key("members.#").HasValue("2"),
 				),
