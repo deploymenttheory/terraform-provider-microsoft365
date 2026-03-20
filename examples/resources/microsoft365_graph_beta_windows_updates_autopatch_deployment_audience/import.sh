@@ -1,0 +1,2 @@
+# Import the singleton deployment audience resource
+terraform import microsoft365_graph_beta_windows_updates_autopatch_deployment_audience.example "default"

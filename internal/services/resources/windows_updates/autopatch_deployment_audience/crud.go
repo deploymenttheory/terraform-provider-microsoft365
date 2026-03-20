@@ -17,9 +17,10 @@ import (
 
 // Create handles the Create operation for Windows Update deployment audience resources.
 //
-// Operation: Creates a new deployment audience
+// Operation: Creates a new deployment audience and sets its members/exclusions
 // API Calls:
 //   - POST /admin/windows/updates/deploymentAudiences
+//   - POST /admin/windows/updates/deploymentAudiences/{id}/microsoft.graph.windowsUpdates.updateAudience (if members or exclusions)
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-post-deploymentaudiences?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -38,7 +39,12 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Create(ctx context.C
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	// Default member_type if not set
+	if object.MemberType.IsNull() || object.MemberType.IsUnknown() || object.MemberType.ValueString() == "" {
+		object.MemberType = types.StringValue("azureADDevice")
+	}
+
+	audienceBody, err := constructAudienceResource(ctx)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -52,14 +58,44 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Create(ctx context.C
 		Windows().
 		Updates().
 		DeploymentAudiences().
-		Post(ctx, requestBody, nil)
+		Post(ctx, audienceBody, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*baseResource.GetId())
+	audienceID := *baseResource.GetId()
+	object.ID = types.StringValue(audienceID)
+
+	// Set members/exclusions if provided
+	hasMembers := !object.Members.IsNull() && !object.Members.IsUnknown() && len(object.Members.Elements()) > 0
+	hasExclusions := !object.Exclusions.IsNull() && !object.Exclusions.IsUnknown() && len(object.Exclusions.Elements()) > 0
+
+	if hasMembers || hasExclusions {
+		membersBody, err := constructAddMembersRequest(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing members request",
+				fmt.Sprintf("Could not construct members request: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			Admin().
+			Windows().
+			Updates().
+			DeploymentAudiences().
+			ByDeploymentAudienceId(audienceID).
+			MicrosoftGraphWindowsUpdatesUpdateAudience().
+			Post(ctx, membersBody, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+			return
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -87,9 +123,11 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Create(ctx context.C
 
 // Read handles the Read operation for Windows Update deployment audience resources.
 //
-// Operation: Retrieves a deployment audience by ID
+// Operation: Retrieves a deployment audience by ID, along with its members and exclusions
 // API Calls:
 //   - GET /admin/windows/updates/deploymentAudiences/{id}
+//   - GET /admin/windows/updates/deploymentAudiences/{id}/members
+//   - GET /admin/windows/updates/deploymentAudiences/{id}/exclusions
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-get?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -117,12 +155,14 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Read(ctx context.Con
 	}
 	defer cancel()
 
+	audienceID := object.ID.ValueString()
+
 	respResource, err := r.client.
 		Admin().
 		Windows().
 		Updates().
 		DeploymentAudiences().
-		ByDeploymentAudienceId(object.ID.ValueString()).
+		ByDeploymentAudienceId(audienceID).
 		Get(ctx, nil)
 
 	if err != nil {
@@ -130,7 +170,84 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Read(ctx context.Con
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, respResource)
+	membersResp, err := r.client.
+		Admin().
+		Windows().
+		Updates().
+		DeploymentAudiences().
+		ByDeploymentAudienceId(audienceID).
+		Members().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+
+	exclusionsResp, err := r.client.
+		Admin().
+		Windows().
+		Updates().
+		DeploymentAudiences().
+		ByDeploymentAudienceId(audienceID).
+		Exclusions().
+		Get(ctx, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+
+	// Capture prior state before mapping so we can detect API consistency gaps.
+	priorMemberCount := 0
+	priorMembers := object.Members
+	if !object.Members.IsNull() && !object.Members.IsUnknown() {
+		priorMemberCount = len(object.Members.Elements())
+	}
+	priorExclusionCount := 0
+	priorExclusions := object.Exclusions
+	if !object.Exclusions.IsNull() && !object.Exclusions.IsUnknown() {
+		priorExclusionCount = len(object.Exclusions.Elements())
+	}
+
+	MapRemoteStateToTerraform(ctx, &object, respResource, membersResp.GetValue(), exclusionsResp.GetValue())
+
+	// If the prior state had members/exclusions but the API returned none, restore the
+	// prior configured state rather than overwriting it with an empty set.
+	//
+	// This handles two cases:
+	//  1. Genuine eventual consistency: the /members endpoint lags behind a successful
+	//     updateAudience POST and will catch up on the next refresh.
+	//  2. API design for updatableAssetGroup: Entra security group IDs used as
+	//     updatableAssetGroup members may not be reflected by the /members endpoint
+	//     (the endpoint expands groups to individual enrolled devices; empty groups
+	//     produce an empty list). In this case the configured state is authoritative.
+	//
+	// Tradeoff: out-of-band removal of ALL members will not be detected until the
+	// count drops to a non-zero value that differs from the prior state.
+	apiMemberCount := 0
+	if !object.Members.IsNull() && !object.Members.IsUnknown() {
+		apiMemberCount = len(object.Members.Elements())
+	}
+	apiExclusionCount := 0
+	if !object.Exclusions.IsNull() && !object.Exclusions.IsUnknown() {
+		apiExclusionCount = len(object.Exclusions.Elements())
+	}
+
+	if priorMemberCount > 0 && apiMemberCount == 0 {
+		tflog.Warn(ctx, fmt.Sprintf(
+			"GET /members returned 0 but prior state had %d member(s); preserving prior state (eventual consistency or updatableAssetGroup expansion)",
+			priorMemberCount,
+		))
+		object.Members = priorMembers
+	}
+	if priorExclusionCount > 0 && apiExclusionCount == 0 {
+		tflog.Warn(ctx, fmt.Sprintf(
+			"GET /exclusions returned 0 but prior state had %d exclusion(s); preserving prior state (eventual consistency or updatableAssetGroup expansion)",
+			priorExclusionCount,
+		))
+		object.Exclusions = priorExclusions
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -151,16 +268,14 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Read(ctx context.Con
 
 // Update handles the Update operation for Windows Update deployment audience resources.
 //
-// Operation: Updates an existing deployment audience
+// Operation: Updates members and exclusions of the deployment audience
 // API Calls:
-//   - N/A
+//   - POST /admin/windows/updates/deploymentAudiences/{id}/microsoft.graph.windowsUpdates.updateAudience
 //
-// Reference: N/A
+// Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-updateaudience?view=graph-rest-beta
 func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan WindowsUpdatesAutopatchDeploymentAudienceResourceModel
 	var state WindowsUpdatesAutopatchDeploymentAudienceResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -168,14 +283,41 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Update(ctx context.C
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	// No update operations - this resource is just a container
-	// Members and exclusions are managed by the separate audience_members resource
+	// Default member_type if not set
+	if plan.MemberType.IsNull() || plan.MemberType.IsUnknown() || plan.MemberType.ValueString() == "" {
+		plan.MemberType = types.StringValue("azureADDevice")
+	}
+
+	requestBody, err := constructUpdateMembersRequest(ctx, &plan, &state)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing members update request",
+			fmt.Sprintf("Could not construct members update request: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	err = r.client.
+		Admin().
+		Windows().
+		Updates().
+		DeploymentAudiences().
+		ByDeploymentAudienceId(state.ID.ValueString()).
+		MicrosoftGraphWindowsUpdatesUpdateAudience().
+		Post(ctx, requestBody, nil)
+
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -189,7 +331,7 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Update(ctx context.C
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
-	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading resource state after update",
@@ -203,8 +345,9 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Update(ctx context.C
 
 // Delete handles the Delete operation for Windows Update deployment audience resources.
 //
-// Operation: Deletes a deployment audience
+// Operation: Removes all members/exclusions then deletes the deployment audience
 // API Calls:
+//   - POST /admin/windows/updates/deploymentAudiences/{id}/microsoft.graph.windowsUpdates.updateAudience (if members or exclusions)
 //   - DELETE /admin/windows/updates/deploymentAudiences/{id}
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-delete?view=graph-rest-beta
@@ -229,41 +372,106 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Delete(ctx context.C
 	}
 	defer cancel()
 
-	const maxWait = 60 * time.Second
-	wait := 5 * time.Second
+	audienceID := object.ID.ValueString()
+
+	// Remove all members and exclusions first
+	hasMembers := !object.Members.IsNull() && !object.Members.IsUnknown() && len(object.Members.Elements()) > 0
+	hasExclusions := !object.Exclusions.IsNull() && !object.Exclusions.IsUnknown() && len(object.Exclusions.Elements()) > 0
+
+	if hasMembers || hasExclusions {
+		removeBody, err := constructRemoveAllMembersRequest(ctx, &object)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error constructing remove members request",
+				fmt.Sprintf("Could not construct remove members request: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+
+		err = r.client.
+			Admin().
+			Windows().
+			Updates().
+			DeploymentAudiences().
+			ByDeploymentAudienceId(audienceID).
+			MicrosoftGraphWindowsUpdatesUpdateAudience().
+			Post(ctx, removeBody, nil)
+
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+			return
+		}
+	}
+
+	// Delete the audience with retry for deployment reference errors
+	const maxWait = 30 * time.Second
+	wait := 2 * time.Second
+	attempt := 0
 
 	for {
+		attempt++
+		tflog.Debug(ctx, fmt.Sprintf("Delete attempt %d for audience %s", attempt, audienceID))
+
 		err := r.client.
 			Admin().
 			Windows().
 			Updates().
 			DeploymentAudiences().
-			ByDeploymentAudienceId(object.ID.ValueString()).
+			ByDeploymentAudienceId(audienceID).
 			Delete(ctx, nil)
 
 		if err == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Successfully deleted audience %s after %d attempts", audienceID, attempt))
 			break
 		}
 
-		if strings.Contains(err.Error(), "being used by deployments") {
-			tflog.Debug(ctx, fmt.Sprintf("Audience %s still referenced by deployments, waiting %s before retry", object.ID.ValueString(), wait))
+		errorInfo := errors.GraphError(ctx, err)
+
+		// Special case: Deployment audience deletion can fail with 400 or 409 when still referenced by deployments
+		isDeploymentReferenceError := (errorInfo.StatusCode == 400 || errorInfo.StatusCode == 409) &&
+			(strings.Contains(errorInfo.ErrorMessage, "being used by deployments") ||
+				strings.Contains(errorInfo.ErrorMessage, "referenced by") ||
+				strings.Contains(errorInfo.ErrorMessage, "delete deployments before proceeding") ||
+				strings.Contains(errorInfo.ErrorCode, "Conflict"))
+
+		if isDeploymentReferenceError {
+			tflog.Warn(ctx, fmt.Sprintf("Audience %s still referenced by deployments (attempt %d, status %d, code '%s', msg: '%s'), waiting %s before retry",
+				audienceID, attempt, errorInfo.StatusCode, errorInfo.ErrorCode, errorInfo.ErrorMessage, wait))
 			select {
 			case <-time.After(wait):
 			case <-ctx.Done():
 				resp.Diagnostics.AddError(
 					"Timeout waiting for deployments to clear",
-					fmt.Sprintf("Audience %s is still referenced by deployments after waiting: %s", object.ID.ValueString(), ctx.Err()),
+					fmt.Sprintf("Audience %s is still referenced by deployments after %d attempts: %s\nLast error: %s",
+						audienceID, attempt, ctx.Err(), errorInfo.ErrorMessage),
 				)
 				return
 			}
 			if wait*2 <= maxWait {
 				wait *= 2
-			} else {
-				wait = maxWait
 			}
 			continue
 		}
 
+		if errors.IsRetryableDeleteError(&errorInfo) {
+			tflog.Debug(ctx, fmt.Sprintf("Retryable delete error (attempt %d, status %d, code %s), waiting %s before retry",
+				attempt, errorInfo.StatusCode, errorInfo.ErrorCode, wait))
+			select {
+			case <-time.After(wait):
+			case <-ctx.Done():
+				resp.Diagnostics.AddError(
+					"Timeout during delete operation",
+					fmt.Sprintf("Delete operation timed out after %d attempts: %s", attempt, ctx.Err()),
+				)
+				return
+			}
+			if wait*2 <= maxWait {
+				wait *= 2
+			}
+			continue
+		}
+
+		// Non-retryable error
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

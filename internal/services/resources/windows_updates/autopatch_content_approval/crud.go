@@ -12,7 +12,6 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	admin "github.com/microsoftgraph/msgraph-beta-sdk-go/admin"
 )
 
 // Create handles the Create operation for Windows Update content approval resources.
@@ -250,6 +249,7 @@ func (r *WindowsUpdatesAutopatchContentApprovalResource) Update(ctx context.Cont
 //   - GET    /admin/windows/updates/updatePolicies/{updatePolicyId}
 //   - GET    /admin/windows/updates/deployments?$filter=audience/id eq '{audienceId}'
 //   - DELETE /admin/windows/updates/deployments/{deploymentId}  (repeated per deployment)
+//
 // Delete handles the Delete operation for Windows Update content approval resources.
 //
 // Operation: Deletes a compliance change (content approval)
@@ -276,87 +276,94 @@ func (r *WindowsUpdatesAutopatchContentApprovalResource) Delete(ctx context.Cont
 	}
 	defer cancel()
 
-	// Step 1: delete the compliance change.
-	err := r.client.
-		Admin().
-		Windows().
-		Updates().
-		UpdatePolicies().
-		ByUpdatePolicyId(object.UpdatePolicyId.ValueString()).
-		ComplianceChanges().
-		ByComplianceChangeId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	const maxWait = 30 * time.Second
+	wait := 2 * time.Second
+	attempt := 0
 
-	if err != nil {
+	for {
+		attempt++
+		tflog.Debug(ctx, fmt.Sprintf("Delete attempt %d for compliance change %s", attempt, object.ID.ValueString()))
+
+		err := r.client.
+			Admin().
+			Windows().
+			Updates().
+			UpdatePolicies().
+			ByUpdatePolicyId(object.UpdatePolicyId.ValueString()).
+			ComplianceChanges().
+			ByComplianceChangeId(object.ID.ValueString()).
+			Delete(ctx, nil)
+
+		if err == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Delete API call succeeded for compliance change %s", object.ID.ValueString()))
+			break
+		}
+
+		errorInfo := errors.GraphError(ctx, err)
+
+		if errors.IsRetryableDeleteError(&errorInfo) {
+			tflog.Debug(ctx, fmt.Sprintf("Retryable delete error (attempt %d, status %d), waiting %s before retry",
+				attempt, errorInfo.StatusCode, wait))
+
+			select {
+			case <-time.After(wait):
+			case <-ctx.Done():
+				resp.Diagnostics.AddError(
+					"Timeout during delete operation",
+					fmt.Sprintf("Delete operation timed out after %d attempts: %s", attempt, ctx.Err()),
+				)
+				return
+			}
+
+			if wait*2 <= maxWait {
+				wait *= 2
+			}
+			continue
+		}
+
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
-	// Step 2: resolve the audience ID from the update policy so we can find
-	// the implicit deployment that was created when this compliance change was made.
-	policy, err := r.client.
-		Admin().
-		Windows().
-		Updates().
-		UpdatePolicies().
-		ByUpdatePolicyId(object.UpdatePolicyId.ValueString()).
-		Get(ctx, nil)
+	verifyAttempt := 0
+	verifyWait := 2 * time.Second
 
-	if err != nil {
-		// Log but do not fail — the compliance change is already gone.
-		tflog.Warn(ctx, fmt.Sprintf("Could not retrieve update policy to resolve audience ID for deployment cleanup: %s", err.Error()))
-		resp.State.RemoveResource(ctx)
-		return
-	}
+verifyLoop:
+	for {
+		verifyAttempt++
+		tflog.Debug(ctx, fmt.Sprintf("Verification attempt %d: checking if compliance change %s is deleted", verifyAttempt, object.ID.ValueString()))
 
-	audience := policy.GetAudience()
-	if audience == nil || audience.GetId() == nil {
-		tflog.Warn(ctx, "Update policy returned no audience; skipping implicit deployment cleanup")
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	audienceId := *audience.GetId()
-
-	// Step 3: list all deployments and delete any bound to this audience.
-	// The Graph API does not support OData filtering on audience/id for this endpoint,
-	// so we retrieve all deployments and filter in memory.
-	deploymentsResp, err := r.client.
-		Admin().
-		Windows().
-		Updates().
-		Deployments().
-		Get(ctx, &admin.WindowsUpdatesDeploymentsRequestBuilderGetRequestConfiguration{
-			QueryParameters: &admin.WindowsUpdatesDeploymentsRequestBuilderGetQueryParameters{
-				Select: []string{"id", "audience"},
-			},
-		})
-
-	if err != nil {
-		tflog.Warn(ctx, fmt.Sprintf("Could not list deployments for audience %s during cleanup: %s", audienceId, err.Error()))
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	for _, deployment := range deploymentsResp.GetValue() {
-		if deployment.GetId() == nil {
-			continue
-		}
-		dAudience := deployment.GetAudience()
-		if dAudience == nil || dAudience.GetId() == nil || *dAudience.GetId() != audienceId {
-			continue
-		}
-		deploymentId := *deployment.GetId()
-		tflog.Debug(ctx, fmt.Sprintf("Deleting implicit deployment %s created by content approval", deploymentId))
-		delErr := r.client.
+		_, getErr := r.client.
 			Admin().
 			Windows().
 			Updates().
-			Deployments().
-			ByDeploymentId(deploymentId).
-			Delete(ctx, nil)
-		if delErr != nil {
-			tflog.Warn(ctx, fmt.Sprintf("Failed to delete implicit deployment %s: %s", deploymentId, delErr.Error()))
+			UpdatePolicies().
+			ByUpdatePolicyId(object.UpdatePolicyId.ValueString()).
+			ComplianceChanges().
+			ByComplianceChangeId(object.ID.ValueString()).
+			Get(ctx, nil)
+
+		if getErr != nil {
+			errorInfo := errors.GraphError(ctx, getErr)
+			if errorInfo.StatusCode == 404 {
+				tflog.Debug(ctx, fmt.Sprintf("Compliance change %s confirmed deleted (404)", object.ID.ValueString()))
+				break
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Error verifying deletion (attempt %d, status %d): %s", verifyAttempt, errorInfo.StatusCode, errorInfo.ErrorMessage))
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("Compliance change %s still exists (attempt %d)", object.ID.ValueString(), verifyAttempt))
+		}
+
+		select {
+		case <-time.After(verifyWait):
+		case <-ctx.Done():
+			tflog.Warn(ctx, fmt.Sprintf("Timeout waiting for compliance change deletion confirmation after %d attempts: %s", verifyAttempt, ctx.Err()))
+			break verifyLoop
+		}
+
+		if verifyWait*2 <= maxWait {
+			verifyWait *= 2
 		}
 	}
 

@@ -35,7 +35,12 @@ func (m *WindowsUpdateOperationalInsightsConnectionMock) RegisterMocks() {
 	mockState.connections = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// POST /admin/windows/updates/resourceConnections
+	m.registerCreateConnectionResponder()
+	m.registerGetConnectionResponder()
+	m.registerDeleteConnectionResponder()
+}
+
+func (m *WindowsUpdateOperationalInsightsConnectionMock) registerCreateConnectionResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/resourceConnections$`,
 		func(req *http.Request) (*http.Response, error) {
 			var requestBody map[string]any
@@ -76,8 +81,9 @@ func (m *WindowsUpdateOperationalInsightsConnectionMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// GET /admin/windows/updates/resourceConnections/{id}
+func (m *WindowsUpdateOperationalInsightsConnectionMock) registerGetConnectionResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/resourceConnections/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -110,8 +116,9 @@ func (m *WindowsUpdateOperationalInsightsConnectionMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// DELETE /admin/windows/updates/resourceConnections/{id}
+func (m *WindowsUpdateOperationalInsightsConnectionMock) registerDeleteConnectionResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/resourceConnections/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -130,6 +137,11 @@ func (m *WindowsUpdateOperationalInsightsConnectionMock) RegisterErrorMocks() {
 	mockState.connections = make(map[string]map[string]any)
 	mockState.Unlock()
 
+	m.registerCreateConnectionErrorResponder()
+	m.registerGetConnectionErrorResponder()
+}
+
+func (m *WindowsUpdateOperationalInsightsConnectionMock) registerCreateConnectionErrorResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/resourceConnections`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{
@@ -143,7 +155,9 @@ func (m *WindowsUpdateOperationalInsightsConnectionMock) RegisterErrorMocks() {
 			}
 			return resp, nil
 		})
+}
 
+func (m *WindowsUpdateOperationalInsightsConnectionMock) registerGetConnectionErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/resourceConnections`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{

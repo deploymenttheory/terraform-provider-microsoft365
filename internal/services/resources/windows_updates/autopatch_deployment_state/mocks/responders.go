@@ -31,12 +31,22 @@ type WindowsUpdatesAutopatchDeploymentStateMock struct{}
 var _ mocks.MockRegistrar = (*WindowsUpdatesAutopatchDeploymentStateMock)(nil)
 
 func (m *WindowsUpdatesAutopatchDeploymentStateMock) RegisterMocks() {
+	m.registerGetLicenseResponder()
+	m.registerGetDeploymentResponder()
+	m.registerPatchDeploymentStateResponder()
+}
+
+func (m *WindowsUpdatesAutopatchDeploymentStateMock) registerGetLicenseResponder() {
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/subscribedSkus",
 		m.getLicenseResponder())
+}
 
+func (m *WindowsUpdatesAutopatchDeploymentStateMock) registerGetDeploymentResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/([^/]+)$`,
 		m.getDeploymentResponder())
+}
 
+func (m *WindowsUpdatesAutopatchDeploymentStateMock) registerPatchDeploymentStateResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/([^/]+)$`,
 		m.patchDeploymentStateResponder())
 }
@@ -123,9 +133,11 @@ func (m *WindowsUpdatesAutopatchDeploymentStateMock) getLicenseResponder() httpm
 }
 
 func (m *WindowsUpdatesAutopatchDeploymentStateMock) RegisterErrorMocks() {
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/subscribedSkus",
-		m.getLicenseResponder())
+	m.registerGetLicenseResponder()
+	m.registerPatchDeploymentStateErrorResponder()
+}
 
+func (m *WindowsUpdatesAutopatchDeploymentStateMock) registerPatchDeploymentStateErrorResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/([^/]+)$`,
 		factories.ErrorResponse(400, "BadRequest", "Invalid deployment configuration"))
 }

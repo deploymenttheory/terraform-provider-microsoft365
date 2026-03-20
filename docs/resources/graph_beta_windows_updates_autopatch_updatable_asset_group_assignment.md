@@ -45,14 +45,81 @@ This resource requires an existing `microsoft365_graph_beta_windows_updates_auto
 
 ## Example Usage
 
+### Minimal
+
 ```terraform
+# Minimal example — assigns a single device to an updatable asset group.
+# Uses a data source to fetch managed devices and assigns the first device.
+
+resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group" "example" {
+  timeouts = {
+    create = "60s"
+    read   = "30s"
+    delete = "60s"
+  }
+}
+
+data "microsoft365_graph_beta_device_management_managed_device" "devices" {
+  list_all = true
+
+  timeouts = {
+    read = "30s"
+  }
+}
+
 resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment" "example" {
   updatable_asset_group_id = microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group.example.id
 
-  entra_device_object_ids = [
-    "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  entra_device_ids = [
+    data.microsoft365_graph_beta_device_management_managed_device.devices.items[0].azure_active_directory_device_id
   ]
+
+  timeouts = {
+    create = "60s"
+    read   = "30s"
+    update = "60s"
+    delete = "60s"
+  }
+}
+```
+
+### Multiple Devices
+
+```terraform
+# Multiple devices — assigns multiple devices to an updatable asset group.
+# Demonstrates assigning specific Entra device IDs to the group.
+
+resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group" "example" {
+  timeouts = {
+    create = "60s"
+    read   = "30s"
+    delete = "60s"
+  }
+}
+
+data "microsoft365_graph_beta_device_management_managed_device" "devices" {
+  list_all = true
+
+  timeouts = {
+    read = "30s"
+  }
+}
+
+resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment" "example" {
+  updatable_asset_group_id = microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group.example.id
+
+  entra_device_ids = [
+    data.microsoft365_graph_beta_device_management_managed_device.devices.items[0].azure_active_directory_device_id,
+    data.microsoft365_graph_beta_device_management_managed_device.devices.items[1].azure_active_directory_device_id,
+    data.microsoft365_graph_beta_device_management_managed_device.devices.items[2].azure_active_directory_device_id
+  ]
+
+  timeouts = {
+    create = "60s"
+    read   = "30s"
+    update = "60s"
+    delete = "60s"
+  }
 }
 ```
 
@@ -87,6 +154,6 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
-# Import a group assignment using the group ID
-terraform import microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment.example d4e5f6a7-4567-8901-defa-d4e5f6a7b8c9
+# Import an updatable asset group assignment by its group ID
+terraform import microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group_assignment.example "12345678-1234-1234-1234-123456789012"
 ```

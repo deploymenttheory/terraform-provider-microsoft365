@@ -35,7 +35,12 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) RegisterMocks() {
 	mockState.connections = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// POST /admin/windows/updates/updatableAssets
+	m.registerCreateUpdatableAssetGroupResponder()
+	m.registerGetUpdatableAssetGroupResponder()
+	m.registerDeleteUpdatableAssetGroupResponder()
+}
+
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerCreateUpdatableAssetGroupResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets$`,
 		func(req *http.Request) (*http.Response, error) {
 			_, filename, _, _ := runtime.Caller(0)
@@ -64,8 +69,9 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// GET /admin/windows/updates/updatableAssets/{id}
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetUpdatableAssetGroupResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -98,8 +104,9 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// DELETE /admin/windows/updates/updatableAssets/{id}
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerDeleteUpdatableAssetGroupResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -118,6 +125,11 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) RegisterErrorMocks() {
 	mockState.connections = make(map[string]map[string]any)
 	mockState.Unlock()
 
+	m.registerCreateUpdatableAssetGroupErrorResponder()
+	m.registerGetUpdatableAssetGroupErrorResponder()
+}
+
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerCreateUpdatableAssetGroupErrorResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{
@@ -131,7 +143,9 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) RegisterErrorMocks() {
 			}
 			return resp, nil
 		})
+}
 
+func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetUpdatableAssetGroupErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{

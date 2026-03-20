@@ -36,6 +36,7 @@ Find out more about the permissions required for managing cross-tenant access po
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.49.0 | Experimental | Initial release |
+| v0.50.0 | Experimental | Numerous big fixes and full test harness with additional examples added |
 
 ## Important Notes
 
@@ -49,7 +50,33 @@ Find out more about the permissions required for managing cross-tenant access po
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource.tf" }}
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_minimal.tf" }}
+
+### B2B Collaboration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_b2b_collaboration.tf" }}
+
+### B2B Direct Connect
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_b2b_direct_connect.tf" }}
+
+### Inbound Trust
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_inbound_trust.tf" }}
+
+### Tenant Restrictions
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_tenant_restrictions.tf" }}
+
+### Automatic User Consent Settings
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_automatic_user_consent.tf" }}
+
+### Complete
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_complete.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

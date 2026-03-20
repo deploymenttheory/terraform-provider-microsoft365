@@ -49,6 +49,9 @@ The resource has no user-configurable fields. The group is created as an empty c
 ## Example Usage
 
 ```terraform
+# Minimal example — creates an updatable asset group with default settings.
+# The group is automatically created and managed by Windows Autopatch.
+
 resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group" "example" {
 }
 ```
@@ -79,6 +82,6 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
-# Import an updatable asset group using its ID
-terraform import microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group.example d4e5f6a7-4567-8901-defa-d4e5f6a7b8c9
+# Import an updatable asset group by its ID
+terraform import microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group.example "12345678-1234-1234-1234-123456789012"
 ```

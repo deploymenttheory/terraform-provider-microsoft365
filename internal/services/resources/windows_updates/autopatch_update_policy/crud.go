@@ -94,7 +94,7 @@ func (r *WindowsUpdatesAutopatchUpdatePolicyResource) Create(ctx context.Context
 func (r *WindowsUpdatesAutopatchUpdatePolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchUpdatePolicyResourceModel
 	var identity sharedmodels.ResourceIdentity
-	
+
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
 
 	operation := constants.TfOperationRead
@@ -244,17 +244,91 @@ func (r *WindowsUpdatesAutopatchUpdatePolicyResource) Delete(ctx context.Context
 	}
 	defer cancel()
 
-	err := r.client.
-		Admin().
-		Windows().
-		Updates().
-		UpdatePolicies().
-		ByUpdatePolicyId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	const maxWait = 30 * time.Second
+	wait := 2 * time.Second
+	attempt := 0
 
-	if err != nil {
+	for {
+		attempt++
+		tflog.Debug(ctx, fmt.Sprintf("Delete attempt %d for update policy %s", attempt, object.ID.ValueString()))
+
+		err := r.client.
+			Admin().
+			Windows().
+			Updates().
+			UpdatePolicies().
+			ByUpdatePolicyId(object.ID.ValueString()).
+			Delete(ctx, nil)
+
+		if err == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Delete API call succeeded for update policy %s", object.ID.ValueString()))
+			break
+		}
+
+		errorInfo := errors.GraphError(ctx, err)
+
+		if errors.IsRetryableDeleteError(&errorInfo) {
+			tflog.Debug(ctx, fmt.Sprintf("Retryable delete error (attempt %d, status %d), waiting %s before retry",
+				attempt, errorInfo.StatusCode, wait))
+
+			select {
+			case <-time.After(wait):
+			case <-ctx.Done():
+				resp.Diagnostics.AddError(
+					"Timeout during delete operation",
+					fmt.Sprintf("Delete operation timed out after %d attempts: %s", attempt, ctx.Err()),
+				)
+				return
+			}
+
+			if wait*2 <= maxWait {
+				wait *= 2
+			}
+			continue
+		}
+
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
+	}
+
+	verifyAttempt := 0
+	verifyWait := 2 * time.Second
+
+verifyLoop:
+	for {
+		verifyAttempt++
+		tflog.Debug(ctx, fmt.Sprintf("Verification attempt %d: checking if update policy %s is deleted", verifyAttempt, object.ID.ValueString()))
+
+		_, getErr := r.client.
+			Admin().
+			Windows().
+			Updates().
+			UpdatePolicies().
+			ByUpdatePolicyId(object.ID.ValueString()).
+			Get(ctx, nil)
+
+		if getErr != nil {
+			errorInfo := errors.GraphError(ctx, getErr)
+			if errorInfo.StatusCode == 404 {
+				tflog.Debug(ctx, fmt.Sprintf("Update policy %s confirmed deleted (404)", object.ID.ValueString()))
+				break
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Error verifying deletion (attempt %d, status %d): %s", verifyAttempt, errorInfo.StatusCode, errorInfo.ErrorMessage))
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("Update policy %s still exists (attempt %d)", object.ID.ValueString(), verifyAttempt))
+		}
+
+		select {
+		case <-time.After(verifyWait):
+		case <-ctx.Done():
+			tflog.Warn(ctx, fmt.Sprintf("Timeout waiting for update policy deletion confirmation after %d attempts: %s", verifyAttempt, ctx.Err()))
+			break verifyLoop
+		}
+
+		if verifyWait*2 <= maxWait {
+			verifyWait *= 2
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))

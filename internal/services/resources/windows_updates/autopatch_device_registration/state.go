@@ -27,7 +27,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 					plannedDeviceIDs[strVal.ValueString()] = true
 				}
 			}
+			tflog.Debug(ctx, fmt.Sprintf("Filtering by %d planned device IDs", len(plannedDeviceIDs)))
 		}
+	} else {
+		tflog.Debug(ctx, "No planned device IDs to filter by - will include all enrolled devices")
 	}
 
 	for _, asset := range devices {
@@ -46,11 +49,13 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 		}
 
 		if filterByPlanned && !plannedDeviceIDs[*deviceID] {
+			tflog.Debug(ctx, fmt.Sprintf("Skipping device %s - not in planned device IDs", *deviceID))
 			continue
 		}
 
 		enrollment := azureDevice.GetEnrollment()
 		if enrollment == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Skipping device %s - no enrollment information", *deviceID))
 			continue
 		}
 
@@ -65,7 +70,20 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsUpdatesAutopatc
 		}
 
 		if categoryEnrollment != nil {
-			enrolledDeviceIDs = append(enrolledDeviceIDs, types.StringValue(*deviceID))
+			enrollmentState := categoryEnrollment.GetEnrollmentState()
+			if enrollmentState != nil {
+				stateStr := enrollmentState.String()
+				if stateStr == "enrolled" || stateStr == "enrolledWithPolicy" {
+					tflog.Debug(ctx, fmt.Sprintf("Including device %s - enrollmentState=%s for %s", *deviceID, stateStr, updateCategory))
+					enrolledDeviceIDs = append(enrolledDeviceIDs, types.StringValue(*deviceID))
+				} else {
+					tflog.Debug(ctx, fmt.Sprintf("Skipping device %s - enrollmentState=%s for %s", *deviceID, stateStr, updateCategory))
+				}
+			} else {
+				tflog.Debug(ctx, fmt.Sprintf("Skipping device %s - enrollmentState is nil for %s", *deviceID, updateCategory))
+			}
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("Skipping device %s - no category enrollment object for %s", *deviceID, updateCategory))
 		}
 	}
 

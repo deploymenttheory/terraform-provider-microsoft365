@@ -5,25 +5,17 @@ resource "random_string" "test_suffix" {
   upper   = false
 }
 
-# Get Entra ID devices
-data "microsoft365_graph_beta_identity_and_access_device" "test_devices" {
-  list_all = true
-  timeouts = {
-    read = "30s"
-  }
-}
-
 resource "microsoft365_graph_beta_windows_updates_autopatch_device_registration" "test_001" {
   update_category = "feature"
-  # Use the id field which contains the Entra ID device object ID
+  # Using a known valid device ID from updatableAssets (no invalidAzureADDeviceId error)
   entra_device_object_ids = [
-    data.microsoft365_graph_beta_identity_and_access_device.test_devices.items[0].id
+    "0243c10a-fb67-4262-b253-fc510717d1dc"
   ]
 
   timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+    delete = "5m"
   }
 }

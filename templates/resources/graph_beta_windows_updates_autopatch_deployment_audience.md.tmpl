@@ -1,0 +1,64 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Windows Updates"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [deploymentAudience resource type](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-deploymentaudience?view=graph-rest-beta)
+- [Get deploymentAudience](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-get?view=graph-rest-beta)
+- [Update deploymentAudience](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-update?view=graph-rest-beta)
+- [updateAudience](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-updateaudience?view=graph-rest-beta)
+- [updateAudienceById](https://learn.microsoft.com/en-us/graph/api/windowsupdates-deploymentaudience-updateaudiencebyid?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `WindowsUpdates.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Important Notes
+
+- **Singleton Resource**: This is a singleton resource — one deployment audience exists per tenant for Windows Autopatch. It cannot be created or deleted via the API, only updated.
+- **Member Types**: The `member_type` field specifies the type of members in the audience. Currently only `updatableAssetGroup` is supported.
+- **Members and Exclusions**: Members are updatable asset groups included in the deployment audience. Exclusions are groups explicitly excluded from deployments. Exclusions take precedence over members.
+- **Update Behavior**: Updates use the `updateAudienceById` API to add or remove members and exclusions.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.50.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment_audience/resource_minimal.tf" }}
+
+### With Members
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment_audience/resource_with_members.tf" }}
+
+### With Members and Exclusions
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment_audience/resource_with_exclusions.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_windows_updates_autopatch_deployment_audience/import.sh" }}

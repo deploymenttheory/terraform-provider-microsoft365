@@ -86,10 +86,3 @@ func deriveResourceName(resourceType string) string {
 	// Join with spaces for human-readable name
 	return strings.Join(resourceParts, " ")
 }
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

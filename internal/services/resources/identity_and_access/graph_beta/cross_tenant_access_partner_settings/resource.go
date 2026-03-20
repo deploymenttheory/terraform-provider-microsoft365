@@ -183,9 +183,12 @@ func (r *CrossTenantAccessPartnerSettingsResource) Schema(ctx context.Context, r
 				},
 			},
 			"is_service_provider": schema.BoolAttribute{
-				MarkdownDescription: "Identifies whether the partner-specific configuration is a cloud service provider for your organization.",
-				Optional:            true,
-				Computed:            true,
+				MarkdownDescription: "Identifies whether the partner-specific configuration is a cloud service provider for your organization. " +
+					"**Important**: This field can only be set when using delegated (user) authentication. " +
+					"When using application (client credentials) authentication, this field must be omitted entirely - " +
+					"the API will reject requests with 403's that explicitly set this field to either `true` or `false`. " +
+					"This is a read-only computed field when using service principal authentication.",
+				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),
 				},

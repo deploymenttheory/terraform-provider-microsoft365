@@ -6,6 +6,9 @@ import (
 )
 
 type WindowsUpdatesAutopatchDeploymentAudienceResourceModel struct {
-	ID       types.String   `tfsdk:"id"`
-	Timeouts timeouts.Value `tfsdk:"timeouts"`
+	ID         types.String   `tfsdk:"id"`
+	MemberType types.String   `tfsdk:"member_type"`
+	Members    types.Set      `tfsdk:"members"`
+	Exclusions types.Set      `tfsdk:"exclusions"`
+	Timeouts   timeouts.Value `tfsdk:"timeouts"`
 }

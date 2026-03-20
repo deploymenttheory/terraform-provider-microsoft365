@@ -35,7 +35,14 @@ func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) RegisterMocks() {
 	mockState.groups = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// GET /admin/windows/updates/updatableAssets (list - used by validateValidGroupId)
+	m.registerListUpdatableAssetsResponder()
+	m.registerListDevicesResponder()
+	m.registerAddMembersByIdResponder()
+	m.registerRemoveMembersByIdResponder()
+	m.registerGetGroupMembersResponder()
+}
+
+func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) registerListUpdatableAssetsResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets\?`,
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
@@ -66,8 +73,9 @@ func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// GET /devices (list - used by validateValidDeviceId)
+func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) registerListDevicesResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/devices\?`,
 		func(req *http.Request) (*http.Response, error) {
 			devices := []map[string]any{
@@ -83,8 +91,9 @@ func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// POST addMembersById
+func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) registerAddMembersByIdResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.addMembersById$`,
 		func(req *http.Request) (*http.Response, error) {
 			var body map[string]any
@@ -121,8 +130,9 @@ func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) RegisterMocks() {
 
 			return httpmock.NewStringResponse(204, ""), nil
 		})
+}
 
-	// POST removeMembersById
+func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) registerRemoveMembersByIdResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.removeMembersById$`,
 		func(req *http.Request) (*http.Response, error) {
 			var body map[string]any
@@ -154,9 +164,9 @@ func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) RegisterMocks() {
 
 			return httpmock.NewStringResponse(204, ""), nil
 		})
+}
 
-	// GET /admin/windows/updates/updatableAssets/{groupId}/microsoft.graph.windowsUpdates.updatableAssetGroup/members
-	// This is the Read path used to list group members.
+func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) registerGetGroupMembersResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.updatableAssetGroup/members`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -216,7 +226,12 @@ func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) RegisterErrorMocks() {
 	mockState.groups = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// GET /admin/windows/updates/updatableAssets (list - validation succeeds so error test reaches the POST)
+	m.registerListUpdatableAssetsErrorResponder()
+	m.registerListDevicesErrorResponder()
+	m.registerAddMembersByIdErrorResponder()
+}
+
+func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) registerListUpdatableAssetsErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets\?`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(200, map[string]any{
@@ -228,8 +243,9 @@ func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) RegisterErrorMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// GET /devices (list - validation succeeds so error test reaches the POST)
+func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) registerListDevicesErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/devices\?`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(200, map[string]any{
@@ -241,7 +257,9 @@ func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) RegisterErrorMocks() {
 			}
 			return resp, nil
 		})
+}
 
+func (m *WindowsUpdateUpdatableAssetGroupAssignmentMock) registerAddMembersByIdErrorResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.addMembersById$`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{

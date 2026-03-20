@@ -12,6 +12,10 @@ import (
 
 // RegisterGetDeviceByIdSuccessMock registers a mock for successful device lookup by ID
 func RegisterGetDeviceByIdSuccessMock() {
+	registerGetDeviceByIdResponder()
+}
+
+func registerGetDeviceByIdResponder() {
 	responseFile := getResponseFilePath("get_device_by_id_success.json")
 	responseData, err := os.ReadFile(responseFile)
 	if err != nil {
@@ -34,6 +38,10 @@ func RegisterGetDeviceByIdSuccessMock() {
 
 // RegisterListAllDevicesSuccessMock registers a mock for successful list all devices
 func RegisterListAllDevicesSuccessMock() {
+	registerListAllDevicesResponder()
+}
+
+func registerListAllDevicesResponder() {
 	responseFile := getResponseFilePath("list_all_devices_success.json")
 	responseData, err := os.ReadFile(responseFile)
 	if err != nil {
@@ -56,6 +64,10 @@ func RegisterListAllDevicesSuccessMock() {
 
 // RegisterListDevicesWithFilterSuccessMock registers a mock for list devices with OData filter
 func RegisterListDevicesWithFilterSuccessMock() {
+	registerListDevicesWithFilterResponder()
+}
+
+func registerListDevicesWithFilterResponder() {
 	responseFile := getResponseFilePath("list_devices_with_filter_success.json")
 	responseData, err := os.ReadFile(responseFile)
 	if err != nil {
@@ -78,6 +90,10 @@ func RegisterListDevicesWithFilterSuccessMock() {
 
 // RegisterGetDeviceByIdErrorMock registers a mock for device not found error
 func RegisterGetDeviceByIdErrorMock() {
+	registerGetDeviceByIdErrorResponder()
+}
+
+func registerGetDeviceByIdErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
 		errorResponse := map[string]interface{}{
 			"error": map[string]interface{}{
@@ -95,6 +111,10 @@ func RegisterGetDeviceByIdErrorMock() {
 
 // RegisterGetDeviceWithRegistrationErrorMock registers a mock for device with registration errors
 func RegisterGetDeviceWithRegistrationErrorMock() {
+	registerGetDeviceWithRegistrationErrorResponder()
+}
+
+func registerGetDeviceWithRegistrationErrorResponder() {
 	responseFile := getResponseFilePath("get_device_with_error_success.json")
 	responseData, err := os.ReadFile(responseFile)
 	if err != nil {
@@ -117,18 +137,22 @@ func RegisterGetDeviceWithRegistrationErrorMock() {
 
 // RegisterGetDeviceByNameSuccessMock registers mocks for device name lookup (managed devices + enrollment)
 func RegisterGetDeviceByNameSuccessMock() {
-	// Mock the managed devices API call
+	registerManagedDevicesResponder()
+	registerGetDeviceByIdResponder()
+}
+
+func registerManagedDevicesResponder() {
 	managedDevicesResponse := map[string]interface{}{
 		"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/managedDevices",
 		"value": []map[string]interface{}{
 			{
-				"id":               "managed-device-id-001",
-				"deviceName":       "TEST-DEVICE-001",
-				"azureADDeviceId":  "fb95f07d-9e73-411d-99ab-7eca3a5122b1",
-				"operatingSystem":  "Windows",
-				"osVersion":        "10.0.19045",
-				"complianceState":  "compliant",
-				"managementAgent":  "mdm",
+				"id":              "managed-device-id-001",
+				"deviceName":      "TEST-DEVICE-001",
+				"azureADDeviceId": "fb95f07d-9e73-411d-99ab-7eca3a5122b1",
+				"operatingSystem": "Windows",
+				"osVersion":       "10.0.19045",
+				"complianceState": "compliant",
+				"managementAgent": "mdm",
 			},
 		},
 	}
@@ -140,9 +164,6 @@ func RegisterGetDeviceByNameSuccessMock() {
 		}
 		return resp, nil
 	})
-
-	// Mock the enrollment status API call
-	RegisterGetDeviceByIdSuccessMock()
 }
 
 // getResponseFilePath returns the absolute path to a response file
