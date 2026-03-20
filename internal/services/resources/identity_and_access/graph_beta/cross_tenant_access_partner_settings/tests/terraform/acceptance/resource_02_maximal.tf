@@ -95,8 +95,8 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partne
   }
 
   inbound_trust = {
-    is_mfa_accepted                         = true
-    is_compliant_device_accepted            = true
+    is_mfa_accepted                           = true
+    is_compliant_device_accepted              = true
     is_hybrid_azure_ad_joined_device_accepted = true
   }
 

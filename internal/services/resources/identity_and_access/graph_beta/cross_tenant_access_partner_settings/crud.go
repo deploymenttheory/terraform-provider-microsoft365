@@ -205,6 +205,8 @@ func (r *CrossTenantAccessPartnerSettingsResource) Update(ctx context.Context, r
 		return
 	}
 
+	time.Sleep(20 * time.Second)
+
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 

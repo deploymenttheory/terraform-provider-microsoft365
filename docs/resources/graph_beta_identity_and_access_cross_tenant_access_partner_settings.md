@@ -36,6 +36,7 @@ Find out more about the permissions required for managing cross-tenant access po
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.49.0 | Experimental | Initial release |
+| v0.50.0 | Experimental | Numerous big fixes and full test harness with additional examples added |
 
 ## Important Notes
 
@@ -49,11 +50,158 @@ Find out more about the permissions required for managing cross-tenant access po
 
 ## Example Usage
 
+### Minimal
+
 ```terraform
+# Minimal example — only outbound B2B collaboration configured.
+# All other settings remain at their partner defaults.
+# On destroy, the partner configuration is soft deleted (can be restored within 30 days).
+
 resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "example" {
-  tenant_id           = "12345678-1234-1234-1234-123456789012"
-  is_service_provider = false
-  hard_delete         = false
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
+  hard_delete = false
+
+  b2b_collaboration_outbound = {
+    users_and_groups = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+}
+```
+
+### B2B Collaboration
+
+```terraform
+# B2B collaboration — controls inbound and outbound B2B guest access for a specific partner.
+# Both directions are configured to allow all users and all applications.
+
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "example" {
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
+  hard_delete = true
+
+  b2b_collaboration_inbound = {
+    users_and_groups = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+
+  b2b_collaboration_outbound = {
+    users_and_groups = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+}
+```
+
+### B2B Direct Connect
+
+```terraform
+# B2B direct connect — blocks direct connect for both inbound and outbound directions.
+# This prevents Teams Connect shared channels with the specified partner tenant.
+
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "example" {
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
+  hard_delete = true
+
+  b2b_direct_connect_inbound = {
+    users_and_groups = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+
+  b2b_direct_connect_outbound = {
+    users_and_groups = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+}
+```
+
+### Inbound Trust
+
+```terraform
+# Inbound trust — accepts MFA, compliant devices, and hybrid Azure AD joined devices
+# from the partner tenant. This allows users from the partner to satisfy conditional
+# access policies using their home tenant's device and authentication state.
+
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "example" {
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
+  hard_delete = true
 
   b2b_collaboration_inbound = {
     users_and_groups = {
@@ -79,12 +227,231 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partne
   inbound_trust = {
     is_mfa_accepted                           = true
     is_compliant_device_accepted              = true
-    is_hybrid_azure_ad_joined_device_accepted = false
+    is_hybrid_azure_ad_joined_device_accepted = true
+  }
+}
+```
+
+### Tenant Restrictions
+
+```terraform
+# Tenant restrictions — blocks all users and applications from the partner tenant
+# when accessing resources in your tenant. This provides an additional layer of
+# control beyond B2B collaboration settings.
+
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "example" {
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
+  hard_delete = true
+
+  b2b_collaboration_inbound = {
+    users_and_groups = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+
+  tenant_restrictions = {
+    users_and_groups = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+}
+```
+
+### Automatic User Consent Settings
+
+```terraform
+# Automatic user consent settings — disables automatic consent for both inbound
+# and outbound collaboration. Users will need to explicitly consent to share data
+# with the partner tenant.
+
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "example" {
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
+  hard_delete = true
+
+  b2b_collaboration_inbound = {
+    users_and_groups = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
   }
 
   automatic_user_consent_settings = {
-    inbound_allowed  = true
-    outbound_allowed = true
+    inbound_allowed  = false
+    outbound_allowed = false
+  }
+}
+```
+
+### Complete
+
+```terraform
+# Complete example — all available blocks configured for a specific partner tenant.
+# This demonstrates the full range of cross-tenant access controls including B2B
+# collaboration, B2B direct connect, inbound trust, tenant restrictions, and
+# automatic user consent settings.
+
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "example" {
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
+  hard_delete = true
+
+  b2b_collaboration_inbound = {
+    users_and_groups = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+
+  b2b_collaboration_outbound = {
+    users_and_groups = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "allowed"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+
+  b2b_direct_connect_inbound = {
+    users_and_groups = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+
+  b2b_direct_connect_outbound = {
+    users_and_groups = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+
+  inbound_trust = {
+    is_mfa_accepted                           = true
+    is_compliant_device_accepted              = true
+    is_hybrid_azure_ad_joined_device_accepted = true
+  }
+
+  tenant_restrictions = {
+    users_and_groups = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllUsers"
+          target_type = "user"
+        }
+      ]
+    }
+    applications = {
+      access_type = "blocked"
+      targets = [
+        {
+          target      = "AllApplications"
+          target_type = "application"
+        }
+      ]
+    }
+  }
+
+  automatic_user_consent_settings = {
+    inbound_allowed  = false
+    outbound_allowed = false
   }
 }
 ```
@@ -105,7 +472,6 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partne
 - `b2b_direct_connect_outbound` (Attributes) B2B direct connect outbound access settings for the partner organization. (see [below for nested schema](#nestedatt--b2b_direct_connect_outbound))
 - `hard_delete` (Boolean) When `true`, the partner configuration will be permanently deleted (hard delete) during destroy. When `false` (default), the partner configuration will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. **Note**: Hard delete permanently removes the configuration and cannot be undone.
 - `inbound_trust` (Attributes) Inbound trust settings for accepting claims from the partner organization. (see [below for nested schema](#nestedatt--inbound_trust))
-- `is_service_provider` (Boolean) Identifies whether the partner-specific configuration is a cloud service provider for your organization.
 - `tenant_restrictions` (Attributes) Tenant restrictions settings for the partner organization. (see [below for nested schema](#nestedatt--tenant_restrictions))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
@@ -113,6 +479,7 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partne
 
 - `id` (String) The unique identifier for the partner configuration. This is the same as the `tenant_id`.
 - `is_in_multi_tenant_organization` (Boolean) Identifies whether the partner organization is part of a multi-tenant organization with the local tenant.
+- `is_service_provider` (Boolean) Identifies whether the partner-specific configuration is a cloud service provider for your organization. **Important**: This field can only be set when using delegated (user) authentication. When using application (client credentials) authentication, this field must be omitted entirely - the API will reject requests with 403's that explicitly set this field to either `true` or `false`. This is a read-only computed field when using service principal authentication.
 
 <a id="nestedatt--automatic_user_consent_settings"></a>
 ### Nested Schema for `automatic_user_consent_settings`
@@ -401,10 +768,9 @@ Optional:
 ## Import
 
 ```shell
-#!/bin/bash
-# Import using the partner tenant ID
-terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings.example 12345678-1234-1234-1234-123456789012
+# Import with soft delete (default)
+terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings.example "12345678-1234-1234-1234-123456789012"
 
-# Import with hard_delete enabled
+# Import with hard delete enabled
 terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings.example "12345678-1234-1234-1234-123456789012:hard_delete=true"
 ```

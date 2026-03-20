@@ -1,12 +1,10 @@
-# ==============================================================================
-# Cross-Tenant Access Partner Settings - Update Maximal to Minimal (Step 1)
-#
-# Step 1: Deploy maximal configuration with all blocks populated.
-# This will be reduced to the minimal configuration in step 2.
-# ==============================================================================
+# Complete example — all available blocks configured for a specific partner tenant.
+# This demonstrates the full range of cross-tenant access controls including B2B
+# collaboration, B2B direct connect, inbound trust, tenant restrictions, and
+# automatic user consent settings.
 
-resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "test" {
-  tenant_id   = "a22ff489-2ea9-48de-8d58-fa130b532d5d"
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "example" {
+  tenant_id   = "12345678-1234-1234-1234-123456789012"
   hard_delete = true
 
   b2b_collaboration_inbound = {
