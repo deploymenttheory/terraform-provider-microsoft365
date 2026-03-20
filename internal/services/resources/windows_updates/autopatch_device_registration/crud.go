@@ -72,6 +72,16 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Create(ctx context.C
 		return
 	}
 
+	tflog.Debug(ctx, "Enroll POST completed, verifying enrollment propagation")
+
+	if err := r.verifyEnrollmentComplete(ctx, &object); err != nil {
+		resp.Diagnostics.AddError(
+			"Enrollment Verification Failed",
+			fmt.Sprintf("Devices were enrolled but verification failed: %s", err.Error()),
+		)
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -98,11 +108,21 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Create(ctx context.C
 
 // Read handles the Read operation for Windows Updates autopatch device registration resources.
 //
-// Operation: Retrieves enrolled devices and their enrollment status
+// Operation: Retrieves all enrolled azureADDevice objects and filters by update category
 // API Calls:
-//   - GET /admin/windows/updates/updatableAssets?$filter=isof('microsoft.graph.windowsUpdates.azureADDevice')&$select=id,enrollments
+//   - GET /admin/windows/updates/updatableAssets?$filter=isof('microsoft.graph.windowsUpdates.azureADDevice')
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-list-updatableassets?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminwindowsupdates-list-updatableassets-azureaddevice?view=graph-rest-beta&tabs=go
+//
+// Important Notes:
+//   - The $filter parameter is required to query only azureADDevice objects (derived type)
+//   - Tested $select parameter - it does not work with derived type properties like 'enrollment'
+//   - The API returns full objects including enrollment information by default
+//   - State mapping behavior:
+//   - Normal Read: Filters by planned device IDs from state, returns only managed devices
+//   - Import: No planned IDs available, returns ALL devices enrolled for the category
+//   - Import behavior: Returns all devices currently enrolled for the specified update category,
+//     which may differ from the configuration if other devices are enrolled externally
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object WindowsUpdatesAutopatchDeviceRegistrationResourceModel
 	var identity sharedmodels.ResourceIdentity
@@ -135,21 +155,20 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Con
 	}
 	defer cancel()
 
-	// Always fetch all updatable assets and filter by category
-	// This ensures we get the correct enrollment state from the API
-	// Use $select to ensure enrollment information is included in the response
-	requestConfig := &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetRequestConfiguration{
-		QueryParameters: &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetQueryParameters{
-			Select: []string{"id", "enrollments"},
-		},
-	}
-	
+	// Fetch all azureADDevice assets using a type filter
+	// This filters on microsoft.graph.windowsUpdates.azureADDevice
+	// and returns devices with their enrollment information
+	filter := "isof('microsoft.graph.windowsUpdates.azureADDevice')"
 	result, err := r.client.
 		Admin().
 		Windows().
 		Updates().
 		UpdatableAssets().
-		Get(ctx, requestConfig)
+		Get(ctx, &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetRequestConfiguration{
+			QueryParameters: &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetQueryParameters{
+				Filter: &filter,
+			},
+		})
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -243,7 +262,7 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.C
 
 	if len(devicesToEnroll) > 0 {
 		enrollModel := WindowsUpdatesAutopatchDeviceRegistrationResourceModel{
-			UpdateCategory: plan.UpdateCategory,
+			UpdateCategory:       plan.UpdateCategory,
 			EntraDeviceObjectIds: types.SetValueMust(types.StringType, convertStringsToAttrValues(devicesToEnroll)),
 		}
 
@@ -272,11 +291,21 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.C
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
+
+		tflog.Debug(ctx, "Enroll POST completed in Update, verifying enrollment propagation")
+
+		if err := r.verifyEnrollmentComplete(ctx, &enrollModel); err != nil {
+			resp.Diagnostics.AddError(
+				"Enrollment Verification Failed",
+				fmt.Sprintf("Devices were enrolled but verification failed: %s", err.Error()),
+			)
+			return
+		}
 	}
 
 	if len(devicesToUnenroll) > 0 {
 		unenrollModel := WindowsUpdatesAutopatchDeviceRegistrationResourceModel{
-			UpdateCategory: plan.UpdateCategory,
+			UpdateCategory:       plan.UpdateCategory,
 			EntraDeviceObjectIds: types.SetValueMust(types.StringType, convertStringsToAttrValues(devicesToUnenroll)),
 		}
 
@@ -299,6 +328,16 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Update(ctx context.C
 
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+			return
+		}
+
+		tflog.Debug(ctx, "Unenroll POST completed in Update, verifying unenrollment propagation")
+
+		if err := r.verifyUnenrollmentComplete(ctx, &unenrollModel); err != nil {
+			resp.Diagnostics.AddError(
+				"Unenrollment Verification Failed",
+				fmt.Sprintf("Devices were unenrolled but verification failed: %s", err.Error()),
+			)
 			return
 		}
 	}
@@ -369,6 +408,16 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Delete(ctx context.C
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+
+	tflog.Debug(ctx, "Unenroll POST completed, verifying unenrollment propagation")
+
+	if err := r.verifyUnenrollmentComplete(ctx, &object); err != nil {
+		resp.Diagnostics.AddError(
+			"Unenrollment Verification Failed",
+			fmt.Sprintf("Devices were unenrolled but verification failed: %s", err.Error()),
+		)
 		return
 	}
 

@@ -5,129 +5,160 @@ import (
 	"fmt"
 	"strings"
 
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/admin"
+	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 )
 
 // validateRequest performs validation before enrolling or unenrolling devices.
-// It verifies that all Entra ID device IDs (Azure AD device object IDs) exist in Entra ID.
-// Note: These are NOT Intune managed device IDs - they are Entra ID device object IDs.
+// It orchestrates validation by calling atomic validation functions.
 func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateRequest(
 	ctx context.Context,
 	data *WindowsUpdatesAutopatchDeviceRegistrationResourceModel,
 	diagnostics *diag.Diagnostics,
 ) error {
-	tflog.Debug(ctx, fmt.Sprintf("Starting Entra ID device validation for %s resource", ResourceName))
+	tflog.Debug(ctx, fmt.Sprintf("Starting device validation for %s resource", ResourceName))
 
 	if data.EntraDeviceObjectIds.IsNull() || data.EntraDeviceObjectIds.IsUnknown() {
-		tflog.Debug(ctx, "No Entra ID device IDs to validate")
+		tflog.Debug(ctx, "No device IDs to validate")
 		return nil
 	}
 
 	elements := data.EntraDeviceObjectIds.Elements()
 	if len(elements) == 0 {
-		tflog.Debug(ctx, "Empty Entra ID device IDs set")
+		tflog.Debug(ctx, "Empty device IDs set")
 		return nil
 	}
 
-	var invalidEntraDeviceIDs []string
-	var notFoundEntraDeviceIDs []string
-
+	deviceIDs := make([]string, 0, len(elements))
 	for _, elem := range elements {
 		strVal, ok := elem.(types.String)
 		if !ok {
 			continue
 		}
-
-		entraDeviceID := strVal.ValueString()
-		if entraDeviceID == "" {
-			continue
-		}
-
-		err := r.validateEntraDeviceExists(ctx, entraDeviceID)
-		if err != nil {
-			if strings.Contains(err.Error(), "not found") {
-				notFoundEntraDeviceIDs = append(notFoundEntraDeviceIDs, entraDeviceID)
-			} else {
-				invalidEntraDeviceIDs = append(invalidEntraDeviceIDs, entraDeviceID)
-			}
+		if deviceID := strVal.ValueString(); deviceID != "" {
+			deviceIDs = append(deviceIDs, deviceID)
 		}
 	}
 
-	if len(notFoundEntraDeviceIDs) > 0 {
-		tflog.Error(ctx, "Some Entra ID device IDs do not exist in Entra ID", map[string]any{
-			"notFoundEntraDeviceIDs": notFoundEntraDeviceIDs,
-		})
-		diagnostics.AddError(
-			"Invalid Entra ID Device IDs",
-			fmt.Sprintf("The following Entra ID device IDs (Azure AD device object IDs) do not exist in Entra ID: %s. "+
-				"Please ensure all IDs are valid Entra ID device object IDs, not Intune managed device IDs.",
-				strings.Join(notFoundEntraDeviceIDs, ", ")),
-		)
-		return fmt.Errorf("%w: %d Entra ID devices not found", sentinels.ErrEntraDeviceValidationFailed, len(notFoundEntraDeviceIDs))
+	if err := r.validateDevicesEligibleForEnrollment(ctx, deviceIDs, diagnostics); err != nil {
+		return err
 	}
 
-	if len(invalidEntraDeviceIDs) > 0 {
-		tflog.Error(ctx, "Failed to validate some Entra ID device IDs", map[string]any{
-			"invalidEntraDeviceIDs": invalidEntraDeviceIDs,
-		})
-		diagnostics.AddError(
-			"Entra ID Device Validation Failed",
-			fmt.Sprintf("Failed to validate the following Entra ID device IDs: %s. "+
-				"Please check the Entra ID device IDs and try again.",
-				strings.Join(invalidEntraDeviceIDs, ", ")),
-		)
-		return fmt.Errorf("%w: %d Entra ID devices could not be validated", sentinels.ErrEntraDeviceValidationFailed, len(invalidEntraDeviceIDs))
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Entra ID device validation completed successfully for %d devices", len(elements)))
+	tflog.Debug(ctx, fmt.Sprintf("Device validation completed successfully for %d devices", len(deviceIDs)))
 	return nil
 }
 
-// validateEntraDeviceExists validates that an Entra ID device (Azure AD device object) exists.
-// This queries the /devices endpoint (Entra ID), NOT the /deviceManagement/managedDevices endpoint (Intune).
-func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateEntraDeviceExists(
+// validateDevicesEligibleForEnrollment validates that all devices are eligible for Windows Updates enrollment.
+// This is the atomic validation function that checks the updatable assets collection.
+func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) validateDevicesEligibleForEnrollment(
 	ctx context.Context,
-	entraDeviceObjectID string,
+	deviceIDs []string,
+	diagnostics *diag.Diagnostics,
 ) error {
-	tflog.Debug(ctx, "Validating Entra ID device exists", map[string]any{
-		"entraDeviceObjectId": entraDeviceObjectID,
-	})
+	tflog.Debug(ctx, fmt.Sprintf("Validating %d devices for Windows Updates enrollment eligibility", len(deviceIDs)))
 
-	entraDevice, err := r.client.
-		Devices().
-		ByDeviceId(entraDeviceObjectID).
-		Get(ctx, nil)
+	filter := "isof('microsoft.graph.windowsUpdates.azureADDevice')"
+	result, err := r.client.
+		Admin().
+		Windows().
+		Updates().
+		UpdatableAssets().
+		Get(ctx, &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetRequestConfiguration{
+			QueryParameters: &admin.WindowsUpdatesUpdatableAssetsRequestBuilderGetQueryParameters{
+				Filter: &filter,
+			},
+		})
 
 	if err != nil {
-		errorInfo := errors.GraphError(ctx, err)
-		tflog.Error(ctx, "Failed to retrieve Entra ID device", map[string]any{
-			"entraDeviceObjectId": entraDeviceObjectID,
-			"statusCode":          errorInfo.StatusCode,
-			"errorCode":           errorInfo.ErrorCode,
+		tflog.Error(ctx, "Failed to query updatable assets for validation", map[string]any{
+			"error": err.Error(),
 		})
+		diagnostics.AddError(
+			"Failed to Validate Devices",
+			fmt.Sprintf("Could not query updatable assets to validate devices: %s", err.Error()),
+		)
+		return fmt.Errorf("failed to query updatable assets: %w", err)
+	}
 
-		if errorInfo.StatusCode == 404 {
-			return fmt.Errorf("%w: %s", sentinels.ErrEntraDeviceNotFound, entraDeviceObjectID)
+	deviceMap := make(map[string]graphmodelswindowsupdates.AzureADDeviceable)
+	devices := result.GetValue()
+	for _, asset := range devices {
+		if asset == nil {
+			continue
 		}
 
-		return fmt.Errorf("%w %s: %w", sentinels.ErrRetrieveEntraDevice, entraDeviceObjectID, err)
+		azureDevice, ok := asset.(graphmodelswindowsupdates.AzureADDeviceable)
+		if !ok {
+			continue
+		}
+
+		deviceID := azureDevice.GetId()
+		if deviceID != nil {
+			deviceMap[*deviceID] = azureDevice
+		}
 	}
 
-	if entraDevice == nil {
-		tflog.Error(ctx, "Entra ID device not found", map[string]any{
-			"entraDeviceObjectId": entraDeviceObjectID,
-		})
-		return fmt.Errorf("%w: %s", sentinels.ErrEntraDeviceNotFound, entraDeviceObjectID)
+	var devicesWithErrors []string
+	var devicesNotFound []string
+
+	for _, deviceID := range deviceIDs {
+		device, found := deviceMap[deviceID]
+		if !found {
+			devicesNotFound = append(devicesNotFound, deviceID)
+			tflog.Warn(ctx, "Device not found in updatable assets", map[string]any{
+				"deviceId": deviceID,
+			})
+			continue
+		}
+
+		deviceErrors := device.GetErrors()
+		if len(deviceErrors) > 0 {
+			var errorReasons []string
+			for _, errObj := range deviceErrors {
+				if regErr, ok := errObj.(graphmodelswindowsupdates.AzureADDeviceRegistrationErrorable); ok {
+					if reason := regErr.GetReason(); reason != nil {
+						errorReasons = append(errorReasons, reason.String())
+					}
+				}
+			}
+			devicesWithErrors = append(devicesWithErrors, fmt.Sprintf("%s (%s)", deviceID, strings.Join(errorReasons, ", ")))
+			tflog.Error(ctx, "Device has registration errors", map[string]any{
+				"deviceId": deviceID,
+				"errors":   errorReasons,
+			})
+		} else {
+			tflog.Debug(ctx, "Device is eligible for enrollment", map[string]any{
+				"deviceId": deviceID,
+			})
+		}
 	}
 
-	tflog.Debug(ctx, "Entra ID device validated successfully", map[string]any{
-		"entraDeviceObjectId": entraDeviceObjectID,
-		"displayName":         entraDevice.GetDisplayName(),
-	})
+	if len(devicesNotFound) > 0 {
+		diagnostics.AddError(
+			"Devices Not Found in Updatable Assets",
+			fmt.Sprintf("The following device IDs are not registered as updatable assets: %s. "+
+				"Only devices that are registered with Windows Updates can be enrolled. "+
+				"Ensure the devices are Azure AD joined and meet Windows Updates requirements.",
+				strings.Join(devicesNotFound, ", ")),
+		)
+		return fmt.Errorf("%w: %d devices not found in updatable assets", sentinels.ErrEntraDeviceValidationFailed, len(devicesNotFound))
+	}
 
+	if len(devicesWithErrors) > 0 {
+		diagnostics.AddError(
+			"Devices Not Eligible for Enrollment",
+			fmt.Sprintf("The following devices have registration errors and cannot be enrolled: %s. "+
+				"These devices may be stale, deleted from Entra ID, or have other issues. "+
+				"Check the Windows Updates admin center for device status.",
+				strings.Join(devicesWithErrors, "; ")),
+		)
+		return fmt.Errorf("%w: %d devices have registration errors", sentinels.ErrEntraDeviceValidationFailed, len(devicesWithErrors))
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("All %d devices validated successfully", len(deviceIDs)))
 	return nil
 }
