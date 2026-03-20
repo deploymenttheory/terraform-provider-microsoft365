@@ -41,27 +41,40 @@ var (
 )
 
 func (m *WindowsUpdateDeploymentAudienceMembersMock) RegisterMocks() {
-	// Register GET for audience (to read members/exclusions)
+	m.registerGetAudienceResponder()
+	m.registerGetMembersResponder()
+	m.registerGetExclusionsResponder()
+	m.registerUpdateAudienceResponder()
+	m.registerCreateAudienceResponder()
+	m.registerDeleteAudienceResponder()
+}
+
+func (m *WindowsUpdateDeploymentAudienceMembersMock) registerGetAudienceResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/([^/]+)$`,
 		m.getAudienceResponder())
+}
 
-	// Register GET for members collection
+func (m *WindowsUpdateDeploymentAudienceMembersMock) registerGetMembersResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/([^/]+)/members$`,
 		m.getMembersResponder())
+}
 
-	// Register GET for exclusions collection
+func (m *WindowsUpdateDeploymentAudienceMembersMock) registerGetExclusionsResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/([^/]+)/exclusions$`,
 		m.getExclusionsResponder())
+}
 
-	// Register POST for updateAudience action
+func (m *WindowsUpdateDeploymentAudienceMembersMock) registerUpdateAudienceResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/([^/]+)/microsoft\.graph\.windowsUpdates\.updateAudience$`,
 		m.updateAudienceResponder())
+}
 
-	// Register POST for creating audience (for dependencies)
+func (m *WindowsUpdateDeploymentAudienceMembersMock) registerCreateAudienceResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences$`,
 		m.createAudienceResponder())
+}
 
-	// Register DELETE for audience (for cleanup)
+func (m *WindowsUpdateDeploymentAudienceMembersMock) registerDeleteAudienceResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/([^/]+)$`,
 		m.deleteAudienceResponder())
 }
@@ -311,9 +324,16 @@ func (m *WindowsUpdateDeploymentAudienceMembersMock) deleteAudienceResponder() h
 }
 
 func (m *WindowsUpdateDeploymentAudienceMembersMock) RegisterErrorMocks() {
+	m.registerUpdateAudienceErrorResponder()
+	m.registerGetAudienceErrorResponder()
+}
+
+func (m *WindowsUpdateDeploymentAudienceMembersMock) registerUpdateAudienceErrorResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/([^/]+)/microsoft\.graph\.windowsUpdates\.updateAudience$`,
 		factories.ErrorResponse(400, "BadRequest", "Invalid request"))
+}
 
+func (m *WindowsUpdateDeploymentAudienceMembersMock) registerGetAudienceErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/error-id$`,
 		factories.ErrorResponse(404, "ResourceNotFound", "Resource not found"))
 }

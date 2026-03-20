@@ -23,12 +23,22 @@ var (
 )
 
 func (m *WindowsUpdateDeploymentAudienceMock) RegisterMocks() {
+	m.registerCreateAudienceResponder()
+	m.registerGetAudienceResponder()
+	m.registerDeleteAudienceResponder()
+}
+
+func (m *WindowsUpdateDeploymentAudienceMock) registerCreateAudienceResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences$`,
 		m.createAudienceResponder())
+}
 
+func (m *WindowsUpdateDeploymentAudienceMock) registerGetAudienceResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/([^/]+)$`,
 		m.getAudienceResponder())
+}
 
+func (m *WindowsUpdateDeploymentAudienceMock) registerDeleteAudienceResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/([^/]+)$`,
 		m.deleteAudienceResponder())
 }
@@ -103,12 +113,22 @@ func (m *WindowsUpdateDeploymentAudienceMock) deleteAudienceResponder() httpmock
 }
 
 func (m *WindowsUpdateDeploymentAudienceMock) RegisterErrorMocks() {
+	m.registerCreateAudienceErrorResponder()
+	m.registerGetAudienceErrorResponder()
+	m.registerDeleteAudienceErrorResponder()
+}
+
+func (m *WindowsUpdateDeploymentAudienceMock) registerCreateAudienceErrorResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences$`,
 		factories.ErrorResponse(400, "BadRequest", "Invalid request"))
+}
 
+func (m *WindowsUpdateDeploymentAudienceMock) registerGetAudienceErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/error-id$`,
 		factories.ErrorResponse(404, "ResourceNotFound", "Resource not found"))
+}
 
+func (m *WindowsUpdateDeploymentAudienceMock) registerDeleteAudienceErrorResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deploymentAudiences/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Audience is in use"))
 }

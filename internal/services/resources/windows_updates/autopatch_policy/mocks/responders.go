@@ -51,7 +51,13 @@ func (m *WindowsAutopatchPolicyMock) RegisterMocks() {
 	mockState.policies = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Create policy - POST /admin/windows/updates/policies
+	m.registerCreatePolicyResponder()
+	m.registerGetPolicyResponder()
+	m.registerUpdatePolicyResponder()
+	m.registerDeletePolicyResponder()
+}
+
+func (m *WindowsAutopatchPolicyMock) registerCreatePolicyResponder() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/policies", func(req *http.Request) (*http.Response, error) {
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
@@ -97,8 +103,9 @@ func (m *WindowsAutopatchPolicyMock) RegisterMocks() {
 
 		return httpmock.NewJsonResponse(201, responseObj)
 	})
+}
 
-	// Get policy - GET /admin/windows/updates/policies/{id}
+func (m *WindowsAutopatchPolicyMock) registerGetPolicyResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		policyId := parts[len(parts)-1]
@@ -113,8 +120,9 @@ func (m *WindowsAutopatchPolicyMock) RegisterMocks() {
 
 		return httpmock.NewJsonResponse(200, policy)
 	})
+}
 
-	// Update policy - PATCH /admin/windows/updates/policies/{id}
+func (m *WindowsAutopatchPolicyMock) registerUpdatePolicyResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		policyId := parts[len(parts)-1]
@@ -138,8 +146,9 @@ func (m *WindowsAutopatchPolicyMock) RegisterMocks() {
 
 		return httpmock.NewStringResponse(204, ""), nil
 	})
+}
 
-	// Delete policy - DELETE /admin/windows/updates/policies/{id}
+func (m *WindowsAutopatchPolicyMock) registerDeletePolicyResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		policyId := parts[len(parts)-1]
@@ -157,12 +166,28 @@ func (m *WindowsAutopatchPolicyMock) RegisterMocks() {
 }
 
 func (m *WindowsAutopatchPolicyMock) RegisterErrorMocks() {
+	m.registerCreatePolicyErrorResponder()
+	m.registerGetPolicyErrorResponder()
+	m.registerUpdatePolicyErrorResponder()
+	m.registerDeletePolicyErrorResponder()
+}
+
+func (m *WindowsAutopatchPolicyMock) registerCreatePolicyErrorResponder() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/policies",
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid policy configuration"}}`))
+}
+
+func (m *WindowsAutopatchPolicyMock) registerGetPolicyErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+}
+
+func (m *WindowsAutopatchPolicyMock) registerUpdatePolicyErrorResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
+}
+
+func (m *WindowsAutopatchPolicyMock) registerDeletePolicyErrorResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
 }

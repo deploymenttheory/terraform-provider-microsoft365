@@ -58,12 +58,12 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_01_Scenario_Minimal(t *te
 					},
 				),
 			},
-		{
-			ResourceName:            resourceType + ".test_001",
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"entra_device_object_ids"},
-		},
+			{
+				ResourceName:            resourceType + ".test_001",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"entra_device_object_ids"},
+			},
 		},
 	})
 }
@@ -97,12 +97,12 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_02_Scenario_Maximal(t *te
 					},
 				),
 			},
-		{
-			ResourceName:            resourceType + ".test_002",
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"entra_device_object_ids"},
-		},
+			{
+				ResourceName:            resourceType + ".test_002",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"entra_device_object_ids"},
+			},
 		},
 	})
 }
@@ -147,12 +147,12 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_03_Lifecycle_AddDevices(t
 					},
 				),
 			},
-		{
-			ResourceName:            resourceType + ".test_003",
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"entra_device_object_ids"},
-		},
+			{
+				ResourceName:            resourceType + ".test_003",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"entra_device_object_ids"},
+			},
 		},
 	})
 }
@@ -197,12 +197,12 @@ func TestAccResourceWindowsAutopatchDeviceRegistration_04_Lifecycle_RemoveDevice
 					},
 				),
 			},
-		{
-			ResourceName:            resourceType + ".test_004",
-			ImportState:             true,
-			ImportStateVerify:       true,
-			ImportStateVerifyIgnore: []string{"entra_device_object_ids"},
-		},
+			{
+				ResourceName:            resourceType + ".test_004",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"entra_device_object_ids"},
+			},
 		},
 	})
 }

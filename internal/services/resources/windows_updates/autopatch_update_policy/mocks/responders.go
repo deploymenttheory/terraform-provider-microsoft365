@@ -37,11 +37,16 @@ func (m *WindowsUpdatePolicyMock) RegisterMocks() {
 	mockState.updatePolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Register audience mocks as well
 	audienceMock := &audienceMocks.WindowsUpdateDeploymentAudienceMock{}
 	audienceMock.RegisterMocks()
 
-	// Create update policy - POST /admin/windows/updates/updatePolicies
+	m.registerCreateUpdatePolicyResponder()
+	m.registerGetUpdatePolicyResponder()
+	m.registerUpdateUpdatePolicyResponder()
+	m.registerDeleteUpdatePolicyResponder()
+}
+
+func (m *WindowsUpdatePolicyMock) registerCreateUpdatePolicyResponder() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/updatePolicies",
 		func(req *http.Request) (*http.Response, error) {
 			// Parse request body to determine which response file to use
@@ -93,8 +98,9 @@ func (m *WindowsUpdatePolicyMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// Get update policy - GET /admin/windows/updates/updatePolicies/{id}
+func (m *WindowsUpdatePolicyMock) registerGetUpdatePolicyResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -128,8 +134,9 @@ func (m *WindowsUpdatePolicyMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// Update update policy - PATCH /admin/windows/updates/updatePolicies/{id}
+func (m *WindowsUpdatePolicyMock) registerUpdateUpdatePolicyResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -161,8 +168,9 @@ func (m *WindowsUpdatePolicyMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// Delete update policy - DELETE /admin/windows/updates/updatePolicies/{id}
+func (m *WindowsUpdatePolicyMock) registerDeleteUpdatePolicyResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -181,10 +189,16 @@ func (m *WindowsUpdatePolicyMock) RegisterErrorMocks() {
 	mockState.updatePolicies = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Register audience mocks as well
 	audienceMock := &audienceMocks.WindowsUpdateDeploymentAudienceMock{}
 	audienceMock.RegisterMocks()
 
+	m.registerCreateUpdatePolicyErrorResponder()
+	m.registerGetUpdatePolicyErrorResponder()
+	m.registerUpdateUpdatePolicyErrorResponder()
+	m.registerDeleteUpdatePolicyErrorResponder()
+}
+
+func (m *WindowsUpdatePolicyMock) registerCreateUpdatePolicyErrorResponder() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/updatePolicies",
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{
@@ -198,7 +212,9 @@ func (m *WindowsUpdatePolicyMock) RegisterErrorMocks() {
 			}
 			return resp, nil
 		})
+}
 
+func (m *WindowsUpdatePolicyMock) registerGetUpdatePolicyErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{
@@ -212,7 +228,9 @@ func (m *WindowsUpdatePolicyMock) RegisterErrorMocks() {
 			}
 			return resp, nil
 		})
+}
 
+func (m *WindowsUpdatePolicyMock) registerUpdateUpdatePolicyErrorResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{
@@ -226,7 +244,9 @@ func (m *WindowsUpdatePolicyMock) RegisterErrorMocks() {
 			}
 			return resp, nil
 		})
+}
 
+func (m *WindowsUpdatePolicyMock) registerDeleteUpdatePolicyErrorResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{

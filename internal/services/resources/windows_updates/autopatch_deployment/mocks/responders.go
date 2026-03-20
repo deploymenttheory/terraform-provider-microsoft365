@@ -33,18 +33,34 @@ type WindowsUpdateDeploymentMock struct{}
 var _ mocks.MockRegistrar = (*WindowsUpdateDeploymentMock)(nil)
 
 func (m *WindowsUpdateDeploymentMock) RegisterMocks() {
+	m.registerGetLicenseResponder()
+	m.registerCreateDeploymentResponder()
+	m.registerGetDeploymentResponder()
+	m.registerUpdateDeploymentResponder()
+	m.registerDeleteDeploymentResponder()
+}
+
+func (m *WindowsUpdateDeploymentMock) registerGetLicenseResponder() {
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/subscribedSkus",
 		m.getLicenseResponder())
+}
 
+func (m *WindowsUpdateDeploymentMock) registerCreateDeploymentResponder() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/deployments",
 		m.createDeploymentResponder())
+}
 
+func (m *WindowsUpdateDeploymentMock) registerGetDeploymentResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/([^/]+)$`,
 		m.getDeploymentResponder())
+}
 
+func (m *WindowsUpdateDeploymentMock) registerUpdateDeploymentResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/([^/]+)$`,
 		m.updateDeploymentResponder())
+}
 
+func (m *WindowsUpdateDeploymentMock) registerDeleteDeploymentResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/([^/]+)$`,
 		m.deleteDeploymentResponder())
 }
@@ -230,9 +246,14 @@ func (m *WindowsUpdateDeploymentMock) getLicenseResponder() httpmock.Responder {
 }
 
 func (m *WindowsUpdateDeploymentMock) RegisterErrorMocks() {
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/subscribedSkus",
-		m.getLicenseResponder())
+	m.registerGetLicenseResponder()
+	m.registerCreateDeploymentErrorResponder()
+	m.registerGetDeploymentErrorResponder()
+	m.registerUpdateDeploymentErrorResponder()
+	m.registerDeleteDeploymentErrorResponder()
+}
 
+func (m *WindowsUpdateDeploymentMock) registerCreateDeploymentErrorResponder() {
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/admin/windows/updates/deployments",
 		func(req *http.Request) (*http.Response, error) {
 			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_deployment_error.json"))
@@ -244,13 +265,19 @@ func (m *WindowsUpdateDeploymentMock) RegisterErrorMocks() {
 			}
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`), nil
 		})
+}
 
+func (m *WindowsUpdateDeploymentMock) registerGetDeploymentErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/error-id$`,
 		factories.ErrorResponse(403, "Forbidden", "Access denied"))
+}
 
+func (m *WindowsUpdateDeploymentMock) registerUpdateDeploymentErrorResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/error-id$`,
 		factories.ErrorResponse(500, "InternalServerError", "Internal server error"))
+}
 
+func (m *WindowsUpdateDeploymentMock) registerDeleteDeploymentErrorResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/deployments/error-id$`,
 		factories.ErrorResponse(409, "Conflict", "Deployment is in use"))
 }

@@ -35,7 +35,13 @@ func (m *WindowsUpdateContentApprovalMock) RegisterMocks() {
 	mockState.contentApprovals = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Create content approval - POST /admin/windows/updates/updatePolicies/{id}/complianceChanges
+	m.registerCreateContentApprovalResponder()
+	m.registerGetContentApprovalResponder()
+	m.registerUpdateContentApprovalResponder()
+	m.registerDeleteContentApprovalResponder()
+}
+
+func (m *WindowsUpdateContentApprovalMock) registerCreateContentApprovalResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+/complianceChanges$`, func(req *http.Request) (*http.Response, error) {
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
@@ -93,8 +99,9 @@ func (m *WindowsUpdateContentApprovalMock) RegisterMocks() {
 		}
 		return resp, nil
 	})
+}
 
-	// Get content approval - GET /admin/windows/updates/updatePolicies/{policyId}/complianceChanges/{id}
+func (m *WindowsUpdateContentApprovalMock) registerGetContentApprovalResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+/complianceChanges/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		complianceChangeId := parts[len(parts)-1]
@@ -127,8 +134,9 @@ func (m *WindowsUpdateContentApprovalMock) RegisterMocks() {
 		}
 		return resp, nil
 	})
+}
 
-	// Update content approval - PATCH /admin/windows/updates/updatePolicies/{policyId}/complianceChanges/{id}
+func (m *WindowsUpdateContentApprovalMock) registerUpdateContentApprovalResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+/complianceChanges/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		complianceChangeId := parts[len(parts)-1]
@@ -157,8 +165,9 @@ func (m *WindowsUpdateContentApprovalMock) RegisterMocks() {
 		}
 		return resp, nil
 	})
+}
 
-	// Delete content approval - DELETE /admin/windows/updates/updatePolicies/{policyId}/complianceChanges/{id}
+func (m *WindowsUpdateContentApprovalMock) registerDeleteContentApprovalResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies/[0-9a-fA-F-]+/complianceChanges/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
 		parts := strings.Split(req.URL.Path, "/")
 		complianceChangeId := parts[len(parts)-1]
@@ -176,6 +185,13 @@ func (m *WindowsUpdateContentApprovalMock) RegisterErrorMocks() {
 	mockState.contentApprovals = make(map[string]map[string]any)
 	mockState.Unlock()
 
+	m.registerCreateContentApprovalErrorResponder()
+	m.registerGetContentApprovalErrorResponder()
+	m.registerUpdateContentApprovalErrorResponder()
+	m.registerDeleteContentApprovalErrorResponder()
+}
+
+func (m *WindowsUpdateContentApprovalMock) registerCreateContentApprovalErrorResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{
@@ -189,7 +205,9 @@ func (m *WindowsUpdateContentApprovalMock) RegisterErrorMocks() {
 		}
 		return resp, nil
 	})
+}
 
+func (m *WindowsUpdateContentApprovalMock) registerGetContentApprovalErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{
@@ -203,7 +221,9 @@ func (m *WindowsUpdateContentApprovalMock) RegisterErrorMocks() {
 		}
 		return resp, nil
 	})
+}
 
+func (m *WindowsUpdateContentApprovalMock) registerUpdateContentApprovalErrorResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{
@@ -217,7 +237,9 @@ func (m *WindowsUpdateContentApprovalMock) RegisterErrorMocks() {
 		}
 		return resp, nil
 	})
+}
 
+func (m *WindowsUpdateContentApprovalMock) registerDeleteContentApprovalErrorResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatePolicies`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{

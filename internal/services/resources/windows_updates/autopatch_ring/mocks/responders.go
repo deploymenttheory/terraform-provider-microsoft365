@@ -35,7 +35,13 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 	mockState.rings = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// POST /admin/windows/updates/policies/{policyId}/rings
+	m.registerCreateRingResponder()
+	m.registerGetRingResponder()
+	m.registerUpdateRingResponder()
+	m.registerDeleteRingResponder()
+}
+
+func (m *WindowsUpdateRingMock) registerCreateRingResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F-]+/rings$`,
 		func(req *http.Request) (*http.Response, error) {
 			var requestBody map[string]any
@@ -76,8 +82,9 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// GET /admin/windows/updates/policies/{policyId}/rings/{ringId}
+func (m *WindowsUpdateRingMock) registerGetRingResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F-]+/rings/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -110,8 +117,9 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// PATCH /admin/windows/updates/policies/{policyId}/rings/{ringId}
+func (m *WindowsUpdateRingMock) registerUpdateRingResponder() {
 	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F-]+/rings/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -153,8 +161,9 @@ func (m *WindowsUpdateRingMock) RegisterMocks() {
 			}
 			return resp, nil
 		})
+}
 
-	// DELETE /admin/windows/updates/policies/{policyId}/rings/{ringId}
+func (m *WindowsUpdateRingMock) registerDeleteRingResponder() {
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies/[0-9a-fA-F-]+/rings/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
@@ -173,6 +182,11 @@ func (m *WindowsUpdateRingMock) RegisterErrorMocks() {
 	mockState.rings = make(map[string]map[string]any)
 	mockState.Unlock()
 
+	m.registerCreateRingErrorResponder()
+	m.registerGetRingErrorResponder()
+}
+
+func (m *WindowsUpdateRingMock) registerCreateRingErrorResponder() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{
@@ -186,7 +200,9 @@ func (m *WindowsUpdateRingMock) RegisterErrorMocks() {
 			}
 			return resp, nil
 		})
+}
 
+func (m *WindowsUpdateRingMock) registerGetRingErrorResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/policies`,
 		func(req *http.Request) (*http.Response, error) {
 			resp, err := httpmock.NewJsonResponse(403, map[string]any{

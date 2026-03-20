@@ -139,8 +139,8 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) verifyUnenrollmentCo
 
 	tflog.Debug(ctx, fmt.Sprintf("Verifying unenrollment for %d devices", len(deviceIDs)))
 
-	maxAttempts := 40 // typical unenrollment time is circa -- seconds
-	waitInterval := 2 * time.Second
+	maxAttempts := 25 // typical unenrollment time is 8-10 seconds, max 75 seconds
+	waitInterval := 3 * time.Second
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		tflog.Debug(ctx, fmt.Sprintf("Unenrollment verification attempt %d/%d", attempt, maxAttempts))
@@ -222,5 +222,5 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) verifyUnenrollmentCo
 		}
 	}
 
-	return fmt.Errorf("unenrollment did not complete within expected time (80 seconds)")
+	return fmt.Errorf("unenrollment did not complete within expected time (75 seconds)")
 }
