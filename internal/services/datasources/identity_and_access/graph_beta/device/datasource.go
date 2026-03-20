@@ -28,7 +28,6 @@ var (
 func NewDeviceDataSource() datasource.DataSource {
 	return &DeviceDataSource{
 		ReadPermissions: []string{
-			"Device.Read.All",
 			"Directory.Read.All",
 		},
 	}

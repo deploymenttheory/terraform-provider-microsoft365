@@ -294,6 +294,7 @@ func (r *WindowsUpdatesAutopatchUpdatePolicyResource) Delete(ctx context.Context
 	verifyAttempt := 0
 	verifyWait := 2 * time.Second
 
+verifyLoop:
 	for {
 		verifyAttempt++
 		tflog.Debug(ctx, fmt.Sprintf("Verification attempt %d: checking if update policy %s is deleted", verifyAttempt, object.ID.ValueString()))
@@ -322,7 +323,7 @@ func (r *WindowsUpdatesAutopatchUpdatePolicyResource) Delete(ctx context.Context
 		case <-time.After(verifyWait):
 		case <-ctx.Done():
 			tflog.Warn(ctx, fmt.Sprintf("Timeout waiting for update policy deletion confirmation after %d attempts: %s", verifyAttempt, ctx.Err()))
-			break
+			break verifyLoop
 		}
 
 		if verifyWait*2 <= maxWait {

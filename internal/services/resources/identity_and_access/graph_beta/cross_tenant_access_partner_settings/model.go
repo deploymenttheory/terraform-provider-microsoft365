@@ -3,7 +3,20 @@ package graphBetaCrossTenantAccessPartnerSettings
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
+
+// tenantRestrictionsB2BSetting implements CrossTenantAccessPolicyTenantRestrictionsable using the base
+// B2BSetting constructor so that no @odata.type is serialised. The derived constructor
+// NewCrossTenantAccessPolicyTenantRestrictions() auto-sets
+// @odata.type = "#microsoft.graph.crossTenantAccessPolicyTenantRestrictions" which the partner
+// settings endpoint rejects.
+type tenantRestrictionsB2BSetting struct {
+	graphmodels.CrossTenantAccessPolicyB2BSetting
+}
+
+func (t *tenantRestrictionsB2BSetting) GetDevices() graphmodels.DevicesFilterable { return nil }
+func (t *tenantRestrictionsB2BSetting) SetDevices(value graphmodels.DevicesFilterable) {}
 
 type CrossTenantAccessPartnerSettingsResourceModel struct {
 	ID                           types.String   `tfsdk:"id"`

@@ -1,9 +1,0 @@
-{
-  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/deploymentAudiences('test-id')/exclusions",
-  "value": [
-    {
-      "@odata.type": "#microsoft.graph.windowsUpdates.azureADDevice",
-      "id": "00000000-0000-0000-0000-000000000003"
-    }
-  ]
-}

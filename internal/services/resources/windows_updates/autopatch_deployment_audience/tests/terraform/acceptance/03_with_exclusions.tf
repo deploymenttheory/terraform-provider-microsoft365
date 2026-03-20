@@ -1,16 +1,8 @@
-# ==============================================================================
-# Random Suffix for Unique Resource Names
-# ==============================================================================
-
 resource "random_string" "suffix" {
   length  = 8
   special = false
   upper   = false
 }
-
-# ==============================================================================
-# Dependencies - Groups for audience members and exclusions
-# ==============================================================================
 
 resource "microsoft365_graph_beta_groups_group" "member_group_1" {
   display_name     = "acc-test-audience-member-1-${random_string.suffix.result}"
@@ -36,10 +28,6 @@ resource "microsoft365_graph_beta_groups_group" "exclusion_group" {
   hard_delete      = true
 }
 
-# ==============================================================================
-# Time Sleep - Wait for groups to propagate
-# ==============================================================================
-
 resource "time_sleep" "wait_for_groups" {
   depends_on = [
     microsoft365_graph_beta_groups_group.member_group_1,
@@ -50,34 +38,9 @@ resource "time_sleep" "wait_for_groups" {
   create_duration = "30s"
 }
 
-# ==============================================================================
-# Deployment Audience (Container)
-# ==============================================================================
-
 resource "microsoft365_graph_beta_windows_updates_autopatch_deployment_audience" "test" {
   depends_on = [time_sleep.wait_for_groups]
-}
 
-# ==============================================================================
-# Time Sleep - Wait for audience to propagate
-# ==============================================================================
-
-resource "time_sleep" "wait_for_audience" {
-  depends_on = [
-    microsoft365_graph_beta_windows_updates_autopatch_deployment_audience.test
-  ]
-
-  create_duration = "30s"
-}
-
-# ==============================================================================
-# Deployment Audience Members
-# ==============================================================================
-
-resource "microsoft365_graph_beta_windows_updates_autopatch_deployment_audience_members" "test" {
-  depends_on = [time_sleep.wait_for_audience]
-
-  audience_id = microsoft365_graph_beta_windows_updates_autopatch_deployment_audience.test.id
   member_type = "updatableAssetGroup"
 
   members = [
@@ -88,4 +51,11 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_deployment_audience_
   exclusions = [
     microsoft365_graph_beta_groups_group.exclusion_group.id
   ]
+
+  timeouts = {
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+    delete = "10m"
+  }
 }

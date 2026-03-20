@@ -2,15 +2,22 @@ package graphBetaWindowsUpdatesAutopatchDeploymentAudience
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -76,9 +83,9 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) IdentitySchema(ctx c
 
 func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Windows Update deployment audience container in Microsoft 365. Using the `/admin/windows/updates/deploymentAudiences` endpoint. " +
-			"A deployment audience is a container that can be populated with devices or groups. " +
-			"Use the `microsoft365_graph_beta_windows_updates_autopatch_deployment_audience_members` resource to manage the actual members and exclusions. " +
+		MarkdownDescription: "Manages a Windows Update deployment audience in Microsoft 365, including its members and exclusions. " +
+			"Uses the `/admin/windows/updates/deploymentAudiences` endpoint to create the audience container and the " +
+			"`updateAudienceById` action to manage members and exclusions in a single resource. " +
 			"See the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/resources/windowsupdates-deploymentaudience?view=graph-rest-beta) for more information.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -87,6 +94,32 @@ func (r *WindowsUpdatesAutopatchDeploymentAudienceResource) Schema(ctx context.C
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
+			},
+			"member_type": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "The type of members in this audience. All members and exclusions must be of the same type. Valid values are: `azureADDevice`, `updatableAssetGroup`. Defaults to `azureADDevice`.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf("azureADDevice", "updatableAssetGroup"),
+				},
+			},
+			"members": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "Set of device or Entra group IDs to include in the deployment audience.",
+				Validators: []validator.Set{
+					setvalidator.ValueStringsAre(
+						stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "Must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),
+					),
+				},
+			},
+			"exclusions": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				MarkdownDescription: "Set of device or Entra group IDs to exclude from the deployment audience.",
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},

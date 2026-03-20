@@ -63,10 +63,14 @@ func (r *CrossTenantAccessPartnerSettingsResource) Create(ctx context.Context, r
 		return
 	}
 
+	object.ID = object.TenantID
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	time.Sleep(20 * time.Second)
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}

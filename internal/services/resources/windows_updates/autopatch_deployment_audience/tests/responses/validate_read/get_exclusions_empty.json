@@ -1,0 +1,4 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/windows/updates/deploymentAudiences('test-audience-id-001')/exclusions",
+  "value": []
+}

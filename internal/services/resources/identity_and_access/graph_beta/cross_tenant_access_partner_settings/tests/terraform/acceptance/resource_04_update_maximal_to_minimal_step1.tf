@@ -1,5 +1,13 @@
+# ==============================================================================
+# Cross-Tenant Access Partner Settings - Update Maximal to Minimal (Step 1)
+#
+# Step 1: Deploy maximal configuration with all blocks populated.
+# This will be reduced to the minimal configuration in step 2.
+# ==============================================================================
+
 resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "test" {
-  tenant_id = "12345678-1234-1234-1234-123456789012"
+  tenant_id   = "a22ff489-2ea9-48de-8d58-fa130b532d5d"
+  hard_delete = true
 
   b2b_collaboration_inbound = {
     users_and_groups = {
@@ -57,7 +65,7 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partne
       access_type = "blocked"
       targets = [
         {
-          target      = "Office365"
+          target      = "AllApplications"
           target_type = "application"
         }
       ]
@@ -86,8 +94,8 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partne
   }
 
   inbound_trust = {
-    is_mfa_accepted                           = true
-    is_compliant_device_accepted              = true
+    is_mfa_accepted                         = true
+    is_compliant_device_accepted            = true
     is_hybrid_azure_ad_joined_device_accepted = true
   }
 

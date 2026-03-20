@@ -328,6 +328,7 @@ func (r *WindowsUpdatesAutopatchContentApprovalResource) Delete(ctx context.Cont
 	verifyAttempt := 0
 	verifyWait := 2 * time.Second
 
+verifyLoop:
 	for {
 		verifyAttempt++
 		tflog.Debug(ctx, fmt.Sprintf("Verification attempt %d: checking if compliance change %s is deleted", verifyAttempt, object.ID.ValueString()))
@@ -358,7 +359,7 @@ func (r *WindowsUpdatesAutopatchContentApprovalResource) Delete(ctx context.Cont
 		case <-time.After(verifyWait):
 		case <-ctx.Done():
 			tflog.Warn(ctx, fmt.Sprintf("Timeout waiting for compliance change deletion confirmation after %d attempts: %s", verifyAttempt, ctx.Err()))
-			break
+			break verifyLoop
 		}
 
 		if verifyWait*2 <= maxWait {

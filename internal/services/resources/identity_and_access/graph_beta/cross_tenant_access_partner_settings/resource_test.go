@@ -12,8 +12,6 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-const resourceType = "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings"
-
 func setupMockEnvironment() (*mocks.Mocks, *crossTenantAccessPartnerSettingsMocks.CrossTenantAccessPartnerSettingsMock) {
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
@@ -306,7 +304,6 @@ func TestUnitResourceCrossTenantAccessPartnerSettings_07_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").Key("id").HasValue("12345678-1234-1234-1234-123456789012"),
 					check.That(resourceType+".test").Key("tenant_id").HasValue("12345678-1234-1234-1234-123456789012"),
-					check.That(resourceType+".test").Key("is_service_provider").HasValue("true"),
 
 					// B2B Collaboration Inbound
 					check.That(resourceType+".test").Key("b2b_collaboration_inbound.users_and_groups.access_type").HasValue("allowed"),

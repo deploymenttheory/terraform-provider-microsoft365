@@ -241,7 +241,11 @@ func constructTenantRestrictions(ctx context.Context, obj types.Object) (graphmo
 		return nil, nil
 	}
 
-	tenantRestrictions := graphmodels.NewCrossTenantAccessPolicyTenantRestrictions()
+	// Use the base B2BSetting constructor to avoid setting @odata.type
+	// The partner settings endpoint rejects the specialized tenant restrictions type
+	tenantRestrictions := &tenantRestrictionsB2BSetting{
+		CrossTenantAccessPolicyB2BSetting: *graphmodels.NewCrossTenantAccessPolicyB2BSetting(),
+	}
 
 	attrs := obj.Attributes()
 
