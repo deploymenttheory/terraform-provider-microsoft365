@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.50.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.49.1-alpha...v0.50.0-alpha) (2026-03-20)
+
+
+### Features
+
+* added datasource graph_beta_identity_and_access_device and refactored datasource graph_beta_device_management_managed_device ([#2596](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2596)) ([e3cb8a8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e3cb8a872686adcca3e91ac84a5888a29f6c5fba))
+* added windows autopatch resources: ...... ([#2522](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2522)) ([6bff051](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6bff051e38805507cf15782d96b36cc2d0b2eefb))
+* added windows update autopatch resources to the provider ([#2571](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2571)) ([c4efc8e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c4efc8ed2a5ff866a605a251af7833a61d9d011b))
+
+
+### Bug Fixes
+
+* correct attribute name in autopatch_updatable_asset_group_assignment example ([1e2bf8e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1e2bf8e79f1235cf8580609b7084cbbce86a8d69))
+* session_controls state mapping for global_secure_access_filtering_profile to prevent post-apply null inconsistency ([#2568](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2568)) ([e9df2c6](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e9df2c6ea01e0d5fcba364fc4ecff7232d6e7482))
+* update autopatch_device_registration acceptance tests for refactored managed_device API ([7ba7006](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7ba7006c33037a152c6e08d03932242f989aec6e))
+* update autopatch_updatable_asset_group_assignment tests for refactored APIs ([b7b3b5a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b7b3b5a52e117e4e4fde0212ff4fbddb18d1848f))
+
 ## [0.49.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.49.0-alpha...v0.49.1-alpha) (2026-03-13)
 
 
