@@ -22,6 +22,7 @@ type GroupPolicyUploadedDefinitionFileResourceModel struct {
 	UploadDateTime                   types.String   `tfsdk:"upload_date_time"`
 	LastModifiedDateTime             types.String   `tfsdk:"last_modified_date_time"`
 	GroupPolicyUploadedLanguageFiles types.Set      `tfsdk:"group_policy_uploaded_language_files"`
+	ForceDefinitionFileUpload        types.Bool     `tfsdk:"force_definition_file_upload"`
 	Timeouts                         timeouts.Value `tfsdk:"timeouts"`
 }
 

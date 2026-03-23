@@ -182,4 +182,45 @@ func (m useStateForUnknownOrNullSetModifier) PlanModifySet(ctx context.Context, 
 	resp.PlanValue = req.StateValue
 }
 
+// nullConfigToEmptySetModifier sets the planned value to an empty set whenever
+// the configuration value is null (i.e. the user omitted the attribute).
+//
+// This is required for Optional+Computed set attributes where the user's intent
+// when removing the attribute from config is to clear all values rather than
+// silently retain the prior state.
+//
+// Without this modifier, Terraform Plugin Framework carries the prior state value
+// forward into the plan for Optional+Computed attributes when config is null,
+// meaning no diff is detected and Update is never called — so the API never
+// receives the instruction to clear the values.
+type nullConfigToEmptySetModifier struct {
+	emptySet types.Set
+}
+
+func (m nullConfigToEmptySetModifier) Description(_ context.Context) string {
+	return "When not set in configuration, plan as empty set so that removing the attribute triggers an update that clears the API-side values."
+}
+
+func (m nullConfigToEmptySetModifier) MarkdownDescription(_ context.Context) string {
+	return "When not set in configuration, plan as empty set so that removing the attribute triggers an update that clears the API-side values."
+}
+
+func (m nullConfigToEmptySetModifier) PlanModifySet(_ context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	if !req.ConfigValue.IsNull() {
+		return
+	}
+	resp.PlanValue = m.emptySet
+}
+
+// NullConfigToEmptySet returns a plan modifier that sets the planned value to an
+// empty set whenever the configuration value is null. Pass the element type of
+// the set attribute (e.g. types.StringType).
+//
+// Use this on Optional+Computed set attributes where omitting the attribute in
+// config should clear all values on the remote resource rather than retain them.
+func NullConfigToEmptySet(elementType attr.Type) planmodifier.Set {
+	emptySet, _ := types.SetValue(elementType, []attr.Value{})
+	return nullConfigToEmptySetModifier{emptySet: emptySet}
+}
+
 //------------------------------------------------------------------------------

@@ -179,36 +179,40 @@ func (r *GroupPolicyUploadedDefinitionFileResource) Schema(ctx context.Context, 
 				Computed:            true,
 				MarkdownDescription: "The date and time when the group policy uploaded definition file was last modified.",
 			},
-			"group_policy_uploaded_language_files": schema.SetNestedAttribute{
-				Required:            true,
-				MarkdownDescription: "The language file(s) associated with the group policy uploaded definition file.",
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"file_name": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The file name of the group policy uploaded language file.",
+		"group_policy_uploaded_language_files": schema.SetNestedAttribute{
+			Required:            true,
+			MarkdownDescription: "The language file(s) associated with the group policy uploaded definition file.",
+			NestedObject: schema.NestedAttributeObject{
+				Attributes: map[string]schema.Attribute{
+					"file_name": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The file name of the group policy uploaded language file.",
+					},
+					"language_code": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The language code of the group policy uploaded language file. Must be in the format 'xx-YY' (e.g., 'en-US', 'fr-FR').",
+						Validators: []validator.String{
+							regexvalidator.RegexMatches(
+								regexp.MustCompile(constants.LocaleRegex),
+								"must be a valid locale code in the format 'xx-YY' where xx is a 2-letter lowercase language code and YY is a 2-letter uppercase country code (e.g., 'en-US', 'fr-FR', 'de-DE')",
+							),
 						},
-						"language_code": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The language code of the group policy uploaded language file. Must be in the format 'xx-YY' (e.g., 'en-US', 'fr-FR').",
-							Validators: []validator.String{
-								regexvalidator.RegexMatches(
-									regexp.MustCompile(constants.LocaleRegex),
-									"must be a valid locale code in the format 'xx-YY' where xx is a 2-letter lowercase language code and YY is a 2-letter uppercase country code (e.g., 'en-US', 'fr-FR', 'de-DE')",
-								),
-							},
-						},
-						"content": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The content of the group policy uploaded language file. Request is sent as raw bytes. This is a write-only field and will not be stored in state.",
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.RequiresReplace(),
-							},
+					},
+					"content": schema.StringAttribute{
+						Required:            true,
+						MarkdownDescription: "The content of the group policy uploaded language file. Request is sent as raw bytes. This is a write-only field and will not be stored in state.",
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
 						},
 					},
 				},
 			},
-			"timeouts": commonschema.ResourceTimeouts(ctx),
+		},
+		"force_definition_file_upload": schema.BoolAttribute{
+			Optional:            true,
+			MarkdownDescription: "If set to true, any existing definition file with the same target namespace will be deleted before uploading the new file. This is useful when re-uploading ADMX files that may already exist in the tenant. Defaults to false.",
+		},
+		"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }
