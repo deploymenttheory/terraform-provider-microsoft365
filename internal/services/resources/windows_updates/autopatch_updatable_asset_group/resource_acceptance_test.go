@@ -115,12 +115,11 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_02_WithMembers(t 
 }
 
 // TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMember tests the
-// diff-based update path for adding a member: starting with 1 device and adding a second via
-// addMembersById.
+// diff-based update path for adding a member: starting from an empty group and adding one
+// device via addMembersById through the Update function.
 //
 // API calls exercised (step 1):
 //   - POST /admin/windows/updates/updatableAssets
-//   - POST /admin/windows/updates/updatableAssets/{id}/microsoft.graph.windowsUpdates.addMembersById
 //   - GET  /admin/windows/updates/updatableAssets/{id}
 //   - GET  /admin/windows/updates/updatableAssets/{id}/microsoft.graph.windowsUpdates.updatableAssetGroup/members
 //
@@ -140,7 +139,17 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMe
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 1: Creating asset group with 1 initial device member")
+					testlog.StepAction(resourceType, "Step 1: Creating empty asset group with no members")
+				},
+				Config: loadAcceptanceTestTerraform("01_create_empty.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("0"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Adding one device member via diff-based addMembersById")
 				},
 				Config: loadAcceptanceTestTerraform("03_lifecycle_add_step1.tf"),
 				Check: resource.ComposeTestCheckFunc(
@@ -149,22 +158,7 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMe
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("1"),
-				),
-			},
-			{
-				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 2: Adding second device member via diff-based addMembersById")
-				},
-				Config: loadAcceptanceTestTerraform("03_lifecycle_add_step2.tf"),
-				Check: resource.ComposeTestCheckFunc(
-					func(s *terraform.State) error {
-						testlog.WaitForConsistency("asset group members", 30*time.Second)
-						time.Sleep(30 * time.Second)
-						return nil
-					},
-					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("2"),
 				),
 			},
 			{
@@ -181,8 +175,8 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMe
 }
 
 // TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_04_LifecycleRemoveMember tests the
-// diff-based update path for removing a member: starting with 2 devices and removing one via
-// removeMembersById.
+// diff-based update path for removing a member: starting with 1 device and removing it via
+// removeMembersById through the Update function, leaving the group empty.
 //
 // API calls exercised (step 1):
 //   - POST /admin/windows/updates/updatableAssets
@@ -206,9 +200,9 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_04_LifecycleRemov
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 1: Creating asset group with 2 device members")
+					testlog.StepAction(resourceType, "Step 1: Creating asset group with 1 device member")
 				},
-				Config: loadAcceptanceTestTerraform("04_lifecycle_remove_step1.tf"),
+				Config: loadAcceptanceTestTerraform("03_lifecycle_add_step1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("asset group members", 30*time.Second)
@@ -216,21 +210,21 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_04_LifecycleRemov
 						return nil
 					},
 					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("2"),
+					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("1"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 2: Removing one device member via diff-based removeMembersById")
+					testlog.StepAction(resourceType, "Step 2: Removing device member via diff-based removeMembersById")
 				},
-				Config: loadAcceptanceTestTerraform("04_lifecycle_remove_step2.tf"),
+				Config: loadAcceptanceTestTerraform("01_create_empty.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("asset group members", 30*time.Second)
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("1"),
+					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("0"),
 				),
 			},
 			{

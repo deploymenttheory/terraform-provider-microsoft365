@@ -8,17 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// MobileAppDataSourceModel defines the data source model
+// MobileAppDataSourceModel represents the Terraform data source model for Mobile Apps
 type MobileAppDataSourceModel struct {
-	FilterType    types.String     `tfsdk:"filter_type"`     // Required field to specify how to filter
-	FilterValue   types.String     `tfsdk:"filter_value"`    // Value to filter by (not used for "all" or "odata")
-	ODataFilter   types.String     `tfsdk:"odata_filter"`    // OData filter parameter
-	ODataTop      types.Int32      `tfsdk:"odata_top"`       // OData top parameter for limiting results
-	ODataSkip     types.Int32      `tfsdk:"odata_skip"`      // OData skip parameter for pagination
-	ODataSelect   types.String     `tfsdk:"odata_select"`    // OData select parameter for field selection
-	ODataOrderBy  types.String     `tfsdk:"odata_orderby"`   // OData orderby parameter for sorting
-	AppTypeFilter types.String     `tfsdk:"app_type_filter"` // Optional filter to filter by odata mobile app type
-	Items         []MobileAppModel `tfsdk:"items"`           // List of mobile apps that match the filters
+	AppId         types.String     `tfsdk:"app_id"`
+	DisplayName   types.String     `tfsdk:"display_name"`
+	Publisher     types.String     `tfsdk:"publisher"`
+	Developer     types.String     `tfsdk:"developer"`
+	Category      types.String     `tfsdk:"category"`
+	ListAll       types.Bool       `tfsdk:"list_all"`
+	ODataQuery    types.String     `tfsdk:"odata_query"`
+	AppTypeFilter types.String     `tfsdk:"app_type_filter"`
+	Items         []MobileAppModel `tfsdk:"items"`
 	Timeouts      timeouts.Value   `tfsdk:"timeouts"`
 }
 
