@@ -112,7 +112,41 @@ func TestUnitResourceGroupLicenseAssignment_03_Update(t *testing.T) {
 	})
 }
 
-func TestUnitResourceGroupLicenseAssignment_04_DeleteMinimal(t *testing.T) {
+// TestUnitResourceGroupLicenseAssignment_04_RemoveDisabledPlans proves the fix for the bug
+// where removing disabled_plans from config had no effect. Previously, the construct functions
+// only called SetDisabledPlans when len > 0, so an empty plan was silently ignored and the
+// API retained the old disabled plans. The fix always calls SetDisabledPlans — including with
+// an empty slice — so the API explicitly clears them.
+func TestUnitResourceGroupLicenseAssignment_04_RemoveDisabledPlans(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Step 1: Create with one disabled plan
+			{
+				Config: testConfigMinimalWithDisabledPlans(),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("disabled_plans.#").HasValue("1"),
+				),
+			},
+			// Step 2: Remove disabled_plans entirely — state must clear to empty, not retain old plans.
+			// This is the exact failure scenario reported in the bug.
+			{
+				Config: testConfigMinimal(),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".minimal").Key("id").Exists(),
+					check.That(resourceType+".minimal").Key("disabled_plans.#").HasValue("0"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceGroupLicenseAssignment_06_DeleteMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -140,7 +174,7 @@ func TestUnitResourceGroupLicenseAssignment_04_DeleteMinimal(t *testing.T) {
 	})
 }
 
-func TestUnitResourceGroupLicenseAssignment_05_DeleteMaximal(t *testing.T) {
+func TestUnitResourceGroupLicenseAssignment_07_DeleteMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, _ = setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -168,7 +202,7 @@ func TestUnitResourceGroupLicenseAssignment_05_DeleteMaximal(t *testing.T) {
 	})
 }
 
-func TestUnitResourceGroupLicenseAssignment_06_Error(t *testing.T) {
+func TestUnitResourceGroupLicenseAssignment_08_Error(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, licenseAssignmentMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()

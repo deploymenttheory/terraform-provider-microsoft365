@@ -9,12 +9,15 @@ import (
 
 // SubscribedSkusDataSourceModel represents the Terraform data source model for subscribed SKUs
 type SubscribedSkusDataSourceModel struct {
-	ID             types.String   `tfsdk:"id"`
-	SkuId          types.String   `tfsdk:"sku_id"`          // Filter by specific SKU ID
-	SkuPartNumber  types.String   `tfsdk:"sku_part_number"` // Filter by SKU part number
-	AppliesTo      types.String   `tfsdk:"applies_to"`      // Filter by applies to (User/Company)
-	SubscribedSkus types.List     `tfsdk:"subscribed_skus"` // List of all SKUs
-	Timeouts       timeouts.Value `tfsdk:"timeouts"`
+	SkuId         types.String   `tfsdk:"sku_id"`
+	SkuPartNumber types.String   `tfsdk:"sku_part_number"`
+	AccountId     types.String   `tfsdk:"account_id"`
+	AccountName   types.String   `tfsdk:"account_name"`
+	AppliesTo     types.String   `tfsdk:"applies_to"`
+	ListAll       types.Bool     `tfsdk:"list_all"`
+	ID            types.String   `tfsdk:"id"`
+	Items         types.List     `tfsdk:"items"`
+	Timeouts      timeouts.Value `tfsdk:"timeouts"`
 }
 
 // SubscribedSkuModel represents an individual subscribed SKU

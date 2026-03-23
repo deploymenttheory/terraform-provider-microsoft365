@@ -74,6 +74,9 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 		return
 	}
 
+	tflog.Debug(ctx, "Waiting 15 seconds for license assignment to propagate in Graph API")
+	time.Sleep(15 * time.Second)
+
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
@@ -211,6 +214,9 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, "Waiting 15 seconds for license update to propagate in Graph API")
+	time.Sleep(15 * time.Second)
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}

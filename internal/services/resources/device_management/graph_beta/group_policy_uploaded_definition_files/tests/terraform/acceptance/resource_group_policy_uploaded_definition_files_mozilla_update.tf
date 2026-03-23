@@ -1,7 +1,8 @@
 # admx/adml for mozilla - used for update testing
 resource "microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files" "test_update" {
-  file_name = "mozilla.admx"
-  content   = <<-EOT
+  file_name                     = "mozilla.admx"
+  force_definition_file_upload  = true
+  content                       = <<-EOT
 <?xml version="1.0" ?>
 <policyDefinitions revision="4.8" schemaVersion="1.0">
   <policyNamespaces>

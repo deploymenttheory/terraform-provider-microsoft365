@@ -178,10 +178,18 @@ func (r *GroupLicenseAssignmentResource) Schema(ctx context.Context, req resourc
 				},
 			},
 			"disabled_plans": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "A collection of the unique identifiers for service plans to disable for this license.",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				MarkdownDescription: "A collection of the unique identifiers for service plans to disable for this license. " +
+					"When omitted from configuration, all plans are enabled (any previously disabled plans are cleared).",
+				PlanModifiers: []planmodifier.Set{
+					// When the user removes disabled_plans from config, plan as empty set so
+					// Terraform detects a diff and triggers Update. Without this, TPF carries
+					// the prior state value forward for Optional+Computed attributes when config
+					// is null, no update is triggered, and stale disabled plans remain in the API.
+					planmodifiers.NullConfigToEmptySet(types.StringType),
+				},
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.RegexMatches(uuidRegex, "Each disabled plan must be a valid UUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)"),

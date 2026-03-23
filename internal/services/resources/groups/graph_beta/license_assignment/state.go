@@ -39,22 +39,35 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *GroupLicenseAs
 
 	data.ID = types.StringValue(fmt.Sprintf("%s_%s", data.GroupId.ValueString(), managedSkuId))
 
+	// Default to empty set so that if the SKU is not present in assignedLicenses (e.g. during
+	// propagation delay) we don't leave stale disabled-plan data in state.
+	data.DisabledPlans = types.SetValueMust(types.StringType, []attr.Value{})
+
 	for _, license := range assignedLicenses {
 		if license == nil {
 			continue
 		}
 
 		licenseSkuId := uuidPointerToStringValue(license.GetSkuId())
+		tflog.Debug(ctx, fmt.Sprintf("Checking license SKU: %s (looking for: %s)", licenseSkuId.ValueString(), managedSkuId))
+		
 		if licenseSkuId.ValueString() == managedSkuId {
 			disabledPlans := license.GetDisabledPlans()
+			tflog.Debug(ctx, fmt.Sprintf("Found matching license, disabled plans count: %d", len(disabledPlans)))
+			
 			disabledPlanValues := make([]attr.Value, 0, len(disabledPlans))
 			for _, planUUID := range disabledPlans {
-				disabledPlanValues = append(disabledPlanValues, types.StringValue(planUUID.String()))
+				planStr := planUUID.String()
+				tflog.Debug(ctx, fmt.Sprintf("Mapping disabled plan: %s", planStr))
+				disabledPlanValues = append(disabledPlanValues, types.StringValue(planStr))
 			}
 			data.DisabledPlans = types.SetValueMust(types.StringType, disabledPlanValues)
+			tflog.Debug(ctx, fmt.Sprintf("Set disabled_plans in state with %d items", len(disabledPlanValues)))
 			break
 		}
 	}
+	
+	tflog.Debug(ctx, fmt.Sprintf("Final disabled_plans in state: %v", data.DisabledPlans))
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping group license assignment resource with id %s", data.ID.ValueString()))
 }

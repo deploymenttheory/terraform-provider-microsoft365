@@ -39,6 +39,10 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *UserLicenseAss
 
 	data.ID = types.StringValue(fmt.Sprintf("%s_%s", data.UserId.ValueString(), managedSkuId))
 
+	// Default to empty set so that if the SKU is not present in assignedLicenses (e.g. during
+	// propagation delay) we don't leave stale disabled-plan data in state.
+	data.DisabledPlans = types.SetValueMust(types.StringType, []attr.Value{})
+
 	for _, license := range assignedLicenses {
 		if license == nil {
 			continue
