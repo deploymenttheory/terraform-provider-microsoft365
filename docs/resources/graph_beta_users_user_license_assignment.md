@@ -157,7 +157,7 @@ resource "microsoft365_graph_beta_users_user_license_assignment" "new_user_licen
 
 ### Optional
 
-- `disabled_plans` (Set of String) A collection of the unique identifiers for service plans to disable for this license.
+- `disabled_plans` (Set of String) A collection of the unique identifiers for service plans to disable for this license. When omitted from configuration, all plans are enabled (any previously disabled plans are cleared).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

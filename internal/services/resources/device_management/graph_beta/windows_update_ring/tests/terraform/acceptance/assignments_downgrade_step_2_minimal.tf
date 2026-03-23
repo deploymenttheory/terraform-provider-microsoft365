@@ -34,7 +34,6 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "test_0
     {
       type        = "allDevicesAssignmentTarget"
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     }
   ]
 

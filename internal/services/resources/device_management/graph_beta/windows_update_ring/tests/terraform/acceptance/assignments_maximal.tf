@@ -70,29 +70,24 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "test_0
       type        = "groupAssignmentTarget"
       group_id    = microsoft365_graph_beta_groups_group.acc_test_group_009_1.id
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     },
     {
       type        = "groupAssignmentTarget"
       group_id    = microsoft365_graph_beta_groups_group.acc_test_group_009_2.id
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     },
     {
       type        = "allLicensedUsersAssignmentTarget"
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     },
     {
       type        = "allDevicesAssignmentTarget"
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     },
     {
       type        = "exclusionGroupAssignmentTarget"
       group_id    = microsoft365_graph_beta_groups_group.acc_test_group_009_3.id
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     }
   ]
 

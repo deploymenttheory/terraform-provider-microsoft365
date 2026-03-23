@@ -1,8 +1,8 @@
 # admx/adml for mozilla. which is a pre-req for the firefox files of the same
 resource "microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files" "moziila" {
-  file_name                     = "mozilla.admx"
-  force_definition_file_upload  = true
-  content                       = <<-EOT
+  file_name                    = "mozilla.admx"
+  force_definition_file_upload = true
+  content                      = <<-EOT
     <?xml version="1.0" ?>
     <policyDefinitions revision="4.8" schemaVersion="1.0">
       <policyNamespaces>
