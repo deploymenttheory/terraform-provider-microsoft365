@@ -74,7 +74,6 @@ import (
 	// Utilities
 	utilityDeploymentScheduler "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/deployment_scheduler"
 	utilityEntraIdSidConverter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/entra_id_sid_converter"
-	utilityGuidListSharder "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/guid_list_sharder"
 	utilityItunesAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/itunes_app_metadata"
 	utilityLicensingServicePlanReference "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/licensing_service_plan_reference"
 	utilityMacOSPKGAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/macos_pkg_app_metadata"
@@ -159,7 +158,6 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		// Utilities
 		utilityDeploymentScheduler.NewDeploymentSchedulerDataSource,
 		utilityEntraIdSidConverter.NewEntraIdSidConverterDataSource,
-		utilityGuidListSharder.NewGuidListSharderDataSource,
 		utilityWindowsRemediationScriptRegistryKeyGenerator.NewWindowsRemediationScriptRegistryKeyGeneratorDataSource,
 		utilityMacOSPKGAppMetadata.NewMacOSPKGAppMetadataDataSource,
 		utilityItunesAppMetadata.NewItunesAppMetadataDataSource,

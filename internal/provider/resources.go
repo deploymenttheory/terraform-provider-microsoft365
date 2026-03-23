@@ -175,6 +175,9 @@ import (
 	graphBetaWindowsUpdatesAutopatchUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_update_policy"
 	graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_updatable_asset_group"
 
+	// Utility resources
+	utilityGuidListSharder "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/utility/guid_list_sharder"
+
 	// Graph v1.0 - Intune resources
 	graphDeviceManagementDeviceConfigurationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment"
 
@@ -364,6 +367,9 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph v1.0 - M365 Admin Centre
 		graphDeviceM365AdminM365AppsInstallationOptions.NewM365AppsInstallationOptionsResource,
+
+		// Utility resources
+		utilityGuidListSharder.NewGuidListSharderResource,
 
 		// PowerShell - Microsoft Teams
 		powershellMicrosoftTeamsTeamsCallingPolicy.NewTeamsCallingPolicyResource,

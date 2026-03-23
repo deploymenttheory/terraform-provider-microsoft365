@@ -1,0 +1,148 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Utility"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required (at least one, depending on resource_type):**
+- `User.Read.All` — when querying `users`
+- `Device.Read.All` — when querying `devices`
+- `Application.Read.All` — when querying `applications`
+- `Directory.Read.All` — when querying `service_principals` or `group_members`
+- `Group.Read.All` — when querying `group_members`
+
+**Optional:**
+- `User.ReadBasic.All` — sufficient for user ID queries without profile data
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.51.0-alpha | Experimental | Promoted from datasource to resource; added `recalculate_on_next_run` state locking |
+| v0.42.0-alpha | Experimental | Initial release as datasource (round-robin, percentage, size, rendezvous strategies) |
+
+## Background
+
+When deploying policies, configurations, or security controls across large Microsoft 365 environments, immediate organisation-wide rollouts carry significant risk. If a misconfiguration occurs it can impact thousands of users or devices simultaneously.
+
+The GUID List Sharder solves this by querying the Graph API for a population of users, devices, service principals, applications, or group members and distributing their object IDs into configurable subsets (shards) suitable for phased deployment:
+
+1. **Reduces blast radius** — deploy to 10% first, validate, then expand
+2. **Prevents pilot fatigue** — use a unique `seed` per rollout so the same users are not always in every pilot group
+3. **Locks assignments in state** — with `recalculate_on_next_run = false`, new tenant members do not cause churn; existing policy targets remain stable
+4. **Supports multiple strategies** — choose the algorithm that matches your deployment model
+
+### Why a resource rather than a data source?
+
+A data source recomputes on every plan, which means every `terraform plan` re-queries the Graph API and potentially reassigns users to different shards. For rollouts where membership stability matters (MFA enforcement, Windows Update rings, Conditional Access policies), this churn is undesirable and can cause live policies to target different users on each apply.
+
+As a **resource**, shard assignments are stored in state. Set `recalculate_on_next_run = false` (the recommended default) and assignments are locked — the same population is targeted on every apply, regardless of tenant changes. Set it to `true` only when you intentionally want to rebalance.
+
+## Distribution Strategies
+
+### Round-Robin
+
+Circular assignment: GUID 0 → shard_0, GUID 1 → shard_1, GUID 2 → shard_0, cycling. Guarantees perfect ±1 balance across all shards.
+
+- **Without seed**: uses API return order (non-deterministic across runs)
+- **With seed**: shuffles the input list deterministically before applying round-robin (reproducible)
+- **Use when**: equal-sized rings are required; A/B testing; capacity planning
+
+### Percentage
+
+Distributes by the ratios in `shard_percentages`. Values must sum to 100. Shard sizes are arithmetically deterministic — the seed only controls *which* GUIDs land in each shard, not how many.
+
+- **Use when**: stakeholders think in percentages (10% pilot → 30% broader → 60% full)
+
+### Size
+
+Distributes by absolute counts in `shard_sizes`. Use `-1` as the last value to capture all remaining GUIDs. Shard sizes are always exact as specified; the seed only varies membership.
+
+- **Use when**: exact headcounts are required regardless of total population size; capping pilot ring size
+
+### Rendezvous (Highest Random Weight)
+
+Each GUID independently computes `SHA256(guid:shard_N:seed)` scores for every shard and is assigned to the shard with the highest score. This means adding a new shard only moves ~1/n GUIDs (the theoretical minimum), versus ~75% with position-based strategies.
+
+- **Use when**: the ring count will change during the rollout lifecycle; minimising reassignment churn matters
+
+## Key Concept: Distributing Pilot Burden
+
+Use a different `seed` value for each independent rollout. This ensures the same users are not always the first to encounter issues:
+
+| Rollout | Seed | User A's ring |
+|---------|------|---------------|
+| MFA enforcement | `"mfa-2026"` | Ring 0 (pilot) |
+| Windows Updates | `"windows-2026"` | Ring 2 (broad) |
+| Compliance baseline | `"compliance-2026"` | Ring 1 (validation) |
+
+## Decision Matrix
+
+| Requirement | Strategy | Seed | Notes |
+|-------------|----------|------|-------|
+| Equal-sized rings | `round-robin` | Optional | Perfect ±1 balance; add seed for reproducibility |
+| Percentage waves | `percentage` | Optional | Clean ratio splits; add seed for deterministic membership |
+| Absolute headcount caps | `size` | Optional | Exact counts; supports `-1` for "all remaining" |
+| Ring count may grow | `rendezvous` | Optional | Only ~1/n GUIDs move when adding a shard |
+| Vary pilot population per rollout | Any | **Yes** | Different seeds = different distributions |
+
+## Example Usage
+
+### Round-Robin (Equal Distribution)
+
+{{ tffile "examples/resources/microsoft365_utility_guid_list_sharder/resource_01_round_robin.tf" }}
+
+### Percentage (Custom Ratios)
+
+{{ tffile "examples/resources/microsoft365_utility_guid_list_sharder/resource_02_percentage.tf" }}
+
+### Size (Absolute Counts)
+
+{{ tffile "examples/resources/microsoft365_utility_guid_list_sharder/resource_03_size.tf" }}
+
+### Rendezvous (Stable When Ring Count Changes)
+
+{{ tffile "examples/resources/microsoft365_utility_guid_list_sharder/resource_04_rendezvous.tf" }}
+
+### All Supported Resource Types
+
+{{ tffile "examples/resources/microsoft365_utility_guid_list_sharder/resource_05_resource_types.tf" }}
+
+### Managing the recalculate_on_next_run Lifecycle
+
+{{ tffile "examples/resources/microsoft365_utility_guid_list_sharder/resource_06_recalculate_lifecycle.tf" }}
+
+### Scenario: Sharder → Security Groups → Group Member Assignments
+
+{{ tffile "examples/resources/microsoft365_utility_guid_list_sharder/resource_07_scenario_groups_as_members.tf" }}
+
+### Scenario: Sharder → Groups → Phased Conditional Access Policy
+
+{{ tffile "examples/resources/microsoft365_utility_guid_list_sharder/resource_08_scenario_conditional_access.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_utility_guid_list_sharder/import.sh" }}
+
+## Additional Resources
+
+- [Microsoft Graph API - Users](https://learn.microsoft.com/en-us/graph/api/user-list)
+- [Microsoft Graph API - Devices](https://learn.microsoft.com/en-us/graph/api/device-list)
+- [Microsoft Graph API - Service Principals](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-list)
+- [Microsoft Graph API - Group Members](https://learn.microsoft.com/en-us/graph/api/group-list-members)
+- [Conditional Access Best Practices](https://learn.microsoft.com/en-us/entra/identity/conditional-access/plan-conditional-access)
+- [Phased Deployment Strategies](https://learn.microsoft.com/en-us/mem/intune/fundamentals/deployment-guide-intune-setup)
