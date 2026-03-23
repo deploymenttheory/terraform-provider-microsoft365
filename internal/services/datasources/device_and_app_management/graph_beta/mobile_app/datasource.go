@@ -5,9 +5,11 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -35,55 +37,118 @@ func NewMobileAppDataSource() datasource.DataSource {
 }
 
 type MobileAppDataSource struct {
-	client          *msgraphbetasdk.GraphServiceClient
+	client *msgraphbetasdk.GraphServiceClient
+
 	ReadPermissions []string
 }
 
-// Metadata returns the datasource type name.
-func (r *MobileAppDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *MobileAppDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = DataSourceName
 }
 
-// Configure sets the client for the data source
 func (d *MobileAppDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
-// Schema defines the schema for the data source
 func (d *MobileAppDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves mobile applications from Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. This data source enables querying all mobile app types including Win32 LOB apps, PKG/DMG apps, store apps, and web apps with advanced filtering capabilities for application discovery and configuration planning.",
+		MarkdownDescription: "Retrieves mobile applications from Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. " +
+			"Supports flexible lookup by app ID, display name, publisher, developer, category, or custom OData queries.",
 		Attributes: map[string]schema.Attribute{
-			"filter_type": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `publisher_name`, `odata`.",
+			"app_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The unique identifier of the mobile app. Conflicts with other lookup attributes.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "id", "display_name", "publisher_name", "odata"),
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("display_name"),
+						path.MatchRoot("publisher"),
+						path.MatchRoot("developer"),
+						path.MatchRoot("category"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+					stringvalidator.AtLeastOneOf(
+						path.MatchRoot("app_id"),
+						path.MatchRoot("display_name"),
+						path.MatchRoot("publisher"),
+						path.MatchRoot("developer"),
+						path.MatchRoot("category"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
 				},
 			},
-			"filter_value": schema.StringAttribute{
+			"display_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Value to filter by. Not required when filter_type is 'all' or 'odata'.",
+				MarkdownDescription: "Filter apps by display name (case-insensitive partial match). Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("app_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_filter": schema.StringAttribute{
+			"publisher": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $filter parameter for filtering results. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "Filter apps by publisher name (case-insensitive partial match). Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("app_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_top": schema.Int32Attribute{
+			"developer": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "Filter apps by developer name (case-insensitive partial match). Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("app_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_skip": schema.Int32Attribute{
+			"category": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $skip parameter for pagination. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "Filter apps by category name (case-insensitive partial match). Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("app_id"),
+						path.MatchRoot("list_all"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_select": schema.StringAttribute{
+			"list_all": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $select parameter to specify which fields to include. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "Retrieve all mobile apps. Conflicts with specific lookup attributes.",
+				Validators: []validator.Bool{
+					boolvalidator.ConflictsWith(
+						path.MatchRoot("app_id"),
+						path.MatchRoot("display_name"),
+						path.MatchRoot("publisher"),
+						path.MatchRoot("developer"),
+						path.MatchRoot("category"),
+						path.MatchRoot("odata_query"),
+					),
+				},
 			},
-			"odata_orderby": schema.StringAttribute{
+			"odata_query": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "OData $orderby parameter to sort results. Only used when filter_type is 'odata'.",
+				MarkdownDescription: "Custom OData filter expression for advanced filtering. Example: `startswith(publisher, 'Microsoft') and isAssigned eq true`. Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("app_id"),
+						path.MatchRoot("display_name"),
+						path.MatchRoot("publisher"),
+						path.MatchRoot("developer"),
+						path.MatchRoot("category"),
+						path.MatchRoot("list_all"),
+					),
+				},
 			},
 			"app_type_filter": schema.StringAttribute{
 				Optional: true,
@@ -98,28 +163,19 @@ func (d *MobileAppDataSource) Schema(ctx context.Context, _ datasource.SchemaReq
 					"`officeSuiteApp`, `win32CatalogApp`, `win32LobApp`, `managedApp`, `managedMobileLobApp`, `mobileLobApp`.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
-						// MacOS Apps
 						"macOSPkgApp", "macOSDmgApp", "macOSLobApp", "macOSMicrosoftDefenderApp",
 						"macOSMicrosoftEdgeApp", "macOSOfficeSuiteApp", "macOsVppApp", "macOSWebClip",
-						// Android Apps
 						"androidForWorkApp", "androidLobApp", "androidManagedStoreApp", "androidManagedStoreWebApp",
 						"androidStoreApp", "managedAndroidLobApp", "managedAndroidStoreApp",
-						// iOS Apps
 						"iosiPadOSWebClip", "iosLobApp", "iosStoreApp", "iosVppApp",
 						"managedIOSLobApp", "managedIOSStoreApp",
-						// Windows Apps
 						"windowsAppX", "windowsMicrosoftEdgeApp", "windowsMobileMSI", "windowsPhone81AppX",
 						"windowsPhone81AppXBundle", "windowsPhone81StoreApp", "windowsPhoneXAP",
 						"windowsStoreApp", "windowsUniversalAppX", "windowsWebApp", "winGetApp",
-						// Web Apps
 						"webApp",
-						// Microsoft Store Apps
 						"microsoftStoreForBusinessApp",
-						// Office Apps
 						"officeSuiteApp",
-						// Win32 Apps
 						"win32CatalogApp", "win32LobApp",
-						// Other App Types
 						"managedApp", "managedMobileLobApp", "mobileLobApp",
 					),
 				},

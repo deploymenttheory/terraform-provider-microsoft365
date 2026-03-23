@@ -46,7 +46,7 @@ func TestUnitDatasourceMobileApp_01_All(t *testing.T) {
 			{
 				Config: testConfigAll(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".all").Key("filter_type").HasValue("all"),
+					check.That(dataSourceType+".all").Key("list_all").HasValue("true"),
 					check.That(dataSourceType+".all").Key("items.#").HasValue("4"),
 
 					// ============================================
@@ -119,8 +119,7 @@ func TestUnitDatasourceMobileApp_02_ById(t *testing.T) {
 			{
 				Config: testConfigById(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".by_id").Key("filter_type").HasValue("id"),
-					check.That(dataSourceType+".by_id").Key("filter_value").HasValue("00000000-0000-0000-0000-000000000001"),
+					check.That(dataSourceType+".by_id").Key("app_id").HasValue("00000000-0000-0000-0000-000000000001"),
 					check.That(dataSourceType+".by_id").Key("items.#").HasValue("1"),
 
 					// Complete field validation for single item
@@ -156,8 +155,7 @@ func TestUnitDatasourceMobileApp_03_ByDisplayName(t *testing.T) {
 			{
 				Config: testConfigByDisplayName(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".by_display_name").Key("filter_type").HasValue("display_name"),
-					check.That(dataSourceType+".by_display_name").Key("filter_value").HasValue("Microsoft"),
+					check.That(dataSourceType+".by_display_name").Key("display_name").HasValue("Microsoft"),
 					check.That(dataSourceType+".by_display_name").Key("items.#").HasValue("2"),
 					check.That(dataSourceType+".by_display_name").Key("items.0.display_name").MatchesRegex(regexp.MustCompile(`(?i)Microsoft`)),
 					check.That(dataSourceType+".by_display_name").Key("items.1.display_name").MatchesRegex(regexp.MustCompile(`(?i)Microsoft`)),
@@ -180,8 +178,7 @@ func TestUnitDatasourceMobileApp_04_ByPublisherName(t *testing.T) {
 			{
 				Config: testConfigByPublisherName(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".by_publisher").Key("filter_type").HasValue("publisher_name"),
-					check.That(dataSourceType+".by_publisher").Key("filter_value").HasValue("Microsoft"),
+					check.That(dataSourceType+".by_publisher").Key("publisher").HasValue("Microsoft"),
 					check.That(dataSourceType+".by_publisher").Key("items.#").HasValue("2"),
 					check.That(dataSourceType+".by_publisher").Key("items.0.publisher").MatchesRegex(regexp.MustCompile(`(?i)Microsoft`)),
 					check.That(dataSourceType+".by_publisher").Key("items.0.display_name").Exists(),
@@ -205,9 +202,7 @@ func TestUnitDatasourceMobileApp_05_ODataFilter(t *testing.T) {
 			{
 				Config: testConfigODataFilter(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".odata_filter").Key("filter_type").HasValue("odata"),
-					check.That(dataSourceType+".odata_filter").Key("odata_filter").HasValue("startswith(publisher, 'Microsoft')"),
-					check.That(dataSourceType+".odata_filter").Key("odata_top").HasValue("10"),
+					check.That(dataSourceType+".odata_filter").Key("odata_query").HasValue("startswith(publisher, 'Microsoft')"),
 					check.That(dataSourceType+".odata_filter").Key("items.#").Exists(),
 				),
 			},
@@ -228,10 +223,57 @@ func TestUnitDatasourceMobileApp_06_WithAppTypeFilter(t *testing.T) {
 			{
 				Config: testConfigWithAppTypeFilter(),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".win32_apps").Key("filter_type").HasValue("all"),
+					check.That(dataSourceType+".win32_apps").Key("list_all").HasValue("true"),
 					check.That(dataSourceType+".win32_apps").Key("app_type_filter").HasValue("win32LobApp"),
 					check.That(dataSourceType+".win32_apps").Key("items.#").HasValue("1"),
 					check.That(dataSourceType+".win32_apps").Key("items.0.display_name").HasValue("Microsoft Edge"),
+				),
+			},
+		},
+	})
+}
+
+// Test 07: Get by developer
+func TestUnitDatasourceMobileApp_07_ByDeveloper(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, appsMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer appsMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigByDeveloper(),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".by_developer").Key("developer").HasValue("Microsoft"),
+					check.That(dataSourceType+".by_developer").Key("items.#").HasValue("2"),
+					check.That(dataSourceType+".by_developer").Key("items.0.developer").MatchesRegex(regexp.MustCompile(`(?i)Microsoft`)),
+					check.That(dataSourceType+".by_developer").Key("items.0.display_name").Exists(),
+					check.That(dataSourceType+".by_developer").Key("items.1.developer").MatchesRegex(regexp.MustCompile(`(?i)Microsoft`)),
+				),
+			},
+		},
+	})
+}
+
+// Test 08: Get by category
+func TestUnitDatasourceMobileApp_08_ByCategory(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, appsMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer appsMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigByCategory(),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(dataSourceType+".by_category").Key("category").HasValue("Productivity"),
+					check.That(dataSourceType+".by_category").Key("items.#").HasValue("1"),
+					check.That(dataSourceType+".by_category").Key("items.0.categories.#").Exists(),
+					check.That(dataSourceType+".by_category").Key("items.0.display_name").Exists(),
 				),
 			},
 		},
@@ -283,6 +325,22 @@ func testConfigWithAppTypeFilter() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/06_with_app_type_filter.tf")
 	if err != nil {
 		panic("failed to load 06_with_app_type_filter config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigByDeveloper() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/07_by_developer.tf")
+	if err != nil {
+		panic("failed to load 07_by_developer config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigByCategory() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/08_by_category.tf")
+	if err != nil {
+		panic("failed to load 08_by_category config: " + err.Error())
 	}
 	return unitTestConfig
 }

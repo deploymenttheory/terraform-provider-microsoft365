@@ -32,6 +32,40 @@ The following client `application` permissions are needed in order to use this {
 
 ## Example Usage
 
-{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/datasource.tf" }}
+### Example 1: List All Mobile Apps
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/01_list_all.tf" }}
+
+### Example 2: Get Mobile App by ID
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/02_by_app_id.tf" }}
+
+### Example 3: Filter by Display Name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/03_by_display_name.tf" }}
+
+### Example 4: Filter by Publisher
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/04_by_publisher.tf" }}
+
+### Example 5: Filter by Developer
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/05_by_developer.tf" }}
+
+### Example 6: Filter by Category
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/06_by_category.tf" }}
+
+### Example 7: Advanced OData Query
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/07_odata_query.tf" }}
+
+### Example 8: Filter by App Type
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/08_with_app_type_filter.tf" }}
+
+### Example 9: Combined Filters
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_device_and_app_management_mobile_app/09_combined_filters.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}

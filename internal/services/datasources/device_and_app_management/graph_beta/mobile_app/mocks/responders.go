@@ -33,131 +33,102 @@ func (m *MobileAppsMock) RegisterMocks() {
 	mockState.mobileApps = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// 1. Get all mobile apps - GET /deviceAppManagement/mobileApps
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps", func(req *http.Request) (*http.Response, error) {
-		// Parse query parameters
-		queryParams, _ := url.ParseQuery(req.URL.RawQuery)
+	RegisterCategoriesMock()
+	RegisterGetByIdMock()
+	RegisterListAndFilterMocks()
+}
 
-		// Handle different scenarios based on query parameters
-		if filter := queryParams.Get("$filter"); filter != "" {
-			// Handle OData filters
-			if strings.Contains(filter, "startswith(publisher") {
-				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_by_publisher.json")
+func RegisterGetByIdMock() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			appId := parts[len(parts)-1]
+
+			switch appId {
+			case "00000000-0000-0000-0000-000000000001":
+				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_by_id.json")
 				var responseObj map[string]any
 				json.Unmarshal([]byte(jsonStr), &responseObj)
-				resp, err := httpmock.NewJsonResponse(200, responseObj)
-				if err != nil {
-					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				return httpmock.NewJsonResponse(200, responseObj)
+			default:
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Mobile app not found"}}`), nil
+			}
+		})
+}
+
+func RegisterListAndFilterMocks() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps`,
+		func(req *http.Request) (*http.Response, error) {
+			queryParams, _ := url.ParseQuery(req.URL.RawQuery)
+			filter := queryParams.Get("$filter")
+
+			if filter != "" {
+				if strings.Contains(filter, "contains(tolower(publisher)") || strings.Contains(filter, "startswith(publisher") {
+					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_by_publisher.json")
+					var responseObj map[string]any
+					json.Unmarshal([]byte(jsonStr), &responseObj)
+					return httpmock.NewJsonResponse(200, responseObj)
 				}
-				return resp, nil
-			}
-			if strings.Contains(filter, "startswith(displayName") {
-				jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_by_display_name.json")
-				var responseObj map[string]any
-				json.Unmarshal([]byte(jsonStr), &responseObj)
-				resp, err := httpmock.NewJsonResponse(200, responseObj)
-				if err != nil {
-					return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+				if strings.Contains(filter, "contains(tolower(displayName)") || strings.Contains(filter, "startswith(displayName") {
+					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_by_display_name.json")
+					var responseObj map[string]any
+					json.Unmarshal([]byte(jsonStr), &responseObj)
+					return httpmock.NewJsonResponse(200, responseObj)
 				}
-				return resp, nil
+				if strings.Contains(filter, "contains(tolower(developer)") {
+					jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_by_developer.json")
+					var responseObj map[string]any
+					json.Unmarshal([]byte(jsonStr), &responseObj)
+					return httpmock.NewJsonResponse(200, responseObj)
+				}
 			}
-		}
 
-		// Check for $expand parameter
-		if expand := queryParams.Get("$expand"); expand != "" {
-			// Return response with categories expanded
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_all.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
+			return httpmock.NewJsonResponse(200, responseObj)
+		})
+}
+
+func RegisterCategoriesMock() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/categories`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			appId := parts[len(parts)-2]
+
+			switch appId {
+			case "00000000-0000-0000-0000-000000000001":
+				responseObj := map[string]any{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps/categories",
+					"value": []map[string]any{
+						{
+							"@odata.type": "#microsoft.graph.mobileAppCategory",
+							"id":          "cat-001",
+							"displayName": "Productivity",
+						},
+					},
+				}
+				return httpmock.NewJsonResponse(200, responseObj)
+			case "00000000-0000-0000-0000-000000000003":
+				responseObj := map[string]any{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps/categories",
+					"value": []map[string]any{
+						{
+							"@odata.type": "#microsoft.graph.mobileAppCategory",
+							"id":          "cat-002",
+							"displayName": "Communication",
+						},
+					},
+				}
+				return httpmock.NewJsonResponse(200, responseObj)
+			default:
+				responseObj := map[string]any{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps/categories",
+					"value":          []map[string]any{},
+				}
+				return httpmock.NewJsonResponse(200, responseObj)
 			}
-			return resp, nil
-		}
-
-		// Default: return all mobile apps
-		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_all.json")
-		var responseObj map[string]any
-		json.Unmarshal([]byte(jsonStr), &responseObj)
-		resp, err := httpmock.NewJsonResponse(200, responseObj)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-		}
-		return resp, nil
-	})
-
-	// 2. Get mobile app by ID - GET /deviceAppManagement/mobileApps/{id}
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
-		parts := strings.Split(req.URL.Path, "/")
-		appId := parts[len(parts)-1]
-
-		// Return mock response for known IDs
-		switch appId {
-		case "00000000-0000-0000-0000-000000000001": // Microsoft Edge
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_app_by_id.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		default:
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Mobile app not found"}}`), nil
-		}
-	})
-
-	// 3. Handle OData queries with pagination simulation
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps\?.*`, func(req *http.Request) (*http.Response, error) {
-		queryParams, _ := url.ParseQuery(req.URL.RawQuery)
-
-		// Handle $top parameter
-		if top := queryParams.Get("$top"); top != "" {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_all.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		}
-
-		// Handle $orderby parameter
-		if orderBy := queryParams.Get("$orderby"); orderBy != "" && strings.Contains(orderBy, "displayName") {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_all.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		}
-
-		// Handle $select parameter
-		if selectFields := queryParams.Get("$select"); selectFields != "" {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_all.json")
-			var responseObj map[string]any
-			json.Unmarshal([]byte(jsonStr), &responseObj)
-			resp, err := httpmock.NewJsonResponse(200, responseObj)
-			if err != nil {
-				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-			}
-			return resp, nil
-		}
-
-		// Default OData response
-		jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_mobile_apps_all.json")
-		var responseObj map[string]any
-		json.Unmarshal([]byte(jsonStr), &responseObj)
-		resp, err := httpmock.NewJsonResponse(200, responseObj)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-		}
-		return resp, nil
-	})
+		})
 }
 
 func (m *MobileAppsMock) RegisterErrorMocks() {
@@ -165,8 +136,7 @@ func (m *MobileAppsMock) RegisterErrorMocks() {
 	mockState.mobileApps = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// Return errors for all operations
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps", func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps`, func(req *http.Request) (*http.Response, error) {
 		errorObj := map[string]any{
 			"error": map[string]any{
 				"code":    "Forbidden",
@@ -174,20 +144,6 @@ func (m *MobileAppsMock) RegisterErrorMocks() {
 			},
 		}
 		resp, err := httpmock.NewJsonResponse(403, errorObj)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
-		}
-		return resp, nil
-	})
-
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
-		errorObj := map[string]any{
-			"error": map[string]any{
-				"code":    "NotFound",
-				"message": "Mobile app not found",
-			},
-		}
-		resp, err := httpmock.NewJsonResponse(404, errorObj)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
 		}

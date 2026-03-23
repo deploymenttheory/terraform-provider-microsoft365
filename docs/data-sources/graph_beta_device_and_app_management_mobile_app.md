@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app Data S
 subcategory: "Device and App Management"
 
 description: |-
-  Retrieves mobile applications from Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. This data source enables querying all mobile app types including Win32 LOB apps, PKG/DMG apps, store apps, and web apps with advanced filtering capabilities for application discovery and configuration planning.
+  Retrieves mobile applications from Microsoft Intune using the /deviceAppManagement/mobileApps endpoint. Supports flexible lookup by app ID, display name, publisher, developer, category, or custom OData queries.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_mobile_app (Data Source)
 
-Retrieves mobile applications from Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. This data source enables querying all mobile app types including Win32 LOB apps, PKG/DMG apps, store apps, and web apps with advanced filtering capabilities for application discovery and configuration planning.
+Retrieves mobile applications from Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. Supports flexible lookup by app ID, display name, publisher, developer, category, or custom OData queries.
 
 ## Microsoft Documentation
 
@@ -32,41 +32,41 @@ The following client `application` permissions are needed in order to use this d
 
 ## Example Usage
 
+### Example 1: List All Mobile Apps
+
 ```terraform
-# =============================================================================
-# Example 1: Get all mobile apps
-# =============================================================================
+# Get all mobile apps from Intune
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "all_apps" {
-  filter_type = "all"
+  list_all = true
   timeouts = {
     read = "10s"
   }
 }
 
-output "all_intune_apps" {
-  value       = data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_apps.items != null ? data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_apps.items : []
-  description = "Complete list of all mobile apps in Intune"
+output "all_intune_apps_count" {
+  value       = length(data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_apps.items)
+  description = "Total number of mobile apps in Intune"
 }
 
-# Focused output showing just names and IDs
 output "all_intune_apps_summary" {
-  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_apps.items != null ? [
+  value = [
     for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_apps.items : {
       id           = app.id
       display_name = app.display_name
       publisher    = app.publisher
       is_assigned  = app.is_assigned
     }
-  ] : []
+  ]
   description = "Summary of all apps with key fields"
 }
+```
 
-# =============================================================================
-# Example 2: Get mobile app by ID
-# =============================================================================
+### Example 2: Get Mobile App by ID
+
+```terraform
+# Get a specific mobile app by its ID
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "by_id" {
-  filter_type  = "id"
-  filter_value = "b395af0b-910f-40f9-ad74-1cb84406a20f" # Replace with actual app ID
+  app_id = "b395af0b-910f-40f9-ad74-1cb84406a20f" # Replace with actual app ID
 
   timeouts = {
     read = "10s"
@@ -78,12 +78,19 @@ output "app_by_id" {
   description = "Complete details of the specific app"
 }
 
-# =============================================================================
-# Example 3: Filter apps by display name (case-insensitive contains match)
-# =============================================================================
+output "app_by_id_name" {
+  value       = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_id.items[0].display_name, null)
+  description = "Display name of the app"
+}
+```
+
+### Example 3: Filter by Display Name
+
+```terraform
+# Filter apps by display name (case-insensitive partial match)
+# Uses server-side OData filtering for optimal performance
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "by_display_name" {
-  filter_type  = "display_name"
-  filter_value = "Microsoft" # Finds all apps with "Microsoft" in the name
+  display_name = "Microsoft" # Finds all apps with "Microsoft" in the name
 
   timeouts = {
     read = "10s"
@@ -91,24 +98,25 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "by_display_
 }
 
 output "microsoft_apps_by_name" {
-  value       = data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_display_name.items != null ? data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_display_name.items : []
+  value       = data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_display_name.items
   description = "All apps with 'Microsoft' in the display name"
 }
 
 output "microsoft_apps_names" {
-  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_display_name.items != null ? [
+  value = [
     for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_display_name.items : app.display_name
-  ] : []
+  ]
   description = "List of display names for Microsoft apps"
 }
+```
 
-# =============================================================================
-# Example 4: Filter apps by publisher name (case-insensitive contains match)
-# NEW FEATURE - Filter by publisher
-# =============================================================================
+### Example 4: Filter by Publisher
+
+```terraform
+# Filter apps by publisher name (case-insensitive partial match)
+# Uses server-side OData filtering for optimal performance
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "by_publisher" {
-  filter_type  = "publisher_name"
-  filter_value = "Adobe" # Finds all apps published by Adobe
+  publisher = "Adobe" # Finds all apps published by Adobe
 
   timeouts = {
     read = "10s"
@@ -116,7 +124,7 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "by_publishe
 }
 
 output "adobe_apps" {
-  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_publisher.items != null ? [
+  value = [
     for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_publisher.items : {
       id           = app.id
       display_name = app.display_name
@@ -125,15 +133,111 @@ output "adobe_apps" {
       is_assigned  = app.is_assigned
       categories   = app.categories
     }
-  ] : []
+  ]
   description = "All apps from Adobe with key details"
 }
+```
 
-# =============================================================================
-# Example 5: Filter by app type - Get only Win32 LOB apps
-# =============================================================================
+### Example 5: Filter by Developer
+
+```terraform
+# Filter apps by developer name (case-insensitive partial match)
+# Uses server-side OData filtering for optimal performance
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "by_developer" {
+  developer = "Microsoft" # Finds all apps developed by Microsoft
+
+  timeouts = {
+    read = "10s"
+  }
+}
+
+output "microsoft_developed_apps" {
+  value = [
+    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_developer.items : {
+      id           = app.id
+      display_name = app.display_name
+      developer    = app.developer
+      publisher    = app.publisher
+      is_assigned  = app.is_assigned
+    }
+  ]
+  description = "All apps developed by Microsoft"
+}
+```
+
+### Example 6: Filter by Category
+
+```terraform
+# Filter apps by category name (case-insensitive partial match)
+# Note: This uses local filtering as categories are expanded relationships
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "by_category" {
+  category = "Productivity" # Finds all apps in Productivity category
+
+  timeouts = {
+    read = "30s" # Category filtering may take longer as it fetches categories for each app
+  }
+}
+
+output "productivity_apps" {
+  value = [
+    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_category.items : {
+      id           = app.id
+      display_name = app.display_name
+      publisher    = app.publisher
+      categories   = app.categories
+      is_assigned  = app.is_assigned
+    }
+  ]
+  description = "All apps in the Productivity category"
+}
+```
+
+### Example 7: Advanced OData Query
+
+```terraform
+# Advanced OData filter query
+# Uses custom OData expressions for complex filtering
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "odata_custom" {
+  odata_query = "startswith(publisher, 'Microsoft') and isAssigned eq true"
+
+  timeouts = {
+    read = "20s"
+  }
+}
+
+output "microsoft_assigned_apps" {
+  value = [
+    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.odata_custom.items : {
+      id           = app.id
+      display_name = app.display_name
+      publisher    = app.publisher
+      is_assigned  = app.is_assigned
+    }
+  ]
+  description = "Microsoft apps that are assigned"
+}
+
+# Example: Filter by creation date
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "recent_apps" {
+  odata_query = "createdDateTime gt 2024-01-01T00:00:00Z"
+
+  timeouts = {
+    read = "20s"
+  }
+}
+
+output "recent_apps_count" {
+  value       = length(data.microsoft365_graph_beta_device_and_app_management_mobile_app.recent_apps.items)
+  description = "Number of apps created after January 1, 2024"
+}
+```
+
+### Example 8: Filter by App Type
+
+```terraform
+# Filter by app type - Get only Win32 LOB apps
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "win32_apps" {
-  filter_type     = "all"
+  list_all        = true
   app_type_filter = "win32LobApp"
 
   timeouts = {
@@ -142,50 +246,35 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "win32_apps"
 }
 
 output "all_win32_apps_summary" {
-  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app.win32_apps.items != null ? [
+  value = [
     for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.win32_apps.items : {
       id           = app.id
       display_name = app.display_name
       publisher    = app.publisher
       is_assigned  = app.is_assigned
     }
-  ] : []
+  ]
   description = "Summary of all Win32 LOB apps"
 }
 
-# =============================================================================
-# Example 6: Combine publisher filter with app type filter
-# Get all Microsoft Win32 apps
-# =============================================================================
-data "microsoft365_graph_beta_device_and_app_management_mobile_app" "microsoft_win32" {
-  filter_type     = "publisher_name"
-  filter_value    = "Microsoft"
-  app_type_filter = "win32LobApp"
+# Example: Get iOS Store apps
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "ios_store_apps" {
+  list_all        = true
+  app_type_filter = "iosStoreApp"
 
   timeouts = {
     read = "10s"
   }
 }
 
-output "microsoft_win32_apps" {
-  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app.microsoft_win32.items != null ? [
-    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.microsoft_win32.items : {
-      id           = app.id
-      display_name = app.display_name
-      publisher    = app.publisher
-      description  = app.description
-      is_assigned  = app.is_assigned
-      is_featured  = app.is_featured
-    }
-  ] : []
-  description = "All Microsoft Win32 LOB apps"
+output "ios_store_apps_count" {
+  value       = length(data.microsoft365_graph_beta_device_and_app_management_mobile_app.ios_store_apps.items)
+  description = "Number of iOS Store apps"
 }
 
-# =============================================================================
-# Example 7: Filter macOS PKG apps
-# =============================================================================
+# Example: Get macOS PKG apps
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "macos_pkg_apps" {
-  filter_type     = "all"
+  list_all        = true
   app_type_filter = "macOSPkgApp"
 
   timeouts = {
@@ -194,103 +283,59 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "macos_pkg_a
 }
 
 output "macos_pkg_apps" {
-  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app.macos_pkg_apps.items != null ? [
+  value = [
     for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.macos_pkg_apps.items : {
       id           = app.id
       display_name = app.display_name
       publisher    = app.publisher
       is_assigned  = app.is_assigned
     }
-  ] : []
+  ]
   description = "All macOS PKG apps"
 }
+```
 
-# =============================================================================
-# Example 8: Advanced OData filter - Apps created after a specific date
-# =============================================================================
-data "microsoft365_graph_beta_device_and_app_management_mobile_app" "recent_apps" {
-  filter_type  = "odata"
-  odata_filter = "createdDateTime gt 2024-01-01"
-  odata_top    = 10
+### Example 9: Combined Filters
 
-  timeouts = {
-    read = "20s" # OData queries may take longer
-  }
-}
-
-output "recent_apps" {
-  value       = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.recent_apps.items, [])
-  description = "Apps created after January 1, 2024 (limited to 10)"
-}
-
-# =============================================================================
-# Example 9: Advanced OData filter - Using startswith
-# =============================================================================
-data "microsoft365_graph_beta_device_and_app_management_mobile_app" "apps_starting_with" {
-  filter_type  = "odata"
-  odata_filter = "startswith(displayName, 'Fire')"
-
-  timeouts = {
-    read = "20s"
-  }
-}
-
-output "apps_starting_with_fire" {
-  value       = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.apps_starting_with.items, [])
-  description = "Apps with display name starting with 'Fire'"
-}
-
-# =============================================================================
-# Example 10: Advanced OData filter - Using contains
-# =============================================================================
-data "microsoft365_graph_beta_device_and_app_management_mobile_app" "apps_containing" {
-  filter_type  = "odata"
-  odata_filter = "contains(displayName, 'Office')"
-
-  timeouts = {
-    read = "20s"
-  }
-}
-
-output "apps_containing_office" {
-  value       = try(data.microsoft365_graph_beta_device_and_app_management_mobile_app.apps_containing.items, [])
-  description = "Apps with 'Office' anywhere in the display name"
-}
-
-# =============================================================================
-# Example 11: Get iOS store apps
-# =============================================================================
-data "microsoft365_graph_beta_device_and_app_management_mobile_app" "ios_store_apps" {
-  filter_type     = "all"
-  app_type_filter = "iosStoreApp"
+```terraform
+# Combine publisher filter with app type filter
+# Get all Microsoft Win32 apps
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "microsoft_win32" {
+  publisher       = "Microsoft"
+  app_type_filter = "win32LobApp"
 
   timeouts = {
     read = "10s"
   }
 }
 
-output "ios_store_apps" {
-  value = data.microsoft365_graph_beta_device_and_app_management_mobile_app.ios_store_apps.items != null ? [
-    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.ios_store_apps.items : {
+output "microsoft_win32_apps" {
+  value = [
+    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.microsoft_win32.items : {
       id           = app.id
       display_name = app.display_name
       publisher    = app.publisher
+      description  = app.description
       is_assigned  = app.is_assigned
-      categories   = app.categories
+      is_featured  = app.is_featured
     }
-  ] : []
-  description = "All iOS Store apps"
+  ]
+  description = "All Microsoft Win32 LOB apps"
 }
 
-# =============================================================================
-# Example 12: Get only assigned apps
-# Using local filtering on the results
-# =============================================================================
+# Example: Get assigned apps using local filtering
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "all_for_filtering" {
+  list_all = true
+  timeouts = {
+    read = "10s"
+  }
+}
+
 locals {
-  assigned_apps = data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_apps.items != null ? [
-    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_apps.items : app
+  assigned_apps = [
+    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.all_for_filtering.items : app
     if app.is_assigned == true
-  ] : []
+  ]
 }
 
 output "assigned_apps_only" {
@@ -302,47 +347,21 @@ output "assigned_apps_count" {
   value       = length(local.assigned_apps)
   description = "Number of assigned apps"
 }
-
-# =============================================================================
-# Example 13: Complex local filtering
-# Get featured Microsoft apps
-# =============================================================================
-locals {
-  featured_microsoft_apps = data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_publisher.items != null ? [
-    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.by_publisher.items : app
-    if app.is_featured == true && contains(lower(app.publisher), "microsoft")
-  ] : []
-}
-
-output "featured_microsoft_apps" {
-  value = [
-    for app in local.featured_microsoft_apps : {
-      display_name = app.display_name
-      publisher    = app.publisher
-      is_assigned  = app.is_assigned
-      categories   = app.categories
-    }
-  ]
-  description = "Featured apps from Microsoft"
-}
 ```
 
 <!-- schema generated by tfplugindocs -->
 ## Schema
 
-### Required
-
-- `filter_type` (String) Type of filter to apply. Valid values are: `all`, `id`, `display_name`, `publisher_name`, `odata`.
-
 ### Optional
 
+- `app_id` (String) The unique identifier of the mobile app. Conflicts with other lookup attributes.
 - `app_type_filter` (String) Optional filter that filters returned apps by the application type. Supported values are: `macOSPkgApp`, `macOSDmgApp`, `macOSLobApp`, `macOSMicrosoftDefenderApp`, `macOSMicrosoftEdgeApp`, `macOSOfficeSuiteApp`, `macOsVppApp`, `macOSWebClip`, `androidForWorkApp`, `androidLobApp`, `androidManagedStoreApp`, `androidManagedStoreWebApp`, `androidStoreApp`, `managedAndroidLobApp`, `managedAndroidStoreApp`, `iosiPadOSWebClip`, `iosLobApp`, `iosStoreApp`, `iosVppApp`, `managedIOSLobApp`, `managedIOSStoreApp`, `windowsAppX`, `windowsMicrosoftEdgeApp`, `windowsMobileMSI`, `windowsPhone81AppX`, `windowsPhone81AppXBundle`, `windowsPhone81StoreApp`, `windowsPhoneXAP`, `windowsStoreApp`, `windowsUniversalAppX`, `windowsWebApp`, `winGetApp`, `webApp`, `microsoftStoreForBusinessApp`, `officeSuiteApp`, `win32CatalogApp`, `win32LobApp`, `managedApp`, `managedMobileLobApp`, `mobileLobApp`.
-- `filter_value` (String) Value to filter by. Not required when filter_type is 'all' or 'odata'.
-- `odata_filter` (String) OData $filter parameter for filtering results. Only used when filter_type is 'odata'.
-- `odata_orderby` (String) OData $orderby parameter to sort results. Only used when filter_type is 'odata'.
-- `odata_select` (String) OData $select parameter to specify which fields to include. Only used when filter_type is 'odata'.
-- `odata_skip` (Number) OData $skip parameter for pagination. Only used when filter_type is 'odata'.
-- `odata_top` (Number) OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.
+- `category` (String) Filter apps by category name (case-insensitive partial match). Conflicts with other lookup attributes.
+- `developer` (String) Filter apps by developer name (case-insensitive partial match). Conflicts with other lookup attributes.
+- `display_name` (String) Filter apps by display name (case-insensitive partial match). Conflicts with other lookup attributes.
+- `list_all` (Boolean) Retrieve all mobile apps. Conflicts with specific lookup attributes.
+- `odata_query` (String) Custom OData filter expression for advanced filtering. Example: `startswith(publisher, 'Microsoft') and isAssigned eq true`. Conflicts with other lookup attributes.
+- `publisher` (String) Filter apps by publisher name (case-insensitive partial match). Conflicts with other lookup attributes.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
