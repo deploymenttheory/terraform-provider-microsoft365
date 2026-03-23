@@ -2,9 +2,9 @@
 
 # admx/adml for google
 resource "microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files" "google" {
-  file_name                     = "google.admx"
-  force_definition_file_upload  = true
-  content                       = <<-EOT
+  file_name                    = "google.admx"
+  force_definition_file_upload = true
+  content                      = <<-EOT
 <?xml version="1.0" ?>
 <policyDefinitions revision="1.0" schemaVersion="1.0">
   <policyNamespaces>

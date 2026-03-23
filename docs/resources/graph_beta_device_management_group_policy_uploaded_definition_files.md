@@ -39,8 +39,9 @@ The following client `application` permissions are needed in order to use this r
 ```terraform
 # admx/adml for mozilla. which is a pre-req for the firefox files of the same
 resource "microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files" "moziila" {
-  file_name = "mozilla.admx"
-  content   = <<-EOT
+  file_name                    = "mozilla.admx"
+  force_definition_file_upload = true
+  content                      = <<-EOT
     <?xml version="1.0" ?>
     <policyDefinitions revision="4.8" schemaVersion="1.0">
       <policyNamespaces>
@@ -95,6 +96,7 @@ resource "microsoft365_graph_beta_device_management_group_policy_uploaded_defini
 - `default_language_code` (String) The default language code of the group policy uploaded definition file. Must be in the format 'xx-YY' (e.g., 'en-US', 'fr-FR').
 - `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `display_name` (String) The display name of the group policy uploaded definition file.
+- `force_definition_file_upload` (Boolean) If set to true, any existing definition file with the same target namespace will be deleted before uploading the new file. This is useful when re-uploading ADMX files that may already exist in the tenant. Defaults to false.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

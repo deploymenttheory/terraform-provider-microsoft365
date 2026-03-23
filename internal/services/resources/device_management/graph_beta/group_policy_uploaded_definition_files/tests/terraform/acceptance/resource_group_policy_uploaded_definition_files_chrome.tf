@@ -1,8 +1,8 @@
 # admx/adml for chrome
 resource "microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files" "test_update" {
-  file_name                     = "chrome.admx"
-  force_definition_file_upload  = true
-  content                       = <<-EOT
+  file_name                    = "chrome.admx"
+  force_definition_file_upload = true
+  content                      = <<-EOT
 <?xml version="1.0" ?>
 <policyDefinitions revision="1.0" schemaVersion="1.0">
   <policyNamespaces>

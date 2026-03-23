@@ -61,33 +61,28 @@ resource "microsoft365_graph_beta_device_management_windows_update_ring" "maxima
       type        = "groupAssignmentTarget"
       group_id    = microsoft365_graph_beta_groups_group.update_ring_group_1.id
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     },
     # Assign to specific group 2
     {
       type        = "groupAssignmentTarget"
       group_id    = microsoft365_graph_beta_groups_group.update_ring_group_2.id
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     },
     # Assign to all licensed users
     {
       type        = "allLicensedUsersAssignmentTarget"
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     },
     # Assign to all devices
     {
       type        = "allDevicesAssignmentTarget"
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     },
     # Exclude a specific group
     {
       type        = "exclusionGroupAssignmentTarget"
       group_id    = microsoft365_graph_beta_groups_group.update_ring_exclusion_group.id
       filter_type = "none"
-      filter_id   = "00000000-0000-0000-0000-000000000000"
     }
   ]
 }
