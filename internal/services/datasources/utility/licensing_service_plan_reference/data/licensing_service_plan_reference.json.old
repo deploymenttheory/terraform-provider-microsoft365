@@ -1666,33 +1666,6 @@
     ]
   },
   {
-    "product_name": "Dynamics 365 Customer Service Digital Messaging Partner Sandbox",
-    "string_id": "Dynamics_365_Customer_Service_Digital_Messaging_Partner_Sandbox",
-    "guid": "aeb8c883-d700-4aa1-8719-402b5adf2949",
-    "service_plans_included": [
-      {
-        "id": "DYN365_CS_MESSAGING_TPS",
-        "name": "Dynamics 365 Customer Service Digital Messaging add-on",
-        "guid": "47c2b191-a5fb-4129-b690-00c474d2f623"
-      },
-      {
-        "id": "DYN365_CS_MESSAGING",
-        "name": "Dynamics 365 Customer Service Digital Messaging Application Integration",
-        "guid": "43b076f2-1123-45ba-a339-2e170ee58c53"
-      },
-      {
-        "id": "POWER_VIRTUAL_AGENTS_D365_CS_MESSAGING",
-        "name": "Power Virtual Agents for Digital Messaging",
-        "guid": "2d2f174c-c3cc-4abe-9ce8-4dd86f469ab1"
-      },
-      {
-        "id": "EXCHANGE_S_FOUNDATION",
-        "name": "Exchange Foundation",
-        "guid": "113feb6c-3fe4-4440-bddc-54d774bf0318"
-      }
-    ]
-  },
-  {
     "product_name": "Dynamics 365 Customer Service Enterprise Viral Trial",
     "string_id": "Dynamics_365_Customer_Service_Enterprise_viral_trial",
     "guid": "1e615a51-59db-4807-9957-aa83c3657351",
@@ -3183,33 +3156,6 @@
         "id": "MCOMEETBASIC",
         "name": "Microsoft Teams Audio Conferencing with dial-out to select geographies",
         "guid": "9974d6cf-cd24-4ba2-921c-e2aa687da846"
-      }
-    ]
-  },
-  {
-    "product_name": "Dynamics 365 Marketing App",
-    "string_id": "DYN365_MARKETING_APP",
-    "guid": "00b861da-8087-4e30-beb8-8db3c6d9581e",
-    "service_plans_included": [
-      {
-        "id": "DYN365_MARKETING_APP",
-        "name": "Dynamics 365 for Marketing",
-        "guid": "a3a4fa10-5092-401a-af30-0462a95a7ac8"
-      },
-      {
-        "id": "Forms_Pro_Marketing_App",
-        "name": "Microsoft Dynamics 365 Customer Voice for Marketing Application",
-        "guid": "22b657cf-0a9e-467b-8a91-5e31f21bc570"
-      },
-      {
-        "id": "DYN365_MARKETING_APP_MSE",
-        "name": "Retired - Microsoft Social Engagement",
-        "guid": "ce112267-84df-4a78-9e8d-707ea8af89f3"
-      },
-      {
-        "id": "EXCHANGE_S_FOUNDATION",
-        "name": "Exchange Foundation",
-        "guid": "113feb6c-3fe4-4440-bddc-54d774bf0318"
       }
     ]
   },
@@ -10493,33 +10439,6 @@
     ]
   },
   {
-    "product_name": "Microsoft 365 Copilot for Finance (Preview)",
-    "string_id": "Microsoft_Copilot_for_Finance_trial",
-    "guid": "7792674b-fa0c-4af5-b2a1-a15239f933b6",
-    "service_plans_included": [
-      {
-        "id": "COPILOT_STUDIO_IN_COPILOT_FOR_M365",
-        "name": "Copilot Studio in Copilot for M365",
-        "guid": "fe6c28b3-d468-44ea-bbd0-a10a5167435c"
-      },
-      {
-        "id": "financecopilot_trial",
-        "name": "Copilot for Finance Trial",
-        "guid": "5a6d0425-3ef2-4e42-8372-76709c9effe0"
-      },
-      {
-        "id": "CDS_Copilot_for_Finance_Trial",
-        "name": "Dataverse for Copilot for Finance Trial",
-        "guid": "1c56fdd3-59ce-417a-b8bb-a97bb4e67b99"
-      },
-      {
-        "id": "FLOW_Copilot_for_Finance_Trial",
-        "name": "Power Automate for Copilot for Finance Trial",
-        "guid": "68bf3da4-4e1a-4e13-a1cc-2bc6986b4d88"
-      }
-    ]
-  },
-  {
     "product_name": "Microsoft 365 Copilot for Sales",
     "string_id": "Microsoft_Copilot_for_Sales",
     "guid": "15f2e9fc-b782-4f73-bf51-81d8b7fff6f4",
@@ -10583,23 +10502,6 @@
         "id": "M365_COPILOT_CONNECTORS",
         "name": "Power Platform Connectors in Microsoft 365 Copilot",
         "guid": "89f1c4c8-0878-40f7-804d-869c9128ab5d"
-      }
-    ]
-  },
-  {
-    "product_name": "Microsoft 365 Domestic Calling Plan (120 min)",
-    "string_id": "MCOPSTN_5",
-    "guid": "11dee6af-eca8-419f-8061-6864517c1875",
-    "service_plans_included": [
-      {
-        "id": "MCOPSTN5",
-        "name": "Microsoft 365 Domestic Calling Plan (120 min)",
-        "guid": "54a152dc-90de-4996-93d2-bc47e670fc06"
-      },
-      {
-        "id": "MCOSMS5",
-        "name": "Microsoft 365 SMS 100 Units",
-        "guid": "754aec36-45fc-4eaa-bcaf-44f6cb1f553c"
       }
     ]
   },
@@ -21541,23 +21443,6 @@
     ]
   },
   {
-    "product_name": "Microsoft Teams Calling Plan pay-as-you-go (country zone 1)",
-    "string_id": "Microsoft_Teams_Calling_Plan_pay_as_you_go_(country_zone_1)",
-    "guid": "dbd31205-338e-4dec-903d-44402e305e32",
-    "service_plans_included": [
-      {
-        "id": "MCOSMS_PAYG_1",
-        "name": "Microsoft 365 SMS Pay As You Go",
-        "guid": "2b9bf4f4-ac52-42c5-8456-f70ee4924295"
-      },
-      {
-        "id": "MCOPSTN_PAYG_1",
-        "name": "Microsoft Teams Calling Plan pay-as-you-go - country zone 1",
-        "guid": "156a1efe-17cd-4b03-9f17-2eb512298fb3"
-      }
-    ]
-  },
-  {
     "product_name": "Microsoft Teams Calling Plan pay-as-you-go (country zone 1 - US)",
     "string_id": "Microsoft_Teams_Calling_Plan_pay_as_you_go_(country_zone_1_US)",
     "guid": "9b196e97-5830-4c2e-adc2-1e10ebf5dee5",
@@ -21640,78 +21525,6 @@
         "id": "ONEDRIVE_BASIC_P2",
         "name": "OneDrive for Business (Basic 2)",
         "guid": "4495894f-534f-41ca-9d3b-0ebf1220a423"
-      },
-      {
-        "id": "MCOIMP",
-        "name": "Skype for Business Online (Plan 1)",
-        "guid": "afc06cb0-b4f4-4473-8286-d644f70d8faf"
-      }
-    ]
-  },
-  {
-    "product_name": "Microsoft Teams Enterprise",
-    "string_id": "Microsoft_Teams_Enterprise_New",
-    "guid": "7e31c0d9-9551-471d-836f-32ee72be4a01",
-    "service_plans_included": [
-      {
-        "id": "MESH_AVATARS_FOR_TEAMS",
-        "name": "Avatars for Teams",
-        "guid": "dcf9d2f4-772e-4434-b757-77a453cfbc02"
-      },
-      {
-        "id": "MESH_AVATARS_ADDITIONAL_FOR_TEAMS",
-        "name": "Avatars for Teams (additional)",
-        "guid": "3efbd4ed-8958-4824-8389-1321f8730af8"
-      },
-      {
-        "id": "EXCHANGE_S_DESKLESS",
-        "name": "Exchange Online Kiosk",
-        "guid": "4a82b400-a79f-41a4-b4e2-e94f5787b113"
-      },
-      {
-        "id": "MESH_IMMERSIVE_FOR_TEAMS",
-        "name": "Immersive spaces for Teams",
-        "guid": "f0ff6ac6-297d-49cd-be34-6dfef97f0c28"
-      },
-      {
-        "id": "MICROSOFTBOOKINGS",
-        "name": "Microsoft Bookings",
-        "guid": "199a5c09-e0ca-4e37-8f7c-b05d533e1ea2"
-      },
-      {
-        "id": "FORMS_PLAN_E1",
-        "name": "Microsoft Forms (Plan E1)",
-        "guid": "159f4cd6-e380-449f-a816-af1a9ef76344"
-      },
-      {
-        "id": "MICROSOFT_SEARCH",
-        "name": "Microsoft Search",
-        "guid": "94065c59-bc8e-4e8b-89e5-5138d471eaff"
-      },
-      {
-        "id": "TEAMS1",
-        "name": "Microsoft Teams",
-        "guid": "57ff2da0-773e-42df-b2af-ffb7a2317929"
-      },
-      {
-        "id": "INTUNE_O365",
-        "name": "Mobile Device Management for Office 365",
-        "guid": "882e1d05-acd1-4ccb-8708-6ee03664b117"
-      },
-      {
-        "id": "SHAREPOINTWAC",
-        "name": "Office for the Web",
-        "guid": "e95bec33-7c88-4a70-8e19-b10bd9d0c014"
-      },
-      {
-        "id": "ONEDRIVE_BASIC_P2",
-        "name": "OneDrive for Business (Basic 2)",
-        "guid": "4495894f-534f-41ca-9d3b-0ebf1220a423"
-      },
-      {
-        "id": "PLACES_CORE",
-        "name": "RETIRED - Places Core",
-        "guid": "1fe6227d-3e01-46d0-9510-0acad4ff6e94"
       },
       {
         "id": "MCOIMP",
@@ -32085,23 +31898,6 @@
         "id": "MCOPSTN3",
         "name": "",
         "guid": "6b340437-d6f9-4dc5-8cc2-99163f7f83d6"
-      }
-    ]
-  },
-  {
-    "product_name": "Skype Meeting Video Interop for Skype for Business",
-    "string_id": "VIDEO_INTEROP",
-    "guid": "610b16c2-bc9b-4b6b-b59f-0168123049ad",
-    "service_plans_included": [
-      {
-        "id": "EXCHANGE_S_FOUNDATION",
-        "name": "Exchange Foundation",
-        "guid": "113feb6c-3fe4-4440-bddc-54d774bf0318"
-      },
-      {
-        "id": "VIDEO_INTEROP",
-        "name": "Skype Meeting Video Interop for Skype for Business",
-        "guid": "4f0142e8-8fb8-44a7-8ef8-665425d93888"
       }
     ]
   },
