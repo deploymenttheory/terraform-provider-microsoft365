@@ -67,7 +67,13 @@ func MapRemoteStateToTerraform(
 		return true
 	})
 
-	data.EntraDeviceObjectIds = types.SetValueMust(types.StringType, memberIDs)
+	// Only overwrite if there are members to record, or the config explicitly set an
+	// empty set (i.e. original was non-null). When the attribute was never set (null)
+	// and the API returns no members, preserve null so the plan/state comparison
+	// sees null==null rather than null!=[] and avoids an inconsistent-result error.
+	if len(memberIDs) > 0 || !data.EntraDeviceObjectIds.IsNull() {
+		data.EntraDeviceObjectIds = types.SetValueMust(types.StringType, memberIDs)
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping remote state to Terraform state for %s", ResourceName))
 }
