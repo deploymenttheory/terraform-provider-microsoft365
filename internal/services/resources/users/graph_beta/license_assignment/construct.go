@@ -29,12 +29,14 @@ func constructAddLicensesRequest(ctx context.Context, data *UserLicenseAssignmen
 		assignedLicense.SetSkuId(&skuId)
 	}
 
-	// Set disabled plans if present
+	// Always explicitly set disabled plans — including an empty slice to clear any previously
+	// disabled plans. Omitting SetDisabledPlans entirely would leave existing disabled plans
+	// unchanged on the API side, which means removing disabled_plans from config would have
+	// no effect: the API would silently retain the old disabled plans and the next read would
+	// return them, causing a plan inconsistency error.
+	disabledPlans := make([]uuid.UUID, 0)
 	if !data.DisabledPlans.IsNull() && !data.DisabledPlans.IsUnknown() {
-		disabledPlansElements := data.DisabledPlans.Elements()
-		disabledPlans := make([]uuid.UUID, 0, len(disabledPlansElements))
-
-		for _, planVal := range disabledPlansElements {
+		for _, planVal := range data.DisabledPlans.Elements() {
 			if strVal, ok := planVal.(types.String); ok {
 				planUUID, err := uuid.Parse(strVal.ValueString())
 				if err != nil {
@@ -43,11 +45,8 @@ func constructAddLicensesRequest(ctx context.Context, data *UserLicenseAssignmen
 				disabledPlans = append(disabledPlans, planUUID)
 			}
 		}
-
-		if len(disabledPlans) > 0 {
-			assignedLicense.SetDisabledPlans(disabledPlans)
-		}
 	}
+	assignedLicense.SetDisabledPlans(disabledPlans)
 
 	requestBody.SetAddLicenses([]graphmodels.AssignedLicenseable{assignedLicense})
 	requestBody.SetRemoveLicenses([]uuid.UUID{})
@@ -78,12 +77,14 @@ func constructUpdateLicenseRequest(ctx context.Context, data *UserLicenseAssignm
 		assignedLicense.SetSkuId(&skuId)
 	}
 
-	// Set disabled plans if present
+	// Always explicitly set disabled plans — including an empty slice to clear any previously
+	// disabled plans. Omitting SetDisabledPlans entirely would leave existing disabled plans
+	// unchanged on the API side, which means removing disabled_plans from config would have
+	// no effect: the API would silently retain the old disabled plans and the next read would
+	// return them, causing a plan inconsistency error.
+	disabledPlans := make([]uuid.UUID, 0)
 	if !data.DisabledPlans.IsNull() && !data.DisabledPlans.IsUnknown() {
-		disabledPlansElements := data.DisabledPlans.Elements()
-		disabledPlans := make([]uuid.UUID, 0, len(disabledPlansElements))
-
-		for _, planVal := range disabledPlansElements {
+		for _, planVal := range data.DisabledPlans.Elements() {
 			if strVal, ok := planVal.(types.String); ok {
 				planUUID, err := uuid.Parse(strVal.ValueString())
 				if err != nil {
@@ -92,11 +93,8 @@ func constructUpdateLicenseRequest(ctx context.Context, data *UserLicenseAssignm
 				disabledPlans = append(disabledPlans, planUUID)
 			}
 		}
-
-		if len(disabledPlans) > 0 {
-			assignedLicense.SetDisabledPlans(disabledPlans)
-		}
 	}
+	assignedLicense.SetDisabledPlans(disabledPlans)
 
 	requestBody.SetAddLicenses([]graphmodels.AssignedLicenseable{assignedLicense})
 	requestBody.SetRemoveLicenses([]uuid.UUID{})

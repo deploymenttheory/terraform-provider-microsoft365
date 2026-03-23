@@ -2,21 +2,21 @@ package graphSubscribedSkus
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
 
 const (
-	DataSourceName = "microsoft365_graph_beta_identity_and_access_subscribed_skus"
+	DataSourceName = "microsoft365_graph_identity_and_access_subscribed_skus"
 	ReadTimeout    = 180
 )
 
@@ -56,36 +56,90 @@ func (d *SubscribedSkusDataSource) Configure(ctx context.Context, req datasource
 // Schema returns the schema for the data source.
 func (d *SubscribedSkusDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Retrieves Microsoft 365 license SKUs from Microsoft Entra ID using the `/subscribedSkus` endpoint. This data source is used to query subscribed license SKUs with consumption details and service plans.",
+		MarkdownDescription: "Retrieves Microsoft 365 license SKUs from Microsoft Entra ID using the `/subscribedSkus` endpoint. Supports flexible lookup by SKU ID, SKU part number, account ID, account name, or applies-to filter.",
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The unique identifier for this data source operation.",
-			},
 			"sku_id": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Filter results by a specific SKU ID (GUID). When specified, only the matching SKU will be returned.",
+				MarkdownDescription: "The unique identifier of a specific SKU (format: accountId_skuId). Conflicts with other lookup attributes.",
 				Validators: []validator.String{
-					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.GuidRegex),
-						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("sku_part_number"),
+						path.MatchRoot("account_id"),
+						path.MatchRoot("account_name"),
+						path.MatchRoot("applies_to"),
+						path.MatchRoot("list_all"),
+					),
+					stringvalidator.AtLeastOneOf(
+						path.MatchRoot("sku_id"),
+						path.MatchRoot("sku_part_number"),
+						path.MatchRoot("account_id"),
+						path.MatchRoot("account_name"),
+						path.MatchRoot("applies_to"),
+						path.MatchRoot("list_all"),
 					),
 				},
 			},
 			"sku_part_number": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Filter results by SKU part number (e.g., 'ENTERPRISEPREMIUM', 'AAD_PREMIUM'). When specified, only matching SKUs will be returned.",
+				MarkdownDescription: "Filter by SKU part number (e.g., 'ENTERPRISEPREMIUM', 'AAD_PREMIUM'). Case-insensitive partial match. Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("sku_id"),
+						path.MatchRoot("list_all"),
+					),
+				},
+			},
+			"account_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Filter by account ID (GUID). This typically matches your tenant ID. Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("sku_id"),
+						path.MatchRoot("list_all"),
+					),
+				},
+			},
+			"account_name": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "Filter by account name. Case-insensitive partial match. Conflicts with other lookup attributes.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("sku_id"),
+						path.MatchRoot("list_all"),
+					),
+				},
 			},
 			"applies_to": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Filter results by target class. Possible values: 'User', 'Company'. When specified, only SKUs that apply to the specified target will be returned.",
+				MarkdownDescription: "Filter by target class. Possible values: 'User', 'Company'. Conflicts with other lookup attributes.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("User", "Company"),
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("sku_id"),
+						path.MatchRoot("list_all"),
+					),
 				},
 			},
-			"subscribed_skus": schema.ListNestedAttribute{
+			"list_all": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Retrieve all subscribed SKUs. Conflicts with specific lookup attributes.",
+				Validators: []validator.Bool{
+					boolvalidator.ConflictsWith(
+						path.MatchRoot("sku_id"),
+						path.MatchRoot("sku_part_number"),
+						path.MatchRoot("account_id"),
+						path.MatchRoot("account_name"),
+						path.MatchRoot("applies_to"),
+					),
+				},
+			},
+			"id": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "List of subscribed SKUs available to the organization.",
+				MarkdownDescription: "The unique identifier for this data source operation.",
+			},
+			"items": schema.ListNestedAttribute{
+				Computed:            true,
+				MarkdownDescription: "List of subscribed SKUs matching the query criteria.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id": schema.StringAttribute{

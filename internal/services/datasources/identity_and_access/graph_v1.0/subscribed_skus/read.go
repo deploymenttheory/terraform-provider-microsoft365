@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 // Read handles the Read operation for Subscribed SKUs data source.
@@ -25,68 +26,57 @@ func (d *SubscribedSkusDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Reading %s with filters - sku_id: %s, sku_part_number: %s, applies_to: %s",
-		DataSourceName,
-		object.SkuId.ValueString(),
-		object.SkuPartNumber.ValueString(),
-		object.AppliesTo.ValueString()))
-
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	var filteredItems []SubscribedSkuModel
+	lookupMethod := d.determineLookupMethod(object)
+	tflog.Debug(ctx, fmt.Sprintf("Determined lookup method: %s", lookupMethod))
 
-	// If we have a specific SKU ID, try to get it directly
-	if !object.SkuId.IsNull() && object.SkuId.ValueString() != "" {
-		skuId := object.SkuId.ValueString()
+	var skus []models.SubscribedSkuable
+	var err error
 
-		respItem, err := d.client.
-			SubscribedSkus().
-			BySubscribedSkuId(skuId).
-			Get(ctx, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		mappedItem := MapRemoteStateToDataSource(respItem)
-
-		// Apply additional filters if specified
-		if shouldIncludeItem(mappedItem, object) {
-			filteredItems = append(filteredItems, mappedItem)
-		}
-	} else {
-		// Get all subscribed SKUs and filter locally
-		respList, err := d.client.
-			SubscribedSkus().
-			Get(ctx, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		for _, item := range respList.GetValue() {
-			mappedItem := MapRemoteStateToDataSource(item)
-
-			if shouldIncludeItem(mappedItem, object) {
-				filteredItems = append(filteredItems, mappedItem)
-			}
-		}
+	switch lookupMethod {
+	case "sku_id":
+		skus, err = d.getSkuById(ctx, object.SkuId.ValueString())
+	case "sku_part_number":
+		skus, err = d.getSkusByPartNumber(ctx, object.SkuPartNumber.ValueString())
+	case "account_id":
+		skus, err = d.getSkusByAccountId(ctx, object.AccountId.ValueString())
+	case "account_name":
+		skus, err = d.getSkusByAccountName(ctx, object.AccountName.ValueString())
+	case "applies_to":
+		skus, err = d.getSkusByAppliesTo(ctx, object.AppliesTo.ValueString())
+	case "list_all":
+		skus, err = d.listAllSkus(ctx)
+	default:
+		resp.Diagnostics.AddError(
+			"Invalid Configuration",
+			"No valid lookup method specified. Please provide one of: sku_id, sku_part_number, account_id, account_name, applies_to, or list_all.",
+		)
+		return
 	}
 
-	// Convert the filtered items to a Terraform list
-	subscribedSkusList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: getSubscribedSkuObjectType()}, filteredItems)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
+		return
+	}
+
+	filteredItems := make([]SubscribedSkuModel, 0, len(skus))
+	for _, sku := range skus {
+		mappedItem := MapRemoteStateToDataSource(sku)
+		filteredItems = append(filteredItems, mappedItem)
+	}
+
+	itemsList, diags := types.ListValueFrom(ctx, types.ObjectType{AttrTypes: getSubscribedSkuObjectType()}, filteredItems)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	object.SubscribedSkus = subscribedSkusList
+	object.Items = itemsList
 	object.ID = types.StringValue(fmt.Sprintf("subscribed-skus-%d", time.Now().Unix()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -97,25 +87,152 @@ func (d *SubscribedSkusDataSource) Read(ctx context.Context, req datasource.Read
 	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
 }
 
-// shouldIncludeItem determines whether an item should be included based on the filters
-func shouldIncludeItem(item SubscribedSkuModel, filters SubscribedSkusDataSourceModel) bool {
-	// Filter by SKU part number if specified
-	if !filters.SkuPartNumber.IsNull() && filters.SkuPartNumber.ValueString() != "" {
-		filterValue := strings.ToLower(filters.SkuPartNumber.ValueString())
-		itemValue := strings.ToLower(item.SkuPartNumber.ValueString())
-		if !strings.Contains(itemValue, filterValue) {
-			return false
+// determineLookupMethod determines which lookup method to use based on the provided attributes
+func (d *SubscribedSkusDataSource) determineLookupMethod(object SubscribedSkusDataSourceModel) string {
+	if !object.SkuId.IsNull() && object.SkuId.ValueString() != "" {
+		return "sku_id"
+	}
+	if !object.SkuPartNumber.IsNull() && object.SkuPartNumber.ValueString() != "" {
+		return "sku_part_number"
+	}
+	if !object.AccountId.IsNull() && object.AccountId.ValueString() != "" {
+		return "account_id"
+	}
+	if !object.AccountName.IsNull() && object.AccountName.ValueString() != "" {
+		return "account_name"
+	}
+	if !object.AppliesTo.IsNull() && object.AppliesTo.ValueString() != "" {
+		return "applies_to"
+	}
+	if !object.ListAll.IsNull() && object.ListAll.ValueBool() {
+		return "list_all"
+	}
+	return ""
+}
+
+// getSkuById retrieves a specific SKU by its ID using the GET /subscribedSkus/{id} endpoint
+func (d *SubscribedSkusDataSource) getSkuById(ctx context.Context, skuId string) ([]models.SubscribedSkuable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Fetching SKU by ID: %s", skuId))
+
+	sku, err := d.client.
+		SubscribedSkus().
+		BySubscribedSkuId(skuId).
+		Get(ctx, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return []models.SubscribedSkuable{sku}, nil
+}
+
+// listAllSkus retrieves all subscribed SKUs
+func (d *SubscribedSkusDataSource) listAllSkus(ctx context.Context) ([]models.SubscribedSkuable, error) {
+	tflog.Debug(ctx, "Fetching all subscribed SKUs")
+
+	result, err := d.client.
+		SubscribedSkus().
+		Get(ctx, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result.GetValue(), nil
+}
+
+// getSkusByPartNumber retrieves SKUs filtered by part number (local filtering)
+func (d *SubscribedSkusDataSource) getSkusByPartNumber(ctx context.Context, partNumber string) ([]models.SubscribedSkuable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Fetching SKUs by part number: %s", partNumber))
+
+	allSkus, err := d.listAllSkus(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filtered := make([]models.SubscribedSkuable, 0)
+	searchValue := strings.ToLower(partNumber)
+
+	for _, sku := range allSkus {
+		if sku.GetSkuPartNumber() != nil {
+			skuPartNumber := strings.ToLower(*sku.GetSkuPartNumber())
+			if strings.Contains(skuPartNumber, searchValue) {
+				filtered = append(filtered, sku)
+			}
 		}
 	}
 
-	// Filter by applies_to if specified
-	if !filters.AppliesTo.IsNull() && filters.AppliesTo.ValueString() != "" {
-		filterValue := strings.ToLower(filters.AppliesTo.ValueString())
-		itemValue := strings.ToLower(item.AppliesTo.ValueString())
-		if itemValue != filterValue {
-			return false
+	return filtered, nil
+}
+
+// getSkusByAccountId retrieves SKUs filtered by account ID (local filtering)
+func (d *SubscribedSkusDataSource) getSkusByAccountId(ctx context.Context, accountId string) ([]models.SubscribedSkuable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Fetching SKUs by account ID: %s", accountId))
+
+	allSkus, err := d.listAllSkus(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filtered := make([]models.SubscribedSkuable, 0)
+	searchValue := strings.ToLower(accountId)
+
+	for _, sku := range allSkus {
+		if sku.GetAccountId() != nil {
+			skuAccountId := strings.ToLower(*sku.GetAccountId())
+			if strings.Contains(skuAccountId, searchValue) {
+				filtered = append(filtered, sku)
+			}
 		}
 	}
 
-	return true
+	return filtered, nil
+}
+
+// getSkusByAccountName retrieves SKUs filtered by account name (local filtering)
+func (d *SubscribedSkusDataSource) getSkusByAccountName(ctx context.Context, accountName string) ([]models.SubscribedSkuable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Fetching SKUs by account name: %s", accountName))
+
+	allSkus, err := d.listAllSkus(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filtered := make([]models.SubscribedSkuable, 0)
+	searchValue := strings.ToLower(accountName)
+
+	for _, sku := range allSkus {
+		if sku.GetAccountName() != nil {
+			skuAccountName := strings.ToLower(*sku.GetAccountName())
+			if strings.Contains(skuAccountName, searchValue) {
+				filtered = append(filtered, sku)
+			}
+		}
+	}
+
+	return filtered, nil
+}
+
+// getSkusByAppliesTo retrieves SKUs filtered by applies_to (local filtering)
+func (d *SubscribedSkusDataSource) getSkusByAppliesTo(ctx context.Context, appliesTo string) ([]models.SubscribedSkuable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Fetching SKUs by applies_to: %s", appliesTo))
+
+	allSkus, err := d.listAllSkus(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	filtered := make([]models.SubscribedSkuable, 0)
+	searchValue := strings.ToLower(appliesTo)
+
+	for _, sku := range allSkus {
+		if sku.GetAppliesTo() != nil {
+			skuAppliesTo := strings.ToLower(*sku.GetAppliesTo())
+			if skuAppliesTo == searchValue {
+				filtered = append(filtered, sku)
+			}
+		}
+	}
+
+	return filtered, nil
 }
