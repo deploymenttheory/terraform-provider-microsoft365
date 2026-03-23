@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.51.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.50.0-alpha...v0.51.0-alpha) (2026-03-23)
+
+
+### Features
+
+* add utility resource for GUID list sharding ([4d742a0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4d742a0992e018db5f1a6139b64712e823af314e))
+* add utility resource for GUID list sharding ([#2620](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2620)) ([7f65f48](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7f65f48281aa24ae5c728c5d5a2bfad9b15d276e))
+* added new search query types for graph_identity_and_access_subscribed_skus and bug fixes for Group License Assignment and device_management_group_policy_uploaded_definition_files ([#2621](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2621)) ([4063307](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/40633075977b47b5bd1d818db6972d7d38d3f9ae))
+* added new search query types for microsoft365_graph_identity_and_access_subscribed_skus and bug fixes for GroupLicenseAssignment ([b9383b5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b9383b52bca12385bb807c6dc22d444a1c1dfa78))
+
+
+### Bug Fixes
+
+* added key ' force_definition_file_upload' to microsoft365_graph_beta_device_management_group_policy_uploaded_definition_files to handle upload error scenarios. ([9064d15](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9064d15abc115730ad3b46c86bb12e166b9772dc))
+* graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup ([dcda75d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dcda75dc142d6f8a44154923ffedbc9728234fc4))
+* graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup ([e9e3757](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e9e3757f4932a4bc15d74760b478bf9329edf99d))
+* resource WindowsUpdatesAutopatchUpdatableAssetGroup state mapping ([#2616](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2616)) ([dcda75d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dcda75dc142d6f8a44154923ffedbc9728234fc4))
+* update mobile app data source to refine filtering capabilities ([#2618](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2618)) ([6b0a712](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6b0a712f57f58a95c52153fc5234ad127a960d3e))
+
 ## [0.50.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.49.1-alpha...v0.50.0-alpha) (2026-03-20)
 
 
