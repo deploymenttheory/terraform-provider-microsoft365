@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+
 	// Graph Beta - Agents
 	graphBetaAgentCollection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_collection"
 	graphBetaAgentCollectionAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_collection_assignment"
@@ -15,7 +17,20 @@ import (
 	graphBetaApplicationsAgentIdentityBlueprintServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity_blueprint_service_principal"
 	graphBetaAgentInstance "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_instance"
 	graphBetaAgentUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_user"
-
+	// Graph Beta - Applications resources
+	graphBetaApplication "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application"
+	graphBetaApplicationCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_certificate_credential"
+	graphBetaApplicationFederatedIdentityCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_federated_identity_credential"
+	graphBetaApplicationIdentifierUri "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_identifier_uri"
+	graphBetaApplicationOnPremisesPublishing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_on_premises_publishing"
+	graphBetaApplicationOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_owner"
+	graphBetaApplicationPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_password_credential"
+	graphBetaApplicationsOnPremisesIpApplicationSegment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/on_premises_ip_application_segment"
+	graphBetaServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal"
+	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
+	graphBetaServicePrincipalOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_owner"
+	// Graph Beta - Change notifications
+	graphBetaChangeNotificationsSubscription "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/change_notifications/graph_beta/subscription"
 	// Graph Beta - Device & app management
 	graphBetaDeviceAndAppManagementAndroidManagedDeviceAppConfigurationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_device_app_configuration_policy"
 	graphBetaDeviceAndAppManagementAndroidManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_mobile_app"
@@ -36,7 +51,6 @@ import (
 	graphBetaDeviceAndAppManagementWindowsManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_managed_mobile_app"
 	graphBetaDeviceAndAppManagementWindowsWebApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_web_app"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/winget_app"
-
 	// Graph Beta - Device management
 	graphBetaDeviceManagementAndroidDeviceOwnerCompliancePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/android_device_owner_compliance_policy"
 	graphBetaDeviceManagementAospDeviceOwnerCompliancePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/aosp_device_owner_compliance_policy"
@@ -50,10 +64,8 @@ import (
 	graphBetaDeviceManagementDeviceEnrollmentLimitConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/device_enrollment_limit_configuration"
 	graphBetaDeviceManagementDeviceEnrollmentNotification "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/device_enrollment_notification"
 	graphBetaDeviceManagementEndpointPrivilegeManagementJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/endpoint_privilege_management_json"
-
 	graphBetaDeviceManagementGroupPolicyConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_configuration"
 	graphBetaDeviceManagementGroupPolicyDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_definition"
-
 	graphBetaDeviceManagementGroupPolicyUploadedDefinitionFiles "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_uploaded_definition_files"
 	graphBetaDeviceManagementIntuneBrandingProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/intune_branding_profile"
 	graphBetaDeviceManagementIosDeviceCompliancePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/ios_device_compliance_policy"
@@ -77,7 +89,6 @@ import (
 	graphBetaDeviceManagementSettingsCatalogConfigurationPolicyJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json"
 	graphBetaDeviceManagementSettingsCatalogTemplateJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_template_json"
 	graphBetaDeviceManagementTermsAndConditions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/terms_and_conditions"
-
 	graphBetaDeviceManagementWindowsAutopilotDeploymentProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_deployment_profile"
 	graphBetaDeviceManagementWindowsAutopilotDeviceIdentity "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_device_identity"
 	graphBetaDeviceManagementWindowsAutopilotDevicePreparationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_device_preparation_policy"
@@ -93,23 +104,18 @@ import (
 	graphBetaDeviceManagementWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_quality_update_policy"
 	graphBetaDeviceManagementWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
 	graphBetaDeviceManagementWindowsUpdateRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_update_ring"
-
-	// Graph Beta - Applications resources
-	graphBetaApplication "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application"
-	graphBetaApplicationCertificateCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_certificate_credential"
-	graphBetaApplicationFederatedIdentityCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_federated_identity_credential"
-	graphBetaApplicationIdentifierUri "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_identifier_uri"
-	graphBetaApplicationOnPremisesPublishing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_on_premises_publishing"
-	graphBetaApplicationOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_owner"
-	graphBetaApplicationPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_password_credential"
-	graphBetaApplicationsOnPremisesIpApplicationSegment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/on_premises_ip_application_segment"
-	graphBetaServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal"
-	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
-	graphBetaServicePrincipalOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_owner"
-
-	// Graph Beta - Backup Storage resources
-
+	// Graph v1.0 - Intune resources
+	graphDeviceManagementDeviceConfigurationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment"
+	// Graph Beta - Group resources
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
+	graphBetaGroupAppRoleAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_app_role_assignment"
+	graphBetaGroupLifecycleExpirationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_expiration_policy"
+	graphBetaGroupLifecycleExpirationPolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_expiration_policy_assignment"
+	graphBetaGroupMemberAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_member_assignment"
+	graphBetaGroupOwnerAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_owner_assignment"
+	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/license_assignment"
 	// Graph Beta - Identity and Access resources
+	graphBetaIdentityAndAccessAdministrativeUnit "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/administrative_unit"
 	graphBetaIdentityAndAccessAttributeSet "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/attribute_set"
 	graphBetaIdentityAndAccessAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
 	graphBetaIdentityAndAccessAuthenticationStrengthPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_strength_policy"
@@ -120,38 +126,25 @@ import (
 	graphBetaIdentityAndAccessCrossTenantAccessPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/cross_tenant_access_policy"
 	graphBetaIdentityAndAccessCustomSecurityAttributeAllowedValue "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_allowed_value"
 	graphBetaIdentityAndAccessCustomSecurityAttributeDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_definition"
-
-	//graphBetaIdentityAndAccessDirectorySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/directory_settings"
+	// graphBetaIdentityAndAccessDirectorySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/directory_settings"
 	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
 	graphBetaIdentityAndAccessNetworkFilteringPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_filtering_policy"
-
 	// Graph v1.0 - Identity and Access resources
 	graphIdentityAndAccessConditionalAccessTermsOfUse "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_v1.0/conditional_access_terms_of_use"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-
+	// Graph Beta - M365 Admin Centre
+	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site"
+	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site_list"
+	graphDeviceM365AdminM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/m365_apps_installation_options"
+	// PowerShell - Microsoft Teams
+	powershellMicrosoftTeamsTeamsCallingPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/microsoft_teams/teams_calling_policy"
+	powershellMicrosoftTeamsTeamsMeetingPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/microsoft_teams/teams_meeting_policy"
 	// Graph Beta - User resources
 	graphBetaUsersUserLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/license_assignment"
 	graphBetaUsersUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user"
 	graphBetaUsersUserMailboxSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user_mailbox_settings"
 	graphBetaUsersUserManager "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user_manager"
-
-	// Graph Beta - Directory resources
-
-	// Graph Beta - Group resources
-	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
-	graphBetaGroupAppRoleAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_app_role_assignment"
-	graphBetaGroupLifecycleExpirationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_expiration_policy"
-	graphBetaGroupLifecycleExpirationPolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_lifecycle_expiration_policy_assignment"
-	graphBetaGroupMemberAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_member_assignment"
-	graphBetaGroupOwnerAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_owner_assignment"
-	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/license_assignment"
-
-	// Graph Beta - M365 Admin Centre
-	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site"
-	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site_list"
-	graphDeviceM365AdminM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/m365_apps_installation_options"
-
+	// Utility resources
+	utilityGuidListSharder "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/utility/guid_list_sharder"
 	// Graph Beta - Windows 365 resources
 	graphBetaWindows365AzureNetworkConnection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/azure_network_connection"
 	graphBetaWindows365CloudPcAlertRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_alert_rule"
@@ -160,7 +153,6 @@ import (
 	graphBetaWindows365CloudPcProvisioningPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_provisioning_policy"
 	graphBetaWindows365CloudPcRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_role_definition"
 	graphBetaWindows365CloudPcUserSetting "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_user_setting"
-
 	// Graph Beta - Windows Updates resources
 	graphBetaWindowsUpdatesAutopatchContentApproval "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_content_approval"
 	graphBetaWindowsUpdatesAutopatchDeployment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_deployment"
@@ -173,16 +165,6 @@ import (
 	graphBetaWindowsUpdatesAutopatchRing "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_ring"
 	graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_updatable_asset_group"
 	graphBetaWindowsUpdatesAutopatchUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/autopatch_update_policy"
-
-	// Utility resources
-	utilityGuidListSharder "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/utility/guid_list_sharder"
-
-	// Graph v1.0 - Intune resources
-	graphDeviceManagementDeviceConfigurationAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment"
-
-	// PowerShell - Microsoft Teams
-	powershellMicrosoftTeamsTeamsCallingPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/microsoft_teams/teams_calling_policy"
-	powershellMicrosoftTeamsTeamsMeetingPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/microsoft_teams/teams_meeting_policy"
 )
 
 // Resources returns a slice of functions that each return a resource.Resource.
@@ -213,6 +195,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaServicePrincipalOwner.NewServicePrincipalOwnerResource,
 
 		// Graph Beta - Backup Storage resources
+
+		graphBetaChangeNotificationsSubscription.NewSubscriptionResource,
 
 		// Agents
 		graphBetaAgentCollection.NewAgentCollectionResource,
@@ -314,6 +298,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementWindowsBackupAndRestore.NewWindowsBackupAndRestoreResource,
 
 		// Graph Beta - Identity and Access resources
+		graphBetaIdentityAndAccessAdministrativeUnit.NewAdministrativeUnitResource,
 		graphBetaIdentityAndAccessAttributeSet.NewAttributeSetResource,
 		graphBetaIdentityAndAccessAuthenticationContext.NewAuthenticationContextResource,
 		graphBetaIdentityAndAccessAuthenticationStrengthPolicy.NewAuthenticationStrengthPolicyResource,
@@ -324,7 +309,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessCrossTenantAccessPartnerSettings.NewCrossTenantAccessPartnerSettingsResource,
 		graphBetaIdentityAndAccessCrossTenantAccessPartnerUserSyncSettings.NewCrossTenantAccessPartnerUserSyncSettingsResource,
 		graphBetaIdentityAndAccessCrossTenantAccessPolicy.NewCrossTenantAccessPolicyResource,
-		//graphBetaIdentityAndAccessDirectorySettings.NewDirectorySettingsResource,
+		// graphBetaIdentityAndAccessDirectorySettings.NewDirectorySettingsResource,
 		graphBetaIdentityAndAccessNetworkFilteringPolicy.NewNetworkFilteringPolicyResource,
 		graphBetaIdentityAndAccessNamedLocation.NewNamedLocationResource,
 

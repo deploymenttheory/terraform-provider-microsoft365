@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directory/administrativeUnits/$entity",
+  "@odata.type": "#microsoft.graph.administrativeUnit",
+  "id": "44444444-4444-4444-4444-444444444444",
+  "deletedDateTime": null,
+  "displayName": "AU004: Dynamic Administrative Unit",
+  "description": "Administrative unit with dynamic membership",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "isMemberManagementRestricted": false,
+  "membershipRule": "(user.country -eq \"United States\")",
+  "membershipRuleProcessingState": "On",
+  "membershipType": "Dynamic",
+  "visibility": null
+}

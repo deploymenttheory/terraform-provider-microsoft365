@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directory/administrativeUnits/$entity",
+  "@odata.type": "#microsoft.graph.administrativeUnit",
+  "id": "33333333-3333-3333-3333-333333333333",
+  "deletedDateTime": null,
+  "displayName": "AU003: Mixed User and Group Administrative Unit",
+  "description": "Administrative unit for mixed user and group testing",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "isMemberManagementRestricted": false,
+  "membershipRule": null,
+  "membershipRuleProcessingState": null,
+  "membershipType": null,
+  "visibility": "HiddenMembership"
+}

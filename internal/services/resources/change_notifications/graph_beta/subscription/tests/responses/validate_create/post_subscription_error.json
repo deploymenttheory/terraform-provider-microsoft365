@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "ValidationError",
+    "message": "Subscription validation failed for the notification URL."
+  }
+}
