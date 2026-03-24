@@ -1,0 +1,14 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directory/administrativeUnits/$entity",
+  "@odata.type": "#microsoft.graph.administrativeUnit",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "deletedDateTime": null,
+  "displayName": "AU001: User-Based Administrative Unit",
+  "description": "Administrative unit for user-based testing",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "isMemberManagementRestricted": false,
+  "membershipRule": null,
+  "membershipRuleProcessingState": null,
+  "membershipType": null,
+  "visibility": null
+}

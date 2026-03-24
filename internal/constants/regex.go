@@ -33,6 +33,23 @@ const (
 	// Example: "https://example.com" or "http://example.org"
 	HttpOrHttpsUrlRegex = "^https?://.*$"
 
+	// httpsURLNoWhitespace is an HTTPS URL without embedded whitespace, without line anchors (non-empty after https://).
+	// Example: "https://example.com/webhook?foo=1"
+	httpsURLNoWhitespace = `https://\S+`
+
+	// HttpsUrlRegex matches a non-empty HTTPS URL without embedded whitespace.
+	// Example: "https://example.com/webhook?foo=1"
+	HttpsUrlRegex = `^` + httpsURLNoWhitespace + `$`
+
+	// HttpsUrlOrEmptyRegex matches an empty string or the same HTTPS URL shape as HttpsUrlRegex.
+	// Example: "" or "https://example.com/lifecycle"
+	HttpsUrlOrEmptyRegex = `^(` + httpsURLNoWhitespace + `)?$`
+
+	// SubscriptionChangeTypeRegex matches a comma-separated list of Microsoft Graph subscription changeType values
+	// (optional ASCII spaces around commas): created, updated, deleted (case-insensitive).
+	// Examples: "created", "updated,deleted", "created, updated"
+	SubscriptionChangeTypeRegex = `^(?i)(created|updated|deleted)(\s*,\s*(created|updated|deleted))*$`
+
 	// EmailRegex matches a valid email address format
 	// Example: "user@example.com"
 	EmailRegex = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`

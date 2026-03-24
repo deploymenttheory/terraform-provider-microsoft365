@@ -1,0 +1,113 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Administrative units documentation](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/administrative-units)
+- [administrativeUnit resource type](https://learn.microsoft.com/en-us/graph/api/resources/administrativeunit?view=graph-rest-beta)
+- [Create administrativeUnit](https://learn.microsoft.com/en-us/graph/api/directory-post-administrativeunits?view=graph-rest-beta)
+- [Get administrativeUnit](https://learn.microsoft.com/en-us/graph/api/administrativeunit-get?view=graph-rest-beta)
+- [Update administrativeUnit](https://learn.microsoft.com/en-us/graph/api/administrativeunit-update?view=graph-rest-beta)
+- [Delete administrativeUnit](https://learn.microsoft.com/en-us/graph/api/administrativeunit-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `AdministrativeUnit.ReadWrite.All`
+- `Directory.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.1.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### AU001: Basic Administrative Unit
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit/resource_au001_basic.tf" }}
+
+### AU002: Hidden Membership Administrative Unit
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit/resource_au002_hidden_membership.tf" }}
+
+### AU003: Dynamic Membership Administrative Unit
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit/resource_au003_dynamic_membership.tf" }}
+
+### AU004: Restricted Management Administrative Unit
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit/resource_au004_restricted_management.tf" }}
+
+### AU005: Administrative Unit with Hard Delete
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit/resource_au005_hard_delete.tf" }}
+
+### AU006: Dynamic Department-Based Administrative Unit
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit/resource_au006_dynamic_department.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Membership Types
+- **Assigned** (default): Members are manually added to the administrative unit
+- **Dynamic**: Members are automatically added based on a membership rule
+
+### Dynamic Membership Rules
+- Dynamic membership rules use the same syntax as dynamic groups
+- Rules are based on user or device attributes (e.g., department, country, device type)
+- See [Manage rules for dynamic membership groups](https://learn.microsoft.com/en-us/entra/identity/users/groups-dynamic-membership) for rule syntax
+- The `membership_rule_processing_state` must be set to `On` to activate the rule
+- Set to `Paused` to temporarily stop processing the membership rule
+
+### Visibility
+- **Public** (default): The administrative unit and its members are visible to all users
+- **HiddenMembership**: Only members of the administrative unit can see other members
+- This property is immutable and cannot be changed after creation
+
+### Member Management Restriction
+- When `is_member_management_restricted` is `true`, only administrators with specific permissions can manage members
+- This provides additional security for sensitive administrative units
+- Does not affect the ability to manage the administrative unit itself
+
+### Deletion Behavior
+- **Soft Delete** (default, `hard_delete = false`): The administrative unit is moved to the deleted items container and can be restored within 30 days
+- **Hard Delete** (`hard_delete = true`): The administrative unit is permanently deleted and cannot be restored
+- On import, `hard_delete` defaults to `false` since the API does not return this value
+
+### Best Practices
+- Use descriptive names that clearly identify the purpose of the administrative unit
+- Consider using hidden membership for sensitive groups like executives or security teams
+- Use dynamic membership to automatically maintain membership based on user attributes
+- Test dynamic membership rules before setting `membership_rule_processing_state` to `On`
+- Document the purpose and scope of each administrative unit
+- Use `hard_delete = false` (default) for production resources to enable recovery
+
+### Common Use Cases
+- **Departmental Organization**: Create administrative units for each department to delegate user management
+- **Geographic Delegation**: Use dynamic rules to group users by country or region
+- **Project Teams**: Create temporary administrative units for project-based teams
+- **Device Management**: Group devices for delegated device administration
+- **Compliance Scoping**: Isolate users or devices that require specific compliance policies
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit/import.sh" }}
