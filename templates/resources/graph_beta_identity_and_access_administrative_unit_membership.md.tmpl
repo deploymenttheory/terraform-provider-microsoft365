@@ -1,0 +1,98 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Administrative units documentation](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/administrative-units)
+- [Add members to administrativeUnit](https://learn.microsoft.com/en-us/graph/api/administrativeunit-post-members?view=graph-rest-beta)
+- [List administrativeUnit members](https://learn.microsoft.com/en-us/graph/api/administrativeunit-list-members?view=graph-rest-beta)
+- [Remove members from administrativeUnit](https://learn.microsoft.com/en-us/graph/api/administrativeunit-delete-members?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `AdministrativeUnit.ReadWrite.All`
+- `Directory.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.1.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### AUM001: User Membership
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_membership/resource_aum001_user_membership.tf" }}
+
+### AUM002: Group Membership
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_membership/resource_aum002_group_membership.tf" }}
+
+### AUM003: Mixed Membership
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_membership/resource_aum003_mixed_membership.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Member Types
+This resource supports adding the following types of directory objects as members:
+- **Users**: Individual user accounts in your directory
+- **Groups**: Security groups (including mail-enabled security groups)
+- **Devices**: Device objects registered in your directory
+
+### Membership Management
+- Members are added using the `POST /directory/administrativeUnits/{id}/members/$ref` endpoint
+- Members are removed using the `DELETE /directory/administrativeUnits/{id}/members/{memberId}/$ref` endpoint
+- The resource manages membership as a set, automatically calculating additions and removals during updates
+- All member operations are performed individually (one API call per member)
+
+### Dynamic Administrative Units
+- This resource is for managing **assigned** membership only
+- For administrative units with `membership_type = "Dynamic"`, membership is automatically managed by the membership rule
+- Do not use this resource with dynamic administrative units as manual membership changes will be overridden by the dynamic rule
+
+### Restricted Management
+- If the administrative unit has `is_member_management_restricted = true`, only specific administrators can manage members
+- Ensure your service principal has the necessary permissions to manage restricted administrative units
+- Only non-unified, security-enabled groups (not mail-enabled, not synced from on-premises) are supported for restricted management units
+
+### Best Practices
+- Use this resource only with administrative units that have `membership_type = "Assigned"` (or no membership_type set)
+- Consider using the `depends_on` meta-argument to ensure the administrative unit exists before managing membership
+- For large membership sets, be aware that each member addition/removal is a separate API call
+- Monitor API throttling limits when managing administrative units with many members
+
+### Relationship with Administrative Unit Resource
+- This resource manages membership for an existing administrative unit
+- The administrative unit itself should be created using the `microsoft365_graph_beta_identity_and_access_administrative_unit` resource
+- Use the `administrative_unit_id` attribute to reference the administrative unit
+- Destroying this resource removes all members but does not delete the administrative unit itself
+
+### Common Use Cases
+- **Delegated User Management**: Add users to an administrative unit to enable delegated administration
+- **Group-Based Membership**: Add security groups to administrative units for easier membership management
+- **Device Management**: Add devices to administrative units for delegated device administration
+- **Temporary Access**: Manage temporary membership for project-based or time-limited access
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_membership/import.sh" }}

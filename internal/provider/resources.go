@@ -116,6 +116,7 @@ import (
 	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/license_assignment"
 	// Graph Beta - Identity and Access resources
 	graphBetaIdentityAndAccessAdministrativeUnit "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/administrative_unit"
+	graphBetaIdentityAndAccessAdministrativeUnitMembership "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/administrative_unit_membership"
 	graphBetaIdentityAndAccessAttributeSet "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/attribute_set"
 	graphBetaIdentityAndAccessAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
 	graphBetaIdentityAndAccessAuthenticationStrengthPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_strength_policy"
@@ -299,6 +300,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 
 		// Graph Beta - Identity and Access resources
 		graphBetaIdentityAndAccessAdministrativeUnit.NewAdministrativeUnitResource,
+		graphBetaIdentityAndAccessAdministrativeUnitMembership.NewAdministrativeUnitMembershipResource,
 		graphBetaIdentityAndAccessAttributeSet.NewAttributeSetResource,
 		graphBetaIdentityAndAccessAuthenticationContext.NewAuthenticationContextResource,
 		graphBetaIdentityAndAccessAuthenticationStrengthPolicy.NewAuthenticationStrengthPolicyResource,
