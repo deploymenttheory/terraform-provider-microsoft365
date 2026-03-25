@@ -300,6 +300,8 @@ jobs:
           M365_CLIENT_SECRET_USERS: ${{ secrets.M365_CLIENT_SECRET_USERS }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+          M365_CLIENT_ID_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_ID_WINDOWS_UPDATES }}
+          M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
 
       - name: Run resource tests
@@ -412,6 +414,8 @@ jobs:
           M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+          M365_CLIENT_ID_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_ID_WINDOWS_UPDATES }}
+          M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
 
       - name: Run datasource tests
@@ -524,6 +528,8 @@ jobs:
           M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+          M365_CLIENT_ID_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_ID_WINDOWS_UPDATES }}
+          M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
 
       - name: Run actions tests
@@ -636,6 +642,8 @@ jobs:
           M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+          M365_CLIENT_ID_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_ID_WINDOWS_UPDATES }}
+          M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
 
       - name: Run list-resources tests
@@ -748,6 +756,8 @@ jobs:
           M365_CLIENT_SECRET_UTILITY: ${{ secrets.M365_CLIENT_SECRET_UTILITY }}
           M365_CLIENT_ID_WINDOWS_365: ${{ secrets.M365_CLIENT_ID_WINDOWS_365 }}
           M365_CLIENT_SECRET_WINDOWS_365: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_365 }}
+          M365_CLIENT_ID_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_ID_WINDOWS_UPDATES }}
+          M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
 
       - name: Run ephemerals tests
