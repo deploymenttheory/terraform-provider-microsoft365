@@ -13,7 +13,7 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
   description                                             = "Maximal test configuration for Windows feature update policy"
   feature_update_version                                  = "Windows 11, version 25H2"
   install_feature_updates_optional                        = true
-  install_latest_windows10_on_windows11_ineligible_device = true
+  install_latest_windows10_on_windows11_ineligible_device = false
 
   rollout_settings = {
     offer_start_date_time_in_utc = "2030-01-13T00:00:00Z"
@@ -21,5 +21,5 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
     offer_interval_in_days       = 1
   }
 
-  role_scope_tag_ids = ["0", "1"]
+  role_scope_tag_ids = ["0"]
 }

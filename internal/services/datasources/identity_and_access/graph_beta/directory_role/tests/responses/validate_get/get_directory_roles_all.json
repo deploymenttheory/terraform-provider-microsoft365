@@ -1,0 +1,24 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryRoles",
+  "@odata.count": 3,
+  "value": [
+    {
+      "id": "aaaaaaaa-0001-0000-0000-000000000000",
+      "displayName": "User Administrator",
+      "description": "Can manage all aspects of users and groups, including resetting passwords for limited admins.",
+      "roleTemplateId": "fe930be7-5e62-47db-91af-98c3a49a38b1"
+    },
+    {
+      "id": "bbbbbbbb-0002-0000-0000-000000000000",
+      "displayName": "Helpdesk Administrator",
+      "description": "Can reset passwords for non-administrators and Helpdesk Administrators.",
+      "roleTemplateId": "729827e3-9c14-49f7-bb1b-9608f156bbb8"
+    },
+    {
+      "id": "cccccccc-0003-0000-0000-000000000000",
+      "displayName": "Global Administrator",
+      "description": "Can manage all aspects of Azure AD and Microsoft services that use Azure AD identities.",
+      "roleTemplateId": "62e90394-69f5-4237-9190-012177145e10"
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Administrative units overview](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/administrative-units)
+- [scopedRoleMembership resource type](https://learn.microsoft.com/en-us/graph/api/resources/scopedrolemembership?view=graph-rest-beta)
+- [Add a scopedRoleMember](https://learn.microsoft.com/en-us/graph/api/administrativeunit-post-scopedrolemembers?view=graph-rest-beta)
+- [List scopedRoleMembers](https://learn.microsoft.com/en-us/graph/api/administrativeunit-list-scopedrolemembers?view=graph-rest-beta)
+- [Get a scopedRoleMember](https://learn.microsoft.com/en-us/graph/api/administrativeunit-get-scopedrolemembers?view=graph-rest-beta)
+- [Remove a scopedRoleMember](https://learn.microsoft.com/en-us/graph/api/administrativeunit-delete-scopedrolemembers?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `RoleManagement.ReadWrite.Directory`
+
+**Read-only (for data sources):**
+- `RoleManagement.Read.Directory`
+- `Directory.Read.All`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.1.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+### AURA001: User Administrator Scoped to an Administrative Unit
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_role_assignment/resource_aura001_user_administrator.tf" }}
+
+### AURA002: Helpdesk Administrator Scoped to an Administrative Unit
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_role_assignment/resource_aura002_helpdesk_administrator.tf" }}
+
+### AURA003: Multiple Role Assignments on the Same Administrative Unit
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_role_assignment/resource_aura003_multiple_role_assignments.tf" }}
+
+### AURA004: Full Example — Create AU, User, and Role Assignment Together
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_role_assignment/resource_aura004_with_au_and_user.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Immutability
+All input fields on this resource (`administrative_unit_id`, `role_id`, `role_member_id`) are immutable.
+Any change to these values will destroy the existing assignment and create a new one.
+Plan accordingly to avoid unintended loss of delegated access.
+
+### Providing the `role_id`
+
+The `role_id` field requires the **tenant-specific directoryRole object ID**, not the well-known `roleTemplateId`.
+These two values look similar (both are GUIDs) but are different:
+
+- **`roleTemplateId`** — cross-tenant, well-known (e.g. `fe930be7-5e62-47db-91af-98c3a49a38b1` for User Administrator)
+- **`id` (directoryRole object ID)** — tenant-specific, assigned when the role is activated in your tenant
+
+To find the object ID for a role in your tenant, run:
+
+```bash
+az rest --method GET --uri "https://graph.microsoft.com/beta/directoryRoles" \
+  --query "value[].{name:displayName, id:id, templateId:roleTemplateId}" \
+  --output table
+```
+
+Or with the Graph Explorer / `curl`:
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "https://graph.microsoft.com/beta/directoryRoles" | jq '.value[] | {displayName, id, roleTemplateId}'
+```
+
+If the role has not yet been activated in your tenant, activate it first:
+
+```bash
+curl -X POST -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+  -d '{"roleTemplateId": "fe930be7-5e62-47db-91af-98c3a49a38b1"}' \
+  "https://graph.microsoft.com/beta/directoryRoles"
+```
+
+### Supported Roles
+Not all directory roles support administrative unit scoping. Roles that support scoped assignment include:
+
+| Role | roleTemplateId (cross-tenant) |
+|------|-------------------------------|
+| Authentication Administrator | `c4e39bd9-1100-46d3-8c65-fb160da0071f` |
+| Cloud Device Administrator | `7698a772-787b-4ac8-901f-60d6b08affd2` |
+| Groups Administrator | `fdd7a751-b60b-444a-984c-02652fe8fa1c` |
+| Helpdesk Administrator | `729827e3-9c14-49f7-bb1b-9608f156bbb8` |
+| License Administrator | `4d6ac14f-3453-41d0-bef9-a3e0c569773a` |
+| Password Administrator | `966707d0-3269-4727-9be2-8c3a10f19b9d` |
+| Privileged Authentication Administrator | `7be44c8a-adaf-4e2a-84d6-ab2649e08a13` |
+| User Administrator | `fe930be7-5e62-47db-91af-98c3a49a38b1` |
+
+Use the `roleTemplateId` above with `GET /directoryRoles?$filter=roleTemplateId eq '<id>'` to find your tenant's directoryRole object ID.
+
+For a complete and up-to-date list, see the [Microsoft documentation on roles you can assign at administrative unit scope](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/admin-units-assign-roles#roles-that-can-be-assigned-with-administrative-unit-scope).
+
+### Role Member Types
+The `role_member_id` must refer to a **user** object in your directory. Groups and service principals cannot currently be assigned to scoped roles.
+
+### Computed Attributes
+After creation, the following attributes are populated by the API and stored in state:
+- `id` — the scoped role membership ID assigned by Microsoft Entra ID
+- `role_member_display_name` — the display name of the assigned user
+- `role_member_user_principal_name` — the UPN of the assigned user
+
+### Relationship with Other Resources
+- Use [`microsoft365_graph_beta_identity_and_access_administrative_unit`](../resources/graph_beta_identity_and_access_administrative_unit) to create the administrative unit.
+- Use [`microsoft365_graph_beta_identity_and_access_administrative_unit_membership`](../resources/graph_beta_identity_and_access_administrative_unit_membership) to manage the users and groups that belong **to** the administrative unit.
+- This resource controls who has **administrative authority over** the administrative unit.
+
+### Best Practices
+- Assign the least-privileged role that satisfies the operational requirement (e.g. prefer Helpdesk Administrator over User Administrator where password resets are the only need).
+- Use `depends_on` when creating the administrative unit and the role member user in the same Terraform configuration to ensure correct provisioning order.
+- One `microsoft365_graph_beta_identity_and_access_administrative_unit_role_assignment` resource per assignment. Use multiple resource blocks to assign multiple roles or the same role to multiple users.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_administrative_unit_role_assignment/import.sh" }}
