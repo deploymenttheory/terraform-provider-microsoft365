@@ -1,0 +1,12 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#groups",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.group",
+      "id": "44444444-4444-4444-4444-444444444444",
+      "displayName": "Test Group",
+      "mailEnabled": false,
+      "securityEnabled": true
+    }
+  ]
+}

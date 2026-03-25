@@ -1,0 +1,23 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.user",
+      "id": "22222222-2222-2222-2222-222222222222",
+      "userPrincipalName": "testuser1@example.com",
+      "displayName": "Test User 1"
+    },
+    {
+      "@odata.type": "#microsoft.graph.user",
+      "id": "33333333-3333-3333-3333-333333333333",
+      "userPrincipalName": "testuser2@example.com",
+      "displayName": "Test User 2"
+    },
+    {
+      "@odata.type": "#microsoft.graph.user",
+      "id": "55555555-5555-5555-5555-555555555555",
+      "userPrincipalName": "testuser3@example.com",
+      "displayName": "Test User 3"
+    }
+  ]
+}
