@@ -8,9 +8,9 @@ Usage:
     ./map_credentials.py <service>
 
 Services:
-    agents, applications, backup_storage, device_and_app_management, device_management,
-    groups, identity_and_access, m365_admin, multitenant_management, users,
-    utility, windows_365, windows_updates
+    agents, applications, backup_storage, change_notifications, device_and_app_management,
+    device_management, groups, identity_and_access, m365_admin, multitenant_management,
+    users, utility, windows_365, windows_updates
 """
 
 import os
@@ -32,6 +32,10 @@ CREDENTIAL_MAP = {
     "backup_storage": (
         "M365_CLIENT_ID_BACKUP_STORAGE",
         "M365_CLIENT_SECRET_BACKUP_STORAGE"
+    ),
+    "change_notifications": (
+        "M365_CLIENT_ID_CHANGE_NOTIFICATIONS",
+        "M365_CLIENT_SECRET_CHANGE_NOTIFICATIONS"
     ),
     "device_and_app_management": (
         "M365_CLIENT_ID_DEVICE_AND_APP_MGMT",
