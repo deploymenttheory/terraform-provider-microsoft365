@@ -58,11 +58,36 @@ func RegisterGetByIDMock() {
 }
 
 func RegisterListMock() {
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directoryRoles$`,
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/directoryRoles`,
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_directory_roles_all.json")
 			var responseObj map[string]any
 			json.Unmarshal([]byte(jsonStr), &responseObj)
+
+			filterParam := req.URL.Query().Get("%24filter")
+			if filterParam == "" {
+				filterParam = req.URL.Query().Get("$filter")
+			}
+
+			if filterParam != "" {
+				allItems, _ := responseObj["value"].([]any)
+				var filtered []any
+				for _, item := range allItems {
+					role, ok := item.(map[string]any)
+					if !ok {
+						continue
+					}
+					dn, _ := role["displayName"].(string)
+					wantEq := strings.TrimPrefix(filterParam, "displayName eq '")
+					wantEq = strings.TrimSuffix(wantEq, "'")
+					if strings.EqualFold(dn, wantEq) {
+						filtered = append(filtered, item)
+					}
+				}
+				responseObj["value"] = filtered
+				responseObj["@odata.count"] = len(filtered)
+			}
+
 			return httpmock.NewJsonResponse(200, responseObj)
 		})
 }

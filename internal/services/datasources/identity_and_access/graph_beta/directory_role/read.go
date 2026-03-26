@@ -6,7 +6,6 @@ package graphBetaDirectoryRole
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -14,6 +13,7 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphdirectoryroles "github.com/microsoftgraph/msgraph-beta-sdk-go/directoryroles"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
@@ -103,31 +103,26 @@ func (d *DirectoryRoleDataSource) getRoleByID(ctx context.Context, object Direct
 }
 
 func (d *DirectoryRoleDataSource) getRolesByDisplayName(ctx context.Context, object DirectoryRoleDataSourceModel) ([]graphmodels.DirectoryRoleable, error) {
-	displayName := strings.ToLower(object.DisplayName.ValueString())
-	tflog.Debug(ctx, fmt.Sprintf("Filtering directory roles by display name: %s", displayName))
+	displayName := object.DisplayName.ValueString()
+	filter := fmt.Sprintf("displayName eq '%s'", displayName)
+	tflog.Debug(ctx, fmt.Sprintf("Fetching directory roles with OData filter: %s", filter))
 
-	allRoles, err := d.listAllRolesRaw(ctx)
-	if err != nil {
-		return nil, err
+	requestConfig := &graphdirectoryroles.DirectoryRolesRequestBuilderGetRequestConfiguration{
+		QueryParameters: &graphdirectoryroles.DirectoryRolesRequestBuilderGetQueryParameters{
+			Filter: &filter,
+		},
 	}
 
-	var matched []graphmodels.DirectoryRoleable
-	for _, role := range allRoles {
-		if role.GetDisplayName() != nil && strings.Contains(strings.ToLower(*role.GetDisplayName()), displayName) {
-			matched = append(matched, role)
-		}
-	}
-
-	return matched, nil
+	return d.listAllRolesRaw(ctx, requestConfig)
 }
 
 func (d *DirectoryRoleDataSource) listAllRoles(ctx context.Context) ([]graphmodels.DirectoryRoleable, error) {
 	tflog.Debug(ctx, "Listing all activated directory roles")
-	return d.listAllRolesRaw(ctx)
+	return d.listAllRolesRaw(ctx, nil)
 }
 
-func (d *DirectoryRoleDataSource) listAllRolesRaw(ctx context.Context) ([]graphmodels.DirectoryRoleable, error) {
-	rolesResp, err := d.client.DirectoryRoles().Get(ctx, nil)
+func (d *DirectoryRoleDataSource) listAllRolesRaw(ctx context.Context, requestConfig *graphdirectoryroles.DirectoryRolesRequestBuilderGetRequestConfiguration) ([]graphmodels.DirectoryRoleable, error) {
+	rolesResp, err := d.client.DirectoryRoles().Get(ctx, requestConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list directory roles: %w", err)
 	}

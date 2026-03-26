@@ -53,7 +53,7 @@ func (d *DirectoryRoleDataSource) Schema(ctx context.Context, _ datasource.Schem
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves activated directory roles from Microsoft Entra ID using the `/directoryRoles` endpoint. " +
 			"Returns tenant-specific directoryRole object IDs required by resources such as " +
-			"`microsoft365_graph_beta_identity_and_access_administrative_unit_role_assignment`. " +
+			"`microsoft365_graph_beta_identity_and_access_administrative_unit_directory_role_assignment`. " +
 			"Supports lookup by role object ID, display name, or listing all activated roles.",
 		Attributes: map[string]schema.Attribute{
 			"role_id": schema.StringAttribute{
@@ -73,7 +73,7 @@ func (d *DirectoryRoleDataSource) Schema(ctx context.Context, _ datasource.Schem
 			},
 			"display_name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Filter activated directory roles by display name (case-insensitive, substring match). Conflicts with `role_id` and `list_all`.",
+				MarkdownDescription: "Filter activated directory roles by display name (exact match, e.g. 'User Administrator'). Uses OData `$filter=displayName eq '...'`. Conflicts with `role_id` and `list_all`.",
 				Validators: []validator.String{
 					stringvalidator.ConflictsWith(
 						path.MatchRoot("role_id"),
@@ -99,7 +99,7 @@ func (d *DirectoryRoleDataSource) Schema(ctx context.Context, _ datasource.Schem
 						"id": schema.StringAttribute{
 							Computed: true,
 							MarkdownDescription: "The tenant-specific object ID of the activated directory role. " +
-								"e.g you can use this value as `role_id` in `microsoft365_graph_beta_identity_and_access_administrative_unit_role_assignment`.",
+								"e.g you can use this value as `directory_role_id` in `microsoft365_graph_beta_identity_and_access_administrative_unit_directory_role_assignment`.",
 						},
 						"display_name": schema.StringAttribute{
 							Computed:            true,

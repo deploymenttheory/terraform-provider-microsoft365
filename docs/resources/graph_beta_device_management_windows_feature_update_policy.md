@@ -158,7 +158,7 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
 - `assignments` (Attributes Set) Assignments for the Windows Software Update Policies. Each assignment specifies the target group and schedule for script execution. (see [below for nested schema](#nestedatt--assignments))
 - `description` (String) Optional description of the resource. Maximum length is 1500 characters.
 - `install_feature_updates_optional` (Boolean) If true, the Windows 11 update will become available to users as an optional update. If false, the Windows 11 update will become available to users as a required update
-- `install_latest_windows10_on_windows11_ineligible_device` (Boolean) Specifies whether Windows 10 devices that are not eligible for Windows 11 are offered the latest Windows 10 feature updates. Changes to this field require the resource to be replaced.
+- `install_latest_windows10_on_windows11_ineligible_device` (Boolean, Deprecated) **Deprecated.** This field is no longer supported by the Intune backend. Windows 10 reached end of mainstream support in October 2025 and no further feature updates are available, making this setting non-functional. The Microsoft Graph API now rejects requests with this value set to `true`. This attribute will be removed in a future version of the provider.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `rollout_settings` (Attributes) The windows update rollout settings, including offer start date time, offer end date time, and days between each set of offers. (see [below for nested schema](#nestedatt--rollout_settings))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
