@@ -38,6 +38,14 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_update_2" {
   }
 }
 
+resource "time_sleep" "wait_for_dependencies_update" {
+  depends_on      = [
+    microsoft365_graph_beta_users_user.dependency_user_update_1,
+    microsoft365_graph_beta_users_user.dependency_user_update_2
+  ]
+  create_duration = "30s"
+}
+
 ########################################################################################
 # Test Resource - Agent Collection (Update Maximal)
 ########################################################################################
@@ -49,4 +57,6 @@ resource "microsoft365_graph_beta_agents_agent_collection" "test_update" {
     microsoft365_graph_beta_users_user.dependency_user_update_2.id
   ]
   description = "Updated agent collection with all available fields configured"
+
+  depends_on = [time_sleep.wait_for_dependencies_update]
 }

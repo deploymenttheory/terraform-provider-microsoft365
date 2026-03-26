@@ -7,11 +7,13 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -99,10 +101,12 @@ func (r *CrossTenantAccessPolicyResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"allowed_cloud_endpoints": schema.SetAttribute{
-				MarkdownDescription: "Specifies which Microsoft clouds your organization would like to collaborate with. Use an empty set `[]` to disable all cross-cloud collaboration. " +
-					"Supported values: `microsoftonline.com` (Azure commercial), `microsoftonline.us` (Azure US Government), `partner.microsoftonline.cn` (Azure China operated by 21Vianet).",
+				MarkdownDescription: "Specifies which Microsoft clouds your organization would like to collaborate with. Omit or leave empty to disable all cross-cloud collaboration (the service default). " +
+					"Supported values: `microsoftonline.us` (Azure US Government), `partner.microsoftonline.cn` (Azure China operated by 21Vianet).",
 				ElementType: types.StringType,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
+				Default:     setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{})),
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf(
@@ -114,8 +118,7 @@ func (r *CrossTenantAccessPolicyResource) Schema(ctx context.Context, req resour
 			},
 			"restore_defaults_on_destroy": schema.BoolAttribute{
 				MarkdownDescription: "Controls behaviour when this resource is destroyed. " +
-					"When `true`, Terraform will issue a PATCH request to reset `allowed_cloud_endpoints` to an empty collection and `display_name` to `CrossTenantAccessPolicy`, " +
-					"restoring the policy to its service defaults. " +
+					"When `true`, Terraform will issue a PATCH request to restore `allowed_cloud_endpoints` to the tenant defaults (`microsoftonline.us`, `partner.microsoftonline.cn`). " +
 					"When `false` (the default), Terraform removes the resource from state only — the existing policy configuration is left unchanged in Microsoft Entra ID.",
 				Optional: true,
 				Computed: true,

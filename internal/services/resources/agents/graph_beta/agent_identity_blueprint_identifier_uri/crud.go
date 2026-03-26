@@ -90,9 +90,6 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 10 seconds for eventual consistency after create")
-	time.Sleep(10 * time.Second)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -104,6 +101,7 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = agentIdentityBlueprintIdentifierUriConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

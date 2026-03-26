@@ -185,7 +185,7 @@ func (r *CrossTenantAccessDefaultSettingsResource) Schema(ctx context.Context, r
 				},
 			},
 			"is_service_default": schema.BoolAttribute{
-				MarkdownDescription: "If `true`, the default configuration is set to the system default configuration. If `false`, the default settings are customized. This is a read-only computed value.",
+				MarkdownDescription: "If `true`, the default configuration is set to the system default configuration. If `false`, the default settings are customized. This is a read-only computed value that the service updates asynchronously after any PATCH — it cannot be predicted at plan time.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.UseStateForUnknown(),

@@ -74,9 +74,6 @@ func (r *ApplicationOwnerResource) Create(ctx context.Context, req resource.Crea
 	object.OwnerType = types.StringValue("Unknown") // Will be updated in the read operation
 	object.OwnerDisplayName = types.StringValue("")
 
-	tflog.Debug(ctx, "Waiting 5 seconds for eventual consistency after create")
-	time.Sleep(5 * time.Second)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -88,6 +85,7 @@ func (r *ApplicationOwnerResource) Create(ctx context.Context, req resource.Crea
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = applicationOwnerConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

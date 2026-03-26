@@ -34,7 +34,7 @@ func constructResource(ctx context.Context, data *CrossTenantAccessPolicyResourc
 }
 
 // constructRestoreDefaultsBody builds the PATCH body used when restore_defaults_on_destroy is true.
-// It sets allowed_cloud_endpoints to the default endpoints, restoring the service default.
+// It restores the tenant's standard cross-cloud collaboration endpoints.
 func constructRestoreDefaultsBody() graphmodels.CrossTenantAccessPolicyable {
 	requestBody := graphmodels.NewCrossTenantAccessPolicy()
 	requestBody.SetAllowedCloudEndpoints([]string{

@@ -17,11 +17,11 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
         id = "0"
         settingInstance = {
           "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId              = "user_vendor_msft_policy_config_privacy_letappsaccesslocation_forcedenytheseapps"
+          settingDefinitionId              = "device_vendor_msft_policy_config_privacy_letappsaccesslocation"
           settingInstanceTemplateReference = null
           auditRuleInformation             = null
           choiceSettingValue = {
-            value                         = "user_vendor_msft_policy_config_privacy_letappsaccesslocation_forcedenytheseapps_1"
+            value                         = "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
             settingValueTemplateReference = null
             children                      = []
           }

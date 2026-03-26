@@ -77,15 +77,13 @@ func (r *ApplicationFederatedIdentityCredentialResource) Create(ctx context.Cont
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 10 seconds for eventual consistency after create")
-	time.Sleep(10 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = applicationFederatedIdentityCredentialConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -228,9 +226,6 @@ func (r *ApplicationFederatedIdentityCredentialResource) Update(ctx context.Cont
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 15 seconds for eventual consistency after update")
-	time.Sleep(15 * time.Second)
-
 	plan.ID = state.ID
 	plan.ApplicationID = state.ApplicationID
 
@@ -245,6 +240,7 @@ func (r *ApplicationFederatedIdentityCredentialResource) Update(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = applicationFederatedIdentityCredentialConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

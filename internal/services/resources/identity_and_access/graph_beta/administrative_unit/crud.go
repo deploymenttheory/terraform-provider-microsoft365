@@ -206,16 +206,13 @@ func (r *AdministrativeUnitResource) Update(ctx context.Context, req resource.Up
 		return
 	}
 
-	// Wait for eventual consistency before reading back the updated resource
-	tflog.Debug(ctx, "Waiting 10 seconds for update to propagate before reading back state")
-	time.Sleep(10 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = administrativeUnitConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

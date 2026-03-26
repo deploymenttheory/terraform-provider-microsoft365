@@ -82,15 +82,13 @@ func (r *AgentInstanceResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting for eventual consistency after create")
-	time.Sleep(5 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = agentInstanceConsistencyPredicate(&object, types.StringNull())
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -257,9 +255,6 @@ func (r *AgentInstanceResource) Update(ctx context.Context, req resource.UpdateR
 		}
 	}
 
-	tflog.Debug(ctx, "Waiting for eventual consistency after update")
-	time.Sleep(5 * time.Second)
-
 	plan.ID = state.ID
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -272,6 +267,7 @@ func (r *AgentInstanceResource) Update(ctx context.Context, req resource.UpdateR
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = agentInstanceConsistencyPredicate(&plan, state.LastModifiedDateTime)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

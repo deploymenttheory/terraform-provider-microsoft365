@@ -37,6 +37,14 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_maximal_2" {
   }
 }
 
+resource "time_sleep" "wait_for_dependencies" {
+  depends_on      = [
+    microsoft365_graph_beta_users_user.dependency_user_maximal_1,
+    microsoft365_graph_beta_users_user.dependency_user_maximal_2
+  ]
+  create_duration = "30s"
+}
+
 ########################################################################################
 # Test Resource - Agent Collection (Maximal)
 ########################################################################################
@@ -56,4 +64,6 @@ resource "microsoft365_graph_beta_agents_agent_collection" "test_maximal" {
     update = "5m"
     delete = "5m"
   }
+
+  depends_on = [time_sleep.wait_for_dependencies]
 }

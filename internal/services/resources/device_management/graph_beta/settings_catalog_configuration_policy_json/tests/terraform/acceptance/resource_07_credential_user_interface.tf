@@ -17,11 +17,11 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
         id = "0"
         settingInstance = {
           "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId              = "device_vendor_msft_policy_config_credentialui_enumerateadministrators"
+          settingDefinitionId              = "device_vendor_msft_policy_config_credentialsui_enumerateadministrators"
           settingInstanceTemplateReference = null
           auditRuleInformation             = null
           choiceSettingValue = {
-            value                         = "device_vendor_msft_policy_config_credentialui_enumerateadministrators_0"
+            value                         = "device_vendor_msft_policy_config_credentialsui_enumerateadministrators_0"
             settingValueTemplateReference = null
             children                      = []
           }

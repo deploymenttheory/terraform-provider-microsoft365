@@ -89,15 +89,13 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Create(ctx c
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 10 seconds for eventual consistency after create")
-	time.Sleep(10 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = agentIdentityBlueprintFederatedIdentityCredentialConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -244,9 +242,6 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Update(ctx c
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 15 seconds for eventual consistency after update")
-	time.Sleep(15 * time.Second)
-
 	plan.ID = state.ID
 	plan.BlueprintID = state.BlueprintID
 
@@ -261,6 +256,7 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) Update(ctx c
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = agentIdentityBlueprintFederatedIdentityCredentialConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

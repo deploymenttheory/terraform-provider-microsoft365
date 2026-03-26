@@ -67,11 +67,6 @@ func (r *AdministrativeUnitMembershipResource) Create(ctx context.Context, req r
 		tflog.Debug(ctx, fmt.Sprintf("Successfully added member %s to administrative unit %s", memberID, administrativeUnitID))
 	}
 
-	if len(memberIDs) > 0 {
-		tflog.Debug(ctx, "Waiting 20 seconds for member additions to propagate")
-		time.Sleep(20 * time.Second)
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -83,6 +78,7 @@ func (r *AdministrativeUnitMembershipResource) Create(ctx context.Context, req r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = administrativeUnitMembershipConsistencyPredicate(&object)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -288,17 +284,13 @@ func (r *AdministrativeUnitMembershipResource) Update(ctx context.Context, req r
 		tflog.Debug(ctx, fmt.Sprintf("Successfully removed member %s", memberID))
 	}
 
-	if len(toAdd) > 0 || len(toRemove) > 0 {
-		tflog.Debug(ctx, "Waiting 20 seconds for membership changes to propagate")
-		time.Sleep(20 * time.Second)
-	}
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = administrativeUnitMembershipConsistencyPredicate(&plan)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

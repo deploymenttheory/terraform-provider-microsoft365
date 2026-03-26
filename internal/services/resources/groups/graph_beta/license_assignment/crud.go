@@ -74,15 +74,13 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 15 seconds for license assignment to propagate in Graph API")
-	time.Sleep(15 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = groupLicenseAssignmentConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -215,15 +213,13 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 15 seconds for license update to propagate in Graph API")
-	time.Sleep(15 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = groupLicenseAssignmentConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
