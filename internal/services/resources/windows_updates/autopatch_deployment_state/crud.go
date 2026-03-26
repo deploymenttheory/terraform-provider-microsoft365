@@ -64,14 +64,13 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Create(ctx context.Cont
 		return
 	}
 
-	time.Sleep(10 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = autopatchDeploymentStateConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -198,14 +197,13 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Update(ctx context.Cont
 		return
 	}
 
-	time.Sleep(10 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = autopatchDeploymentStateConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

@@ -58,8 +58,8 @@ func TestAccResourceCrossTenantAccessPartnerSettings_01_Minimal(t *testing.T) {
 				Config: loadAcceptanceConfig("resource_01_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("cross-tenant access partner settings", 5*time.Second)
-						time.Sleep(5 * time.Second)
+						testlog.WaitForConsistency("cross-tenant access partner settings", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
 					},
 					check.That(r).ExistsInGraph(testResource),
@@ -112,8 +112,8 @@ func TestAccResourceCrossTenantAccessPartnerSettings_02_Maximal(t *testing.T) {
 				Config: loadAcceptanceConfig("resource_02_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("cross-tenant access partner settings", 5*time.Second)
-						time.Sleep(5 * time.Second)
+						testlog.WaitForConsistency("cross-tenant access partner settings", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
 					},
 					check.That(r).ExistsInGraph(testResource),
@@ -180,8 +180,8 @@ func TestAccResourceCrossTenantAccessPartnerSettings_03_UpdateMinimalToMaximal(t
 				Config: loadAcceptanceConfig("resource_03_update_minimal_to_maximal_step1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("cross-tenant access partner settings", 5*time.Second)
-						time.Sleep(5 * time.Second)
+						testlog.WaitForConsistency("cross-tenant access partner settings", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
 					},
 					check.That(r).ExistsInGraph(testResource),
@@ -197,8 +197,8 @@ func TestAccResourceCrossTenantAccessPartnerSettings_03_UpdateMinimalToMaximal(t
 				Config: loadAcceptanceConfig("resource_03_update_minimal_to_maximal_step2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("cross-tenant access partner settings", 5*time.Second)
-						time.Sleep(5 * time.Second)
+						testlog.WaitForConsistency("cross-tenant access partner settings", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
 					},
 					check.That(r).ExistsInGraph(testResource),
@@ -248,8 +248,8 @@ func TestAccResourceCrossTenantAccessPartnerSettings_04_UpdateMaximalToMinimal(t
 				Config: loadAcceptanceConfig("resource_04_update_maximal_to_minimal_step1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("cross-tenant access partner settings", 5*time.Second)
-						time.Sleep(5 * time.Second)
+						testlog.WaitForConsistency("cross-tenant access partner settings", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
 					},
 					check.That(r).ExistsInGraph(testResource),
@@ -275,8 +275,8 @@ func TestAccResourceCrossTenantAccessPartnerSettings_04_UpdateMaximalToMinimal(t
 				Config: loadAcceptanceConfig("resource_04_update_maximal_to_minimal_step2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("cross-tenant access partner settings", 5*time.Second)
-						time.Sleep(5 * time.Second)
+						testlog.WaitForConsistency("cross-tenant access partner settings", 20*time.Second)
+						time.Sleep(20 * time.Second)
 						return nil
 					},
 					check.That(r).ExistsInGraph(testResource),

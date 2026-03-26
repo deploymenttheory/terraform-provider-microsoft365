@@ -26,6 +26,11 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_update_1" {
   }
 }
 
+resource "time_sleep" "wait_for_dependencies_update" {
+  depends_on      = [microsoft365_graph_beta_users_user.dependency_user_update_1]
+  create_duration = "30s"
+}
+
 ########################################################################################
 # Test Resource - Agent Collection (Update Minimal)
 ########################################################################################
@@ -33,4 +38,6 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_update_1" {
 resource "microsoft365_graph_beta_agents_agent_collection" "test_update" {
   display_name = "acc-test-agent-col-update-${random_string.test_id_update.result}"
   owner_ids    = [microsoft365_graph_beta_users_user.dependency_user_update_1.id]
+
+  depends_on = [time_sleep.wait_for_dependencies_update]
 }

@@ -77,8 +77,17 @@ func (m *WindowsUpdatesAutopatchDeploymentStateMock) patchDeploymentStateRespond
 				for k, v := range state {
 					existingState[k] = v
 				}
+				// Map requestedValue to a valid effectiveValue.
+				// "none" means active/offering; "paused"/"archived" map directly.
 				if rv, ok := state["requestedValue"].(string); ok {
-					existingState["effectiveValue"] = rv
+					switch rv {
+					case "paused":
+						existingState["effectiveValue"] = "paused"
+					case "archived":
+						existingState["effectiveValue"] = "archived"
+					default: // "none" → service transitions to offering
+						existingState["effectiveValue"] = "offering"
+					}
 				}
 			}
 		}

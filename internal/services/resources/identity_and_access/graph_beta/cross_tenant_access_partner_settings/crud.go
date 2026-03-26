@@ -70,14 +70,13 @@ func (r *CrossTenantAccessPartnerSettingsResource) Create(ctx context.Context, r
 		return
 	}
 
-	time.Sleep(20 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = crossTenantAccessPartnerSettingsConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -205,15 +204,13 @@ func (r *CrossTenantAccessPartnerSettingsResource) Update(ctx context.Context, r
 		return
 	}
 
-	// updates can take a long time to reach eventual consistency
-	time.Sleep(30 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = crossTenantAccessPartnerSettingsConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -272,14 +269,48 @@ func (r *CrossTenantAccessPartnerSettingsResource) Delete(ctx context.Context, r
 		return
 	}
 
+	// The DELETE is eventually consistent — wait for the deletion to propagate before
+	// returning, so that a subsequent Create with the same tenantId does not get a 409.
+	const deleteMaxRetries = 30
+	const deleteRetryInterval = 5 * time.Second
+	for attempt := 1; attempt <= deleteMaxRetries; attempt++ {
+		select {
+		case <-time.After(deleteRetryInterval):
+		case <-ctx.Done():
+			resp.Diagnostics.AddError("Context cancelled while waiting for delete propagation", ctx.Err().Error())
+			return
+		}
+
+		_, getErr := r.client.
+			Policies().
+			CrossTenantAccessPolicy().
+			Partners().
+			ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).
+			Get(ctx, nil)
+
+		if getErr != nil {
+			errInfo := errors.GraphError(ctx, getErr)
+			if errInfo.StatusCode == 404 {
+				tflog.Debug(ctx, fmt.Sprintf("Partner configuration %s confirmed deleted (attempt %d)", tenantID, attempt))
+				break
+			}
+		}
+
+		if attempt == deleteMaxRetries {
+			tflog.Warn(ctx, fmt.Sprintf("Partner configuration %s still visible after %d attempts — proceeding anyway", tenantID, attempt))
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("Partner configuration %s still visible (attempt %d/%d), waiting for propagation", tenantID, attempt, deleteMaxRetries))
+		}
+	}
+
 	if !hardDelete {
-		tflog.Info(ctx, fmt.Sprintf("Soft delete only - partner configuration %s moved to deleted items (can be restored within 30 days)", tenantID))
+		tflog.Info(ctx, fmt.Sprintf("Soft delete complete for partner configuration %s", tenantID))
 		resp.State.RemoveResource(ctx)
 		tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 		return
 	}
 
-	tflog.Info(ctx, fmt.Sprintf("Hard delete enabled - proceeding with permanent deletion of partner configuration %s", tenantID))
+	tflog.Info(ctx, fmt.Sprintf("Hard delete enabled - proceeding with permanent deletion of partner configuration %s from deleted items", tenantID))
 
 	err = r.client.
 		Directory().
@@ -290,7 +321,7 @@ func (r *CrossTenantAccessPartnerSettingsResource) Delete(ctx context.Context, r
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)
 		if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "Request_ResourceNotFound" {
-			tflog.Info(ctx, fmt.Sprintf("Partner configuration %s already permanently deleted (not found in deleted items)", tenantID))
+			tflog.Info(ctx, fmt.Sprintf("Partner configuration %s not found in deleted items (already permanently deleted)", tenantID))
 		} else {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 			return

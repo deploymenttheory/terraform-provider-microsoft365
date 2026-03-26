@@ -38,6 +38,10 @@ func TestAccResourceApplicationFederatedIdentityCredential_01_Minimal(t *testing
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -138,6 +142,10 @@ func TestAccResourceApplicationFederatedIdentityCredential_03_Update(t *testing.
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{

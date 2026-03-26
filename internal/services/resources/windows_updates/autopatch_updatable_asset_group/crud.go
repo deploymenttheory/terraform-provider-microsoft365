@@ -100,11 +100,6 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Create(ctx context.
 			return
 		}
 
-		// Allow time for member enrollment to propagate before the read-back.
-		// The addMembersById endpoint is eventually consistent and members may not
-		// appear immediately in the GET members response.
-		tflog.Debug(ctx, "Waiting for member enrollment to propagate before read-back")
-		time.Sleep(20 * time.Second)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -118,6 +113,7 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Create(ctx context.
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = autopatchUpdatableAssetGroupConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -352,17 +348,13 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Update(ctx context.
 		return
 	}
 
-	// Allow time for membership changes to propagate before the read-back.
-	// addMembersById and removeMembersById are eventually consistent.
-	tflog.Debug(ctx, "Waiting for membership changes to propagate before read-back")
-	time.Sleep(20 * time.Second)
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = autopatchUpdatableAssetGroupConsistencyPredicate(&plan)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

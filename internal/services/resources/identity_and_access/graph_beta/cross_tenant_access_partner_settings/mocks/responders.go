@@ -15,10 +15,12 @@ import (
 var mockState struct {
 	sync.Mutex
 	partnerSettings map[string]map[string]any
+	deletedTenants  map[string]bool
 }
 
 func init() {
 	mockState.partnerSettings = make(map[string]map[string]any)
+	mockState.deletedTenants = make(map[string]bool)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("cross_tenant_access_partner_settings", &CrossTenantAccessPartnerSettingsMock{})
 }
@@ -59,6 +61,7 @@ func mergeSettings(target, source map[string]any) {
 func (m *CrossTenantAccessPartnerSettingsMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.partnerSettings = make(map[string]map[string]any)
+	mockState.deletedTenants = make(map[string]bool)
 	mockState.Unlock()
 
 	m.registerTenantValidationMock()
@@ -105,6 +108,11 @@ func (m *CrossTenantAccessPartnerSettingsMock) RegisterMocks() {
 
 		mockState.Lock()
 		defer mockState.Unlock()
+
+		// Return 404 for explicitly deleted tenants (simulates DELETE propagation)
+		if mockState.deletedTenants[tenantID] {
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Partner configuration not found"}}`), nil
+		}
 
 		if settings, exists := mockState.partnerSettings[tenantID]; exists {
 			resp, err := httpmock.NewJsonResponse(200, settings)
@@ -160,7 +168,7 @@ func (m *CrossTenantAccessPartnerSettingsMock) RegisterMocks() {
 		return httpmock.NewStringResponse(204, ""), nil
 	})
 
-	// DELETE /policies/crossTenantAccessPolicy/partners/{tenantId} - Delete partner configuration (soft delete)
+	// DELETE /policies/crossTenantAccessPolicy/partners/{tenantId} - Delete partner configuration
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/policies/crossTenantAccessPolicy/partners/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
 		tenantID := httpmock.MustGetSubmatch(req, 1)
 
@@ -169,6 +177,7 @@ func (m *CrossTenantAccessPartnerSettingsMock) RegisterMocks() {
 
 		if _, exists := mockState.partnerSettings[tenantID]; exists {
 			delete(mockState.partnerSettings, tenantID)
+			mockState.deletedTenants[tenantID] = true
 			return httpmock.NewStringResponse(204, ""), nil
 		}
 
@@ -205,6 +214,7 @@ func (m *CrossTenantAccessPartnerSettingsMock) CleanupMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
 	mockState.partnerSettings = make(map[string]map[string]any)
+	mockState.deletedTenants = make(map[string]bool)
 	httpmock.Reset()
 }
 

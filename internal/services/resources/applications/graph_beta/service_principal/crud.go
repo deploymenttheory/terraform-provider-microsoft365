@@ -193,10 +193,6 @@ func (r *ServicePrincipalResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	// Allow time for eventual consistency after PATCH
-	tflog.Debug(ctx, "Waiting 20 seconds for eventual consistency after service principal update")
-	time.Sleep(20 * time.Second)
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -208,6 +204,7 @@ func (r *ServicePrincipalResource) Update(ctx context.Context, req resource.Upda
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = servicePrincipalConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

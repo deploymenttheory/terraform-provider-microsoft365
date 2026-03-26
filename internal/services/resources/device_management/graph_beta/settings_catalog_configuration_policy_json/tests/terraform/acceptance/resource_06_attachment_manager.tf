@@ -17,11 +17,11 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
         id = "0"
         settingInstance = {
           "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId              = "user_vendor_msft_policy_config_attachmentmanager_notifyantivirus"
+          settingDefinitionId              = "user_vendor_msft_policy_config_attachmentmanager_notifyantivirusprograms"
           settingInstanceTemplateReference = null
           auditRuleInformation             = null
           choiceSettingValue = {
-            value                         = "user_vendor_msft_policy_config_attachmentmanager_notifyantivirus_0"
+            value                         = "user_vendor_msft_policy_config_attachmentmanager_notifyantivirusprograms_0"
             settingValueTemplateReference = null
             children                      = []
           }
@@ -31,11 +31,11 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
         id = "1"
         settingInstance = {
           "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
-          settingDefinitionId              = "user_vendor_msft_policy_config_attachmentmanager_hidezoneinfoonproperties"
+          settingDefinitionId              = "user_vendor_msft_policy_config_attachmentmanager_hidezoneinfomechanism"
           settingInstanceTemplateReference = null
           auditRuleInformation             = null
           choiceSettingValue = {
-            value                         = "user_vendor_msft_policy_config_attachmentmanager_hidezoneinfoonproperties_1"
+            value                         = "user_vendor_msft_policy_config_attachmentmanager_hidezoneinfomechanism_1"
             settingValueTemplateReference = null
             children                      = []
           }

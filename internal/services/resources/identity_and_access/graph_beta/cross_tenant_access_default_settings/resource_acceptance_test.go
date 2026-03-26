@@ -85,6 +85,7 @@ func TestAccResourceCrossTenantAccessDefaultSettings_01_Minimal(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"timeouts",
+					"is_service_default",
 				},
 			},
 		},
@@ -153,6 +154,7 @@ func TestAccResourceCrossTenantAccessDefaultSettings_02_Maximal(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"timeouts",
+					"is_service_default",
 				},
 			},
 		},

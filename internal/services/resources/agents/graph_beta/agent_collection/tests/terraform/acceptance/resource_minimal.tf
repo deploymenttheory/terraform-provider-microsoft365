@@ -26,6 +26,11 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_1" {
   }
 }
 
+resource "time_sleep" "wait_for_dependencies" {
+  depends_on      = [microsoft365_graph_beta_users_user.dependency_user_1]
+  create_duration = "30s"
+}
+
 ########################################################################################
 # Test Resource - Agent Collection (Minimal)
 ########################################################################################
@@ -33,4 +38,6 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_1" {
 resource "microsoft365_graph_beta_agents_agent_collection" "test_minimal" {
   display_name = "acc-test-agent-collection-${random_string.test_id.result}"
   owner_ids    = [microsoft365_graph_beta_users_user.dependency_user_1.id]
+
+  depends_on = [time_sleep.wait_for_dependencies]
 }

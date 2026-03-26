@@ -82,9 +82,6 @@ func (r *ApplicationIdentifierUriResource) Create(ctx context.Context, req resou
 		return
 	}
 
-	tflog.Debug(ctx, "Waiting 10 seconds for eventual consistency after create")
-	time.Sleep(10 * time.Second)
-
 	object.Id = types.StringValue(fmt.Sprintf("%s/%s", object.ApplicationID.ValueString(), object.IdentifierUri.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -98,6 +95,7 @@ func (r *ApplicationIdentifierUriResource) Create(ctx context.Context, req resou
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = applicationIdentifierUriConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

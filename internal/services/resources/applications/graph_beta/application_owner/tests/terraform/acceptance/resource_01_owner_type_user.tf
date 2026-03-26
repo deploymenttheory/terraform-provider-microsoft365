@@ -26,7 +26,7 @@ resource "microsoft365_graph_beta_users_user" "test_owner_user" {
 
 resource "time_sleep" "wait_for_app_user" {
   depends_on      = [microsoft365_graph_beta_applications_application.test_app_user]
-  create_duration = "15s"
+  create_duration = "30s"
 }
 
 resource "microsoft365_graph_beta_applications_application_owner" "test_user" {
