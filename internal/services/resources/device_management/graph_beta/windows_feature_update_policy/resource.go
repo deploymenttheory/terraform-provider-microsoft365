@@ -7,6 +7,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -158,8 +159,15 @@ func (r *WindowsFeatureUpdatePolicyResource) Schema(ctx context.Context, req res
 			},
 			"install_latest_windows10_on_windows11_ineligible_device": schema.BoolAttribute{
 				Optional: true,
-				MarkdownDescription: "Specifies whether Windows 10 devices that are not eligible for Windows 11 are offered the latest Windows 10" +
-					" feature updates. Changes to this field require the resource to be replaced.",
+				DeprecationMessage: "This field is no longer supported by the Intune backend. Windows 10 reached end of mainstream support in " +
+					"October 2025 and no further feature updates are available, making this setting non-functional. The Microsoft Graph API now " +
+					"rejects requests with this value set to true. This attribute will be removed in a future version of the provider.",
+				MarkdownDescription: "**Deprecated.** This field is no longer supported by the Intune backend. Windows 10 reached end of mainstream " +
+					"support in October 2025 and no further feature updates are available, making this setting non-functional. The Microsoft Graph API " +
+					"now rejects requests with this value set to `true`. This attribute will be removed in a future version of the provider.",
+				Validators: []validator.Bool{
+					boolvalidator.Equals(false),
+				},
 				PlanModifiers: []planmodifier.Bool{
 					planmodifiers.NewRequiresReplaceIfChangedBool(),
 				},

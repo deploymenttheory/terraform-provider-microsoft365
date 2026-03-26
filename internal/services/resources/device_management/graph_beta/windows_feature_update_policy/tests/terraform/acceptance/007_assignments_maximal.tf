@@ -59,9 +59,9 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
   description                                             = "Maximal test with multiple assignments"
   feature_update_version                                  = "Windows 11, version 25H2"
   install_feature_updates_optional                        = true
-  install_latest_windows10_on_windows11_ineligible_device = true
+  install_latest_windows10_on_windows11_ineligible_device = false
 
-  role_scope_tag_ids = ["0", "1"]
+  role_scope_tag_ids = ["0"]
 
   assignments = [
     {

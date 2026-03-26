@@ -41,6 +41,7 @@ import (
 	// Graph Beta - Identity and Access datasources
 	graphBetaIdentityAndAccessConditionalAccessTemplate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/conditional_access_template"
 	graphBetaIdentityAndAccessDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/device"
+	graphBetaIdentityAndAccessDirectoryRole "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/directory_role"
 	graphBetaIdentityAndAccessRoleDefinitions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/role_definitions"
 	graphBetaIdentityAndAccessTenantInformation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/tenant_information"
 
@@ -135,6 +136,7 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		// Graph Beta - Identity and Access datasources
 		graphBetaIdentityAndAccessConditionalAccessTemplate.NewConditionalAccessTemplateDataSource,
 		graphBetaIdentityAndAccessDevice.NewDeviceDataSource,
+		graphBetaIdentityAndAccessDirectoryRole.NewDirectoryRoleDataSource,
 		graphBetaIdentityAndAccessDirectorySettingTemplates.NewDirectorySettingTemplatesDataSource,
 		graphBetaIdentityAndAccessRoleDefinitions.NewRoleDefinitionsDataSource,
 		graphBetaIdentityAndAccessTenantInformation.NewTenantInformationDataSource,

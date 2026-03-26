@@ -81,6 +81,7 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = licenseAssignmentConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -219,6 +220,7 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = licenseAssignmentConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -285,3 +287,4 @@ func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }
+

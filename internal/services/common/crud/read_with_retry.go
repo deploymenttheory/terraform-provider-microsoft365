@@ -25,6 +25,16 @@ type ReadWithRetryOptions struct {
 	Operation string
 	// ResourceTypeName is the optional resource type name for logging
 	ResourceTypeName string
+	// ConsistencyPredicate is an optional function that inspects the read state and returns
+	// true when the state is consistent with the preceding write. When non-nil, ReadWithRetry
+	// will continue retrying even on a successful (no-error) read until the predicate returns
+	// true or the retry limit is reached. Pass nil for the default fast-exit behaviour.
+	//
+	// This is the recommended approach for Microsoft Entra eventual consistency: trust the
+	// successful write, then poll until the read reflects the written state, treating stale
+	// reads as transient rather than using fixed sleeps.
+	// See: https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/
+	ConsistencyPredicate func(ctx context.Context, state tfsdk.State) bool
 }
 
 // DefaultReadWithRetryOptions returns sensible default options for most use cases
@@ -267,16 +277,37 @@ func ReadWithRetry(
 		readFunc(ctxWithOp, readReq, readResp)
 
 		if !readResp.Diagnostics.HasError() {
-			tflog.Debug(ctx, fmt.Sprintf("Read successful on attempt %d", attempt+1), map[string]any{
+			if opts.ConsistencyPredicate == nil || opts.ConsistencyPredicate(ctxWithOp, readResp.State) {
+				tflog.Debug(ctx, fmt.Sprintf("Read successful on attempt %d", attempt+1), map[string]any{
+					"resource_id":   resourceID,
+					"resource_type": resourceType,
+				})
+				stateContainer.SetState(readResp.State)
+				// Propagate Identity back to the container
+				if readResp.Identity != nil {
+					stateContainer.SetIdentity(readResp.Identity)
+				}
+				return nil
+			}
+
+			// Read succeeded but the state does not yet reflect the written change.
+			// This is the eventual-consistency case: the API returned 2xx but replication
+			// across replicas has not yet completed. Continue retrying.
+			lastErr = fmt.Errorf("consistency predicate not yet satisfied after %s on attempt %d — awaiting propagation",
+				opts.Operation, attempt+1)
+			tflog.Debug(ctx, fmt.Sprintf("Read succeeded on attempt %d but consistency predicate not satisfied, retrying in %s",
+				attempt+1, opts.RetryInterval), map[string]any{
 				"resource_id":   resourceID,
 				"resource_type": resourceType,
 			})
-			stateContainer.SetState(readResp.State)
-			// Propagate Identity back to the container
-			if readResp.Identity != nil {
-				stateContainer.SetIdentity(readResp.Identity)
+			if attempt < opts.MaxRetries {
+				select {
+				case <-time.After(opts.RetryInterval):
+				case <-ctx.Done():
+					return fmt.Errorf("context cancelled during consistency wait: %w", ctx.Err())
+				}
 			}
-			return nil
+			continue
 		}
 
 		lastErr = fmt.Errorf("error reading resource state after %s method on attempt %d: %s",
