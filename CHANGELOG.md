@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.52.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.51.0-alpha...v0.52.0-alpha) (2026-03-26)
+
+
+### Features
+
+* added predicates to handle eventual consistency and to move away from hard coded pauses between create -&gt; read and update -&gt; read. ([#2652](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2652)) ([564efe4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/564efe414678cad3af5756a1e3a9d33d6f927af1))
+* added resource access_administrative_unit_membership ([#2648](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2648)) ([9a30bcd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9a30bcd22bdf45e0abc1abfd52623f4bbd933d60))
+* added resource administrative units ([#2623](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2623)) ([0588204](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/05882046291a160a83e3871a2265b0f60c8ed1a7))
+
+
+### Bug Fixes
+
+* bi-weekly tests workflow for windows_updates and change_notifications ([#2649](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2649)) ([deaf2d2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/deaf2d29da1d46ed24e150515a0a55afb504d748))
+* test fixures for microsoft365_graph_identity_and_access_subscribed_skus ([#2650](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2650)) ([22e3b11](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/22e3b11c2c65f28b517698ee930926ebd1269de4))
+
 ## [0.51.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.50.0-alpha...v0.51.0-alpha) (2026-03-23)
 
 
