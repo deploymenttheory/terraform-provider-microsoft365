@@ -17,6 +17,8 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_maximal
     "agent"
   ]
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_users]
 }
 
 resource "random_string" "test_id" {
@@ -47,4 +49,12 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
     force_change_password_next_sign_in = false
   }
   hard_delete = true
+}
+
+resource "time_sleep" "wait_for_users" {
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_user_1,
+    microsoft365_graph_beta_users_user.dependency_user_2,
+  ]
+  create_duration = "30s"
 }

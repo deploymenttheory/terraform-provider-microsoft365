@@ -35,6 +35,14 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
 }
 
 
+resource "time_sleep" "wait_for_users" {
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_user_1,
+    microsoft365_graph_beta_users_user.dependency_user_2,
+  ]
+  create_duration = "30s"
+}
+
 # First create an agent identity blueprint (dependency)
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_dependency" {
   display_name = "acc-test-agent-identity-blueprint-sp-dependency-${random_string.test_id.result}"
@@ -47,6 +55,13 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_depende
     microsoft365_graph_beta_users_user.dependency_user_2.id,
   ]
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_users]
+}
+
+resource "time_sleep" "wait_for_blueprint" {
+  depends_on      = [microsoft365_graph_beta_agents_agent_identity_blueprint.test_dependency]
+  create_duration = "30s"
 }
 
 ########################################################################################
@@ -55,5 +70,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_depende
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "test_minimal" {
   app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.test_dependency.app_id
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_blueprint]
 }
 

@@ -18,6 +18,11 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_1" {
   }
 }
 
+resource "time_sleep" "wait_for_users" {
+  depends_on      = [microsoft365_graph_beta_users_user.dependency_user_1]
+  create_duration = "30s"
+}
+
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_blueprint" {
   display_name = "acc-test-blueprint-id-uri-${random_string.test_id.result}"
   description  = "Agent identity blueprint for identifier URI acceptance test"
@@ -28,6 +33,13 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_bluepri
     microsoft365_graph_beta_users_user.dependency_user_1.id,
   ]
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_users]
+}
+
+resource "time_sleep" "wait_for_blueprint" {
+  depends_on      = [microsoft365_graph_beta_agents_agent_identity_blueprint.test_blueprint]
+  create_duration = "30s"
 }
 
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_identifier_uri" "test_minimal" {
@@ -41,5 +53,7 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint_identifier_uri
     type                       = "User"
     value                      = "access_agent"
   }
+
+  depends_on = [time_sleep.wait_for_blueprint]
 }
 

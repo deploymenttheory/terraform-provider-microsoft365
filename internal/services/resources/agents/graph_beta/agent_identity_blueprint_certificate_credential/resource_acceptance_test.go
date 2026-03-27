@@ -37,6 +37,10 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testin
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 			"tls": {
 				Source:            "hashicorp/tls",
 				VersionConstraint: constants.ExternalProviderTLSVersion,
@@ -80,6 +84,10 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testin
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 			"tls": {
 				Source:            "hashicorp/tls",
 				VersionConstraint: constants.ExternalProviderTLSVersion,
@@ -121,6 +129,10 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testin
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 			"tls": {
 				Source:            "hashicorp/tls",

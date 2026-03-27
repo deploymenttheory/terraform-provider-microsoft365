@@ -27,6 +27,15 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_1" {
 }
 
 ########################################################################################
+# Pause - Wait for user to propagate
+########################################################################################
+
+resource "time_sleep" "wait_for_users" {
+  depends_on      = [microsoft365_graph_beta_users_user.dependency_user_1]
+  create_duration = "30s"
+}
+
+########################################################################################
 # Dependencies - Agent Identity Blueprint
 ########################################################################################
 
@@ -36,6 +45,17 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test" {
   sponsor_user_ids = [microsoft365_graph_beta_users_user.dependency_user_1.id]
   owner_user_ids   = [microsoft365_graph_beta_users_user.dependency_user_1.id]
   hard_delete      = true
+
+  depends_on = [time_sleep.wait_for_users]
+}
+
+########################################################################################
+# Pause - Wait for blueprint to propagate
+########################################################################################
+
+resource "time_sleep" "wait_for_blueprint" {
+  depends_on      = [microsoft365_graph_beta_agents_agent_identity_blueprint.test]
+  create_duration = "30s"
 }
 
 ########################################################################################
@@ -45,6 +65,17 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test" {
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal" "test" {
   app_id      = microsoft365_graph_beta_agents_agent_identity_blueprint.test.app_id
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_blueprint]
+}
+
+########################################################################################
+# Pause - Wait for service principal to propagate
+########################################################################################
+
+resource "time_sleep" "wait_for_service_principal" {
+  depends_on      = [microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.test]
+  create_duration = "30s"
 }
 
 ########################################################################################
@@ -59,7 +90,5 @@ resource "microsoft365_graph_beta_agents_agent_identity" "test_minimal" {
   owner_ids                   = [microsoft365_graph_beta_users_user.dependency_user_1.id]
   hard_delete                 = true
 
-  depends_on = [
-    microsoft365_graph_beta_agents_agent_identity_blueprint_service_principal.test
-  ]
+  depends_on = [time_sleep.wait_for_service_principal]
 }

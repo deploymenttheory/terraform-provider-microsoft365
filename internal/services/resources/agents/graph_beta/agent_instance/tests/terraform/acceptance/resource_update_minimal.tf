@@ -27,6 +27,15 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_update_1" {
 }
 
 ########################################################################################
+# Pause - Wait for user to propagate
+########################################################################################
+
+resource "time_sleep" "wait_for_users" {
+  depends_on      = [microsoft365_graph_beta_users_user.dependency_user_update_1]
+  create_duration = "30s"
+}
+
+########################################################################################
 # Test Resource - Agent Instance (Update Minimal)
 ########################################################################################
 
@@ -48,4 +57,6 @@ resource "microsoft365_graph_beta_agents_agent_instance" "test_update" {
       state_transition_history = false
     }
   }
+
+  depends_on = [time_sleep.wait_for_users]
 }
