@@ -29,6 +29,10 @@ func TestAccResourceAgentIdentityBlueprint_01_Minimal(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -81,6 +85,10 @@ func TestAccResourceAgentIdentityBlueprint_02_Maximal(t *testing.T) {
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -139,6 +147,10 @@ func TestAccResourceAgentIdentityBlueprint_03_Update(t *testing.T) {
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{

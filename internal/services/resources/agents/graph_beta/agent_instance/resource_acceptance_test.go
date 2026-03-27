@@ -44,6 +44,10 @@ func TestAccResourceAgentInstance_01_Minimal(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -100,6 +104,10 @@ func TestAccResourceAgentInstance_02_Maximal(t *testing.T) {
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{
@@ -169,6 +177,10 @@ func TestAccResourceAgentInstance_03_UpdateMinimalToMaximal(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			// Step 1: Create with minimal configuration
@@ -234,6 +246,10 @@ func TestAccResourceAgentInstance_04_UpdateMaximalToMinimal(t *testing.T) {
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{

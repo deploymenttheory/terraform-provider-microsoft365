@@ -27,6 +27,15 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_1" {
 }
 
 ########################################################################################
+# Pause - Wait for user to propagate
+########################################################################################
+
+resource "time_sleep" "wait_for_users" {
+  depends_on      = [microsoft365_graph_beta_users_user.dependency_user_1]
+  create_duration = "30s"
+}
+
+########################################################################################
 # Dependencies - Agent Instance (Minimal)
 ########################################################################################
 
@@ -37,6 +46,8 @@ resource "microsoft365_graph_beta_agents_agent_instance" "test_minimal" {
   lifecycle {
     ignore_changes = [agent_card_manifest]
   }
+
+  depends_on = [time_sleep.wait_for_users]
 }
 
 ########################################################################################
@@ -46,6 +57,20 @@ resource "microsoft365_graph_beta_agents_agent_instance" "test_minimal" {
 resource "microsoft365_graph_beta_agents_agent_collection" "test_minimal" {
   display_name = "acc-test-agent-collection-${random_string.test_id.result}"
   owner_ids    = [microsoft365_graph_beta_users_user.dependency_user_1.id]
+
+  depends_on = [time_sleep.wait_for_users]
+}
+
+########################################################################################
+# Pause - Wait for agent instance and agent collection to propagate
+########################################################################################
+
+resource "time_sleep" "wait_for_dependencies" {
+  depends_on = [
+    microsoft365_graph_beta_agents_agent_instance.test_minimal,
+    microsoft365_graph_beta_agents_agent_collection.test_minimal,
+  ]
+  create_duration = "30s"
 }
 
 ########################################################################################
@@ -55,4 +80,6 @@ resource "microsoft365_graph_beta_agents_agent_collection" "test_minimal" {
 resource "microsoft365_graph_beta_agents_agent_collection_assignment" "test_minimal" {
   agent_instance_id   = microsoft365_graph_beta_agents_agent_instance.test_minimal.id
   agent_collection_id = microsoft365_graph_beta_agents_agent_collection.test_minimal.id
+
+  depends_on = [time_sleep.wait_for_dependencies]
 }

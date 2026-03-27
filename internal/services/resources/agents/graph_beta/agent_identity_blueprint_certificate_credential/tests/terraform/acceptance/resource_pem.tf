@@ -29,6 +29,14 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_pem_2" {
   }
 }
 
+resource "time_sleep" "wait_for_users" {
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_user_pem_1,
+    microsoft365_graph_beta_users_user.dependency_user_pem_2,
+  ]
+  create_duration = "30s"
+}
+
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_blueprint_pem" {
   display_name = "acc-test-blueprint-cert-pem-${random_string.test_id_pem.result}"
   description  = "Agent identity blueprint for PEM certificate credential acceptance test"
@@ -41,6 +49,13 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_bluepri
     microsoft365_graph_beta_users_user.dependency_user_pem_2.id,
   ]
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_users]
+}
+
+resource "time_sleep" "wait_for_blueprint" {
+  depends_on      = [microsoft365_graph_beta_agents_agent_identity_blueprint.test_blueprint_pem]
+  create_duration = "30s"
 }
 
 # Generate a self-signed certificate for testing
@@ -74,4 +89,6 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint_certificate_cr
   encoding = "pem"
   type     = "AsymmetricX509Cert"
   usage    = "Verify"
+
+  depends_on = [time_sleep.wait_for_blueprint]
 }

@@ -30,7 +30,7 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
 }
 
 resource "time_sleep" "wait_after_users" {
-  create_duration = "15s"
+  create_duration = "30s"
 
   depends_on = [
     microsoft365_graph_beta_users_user.dependency_user_1,
@@ -56,9 +56,16 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_bluepri
   ]
 }
 
+resource "time_sleep" "wait_for_blueprint" {
+  depends_on      = [microsoft365_graph_beta_agents_agent_identity_blueprint.test_blueprint]
+  create_duration = "30s"
+}
+
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint_password_credential" "test_minimal" {
   blueprint_id = microsoft365_graph_beta_agents_agent_identity_blueprint.test_blueprint.id
   display_name = "acc-test-password-credential-${random_string.test_id.result}"
+
+  depends_on = [time_sleep.wait_for_blueprint]
 }
 
 

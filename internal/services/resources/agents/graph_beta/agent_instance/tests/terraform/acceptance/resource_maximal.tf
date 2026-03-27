@@ -41,6 +41,18 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_maximal_2" {
 }
 
 ########################################################################################
+# Pause - Wait for users to propagate
+########################################################################################
+
+resource "time_sleep" "wait_for_users" {
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_user_maximal_1,
+    microsoft365_graph_beta_users_user.dependency_user_maximal_2,
+  ]
+  create_duration = "30s"
+}
+
+########################################################################################
 # Test Resource - Agent Instance (Maximal)
 ########################################################################################
 
@@ -141,4 +153,6 @@ resource "microsoft365_graph_beta_agents_agent_instance" "test_maximal" {
     update = "5m"
     delete = "5m"
   }
+
+  depends_on = [time_sleep.wait_for_users]
 }

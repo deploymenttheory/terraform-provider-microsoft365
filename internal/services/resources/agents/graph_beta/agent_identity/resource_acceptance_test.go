@@ -40,6 +40,10 @@ func TestAccResourceAgentIdentity_01_Minimal(t *testing.T) {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
@@ -102,6 +106,10 @@ func TestAccResourceAgentIdentity_02_WithTags(t *testing.T) {
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
 		Steps: []resource.TestStep{

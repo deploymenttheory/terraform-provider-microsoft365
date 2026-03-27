@@ -29,6 +29,14 @@ resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
   }
 }
 
+resource "time_sleep" "wait_for_users" {
+  depends_on = [
+    microsoft365_graph_beta_users_user.dependency_user_1,
+    microsoft365_graph_beta_users_user.dependency_user_2,
+  ]
+  create_duration = "30s"
+}
+
 resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_blueprint" {
   display_name = "acc-test-blueprint-pwd-cred-${random_string.test_id.result}"
   description  = "Agent identity blueprint for password credential acceptance test"
@@ -41,6 +49,13 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_bluepri
     microsoft365_graph_beta_users_user.dependency_user_2.id,
   ]
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_users]
+}
+
+resource "time_sleep" "wait_for_blueprint" {
+  depends_on      = [microsoft365_graph_beta_agents_agent_identity_blueprint.test_blueprint]
+  create_duration = "30s"
 }
 
 #Federated credential scenario -  GitHub Actions deploying Azure resources
@@ -51,4 +66,6 @@ resource "microsoft365_graph_beta_agents_agent_identity_blueprint_federated_iden
   issuer       = "https://token.actions.githubusercontent.com"
   subject      = "repo:deploymenttheory/test-repo-${random_string.test_id.result}:environment:Production"
   audiences    = ["api://AzureADTokenExchange"]
+
+  depends_on = [time_sleep.wait_for_blueprint]
 }

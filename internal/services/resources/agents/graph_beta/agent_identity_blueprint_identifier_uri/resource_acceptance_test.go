@@ -30,6 +30,10 @@ func TestAccResourceAgentIdentityBlueprintIdentifierUri_01_Minimal(t *testing.T)
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{

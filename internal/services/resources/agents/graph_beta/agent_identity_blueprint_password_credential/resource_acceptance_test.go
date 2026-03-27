@@ -29,6 +29,10 @@ func TestAccResourceAgentIdentityBlueprintPasswordCredential_01_Minimal(t *testi
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 		},
 		Steps: []resource.TestStep{
 			{
