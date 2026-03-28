@@ -119,6 +119,9 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_03_UpdateMinimalToMaximal(
 					check.That(resourceType+".test_03_progression").Key("display_name").HasValue("Test 03: Progression macOS Software Update Configuration"),
 					check.That(resourceType+".test_03_progression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
 					check.That(resourceType+".test_03_progression").Key("priority").HasValue("low"),
+					// Verify timeouts survive the Update operation (regression test for state preservation)
+					check.That(resourceType+".test_03_progression").Key("timeouts.create").HasValue("30s"),
+					check.That(resourceType+".test_03_progression").Key("timeouts.update").HasValue("30s"),
 				),
 			},
 			{
@@ -130,6 +133,8 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_03_UpdateMinimalToMaximal(
 					check.That(resourceType+".test_03_progression").Key("description").HasValue("Maximal software update configuration with all features"),
 					check.That(resourceType+".test_03_progression").Key("priority").HasValue("high"),
 					check.That(resourceType+".test_03_progression").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(resourceType+".test_03_progression").Key("timeouts.create").HasValue("30s"),
+					check.That(resourceType+".test_03_progression").Key("timeouts.update").HasValue("30s"),
 				),
 			},
 		},
