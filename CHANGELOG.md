@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.52.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.52.0-alpha...v0.52.1-alpha) (2026-03-29)
+
+
+### Bug Fixes
+
+* **macos_software_update_configuration:** persist plan state before ReadWithRetry in Update ([#2689](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2689)) ([3a105a8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3a105a821666be8f8059a582d1027e38a6369955))
+
 ## [0.52.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.51.0-alpha...v0.52.0-alpha) (2026-03-26)
 
 
