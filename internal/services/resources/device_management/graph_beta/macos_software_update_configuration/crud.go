@@ -219,6 +219,11 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Update(ctx context.Context, r
 		return
 	}
 
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
