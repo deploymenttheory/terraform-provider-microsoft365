@@ -80,7 +80,7 @@ func TestAccDatasourceSubscribedSkus_03_BySkuPartNumber(t *testing.T) {
 			{
 				Config: loadAcceptanceTestTerraform("03_by_sku_part_number.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".test").Key("sku_part_number").HasValue("E5"),
+					check.That(dataSourceType+".test").Key("sku_part_number").HasValue("Intune"),
 					testCheckItemsCountExists(dataSourceType+".test"),
 				),
 			},

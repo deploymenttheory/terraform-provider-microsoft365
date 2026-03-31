@@ -159,6 +159,7 @@ func TestAccDatasourceDevice_06_ODataAndFilter(t *testing.T) {
 }
 
 func TestAccDatasourceDevice_07_ODataCompliant(t *testing.T) {
+	t.Skip("Test requires compliant Intune-managed devices in the tenant, which are not present in the test tenant")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

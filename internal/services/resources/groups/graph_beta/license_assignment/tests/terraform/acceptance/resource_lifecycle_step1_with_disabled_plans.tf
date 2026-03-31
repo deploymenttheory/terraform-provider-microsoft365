@@ -13,8 +13,9 @@ resource "microsoft365_graph_beta_groups_group" "lifecycle" {
 }
 
 resource "time_sleep" "wait_for_group_creation_lifecycle" {
-  depends_on      = [microsoft365_graph_beta_groups_group.lifecycle]
-  create_duration = "30s"
+  depends_on       = [microsoft365_graph_beta_groups_group.lifecycle]
+  create_duration  = "30s"
+  destroy_duration = "30s"
 }
 
 // Step 1: assign license WITH one disabled plan

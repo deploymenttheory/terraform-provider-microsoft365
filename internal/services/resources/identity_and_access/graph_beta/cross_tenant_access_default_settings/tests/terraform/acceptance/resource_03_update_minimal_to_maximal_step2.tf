@@ -127,7 +127,7 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_defaul
       access_type = "blocked"
       targets = [
         {
-          target      = "Office365"
+          target      = "AllApplications"
           target_type = "application"
         }
       ]

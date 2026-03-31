@@ -13,9 +13,17 @@ resource "microsoft365_graph_beta_applications_application" "test_app_sp" {
   hard_delete  = true
 }
 
+# Wait for application to propagate before creating service principal
+resource "time_sleep" "wait_for_test_app_sp" {
+  depends_on      = [microsoft365_graph_beta_applications_application.test_app_sp]
+  create_duration = "30s"
+}
+
 resource "microsoft365_graph_beta_applications_service_principal" "test_sp" {
   app_id      = microsoft365_graph_beta_applications_application.test_app_sp.app_id
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_test_app_sp]
 }
 
 # Create a separate application that will become a service principal (owner)
@@ -25,10 +33,18 @@ resource "microsoft365_graph_beta_applications_application" "test_owner_app" {
   hard_delete  = true
 }
 
+# Wait for owner application to propagate before creating service principal
+resource "time_sleep" "wait_for_test_owner_app" {
+  depends_on      = [microsoft365_graph_beta_applications_application.test_owner_app]
+  create_duration = "30s"
+}
+
 # Create service principal from the owner application
 resource "microsoft365_graph_beta_applications_service_principal" "test_owner_sp" {
   app_id      = microsoft365_graph_beta_applications_application.test_owner_app.app_id
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_test_owner_app]
 }
 
 resource "time_sleep" "wait_for_resources" {

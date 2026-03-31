@@ -72,6 +72,7 @@ func (r *ServicePrincipalAppRoleAssignedToResource) Create(ctx context.Context, 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = servicePrincipalAppRoleAssignedToConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

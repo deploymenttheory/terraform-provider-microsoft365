@@ -55,11 +55,11 @@ import (
 
 	// Graph Beta - Windows Updates datasources
 
-	graphBetaWindowsUpdatesApplicableContent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/applicable_content"
-	graphBetaWindowsUpdatesCatalogEnteries "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/catalog_enteries"
-	graphBetaWindowsUpdatesComplianceChanges "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/compliance_changes"
-	graphBetaWindowsUpdatesDeviceEnrollment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/device_enrollment"
-	graphBetaWindowsUpdatesProduct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/product"
+	graphBetaWindowsUpdatesApplicableContent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/graph_beta/applicable_content"
+	graphBetaWindowsUpdatesCatalogEnteries "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/graph_beta/catalog_enteries"
+	graphBetaWindowsUpdatesComplianceChanges "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/graph_beta/compliance_changes"
+	graphBetaWindowsUpdatesDeviceEnrollment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/graph_beta/device_enrollment"
+	graphBetaWindowsUpdatesProduct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/windows_updates/graph_beta/product"
 
 	// Graph v1.0 - Directory Management datasources
 	graphBetaIdentityAndAccessSubscribedSkus "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_v1.0/subscribed_skus"

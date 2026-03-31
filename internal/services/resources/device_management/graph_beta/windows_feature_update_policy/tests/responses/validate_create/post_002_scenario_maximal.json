@@ -5,7 +5,7 @@
   "displayName": "unit-test-windows-feature-update-policy-002-maximal",
   "description": "Maximal test configuration for Windows feature update policy",
   "featureUpdateVersion": "Windows 11, version 24H2",
-  "installLatestWindows10OnWindows11IneligibleDevice": true,
+  "installLatestWindows10OnWindows11IneligibleDevice": false,
   "installFeatureUpdatesOptional": true,
   "roleScopeTagIds": ["0", "1"],
   "rolloutSettings": {
