@@ -31,7 +31,6 @@ func NewDirectoryRoleDataSource() datasource.DataSource {
 	return &DirectoryRoleDataSource{
 		ReadPermissions: []string{
 			"Directory.Read.All",
-			"RoleManagement.Read.Directory",
 		},
 	}
 }

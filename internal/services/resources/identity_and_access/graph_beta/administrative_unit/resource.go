@@ -51,7 +51,6 @@ var (
 func NewAdministrativeUnitResource() resource.Resource {
 	return &AdministrativeUnitResource{
 		ReadPermissions: []string{
-			"AdministrativeUnit.Read.All",
 			"Directory.Read.All",
 		},
 		WritePermissions: []string{
