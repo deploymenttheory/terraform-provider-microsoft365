@@ -115,7 +115,7 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_defaul
   }
 
   # b2b_direct_connect_inbound only supports "AllUsers" for users_and_groups targets.
-  # Applications supports specific application IDs such as "Office365".
+  # Applications supports "AllApplications" (the API normalizes all app targets to this value).
   b2b_direct_connect_inbound = {
     users_and_groups = {
       access_type = "blocked"
@@ -130,7 +130,7 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_defaul
       access_type = "blocked"
       targets = [
         {
-          target      = "Office365"
+          target      = "AllApplications"
           target_type = "application"
         }
       ]

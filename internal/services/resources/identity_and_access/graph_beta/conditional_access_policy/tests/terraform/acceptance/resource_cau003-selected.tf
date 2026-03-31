@@ -35,9 +35,11 @@ resource "microsoft365_graph_beta_groups_group" "cau003_exclude" {
 # Application Dependencies - chosen because it's built-in and will always be available
 # ==============================================================================
 
-# Windows Azure Service Management API - built-in application
+# Azure Resource Manager - built-in application (well-known appId: 797f4846-ba00-4fd7-ba43-dac1f8f63013)
+# Note: This service principal may appear as "Windows Azure Service Management API" or "Azure Resource Manager"
+# depending on the tenant. Using app_id for reliable lookup.
 data "microsoft365_graph_beta_applications_service_principal" "windows_azure_service_management_api" {
-  display_name = "Windows Azure Service Management API"
+  app_id = "797f4846-ba00-4fd7-ba43-dac1f8f63013"
 }
 
 # ==============================================================================

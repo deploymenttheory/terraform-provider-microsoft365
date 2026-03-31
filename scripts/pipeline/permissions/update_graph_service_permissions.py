@@ -116,6 +116,15 @@ _DOMAIN_PERM_PREFIXES: dict[str, tuple[str, ...]] = {
         'Policy.', 'RoleManagement.',
         # User.* needed for validate.go calls e.g. validateUserExists -> GET /users/{id}
         'User.',
+        # CrossTenantInformation.* needed for validate.go calls that verify tenant IDs
+        # via GET /tenantRelationships/findTenantInformationByTenantIdWithTenantId
+        # used in: conditional_access_policy, cross_tenant_access_partner_settings,
+        #          cross_tenant_access_partner_user_sync_settings
+        'CrossTenantInformation.',
+        # Group.* needed for validate.go calls that verify group GUIDs exist
+        # via GET /groups in: cross_tenant_access_default_settings,
+        #          cross_tenant_access_partner_settings
+        'Group.',
     ),
     'multitenant_management': (
         'ManagedTenant',

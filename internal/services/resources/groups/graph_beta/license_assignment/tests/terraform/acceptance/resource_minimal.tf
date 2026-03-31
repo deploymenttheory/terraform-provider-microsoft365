@@ -12,10 +12,11 @@ resource "microsoft365_graph_beta_groups_group" "minimal" {
   hard_delete      = true
 }
 
-// Wait for group creation to complete
+// Wait for group creation to complete and for license removal to propagate on destroy
 resource "time_sleep" "wait_for_group_creation_minimal" {
-  depends_on      = [microsoft365_graph_beta_groups_group.minimal]
-  create_duration = "30s"
+  depends_on       = [microsoft365_graph_beta_groups_group.minimal]
+  create_duration  = "30s"
+  destroy_duration = "30s"
 }
 
 resource "microsoft365_graph_beta_groups_license_assignment" "minimal" {

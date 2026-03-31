@@ -2554,6 +2554,7 @@ func TestAccResourceConditionalAccessPolicy_42_CAU013(t *testing.T) {
 
 // CAU014: CAU014-All
 func TestAccResourceConditionalAccessPolicy_43_CAU014(t *testing.T) {
+	t.Skip("CAU014 requires Workload Identities Premium license (servicePrincipalRiskLevels) which is not available in the test tenant")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,

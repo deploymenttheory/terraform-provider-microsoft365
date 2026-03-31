@@ -189,54 +189,9 @@ func testAccConfigMinimal() string {
 }
 
 func testAccConfigMinimalUpdated() string {
-	return `
-resource "random_string" "test_id" {
-  length  = 8
-  special = false
-  upper   = false
-}
-
-resource "microsoft365_graph_beta_users_user" "dependency_user_1" {
-  display_name        = "acc-test-fic-user1-${random_string.test_id.result}"
-  user_principal_name = "acc-test-fic-user1-${random_string.test_id.result}@deploymenttheory.com"
-  mail_nickname       = "acc-test-fic-user1-${random_string.test_id.result}"
-  account_enabled     = true
-  password_profile = {
-    password                           = "SecureP@ssw0rd123!"
-    force_change_password_next_sign_in = false
-  }
-}
-
-resource "microsoft365_graph_beta_users_user" "dependency_user_2" {
-  display_name        = "acc-test-fic-user2-${random_string.test_id.result}"
-  user_principal_name = "acc-test-fic-user2-${random_string.test_id.result}@deploymenttheory.com"
-  mail_nickname       = "acc-test-fic-user2-${random_string.test_id.result}"
-  account_enabled     = true
-  password_profile = {
-    password                           = "SecureP@ssw0rd123!"
-    force_change_password_next_sign_in = false
-  }
-}
-
-resource "microsoft365_graph_beta_agents_agent_identity_blueprint" "test_dependency" {
-  display_name     = "acc-test-agent-identity-blueprint-fic-dependency-${random_string.test_id.result}"
-  sponsor_user_ids = [
-    microsoft365_graph_beta_users_user.dependency_user_1.id,
-    microsoft365_graph_beta_users_user.dependency_user_2.id,
-  ]
-  owner_user_ids = [
-    microsoft365_graph_beta_users_user.dependency_user_1.id,
-    microsoft365_graph_beta_users_user.dependency_user_2.id,
-  ]
-}
-
-resource "microsoft365_graph_beta_agents_agent_identity_blueprint_federated_identity_credential" "test_minimal" {
-  blueprint_id = microsoft365_graph_beta_agents_agent_identity_blueprint.test_dependency.id
-  name         = "acc-test-fic-minimal-${random_string.test_id.result}"
-  issuer       = "https://token.actions.githubusercontent.com"
-  subject      = "repo:deploymenttheory/test-repo-${random_string.test_id.result}:environment:Production"
-  audiences    = ["api://AzureADTokenExchange"]
-  description  = "Updated description for acceptance test"
-}
-`
+	content, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal_updated.tf")
+	if err != nil {
+		panic(err)
+	}
+	return content
 }

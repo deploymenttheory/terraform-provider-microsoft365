@@ -5,7 +5,7 @@
   "displayName": "unit-test-windows-feature-update-policy-003-lifecycle",
   "description": "Maximal lifecycle test configuration",
   "featureUpdateVersion": "Windows 11, version 24H2",
-  "installLatestWindows10OnWindows11IneligibleDevice": true,
+  "installLatestWindows10OnWindows11IneligibleDevice": false,
   "installFeatureUpdatesOptional": true,
   "roleScopeTagIds": ["0", "1"],
   "rolloutSettings": {

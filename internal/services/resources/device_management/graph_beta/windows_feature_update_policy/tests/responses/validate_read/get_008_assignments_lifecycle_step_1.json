@@ -5,7 +5,7 @@
   "displayName": "unit-test-windows-feature-update-policy-008-assignments-lifecycle",
   "description": "Maximal assignments lifecycle test",
   "featureUpdateVersion": "Windows 11, version 24H2",
-  "installLatestWindows10OnWindows11IneligibleDevice": true,
+  "installLatestWindows10OnWindows11IneligibleDevice": false,
   "installFeatureUpdatesOptional": true,
   "roleScopeTagIds": ["0", "1"],
   "createdDateTime": "2024-01-01T00:00:00Z",
