@@ -13,9 +13,17 @@ resource "microsoft365_graph_beta_applications_application" "test_app_user" {
   hard_delete  = true
 }
 
+# Wait for application to propagate before creating service principal
+resource "time_sleep" "wait_for_test_app_user" {
+  depends_on      = [microsoft365_graph_beta_applications_application.test_app_user]
+  create_duration = "30s"
+}
+
 resource "microsoft365_graph_beta_applications_service_principal" "test_sp_user" {
   app_id      = microsoft365_graph_beta_applications_application.test_app_user.app_id
   hard_delete = true
+
+  depends_on = [time_sleep.wait_for_test_app_user]
 }
 
 resource "microsoft365_graph_beta_users_user" "test_owner_user" {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
@@ -29,7 +30,11 @@ func validateIOSMobileAppIds(ctx context.Context, client *msgraphbetasdk.GraphSe
 	filter := "(microsoft.graph.managedApp/appAvailability eq null or microsoft.graph.managedApp/appAvailability eq 'lineOfBusiness' or isAssigned eq true) and (isof('microsoft.graph.iosLobApp') or isof('microsoft.graph.iosStoreApp') or isof('microsoft.graph.iosVppApp') or isof('microsoft.graph.managedIOSStoreApp') or isof('microsoft.graph.managedIOSLobApp'))"
 	orderby := []string{"displayName"}
 
+	headers := abstractions.NewRequestHeaders()
+	headers.Add("ConsistencyLevel", "eventual")
+
 	requestConfig := &deviceappmanagement.MobileAppsRequestBuilderGetRequestConfiguration{
+		Headers: headers,
 		QueryParameters: &deviceappmanagement.MobileAppsRequestBuilderGetQueryParameters{
 			Filter:  &filter,
 			Orderby: orderby,

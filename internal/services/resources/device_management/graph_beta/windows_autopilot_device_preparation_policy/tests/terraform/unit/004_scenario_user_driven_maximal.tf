@@ -24,11 +24,11 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     },
     {
       app_id   = "00000000-0000-0000-0000-000000000003"
-      app_type = "winGetApp"
+      app_type = "officeSuiteApp"
     },
     {
-      app_id   = "00000000-0000-0000-0000-000000000004"
-      app_type = "officeSuiteApp"
+      app_id   = "00000000-0000-0000-0000-000000000001"
+      app_type = "winGetApp"
     }
   ]
 

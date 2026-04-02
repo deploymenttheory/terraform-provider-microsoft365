@@ -318,6 +318,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						Optional:            true,
 						Computed:            true,
 						ElementType:         types.StringType,
+						PlanModifiers: []planmodifier.Set{
+							setplanmodifier.UseStateForUnknown(),
+						},
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
 							setvalidator.ValueStringsAre(
@@ -332,6 +335,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						MarkdownDescription: "The definition of the delegated permissions exposed by the web API represented by this application registration. These delegated permissions may be requested by a client application, and may be granted by users or administrators during consent. Delegated permissions are sometimes referred to as OAuth 2.0 scopes.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Set{
+							setplanmodifier.UseStateForUnknown(),
+						},
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
 						},
@@ -397,6 +403,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						MarkdownDescription: "Lists the client applications that are preauthorized with the specified delegated permissions to access this application's APIs. Users aren't required to consent to any preauthorized application (for the permissions specified). However, any other permissions not listed in preAuthorizedApplications (requested through incremental consent for example) will require user consent.",
 						Optional:            true,
 						Computed:            true,
+						PlanModifiers: []planmodifier.Set{
+							setplanmodifier.UseStateForUnknown(),
+						},
 						Validators: []validator.Set{
 							setvalidator.SizeAtLeast(1),
 						},
@@ -489,6 +498,9 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						"origin": schema.StringAttribute{
 							MarkdownDescription: "Specifies if the app role is defined on the application object or on the servicePrincipal entity. Must not be included in any POST or PATCH requests. Read-only.",
 							Computed:            true,
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
 						},
 						"value": schema.StringAttribute{
 							MarkdownDescription: "Specifies the value to include in the roles claim in ID tokens and access tokens authenticating an assigned user or service principal. Must not exceed 120 characters in length. Allowed characters are : ! # $ % & ' ( ) * + , - . / : ;  =  ? @ [ ] ^ + _  {  } ~, and characters in the ranges 0-9, A-Z and a-z. Any other character, including the space character, aren't allowed. May not begin with `.`. Nullable.",

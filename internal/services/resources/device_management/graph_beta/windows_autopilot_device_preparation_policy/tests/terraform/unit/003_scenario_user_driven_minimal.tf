@@ -20,7 +20,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
   allowed_apps = [
     {
       app_id   = "00000000-0000-0000-0000-000000000002"
-      app_type = "winGetApp"
+      app_type = "win32LobApp"
     }
   ]
 }

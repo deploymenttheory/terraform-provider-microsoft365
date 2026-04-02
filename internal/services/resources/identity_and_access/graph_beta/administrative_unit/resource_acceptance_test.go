@@ -254,17 +254,24 @@ func TestAccResourceAdministrativeUnit_04_AU004_Updates(t *testing.T) {
 				),
 			},
 			// Step 3: Change to dynamic membership
+			// NOTE: This step triggers a RequiresReplace cycle on the 'visibility' attribute
+			// (immutable in Graph API), causing a destroy+create. After destroy+create, both
+			// the deletion of the old resource and the creation of the new resource need to
+			// propagate across Entra replicas, which takes longer than a plain PATCH update.
+			// We use a longer post-apply wait (30s) to allow the new resource to propagate.
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Updating AU004 - Changing to dynamic membership")
+					testlog.StepAction(resourceType, "Updating AU004 - Changing to dynamic membership (requires destroy+recreate due to immutable visibility attribute)")
 					testlog.WaitForConsistency("administrative unit", 20*time.Second)
 					time.Sleep(20 * time.Second)
 				},
 				Config: loadAcceptanceTestTerraform("resource_au004_update_step3.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("administrative unit", 15*time.Second)
-						time.Sleep(15 * time.Second)
+						// After a RequiresReplace (destroy+create), the new resource needs more
+						// time to propagate across Entra replicas than a simple update (PATCH).
+						testlog.WaitForConsistency("administrative unit", 30*time.Second)
+						time.Sleep(30 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".au004_update").ExistsInGraph(testResource),
