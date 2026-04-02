@@ -1,6 +1,7 @@
 package graphBetaAuthenticationContext_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -15,6 +16,7 @@ import (
 	graphBetaAuthenticationContext "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authentication_context"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 var (
@@ -24,6 +26,84 @@ var (
 	// testResource is the test resource implementation for authentication contexts
 	testResource = graphBetaAuthenticationContext.AuthenticationContextTestResource{}
 )
+
+// deleteAuthContextIfExists performs a best-effort deletion of an authentication context
+// by ID before a test step. This is used as a PreConfig cleanup function to handle
+// stale resources from previous test runs that failed to clean up.
+// After deletion it polls until the resource no longer appears in the list (up to 60s)
+// to avoid eventual-consistency failures in the subsequent create validation.
+func deleteAuthContextIfExists(id string) func() {
+	return func() {
+		graphClient, err := acceptance.TestGraphClient()
+		if err != nil {
+			// Log but don't fail - if cleanup fails, the test creation step will surface the real error
+			fmt.Printf("[WARN] deleteAuthContextIfExists: failed to create Graph client: %v\n", err)
+			return
+		}
+
+		ctx := context.Background()
+
+		// First, set isAvailable=false so deletion is permitted (required by Entra ID)
+		updateBody := graphmodels.NewAuthenticationContextClassReference()
+		isAvailable := false
+		updateBody.SetIsAvailable(&isAvailable)
+
+		_, updateErr := graphClient.
+			Identity().
+			ConditionalAccess().
+			AuthenticationContextClassReferences().
+			ByAuthenticationContextClassReferenceId(id).
+			Patch(ctx, updateBody, nil)
+
+		if updateErr != nil {
+			// Resource likely does not exist; proceed to delete attempt anyway
+			fmt.Printf("[INFO] deleteAuthContextIfExists: PATCH isAvailable=false for %s returned: %v (may not exist)\n", id, updateErr)
+		}
+
+		deleteErr := graphClient.
+			Identity().
+			ConditionalAccess().
+			AuthenticationContextClassReferences().
+			ByAuthenticationContextClassReferenceId(id).
+			Delete(ctx, nil)
+
+		if deleteErr != nil {
+			fmt.Printf("[INFO] deleteAuthContextIfExists: DELETE for %s returned: %v (may not exist)\n", id, deleteErr)
+			return
+		}
+
+		fmt.Printf("[INFO] deleteAuthContextIfExists: successfully deleted authentication context %s\n", id)
+
+		// Wait for deletion to propagate — the validation in Create queries the full list
+		// and may still see the resource for several seconds after deletion.
+		deadline := time.Now().Add(60 * time.Second)
+		for time.Now().Before(deadline) {
+			time.Sleep(5 * time.Second)
+			list, listErr := graphClient.
+				Identity().
+				ConditionalAccess().
+				AuthenticationContextClassReferences().
+				Get(ctx, nil)
+			if listErr != nil {
+				fmt.Printf("[WARN] deleteAuthContextIfExists: list query failed: %v\n", listErr)
+				break
+			}
+			found := false
+			for _, ref := range list.GetValue() {
+				if ref.GetId() != nil && *ref.GetId() == id {
+					found = true
+					break
+				}
+			}
+			if !found {
+				fmt.Printf("[INFO] deleteAuthContextIfExists: %s no longer visible in list\n", id)
+				return
+			}
+			fmt.Printf("[INFO] deleteAuthContextIfExists: %s still visible, waiting...\n", id)
+		}
+		fmt.Printf("[WARN] deleteAuthContextIfExists: %s still visible after 60s, proceeding anyway\n", id)
+	}
+}
 
 func TestAccResourceAuthenticationContext_01_Basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -43,6 +123,7 @@ func TestAccResourceAuthenticationContext_01_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
+					deleteAuthContextIfExists("c90")()
 					testlog.StepAction(resourceType, "Creating basic authentication context")
 				},
 				Config: testAccAuthenticationContextConfigBasic(),

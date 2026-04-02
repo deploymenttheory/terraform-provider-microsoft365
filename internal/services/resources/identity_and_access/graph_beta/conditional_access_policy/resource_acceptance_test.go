@@ -2884,7 +2884,7 @@ func TestAccResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("conditions.users.include_guests_or_external_users.guest_or_external_user_types.*").ContainsTypeSetElement("otherExternalUser"),
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("conditions.applications.include_applications.#").HasValue("1"),
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
-					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("conditions.applications.exclude_applications.#").HasValue("10"),
+					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("conditions.applications.exclude_applications.#").HasValue("8"),
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("grant_controls.operator").HasValue("OR"),
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("grant_controls.built_in_controls.#").HasValue("1"),
 					check.That(resourceType+".cau019_allow_only_approved_apps_guests").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("block"),

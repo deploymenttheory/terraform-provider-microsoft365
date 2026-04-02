@@ -9,6 +9,41 @@ resource "random_string" "suffix" {
 }
 
 # ==============================================================================
+# Application Dependencies
+# These are well-known Microsoft first-party applications. Using data source
+# lookups ensures the appId (client ID) is retrieved from the tenant rather
+# than relying on hardcoded values that may not be provisioned.
+# ==============================================================================
+
+data "microsoft365_graph_beta_applications_service_principal" "windows_azure_active_directory" {
+  display_name = "Windows Azure Active Directory"
+}
+
+data "microsoft365_graph_beta_applications_service_principal" "microsoft_approval_management" {
+  display_name = "Microsoft Approval Management"
+}
+
+data "microsoft365_graph_beta_applications_service_principal" "aad_reporting" {
+  display_name = "Azure Active Directory Graph"
+}
+
+data "microsoft365_graph_beta_applications_service_principal" "azure_credential_configuration_endpoint_service" {
+  display_name = "Azure Credential Configuration Endpoint Service"
+}
+
+data "microsoft365_graph_beta_applications_service_principal" "microsoft_app_access_panel" {
+  display_name = "Microsoft App Access Panel"
+}
+
+data "microsoft365_graph_beta_applications_service_principal" "my_profile" {
+  display_name = "My Profile"
+}
+
+data "microsoft365_graph_beta_applications_service_principal" "my_apps" {
+  display_name = "My Apps"
+}
+
+# ==============================================================================
 # Group Dependencies
 # ==============================================================================
 
@@ -68,13 +103,13 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     applications = {
       include_applications = ["All"]
       exclude_applications = [
-        "00000002-0000-0000-c000-000000000000",
-        "65d91a3d-ab74-42e6-8a2f-0add61688c74",
-        "1b912ec3-a9dd-4c4d-a53e-76aa7adb28d7",
-        "ea890292-c8c8-4433-b5ea-b09d0668e1a6",
-        "0000000c-0000-0000-c000-000000000000",
-        "8c59ead7-d703-4a27-9e55-c96a0054c8d2",
-        "2793995e-0a7d-40d7-bd35-6968ba142197",
+        data.microsoft365_graph_beta_applications_service_principal.windows_azure_active_directory.app_id,
+        data.microsoft365_graph_beta_applications_service_principal.microsoft_approval_management.app_id,
+        data.microsoft365_graph_beta_applications_service_principal.aad_reporting.app_id,
+        data.microsoft365_graph_beta_applications_service_principal.azure_credential_configuration_endpoint_service.app_id,
+        data.microsoft365_graph_beta_applications_service_principal.microsoft_app_access_panel.app_id,
+        data.microsoft365_graph_beta_applications_service_principal.my_profile.app_id,
+        data.microsoft365_graph_beta_applications_service_principal.my_apps.app_id,
         "Office365"
       ]
       include_user_actions                            = []

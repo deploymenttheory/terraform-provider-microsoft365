@@ -1,0 +1,20 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.winGetApp",
+      "id": "00000000-0000-0000-0000-000000000001",
+      "displayName": "Test WinGet App"
+    },
+    {
+      "@odata.type": "#microsoft.graph.win32LobApp",
+      "id": "00000000-0000-0000-0000-000000000002",
+      "displayName": "Test Win32 LOB App"
+    },
+    {
+      "@odata.type": "#microsoft.graph.officeSuiteApp",
+      "id": "00000000-0000-0000-0000-000000000003",
+      "displayName": "Test Office Suite App"
+    }
+  ]
+}
