@@ -36,7 +36,7 @@ var (
 func NewWindowsUpdatesAutopatchUpdatableAssetGroupResource() resource.Resource {
 	return &WindowsUpdatesAutopatchUpdatableAssetGroupResource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 		WritePermissions: []string{
 			"WindowsUpdates.ReadWrite.All",

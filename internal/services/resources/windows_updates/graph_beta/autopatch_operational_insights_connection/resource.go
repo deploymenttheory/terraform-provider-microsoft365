@@ -33,7 +33,7 @@ var (
 func NewWindowsUpdatesAutopatchOperationalInsightsConnectionResource() resource.Resource {
 	return &WindowsUpdatesAutopatchOperationalInsightsConnectionResource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 		WritePermissions: []string{
 			"WindowsUpdates.ReadWrite.All",

@@ -35,7 +35,7 @@ var (
 func NewWindowsUpdatesAutopatchDeploymentStateResource() resource.Resource {
 	return &WindowsUpdatesAutopatchDeploymentStateResource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 		WritePermissions: []string{
 			"WindowsUpdates.ReadWrite.All",

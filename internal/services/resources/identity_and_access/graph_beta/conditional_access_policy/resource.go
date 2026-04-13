@@ -55,7 +55,6 @@ var (
 func NewConditionalAccessPolicyResource() resource.Resource {
 	return &ConditionalAccessPolicyResource{
 		ReadPermissions: []string{
-			"CrossTenantInformation.ReadBasic.All",
 			"Directory.Read.All",
 			"Policy.Read.All",
 			"RoleManagement.Read.All",

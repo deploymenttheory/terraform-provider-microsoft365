@@ -46,7 +46,6 @@ var (
 func NewAdministrativeUnitDirectoryRoleAssignmentResource() resource.Resource {
 	return &AdministrativeUnitDirectoryRoleAssignmentResource{
 		ReadPermissions: []string{
-			"RoleManagement.Read.Directory",
 			"Directory.Read.All",
 		},
 		WritePermissions: []string{

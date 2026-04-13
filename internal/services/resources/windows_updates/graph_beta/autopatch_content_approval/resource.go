@@ -40,7 +40,7 @@ var (
 func NewWindowsUpdatesAutopatchContentApprovalResource() resource.Resource {
 	return &WindowsUpdatesAutopatchContentApprovalResource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 		WritePermissions: []string{
 			"WindowsUpdates.ReadWrite.All",

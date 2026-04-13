@@ -39,7 +39,6 @@ const (
 func NewCrossTenantAccessPartnerUserSyncSettingsResource() resource.Resource {
 	return &CrossTenantAccessPartnerUserSyncSettingsResource{
 		ReadPermissions: []string{
-			"CrossTenantInformation.ReadBasic.All",
 			"Policy.Read.All",
 		},
 		WritePermissions: []string{

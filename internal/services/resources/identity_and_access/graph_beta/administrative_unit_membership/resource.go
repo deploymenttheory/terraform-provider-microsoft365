@@ -39,7 +39,11 @@ var (
 func NewAdministrativeUnitMembershipResource() resource.Resource {
 	return &AdministrativeUnitMembershipResource{
 		ReadPermissions: []string{
-			"AdministrativeUnit.Read.All",
+			"Directory.Read.All",
+			"Group.ManageProtection.All",
+			"Group.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 		WritePermissions: []string{
 			"AdministrativeUnit.ReadWrite.All",
