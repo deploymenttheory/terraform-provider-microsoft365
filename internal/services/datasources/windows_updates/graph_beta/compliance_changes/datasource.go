@@ -23,7 +23,7 @@ var (
 func NewComplianceChangesDataSource() datasource.DataSource {
 	return &ComplianceChangesDataSource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 	}
 }

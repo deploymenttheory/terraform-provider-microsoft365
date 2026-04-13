@@ -26,7 +26,7 @@ var (
 func NewDeviceEnrollmentDataSource() datasource.DataSource {
 	return &DeviceEnrollmentDataSource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 	}
 }

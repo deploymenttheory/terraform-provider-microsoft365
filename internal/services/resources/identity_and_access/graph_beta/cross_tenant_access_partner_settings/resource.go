@@ -50,8 +50,8 @@ var (
 func NewCrossTenantAccessPartnerSettingsResource() resource.Resource {
 	return &CrossTenantAccessPartnerSettingsResource{
 		ReadPermissions: []string{
-			"CrossTenantInformation.ReadBasic.All",
 			"Directory.Read.All",
+			"Group.ManageProtection.All",
 			"Group.Read.All",
 			"Policy.Read.All",
 			"User.Read.All",

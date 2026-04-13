@@ -43,7 +43,7 @@ var (
 func NewWindowsUpdatesAutopatchDeviceRegistrationResource() resource.Resource {
 	return &WindowsUpdatesAutopatchDeviceRegistrationResource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 		WritePermissions: []string{
 			"WindowsUpdates.ReadWrite.All",

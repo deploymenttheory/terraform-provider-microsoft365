@@ -26,7 +26,7 @@ var (
 func NewWindowsUpdateCatalogEnteriesDataSource() datasource.DataSource {
 	return &WindowsUpdateCatalogEnteriesDataSource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 	}
 }
