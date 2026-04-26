@@ -18,7 +18,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/microsoft/kiota-abstractions-go v1.9.4
-	github.com/microsoft/kiota-http-go v1.5.5
+	github.com/microsoft/kiota-http-go v1.5.6
 	github.com/microsoft/kiota-serialization-json-go v1.1.2
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.160.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.97.0
@@ -105,9 +105,9 @@ require (
 	github.com/zclconf/go-cty v1.18.1 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/otel v1.39.0 // indirect
-	go.opentelemetry.io/otel/metric v1.39.0 // indirect
-	go.opentelemetry.io/otel/trace v1.39.0 // indirect
+	go.opentelemetry.io/otel v1.43.0 // indirect
+	go.opentelemetry.io/otel/metric v1.43.0 // indirect
+	go.opentelemetry.io/otel/trace v1.43.0 // indirect
 	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.53.0 // indirect
