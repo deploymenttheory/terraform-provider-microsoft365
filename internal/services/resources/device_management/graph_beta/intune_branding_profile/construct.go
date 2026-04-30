@@ -69,7 +69,15 @@ func constructUpdateResource(ctx context.Context, data *IntuneBrandingProfileRes
 	convert.FrameworkToGraphBool(data.ShowOfficeWebApps, requestBody.SetShowOfficeWebApps)
 	convert.FrameworkToGraphBool(data.ShowConfigurationManagerApps, requestBody.SetShowConfigurationManagerApps)
 	convert.FrameworkToGraphBool(data.DisableDeviceCategorySelection, requestBody.SetDisableDeviceCategorySelection)
-	convert.FrameworkToGraphBool(data.SendDeviceOwnershipChangePushNotification, requestBody.SetSendDeviceOwnershipChangePushNotification)
+	// NOTE: IntuneBrandingProfile.sendDeviceOwnershipChangePushNotification was removed from
+	// the Microsoft Graph beta API and msgraph-beta-sdk-go in v0.160.0. The field existed in
+	// v0.158.0 and v0.159.0 (description: "Boolean that indicates if a push notification is
+	// sent to users when their device ownership type changes from personal to corporate").
+	// Believed to be an unintentional omission from the OpenAPI specification generation.
+	// When the SDK re-adds the field, restore this line and bump the schema version in
+	// resource.go / state_migrations.go.
+	//
+	// convert.FrameworkToGraphBool(data.SendDeviceOwnershipChangePushNotification, requestBody.SetSendDeviceOwnershipChangePushNotification)
 	convert.FrameworkToGraphBool(data.DisableClientTelemetry, requestBody.SetDisableClientTelemetry)
 	convert.FrameworkToGraphBool(data.IsDefaultProfile, requestBody.SetIsDefaultProfile)
 
