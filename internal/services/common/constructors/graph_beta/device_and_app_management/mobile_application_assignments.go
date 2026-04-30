@@ -103,12 +103,27 @@ func constructAssignmentTarget(ctx context.Context, data *sharedmodels.Assignmen
 	case "allLicensedUsers":
 		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
 	case "androidFotaDeployment":
-		androidFotaDeploymentAssignmentTarget := graphmodels.NewAndroidFotaDeploymentAssignmentTarget()
-		if !data.GroupId.IsNull() {
-			id := data.GroupId.ValueString()
-			androidFotaDeploymentAssignmentTarget.SetGroupId(&id)
-		}
-		target = androidFotaDeploymentAssignmentTarget
+		// NOTE: graphmodels.AndroidFotaDeploymentAssignmentTarget (OData type:
+		// #microsoft.graph.androidFotaDeploymentAssignmentTarget) was present in
+		// msgraph-beta-sdk-go v0.158.0 and v0.159.0 but was removed in v0.160.0.
+		// Confirmed absent from the live Microsoft Graph beta $metadata endpoint.
+		// Believed to be an unintentional omission from the OpenAPI specification
+		// generation pipeline. When the SDK re-adds the type, restore this block
+		// and bump the schema version in resource.go / state_migrations.go for the
+		// mobile_app_assignment resource.
+		//
+		// androidFotaDeploymentAssignmentTarget := graphmodels.NewAndroidFotaDeploymentAssignmentTarget()
+		// if !data.GroupId.IsNull() {
+		// 	id := data.GroupId.ValueString()
+		// 	androidFotaDeploymentAssignmentTarget.SetGroupId(&id)
+		// }
+		// target = androidFotaDeploymentAssignmentTarget
+		return nil, fmt.Errorf(
+			"target_type 'androidFotaDeployment' is temporarily unavailable: " +
+				"graphmodels.AndroidFotaDeploymentAssignmentTarget was removed from " +
+				"msgraph-beta-sdk-go v0.160.0 pending correction of the Microsoft Graph " +
+				"OpenAPI specification; see mobile_app_assignment/state_migrations.go for full context",
+		)
 	case "configurationManagerCollection":
 		configManagerTarget := graphmodels.NewConfigurationManagerCollectionAssignmentTarget()
 		if !data.CollectionId.IsNull() {
