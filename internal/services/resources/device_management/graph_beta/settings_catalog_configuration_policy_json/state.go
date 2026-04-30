@@ -26,7 +26,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *sharedmodels.S
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.Name = convert.GraphToFrameworkString(remoteResource.GetName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
-	data.IsAssigned = convert.GraphToFrameworkBool(remoteResource.GetIsAssigned())
+	data.IsAssigned = convert.GraphToFrameworkBoolWithDefault(remoteResource.GetIsAssigned(), false)
 	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
 	data.SettingsCount = convert.GraphToFrameworkInt32(remoteResource.GetSettingCount())
