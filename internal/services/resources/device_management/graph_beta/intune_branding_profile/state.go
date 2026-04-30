@@ -42,7 +42,15 @@ func MapRemoteStateToTerraform(ctx context.Context, data *IntuneBrandingProfileR
 	data.IsFactoryResetDisabled = convert.GraphToFrameworkBool(remoteResource.GetIsFactoryResetDisabled())
 	data.ShowAzureADEnterpriseApps = convert.GraphToFrameworkBool(remoteResource.GetShowAzureADEnterpriseApps())
 	data.ShowOfficeWebApps = convert.GraphToFrameworkBool(remoteResource.GetShowOfficeWebApps())
-	data.SendDeviceOwnershipChangePushNotification = convert.GraphToFrameworkBool(remoteResource.GetSendDeviceOwnershipChangePushNotification())
+	// NOTE: IntuneBrandingProfile.sendDeviceOwnershipChangePushNotification was removed from
+	// the Microsoft Graph beta API and msgraph-beta-sdk-go in v0.160.0. The field existed in
+	// v0.158.0 and v0.159.0. Believed to be an unintentional omission from the OpenAPI
+	// specification generation. The prior state value is preserved naturally because Read
+	// initialises data from req.State.Get before calling MapRemoteStateToTerraform.
+	// When the SDK re-adds the field, restore this line and bump the schema version in
+	// resource.go / state_migrations.go.
+	//
+	// data.SendDeviceOwnershipChangePushNotification = convert.GraphToFrameworkBool(remoteResource.GetSendDeviceOwnershipChangePushNotification())
 	data.DisableClientTelemetry = convert.GraphToFrameworkBool(remoteResource.GetDisableClientTelemetry())
 	data.IsDefaultProfile = convert.GraphToFrameworkBool(remoteResource.GetIsDefaultProfile())
 	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())

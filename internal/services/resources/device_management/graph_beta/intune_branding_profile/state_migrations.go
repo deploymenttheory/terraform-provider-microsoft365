@@ -1,10 +1,36 @@
 package graphBetaDeviceManagementIntuneBrandingProfile
 
+// State Migration History
+//
+// Version 0 → 1 (provider release accompanying msgraph-beta-sdk-go v0.160.0)
+//
+// What changed in the API/SDK:
+//   - IntuneBrandingProfile.sendDeviceOwnershipChangePushNotification (bool) was present in
+//     msgraph-beta-sdk-go v0.158.0 and v0.159.0 with the description:
+//       "Boolean that indicates if a push notification is sent to users when their device
+//        ownership type changes from personal to corporate"
+//   - The field was completely removed from msgraph-beta-sdk-go v0.160.0.
+//   - Confirmed absent from the live Microsoft Graph beta $metadata endpoint for the
+//     intuneBrandingProfile entity as of SDK v0.160.0.
+//   - Treated as a true field deprecation: the attribute is retained in the provider schema
+//     (marked deprecated) so that existing configurations remain syntactically valid, but it
+//     has no effect — it is neither written to nor read from the API.
+//
+// Schema structure impact:
+//   - No attribute shape changes between v0 and v1. The schema attribute
+//     send_device_ownership_change_push_notification (Optional, Computed, Default: false)
+//     is retained and marked deprecated so that existing configurations and state remain
+//     syntactically valid.
+//   - During Read, the field value is no longer refreshed from the API response; the prior
+//     state value is preserved instead (Read initialises from req.State.Get before calling
+//     MapRemoteStateToTerraform, so the untouched field carries forward naturally).
+//   - During Create/Update, the field is no longer written to the API request body.
+//   - The v0→v1 upgrader is a true no-op: it carries state forward unchanged with no warnings.
+
 import (
 	"context"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
@@ -12,83 +38,53 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
-const (
-	ResourceName  = "microsoft365_graph_beta_device_management_intune_branding_profile"
-	CreateTimeout = 180
-	UpdateTimeout = 180
-	ReadTimeout   = 180
-	DeleteTimeout = 180
-)
-
-var (
-	_ resource.Resource                  = &IntuneBrandingProfileResource{}
-	_ resource.ResourceWithConfigure     = &IntuneBrandingProfileResource{}
-	_ resource.ResourceWithImportState   = &IntuneBrandingProfileResource{}
-	_ resource.ResourceWithModifyPlan    = &IntuneBrandingProfileResource{}
-	_ resource.ResourceWithIdentity      = &IntuneBrandingProfileResource{}
-	_ resource.ResourceWithUpgradeState  = &IntuneBrandingProfileResource{}
-)
-
-func NewIntuneBrandingProfileResource() resource.Resource {
-	return &IntuneBrandingProfileResource{
-		ReadPermissions: []string{
-			"DeviceManagementApps.Read.All",
-		},
-		WritePermissions: []string{
-			"DeviceManagementApps.ReadWrite.All",
-		},
-		ResourcePath: "/deviceManagement/intuneBrandingProfiles",
-	}
-}
-
-type IntuneBrandingProfileResource struct {
-	client           *msgraphbetasdk.GraphServiceClient
-	ReadPermissions  []string
-	WritePermissions []string
-	ResourcePath     string
-}
-
-func (r *IntuneBrandingProfileResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = ResourceName
-}
-
-func (r *IntuneBrandingProfileResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
-}
-
-func (r *IntuneBrandingProfileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
-}
-
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
-func (r *IntuneBrandingProfileResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
-	resp.IdentitySchema = identityschema.Schema{
-		Attributes: map[string]identityschema.Attribute{
-			"id": identityschema.StringAttribute{
-				RequiredForImport: true,
-			},
+// UpgradeState returns the map of state upgraders for IntuneBrandingProfileResource.
+// Keys are the prior schema version that each upgrader handles.
+func (r *IntuneBrandingProfileResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
+	return map[int64]resource.StateUpgrader{
+		// v0 → v1: schema attributes are structurally unchanged. The upgrader is a true no-op
+		// that carries state forward silently. send_device_ownership_change_push_notification is
+		// treated as deprecated — the attribute remains in the schema but has no API effect.
+		0: {
+			PriorSchema:   schemaV0(ctx),
+			StateUpgrader: upgradeStateV0toV1,
 		},
 	}
 }
 
-func (r *IntuneBrandingProfileResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	resp.Schema = schema.Schema{
-		// Version 1: accompanying msgraph-beta-sdk-go v0.160.0.
-		// See state_migrations.go for the full migration history and rationale.
-		Version: 1,
+// upgradeStateV0toV1 performs the v0 → v1 state migration.
+// The attribute structure is identical between versions. State is carried forward unchanged
+// with no warnings — send_device_ownership_change_push_notification is treated as a true
+// deprecated field, not a temporary omission.
+func upgradeStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+	var priorState IntuneBrandingProfileResourceModel
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &priorState)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// No structural changes — write state back unchanged without warnings.
+	resp.Diagnostics.Append(resp.State.Set(ctx, &priorState)...)
+}
+
+// schemaV0 returns a snapshot of the schema as it existed at version 0, before the v0.160.0
+// SDK bump. Used as PriorSchema in the v0→v1 state upgrader so that Terraform can correctly
+// decode persisted state written under the v0 schema.
+//
+// IMPORTANT: this function must not be modified once shipped. Capture future schema changes
+// in a new schemaVN function and leave schemaV0 intact as a faithful snapshot.
+func schemaV0(ctx context.Context) *schema.Schema {
+	return &schema.Schema{
 		MarkdownDescription: "Manages an Intune branding profile resource in Intune.\n\n" +
 			"## API Documentation\n\n" +
 			"- [Graph API Endpoint](https://learn.microsoft.com/en-us/graph/api/resources/intune-wip-intunebrandingprofile?view=graph-rest-beta)",
@@ -235,11 +231,14 @@ func (r *IntuneBrandingProfileResource) Schema(ctx context.Context, req resource
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Boolean that indicates if device category selection is disabled during enrollment.",
 			},
+			// NOTE: sendDeviceOwnershipChangePushNotification was removed from the
+			// Microsoft Graph beta API and msgraph-beta-sdk-go in v0.160.0. The schema
+			// attribute is retained in v0 and v1 so that state can be decoded correctly
+			// during upgrade. See the migration history at the top of this file.
 			"send_device_ownership_change_push_notification": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				DeprecationMessage:  "sendDeviceOwnershipChangePushNotification was removed from the Microsoft Graph beta API in msgraph-beta-sdk-go v0.160.0. This field no longer has any effect and will be removed in a future provider version. Remove it from your configuration.",
 				MarkdownDescription: "Boolean that indicates if a push notification is sent to users when their device ownership type changes from personal to corporate.",
 			},
 			"enrollment_availability": schema.StringAttribute{
@@ -344,38 +343,6 @@ func (r *IntuneBrandingProfileResource) Schema(ctx context.Context, req resource
 			},
 			"assignments": AssignmentBlock(),
 			"timeouts":    commonschema.ResourceTimeouts(ctx),
-		},
-	}
-}
-
-// AssignmentBlock returns the schema for the assignments block
-func AssignmentBlock() schema.SetNestedAttribute {
-	return schema.SetNestedAttribute{
-		MarkdownDescription: "Assignments for the Windows remediation script. Each assignment specifies the target group and schedule for script execution.",
-		Optional:            true,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"type": schema.StringAttribute{
-					Required:            true,
-					MarkdownDescription: "Type of assignment target. Must be one of: 'allDevicesAssignmentTarget', 'allLicensedUsersAssignmentTarget', 'groupAssignmentTarget', 'exclusionGroupAssignmentTarget'.",
-					Validators: []validator.String{
-						stringvalidator.OneOf(
-							"groupAssignmentTarget",
-							"exclusionGroupAssignmentTarget",
-						),
-					},
-				},
-				"group_id": schema.StringAttribute{
-					Optional:            true,
-					MarkdownDescription: "The Entra ID group ID to include or exclude in the assignment. Required when type is 'groupAssignmentTarget' or 'exclusionGroupAssignmentTarget'.",
-					Validators: []validator.String{
-						stringvalidator.RegexMatches(
-							regexp.MustCompile(constants.GuidRegex),
-							"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
-						),
-					},
-				},
-			},
 		},
 	}
 }
