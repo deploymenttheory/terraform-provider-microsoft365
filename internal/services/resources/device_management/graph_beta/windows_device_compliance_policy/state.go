@@ -111,6 +111,7 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 		policy.GetDefenderVersion() != nil ||
 		policy.GetPasswordBlockSimple() != nil ||
 		policy.GetPasswordMinimumCharacterSetCount() != nil ||
+		policy.GetPasswordMinutesOfInactivityBeforeLock() != nil ||
 		policy.GetPasswordRequired() != nil ||
 		policy.GetPasswordRequiredToUnlockFromIdle() != nil ||
 		policy.GetPasswordRequiredType() != nil ||
@@ -121,21 +122,22 @@ func mapWindows10CompliancePolicyToState(ctx context.Context, data *DeviceCompli
 		mapSystemSecurityToState(ctx, data, policy)
 	} else {
 		data.SystemSecurity = types.ObjectNull(map[string]attr.Type{
-			"active_firewall_required":                  types.BoolType,
-			"anti_spyware_required":                     types.BoolType,
-			"antivirus_required":                        types.BoolType,
-			"configuration_manager_compliance_required": types.BoolType,
-			"defender_enabled":                          types.BoolType,
-			"defender_version":                          types.StringType,
-			"password_block_simple":                     types.BoolType,
-			"password_minimum_character_set_count":      types.Int32Type,
-			"password_required":                         types.BoolType,
-			"password_required_to_unlock_from_idle":     types.BoolType,
-			"password_required_type":                    types.StringType,
-			"rtp_enabled":                               types.BoolType,
-			"signature_out_of_date":                     types.BoolType,
-			"storage_require_encryption":                types.BoolType,
-			"tpm_required":                              types.BoolType,
+			"active_firewall_required":                     types.BoolType,
+			"anti_spyware_required":                        types.BoolType,
+			"antivirus_required":                           types.BoolType,
+			"configuration_manager_compliance_required":    types.BoolType,
+			"defender_enabled":                             types.BoolType,
+			"defender_version":                             types.StringType,
+			"password_block_simple":                        types.BoolType,
+			"password_minimum_character_set_count":         types.Int32Type,
+			"password_minutes_of_inactivity_before_lock":   types.Int32Type,
+			"password_required":                            types.BoolType,
+			"password_required_to_unlock_from_idle":        types.BoolType,
+			"password_required_type":                       types.StringType,
+			"rtp_enabled":                                  types.BoolType,
+			"signature_out_of_date":                        types.BoolType,
+			"storage_require_encryption":                   types.BoolType,
+			"tpm_required":                                 types.BoolType,
 		})
 	}
 
@@ -416,40 +418,42 @@ func mapDevicePropertiesToState(ctx context.Context, data *DeviceCompliancePolic
 func mapSystemSecurityToState(ctx context.Context, data *DeviceCompliancePolicyResourceModel, policy *graphmodels.Windows10CompliancePolicy) {
 	systemSecurityType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
-			"active_firewall_required":                  types.BoolType,
-			"anti_spyware_required":                     types.BoolType,
-			"antivirus_required":                        types.BoolType,
-			"configuration_manager_compliance_required": types.BoolType,
-			"defender_enabled":                          types.BoolType,
-			"defender_version":                          types.StringType,
-			"password_block_simple":                     types.BoolType,
-			"password_minimum_character_set_count":      types.Int32Type,
-			"password_required":                         types.BoolType,
-			"password_required_to_unlock_from_idle":     types.BoolType,
-			"password_required_type":                    types.StringType,
-			"rtp_enabled":                               types.BoolType,
-			"signature_out_of_date":                     types.BoolType,
-			"storage_require_encryption":                types.BoolType,
-			"tpm_required":                              types.BoolType,
+			"active_firewall_required":                     types.BoolType,
+			"anti_spyware_required":                        types.BoolType,
+			"antivirus_required":                           types.BoolType,
+			"configuration_manager_compliance_required":    types.BoolType,
+			"defender_enabled":                             types.BoolType,
+			"defender_version":                             types.StringType,
+			"password_block_simple":                        types.BoolType,
+			"password_minimum_character_set_count":         types.Int32Type,
+			"password_minutes_of_inactivity_before_lock":   types.Int32Type,
+			"password_required":                            types.BoolType,
+			"password_required_to_unlock_from_idle":        types.BoolType,
+			"password_required_type":                       types.StringType,
+			"rtp_enabled":                                  types.BoolType,
+			"signature_out_of_date":                        types.BoolType,
+			"storage_require_encryption":                   types.BoolType,
+			"tpm_required":                                 types.BoolType,
 		},
 	}
 
 	data.SystemSecurity, _ = types.ObjectValue(systemSecurityType.AttrTypes, map[string]attr.Value{
-		"active_firewall_required":                  convert.GraphToFrameworkBool(policy.GetActiveFirewallRequired()),
-		"anti_spyware_required":                     convert.GraphToFrameworkBool(policy.GetAntiSpywareRequired()),
-		"antivirus_required":                        convert.GraphToFrameworkBool(policy.GetAntivirusRequired()),
-		"configuration_manager_compliance_required": convert.GraphToFrameworkBool(policy.GetConfigurationManagerComplianceRequired()),
-		"defender_enabled":                          convert.GraphToFrameworkBool(policy.GetDefenderEnabled()),
-		"defender_version":                          convert.GraphToFrameworkString(policy.GetDefenderVersion()),
-		"password_block_simple":                     convert.GraphToFrameworkBool(policy.GetPasswordBlockSimple()),
-		"password_minimum_character_set_count":      convert.GraphToFrameworkInt32(policy.GetPasswordMinimumCharacterSetCount()),
-		"password_required":                         convert.GraphToFrameworkBool(policy.GetPasswordRequired()),
-		"password_required_to_unlock_from_idle":     convert.GraphToFrameworkBool(policy.GetPasswordRequiredToUnlockFromIdle()),
-		"password_required_type":                    convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType()),
-		"rtp_enabled":                               convert.GraphToFrameworkBool(policy.GetRtpEnabled()),
-		"signature_out_of_date":                     convert.GraphToFrameworkBool(policy.GetSignatureOutOfDate()),
-		"storage_require_encryption":                convert.GraphToFrameworkBool(policy.GetStorageRequireEncryption()),
-		"tpm_required":                              convert.GraphToFrameworkBool(policy.GetTpmRequired()),
+		"active_firewall_required":                     convert.GraphToFrameworkBool(policy.GetActiveFirewallRequired()),
+		"anti_spyware_required":                        convert.GraphToFrameworkBool(policy.GetAntiSpywareRequired()),
+		"antivirus_required":                           convert.GraphToFrameworkBool(policy.GetAntivirusRequired()),
+		"configuration_manager_compliance_required":    convert.GraphToFrameworkBool(policy.GetConfigurationManagerComplianceRequired()),
+		"defender_enabled":                             convert.GraphToFrameworkBool(policy.GetDefenderEnabled()),
+		"defender_version":                             convert.GraphToFrameworkString(policy.GetDefenderVersion()),
+		"password_block_simple":                        convert.GraphToFrameworkBool(policy.GetPasswordBlockSimple()),
+		"password_minimum_character_set_count":         convert.GraphToFrameworkInt32(policy.GetPasswordMinimumCharacterSetCount()),
+		"password_minutes_of_inactivity_before_lock":   convert.GraphToFrameworkInt32(policy.GetPasswordMinutesOfInactivityBeforeLock()),
+		"password_required":                            convert.GraphToFrameworkBool(policy.GetPasswordRequired()),
+		"password_required_to_unlock_from_idle":        convert.GraphToFrameworkBool(policy.GetPasswordRequiredToUnlockFromIdle()),
+		"password_required_type":                       convert.GraphToFrameworkEnum(policy.GetPasswordRequiredType()),
+		"rtp_enabled":                                  convert.GraphToFrameworkBool(policy.GetRtpEnabled()),
+		"signature_out_of_date":                        convert.GraphToFrameworkBool(policy.GetSignatureOutOfDate()),
+		"storage_require_encryption":                   convert.GraphToFrameworkBool(policy.GetStorageRequireEncryption()),
+		"tpm_required":                                 convert.GraphToFrameworkBool(policy.GetTpmRequired()),
 	})
 }
 

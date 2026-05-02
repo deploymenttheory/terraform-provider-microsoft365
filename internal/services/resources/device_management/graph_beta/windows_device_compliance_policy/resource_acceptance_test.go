@@ -297,6 +297,73 @@ func TestAccResourceWindowsDeviceCompliancePolicy_05_WSL(t *testing.T) {
 	})
 }
 
+// Test 07: Scenario 7 - System security
+func TestAccResourceWindowsDeviceCompliancePolicy_07_SystemSecurity(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating system security policy")
+				},
+				Config: loadAcceptanceTestTerraform("compliance_policy_system_security.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows device compliance policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".system_security").ExistsInGraph(testResource),
+					check.That(resourceType+".system_security").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".system_security").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-wdcp-system-security-[a-z0-9]{8}$`)),
+					check.That(resourceType+".system_security").Key("description").MatchesRegex(regexp.MustCompile(`^acc-test-wdcp-system-security-[a-z0-9]{8}$`)),
+					check.That(resourceType+".system_security").Key("system_security.active_firewall_required").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.anti_spyware_required").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.antivirus_required").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.configuration_manager_compliance_required").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.defender_enabled").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.password_block_simple").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.password_minimum_character_set_count").HasValue("4"),
+					check.That(resourceType+".system_security").Key("system_security.password_required").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.password_required_to_unlock_from_idle").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.password_required_type").HasValue("alphanumeric"),
+					check.That(resourceType+".system_security").Key("system_security.rtp_enabled").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.signature_out_of_date").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.storage_require_encryption").HasValue("true"),
+					check.That(resourceType+".system_security").Key("system_security.tpm_required").HasValue("true"),
+					check.That(resourceType+".system_security").Key("scheduled_actions_for_rule.#").HasValue("1"),
+					check.That(resourceType+".system_security").Key("scheduled_actions_for_rule.0.scheduled_action_configurations.#").HasValue("3"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing system security policy")
+				},
+				ResourceName:            resourceType + ".system_security",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
 // Test 06: Scenario 6 - WSL assignments
 func TestAccResourceWindowsDeviceCompliancePolicy_06_WSL_Assignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{

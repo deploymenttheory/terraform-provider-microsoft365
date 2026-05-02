@@ -321,6 +321,13 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 						Optional:            true,
 						MarkdownDescription: "The number of character sets required in the password",
 					},
+					"password_minutes_of_inactivity_before_lock": schema.Int32Attribute{
+						Optional:            true,
+						MarkdownDescription: "Minutes of inactivity before a password is required.",
+						Validators: []validator.Int32{
+							int32validator.Between(1, 60),
+						},
+					},
 					"password_required": schema.BoolAttribute{
 						Optional:            true,
 						Computed:            true,
