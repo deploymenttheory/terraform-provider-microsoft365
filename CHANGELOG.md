@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.53.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.52.1-alpha...v0.53.0-alpha) (2026-05-02)
+
+
+### Features
+
+* Enhance Windows Device Compliance Policy with additional system security settings ([a4cb627](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a4cb6275c2d5c2be31a0c57b05496f353c4a332d))
+
+
+### Bug Fixes
+
+* Enhance Windows Device Compliance Policy with additional keys ([#2991](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2991)) ([0c031fc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0c031fc620b28b580463ad3032308a8030c30a1c))
+* Temporarily disable support for 'androidFotaDeployment' assignment target ([#2987](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2987)) ([c387833](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c387833ba83f1ed11feca97f44ee5decedcb314a))
+* Temporarily disable support for 'androidFotaDeployment' assignment target due to its removal in msgraph-beta-sdk-go v0.160.0. Added error handling and comments for future restoration when the type is reintroduced. Updated related mappings and schema versioning in mobile app assignment resources. ([c387833](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c387833ba83f1ed11feca97f44ee5decedcb314a))
+* Temporarily disable support for 'androidFotaDeployment' assignment target due to its removal in msgraph-beta-sdk-go v0.160.0. Added error handling and comments for future restoration when the type is reintroduced. Updated related mappings and schema versioning in mobile app assignment resources. ([ea12f94](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ea12f94d58964346d40ad18281c5b427cff6a271))
+* Update Intune branding profile handling ([#2988](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/2988)) ([b8812d1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b8812d1bba588f2e18a14baebf28a0c626be64e6))
+* Update Intune branding profile handling: Temporarily comment out 'sendDeviceOwnershipChangePushNotification' due to its removal in msgraph-beta-sdk-go v0.160.0. Added deprecation message in schema and updated versioning in resource files for future reference. ([b29e6e4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b29e6e4f7ed7613d1ab3c22a10dbe428def1f59a))
+
 ## [0.52.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.52.0-alpha...v0.52.1-alpha) (2026-03-29)
 
 
