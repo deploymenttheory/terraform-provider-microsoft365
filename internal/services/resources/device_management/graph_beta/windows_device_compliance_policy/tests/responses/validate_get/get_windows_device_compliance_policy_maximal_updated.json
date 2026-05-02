@@ -1,0 +1,57 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CompliancePolicy",
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceCompliancePolicies/$entity",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "displayName": "unit-test-wdcp-maximal",
+  "description": "unit-test-wdcp-maximal",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "roleScopeTagIds": ["0"],
+  "version": 2,
+  "bitLockerEnabled": false,
+  "secureBootEnabled": false,
+  "codeIntegrityEnabled": false,
+  "deviceThreatProtectionEnabled": true,
+  "deviceThreatProtectionRequiredSecurityLevel": "medium",
+  "osMinimumVersion": "10.0.22631.5768",
+  "osMaximumVersion": "10.0.26100.9999",
+  "mobileOsMinimumVersion": "10.0.22631.5768",
+  "mobileOsMaximumVersion": "10.0.26100.9999",
+  "validOperatingSystemBuildRanges": [
+    {
+      "description": "Windows 11 24H2",
+      "lowestVersion": "10.0.26100.4946",
+      "highestVersion": "10.0.26100.9999"
+    },
+    {
+      "description": "Windows 11 23H2",
+      "lowestVersion": "10.0.22631.5768",
+      "highestVersion": "10.0.22631.9999"
+    }
+  ],
+  "customComplianceRequired": true,
+  "deviceCompliancePolicyScript": {
+    "deviceComplianceScriptId": "00000000-0000-0000-0000-000000000001",
+    "rulesContent": "{\"Rules\":[{\"SettingName\":\"BiosVersion\",\"Operator\":\"GreaterEquals\",\"DataType\":\"Version\",\"Operand\":\"2.3\",\"MoreInfoUrl\":\"https://bing.com\",\"RemediationStrings\":[{\"Language\":\"en_US\",\"Title\":\"BIOS Version needs to be upgraded to at least 2.3. Value discovered was {ActualValue}.\",\"Description\":\"BIOS must be updated. Please refer to the link above\"}]}]}"
+  },
+  "scheduledActionsForRule": [
+    {
+      "scheduledActionConfigurations": [
+        {
+          "actionType": "block",
+          "gracePeriodHours": 12
+        },
+        {
+          "actionType": "notification",
+          "gracePeriodHours": 24,
+          "notificationTemplateId": "00000000-0000-0000-0000-000000000001",
+          "notificationMessageCcList": ["00000000-0000-0000-0000-000000000002", "00000000-0000-0000-0000-000000000003"]
+        },
+        {
+          "actionType": "retire",
+          "gracePeriodHours": 48
+        }
+      ]
+    }
+  ]
+}

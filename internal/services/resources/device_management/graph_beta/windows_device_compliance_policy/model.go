@@ -86,6 +86,7 @@ type SystemSecurityModel struct {
 	DefenderVersion                        types.String `tfsdk:"defender_version"`
 	PasswordBlockSimple                    types.Bool   `tfsdk:"password_block_simple"`
 	PasswordMinimumCharacterSetCount       types.Int32  `tfsdk:"password_minimum_character_set_count"`
+	PasswordMinutesOfInactivityBeforeLock  types.Int32  `tfsdk:"password_minutes_of_inactivity_before_lock"`
 	PasswordRequired                       types.Bool   `tfsdk:"password_required"`
 	PasswordRequiredToUnlockFromIdle       types.Bool   `tfsdk:"password_required_to_unlock_from_idle"`
 	PasswordRequiredType                   types.String `tfsdk:"password_required_type"`

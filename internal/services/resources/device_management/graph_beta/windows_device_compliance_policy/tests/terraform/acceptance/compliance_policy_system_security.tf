@@ -84,23 +84,21 @@ resource "microsoft365_graph_beta_device_management_windows_device_compliance_po
 
   # System Security Settings
   system_security = {
-    active_firewall_required                         = true
-    anti_spyware_required                            = true
-    antivirus_required                               = true
-    configuration_manager_compliance_required        = true
-    defender_enabled                                 = true
-    defender_version                                 = "1.0.0.0"
-    device_threat_protection_enabled                 = true
-    device_threat_protection_required_security_level = "medium"
-    password_block_simple                            = true
-    password_minimum_character_set_count             = 4
-    password_required                                = true
-    password_required_to_unlock_from_idle            = true
-    password_required_type                           = "alphanumeric"
-    rtp_enabled                                      = true
-    signature_out_of_date                            = true
-    storage_require_encryption                       = true
-    tpm_required                                     = true
+    active_firewall_required                  = true
+    anti_spyware_required                     = true
+    antivirus_required                        = true
+    configuration_manager_compliance_required = true
+    defender_enabled                          = true
+    defender_version                          = "1.0.0.0"
+    password_block_simple                     = true
+    password_minimum_character_set_count      = 4
+    password_required                         = true
+    password_required_to_unlock_from_idle     = true
+    password_required_type                    = "alphanumeric"
+    rtp_enabled                               = true
+    signature_out_of_date                     = true
+    storage_require_encryption                = true
+    tpm_required                              = true
   }
 
   scheduled_actions_for_rule = [

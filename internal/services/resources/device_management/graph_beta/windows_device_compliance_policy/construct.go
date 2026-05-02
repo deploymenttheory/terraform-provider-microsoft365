@@ -74,38 +74,40 @@ func constructWindows10CompliancePolicy(ctx context.Context, data *DeviceComplia
 	if !data.DeviceHealth.IsNull() && !data.DeviceHealth.IsUnknown() {
 		var deviceHealth DeviceHealthModel
 		diags := data.DeviceHealth.As(ctx, &deviceHealth, basetypes.ObjectAsOptions{})
-		if !diags.HasError() {
-			convert.FrameworkToGraphBool(deviceHealth.BitLockerEnabled, policy.SetBitLockerEnabled)
-			convert.FrameworkToGraphBool(deviceHealth.SecureBootEnabled, policy.SetSecureBootEnabled)
-			convert.FrameworkToGraphBool(deviceHealth.CodeIntegrityEnabled, policy.SetCodeIntegrityEnabled)
+		if diags.HasError() {
+			return fmt.Errorf("failed to decode device_health block: %v", diags.Errors())
 		}
+		convert.FrameworkToGraphBool(deviceHealth.BitLockerEnabled, policy.SetBitLockerEnabled)
+		convert.FrameworkToGraphBool(deviceHealth.SecureBootEnabled, policy.SetSecureBootEnabled)
+		convert.FrameworkToGraphBool(deviceHealth.CodeIntegrityEnabled, policy.SetCodeIntegrityEnabled)
 	}
 
 	// Handle system_security object
 	if !data.SystemSecurity.IsNull() && !data.SystemSecurity.IsUnknown() {
 		var systemSecurity SystemSecurityModel
 		diags := data.SystemSecurity.As(ctx, &systemSecurity, basetypes.ObjectAsOptions{})
-		if !diags.HasError() {
-			convert.FrameworkToGraphBool(systemSecurity.StorageRequireEncryption, policy.SetStorageRequireEncryption)
-			convert.FrameworkToGraphBool(systemSecurity.ActiveFirewallRequired, policy.SetActiveFirewallRequired)
-			convert.FrameworkToGraphBool(systemSecurity.DefenderEnabled, policy.SetDefenderEnabled)
-			convert.FrameworkToGraphString(systemSecurity.DefenderVersion, policy.SetDefenderVersion)
-			convert.FrameworkToGraphBool(systemSecurity.SignatureOutOfDate, policy.SetSignatureOutOfDate)
-			convert.FrameworkToGraphBool(systemSecurity.RtpEnabled, policy.SetRtpEnabled)
-			convert.FrameworkToGraphBool(systemSecurity.AntivirusRequired, policy.SetAntivirusRequired)
-			convert.FrameworkToGraphBool(systemSecurity.AntiSpywareRequired, policy.SetAntiSpywareRequired)
-			convert.FrameworkToGraphBool(systemSecurity.ConfigurationManagerComplianceRequired, policy.SetConfigurationManagerComplianceRequired)
-			convert.FrameworkToGraphBool(systemSecurity.TpmRequired, policy.SetTpmRequired)
-			convert.FrameworkToGraphBool(systemSecurity.PasswordRequired, policy.SetPasswordRequired)
-			convert.FrameworkToGraphBool(systemSecurity.PasswordBlockSimple, policy.SetPasswordBlockSimple)
-			convert.FrameworkToGraphBool(systemSecurity.PasswordRequiredToUnlockFromIdle, policy.SetPasswordRequiredToUnlockFromIdle)
-			convert.FrameworkToGraphInt32(systemSecurity.PasswordMinimumCharacterSetCount, policy.SetPasswordMinimumCharacterSetCount)
+		if diags.HasError() {
+			return fmt.Errorf("failed to decode system_security block: %v", diags.Errors())
+		}
+		convert.FrameworkToGraphBool(systemSecurity.StorageRequireEncryption, policy.SetStorageRequireEncryption)
+		convert.FrameworkToGraphBool(systemSecurity.ActiveFirewallRequired, policy.SetActiveFirewallRequired)
+		convert.FrameworkToGraphBool(systemSecurity.DefenderEnabled, policy.SetDefenderEnabled)
+		convert.FrameworkToGraphString(systemSecurity.DefenderVersion, policy.SetDefenderVersion)
+		convert.FrameworkToGraphBool(systemSecurity.SignatureOutOfDate, policy.SetSignatureOutOfDate)
+		convert.FrameworkToGraphBool(systemSecurity.RtpEnabled, policy.SetRtpEnabled)
+		convert.FrameworkToGraphBool(systemSecurity.AntivirusRequired, policy.SetAntivirusRequired)
+		convert.FrameworkToGraphBool(systemSecurity.AntiSpywareRequired, policy.SetAntiSpywareRequired)
+		convert.FrameworkToGraphBool(systemSecurity.ConfigurationManagerComplianceRequired, policy.SetConfigurationManagerComplianceRequired)
+		convert.FrameworkToGraphBool(systemSecurity.TpmRequired, policy.SetTpmRequired)
+		convert.FrameworkToGraphBool(systemSecurity.PasswordRequired, policy.SetPasswordRequired)
+		convert.FrameworkToGraphBool(systemSecurity.PasswordBlockSimple, policy.SetPasswordBlockSimple)
+		convert.FrameworkToGraphBool(systemSecurity.PasswordRequiredToUnlockFromIdle, policy.SetPasswordRequiredToUnlockFromIdle)
+		convert.FrameworkToGraphInt32(systemSecurity.PasswordMinimumCharacterSetCount, policy.SetPasswordMinimumCharacterSetCount)
+		convert.FrameworkToGraphInt32(systemSecurity.PasswordMinutesOfInactivityBeforeLock, policy.SetPasswordMinutesOfInactivityBeforeLock)
 
-			if err := convert.FrameworkToGraphEnum(systemSecurity.PasswordRequiredType,
-				graphmodels.ParseRequiredPasswordType, policy.SetPasswordRequiredType); err != nil {
-				return fmt.Errorf("failed to set password required type: %s", err)
-			}
-
+		if err := convert.FrameworkToGraphEnum(systemSecurity.PasswordRequiredType,
+			graphmodels.ParseRequiredPasswordType, policy.SetPasswordRequiredType); err != nil {
+			return fmt.Errorf("failed to set password required type: %s", err)
 		}
 	}
 
