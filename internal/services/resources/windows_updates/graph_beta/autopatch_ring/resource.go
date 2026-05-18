@@ -38,7 +38,7 @@ var (
 func NewWindowsUpdatesAutopatchRingResource() resource.Resource {
 	return &WindowsUpdatesAutopatchRingResource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 		WritePermissions: []string{
 			"WindowsUpdates.ReadWrite.All",

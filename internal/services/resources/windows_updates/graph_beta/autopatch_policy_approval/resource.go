@@ -37,7 +37,7 @@ var (
 func NewWindowsUpdatesAutopatchPolicyApprovalResource() resource.Resource {
 	return &WindowsUpdatesAutopatchPolicyApprovalResource{
 		ReadPermissions: []string{
-			"WindowsUpdates.ReadWrite.All",
+			"WindowsUpdates.Read.All",
 		},
 		WritePermissions: []string{
 			"WindowsUpdates.ReadWrite.All",
