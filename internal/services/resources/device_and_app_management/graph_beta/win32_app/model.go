@@ -41,7 +41,7 @@ type Win32LobAppResourceModel struct {
 	DetectionRules                 []Win32LobAppRegistryDetectionRulesResourceModel `tfsdk:"detection_rules"`
 	RequirementRules               []Win32LobAppRegistryRequirementResourceModel    `tfsdk:"requirement_rules"`
 	Rules                          []Win32LobAppRuleResourceModel                   `tfsdk:"rules"`
-	InstallExperience              Win32LobAppInstallExperienceResourceModel        `tfsdk:"install_experience"`
+	InstallExperience              *Win32LobAppInstallExperienceResourceModel        `tfsdk:"install_experience"`
 	ReturnCodes                    []Win32LobAppReturnCodeResourceModel             `tfsdk:"return_codes"`
 	MsiInformation                 *Win32LobAppMsiInformationResourceModel          `tfsdk:"msi_information"`
 	SetupFilePath                  types.String                                     `tfsdk:"setup_file_path"`

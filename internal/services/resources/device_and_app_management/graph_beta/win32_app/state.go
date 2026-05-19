@@ -219,11 +219,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 
 	// Install Experience
 	if installExperience := remoteResource.GetInstallExperience(); installExperience != nil {
-		data.InstallExperience = Win32LobAppInstallExperienceResourceModel{
+		data.InstallExperience = &Win32LobAppInstallExperienceResourceModel{
 			RunAsAccount:          convert.GraphToFrameworkEnum(installExperience.GetRunAsAccount()),
 			DeviceRestartBehavior: convert.GraphToFrameworkEnum(installExperience.GetDeviceRestartBehavior()),
 			MaxRunTimeInMinutes:   convert.GraphToFrameworkInt32(installExperience.GetMaxRunTimeInMinutes()),
 		}
+	} else {
+		data.InstallExperience = nil
 	}
 
 	// Return Codes

@@ -425,14 +425,23 @@ func (r *MacOSLobAppResource) Read(ctx context.Context, req resource.ReadRequest
 	}
 
 	// 3. Get app metadata by processing app installer file
-	var existingMetadata sharedmodels.MobileAppMetaDataResourceModel
+	// Use types.Object as intermediate to handle null gracefully (e.g., during terraform import)
 	if !req.State.Raw.IsNull() {
-		diags := req.State.GetAttribute(ctx, path.Root("app_installer"), &existingMetadata)
+		var appInstallerObj types.Object
+		diags := req.State.GetAttribute(ctx, path.Root("app_installer"), &appInstallerObj)
 		if diags.HasError() {
 			resp.Diagnostics.Append(diags...)
 			return
 		}
-		object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, &existingMetadata)
+		if !appInstallerObj.IsNull() && !appInstallerObj.IsUnknown() {
+			var existingMetadata sharedmodels.MobileAppMetaDataResourceModel
+			diags = appInstallerObj.As(ctx, &existingMetadata, basetypes.ObjectAsOptions{})
+			if diags.HasError() {
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+			object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, &existingMetadata)
+		}
 	}
 
 	// 6. set final state

@@ -80,6 +80,15 @@ func (r *Win32LobAppResource) Configure(ctx context.Context, req resource.Config
 // ImportState imports the resource state.
 func (r *Win32LobAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("app_installer"), types.ObjectNull(
+		map[string]attr.Type{
+			"installer_file_path_source": types.StringType,
+			"installer_url_source":       types.StringType,
+		},
+	))...)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
@@ -563,8 +572,8 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"msi_information": schema.SingleNestedAttribute{
-				Required:            true,
-				MarkdownDescription: "The MSI details if this Win32 app is an MSI app.",
+				Optional:            true,
+				MarkdownDescription: "The MSI details if this Win32 app is an MSI app. Only required for MSI-based installers.",
 				Attributes: map[string]schema.Attribute{
 					"package_type": schema.StringAttribute{
 						Required:            true,

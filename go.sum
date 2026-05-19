@@ -139,8 +139,6 @@ github.com/hashicorp/terraform-plugin-go v0.31.0 h1:0Fz2r9DQ+kNNl6bx8HRxFd1TfMKU
 github.com/hashicorp/terraform-plugin-go v0.31.0/go.mod h1:A88bDhd/cW7FnwqxQRz3slT+QY6yzbHKc6AOTtmdeS8=
 github.com/hashicorp/terraform-plugin-log v0.10.0 h1:eu2kW6/QBVdN4P3Ju2WiB2W3ObjkAsyfBsL3Wh1fj3g=
 github.com/hashicorp/terraform-plugin-log v0.10.0/go.mod h1:/9RR5Cv2aAbrqcTSdNmY1NRHP4E3ekrXRGjqORpXyB0=
-github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.0 h1:MKS/2URqeJRwJdbOfcbdsZCq/IRrNkqJNN0GtVIsuGs=
-github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.0/go.mod h1:PuG4P97Ju3QXW6c6vRkRadWJbvnEu2Xh+oOuqcYOqX4=
 github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1 h1:2yPUd7esMOpuTaG3y1iEla1iw+tla+3ZEkkBnmOAre4=
 github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1/go.mod h1:sq8qsxh+PwdvTQFcd17kfCoBgQo46ADNMvCpKE7t/gY=
 github.com/hashicorp/terraform-plugin-testing v1.16.0 h1:GB97nGnJ1hESpDrCjqZig38RodSF0gdRzxlDupLXP38=
@@ -203,16 +201,10 @@ github.com/microsoft/kiota-serialization-multipart-go v1.1.2 h1:1pUyA1QgIeKslQwb
 github.com/microsoft/kiota-serialization-multipart-go v1.1.2/go.mod h1:j2K7ZyYErloDu7Kuuk993DsvfoP7LPWvAo7rfDpdPio=
 github.com/microsoft/kiota-serialization-text-go v1.1.3 h1:8z7Cebn0YAAr++xswVgfdxZjnAZ4GOB9O7XP4+r5r/M=
 github.com/microsoft/kiota-serialization-text-go v1.1.3/go.mod h1:NDSvz4A3QalGMjNboKKQI9wR+8k+ih8UuagNmzIRgTQ=
-github.com/microsoftgraph/msgraph-beta-sdk-go v0.160.0 h1:MnI/pJnOdE4owQfE9RGf0x4Jxo2LMPyYnvINA9hHs28=
-github.com/microsoftgraph/msgraph-beta-sdk-go v0.160.0/go.mod h1:LiqckYn1cpYA1ZO0/B3V+G/hLjIlR+47nX1K86qqyrM=
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.161.0 h1:Uue5DbOfrhXVC63Dumi/hDVA1d093ccdiR0S54Topmo=
 github.com/microsoftgraph/msgraph-beta-sdk-go v0.161.0/go.mod h1:apLNakOn3QhizUDkkdv4pfYzf/NDbqRVUzqqi/2xTqg=
-github.com/microsoftgraph/msgraph-sdk-go v1.97.0 h1:CWS3muHuVlX8nerNWtllzPpO4dWTl111kO4/pQkJfjU=
-github.com/microsoftgraph/msgraph-sdk-go v1.97.0/go.mod h1:3vZD5qsulctIsk1wb1Cf6tzi01k++3qaNqF+yGZwkVw=
 github.com/microsoftgraph/msgraph-sdk-go v1.98.0 h1:95oYciFn5yTs4QBBntViNWTPaDVI1u5jJnpOUdVavWY=
 github.com/microsoftgraph/msgraph-sdk-go v1.98.0/go.mod h1:NMIFoKu7IVAerNRDjkZn7bxeiy55KZxQyneYqzH4+dQ=
-github.com/microsoftgraph/msgraph-sdk-go-core v1.4.0 h1:0SrIoFl7TQnMRrsi5TFaeNe0q8KO5lRzRp4GSCCL2So=
-github.com/microsoftgraph/msgraph-sdk-go-core v1.4.0/go.mod h1:A1iXs+vjsRjzANxF6UeKv2ACExG7fqTwHHbwh1FL+EE=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.4.1 h1:k3YIaJm57ufoEX0KdsEY4l1X9BAMxEqrwr4a7WMRDzY=
 github.com/microsoftgraph/msgraph-sdk-go-core v1.4.1/go.mod h1:yNqPNhXee2w9cZzkJW5mL1utVMSInsQSo/TyEB5sup8=
 github.com/mitchellh/copystructure v1.0.0/go.mod h1:SNtv71yrdKgLRyLFxmLdkAbkKEFWgYaq1OVrnRcwhnw=

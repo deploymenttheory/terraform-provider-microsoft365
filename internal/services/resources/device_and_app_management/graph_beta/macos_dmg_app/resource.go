@@ -79,8 +79,20 @@ func (r *MacOSDmgAppResource) Configure(ctx context.Context, req resource.Config
 }
 
 // ImportState imports the resource state.
+// app_installer is an HCL-only field (not returned by the Graph API).
+// It is set to null here so Read can complete; add it to your configuration after import.
 func (r *MacOSDmgAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("app_installer"), types.ObjectNull(
+		map[string]attr.Type{
+			"installer_file_path_source": types.StringType,
+			"installer_url_source":       types.StringType,
+		},
+	))...)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
