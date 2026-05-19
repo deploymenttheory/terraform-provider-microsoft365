@@ -23,7 +23,7 @@ Retrieves Windows Autopatch enrollment status for Azure AD devices using the `/a
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
-- `WindowsUpdates.ReadWrite.All`
+- `WindowsUpdates.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

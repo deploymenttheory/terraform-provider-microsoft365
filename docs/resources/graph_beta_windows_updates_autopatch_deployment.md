@@ -23,6 +23,7 @@ Manages Windows Update deployments for deploying content to a set of devices usi
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `WindowsUpdates.Read.All`
 - `WindowsUpdates.ReadWrite.All`
 
 **Optional:**

@@ -23,6 +23,7 @@ Manages a Windows Update policy approval using the `/admin/windows/updates/polic
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `WindowsUpdates.Read.All`
 - `WindowsUpdates.ReadWrite.All`
 
 **Optional:**

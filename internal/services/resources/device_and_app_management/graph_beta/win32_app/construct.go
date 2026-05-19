@@ -347,7 +347,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 		requestBody.SetReturnCodes(returnCodes)
 	}
 
-	if msiInfo := data.MsiInformation; msiInfo != (&Win32LobAppMsiInformationResourceModel{}) {
+	if msiInfo := data.MsiInformation; msiInfo != nil {
 		msiInformation := graphmodels.NewWin32LobAppMsiInformation()
 
 		convert.FrameworkToGraphString(msiInfo.ProductCode, msiInformation.SetProductCode)

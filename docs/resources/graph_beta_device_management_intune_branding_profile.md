@@ -171,7 +171,7 @@ resource "microsoft365_graph_beta_device_management_intune_branding_profile" "ex
 - `privacy_url` (String) URL to the company/organization's privacy policy.
 - `profile_description` (String) Description of the branding profile.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
-- `send_device_ownership_change_push_notification` (Boolean) Boolean that indicates if a push notification is sent to users when their device ownership type changes from personal to corporate.
+- `send_device_ownership_change_push_notification` (Boolean, Deprecated) Boolean that indicates if a push notification is sent to users when their device ownership type changes from personal to corporate.
 - `show_azure_ad_enterprise_apps` (Boolean) Boolean that indicates if AzureAD Enterprise Apps will be shown in Company Portal.
 - `show_configuration_manager_apps` (Boolean) Boolean that indicates if Configuration Manager Apps will be shown in Company Portal.
 - `show_display_name_next_to_logo` (Boolean) Boolean that represents whether the administrator-supplied display name text is shown next to the logo image or not.

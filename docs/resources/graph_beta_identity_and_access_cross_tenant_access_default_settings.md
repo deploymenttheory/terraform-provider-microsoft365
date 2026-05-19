@@ -28,6 +28,8 @@ The following client `application` permissions are needed in order to use this r
 
 **Required:**
 - `Directory.Read.All`
+- `Group.ManageProtection.All`
+- `Group.Read.All`
 - `Policy.ReadWrite.CrossTenantAccess`
 - `User.Read.All`
 - `User.ReadBasic.All`
@@ -600,7 +602,7 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_defaul
 ### Read-Only
 
 - `id` (String) The unique identifier for the cross-tenant access default settings. This is a singleton resource; the value is always `crossTenantAccessDefaultSettings`.
-- `is_service_default` (Boolean) If `true`, the default configuration is set to the system default configuration. If `false`, the default settings are customized. This is a read-only computed value.
+- `is_service_default` (Boolean) If `true`, the default configuration is set to the system default configuration. If `false`, the default settings are customized. This is a read-only computed value that the service updates asynchronously after any PATCH — it cannot be predicted at plan time.
 
 <a id="nestedatt--automatic_user_consent_settings"></a>
 ### Nested Schema for `automatic_user_consent_settings`
