@@ -22,7 +22,7 @@ Retrieves Windows Update catalog entries from Microsoft Graph using the `/admin/
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
-- `WindowsUpdates.ReadWrite.All`
+- `WindowsUpdates.Read.All`
 
 **Optional:**
 - `None` `[N/A]`

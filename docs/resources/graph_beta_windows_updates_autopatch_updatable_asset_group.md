@@ -25,6 +25,7 @@ Manages a Windows Autopatch updatable asset group and its Entra ID device member
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `WindowsUpdates.Read.All`
 - `WindowsUpdates.ReadWrite.All`
 
 **Optional:**

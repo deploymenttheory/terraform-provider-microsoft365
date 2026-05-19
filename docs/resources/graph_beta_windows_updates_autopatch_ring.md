@@ -24,6 +24,7 @@ Manages a Windows Update policy ring using the `/admin/windows/updates/policies/
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `WindowsUpdates.Read.All`
 - `WindowsUpdates.ReadWrite.All`
 
 **Optional:**

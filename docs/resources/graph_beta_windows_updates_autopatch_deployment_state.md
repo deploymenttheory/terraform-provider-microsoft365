@@ -22,6 +22,7 @@ Manages the lifecycle state of a Windows Update autopatch deployment. Using the 
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `WindowsUpdates.Read.All`
 - `WindowsUpdates.ReadWrite.All`
 
 **Optional:**

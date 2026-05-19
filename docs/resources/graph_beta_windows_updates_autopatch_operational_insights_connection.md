@@ -23,6 +23,7 @@ Manages a Windows Update Operational Insights connection using the `/admin/windo
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `WindowsUpdates.Read.All`
 - `WindowsUpdates.ReadWrite.All`
 
 **Optional:**

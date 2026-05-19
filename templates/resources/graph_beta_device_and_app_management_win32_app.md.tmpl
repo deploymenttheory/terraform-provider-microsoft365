@@ -34,10 +34,17 @@ The following client `application` permissions are needed in order to use this {
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.42.0-alpha | Experimental | Added missing version history |
+| v0.53.0-alpha | Preview | Added support for EXE-based installers with PowerShell App Deployment Toolkit (PSADT) |
 
 ## Example Usage
 
+### MSI-Based Win32 App (Firefox)
+
 {{ tffile "examples/resources/microsoft365_graph_beta_device_and_app_management_win32_app/resource.tf" }}
+
+### EXE-Based Win32 App with PowerShell App Deployment Toolkit (PSADT)
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_and_app_management_win32_app/resource_exe_psadt_app.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 
@@ -56,7 +63,8 @@ The following client `application` permissions are needed in order to use this {
 - **Installation Context**: Win32 LOB apps can be installed in user or system context depending on configuration.
 - **Return Codes**: Configure custom return codes to handle different installation outcomes.
 - **Install Experience**: Control the installation behavior, restart requirements, and user interaction.
-- **MSI Information**: For MSI-based apps, specify product codes, versions, and upgrade codes for proper management.
+- **MSI Information**: For MSI-based apps, specify product codes, versions, and upgrade codes for proper management. `msi_information` is not required for EXE-based installers.
+- **EXE-based installers**: For EXE-based installers, specify the setup file path and installation command line.
 - **Supersedence**: Win32 LOB apps support supersedence relationships to replace older versions.
 
 ## Import
