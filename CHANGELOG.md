@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.53.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.53.0-alpha...v0.53.1-alpha) (2026-05-19)
+
+
+### Bug Fixes
+
+* [#3085](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3085) ([d624f30](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d624f305885b40cb980d5d11561ebb7c85681f92))
+* for device_and_app_management_win32_app so handle for correctly for .exe based installers ([#3086](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3086)) ([f5f1571](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f5f1571e3fa9a0e9a0d738ed86de7548f92c830d))
+* import resource handling for device_and_app_management_win32_app, device_and_app_management_macos_pkg_app and device_and_app_management_macos_dmg_app ([89cbefb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/89cbefb93098a90f8680c7d1255bd03989db83f3))
+* import resource handling for device_and_app_management_win32_app, device_and_app_management_macos_pkg_app and device_and_app_management_macos_dmg_app ([#3087](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3087)) ([398a2b7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/398a2b7709e65e5578deebcebeb8e35fb5e1d1ac))
+* updated release please pipeline to use ubuntu latest rather than a large runner ([#3088](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3088)) ([5210015](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/52100157b325b5e1571d262a1f87e51521c1e25a))
+* updated release please pipeline to use ubuntu latest rather than a large runner which is not needed ([626b4a1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/626b4a16d5185e3180cecbc807c3d8870fca2a70))
+
 ## [0.53.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.52.1-alpha...v0.53.0-alpha) (2026-05-02)
 
 
