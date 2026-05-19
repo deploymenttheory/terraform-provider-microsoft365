@@ -312,7 +312,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 		requestBody.SetRules(rules)
 	}
 
-	if installExperience := data.InstallExperience; installExperience != (Win32LobAppInstallExperienceResourceModel{}) {
+	if installExperience := data.InstallExperience; installExperience != nil {
 		installExp := graphmodels.NewWin32LobAppInstallExperience()
 
 		err := convert.FrameworkToGraphEnum(installExperience.RunAsAccount, graphmodels.ParseRunAsAccountType, installExp.SetRunAsAccount)

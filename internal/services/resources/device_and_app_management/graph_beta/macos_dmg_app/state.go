@@ -84,7 +84,6 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSDmgAppRes
 			"target_type":                   types.StringType,
 		},
 	})
-	data.AppInstaller = types.ObjectNull(map[string]attr.Type{})
 	data.ContentVersion = types.ListNull(types.StringType)
 
 	// Handle nested MacOSDmgApp object

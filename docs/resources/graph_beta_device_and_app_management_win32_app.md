@@ -34,6 +34,7 @@ The following client `application` permissions are needed in order to use this r
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.42.0-alpha | Experimental | Added missing version history |
+| v0.53.0-alpha | Preview | Added support for EXE-based installers with PowerShell App Deployment Toolkit (PSADT) |
 
 ## Example Usage
 
@@ -475,7 +476,6 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "notepad_
 - `file_name` (String) The name of the main Lob application file.
 - `install_command_line` (String) The command line to install this app. Typically formatted as 'msiexec /i "application_name.msi" /qn'
 - `minimum_supported_windows_release` (String) The value for the minimum supported windows release.
-- `msi_information` (Attributes) The MSI details if this Win32 app is an MSI app. (see [below for nested schema](#nestedatt--msi_information))
 - `publisher` (String) The publisher of the Intune macOS pkg application.
 - `uninstall_command_line` (String) The command line to uninstall this app. Typically formatted as 'msiexec /x {00000000-0000-0000-0000-000000000000} /qn'
 
@@ -496,6 +496,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "notepad_
 - `minimum_free_disk_space_in_mb` (Number) The value for the minimum free disk space which is required to install this app.
 - `minimum_memory_in_mb` (Number) The value for the minimum physical memory which is required to install this app.
 - `minimum_number_of_processors` (Number) The value for the minimum number of processors which is required to install this app.
+- `msi_information` (Attributes) The MSI details if this Win32 app is an MSI app. Only required for MSI-based installers. (see [below for nested schema](#nestedatt--msi_information))
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
 - `privacy_information_url` (String) The privacy statement Url.
@@ -519,23 +520,6 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "notepad_
 - `superseded_app_count` (Number) The total number of apps this app is directly or indirectly superseded by. This property is read-only.
 - `superseding_app_count` (Number) The total number of apps this app directly or indirectly supersedes. This property is read-only.
 - `upload_state` (Number) The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.
-
-<a id="nestedatt--msi_information"></a>
-### Nested Schema for `msi_information`
-
-Required:
-
-- `package_type` (String) The MSI package type. Possible values are: perMachine, perUser.
-- `product_version` (String) The MSI product version.
-- `requires_reboot` (Boolean) A value indicating whether the MSI app requires a reboot.
-- `upgrade_code` (String) The MSI upgrade code.
-
-Optional:
-
-- `product_code` (String) The MSI product code.
-- `product_name` (String) The MSI product name.
-- `publisher` (String) The MSI publisher.
-
 
 <a id="nestedatt--app_icon"></a>
 ### Nested Schema for `app_icon`
@@ -618,6 +602,23 @@ Optional:
 - `run_as_account` (String) The execution context. Possible values are: system, user.
 
 
+<a id="nestedatt--msi_information"></a>
+### Nested Schema for `msi_information`
+
+Required:
+
+- `package_type` (String) The MSI package type. Possible values are: perMachine, perUser.
+- `product_version` (String) The MSI product version.
+- `requires_reboot` (Boolean) A value indicating whether the MSI app requires a reboot.
+- `upgrade_code` (String) The MSI upgrade code.
+
+Optional:
+
+- `product_code` (String) The MSI product code.
+- `product_name` (String) The MSI product name.
+- `publisher` (String) The MSI publisher.
+
+
 <a id="nestedatt--requirement_rules"></a>
 ### Nested Schema for `requirement_rules`
 
@@ -697,7 +698,8 @@ Optional:
 - **Installation Context**: Win32 LOB apps can be installed in user or system context depending on configuration.
 - **Return Codes**: Configure custom return codes to handle different installation outcomes.
 - **Install Experience**: Control the installation behavior, restart requirements, and user interaction.
-- **MSI Information**: For MSI-based apps, optionally specify product codes, versions, and upgrade codes for proper management. `msi_information` is not required for EXE-based installers.
+- **MSI Information**: For MSI-based apps, specify product codes, versions, and upgrade codes for proper management. `msi_information` is not required for EXE-based installers.
+- **EXE-based installers**: For EXE-based installers, specify the setup file path and installation command line.
 - **Supersedence**: Win32 LOB apps support supersedence relationships to replace older versions.
 
 ## Import
