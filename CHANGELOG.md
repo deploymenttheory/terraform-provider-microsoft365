@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.54.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.53.1-alpha...v0.54.0-alpha) (2026-05-26)
+
+
+### Features
+
+* add settings_catalog_inventory_policy resource ([cda4557](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cda4557c5e4419cc5f1292729ae74f4d1cc6c2ea))
+* add settings_catalog_inventory_policy resource ([#3105](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3105)) ([03188e3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/03188e34c2995f71c4a317a331165c0d30590d73))
+
 ## [0.53.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.53.0-alpha...v0.53.1-alpha) (2026-05-19)
 
 
