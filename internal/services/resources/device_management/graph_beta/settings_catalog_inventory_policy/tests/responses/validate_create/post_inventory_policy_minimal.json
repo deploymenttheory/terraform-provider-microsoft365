@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/inventoryPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "name": "Test Inventory Policy - Unit",
+  "description": "",
+  "platforms": "windows10",
+  "technologies": "extensibility",
+  "createdDateTime": "2026-05-22T14:03:42.3345811Z",
+  "lastModifiedDateTime": "2026-05-22T14:03:42.3345811Z",
+  "settingCount": 1,
+  "creationSource": null,
+  "roleScopeTagIds": ["0"]
+}
