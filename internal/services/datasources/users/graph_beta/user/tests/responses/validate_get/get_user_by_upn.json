@@ -1,0 +1,40 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#users",
+  "value": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "accountEnabled": true,
+      "displayName": "DT-TEST-USER-001",
+      "givenName": "Test",
+      "surname": "UserOne",
+      "userPrincipalName": "dt.test.user001@contoso.com",
+      "mail": "dt.test.user001@contoso.com",
+      "mailNickname": "dt.test.user001",
+      "employeeId": "EMP-0001",
+      "employeeType": "Employee",
+      "jobTitle": "Software Engineer",
+      "department": "Engineering",
+      "companyName": "Contoso",
+      "officeLocation": "Building 1",
+      "city": "Seattle",
+      "state": "WA",
+      "country": "US",
+      "postalCode": "98101",
+      "streetAddress": "123 Main St",
+      "usageLocation": "US",
+      "preferredLanguage": "en-US",
+      "mobilePhone": "+1 425 555 0101",
+      "businessPhones": ["+1 425 555 0100"],
+      "otherMails": ["test.userone@personal.com"],
+      "proxyAddresses": ["SMTP:dt.test.user001@contoso.com"],
+      "userType": "Member",
+      "onPremisesImmutableId": "IMMUTABLE-0001",
+      "onPremisesDistinguishedName": "CN=Test UserOne,OU=Users,DC=contoso,DC=com",
+      "onPremisesDomainName": "contoso.com",
+      "onPremisesSamAccountName": "tuserone",
+      "onPremisesSyncEnabled": true,
+      "onPremisesUserPrincipalName": "tuserone@contoso.com",
+      "createdDateTime": "2023-01-15T10:00:00Z"
+    }
+  ]
+}
