@@ -15,7 +15,7 @@ var (
 )
 
 // Generate the Terraform provider documentation using `tfplugindocs`:
-//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name microsoft365
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-name terraform-provider-microsoft365 --rendered-provider-name "Microsoft 365"
 
 func main() {
 	var debug bool

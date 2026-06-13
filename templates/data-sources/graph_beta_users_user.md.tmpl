@@ -1,0 +1,81 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Users"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [user resource type](https://learn.microsoft.com/en-us/graph/api/resources/user?view=graph-rest-beta)
+- [List users](https://learn.microsoft.com/en-us/graph/api/user-list?view=graph-rest-beta)
+- [Get a user](https://learn.microsoft.com/en-us/graph/api/user-get?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `User.Read.All`
+- `Directory.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.55.0-alpha | Experimental | Initial release of users_user data source |
+
+## Example Usage
+
+### Example 1: List all users in the tenant
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/01_list_all.tf" }}
+
+### Example 2: Look up a user by object_id (with a representative set of outputs)
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/02_by_object_id.tf" }}
+
+### Example 3: Look up a user by display_name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/03_by_display_name.tf" }}
+
+### Example 4: Look up a user by employee_id
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/04_by_employee_id.tf" }}
+
+### Example 5: Look up users by given_name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/05_by_given_name.tf" }}
+
+### Example 6: Look up a user by user_principal_name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/06_by_user_principal_name.tf" }}
+
+### Example 7: Look up a user by on_premises_immutable_id
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/07_by_on_premises_immutable_id.tf" }}
+
+### Example 8: Look up a user by on_premises_distinguished_name
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/08_by_on_premises_distinguished_name.tf" }}
+
+### Example 9: Look up users using a custom OData query
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_users_user/09_by_odata_query.tf" }}
+
+## Notes
+
+- Exactly one of `object_id`, `display_name`, `employee_id`, `given_name`, `user_principal_name`, `on_premises_immutable_id`, `on_premises_distinguished_name`, `odata_query`, or `list_all` must be specified.
+- These lookup attributes are mutually exclusive.
+- Results are always returned in the `items` list, even when a single user is matched. Reference a single result with `items[0]`.
+- For advanced filtering scenarios, use the `odata_query` attribute with custom OData filter expressions.
+
+{{ .SchemaMarkdown | trimspace }}
