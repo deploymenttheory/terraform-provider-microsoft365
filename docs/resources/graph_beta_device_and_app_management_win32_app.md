@@ -486,7 +486,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "notepad_
 - `app_installer` (Attributes) Metadata related to the win32 lob app installer file, such as size and checksums. This is automatically computed during app creation and updates. (see [below for nested schema](#nestedatt--app_installer))
 - `categories` (Set of String) Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
 - `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
-- `detection_rules` (Attributes List) The detection rules to detect Win32 Line of Business (LoB) app. (see [below for nested schema](#nestedatt--detection_rules))
+- `detection_rules` (Attributes List, Deprecated) **DEPRECATED**: Use the `rules` block instead with key rule_type set to `detection`, to configure the detection rules to detect Win32 Line of Business (LoB) app. (see [below for nested schema](#nestedatt--detection_rules))
 - `developer` (String) The developer of the app.
 - `display_version` (String) The version displayed in the UX for this app.
 - `information_url` (String) The more information Url.
@@ -500,7 +500,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "notepad_
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
 - `privacy_information_url` (String) The privacy statement Url.
-- `requirement_rules` (Attributes List) The requirement rules to detect Win32 Line of Business (LoB) app. (see [below for nested schema](#nestedatt--requirement_rules))
+- `requirement_rules` (Attributes List, Deprecated) **DEPRECATED**: Use the `rules` block instead with key rule_type set to `requirement`, to configure the requirement rules to detect Win32 Line of Business (LoB) app. (see [below for nested schema](#nestedatt--requirement_rules))
 - `return_codes` (Attributes List) The return codes for post installation behavior. (see [below for nested schema](#nestedatt--return_codes))
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `rules` (Attributes List) The detection and requirement rules for this app. (see [below for nested schema](#nestedatt--rules))

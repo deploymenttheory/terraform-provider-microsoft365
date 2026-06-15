@@ -9,6 +9,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_and_app_management"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -282,7 +283,11 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"detection_rules": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "The detection rules to detect Win32 Line of Business (LoB) app.",
+				DeprecationMessage:  "Use the `rules` attribute instead. The `detection_rules` attribute is deprecated and will be removed in a future release. Configuring both `detection_rules` and `rules` is not supported.",
+				MarkdownDescription: "**DEPRECATED**: Use the `rules` block instead with key rule_type set to `detection`, to configure the detection rules to detect Win32 Line of Business (LoB) app.",
+				Validators: []validator.List{
+					listvalidator.ConflictsWith(path.MatchRoot("rules")),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						// Common attributes for all detection types
@@ -385,7 +390,11 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"requirement_rules": schema.ListNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "The requirement rules to detect Win32 Line of Business (LoB) app.",
+				DeprecationMessage:  "Use the `rules` attribute instead. The `requirement_rules` attribute is deprecated and will be removed in a future release. Configuring both `requirement_rules` and `rules` is not supported.",
+				MarkdownDescription: "**DEPRECATED**: Use the `rules` block instead with key rule_type set to `requirement`, to configure the requirement rules to detect Win32 Line of Business (LoB) app.",
+				Validators: []validator.List{
+					listvalidator.ConflictsWith(path.MatchRoot("rules")),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"requirement_type": schema.StringAttribute{
@@ -429,6 +438,12 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			"rules": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "The detection and requirement rules for this app.",
+				Validators: []validator.List{
+					listvalidator.ConflictsWith(
+						path.MatchRoot("detection_rules"),
+						path.MatchRoot("requirement_rules"),
+					),
+				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"rule_type": schema.StringAttribute{

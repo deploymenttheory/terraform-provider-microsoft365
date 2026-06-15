@@ -21,8 +21,9 @@ Retrieves Microsoft Entra Users using the `/users` endpoint. Supports flexible l
 The following client `application` permissions are needed in order to use this data source:
 
 **Required:**
-- `User.Read.All`
 - `Directory.Read.All`
+- `User.Read.All`
+- `User.ReadBasic.All`
 
 **Optional:**
 - `None` `[N/A]`
