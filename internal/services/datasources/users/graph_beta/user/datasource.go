@@ -28,8 +28,9 @@ var (
 func NewUserDataSource() datasource.DataSource {
 	return &UserDataSource{
 		ReadPermissions: []string{
-			"User.Read.All",
 			"Directory.Read.All",
+			"User.Read.All",
+			"User.ReadBasic.All",
 		},
 	}
 }
