@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.55.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.54.0-alpha...v0.55.0-alpha) (2026-06-15)
+
+
+### Features
+
+* added Graph Beta Users datasource ([#3139](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3139)) ([d362261](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d362261eb47c58d155e62ef6143081683a1a9f5e))
+
+
+### Bug Fixes
+
+* add MinimumFreeDiskSpaceInMB to Win32LobAppResource schema ([#3155](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3155)) ([011d08f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/011d08fd8895f991851f9b9d791f5c97ecd09da2))
+* deprecate detection_rules and requirement_rules in Win32LobAppResource schema ([#3154](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3154)) ([a6470c9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a6470c94567ae70215a4bc95bd3d8a00bbc5b452))
+* update minimum supported Windows release in Win32LobAppResource schema ([#3153](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3153)) ([6a65e2e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6a65e2e110d790da33ef162c84c6515707e8048f))
+
 ## [0.54.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.53.1-alpha...v0.54.0-alpha) (2026-05-26)
 
 
