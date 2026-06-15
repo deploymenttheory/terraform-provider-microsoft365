@@ -35,6 +35,7 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 	convert.FrameworkToGraphString(data.PrivacyInformationUrl, requestBody.SetPrivacyInformationUrl)
 	convert.FrameworkToGraphString(data.Notes, requestBody.SetNotes)
 	convert.FrameworkToGraphString(data.Owner, requestBody.SetOwner)
+	convert.FrameworkToGraphInt32(data.MinimumFreeDiskSpaceInMB, requestBody.SetMinimumFreeDiskSpaceInMB)
 	convert.FrameworkToGraphString(data.MinimumSupportedWindowsRelease, requestBody.SetMinimumSupportedWindowsRelease)
 	convert.FrameworkToGraphBool(data.AllowAvailableUninstall, requestBody.SetAllowAvailableUninstall)
 	convert.FrameworkToGraphBool(data.IsFeatured, requestBody.SetIsFeatured)
