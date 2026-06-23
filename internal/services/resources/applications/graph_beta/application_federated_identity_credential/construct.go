@@ -29,6 +29,17 @@ func constructResource(ctx context.Context, data *ApplicationFederatedIdentityCr
 		requestBody.SetAudiences(audiences)
 	}
 
+	// claimsMatchingExpression is a nested object (value + languageVersion) and
+	// is mutually exclusive with subject. languageVersion is currently fixed at 1.
+	if !data.ClaimsMatchingExpression.IsNull() && !data.ClaimsMatchingExpression.IsUnknown() {
+		expression := graphmodels.NewFederatedIdentityExpression()
+		value := data.ClaimsMatchingExpression.ValueString()
+		expression.SetValue(&value)
+		languageVersion := int32(1)
+		expression.SetLanguageVersion(&languageVersion)
+		requestBody.SetClaimsMatchingExpression(expression)
+	}
+
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),

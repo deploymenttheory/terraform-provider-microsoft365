@@ -39,6 +39,7 @@ Find out more about the permissions required for managing applications at Micros
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.43.0 | Experimental | Initial release |
+| v0.55.2 | Experimental | Add claims_matching_expression attribute fix |
 
 ## Important Notes
 
@@ -50,6 +51,7 @@ Find out more about the permissions required for managing applications at Micros
   - AWS workload identity
 - **Issuer**: Must be a trusted OIDC issuer URL (e.g., GitHub Actions, Kubernetes clusters)
 - **Subject**: Identifies the specific workload (repo, service account, etc.)
+- **Claims matching expression**: A flexible-FIC alternative to `subject` that matches the incoming token's claims and supports a wildcard (e.g. to cover every environment in a repository). It is mutually exclusive with `subject` — set one or the other, not both
 - **Audiences**: Typically `["api://AzureADTokenExchange"]` for Azure scenarios
 
 ## Example Usage
@@ -89,6 +91,28 @@ resource "microsoft365_graph_beta_applications_application_federated_identity_cr
   issuer         = "https://eastus.oic.prod-aks.azure.com/00000000-0000-0000-0000-000000000000/11111111-1111-1111-1111-111111111111/"
   subject        = "system:serviceaccount:default:my-service-account"
   audiences      = ["api://AzureADTokenExchange"]
+}
+```
+
+### Claims Matching Expression (Flexible FIC)
+
+```terraform
+resource "microsoft365_graph_beta_applications_application" "example" {
+  display_name = "my-flexible-fic-app"
+  description  = "Application using a flexible federated identity credential"
+}
+
+# Flexible FIC: match the token with a claims matching expression instead of a
+# fixed subject. One wildcard is allowed, so a single credential can cover, for
+# example, every environment in a repository. claims_matching_expression and
+# subject are mutually exclusive, so subject is omitted here.
+resource "microsoft365_graph_beta_applications_application_federated_identity_credential" "claims_matching" {
+  application_id             = microsoft365_graph_beta_applications_application.example.id
+  name                       = "github-actions-any-environment"
+  description                = "GitHub Actions for any environment in the repository"
+  issuer                     = "https://token.actions.githubusercontent.com"
+  claims_matching_expression = "claims['sub'] matches 'repo:myorg/myrepo:environment:*'"
+  audiences                  = ["api://AzureADTokenExchange"]
 }
 ```
 
