@@ -155,6 +155,15 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Con
 	}
 	defer cancel()
 
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Fetch all azureADDevice assets using a type filter
 	// This filters on microsoft.graph.windowsUpdates.azureADDevice
 	// and returns devices with their enrollment information
@@ -185,15 +194,6 @@ func (r *WindowsUpdatesAutopatchDeviceRegistrationResource) Read(ctx context.Con
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

@@ -119,6 +119,15 @@ func (r *WindowsUpdatesAutopatchContentApprovalResource) Read(ctx context.Contex
 	}
 	defer cancel()
 
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	remoteResource, err := r.client.
 		Admin().
 		Windows().
@@ -139,15 +148,6 @@ func (r *WindowsUpdatesAutopatchContentApprovalResource) Read(ctx context.Contex
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

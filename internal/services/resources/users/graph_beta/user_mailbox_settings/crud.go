@@ -126,6 +126,15 @@ func (r *UserMailboxSettingsResource) Read(ctx context.Context, req resource.Rea
 	}
 	defer cancel()
 
+	identity.ID = state.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	mailboxSettings, err := r.client.
 		Users().
 		ByUserId(userID).
@@ -146,15 +155,6 @@ func (r *UserMailboxSettingsResource) Read(ctx context.Context, req resource.Rea
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = state.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

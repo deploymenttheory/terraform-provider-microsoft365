@@ -107,6 +107,15 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Read(ctx context
 	}
 	defer cancel()
 
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Get all assignments and find the one with matching ID or criteria
 	assignments, err := r.client.
 		DeviceManagement().
@@ -149,15 +158,6 @@ func (r *AppleUserInitiatedEnrollmentProfileAssignmentResource) Read(ctx context
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

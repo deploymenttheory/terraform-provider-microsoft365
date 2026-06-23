@@ -113,6 +113,15 @@ func (r *WindowsDriverUpdateInventoryResource) Read(ctx context.Context, req res
 	}
 	defer cancel()
 
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Validate that Windows Driver Update Profile ID is provided
 	if object.WindowsDriverUpdateProfileID.IsNull() || object.WindowsDriverUpdateProfileID.ValueString() == "" {
 		resp.Diagnostics.AddError(
@@ -140,15 +149,6 @@ func (r *WindowsDriverUpdateInventoryResource) Read(ctx context.Context, req res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

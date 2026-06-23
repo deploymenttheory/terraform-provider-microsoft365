@@ -130,6 +130,7 @@ func (r *UserResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	defer cancel()
 
 	identity.ID = state.ID.ValueString()
+
 	if resp.Identity != nil {
 		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 		if resp.Diagnostics.HasError() {

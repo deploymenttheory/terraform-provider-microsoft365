@@ -122,15 +122,6 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Read(ctx context.Cont
 	}
 	defer cancel()
 
-	// No API call - just return current state
-	// The password credential API does not have a GET endpoint for individual credentials.
-	// The secret_text cannot be retrieved after creation, so we preserve the state as-is.
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	identity.ID = object.BlueprintID.ValueString()
 
 	if resp.Identity != nil {
@@ -138,6 +129,15 @@ func (r *AgentIdentityBlueprintPasswordCredentialResource) Read(ctx context.Cont
 		if resp.Diagnostics.HasError() {
 			return
 		}
+	}
+
+	// No API call - just return current state
+	// The password credential API does not have a GET endpoint for individual credentials.
+	// The secret_text cannot be retrieved after creation, so we preserve the state as-is.
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
