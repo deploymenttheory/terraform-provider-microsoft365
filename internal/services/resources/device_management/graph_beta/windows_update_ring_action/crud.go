@@ -99,15 +99,6 @@ func (r *WindowsUpdateRingActionResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	// For action resources, we mainly just return the current state
-	// The actual state of the update ring can be checked via the main update ring resource
-	tflog.Debug(ctx, fmt.Sprintf("Reading action resource state for ID: %s", object.ID.ValueString()))
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	identity.ID = object.ID.ValueString()
 
 	if resp.Identity != nil {
@@ -115,6 +106,15 @@ func (r *WindowsUpdateRingActionResource) Read(ctx context.Context, req resource
 		if resp.Diagnostics.HasError() {
 			return
 		}
+	}
+
+	// For action resources, we mainly just return the current state
+	// The actual state of the update ring can be checked via the main update ring resource
+	tflog.Debug(ctx, fmt.Sprintf("Reading action resource state for ID: %s", object.ID.ValueString()))
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

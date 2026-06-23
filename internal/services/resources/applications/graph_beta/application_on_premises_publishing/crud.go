@@ -116,6 +116,15 @@ func (r *OnPremisesPublishingResource) Read(ctx context.Context, req resource.Re
 	}
 	defer cancel()
 
+	identity.ID = object.ApplicationID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	application, err := r.client.
 		Applications().
 		ByApplicationId(object.ApplicationID.ValueString()).
@@ -131,15 +140,6 @@ func (r *OnPremisesPublishingResource) Read(ctx context.Context, req resource.Re
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.ApplicationID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

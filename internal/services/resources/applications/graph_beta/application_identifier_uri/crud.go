@@ -140,6 +140,15 @@ func (r *ApplicationIdentifierUriResource) Read(ctx context.Context, req resourc
 	}
 	defer cancel()
 
+	identity.ID = object.Id.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	applicationID := object.ApplicationID.ValueString()
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s with identifier_uri: %s", ResourceName, object.IdentifierUri.ValueString()))
@@ -159,15 +168,6 @@ func (r *ApplicationIdentifierUriResource) Read(ctx context.Context, req resourc
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.Id.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

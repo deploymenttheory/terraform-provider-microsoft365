@@ -37,6 +37,15 @@ func (r *TeamsCallingPolicyResource) Read(ctx context.Context, req resource.Read
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	identity.ID = data.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
 	psCmd := fmt.Sprintf("Get-CsTeamsCallingPolicy -Identity '%s' | ConvertTo-Json", data.ID.ValueString())
 	output, err := powershell.RunPowerShell(psCmd)
 	if err != nil {
@@ -53,15 +62,6 @@ func (r *TeamsCallingPolicyResource) Read(ctx context.Context, req resource.Read
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = data.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 }
 

@@ -371,6 +371,15 @@ func (r *DeviceEnrollmentNotificationResource) Read(ctx context.Context, req res
 	}
 	defer cancel()
 
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Step 1: Get the base resource
 	resource, err := r.client.
 		DeviceManagement().
@@ -487,15 +496,6 @@ func (r *DeviceEnrollmentNotificationResource) Read(ctx context.Context, req res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished reading resource: %s with ID: %s", ResourceName, object.ID.ValueString()))

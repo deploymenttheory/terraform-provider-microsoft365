@@ -143,6 +143,15 @@ func (r *GroupPolicyDefinitionResource) Read(ctx context.Context, req resource.R
 	}
 	defer cancel()
 
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	// Initialize AdditionalData if needed
 	if object.AdditionalData == nil {
 		object.AdditionalData = make(map[string]any)
@@ -220,15 +229,6 @@ func (r *GroupPolicyDefinitionResource) Read(ctx context.Context, req resource.R
 
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

@@ -177,6 +177,15 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Read(ctx context.C
 	}
 	defer cancel()
 
+	identity.ID = object.BlueprintID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	application, err := r.client.
 		Applications().
 		ByApplicationId(blueprintID).
@@ -216,15 +225,6 @@ func (r *AgentIdentityBlueprintCertificateCredentialResource) Read(ctx context.C
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
-	}
-
-	identity.ID = object.BlueprintID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))

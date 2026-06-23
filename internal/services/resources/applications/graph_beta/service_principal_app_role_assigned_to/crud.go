@@ -118,6 +118,7 @@ func (r *ServicePrincipalAppRoleAssignedToResource) Read(ctx context.Context, re
 	defer cancel()
 
 	identity.ID = object.ID.ValueString()
+
 	if resp.Identity != nil {
 		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
 		if resp.Diagnostics.HasError() {
