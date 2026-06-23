@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.55.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.55.1-alpha...v0.55.2-alpha) (2026-06-23)
+
+
+### Bug Fixes
+
+* application federated identity credential ([#3171](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3171)) ([732df3d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/732df3d91f887dfaa100574ef2b97a2ec6c6ab72))
+* moved the identity set in create under timeouts to handle potential 404's ([#3173](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3173)) ([b9bcb22](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b9bcb22fa09d212e841829d866ab2b7cb893c037))
+
 ## [0.55.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.55.0-alpha...v0.55.1-alpha) (2026-06-17)
 
 
