@@ -20,5 +20,11 @@ func MapRemoteStateFromSDK(ctx context.Context, data *ApplicationFederatedIdenti
 	data.Description = convert.GraphToFrameworkString(credential.GetDescription())
 	data.Audiences = convert.GraphToFrameworkStringSet(ctx, credential.GetAudiences())
 
+	var claimsMatchingExpression *string
+	if expression := credential.GetClaimsMatchingExpression(); expression != nil {
+		claimsMatchingExpression = expression.GetValue()
+	}
+	data.ClaimsMatchingExpression = convert.GraphToFrameworkString(claimsMatchingExpression)
+
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s from SDK", ResourceName, data.ID.ValueString()))
 }

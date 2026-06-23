@@ -48,7 +48,7 @@ func TestAccResourceApplicationFederatedIdentityCredential_01_Minimal(t *testing
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating minimal federated identity credential")
 				},
-				Config: loadAccTestTerraform("resource_minimal.tf"),
+				Config: loadAccTestTerraform("resource_01_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("federated identity credential", 30*time.Second)
@@ -100,7 +100,7 @@ func TestAccResourceApplicationFederatedIdentityCredential_02_Maximal(t *testing
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating maximal federated identity credential")
 				},
-				Config: loadAccTestTerraform("resource_maximal.tf"),
+				Config: loadAccTestTerraform("resource_02_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("federated identity credential", 30*time.Second)
@@ -153,7 +153,7 @@ func TestAccResourceApplicationFederatedIdentityCredential_03_Update(t *testing.
 				PreConfig: func() {
 					testlog.StepAction(resourceType, "Step 1: Creating federated identity credential for update test")
 				},
-				Config: loadAccTestTerraform("resource_minimal.tf"),
+				Config: loadAccTestTerraform("resource_01_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(s *terraform.State) error {
 						testlog.WaitForConsistency("federated identity credential", 30*time.Second)
@@ -176,6 +176,59 @@ func TestAccResourceApplicationFederatedIdentityCredential_03_Update(t *testing.
 					},
 					check.That(resourceType+".test_minimal").Key("description").HasValue("Updated description for acceptance test"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccResourceApplicationFederatedIdentityCredential_04_ClaimsMatchingExpression(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 1: Creating federated identity credential with a claims matching expression")
+				},
+				Config: loadAccTestTerraform("resource_04_claims_matching_expression.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(s *terraform.State) error {
+						testlog.WaitForConsistency("federated identity credential", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".test_claims_matching").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_claims_matching").Key("application_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_claims_matching").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-fic-claims-[a-z0-9]+$`)),
+					check.That(resourceType+".test_claims_matching").Key("issuer").HasValue("https://token.actions.githubusercontent.com"),
+					check.That(resourceType+".test_claims_matching").Key("claims_matching_expression").HasValue("claims['sub'] matches 'repo:deploymenttheory/*'"),
+					check.That(resourceType+".test_claims_matching").Key("subject").DoesNotExist(),
+					check.That(resourceType+".test_claims_matching").Key("audiences.#").HasValue("1"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Step 2: Import state verification")
+				},
+				ResourceName:      resourceType + ".test_claims_matching",
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: testAccImportStateIdFunc(resourceType + ".test_claims_matching"),
 			},
 		},
 	})
