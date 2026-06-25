@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/serviceprincipals"
 )
 
 // Create handles the Create operation for Service Principal Token Lifetime Policy Assignment resources.
@@ -195,7 +194,7 @@ func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) Update(ctx conte
 //
 // Operation: Removes a token lifetime policy from a service principal
 // API Calls:
-//   - DELETE /servicePrincipals/{servicePrincipalId}/tokenLifetimePolicies/$ref?@id={policyUrl}
+//   - DELETE /servicePrincipals/{servicePrincipalId}/tokenLifetimePolicies/{tokenLifetimePolicyId}/$ref
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/serviceprincipal-delete-tokenlifetimepolicies?view=graph-rest-beta
 func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -217,22 +216,15 @@ func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) Delete(ctx conte
 	spID := object.ServicePrincipalID.ValueString()
 	policyID := object.TokenLifetimePolicyID.ValueString()
 
-	policyURL := fmt.Sprintf("https://graph.microsoft.com/beta/policies/tokenLifetimePolicies/%s", policyID)
-
-	reqConfig := &serviceprincipals.ItemTokenLifetimePoliciesRefRequestBuilderDeleteRequestConfiguration{
-		QueryParameters: &serviceprincipals.ItemTokenLifetimePoliciesRefRequestBuilderDeleteQueryParameters{
-			Id: &policyURL,
-		},
-	}
-
 	tflog.Debug(ctx, fmt.Sprintf("Removing token lifetime policy %s from service principal %s", policyID, spID))
 
 	err := r.client.
 		ServicePrincipals().
 		ByServicePrincipalId(spID).
 		TokenLifetimePolicies().
+		ByTokenLifetimePolicyId(policyID).
 		Ref().
-		Delete(ctx, reqConfig)
+		Delete(ctx, nil)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)

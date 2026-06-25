@@ -38,8 +38,8 @@ func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) RegisterMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F-]+/tokenLifetimePolicies$`,
 		m.listTokenLifetimePoliciesResponder())
 
-	// DELETE /servicePrincipals/{id}/tokenLifetimePolicies/$ref - Remove
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F-]+/tokenLifetimePolicies/\$ref`,
+	// DELETE /servicePrincipals/{id}/tokenLifetimePolicies/{policyId}/$ref - Remove
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F-]+/tokenLifetimePolicies/[0-9a-fA-F-]+/\$ref$`,
 		m.removeTokenLifetimePolicyResponder())
 }
 
@@ -118,19 +118,24 @@ func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) listTokenLifetimePol
 
 func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) removeTokenLifetimePolicyResponder() httpmock.Responder {
 	return func(req *http.Request) (*http.Response, error) {
+		// Path: /beta/servicePrincipals/{spID}/tokenLifetimePolicies/{policyID}/$ref
 		pathParts := strings.Split(req.URL.Path, "/")
-		var spID string
+		var spID, policyID string
 		for i, part := range pathParts {
 			if part == "servicePrincipals" && i+1 < len(pathParts) {
 				spID = pathParts[i+1]
-				break
+			}
+			if part == "tokenLifetimePolicies" && i+1 < len(pathParts) {
+				policyID = pathParts[i+1]
 			}
 		}
 
 		mockState.Lock()
-		_, exists := mockState.assignments[spID]
-		if exists {
+		existingPolicyID, exists := mockState.assignments[spID]
+		if exists && existingPolicyID == policyID {
 			delete(mockState.assignments, spID)
+		} else {
+			exists = false
 		}
 		mockState.Unlock()
 
