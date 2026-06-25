@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
@@ -35,10 +36,14 @@ func MapRemoteStateToTerraform(ctx context.Context, data OnPremisesPublishingRes
 	// Map enum fields
 	if externalAuthType := onPremPub.GetExternalAuthenticationType(); externalAuthType != nil {
 		data.ExternalAuthenticationType = convert.GraphToFrameworkEnum(externalAuthType)
+	} else {
+		data.ExternalAuthenticationType = types.StringNull()
 	}
 
 	if trafficRoutingMethod := onPremPub.GetTrafficRoutingMethod(); trafficRoutingMethod != nil {
 		data.TrafficRoutingMethod = convert.GraphToFrameworkEnum(trafficRoutingMethod)
+	} else {
+		data.TrafficRoutingMethod = types.StringNull()
 	}
 
 	// Map boolean fields
