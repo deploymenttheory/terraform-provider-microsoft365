@@ -115,7 +115,7 @@ func (r *OperationApprovalPolicyResource) Schema(ctx context.Context, req resour
 				Computed:            true,
 				MarkdownDescription: "Optional description of the resource. Maximum length is 1500 characters.",
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1024),
+					stringvalidator.LengthAtMost(1500),
 				},
 			},
 			"last_modified_date_time": schema.StringAttribute{
@@ -127,71 +127,31 @@ func (r *OperationApprovalPolicyResource) Schema(ctx context.Context, req resour
 			},
 			"policy_type": schema.StringAttribute{
 				MarkdownDescription: "The policy type for the OperationApprovalPolicy. Possible values are:\n\n" +
-					"- **unknown**: Unknown policy type\n" +
-					"- **app**: Application policy\n" +
-					"- **script**: Script policy\n" +
-					"- **role**: Role policy",
+					"- **unknown**: Default. Unknown policy type.\n" +
+					"- **deviceWipe**: Device wipe policy type.\n" +
+					"- **deviceRetire**: Device retire policy type.\n" +
+					"- **deviceDelete**: Device delete policy type.\n" +
+					"- **app**: Application policy type.\n" +
+					"- **script**: Script policy type.\n" +
+					"- **role**: Role policy type.\n" +
+					"- **unknownFutureValue**: Evolvable enumeration sentinel value. Do not use.\n" +
+					"- **tenantConfiguration**: Tenant configuration policy type.",
 				Optional: true,
+				Computed: true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						"unknown",
+						"deviceWipe",
+						"deviceRetire",
+						"deviceDelete",
 						"app",
 						"script",
 						"role",
+						"unknownFutureValue",
+						"tenantConfiguration",
 					),
 				},
 			},
-			// SDK supports only the above fields. MSFT docs suggest the below. weird
-			// "policy_type": schema.StringAttribute{
-			// 	MarkdownDescription: "The policy type for the OperationApprovalPolicy. Possible values are:\n\n" +
-			// 		"- **unknown**: Unknown policy type\n" +
-			// 		"- **deviceAction**: Device action policy\n" +
-			// 		"- **deviceWipe**: Device wipe policy\n" +
-			// 		"- **deviceRetire**: Device retire policy\n" +
-			// 		"- **deviceRetireNonCompliant**: Device retire non-compliant policy\n" +
-			// 		"- **deviceDelete**: Device delete policy\n" +
-			// 		"- **deviceLock**: Device lock policy\n" +
-			// 		"- **deviceErase**: Device erase policy\n" +
-			// 		"- **deviceDisableActivationLock**: Device disable activation lock policy\n" +
-			// 		"- **windowsEnrollment**: Windows enrollment policy\n" +
-			// 		"- **compliancePolicy**: Compliance policy\n" +
-			// 		"- **configurationPolicy**: Configuration policy\n" +
-			// 		"- **appProtectionPolicy**: App protection policy\n" +
-			// 		"- **policySet**: Policy set\n" +
-			// 		"- **filter**: Filter policy\n" +
-			// 		"- **endpointSecurityPolicy**: Endpoint security policy\n" +
-			// 		"- **app**: App policy\n" +
-			// 		"- **script**: Script policy\n" +
-			// 		"- **role**: Role policy\n" +
-			// 		"- **deviceResetPasscode**: Device reset passcode policy\n" +
-			// 		"- **operationApprovalPolicy**: Operation approval policy",
-			// 	Required: true,
-			// 	Validators: []validator.String{
-			// 		stringvalidator.OneOf(
-			// 			"unknown",
-			// 			"deviceAction",
-			// 			"deviceWipe",
-			// 			"deviceRetire",
-			// 			"deviceRetireNonCompliant",
-			// 			"deviceDelete",
-			// 			"deviceLock",
-			// 			"deviceErase",
-			// 			"deviceDisableActivationLock",
-			// 			"windowsEnrollment",
-			// 			"compliancePolicy",
-			// 			"configurationPolicy",
-			// 			"appProtectionPolicy",
-			// 			"policySet",
-			// 			"filter",
-			// 			"endpointSecurityPolicy",
-			// 			"app",
-			// 			"script",
-			// 			"role",
-			// 			"deviceResetPasscode",
-			// 			"operationApprovalPolicy",
-			// 		),
-			// 	},
-			// },
 			"policy_platform": schema.StringAttribute{
 				MarkdownDescription: "Indicates the applicable platform for the policy. Possible values are:\n\n" +
 					"- **notApplicable**: Not applicable to any platform\n" +
@@ -201,7 +161,8 @@ func (r *OperationApprovalPolicyResource) Schema(ctx context.Context, req resour
 					"- **macOS**: macOS platform\n" +
 					"- **windows10AndLater**: Windows 10 and later platform\n" +
 					"- **windows81AndLater**: Windows 8.1 and later platform\n" +
-					"- **windows10X**: Windows 10X platform",
+					"- **windows10X**: Windows 10X platform\n" +
+					"- **unknownFutureValue**: Evolvable enumeration sentinel value. Do not use.",
 				Optional: true,
 				Computed: true,
 				//Default:  stringdefault.StaticString("notApplicable"),
@@ -215,6 +176,7 @@ func (r *OperationApprovalPolicyResource) Schema(ctx context.Context, req resour
 						"windows10AndLater",
 						"windows81AndLater",
 						"windows10X",
+						"unknownFutureValue",
 					),
 				},
 			},
@@ -223,51 +185,31 @@ func (r *OperationApprovalPolicyResource) Schema(ctx context.Context, req resour
 				Required:            true,
 				Attributes: map[string]schema.Attribute{
 					"policy_type": schema.StringAttribute{
-						MarkdownDescription: "The policy type for the OperationApprovalPolicy. Possible values are:\n\n" +
-							"- **unknown**: Unknown policy type\n" +
-							"- **app**: Application policy\n" +
-							"- **script**: Script policy\n" +
-							"- **role**: Role policy",
+						MarkdownDescription: "The policy type for the policy set. Possible values are:\n\n" +
+							"- **unknown**: Default. Unknown policy type.\n" +
+							"- **deviceWipe**: Device wipe policy type.\n" +
+							"- **deviceRetire**: Device retire policy type.\n" +
+							"- **deviceDelete**: Device delete policy type.\n" +
+							"- **app**: Application policy type.\n" +
+							"- **script**: Script policy type.\n" +
+							"- **role**: Role policy type.\n" +
+							"- **unknownFutureValue**: Evolvable enumeration sentinel value. Do not use.\n" +
+							"- **tenantConfiguration**: Tenant configuration policy type.",
 						Required: true,
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"unknown",
+								"deviceWipe",
+								"deviceRetire",
+								"deviceDelete",
 								"app",
 								"script",
 								"role",
+								"unknownFutureValue",
+								"tenantConfiguration",
 							),
 						},
 					},
-					// SDK supports only the above fields. MSFT docs suggest the below. weird
-					// "policy_type": schema.StringAttribute{
-					// 	MarkdownDescription: "The policy type for the policy set.",
-					// 	Required:            true,
-					// 	Validators: []validator.String{
-					// 		stringvalidator.OneOf(
-					// 			"unknown",
-					// 			"deviceAction",
-					// 			"deviceWipe",
-					// 			"deviceRetire",
-					// 			"deviceRetireNonCompliant",
-					// 			"deviceDelete",
-					// 			"deviceLock",
-					// 			"deviceErase",
-					// 			"deviceDisableActivationLock",
-					// 			"windowsEnrollment",
-					// 			"compliancePolicy",
-					// 			"configurationPolicy",
-					// 			"appProtectionPolicy",
-					// 			"policySet",
-					// 			"filter",
-					// 			"endpointSecurityPolicy",
-					// 			"app",
-					// 			"script",
-					// 			"role",
-					// 			"deviceResetPasscode",
-					// 			"operationApprovalPolicy",
-					// 		),
-					// 	},
-					// },
 					"policy_platform": schema.StringAttribute{
 						MarkdownDescription: "The policy platform for the policy set.",
 						Optional:            true,
@@ -283,6 +225,7 @@ func (r *OperationApprovalPolicyResource) Schema(ctx context.Context, req resour
 								"windows10AndLater",
 								"windows81AndLater",
 								"windows10X",
+								"unknownFutureValue",
 							),
 						},
 					},
