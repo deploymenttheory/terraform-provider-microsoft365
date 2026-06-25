@@ -141,25 +141,24 @@ func (m *TokenLifetimePolicyMock) updateTokenLifetimePolicyResponder() httpmock.
 		pathParts := strings.Split(req.URL.Path, "/")
 		id := pathParts[len(pathParts)-1]
 
-		mockState.Lock()
-		policy, exists := mockState.tokenLifetimePolicies[id]
-		mockState.Unlock()
-
-		if !exists {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
-		}
-
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
 
 		mockState.Lock()
-		for key, value := range requestBody {
-			policy[key] = value
+		policy, exists := mockState.tokenLifetimePolicies[id]
+		if exists {
+			for key, value := range requestBody {
+				policy[key] = value
+			}
+			mockState.tokenLifetimePolicies[id] = policy
 		}
-		mockState.tokenLifetimePolicies[id] = policy
 		mockState.Unlock()
+
+		if !exists {
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+		}
 
 		return factories.EmptySuccessResponse(204)(req)
 	}

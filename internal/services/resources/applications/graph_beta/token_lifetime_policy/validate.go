@@ -28,10 +28,13 @@ func validateRequest(ctx context.Context, client *msgraphbetasdk.GraphServiceCli
 	}
 
 	for _, policy := range policies.GetValue() {
-		if policy.GetId() != nil && *policy.GetId() == excludeID {
+		if policy.GetId() == nil || policy.GetDisplayName() == nil {
 			continue
 		}
-		if policy.GetDisplayName() != nil && *policy.GetDisplayName() == displayName {
+		if *policy.GetId() == excludeID {
+			continue
+		}
+		if *policy.GetDisplayName() == displayName {
 			return fmt.Errorf("%w: display name '%s' is already used by policy with ID '%s'. Use terraform import to manage this resource",
 				sentinels.ErrDuplicateDisplayName, displayName, *policy.GetId())
 		}

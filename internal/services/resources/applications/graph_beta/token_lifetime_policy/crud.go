@@ -79,6 +79,8 @@ func (r *TokenLifetimePolicyResource) Create(ctx context.Context, req resource.C
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.MaxRetries = 60
+	opts.RetryInterval = 5 * time.Second
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -220,6 +222,8 @@ func (r *TokenLifetimePolicyResource) Update(ctx context.Context, req resource.U
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.MaxRetries = 60
+	opts.RetryInterval = 5 * time.Second
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
