@@ -37,6 +37,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data OnPremisesPublishingRes
 		data.ExternalAuthenticationType = convert.GraphToFrameworkEnum(externalAuthType)
 	}
 
+	if trafficRoutingMethod := onPremPub.GetTrafficRoutingMethod(); trafficRoutingMethod != nil {
+		data.TrafficRoutingMethod = convert.GraphToFrameworkEnum(trafficRoutingMethod)
+	}
+
 	// Map boolean fields
 	data.IsAccessibleViaZTNAClient = convert.GraphToFrameworkBool(onPremPub.GetIsAccessibleViaZTNAClient())
 	data.IsBackendCertificateValidationEnabled = convert.GraphToFrameworkBool(onPremPub.GetIsBackendCertificateValidationEnabled())

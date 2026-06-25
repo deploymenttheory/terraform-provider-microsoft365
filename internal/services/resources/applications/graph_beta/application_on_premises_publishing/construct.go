@@ -38,6 +38,17 @@ func constructResource(ctx context.Context, data *OnPremisesPublishingResourceMo
 		return nil, fmt.Errorf("error setting external authentication type: %w", err)
 	}
 
+	err = convert.FrameworkToGraphEnum(
+		data.TrafficRoutingMethod,
+		graphmodels.ParseTrafficRoutingMethod,
+		func(val *graphmodels.TrafficRoutingMethod) {
+			onPremisesPublishing.SetTrafficRoutingMethod(val)
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("error setting traffic routing method: %w", err)
+	}
+
 	// Boolean fields
 	convert.FrameworkToGraphBool(data.IsAccessibleViaZTNAClient, onPremisesPublishing.SetIsAccessibleViaZTNAClient)
 	convert.FrameworkToGraphBool(data.IsBackendCertificateValidationEnabled, onPremisesPublishing.SetIsBackendCertificateValidationEnabled)
@@ -64,3 +75,4 @@ func constructResource(ctx context.Context, data *OnPremisesPublishingResourceMo
 
 	return requestBody, nil
 }
+
