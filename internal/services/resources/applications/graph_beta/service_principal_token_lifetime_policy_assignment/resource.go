@@ -29,10 +29,17 @@ const (
 )
 
 var (
-	_ resource.Resource                = &ServicePrincipalTokenLifetimePolicyAssignmentResource{}
-	_ resource.ResourceWithConfigure   = &ServicePrincipalTokenLifetimePolicyAssignmentResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &ServicePrincipalTokenLifetimePolicyAssignmentResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &ServicePrincipalTokenLifetimePolicyAssignmentResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &ServicePrincipalTokenLifetimePolicyAssignmentResource{}
-	_ resource.ResourceWithIdentity    = &ServicePrincipalTokenLifetimePolicyAssignmentResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &ServicePrincipalTokenLifetimePolicyAssignmentResource{}
 )
 
 func NewServicePrincipalTokenLifetimePolicyAssignmentResource() resource.Resource {

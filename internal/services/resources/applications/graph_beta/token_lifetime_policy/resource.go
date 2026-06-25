@@ -25,10 +25,17 @@ const (
 )
 
 var (
-	_ resource.Resource                = &TokenLifetimePolicyResource{}
-	_ resource.ResourceWithConfigure   = &TokenLifetimePolicyResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &TokenLifetimePolicyResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &TokenLifetimePolicyResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &TokenLifetimePolicyResource{}
-	_ resource.ResourceWithIdentity    = &TokenLifetimePolicyResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &TokenLifetimePolicyResource{}
 )
 
 func NewTokenLifetimePolicyResource() resource.Resource {
