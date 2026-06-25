@@ -1,0 +1,10 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/tokenLifetimePolicies/$entity",
+    "@odata.type": "#microsoft.graph.tokenLifetimePolicy",
+    "id": "00000000-0000-0000-0000-000000000000",
+    "displayName": "unit-test-token-lifetime-policy-min-updated",
+    "description": "Updated unit test minimal token lifetime policy",
+    "isOrganizationDefault": false,
+    "definition": ["{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"02:00:00\"}}"],
+    "deletedDateTime": null
+}

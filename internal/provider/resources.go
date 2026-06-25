@@ -30,6 +30,8 @@ import (
 	graphBetaServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal"
 	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
 	graphBetaServicePrincipalOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_owner"
+	graphBetaApplicationsTokenLifetimePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/token_lifetime_policy"
+	graphBetaApplicationsServicePrincipalTokenLifetimePolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_token_lifetime_policy_assignment"
 
 	// Graph Beta - Change notifications
 	graphBetaChangeNotificationsSubscription "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/change_notifications/graph_beta/subscription"
@@ -207,6 +209,8 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaServicePrincipal.NewServicePrincipalResource,
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
 		graphBetaServicePrincipalOwner.NewServicePrincipalOwnerResource,
+		graphBetaApplicationsTokenLifetimePolicy.NewTokenLifetimePolicyResource,
+		graphBetaApplicationsServicePrincipalTokenLifetimePolicyAssignment.NewServicePrincipalTokenLifetimePolicyAssignmentResource,
 
 		// Graph Beta - Backup Storage resources
 
