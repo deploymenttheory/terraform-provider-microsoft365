@@ -19,7 +19,7 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/microsoft/kiota-abstractions-go v1.9.4
 	github.com/microsoft/kiota-http-go v1.5.6
-	github.com/microsoft/kiota-serialization-json-go v1.1.3
+	github.com/microsoft/kiota-serialization-json-go v1.1.4
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.162.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.99.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.4.1
