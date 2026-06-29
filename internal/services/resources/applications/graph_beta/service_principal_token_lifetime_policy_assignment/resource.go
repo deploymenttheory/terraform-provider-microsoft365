@@ -45,8 +45,7 @@ var (
 func NewServicePrincipalTokenLifetimePolicyAssignmentResource() resource.Resource {
 	return &ServicePrincipalTokenLifetimePolicyAssignmentResource{
 		ReadPermissions: []string{
-			"Policy.Read.All",
-			"Application.Read.All",
+			"Application.ReadWrite.All",
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.ApplicationConfiguration",
