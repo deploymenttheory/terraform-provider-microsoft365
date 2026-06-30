@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.56.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.55.2-alpha...v0.56.0-alpha) (2026-06-30)
+
+
+### Features
+
+* add macOS DEP (ADE) enrollment profile resource (depMacOSEnrollmentProfile) ([#3202](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3202)) ([94f3f3d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/94f3f3d66380002660b578a5c5cffb8178b65217))
+* add token lifetime policy and service principal assignment resources ([#3183](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3183)) ([e7f3a9d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e7f3a9dc987274b4ddeada02268adf916e50e685))
+
+
+### Bug Fixes
+
+* update OperationApprovalPolicy resource schema ([#3181](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3181)) ([5b96c6d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5b96c6d56c2240bf6044a4b53dd6395d6786d19e))
+
 ## [0.55.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.55.1-alpha...v0.55.2-alpha) (2026-06-23)
 
 
