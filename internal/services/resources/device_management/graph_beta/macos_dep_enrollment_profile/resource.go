@@ -41,6 +41,9 @@ var (
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &MacOSDepEnrollmentProfileResource{}
 
+	// Enables resource-level (cross-field) configuration validation
+	_ resource.ResourceWithConfigValidators = &MacOSDepEnrollmentProfileResource{}
+
 	// Enables identity schema for list resource support
 	_ resource.ResourceWithIdentity = &MacOSDepEnrollmentProfileResource{}
 )

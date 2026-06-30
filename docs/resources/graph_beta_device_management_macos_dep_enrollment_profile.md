@@ -53,6 +53,9 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   requires_user_authentication = false
   supervised_mode_enabled      = true
 
+  # Userless (and auto-advancing) profiles must be mandatory, or Graph rejects the request.
+  is_mandatory = true
+
   # Gate the desktop until MDM configuration finishes (awaitDeviceConfigured)
   await_device_configured = true
 
@@ -132,6 +135,7 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   display_name                 = "macOS DEP - Minimal"
   description                  = "Minimal macOS enrollment profile"
   requires_user_authentication = false
+  is_mandatory                 = true # required because this profile is userless
 
   timeouts = {
     create = "180s"

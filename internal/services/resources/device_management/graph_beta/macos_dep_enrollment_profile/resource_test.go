@@ -119,6 +119,10 @@ func TestUnitResourceMacOSDepEnrollmentProfile_04_ValidationErrors(t *testing.T)
 				Config:      testConfigValidationError(),
 				ExpectError: regexp.MustCompile("Mutually Exclusive Fields"),
 			},
+			{
+				Config:      testConfigMandatoryError(),
+				ExpectError: regexp.MustCompile("is_mandatory must be true"),
+			},
 		},
 	})
 }
@@ -168,6 +172,14 @@ func testConfigValidationError() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_validation_error.tf")
 	if err != nil {
 		panic("failed to load validation error config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigMandatoryError() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_mandatory_error.tf")
+	if err != nil {
+		panic("failed to load mandatory error config: " + err.Error())
 	}
 	return unitTestConfig
 }

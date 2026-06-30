@@ -3,6 +3,7 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   display_name                 = "Test Explicit Token macOS DEP Enrollment Profile - Unique"
   description                  = "macOS DEP enrollment profile pinned to an explicit ABM/ADE token"
   requires_user_authentication = false
+  is_mandatory                 = true
 
   timeouts = {
     create = "30s"
