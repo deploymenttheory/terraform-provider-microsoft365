@@ -66,6 +66,14 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 			}
 
 			id := mockState.depOnboardingId + "_" + strings.ReplaceAll(uuid.New().String(), "-", "")[:24]
+			// Use the depOnboardingSettingsId from the request URL so an explicitly
+			// pinned token flows through into the returned resource id prefix.
+			if parts := strings.Split(req.URL.Path, "/"); len(parts) >= 2 {
+				urlDepId := parts[len(parts)-2]
+				if urlDepId != "" {
+					id = urlDepId + "_" + strings.ReplaceAll(uuid.New().String(), "-", "")[:24]
+				}
+			}
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/enrollment_profile_post.json")
 			var responseObj map[string]any
 			if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {

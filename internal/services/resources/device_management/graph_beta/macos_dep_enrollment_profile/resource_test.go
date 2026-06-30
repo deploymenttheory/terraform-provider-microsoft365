@@ -85,7 +85,28 @@ func TestUnitResourceMacOSDepEnrollmentProfile_02_SkipSetupAndAdminAccount(t *te
 	})
 }
 
-func TestUnitResourceMacOSDepEnrollmentProfile_03_ValidationErrors(t *testing.T) {
+func TestUnitResourceMacOSDepEnrollmentProfile_03_ExplicitDepToken(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, macosMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer macosMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigExplicitToken(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.explicit_token"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.explicit_token", "dep_onboarding_settings_id", "7019f829-33ee-4fc0-89b6-ac7435d71e1e"),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.explicit_token", "id", regexp.MustCompile(`^7019f829-33ee-4fc0-89b6-ac7435d71e1e_`)),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceMacOSDepEnrollmentProfile_04_ValidationErrors(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -102,7 +123,7 @@ func TestUnitResourceMacOSDepEnrollmentProfile_03_ValidationErrors(t *testing.T)
 	})
 }
 
-func TestUnitResourceMacOSDepEnrollmentProfile_04_ErrorHandling(t *testing.T) {
+func TestUnitResourceMacOSDepEnrollmentProfile_05_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -123,6 +144,14 @@ func testConfigMinimal() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
 	if err != nil {
 		panic("failed to load minimal config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigExplicitToken() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_explicit_token.tf")
+	if err != nil {
+		panic("failed to load explicit token config: " + err.Error())
 	}
 	return unitTestConfig
 }
