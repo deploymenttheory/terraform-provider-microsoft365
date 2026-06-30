@@ -56,13 +56,10 @@ func constructResource(
 		requestBody.SetWaitForDeviceConfiguredConfirmation,
 	)
 
-	if err := convert.FrameworkToGraphStringSet(
-		ctx,
-		data.EnabledSkipKeys,
-		requestBody.SetEnabledSkipKeys,
-	); err != nil {
-		return nil, fmt.Errorf("failed to set enabled_skip_keys: %w", err)
-	}
+	// enabledSkipKeys is derived from the individual *_disabled booleans (single source
+	// of truth). Privacy and Registration are intentionally excluded because Graph rejects
+	// those skip-key strings even though their boolean properties work.
+	requestBody.SetEnabledSkipKeys(buildEnabledSkipKeys(data))
 
 	if err := constructAzureAdGroupIds(
 		ctx,
@@ -95,6 +92,8 @@ func constructResource(
 	)
 
 	// macOS-specific (depMacOSEnrollmentProfile)
+	// Note: welcome_screen_disabled has no dedicated Graph property; it is only expressed
+	// through the "Welcome" entry in enabledSkipKeys (see buildEnabledSkipKeys).
 	convert.FrameworkToGraphBool(data.RegistrationDisabled, requestBody.SetRegistrationDisabled)
 	convert.FrameworkToGraphBool(data.FileVaultDisabled, requestBody.SetFileVaultDisabled)
 	convert.FrameworkToGraphBool(
@@ -152,10 +151,20 @@ func constructResource(
 	)
 	convert.FrameworkToGraphBool(data.EnableRestrictEditing, requestBody.SetEnableRestrictEditing)
 
-	// Admin (local) account auto-creation
-	convert.FrameworkToGraphString(data.AdminAccountUserName, requestBody.SetAdminAccountUserName)
-	convert.FrameworkToGraphString(data.AdminAccountFullName, requestBody.SetAdminAccountFullName)
-	convert.FrameworkToGraphString(data.AdminAccountPassword, requestBody.SetAdminAccountPassword)
+	// Admin (local) account auto-creation. Use frameworkToGraphStringOrNil so removing
+	// these from config clears them server-side on update.
+	frameworkToGraphStringOrNil(
+		data.AdminAccountUserName,
+		requestBody.SetAdminAccountUserName,
+	)
+	frameworkToGraphStringOrNil(
+		data.AdminAccountFullName,
+		requestBody.SetAdminAccountFullName,
+	)
+	frameworkToGraphStringOrNil(
+		data.AdminAccountPassword,
+		requestBody.SetAdminAccountPassword,
+	)
 	convert.FrameworkToGraphBool(data.HideAdminAccount, requestBody.SetHideAdminAccount)
 
 	if data.AdminAccountPasswordRotation != nil {
@@ -192,6 +201,60 @@ func constructResource(
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
+}
+
+// buildEnabledSkipKeys constructs the enabledSkipKeys array from the boolean fields.
+// Privacy and Registration are intentionally excluded because Microsoft Graph rejects
+// those skip-key strings, even though the privacy_pane_disabled and registration_disabled
+// boolean properties work correctly.
+func buildEnabledSkipKeys(data *MacOSDepEnrollmentProfileResourceModel) []string {
+	mappings := []struct {
+		disabled types.Bool
+		key      string
+	}{
+		// Base profile screens (Privacy excluded; Graph rejects the "Privacy" skip key)
+		{data.AppleIdDisabled, "AppleID"},
+		{data.ApplePayDisabled, "Payment"},
+		{data.DiagnosticsDisabled, "Diagnostics"},
+		{data.DisplayToneSetupDisabled, "DisplayTone"},
+		{data.LocationDisabled, "Location"},
+		{data.RestoreBlocked, "Restore"},
+		{data.ScreenTimeScreenDisabled, "ScreenTime"},
+		{data.SiriDisabled, "Siri"},
+		{data.TermsAndConditionsDisabled, "TOS"},
+		{data.TouchIdDisabled, "Biometric"},
+		// macOS-specific screens (Registration excluded; Graph rejects the "Registration" skip key)
+		{data.WelcomeScreenDisabled, "Welcome"},
+		{data.AccessibilityScreenDisabled, "Accessibility"},
+		{data.AutoUnlockWithWatchDisabled, "UnlockWithWatch"},
+		{data.ChooseYourLockScreenDisabled, "Wallpaper"},
+		{data.FileVaultDisabled, "FileVault"},
+		{data.ICloudDiagnosticsDisabled, "iCloudDiagnostics"},
+		{data.ICloudStorageDisabled, "iCloudStorage"},
+		{data.PassCodeDisabled, "Passcode"},
+		{data.ZoomDisabled, "Zoom"},
+	}
+
+	skipKeys := make([]string, 0, len(mappings))
+	for _, m := range mappings {
+		if m.disabled.ValueBool() {
+			skipKeys = append(skipKeys, m.key)
+		}
+	}
+	return skipKeys
+}
+
+// frameworkToGraphStringOrNil sets a Graph SDK string property, explicitly sending nil when
+// the value is null or empty string so the field is cleared in the API when removed from config.
+func frameworkToGraphStringOrNil(value types.String, setter func(*string)) {
+	if value.IsUnknown() {
+		return
+	}
+	if value.IsNull() || value.ValueString() == "" {
+		setter(nil)
+	} else {
+		convert.FrameworkToGraphString(value, setter)
+	}
 }
 
 // constructAzureAdGroupIds converts a Terraform set of GUID strings into []uuid.UUID.

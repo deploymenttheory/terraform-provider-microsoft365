@@ -7,6 +7,9 @@
 # NOTE: Local admin/user account auto-creation is NOT available in this flow. Per
 # Microsoft, account creation requires user affinity + Setup Assistant auth +
 # await_device_configured (see Example 2).
+#
+# Setup Assistant panes are skipped via the individual *_disabled booleans below; the
+# provider derives the read-only enabled_skip_keys array from them.
 resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile" "zero_touch_userless" {
   display_name                 = "macOS DEP - Zero Touch (userless)"
   description                  = "Userless zero-touch macOS enrollment; skips Setup Assistant and gates the desktop until MDM finishes"
@@ -16,34 +19,26 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   # Gate the desktop until MDM configuration finishes (awaitDeviceConfigured)
   await_device_configured = true
 
-  # Setup Assistant skip keys (Apple SkipKeys). macOS-applicable values.
-  enabled_skip_keys = [
-    "Appearance",
-    "Accessibility",
-    "Diagnostics",
-    "DisplayTone",
-    "FileVault",
-    "Location",
-    "Privacy",
-    "Restore",
-    "ScreenTime",
-    "Siri",
-    "TOS",
-    "Registration",
-    "iCloudStorage",
-    "iCloudDiagnostics",
-    "Welcome",
-  ]
-
-  # Individual Setup Assistant pane skip toggles
+  # Setup Assistant pane skip toggles (drive enabled_skip_keys)
   apple_id_disabled             = true
+  apple_pay_disabled            = true
   terms_and_conditions_disabled = true
   diagnostics_disabled          = true
+  display_tone_setup_disabled   = true
   siri_disabled                 = true
   file_vault_disabled           = true
-  privacy_pane_disabled         = true
+  location_disabled             = true
+  restore_blocked               = true
   screen_time_screen_disabled   = true
   icloud_storage_disabled       = true
+  icloud_diagnostics_disabled   = true
+  welcome_screen_disabled       = true
+
+  # privacy_pane_disabled and registration_disabled work as boolean properties, but
+  # their skip-key strings are rejected by Graph, so they are NOT added to
+  # enabled_skip_keys (the provider handles this automatically).
+  privacy_pane_disabled = true
+  registration_disabled = true
 
   timeouts = {
     create = "180s"
@@ -69,17 +64,10 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   # Required for local account creation to take effect
   await_device_configured = true
 
-  enabled_skip_keys = [
-    "Appearance",
-    "Diagnostics",
-    "Siri",
-    "Privacy",
-    "Restore",
-  ]
-
   apple_id_disabled    = true
   diagnostics_disabled = true
   siri_disabled        = true
+  restore_blocked      = true
 
   # Auto-create the local admin account (managed local user)
   admin_account_user_name = "ladmin"

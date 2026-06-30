@@ -47,7 +47,7 @@ func TestAccResourceMacOSDepEnrollmentProfile_01_Lifecycle(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "await_device_configured", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "supervised_mode_enabled", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "admin_account_user_name", "localadmin"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "enabled_skip_keys.#", "6"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "enabled_skip_keys.#", "7"),
 				),
 			},
 		},

@@ -3,6 +3,7 @@ package graphBetaMacOSDepEnrollmentProfile
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -68,6 +69,12 @@ func MapRemoteStateToTerraform(
 		profile.GetWaitForDeviceConfiguredConfirmation(),
 	)
 	data.EnabledSkipKeys = convert.GraphToFrameworkStringSet(ctx, profile.GetEnabledSkipKeys())
+
+	// welcome_screen_disabled has no dedicated Graph property; derive it from the
+	// presence of the "Welcome" key in enabledSkipKeys.
+	data.WelcomeScreenDisabled = types.BoolValue(
+		slices.Contains(profile.GetEnabledSkipKeys(), "Welcome"),
+	)
 
 	groupIds := profile.GetEnrollmentTimeAzureAdGroupIds()
 	groupIdStrings := make([]string, 0, len(groupIds))

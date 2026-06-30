@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -217,13 +218,16 @@ func (r *MacOSDepEnrollmentProfileResource) Schema(
 				MarkdownDescription: "Indicates if the device will need to wait for configured confirmation (the desktop is gated until MDM configuration finishes). Maps to `waitForDeviceConfiguredConfirmation`.",
 			},
 			"enabled_skip_keys": schema.SetAttribute{
-				Optional:    true,
 				Computed:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: "Set of Setup Assistant skip keys (Apple `SkipKeys`) to enable for this profile. macOS-applicable values include: " +
-					"`Appearance`, `Accessibility`, `Biometric`, `Diagnostics`, `DisplayTone`, `FileVault`, `iCloudDiagnostics`, " +
-					"`iCloudStorage`, `Location`, `Payment`, `Privacy`, `Restore`, `ScreenTime`, `Siri`, `TOS`, `Android` (migration), " +
-					"`Appearance`, `TrueTone`, `UnlockWithWatch`, `Wallpaper`, `Registration`, `Passcode`, `Welcome`, `LockdownMode`, `Intelligence`.",
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
+				MarkdownDescription: "Computed, read-only set of Setup Assistant skip keys (Apple `SkipKeys`) that the provider " +
+					"sends to Graph. This is derived from the individual `*_disabled` boolean attributes; do not set it " +
+					"directly. Note: `Privacy` and `Registration` are intentionally omitted from this array because the " +
+					"Microsoft Graph API rejects those skip-key strings, even though the `privacy_pane_disabled` and " +
+					"`registration_disabled` boolean properties work correctly.",
 			},
 			"enrollment_time_azure_ad_group_ids": schema.SetAttribute{
 				Optional:            true,
@@ -290,6 +294,11 @@ func (r *MacOSDepEnrollmentProfileResource) Schema(
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Indicates if registration is disabled.",
+			},
+			"welcome_screen_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates if the Get Started (Welcome) setup pane is disabled. macOS 15 and later.",
 			},
 			"file_vault_disabled": schema.BoolAttribute{
 				Optional:            true,

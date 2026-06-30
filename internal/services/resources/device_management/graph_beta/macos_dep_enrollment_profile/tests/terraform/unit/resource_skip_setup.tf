@@ -6,20 +6,14 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
 
   await_device_configured = true
 
-  enabled_skip_keys = [
-    "Appearance",
-    "Diagnostics",
-    "Siri",
-    "Privacy",
-    "FileVault",
-    "Location",
-  ]
-
+  # enabled_skip_keys is derived from these booleans (computed, read-only)
   apple_id_disabled             = true
   terms_and_conditions_disabled = true
   diagnostics_disabled          = true
   siri_disabled                 = true
   file_vault_disabled           = true
+  location_disabled             = true
+  welcome_screen_disabled       = true
 
   admin_account_user_name = "localadmin"
   admin_account_full_name = "Local Administrator"

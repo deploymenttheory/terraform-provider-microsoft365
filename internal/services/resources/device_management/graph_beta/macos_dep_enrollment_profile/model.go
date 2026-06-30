@@ -38,7 +38,9 @@ type MacOSDepEnrollmentProfileResourceModel struct {
 	EnabledSkipKeys               types.Set    `tfsdk:"enabled_skip_keys"`
 	EnrollmentTimeAzureAdGroupIds types.Set    `tfsdk:"enrollment_time_azure_ad_group_ids"`
 
-	// Setup Assistant pane skip booleans (inherited from depEnrollmentBaseProfile)
+	// Setup Assistant pane skip booleans (inherited from depEnrollmentBaseProfile).
+	// These drive the enabledSkipKeys array sent to Graph (single source of truth);
+	// enabled_skip_keys is a computed reflection of the keys the provider generates.
 	LocationDisabled           types.Bool `tfsdk:"location_disabled"`
 	RestoreBlocked             types.Bool `tfsdk:"restore_blocked"`
 	AppleIdDisabled            types.Bool `tfsdk:"apple_id_disabled"`
@@ -52,6 +54,7 @@ type MacOSDepEnrollmentProfileResourceModel struct {
 	ScreenTimeScreenDisabled   types.Bool `tfsdk:"screen_time_screen_disabled"`
 
 	// macOS-specific (depMacOSEnrollmentProfile)
+	WelcomeScreenDisabled              types.Bool `tfsdk:"welcome_screen_disabled"`
 	RegistrationDisabled               types.Bool `tfsdk:"registration_disabled"`
 	FileVaultDisabled                  types.Bool `tfsdk:"file_vault_disabled"`
 	ICloudDiagnosticsDisabled          types.Bool `tfsdk:"icloud_diagnostics_disabled"`
