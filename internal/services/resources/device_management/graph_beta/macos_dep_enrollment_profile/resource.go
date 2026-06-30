@@ -135,11 +135,10 @@ func (r *MacOSDepEnrollmentProfileResource) Schema(
 					planmodifiers.UseStateForUnknownString(),
 				},
 				MarkdownDescription: "Identifier of the parent depOnboardingSetting (Apple ABM/ASM ADE token) that contains this " +
-					"macOS DEP enrollment profile. If omitted, the provider resolves it from the `/deviceManagement` " +
-					"endpoint's `intuneAccountId`. On tenants with multiple DEP tokens (for example, a separate Apple " +
-					"Configurator token), that fallback may select the wrong token, so set this explicitly to the ABM/ADE " +
-					"token id. List your tokens with `GET /deviceManagement/depOnboardingSettings` and pick the one whose " +
-					"`tokenType` is the Apple ABM/ADE token (not `appleConfigurator`).",
+					"macOS DEP enrollment profile. If omitted, the provider auto-resolves it by listing " +
+					"`/deviceManagement/depOnboardingSettings` and selecting the Apple ADE/ABM token (`tokenType` = `dep`) " +
+					"or ASM token (`tokenType` = `appleSchoolManager`), ignoring Apple Configurator tokens. Set this " +
+					"explicitly only if your tenant has more than one Apple DEP token (auto-resolution is ambiguous in that case).",
 			},
 			"display_name": schema.StringAttribute{
 				Required:            true,

@@ -49,7 +49,8 @@ func TestUnitResourceMacOSDepEnrollmentProfile_01_Schema(t *testing.T) {
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+_[0-9a-fA-F-]+$`)),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "requires_user_authentication", "false"),
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "configuration_endpoint_url"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "dep_onboarding_settings_id"),
+					// Auto-resolves to the Apple ADE/ABM (dep) token, not the Apple Configurator (none) token.
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "dep_onboarding_settings_id", "54fac284-7866-43e5-860a-9c8e10fa3d7d"),
 				),
 			},
 		},
