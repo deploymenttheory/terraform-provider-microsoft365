@@ -1,0 +1,45 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [depMacOSEnrollmentProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-depmacosenrollmentprofile?view=graph-rest-beta)
+- [depEnrollmentBaseProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-enrollment-depenrollmentbaseprofile?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `DeviceManagementServiceConfig.Read.All`
+- `DeviceManagementServiceConfig.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.56.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_macos_dep_enrollment_profile/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_macos_dep_enrollment_profile/import.sh" }}
