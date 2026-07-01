@@ -76,12 +76,21 @@ func MapRemoteStateToTerraform(
 		slices.Contains(profile.GetEnabledSkipKeys(), "Welcome"),
 	)
 
+	// enrollment_time_azure_ad_group_ids is Optional+Computed, but the per-profile GET
+	// does not reliably echo it back. When the remote returns no group IDs, preserve the
+	// prior planned/state value instead of overwriting it with null, which would otherwise
+	// trip "inconsistent result after apply".
 	groupIds := profile.GetEnrollmentTimeAzureAdGroupIds()
-	groupIdStrings := make([]string, 0, len(groupIds))
-	for _, g := range groupIds {
-		groupIdStrings = append(groupIdStrings, g.String())
+	if len(groupIds) > 0 {
+		groupIdStrings := make([]string, 0, len(groupIds))
+		for _, g := range groupIds {
+			groupIdStrings = append(groupIdStrings, g.String())
+		}
+		data.EnrollmentTimeAzureAdGroupIds = convert.GraphToFrameworkStringSet(ctx, groupIdStrings)
+	} else if data.EnrollmentTimeAzureAdGroupIds.IsUnknown() {
+		// No prior value to preserve (e.g. import); normalize unknown to null.
+		data.EnrollmentTimeAzureAdGroupIds = types.SetNull(types.StringType)
 	}
-	data.EnrollmentTimeAzureAdGroupIds = convert.GraphToFrameworkStringSet(ctx, groupIdStrings)
 
 	// Setup Assistant pane skip booleans (inherited)
 	data.LocationDisabled = convert.GraphToFrameworkBool(profile.GetLocationDisabled())

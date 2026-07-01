@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -27,6 +28,15 @@ func (r *MacOSDepEnrollmentProfileResource) Create(
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// admin_account_password is a write-only attribute: its value lives only in
+	// the config, never in the plan/state model. Read it from config and place
+	// it on the model so constructResource sends the real password (otherwise it
+	// would send null and the DEP-created admin account gets no password).
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("admin_account_password"), &object.AdminAccountPassword)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -211,6 +221,13 @@ func (r *MacOSDepEnrollmentProfileResource) Update(
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Read the write-only admin_account_password from config (it is null in the
+	// plan model) so the update sends the real password. See Create.
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("admin_account_password"), &plan.AdminAccountPassword)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
