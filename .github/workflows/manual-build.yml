@@ -3,8 +3,10 @@ name: Manual Build
 on:
   push:
     branches:
-      - Go-Build-Workflow   # replace with your actual branch
-  workflow_dispatch:        # lets you also trigger it manually from the Actions tab
+      - main
+      - 'feat/***'
+      - 'fix/***'  
+  workflow_dispatch:        
 
 jobs:
   build:
@@ -17,6 +19,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
+          cache: true
 
       - name: Build provider binary
         env:
