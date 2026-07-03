@@ -1,0 +1,21 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/depOnboardingSettings",
+    "value": [
+        {
+            "@odata.type": "#microsoft.graph.depOnboardingSetting",
+            "id": "54fac284-7866-43e5-860a-9c8e10fa3d7d",
+            "appleIdentifier": "abm-admin@example.com",
+            "tokenType": "dep",
+            "tokenName": "Contoso ABM ADE Token",
+            "dataSharingConsentGranted": true
+        },
+        {
+            "@odata.type": "#microsoft.graph.depOnboardingSetting",
+            "id": "d5255604-955b-4546-b04e-90604c1e5027",
+            "appleIdentifier": "configurator@example.com",
+            "tokenType": "none",
+            "tokenName": "Apple Configurator Token",
+            "dataSharingConsentGranted": true
+        }
+    ]
+}

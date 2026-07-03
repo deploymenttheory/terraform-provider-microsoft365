@@ -1,4 +1,4 @@
-package graphBetaMacOSDepEnrollmentProfile
+package graphBetaMacOSDeviceEnrollmentPolicy
 
 import (
 	"context"
@@ -10,16 +10,25 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+type candidate struct {
+	id        string
+	tokenName string
+	tokenType string
+}
+
 var (
 	errOnboardingSettingsNil = errors.New("depOnboardingSettings response is nil")
 	errNoAdeToken            = errors.New(
 		"no Apple ADE/ABM (or ASM) DEP onboarding token was found on this tenant; " +
 			"add an Apple token in Intune, or set dep_onboarding_settings_id explicitly",
 	)
+	errAmbiguousAdeToken = errors.New(
+		"multiple Apple DEP tokens found; set dep_onboarding_settings_id explicitly to disambiguate",
+	)
 )
 
 // resolveDepOnboardingSettingsId determines the depOnboardingSetting id (the Apple ABM/ASM
-// ADE token) that owns macOS enrollment profiles.
+// ADE token) that owns macOS enrollment policies.
 //
 // Resolution order:
 //  1. If a value is provided in config/state, use it as-is (explicit escape hatch).
@@ -29,10 +38,8 @@ var (
 //
 // If more than one Apple token exists, resolution is ambiguous and the caller must set
 // dep_onboarding_settings_id explicitly.
-func (r *MacOSDepEnrollmentProfileResource) resolveDepOnboardingSettingsId(
-	ctx context.Context,
-	provided types.String,
-) (string, error) {
+func (r *MacOSDeviceEnrollmentPolicyResource) resolveDepOnboardingSettingsId(ctx context.Context, provided types.String) (string, error) {
+
 	if !provided.IsNull() && !provided.IsUnknown() && provided.ValueString() != "" {
 		return provided.ValueString(), nil
 	}
@@ -41,6 +48,7 @@ func (r *MacOSDepEnrollmentProfileResource) resolveDepOnboardingSettingsId(
 		DeviceManagement().
 		DepOnboardingSettings().
 		Get(ctx, nil)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to GET /deviceManagement/depOnboardingSettings: %w", err)
 	}
@@ -48,11 +56,6 @@ func (r *MacOSDepEnrollmentProfileResource) resolveDepOnboardingSettingsId(
 		return "", errOnboardingSettingsNil
 	}
 
-	type candidate struct {
-		id        string
-		tokenName string
-		tokenType string
-	}
 	var matches []candidate
 	for _, s := range settings.GetValue() {
 		if s == nil || s.GetId() == nil {
@@ -62,7 +65,7 @@ func (r *MacOSDepEnrollmentProfileResource) resolveDepOnboardingSettingsId(
 		if tt == nil {
 			continue
 		}
-		// Only Apple ADE/ABM (dep) and ASM tokens own macOS enrollment profiles.
+		// Only Apple ADE/ABM (dep) and ASM tokens own macOS enrollment policies.
 		if *tt != graphmodels.DEP_DEPTOKENTYPE &&
 			*tt != graphmodels.APPLESCHOOLMANAGER_DEPTOKENTYPE {
 			continue
@@ -93,7 +96,3 @@ func (r *MacOSDepEnrollmentProfileResource) resolveDepOnboardingSettingsId(
 		)
 	}
 }
-
-var errAmbiguousAdeToken = errors.New(
-	"multiple Apple DEP tokens found; set dep_onboarding_settings_id explicitly to disambiguate",
-)

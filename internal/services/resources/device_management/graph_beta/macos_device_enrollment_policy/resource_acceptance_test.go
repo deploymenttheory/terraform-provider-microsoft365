@@ -1,0 +1,238 @@
+package graphBetaMacOSDeviceEnrollmentPolicy_test
+
+import (
+	"regexp"
+	"testing"
+	"time"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaMacOSDeviceEnrollmentPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_device_enrollment_policy"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+)
+
+var (
+	// Resource type name from the resource package
+	resourceType = graphBetaMacOSDeviceEnrollmentPolicy.ResourceName
+
+	// testResource is the test resource implementation for macOS ADE enrollment policies
+	testResource = graphBetaMacOSDeviceEnrollmentPolicy.MacOSDeviceEnrollmentPolicyTestResource{}
+)
+
+// loadAcceptanceTestTerraform loads a Terraform config from the acceptance test directory.
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
+// Scenario 01: Minimal macOS ADE enrollment policy
+func TestAccResourceMacOSDeviceEnrollmentPolicy_01_Minimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating minimal macOS ADE enrollment policy")
+				},
+				Config: loadAcceptanceTestTerraform("001_scenario_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macos device enrollment policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".minimal").ExistsInGraph(testResource),
+					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".minimal").Key("name").HasValue("acc-test-macos-ade-minimal"),
+					check.That(resourceType+".minimal").Key("await_device_configured").HasValue("false"),
+					check.That(resourceType+".minimal").Key("platforms").HasValue("macOS"),
+					check.That(resourceType+".minimal").Key("technologies").HasValue("enrollment"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing minimal macOS ADE enrollment policy")
+				},
+				ResourceName:            resourceType + ".minimal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// Scenario 02: Maximal macOS ADE enrollment policy
+func TestAccResourceMacOSDeviceEnrollmentPolicy_02_Maximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating maximal macOS ADE enrollment policy with the full settings tree")
+				},
+				Config: loadAcceptanceTestTerraform("002_scenario_maximal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macos device enrollment policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".maximal").Key("name").HasValue("acc-test-macos-ade-maximal"),
+					check.That(resourceType+".maximal").Key("description").HasValue("macOS ADE enrollment policy exercising the full settings tree"),
+					check.That(resourceType+".maximal").Key("await_device_configured").HasValue("true"),
+					check.That(resourceType+".maximal").Key("admin_account.user_name").HasValue("localadmin"),
+					check.That(resourceType+".maximal").Key("admin_account.primary_account.user_name").HasValue("primaryuser"),
+					check.That(resourceType+".maximal").Key("locked_enrollment_enabled").HasValue("true"),
+					check.That(resourceType+".maximal").Key("support_department").HasValue("IT Support"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing maximal macOS ADE enrollment policy")
+				},
+				ResourceName:            resourceType + ".maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// Scenario 03: Minimal to Maximal Update
+func TestAccResourceMacOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating minimal macOS ADE enrollment policy for update test")
+				},
+				Config: loadAcceptanceTestTerraform("003_scenario_minimal_to_maximal_step_01.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macos device enrollment policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".update_test").ExistsInGraph(testResource),
+					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".update_test").Key("name").HasValue("acc-test-macos-ade-update"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Updating to maximal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("004_scenario_minimal_to_maximal_step_02.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macos device enrollment policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".update_test").ExistsInGraph(testResource),
+					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".update_test").Key("name").HasValue("acc-test-macos-ade-update-updated"),
+					check.That(resourceType+".update_test").Key("await_device_configured").HasValue("true"),
+					check.That(resourceType+".update_test").Key("admin_account.user_name").HasValue("localadmin"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing updated macOS ADE enrollment policy")
+				},
+				ResourceName:            resourceType + ".update_test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// Scenario 04: Maximal to Minimal Update
+func TestAccResourceMacOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating maximal macOS ADE enrollment policy for downgrade test")
+				},
+				Config: loadAcceptanceTestTerraform("005_scenario_maximal_to_minimal_step_01.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macos device enrollment policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".downgrade_test").ExistsInGraph(testResource),
+					check.That(resourceType+".downgrade_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".downgrade_test").Key("name").HasValue("acc-test-macos-ade-downgrade"),
+					check.That(resourceType+".downgrade_test").Key("await_device_configured").HasValue("true"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Downgrading to minimal configuration")
+				},
+				Config: loadAcceptanceTestTerraform("006_scenario_maximal_to_minimal_step_02.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macos device enrollment policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".downgrade_test").ExistsInGraph(testResource),
+					check.That(resourceType+".downgrade_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".downgrade_test").Key("name").HasValue("acc-test-macos-ade-downgrade-minimal"),
+					check.That(resourceType+".downgrade_test").Key("await_device_configured").HasValue("false"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing downgraded macOS ADE enrollment policy")
+				},
+				ResourceName:            resourceType + ".downgrade_test",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}

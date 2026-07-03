@@ -2,6 +2,7 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   display_name                 = "Test Minimal macOS DEP Enrollment Profile - Unique"
   description                  = "Minimal macOS DEP enrollment profile for unit testing"
   requires_user_authentication = false
+  is_mandatory                 = true
 
   timeouts = {
     create = "30s"

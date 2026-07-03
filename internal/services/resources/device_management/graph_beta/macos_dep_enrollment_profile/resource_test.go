@@ -49,7 +49,8 @@ func TestUnitResourceMacOSDepEnrollmentProfile_01_Schema(t *testing.T) {
 					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+_[0-9a-fA-F-]+$`)),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "requires_user_authentication", "false"),
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "configuration_endpoint_url"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "dep_onboarding_settings_id"),
+					// Auto-resolves to the Apple ADE/ABM (dep) token, not the Apple Configurator (none) token.
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "dep_onboarding_settings_id", "54fac284-7866-43e5-860a-9c8e10fa3d7d"),
 				),
 			},
 		},
@@ -85,7 +86,28 @@ func TestUnitResourceMacOSDepEnrollmentProfile_02_SkipSetupAndAdminAccount(t *te
 	})
 }
 
-func TestUnitResourceMacOSDepEnrollmentProfile_03_ValidationErrors(t *testing.T) {
+func TestUnitResourceMacOSDepEnrollmentProfile_03_ExplicitDepToken(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, macosMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer macosMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigExplicitToken(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.explicit_token"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.explicit_token", "dep_onboarding_settings_id", "7019f829-33ee-4fc0-89b6-ac7435d71e1e"),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.explicit_token", "id", regexp.MustCompile(`^7019f829-33ee-4fc0-89b6-ac7435d71e1e_`)),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceMacOSDepEnrollmentProfile_04_ValidationErrors(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -98,11 +120,15 @@ func TestUnitResourceMacOSDepEnrollmentProfile_03_ValidationErrors(t *testing.T)
 				Config:      testConfigValidationError(),
 				ExpectError: regexp.MustCompile("Mutually Exclusive Fields"),
 			},
+			{
+				Config:      testConfigMandatoryError(),
+				ExpectError: regexp.MustCompile("is_mandatory must be true"),
+			},
 		},
 	})
 }
 
-func TestUnitResourceMacOSDepEnrollmentProfile_04_ErrorHandling(t *testing.T) {
+func TestUnitResourceMacOSDepEnrollmentProfile_05_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, macosMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -127,6 +153,14 @@ func testConfigMinimal() string {
 	return unitTestConfig
 }
 
+func testConfigExplicitToken() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_explicit_token.tf")
+	if err != nil {
+		panic("failed to load explicit token config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
 func testConfigSkipSetup() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_skip_setup.tf")
 	if err != nil {
@@ -139,6 +173,14 @@ func testConfigValidationError() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_validation_error.tf")
 	if err != nil {
 		panic("failed to load validation error config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigMandatoryError() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_mandatory_error.tf")
+	if err != nil {
+		panic("failed to load mandatory error config: " + err.Error())
 	}
 	return unitTestConfig
 }

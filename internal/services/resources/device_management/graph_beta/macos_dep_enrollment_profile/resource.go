@@ -41,6 +41,9 @@ var (
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &MacOSDepEnrollmentProfileResource{}
 
+	// Enables resource-level (cross-field) configuration validation
+	_ resource.ResourceWithConfigValidators = &MacOSDepEnrollmentProfileResource{}
+
 	// Enables identity schema for list resource support
 	_ resource.ResourceWithIdentity = &MacOSDepEnrollmentProfileResource{}
 )
@@ -126,9 +129,16 @@ func (r *MacOSDepEnrollmentProfileResource) Schema(
 				MarkdownDescription: "The unique identifier of the enrollment profile. Format is `{depOnboardingSettingsId}_{profileId}`.",
 			},
 			"dep_onboarding_settings_id": schema.StringAttribute{
+				Optional: true,
 				Computed: true,
-				MarkdownDescription: "Identifier of the parent depOnboardingSetting that contains this macOS DEP enrollment profile. " +
-					"This is resolved from the `/deviceManagement` endpoint and correlated to the intuneAccountId.",
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Identifier of the parent depOnboardingSetting (Apple ABM/ASM ADE token) that contains this " +
+					"macOS DEP enrollment profile. If omitted, the provider auto-resolves it by listing " +
+					"`/deviceManagement/depOnboardingSettings` and selecting the Apple ADE/ABM token (`tokenType` = `dep`) " +
+					"or ASM token (`tokenType` = `appleSchoolManager`), ignoring Apple Configurator tokens. Set this " +
+					"explicitly only if your tenant has more than one Apple DEP token (auto-resolution is ambiguous in that case).",
 			},
 			"display_name": schema.StringAttribute{
 				Required:            true,

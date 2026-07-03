@@ -40,7 +40,6 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 	mockState.enrollmentProfiles = make(map[string]map[string]any)
 	mockState.Unlock()
 
-	// 1. Get device management - used to resolve depOnboardingSettingsId
 	httpmock.RegisterResponder(
 		"GET",
 		"https://graph.microsoft.com/beta/deviceManagement",
@@ -52,7 +51,19 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 		},
 	)
 
-	// 2. Create enrollment profile - POST /deviceManagement/depOnboardingSettings/{depId}/enrollmentProfiles
+	httpmock.RegisterResponder(
+		"GET",
+		"https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings",
+		func(req *http.Request) (*http.Response, error) {
+			jsonStr, _ := helpers.ParseJSONFile(
+				"../tests/responses/dep_onboarding_settings_list.json",
+			)
+			var responseObj map[string]any
+			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
+			return httpmock.NewJsonResponse(200, responseObj)
+		},
+	)
+
 	httpmock.RegisterResponder(
 		"POST",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/depOnboardingSettings/[^/]+/enrollmentProfiles$`,
@@ -66,6 +77,14 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 			}
 
 			id := mockState.depOnboardingId + "_" + strings.ReplaceAll(uuid.New().String(), "-", "")[:24]
+			// Use the depOnboardingSettingsId from the request URL so an explicitly
+			// pinned token flows through into the returned resource id prefix.
+			if parts := strings.Split(req.URL.Path, "/"); len(parts) >= 2 {
+				urlDepId := parts[len(parts)-2]
+				if urlDepId != "" {
+					id = urlDepId + "_" + strings.ReplaceAll(uuid.New().String(), "-", "")[:24]
+				}
+			}
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/enrollment_profile_post.json")
 			var responseObj map[string]any
 			if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
@@ -79,6 +98,8 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 			responseObj["id"] = id
 			// adminAccountPassword is write-only - Graph never returns it
 			delete(responseObj, "adminAccountPassword")
+			// enrollmentTimeAzureAdGroupIds is not echoed back by the per-profile GET
+			delete(responseObj, "enrollmentTimeAzureAdGroupIds")
 			// ensure subtype so kiota deserializes correctly
 			responseObj["@odata.type"] = "#microsoft.graph.depMacOSEnrollmentProfile"
 
@@ -93,7 +114,6 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 		},
 	)
 
-	// 3. Read enrollment profile - GET /deviceManagement/depOnboardingSettings/{depId}/enrollmentProfiles/{id}
 	httpmock.RegisterResponder(
 		"GET",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/depOnboardingSettings/[^/]+/enrollmentProfiles/[^/]+$`,
@@ -125,7 +145,6 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 		},
 	)
 
-	// 4. Update enrollment profile - PATCH /deviceManagement/depOnboardingSettings/{depId}/enrollmentProfiles/{id}
 	httpmock.RegisterResponder(
 		"PATCH",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/depOnboardingSettings/[^/]+/enrollmentProfiles/[^/]+$`,
@@ -163,7 +182,6 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 		},
 	)
 
-	// 5. Delete enrollment profile - DELETE /deviceManagement/depOnboardingSettings/{depId}/enrollmentProfiles/{id}
 	httpmock.RegisterResponder(
 		"DELETE",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/depOnboardingSettings/.+/enrollmentProfiles/.+$`,
@@ -179,7 +197,6 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 		},
 	)
 
-	// 6. List enrollment profiles - GET /deviceManagement/depOnboardingSettings/{depId}/enrollmentProfiles
 	httpmock.RegisterResponder(
 		"GET",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/depOnboardingSettings/[^/]+/enrollmentProfiles$`,
@@ -214,6 +231,18 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder(
 		"GET",
 		"https://graph.microsoft.com/beta/deviceManagement",
+		func(req *http.Request) (*http.Response, error) {
+			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/error_500.json")
+			var errObj map[string]any
+			_ = json.Unmarshal([]byte(jsonStr), &errObj)
+			return httpmock.NewJsonResponse(500, errObj)
+		},
+	)
+
+	// Make DEP onboarding settings resolution fail
+	httpmock.RegisterResponder(
+		"GET",
+		"https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings",
 		func(req *http.Request) (*http.Response, error) {
 			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/error_500.json")
 			var errObj map[string]any
