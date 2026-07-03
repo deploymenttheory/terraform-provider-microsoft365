@@ -87,9 +87,9 @@ const (
 	// Example: "1.0.0.0"
 	VersionRegex = "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
 
-	// OSVersionRegex matches an operating system version string in the format "X.Y.Z.W" with any number of digits.
+	// OSVersionRegex matches an operating system version string in the format "X.Y.Z(+.W)" with any number of digits.
 	// Example: "10.0.22631.9999" or "1.1.1.1"
-	OSVersionRegex = `^\d+(\.\d+)*$` //Change from only accepting 4-part strings to any amount of parts
+	OSVersionRegex = `^\d+(\.\d+)*$` 
 
 	// SemVerRegex matches a Semantic Versioning string in the format "X.Y.Z" (Major.Minor.Patch).
 	// Examples: "1.0.0", "2.1.3", "10.20.30"
