@@ -21,10 +21,6 @@ import (
 // auto-resolution (resolve_id.go) when a test config omits it.
 const DepOnboardingSettingsTestID = "30000000-0000-0000-0000-000000000003"
 
-// InvalidOwnerGroupID is a sentinel security group ID whose mocked owners never include the
-// Intune Provisioning Client, used to exercise the validateSecurityGroupOwnership failure path.
-const InvalidOwnerGroupID = "20000000-0000-0000-0000-000000000002"
-
 // intuneProvisioningClientAppID mirrors the constant in validate.go.
 const intuneProvisioningClientAppID = "f1346770-5b25-470b-88bd-d5744ab7952c"
 
@@ -74,21 +70,9 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 		})
 
 	// Security group owners - used by validateSecurityGroupOwnership. Every group is mocked as
-	// owned by the Intune Provisioning Client, except InvalidOwnerGroupID.
+	// owned by the Intune Provisioning Client.
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/[0-9a-fA-F-]+/owners$`,
 		func(req *http.Request) (*http.Response, error) {
-			parts := strings.Split(req.URL.Path, "/")
-			groupId := parts[len(parts)-2]
-
-			if groupId == InvalidOwnerGroupID {
-				return httpmock.NewJsonResponse(200, map[string]any{
-					"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
-					"value": []map[string]any{
-						{"@odata.type": "#microsoft.graph.user", "id": "40000000-0000-0000-0000-000000000004"},
-					},
-				})
-			}
-
 			return httpmock.NewJsonResponse(200, map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
 				"value": []map[string]any{

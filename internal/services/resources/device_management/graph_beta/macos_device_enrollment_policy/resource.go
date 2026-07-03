@@ -232,14 +232,18 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 			"requires_user_authentication": schema.BoolAttribute{
 				Required: true,
 				MarkdownDescription: "Whether the enrollment requires user authentication (user affinity). When `false`, the device enrolls " +
-					"without an associated user (shared/kiosk device path).",
+					"without an associated user (shared/kiosk device path). When `true`, exactly one of " +
+					"`enable_authentication_via_company_portal` or `require_company_portal_on_setup_assistant_enrolled_devices` must also be " +
+					"`true` - Microsoft Graph rejects the enrollment profile otherwise.",
 			},
 			"enable_authentication_via_company_portal": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 				MarkdownDescription: "Whether Setup Assistant authenticates the user via Company Portal. Only applicable when " +
-					"`requires_user_authentication` is `true`. Mutually exclusive with `require_company_portal_on_setup_assistant_enrolled_devices`.",
+					"`requires_user_authentication` is `true`, in which case exactly one of this or " +
+					"`require_company_portal_on_setup_assistant_enrolled_devices` must be `true`. Mutually exclusive with " +
+					"`require_company_portal_on_setup_assistant_enrolled_devices`.",
 				Validators: []validator.Bool{
 					customValidator.MutuallyExclusiveBool(
 						"require_company_portal_on_setup_assistant_enrolled_devices",
@@ -252,13 +256,18 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 				MarkdownDescription: "Whether Company Portal is required on Setup Assistant enrolled devices. Only applicable when " +
-					"`requires_user_authentication` is `true`. Mutually exclusive with `enable_authentication_via_company_portal`.",
+					"`requires_user_authentication` is `true`, in which case exactly one of this or " +
+					"`enable_authentication_via_company_portal` must be `true`. Mutually exclusive with " +
+					"`enable_authentication_via_company_portal`.",
 			},
 			"await_device_configured": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(true),
-				MarkdownDescription: "Whether Setup Assistant waits for the local account configuration described by `admin_account` to complete before continuing.",
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(true),
+				MarkdownDescription: "Whether `admin_account` configures a local account. When `true`, `admin_account` is required; when `false`, " +
+					"it must be omitted and no local account is created. Confirmed against live Intune admin center traffic: the underlying " +
+					"`ade_macos_awaitconfiguration` setting is always sent as active, with the actual create/don't-create choice carried entirely " +
+					"by `admin_account.create_local_admin_account`.",
 			},
 			"admin_account": schema.SingleNestedAttribute{
 				Optional: true,
@@ -332,11 +341,17 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 			},
 			"support_department": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The department name shown to the user on the Setup Assistant Remote Management pane.",
+				MarkdownDescription: "The department name shown to the user on the Setup Assistant Remote Management pane. Must be between 1 and 125 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 125),
+				},
 			},
 			"support_phone_number": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The support phone number shown to the user on the Setup Assistant Remote Management pane.",
+				MarkdownDescription: "The support phone number shown to the user on the Setup Assistant Remote Management pane. Must be between 1 and 125 characters.",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(1, 125),
+				},
 			},
 			"location_services_disabled": schema.BoolAttribute{
 				Optional:            true,

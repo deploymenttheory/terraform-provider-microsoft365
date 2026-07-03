@@ -233,9 +233,17 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_06_DeviceSecurityGroupUpdate(t 
 
 // ====================================================================================
 // Scenario 07: Error Cases
+//
+// Note: description length, device_security_group GUID format, and admin_account presence are
+// all enforced by stringvalidator/ConfigValidator declarations in resource.go/validate.go and
+// fail during ValidateResourceConfig, before any provider CRUD or API logic runs - so a dedicated
+// unit test for each would only be re-testing terraform-plugin-framework's own validator
+// plumbing. The one exception kept here, requireAuthenticationMethodWhenUserAuthRequired, encodes
+// a non-obvious live Graph API behavior (rejection of ade_macos_authenticationmethod_0) rather
+// than a generic "field must look like X" rule, so it's worth guarding against regression.
 // ====================================================================================
 
-func TestUnitResourceMacOSDeviceEnrollmentPolicy_07_Error_DescriptionLength(t *testing.T) {
+func TestUnitResourceMacOSDeviceEnrollmentPolicy_07_Error_AuthenticationMethodRequired(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, enrollmentPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
@@ -245,59 +253,8 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_07_Error_DescriptionLength(t *t
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      loadUnitTestTerraform("010_scenario_error_description_length.tf"),
-				ExpectError: regexp.MustCompile(`Attribute description string length must be at most 1500`),
-			},
-		},
-	})
-}
-
-func TestUnitResourceMacOSDeviceEnrollmentPolicy_08_Error_InvalidDeviceSecurityGroupFormat(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, enrollmentPolicyMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer enrollmentPolicyMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      loadUnitTestTerraform("011_scenario_error_invalid_device_security_group_format.tf"),
-				ExpectError: regexp.MustCompile(`must be a valid GUID`),
-			},
-		},
-	})
-}
-
-func TestUnitResourceMacOSDeviceEnrollmentPolicy_09_Error_AdminAccountRequired(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, enrollmentPolicyMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer enrollmentPolicyMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      loadUnitTestTerraform("012_scenario_error_admin_account_required.tf"),
-				ExpectError: regexp.MustCompile(`admin_account is required`),
-			},
-		},
-	})
-}
-
-func TestUnitResourceMacOSDeviceEnrollmentPolicy_10_Error_InvalidGroupOwnership(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	_, enrollmentPolicyMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-	defer enrollmentPolicyMock.CleanupMockState()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      loadUnitTestTerraform("013_scenario_error_invalid_group_ownership.tf"),
-				ExpectError: regexp.MustCompile(`Invalid security group ownership`),
+				Config:      loadUnitTestTerraform("010_scenario_error_authentication_method_required.tf"),
+				ExpectError: regexp.MustCompile(`an authentication method is required`),
 			},
 		},
 	})

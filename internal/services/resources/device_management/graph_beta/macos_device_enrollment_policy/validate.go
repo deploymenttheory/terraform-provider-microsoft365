@@ -64,6 +64,7 @@ func validateSecurityGroupOwnership(ctx context.Context, client *msgraphbetasdk.
 func (r *MacOSDeviceEnrollmentPolicyResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		requireAdminAccountWhenAwaitConfigured{},
+		requireAuthenticationMethodWhenUserAuthRequired{},
 	}
 }
 
@@ -131,6 +132,73 @@ func (v requireAdminAccountWhenAwaitConfigured) ValidateResource(
 			path.Root("admin_account").AtName("primary_account"),
 			"primary_account must not be set",
 			"admin_account.primary_account must be omitted when admin_account.create_local_primary_account is false.",
+		)
+	}
+}
+
+// requireAuthenticationMethodWhenUserAuthRequired enforces that when requires_user_authentication
+// is true, at least one of enable_authentication_via_company_portal or
+// require_company_portal_on_setup_assistant_enrolled_devices is also true. Combined with the
+// mutual-exclusivity validator on enable_authentication_via_company_portal, this makes exactly one
+// of the two true. Microsoft Graph rejects the resulting ade_macos_authenticationmethod_0 (Basic)
+// value when neither is set - confirmed against live Graph traffic, which only accepts
+// ade_macos_authenticationmethod_2 (Company Portal on Setup Assistant enrolled devices) for this
+// template.
+type requireAuthenticationMethodWhenUserAuthRequired struct{}
+
+func (v requireAuthenticationMethodWhenUserAuthRequired) Description(_ context.Context) string {
+	return "at least one of enable_authentication_via_company_portal or require_company_portal_on_setup_assistant_enrolled_devices must be true when requires_user_authentication is true"
+}
+
+func (v requireAuthenticationMethodWhenUserAuthRequired) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v requireAuthenticationMethodWhenUserAuthRequired) ValidateResource(
+	ctx context.Context,
+	req resource.ValidateConfigRequest,
+	resp *resource.ValidateConfigResponse,
+) {
+	if req.Config.Raw.IsNull() {
+		return
+	}
+
+	var requiresUserAuth types.Bool
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("requires_user_authentication"), &requiresUserAuth)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if requiresUserAuth.IsUnknown() || requiresUserAuth.IsNull() || !requiresUserAuth.ValueBool() {
+		return
+	}
+
+	var enableCompanyPortal types.Bool
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("enable_authentication_via_company_portal"), &enableCompanyPortal)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	var requireCompanyPortalOnSetupAssistant types.Bool
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("require_company_portal_on_setup_assistant_enrolled_devices"), &requireCompanyPortalOnSetupAssistant)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if enableCompanyPortal.IsUnknown() || requireCompanyPortalOnSetupAssistant.IsUnknown() {
+		return
+	}
+
+	enableCompanyPortalTrue := !enableCompanyPortal.IsNull() && enableCompanyPortal.ValueBool()
+	requireCompanyPortalOnSetupAssistantTrue := !requireCompanyPortalOnSetupAssistant.IsNull() && requireCompanyPortalOnSetupAssistant.ValueBool()
+
+	if !enableCompanyPortalTrue && !requireCompanyPortalOnSetupAssistantTrue {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("requires_user_authentication"),
+			"an authentication method is required",
+			"When requires_user_authentication is true, one of enable_authentication_via_company_portal or "+
+				"require_company_portal_on_setup_assistant_enrolled_devices must also be true. Microsoft Graph "+
+				"rejects the resulting authentication method value otherwise.",
 		)
 	}
 }

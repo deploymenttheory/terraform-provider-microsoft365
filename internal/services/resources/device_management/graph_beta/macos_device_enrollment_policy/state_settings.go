@@ -97,18 +97,14 @@ func mapUserAffinityToState(instance models.DeviceManagementConfigurationSetting
 	}
 }
 
-// mapAwaitConfigurationToState parses ade_macos_awaitconfiguration and its local admin account subtree.
+// mapAwaitConfigurationToState parses ade_macos_awaitconfiguration and its local admin account
+// subtree. Confirmed against live Intune admin center traffic: ade_macos_awaitconfiguration
+// itself is always sent as active, with the create/don't-create choice carried entirely by the
+// nested ade_accountsettings_createlocaladmin - so await_device_configured and admin_account are
+// derived from that child alone, not from this setting's own value.
 func mapAwaitConfigurationToState(instance models.DeviceManagementConfigurationSettingInstanceable, stateModel *MacOSDeviceEnrollmentPolicyResourceModel) {
-	value, children, ok := extractChoiceInstance(instance)
+	_, children, ok := extractChoiceInstance(instance)
 	if !ok {
-		return
-	}
-
-	awaitConfigured := boolFromChoiceValue(SettingDefAwaitConfiguration, value)
-	stateModel.AwaitDeviceConfigured = types.BoolValue(awaitConfigured)
-
-	if !awaitConfigured {
-		stateModel.AdminAccount = nil
 		return
 	}
 
@@ -122,26 +118,30 @@ func mapAwaitConfigurationToState(instance models.DeviceManagementConfigurationS
 		}
 		stateModel.AdminAccount = mapCreateLocalAdminToState(child)
 	}
+
+	stateModel.AwaitDeviceConfigured = types.BoolValue(stateModel.AdminAccount != nil)
 }
 
-// mapCreateLocalAdminToState parses ade_accountsettings_createlocaladmin and its children.
+// mapCreateLocalAdminToState parses ade_accountsettings_createlocaladmin and its children. Returns
+// nil when create_local_admin_account is false, so that state.admin_account round-trips as null
+// (matching a config that omits the block) rather than a zero-value object.
 func mapCreateLocalAdminToState(instance models.DeviceManagementConfigurationSettingInstanceable) *AdminAccountModel {
 	value, children, ok := extractChoiceInstance(instance)
 	if !ok {
 		return nil
 	}
 
+	if !boolFromChoiceValue(SettingDefCreateLocalAdmin, value) {
+		return nil
+	}
+
 	admin := &AdminAccountModel{
-		CreateLocalAdminAccount:   types.BoolValue(boolFromChoiceValue(SettingDefCreateLocalAdmin, value)),
+		CreateLocalAdminAccount:   types.BoolValue(true),
 		UserName:                  types.StringValue(""),
 		FullName:                  types.StringValue(""),
 		HideAccount:               types.BoolValue(false),
 		PasswordRotationInDays:    types.Int64Value(0),
 		CreateLocalPrimaryAccount: types.BoolValue(false),
-	}
-
-	if !admin.CreateLocalAdminAccount.ValueBool() {
-		return admin
 	}
 
 	for _, child := range children {

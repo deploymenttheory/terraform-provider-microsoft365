@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
@@ -145,44 +146,68 @@ func constructUserAffinitySetting(planModel *MacOSDeviceEnrollmentPolicyResource
 	)
 }
 
-// constructAwaitConfigurationSetting builds ade_macos_awaitconfiguration, with the local admin
-// account subtree present only when await_device_configured is true.
+// constructAwaitConfigurationSetting builds ade_macos_awaitconfiguration. Confirmed against live
+// Intune admin center traffic: this parent setting is always sent as "_1", with its
+// ade_accountsettings_createlocaladmin child always present - even when no admin_account is
+// configured, in which case the child (and its own createlocalprimary child) are sent as "_0"
+// rather than omitted. await_device_configured therefore no longer varies this value; it remains
+// a config-time gate on whether admin_account may/must be set (see requireAdminAccountWhenAwaitConfigured).
 func constructAwaitConfigurationSetting(planModel *MacOSDeviceEnrollmentPolicyResourceModel) (models.DeviceManagementConfigurationSettingable, error) {
-	awaitConfigured := planModel.AwaitDeviceConfigured.ValueBool()
-
-	var children []models.DeviceManagementConfigurationSettingInstanceable
-	if awaitConfigured {
-		if planModel.AdminAccount == nil {
-			return nil, fmt.Errorf("admin_account must be configured when await_device_configured is true")
+	admin := planModel.AdminAccount
+	if admin == nil {
+		admin = &AdminAccountModel{
+			CreateLocalAdminAccount:   types.BoolValue(false),
+			CreateLocalPrimaryAccount: types.BoolValue(false),
 		}
-		adminInstance, err := constructCreateLocalAdminInstance(planModel.AdminAccount)
-		if err != nil {
-			return nil, err
-		}
-		children = append(children, adminInstance)
-	} else if planModel.AdminAccount != nil {
-		return nil, fmt.Errorf("admin_account must not be set when await_device_configured is false")
 	}
 
-	value := SettingDefAwaitConfiguration + "_0"
-	if awaitConfigured {
-		value = SettingDefAwaitConfiguration + "_1"
+	adminInstance, err := constructCreateLocalAdminInstance(admin)
+	if err != nil {
+		return nil, err
 	}
 
 	return builders.ConstructChoiceSettingWithChildren(
 		SettingDefAwaitConfiguration,
-		value,
+		SettingDefAwaitConfiguration+"_1",
 		SettingInstanceTemplateAwaitConfiguration,
 		SettingValueTemplateAwaitConfiguration,
-		children,
+		[]models.DeviceManagementConfigurationSettingInstanceable{adminInstance},
 	), nil
 }
 
 // constructCreateLocalAdminInstance builds ade_accountsettings_createlocaladmin and its children.
+// Confirmed against live Intune admin center traffic: ade_accountsettings_createlocalprimary is
+// always present as a child, even when create_local_admin_account is false, in which case it (and
+// its own subtree) is sent as "_0" with no further children.
 func constructCreateLocalAdminInstance(admin *AdminAccountModel) (models.DeviceManagementConfigurationSettingInstanceable, error) {
 	createAdmin := admin.CreateLocalAdminAccount.ValueBool()
+	createPrimary := createAdmin && admin.CreateLocalPrimaryAccount.ValueBool()
 
-	var children []models.DeviceManagementConfigurationSettingInstanceable
+	if !createAdmin && (admin.PrimaryAccount != nil || admin.CreateLocalPrimaryAccount.ValueBool()) {
+		return nil, fmt.Errorf("admin_account sub-fields must not be set when create_local_admin_account is false")
+	}
+	if createAdmin && !createPrimary && admin.PrimaryAccount != nil {
+		return nil, fmt.Errorf("admin_account.primary_account must not be set when create_local_primary_account is false")
+	}
+
+	var primaryChildren []models.DeviceManagementConfigurationSettingInstanceable
+	if createPrimary {
+		primaryInstance, err := constructPrefillAccountInfoInstance(admin.PrimaryAccount)
+		if err != nil {
+			return nil, err
+		}
+		primaryChildren = append(primaryChildren, primaryInstance)
+	}
+
+	primaryValue := SettingDefCreateLocalPrimary + "_0"
+	if createPrimary {
+		primaryValue = SettingDefCreateLocalPrimary + "_1"
+	}
+	createPrimarySetting := builders.ConstructChoiceSettingWithChildren(
+		SettingDefCreateLocalPrimary, primaryValue, "", SettingValueTemplateAccountSettings, primaryChildren,
+	)
+
+	children := []models.DeviceManagementConfigurationSettingInstanceable{createPrimarySetting.GetSettingInstance()}
 	if createAdmin {
 		nameInstance := builders.ConstructStringSimpleSettingInstance(
 			SettingDefAdminAccountName, admin.UserName.ValueString(), "", SettingValueTemplateAccountSettings,
@@ -197,32 +222,9 @@ func constructCreateLocalAdminInstance(admin *AdminAccountModel) (models.DeviceM
 			SettingDefAdminAccountPasswordRotation, admin.PasswordRotationInDays.ValueInt64(), "", SettingValueTemplateAccountSettings,
 		).GetSettingInstance()
 
-		children = append(children, nameInstance, fullNameInstance, hideInstance, rotationInstance)
-
-		createPrimary := admin.CreateLocalPrimaryAccount.ValueBool()
-		if !createPrimary && admin.PrimaryAccount != nil {
-			return nil, fmt.Errorf("admin_account.primary_account must not be set when create_local_primary_account is false")
-		}
-
-		var primaryChildren []models.DeviceManagementConfigurationSettingInstanceable
-		if createPrimary {
-			primaryInstance, err := constructPrefillAccountInfoInstance(admin.PrimaryAccount)
-			if err != nil {
-				return nil, err
-			}
-			primaryChildren = append(primaryChildren, primaryInstance)
-		}
-
-		primaryValue := SettingDefCreateLocalPrimary + "_0"
-		if createPrimary {
-			primaryValue = SettingDefCreateLocalPrimary + "_1"
-		}
-		createPrimarySetting := builders.ConstructChoiceSettingWithChildren(
-			SettingDefCreateLocalPrimary, primaryValue, "", SettingValueTemplateAccountSettings, primaryChildren,
-		)
-		children = append(children, createPrimarySetting.GetSettingInstance())
-	} else if admin.PrimaryAccount != nil || admin.CreateLocalPrimaryAccount.ValueBool() {
-		return nil, fmt.Errorf("admin_account sub-fields must not be set when create_local_admin_account is false")
+		children = append([]models.DeviceManagementConfigurationSettingInstanceable{
+			nameInstance, fullNameInstance, hideInstance, rotationInstance,
+		}, children...)
 	}
 
 	value := SettingDefCreateLocalAdmin + "_0"
