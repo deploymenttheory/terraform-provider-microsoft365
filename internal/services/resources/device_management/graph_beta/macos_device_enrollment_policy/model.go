@@ -31,6 +31,12 @@ type MacOSDeviceEnrollmentPolicyResourceModel struct {
 	// on Create if omitted; used to build the `creationSource` field sent to Graph.
 	DepOnboardingSettingsId types.String `tfsdk:"dep_onboarding_settings_id"`
 
+	// DeviceSecurityGroup is the enrollment time device membership target (the "Device group" tab
+	// in the Intune admin center). It is set/cleared via the dedicated
+	// setEnrollmentTimeDeviceMembershipTarget/clearEnrollmentTimeDeviceMembershipTarget actions on
+	// /deviceManagement/configurationPolicies/{id}, not via the settings catalog.
+	DeviceSecurityGroup types.String `tfsdk:"device_security_group"`
+
 	// User affinity / authentication
 	RequiresUserAuthentication                          types.Bool `tfsdk:"requires_user_authentication"`
 	EnableAuthenticationViaCompanyPortal                types.Bool `tfsdk:"enable_authentication_via_company_portal"`
@@ -71,8 +77,7 @@ type MacOSDeviceEnrollmentPolicyResourceModel struct {
 	OsShowcaseScreenDisabled              types.Bool `tfsdk:"os_showcase_screen_disabled"`
 	AppStoreDisabled                      types.Bool `tfsdk:"app_store_disabled"`
 
-	Assignments types.Set      `tfsdk:"assignments"`
-	Timeouts    timeouts.Value `tfsdk:"timeouts"`
+	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }
 
 // AdminAccountModel represents the local admin account that ADE creates on the device when

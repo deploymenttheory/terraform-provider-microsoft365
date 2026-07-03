@@ -2,6 +2,7 @@ package graphBetaMacOSDeviceEnrollmentPolicy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -45,7 +46,7 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Create(ctx context.Context, req re
 	}
 	object.DepOnboardingSettingsId = types.StringValue(depOnboardingSettingsId)
 
-	requestBody, err := constructResource(ctx, &object, depOnboardingSettingsId, true)
+	requestBody, err := constructResource(ctx, &object, depOnboardingSettingsId)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create Method",
@@ -65,24 +66,29 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Create(ctx context.Context, req re
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
-	requestAssignment, err := constructAssignment(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for Create Method",
-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
+	if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
+		deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
 
-	_, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Assign().
-		Post(ctx, requestAssignment, nil)
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
-		return
+		if diagnostics := validateSecurityGroupOwnership(ctx, r.client, deviceSecurityGroupID); diagnostics.HasError() {
+			resp.Diagnostics.Append(diagnostics...)
+			return
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Calling setEnrollmentTimeDeviceMembershipTarget for policy ID: %s with group ID: %s",
+			object.ID.ValueString(), deviceSecurityGroupID))
+
+		// Raw request: the generated SDK method resolves this action to a type-cast URL
+		// (".../microsoft.management.services.api.setEnrollmentTimeDeviceMembershipTarget") that
+		// the Intune backend rejects with a 500. The Intune admin center itself calls the plain
+		// action name posted here, so this bypasses the SDK to match its behavior.
+		if err := customrequest.PostRequestNoContent(ctx, r.client.GetAdapter(), customrequest.PostRequestConfig{
+			APIVersion:  customrequest.GraphAPIBeta,
+			Endpoint:    fmt.Sprintf("deviceManagement/configurationPolicies('%s')/setEnrollmentTimeDeviceMembershipTarget", object.ID.ValueString()),
+			RequestBody: constructEnrollmentTimeDeviceMembershipTargetBody(deviceSecurityGroupID),
+		}); err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+			return
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -172,18 +178,37 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	assignmentsResponse, err := r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Assignments().
-		Get(ctx, nil)
+	// Raw request: the generated SDK method sends a POST, but the Graph backend only accepts a
+	// GET for this action (confirmed against live traffic) and rejects POST with a 400 "no OData
+	// route" error - a stale Kiota metadata issue, not specific to this policy or provider.
+	membershipTargetBody, err := customrequest.GetRequestByResourceId(ctx, r.client.GetAdapter(), customrequest.GetRequestConfig{
+		APIVersion:        customrequest.GraphAPIBeta,
+		Endpoint:          "deviceManagement/configurationPolicies",
+		ResourceID:        object.ID.ValueString(),
+		ResourceIDPattern: "('id')",
+		EndpointSuffix:    "/retrieveEnrollmentTimeDeviceMembershipTarget",
+	})
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
-		return
-	}
+		tflog.Warn(ctx, fmt.Sprintf("Could not retrieve enrollment time device membership target for policy ID %s; preserving existing device_security_group state: %s", object.ID.ValueString(), err.Error()))
+	} else {
+		var membershipTargetResult struct {
+			EnrollmentTimeDeviceMembershipTargetValidationStatuses []struct {
+				TargetId string `json:"targetId"`
+			} `json:"enrollmentTimeDeviceMembershipTargetValidationStatuses"`
+		}
+		if err := json.Unmarshal(membershipTargetBody, &membershipTargetResult); err != nil {
+			resp.Diagnostics.AddError(
+				"Error parsing enrollment time device membership target response",
+				fmt.Sprintf("Could not parse response for policy ID %s: %s", object.ID.ValueString(), err.Error()),
+			)
+			return
+		}
 
-	mapAssignmentsToState(ctx, &object, assignmentsResponse)
+		object.DeviceSecurityGroup = types.StringNull()
+		if statuses := membershipTargetResult.EnrollmentTimeDeviceMembershipTargetValidationStatuses; len(statuses) > 0 {
+			object.DeviceSecurityGroup = types.StringValue(statuses[0].TargetId)
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -249,8 +274,10 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Update(ctx context.Context, req re
 	}
 	defer cancel()
 
-	// creationSource is only accepted on Create; Graph does not allow it on Update.
-	requestBody, err := constructResource(ctx, &plan, "", false)
+	// creationSource must be resent unchanged on every PUT: omitting it (the prior behavior here)
+	// causes Graph to reject the request with a 400, and live Intune admin center traffic always
+	// includes it on Update too.
+	requestBody, err := constructResource(ctx, &plan, plan.DepOnboardingSettingsId.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update Method",
@@ -273,24 +300,52 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Update(ctx context.Context, req re
 		return
 	}
 
-	requestAssignment, err := constructAssignment(ctx, &plan)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for Update Method",
-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-		)
-		return
+	planDeviceSecurityGroupID := ""
+	if !plan.DeviceSecurityGroup.IsNull() && !plan.DeviceSecurityGroup.IsUnknown() {
+		planDeviceSecurityGroupID = plan.DeviceSecurityGroup.ValueString()
+	}
+	stateDeviceSecurityGroupID := ""
+	if !state.DeviceSecurityGroup.IsNull() {
+		stateDeviceSecurityGroupID = state.DeviceSecurityGroup.ValueString()
 	}
 
-	_, err = r.client.
-		DeviceManagement().
-		ConfigurationPolicies().
-		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
-		Assign().
-		Post(ctx, requestAssignment, nil)
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
-		return
+	if planDeviceSecurityGroupID != stateDeviceSecurityGroupID {
+		// There is no "update" action for the enrollment time device membership target: changing
+		// it requires clearing the existing target (DELETE) before setting the new one (POST).
+		if stateDeviceSecurityGroupID != "" {
+			tflog.Debug(ctx, fmt.Sprintf("Clearing enrollment time device membership target for policy ID: %s", state.ID.ValueString()))
+
+			if err := customrequest.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), customrequest.DeleteRequestConfig{
+				APIVersion:        customrequest.GraphAPIBeta,
+				Endpoint:          "deviceManagement/configurationPolicies",
+				ResourceID:        state.ID.ValueString(),
+				ResourceIDPattern: "('id')",
+				EndpointSuffix:    "/clearEnrollmentTimeDeviceMembershipTarget",
+			}); err != nil {
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+				return
+			}
+		}
+
+		if planDeviceSecurityGroupID != "" {
+			if diagnostics := validateSecurityGroupOwnership(ctx, r.client, planDeviceSecurityGroupID); diagnostics.HasError() {
+				resp.Diagnostics.Append(diagnostics...)
+				return
+			}
+
+			tflog.Debug(ctx, fmt.Sprintf("Calling setEnrollmentTimeDeviceMembershipTarget for policy ID: %s with group ID: %s",
+				state.ID.ValueString(), planDeviceSecurityGroupID))
+
+			// Raw request: see the matching comment in Create for why the SDK method is bypassed.
+			if err := customrequest.PostRequestNoContent(ctx, r.client.GetAdapter(), customrequest.PostRequestConfig{
+				APIVersion:  customrequest.GraphAPIBeta,
+				Endpoint:    fmt.Sprintf("deviceManagement/configurationPolicies('%s')/setEnrollmentTimeDeviceMembershipTarget", state.ID.ValueString()),
+				RequestBody: constructEnrollmentTimeDeviceMembershipTargetBody(planDeviceSecurityGroupID),
+			}); err != nil {
+				errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+				return
+			}
+		}
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

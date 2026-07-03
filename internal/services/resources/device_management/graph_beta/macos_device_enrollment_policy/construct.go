@@ -14,9 +14,10 @@ import (
 )
 
 // constructResource builds the DeviceManagementConfigurationPolicy request body for the macOS ADE
-// enrollment policy. creationSource (built from depOnboardingSettingsId) is only sent on Create;
-// Graph rejects it (and it is never returned) on Update.
-func constructResource(ctx context.Context, planModel *MacOSDeviceEnrollmentPolicyResourceModel, depOnboardingSettingsId string, includeCreationSource bool) (models.DeviceManagementConfigurationPolicyable, error) {
+// enrollment policy. creationSource (built from depOnboardingSettingsId) is sent on both Create
+// and Update - confirmed against live Intune admin center traffic, which resends it unchanged on
+// every PUT.
+func constructResource(ctx context.Context, planModel *MacOSDeviceEnrollmentPolicyResourceModel, depOnboardingSettingsId string) (models.DeviceManagementConfigurationPolicyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	configurationPolicy := models.NewDeviceManagementConfigurationPolicy()
@@ -51,7 +52,7 @@ func constructResource(ctx context.Context, planModel *MacOSDeviceEnrollmentPoli
 		return nil, fmt.Errorf("%w: %w", sentinels.ErrSetRoleScopeTags, err)
 	}
 
-	if includeCreationSource && depOnboardingSettingsId != "" {
+	if depOnboardingSettingsId != "" {
 		creationSource := CreationSourcePrefix + depOnboardingSettingsId
 		configurationPolicy.SetAdditionalData(map[string]any{
 			"creationSource": creationSource,

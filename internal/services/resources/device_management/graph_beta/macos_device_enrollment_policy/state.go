@@ -3,6 +3,7 @@ package graphBetaMacOSDeviceEnrollmentPolicy
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -12,8 +13,6 @@ import (
 )
 
 // mapResourceToState maps the base DeviceManagementConfigurationPolicy fields to Terraform state.
-// dep_onboarding_settings_id is intentionally left untouched here: Graph does not return the
-// creationSource used to build it on GET, so the value already present in state/plan is preserved.
 func mapResourceToState(
 	ctx context.Context,
 	stateModel *MacOSDeviceEnrollmentPolicyResourceModel,
@@ -52,6 +51,10 @@ func mapResourceToState(
 		if templateFamily := templateRef.GetTemplateFamily(); templateFamily != nil {
 			stateModel.TemplateFamily = types.StringValue(templateFamily.String())
 		}
+	}
+
+	if creationSource := resource.GetCreationSource(); creationSource != nil {
+		stateModel.DepOnboardingSettingsId = types.StringValue(strings.TrimPrefix(*creationSource, CreationSourcePrefix))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource state with id %s", stateModel.ID.ValueString()))

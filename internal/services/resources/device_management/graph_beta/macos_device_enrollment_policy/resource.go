@@ -5,6 +5,7 @@ package graphBetaMacOSDeviceEnrollmentPolicy
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -14,18 +15,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	customValidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 )
 
@@ -153,27 +155,45 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Last modification date and time of the policy.",
 			},
 			"settings_count": schema.Int32Attribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Int32{
+					int32planmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "Number of settings within the policy.",
 			},
 			"is_assigned": schema.BoolAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "Indicates if the policy is assigned to any scope.",
 			},
 			"platforms": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "The platforms this policy applies to. Always `macOS`.",
 			},
 			"technologies": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "The technology this policy is using. Always `enrollment`.",
 			},
 			"template_id": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "The settings catalog template ID used by this policy.",
 			},
 			"template_family": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				MarkdownDescription: "The template family for this policy (`enrollmentConfiguration`).",
 			},
 			"dep_onboarding_settings_id": schema.StringAttribute{
@@ -186,10 +206,31 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 					"this profile. If omitted, it is automatically resolved to the tenant's single Apple ADE/ABM (or ASM) token; if the tenant " +
 					"has more than one Apple token, this must be set explicitly.",
 			},
-			"requires_user_authentication": schema.BoolAttribute{
+			"device_security_group": schema.StringAttribute{
 				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(true),
+				MarkdownDescription: "The ID of the static Microsoft Entra security group to use for enrollment time grouping (the " +
+					"\"Device group\" tab in the Intune admin center policy wizard). Devices assigned this policy become members of the " +
+					"group as they enroll. This is set via the dedicated `setEnrollmentTimeDeviceMembershipTarget` action on " +
+					"`/deviceManagement/configurationPolicies/{id}` (and cleared via `clearEnrollmentTimeDeviceMembershipTarget` when " +
+					"removed), not via the settings catalog. The group must have the 'Intune Provisioning Client' service principal " +
+					"(AppId: f1346770-5b25-470b-88bd-d5744ab7952c) set as its owner; in some tenants this service principal may appear as " +
+					"'Intune Autopilot ConfidentialClient'.\n\n" +
+					"~> **Known Microsoft Graph limitation:** as of this writing, `setEnrollmentTimeDeviceMembershipTarget` and " +
+					"`clearEnrollmentTimeDeviceMembershipTarget` return an `Internal Server Error - 500` from the Intune backend " +
+					"(`DeviceConfigV2`) when called with application permissions (client credentials) - the auth flow this provider " +
+					"always uses. The identical request succeeds when made with delegated (signed-in user) permissions, e.g. from the " +
+					"Intune admin center. Until Microsoft resolves this for application permissions, setting `device_security_group` " +
+					"through this provider will fail on `Create` and `Update`; this is a Microsoft Graph service limitation, not a " +
+					"provider defect.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid GUID in the format 00000000-0000-0000-0000-000000000000",
+					),
+				},
+			},
+			"requires_user_authentication": schema.BoolAttribute{
+				Required: true,
 				MarkdownDescription: "Whether the enrollment requires user authentication (user affinity). When `false`, the device enrolls " +
 					"without an associated user (shared/kiosk device path).",
 			},
@@ -225,9 +266,7 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 					"and must be omitted when it is `false`.",
 				Attributes: map[string]schema.Attribute{
 					"create_local_admin_account": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						Default:             booldefault.StaticBool(true),
+						Required:            true,
 						MarkdownDescription: "Whether Setup Assistant creates a local administrator account.",
 					},
 					"user_name": schema.StringAttribute{
@@ -254,9 +293,7 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 						},
 					},
 					"create_local_primary_account": schema.BoolAttribute{
-						Optional:            true,
-						Computed:            true,
-						Default:             booldefault.StaticBool(true),
+						Required:            true,
 						MarkdownDescription: "Whether Setup Assistant also creates a separate, standard (non-admin) local primary account.",
 					},
 					"primary_account": schema.SingleNestedAttribute{
@@ -294,15 +331,11 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Whether enrollment is locked to the authorized user/device, preventing the MDM profile from being removed before enrollment completes.",
 			},
 			"support_department": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
+				Required:            true,
 				MarkdownDescription: "The department name shown to the user on the Setup Assistant Remote Management pane.",
 			},
 			"support_phone_number": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString(""),
+				Required:            true,
 				MarkdownDescription: "The support phone number shown to the user on the Setup Assistant Remote Management pane.",
 			},
 			"location_services_disabled": schema.BoolAttribute{
@@ -443,8 +476,7 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to hide the App Store pane in Setup Assistant.",
 			},
-			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
-			"timeouts":    commonschema.ResourceTimeouts(ctx),
+			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }
