@@ -1,66 +1,47 @@
 package graphBetaApplicationsOnPremisesPublishing
 
-import (
-	"context"
-	"fmt"
+import "github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-)
+func constructOnPremisesPublishingPatchPayload(data OnPremisesPublishingResourceModel) map[string]any {
+	onPremisesPublishing := map[string]any{}
 
-// constructResource constructs a Graph SDK Application object from the Terraform model
-// This is used for PATCH operations to update the onPremisesPublishing property
-func constructResource(ctx context.Context, data *OnPremisesPublishingResourceModel) (graphmodels.Applicationable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from plan", ResourceName))
+	addStringIfKnown(onPremisesPublishing, "alternateUrl", data.AlternateUrl)
+	addStringIfKnown(onPremisesPublishing, "applicationServerTimeout", data.ApplicationServerTimeout)
+	addStringIfKnown(onPremisesPublishing, "applicationType", data.ApplicationType)
+	addStringIfKnown(onPremisesPublishing, "externalAuthenticationType", data.ExternalAuthenticationType)
+	addStringIfKnown(onPremisesPublishing, "internalUrl", data.InternalUrl)
+	addStringIfKnown(onPremisesPublishing, "externalUrl", data.ExternalUrl)
+	addStringIfKnown(onPremisesPublishing, "trafficRoutingMethod", data.TrafficRoutingMethod)
+	addStringIfKnown(onPremisesPublishing, "wafProvider", data.WafProvider)
 
-	requestBody := graphmodels.NewApplication()
-	onPremisesPublishing := graphmodels.NewOnPremisesPublishing()
+	addBoolIfKnown(onPremisesPublishing, "isAccessibleViaZTNAClient", data.IsAccessibleViaZTNAClient)
+	addBoolIfKnown(onPremisesPublishing, "isBackendCertificateValidationEnabled", data.IsBackendCertificateValidationEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isContinuousAccessEvaluationEnabled", data.IsContinuousAccessEvaluationEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isDnsResolutionEnabled", data.IsDnsResolutionEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isHttpOnlyCookieEnabled", data.IsHttpOnlyCookieEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isOnPremPublishingEnabled", data.IsOnPremPublishingEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isPersistentCookieEnabled", data.IsPersistentCookieEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isSecureCookieEnabled", data.IsSecureCookieEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isStateSessionEnabled", data.IsStateSessionEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isTranslateHostHeaderEnabled", data.IsTranslateHostHeaderEnabled)
+	addBoolIfKnown(onPremisesPublishing, "isTranslateLinksInBodyEnabled", data.IsTranslateLinksInBodyEnabled)
+	addBoolIfKnown(onPremisesPublishing, "useAlternateUrlForTranslationAndRedirect", data.UseAlternateUrlForTranslationAndRedirect)
 
-	// String fields
-	convert.FrameworkToGraphString(data.AlternateUrl, onPremisesPublishing.SetAlternateUrl)
-	convert.FrameworkToGraphString(data.ApplicationServerTimeout, onPremisesPublishing.SetApplicationServerTimeout)
-	convert.FrameworkToGraphString(data.ApplicationType, onPremisesPublishing.SetApplicationType)
-	convert.FrameworkToGraphString(data.InternalUrl, onPremisesPublishing.SetInternalUrl)
-	convert.FrameworkToGraphString(data.ExternalUrl, onPremisesPublishing.SetExternalUrl)
-	convert.FrameworkToGraphString(data.WafProvider, onPremisesPublishing.SetWafProvider)
-
-	// Enum fields
-	err := convert.FrameworkToGraphEnum(
-		data.ExternalAuthenticationType,
-		graphmodels.ParseExternalAuthenticationType,
-		func(val *graphmodels.ExternalAuthenticationType) {
-			onPremisesPublishing.SetExternalAuthenticationType(val)
-		},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("error setting external authentication type: %w", err)
+	// The Graph beta applications PATCH endpoint rejects the top-level @odata.type
+	// emitted by the Kiota Application model for this nested property update.
+	return map[string]any{
+		"onPremisesPublishing": onPremisesPublishing,
 	}
+}
 
-	// Boolean fields
-	convert.FrameworkToGraphBool(data.IsAccessibleViaZTNAClient, onPremisesPublishing.SetIsAccessibleViaZTNAClient)
-	convert.FrameworkToGraphBool(data.IsBackendCertificateValidationEnabled, onPremisesPublishing.SetIsBackendCertificateValidationEnabled)
-	convert.FrameworkToGraphBool(data.IsContinuousAccessEvaluationEnabled, onPremisesPublishing.SetIsContinuousAccessEvaluationEnabled)
-	convert.FrameworkToGraphBool(data.IsDnsResolutionEnabled, onPremisesPublishing.SetIsDnsResolutionEnabled)
-	convert.FrameworkToGraphBool(data.IsHttpOnlyCookieEnabled, onPremisesPublishing.SetIsHttpOnlyCookieEnabled)
-	convert.FrameworkToGraphBool(data.IsOnPremPublishingEnabled, onPremisesPublishing.SetIsOnPremPublishingEnabled)
-	convert.FrameworkToGraphBool(data.IsPersistentCookieEnabled, onPremisesPublishing.SetIsPersistentCookieEnabled)
-	convert.FrameworkToGraphBool(data.IsSecureCookieEnabled, onPremisesPublishing.SetIsSecureCookieEnabled)
-	convert.FrameworkToGraphBool(data.IsStateSessionEnabled, onPremisesPublishing.SetIsStateSessionEnabled)
-	convert.FrameworkToGraphBool(data.IsTranslateHostHeaderEnabled, onPremisesPublishing.SetIsTranslateHostHeaderEnabled)
-	convert.FrameworkToGraphBool(data.IsTranslateLinksInBodyEnabled, onPremisesPublishing.SetIsTranslateLinksInBodyEnabled)
-	convert.FrameworkToGraphBool(data.UseAlternateUrlForTranslationAndRedirect, onPremisesPublishing.SetUseAlternateUrlForTranslationAndRedirect)
-
-	requestBody.SetOnPremisesPublishing(onPremisesPublishing)
-
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]any{
-			"error": err.Error(),
-		})
+func addStringIfKnown(values map[string]any, key string, value types.String) {
+	if !value.IsNull() && !value.IsUnknown() {
+		values[key] = value.ValueString()
 	}
+}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
-
-	return requestBody, nil
+func addBoolIfKnown(values map[string]any, key string, value types.Bool) {
+	if !value.IsNull() && !value.IsUnknown() {
+		values[key] = value.ValueBool()
+	}
 }

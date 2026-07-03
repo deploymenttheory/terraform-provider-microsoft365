@@ -26,6 +26,7 @@ type OnPremisesPublishingResourceModel struct {
 	IsTranslateHostHeaderEnabled             types.Bool     `tfsdk:"is_translate_host_header_enabled"`
 	IsTranslateLinksInBodyEnabled            types.Bool     `tfsdk:"is_translate_links_in_body_enabled"`
 	UseAlternateUrlForTranslationAndRedirect types.Bool     `tfsdk:"use_alternate_url_for_translation_and_redirect"`
+	TrafficRoutingMethod                     types.String   `tfsdk:"traffic_routing_method"`
 	WafProvider                              types.String   `tfsdk:"waf_provider"`
 	Timeouts                                 timeouts.Value `tfsdk:"timeouts"`
 }
