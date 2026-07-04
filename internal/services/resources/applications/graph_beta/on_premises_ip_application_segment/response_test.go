@@ -1,26 +1,17 @@
 package graphBetaApplicationsOnPremisesIpApplicationSegment
 
 import (
+	"os"
 	"testing"
 
 	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 )
 
 func TestIpApplicationSegmentResponseParsesObservedGraphResponse(t *testing.T) {
-	responseJSON := []byte(`{
-		"@odata.context": "https://graph.microsoft.com/beta/$metadata#applications('application-object-id')/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/$entity",
-		"action": "tunnel",
-		"destinationHost": "10.10.10.10",
-		"destinationType": "ip",
-		"exclusions": null,
-		"id": "segment-id",
-		"inclusions": null,
-		"port": 0,
-		"ports": [
-			"443-443"
-		],
-		"protocol": "tcp"
-	}`)
+	responseJSON, err := os.ReadFile("tests/responses/validate_create/post_ip_application_segment_success.json")
+	if err != nil {
+		t.Fatalf("failed to read response fixture: %v", err)
+	}
 
 	parseNode, err := jsonserialization.NewJsonParseNodeFactory().GetRootParseNode("application/json", responseJSON)
 	if err != nil {
@@ -37,17 +28,17 @@ func TestIpApplicationSegmentResponseParsesObservedGraphResponse(t *testing.T) {
 		t.Fatalf("parsed response is %T, expected *ipApplicationSegmentResponse", parsed)
 	}
 
-	if response.id == nil || *response.id != "segment-id" {
-		t.Fatalf("id = %#v, expected segment-id", response.id)
+	if response.id == nil || *response.id != "00000000-0000-0000-0000-000000000000" {
+		t.Fatalf("id = %#v, expected fixture id", response.id)
 	}
-	if response.destinationHost == nil || *response.destinationHost != "10.10.10.10" {
-		t.Fatalf("destinationHost = %#v, expected 10.10.10.10", response.destinationHost)
+	if response.destinationHost == nil || *response.destinationHost != "192.168.1.100" {
+		t.Fatalf("destinationHost = %#v, expected 192.168.1.100", response.destinationHost)
 	}
 	if response.destinationType == nil || *response.destinationType != "ip" {
 		t.Fatalf("destinationType = %#v, expected ip", response.destinationType)
 	}
-	if len(response.ports) != 1 || response.ports[0] != "443-443" {
-		t.Fatalf("ports = %#v, expected [443-443]", response.ports)
+	if len(response.ports) != 2 || response.ports[0] != "80-80" || response.ports[1] != "443-443" {
+		t.Fatalf("ports = %#v, expected [80-80 443-443]", response.ports)
 	}
 	if response.protocol == nil || *response.protocol != "tcp" {
 		t.Fatalf("protocol = %#v, expected tcp", response.protocol)
