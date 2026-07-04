@@ -47,8 +47,17 @@ func constructResource(ctx context.Context, data *OnPremisesIpApplicationSegment
 }
 
 func graphDestinationType(destinationType string) string {
-	// Microsoft Learn and the Graph metadata model this value as "ipAddress",
-	// but the beta endpoint currently rejects that value and accepts "ip".
+	// Microsoft Learn documents ipApplicationSegment.destinationType values as
+	// "ipAddress", "ipRange", "ipRangeCidr", "fqdn", and "dnsSuffix":
+	// https://learn.microsoft.com/en-us/graph/api/resources/ipapplicationsegment?view=graph-rest-beta
+	// The create API page also lists "ipAddress" for POST:
+	// https://learn.microsoft.com/en-us/graph/api/onpremisespublishingprofile-post-applicationsegments?view=graph-rest-beta
+	//
+	// The beta endpoint currently behaves differently for a single IP segment:
+	// POSTing destinationType "ipAddress" returns 400 InvalidJson_BadRequest
+	// ("Valid JSON content expected."), while destinationType "ip" succeeds.
+	// Keep Terraform's public schema aligned with Learn, but send the literal
+	// accepted by Graph.
 	if destinationType == "ipAddress" {
 		return "ip"
 	}
@@ -59,8 +68,11 @@ func graphDestinationType(destinationType string) string {
 type ipApplicationSegmentRequestBody struct {
 	destinationHost string
 	destinationType string
-	// The beta endpoint expects the legacy scalar port field to be present even
-	// when the modern ports collection carries the actual range values.
+	// Learn marks "port" as deprecated / DO NOT USE, but its create example
+	// still includes "port": 0. The real beta endpoint also returns "port": 0
+	// together with "ports": ["443-443"] for segments created by Terraform.
+	// Include the scalar field to match the endpoint's accepted wire shape while
+	// using "ports" for the actual range values in Terraform state.
 	port     int32
 	ports    []string
 	protocol string

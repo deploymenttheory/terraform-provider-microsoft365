@@ -12,10 +12,18 @@ import (
 const (
 	graphBetaBaseURL = "https://graph.microsoft.com/beta"
 
-	// The msgraph-beta-sdk-go package does not currently expose a generated
-	// request builder for the application-scoped segmentsConfiguration path.
-	// Keep the HTTP shape in Kiota RequestInformation so auth, middleware, and
-	// serialization still flow through the provider's Graph adapter.
+	// Microsoft Learn documents the application-scoped endpoint here:
+	// https://learn.microsoft.com/en-us/graph/api/onpremisespublishingprofile-post-applicationsegments?view=graph-rest-beta
+	//
+	// POST /applications/{applicationObjectId}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments
+	//
+	// The current msgraph-beta-sdk-go package does not expose a generated
+	// request builder for this application-scoped segmentsConfiguration path.
+	// A dedicated request helper is therefore used instead of the generic
+	// resource path helpers or generated application builders. It still builds a
+	// Kiota RequestInformation and sends it through the provider's Graph adapter,
+	// so authentication, retry, middleware, serialization, and OData error
+	// handling remain on the normal Kiota pipeline.
 	ipApplicationSegmentsURLTemplate = "{+baseurl}/applications/{applicationObjectId}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments"
 	ipApplicationSegmentURLTemplate  = ipApplicationSegmentsURLTemplate + "/{ipApplicationSegmentId}"
 )

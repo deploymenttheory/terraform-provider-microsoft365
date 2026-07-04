@@ -28,8 +28,10 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *OnPremisesIpAp
 }
 
 func terraformDestinationType(destinationType string) string {
-	// Preserve the Terraform schema and public docs value while accepting the
-	// different literal returned by the beta API.
+	// Preserve Terraform's public schema and Microsoft Learn's documented value
+	// ("ipAddress") while accepting the beta API's observed response value
+	// ("ip") for single IP address segments.
+	// https://learn.microsoft.com/en-us/graph/api/resources/ipapplicationsegment?view=graph-rest-beta
 	if destinationType == "ip" {
 		return "ipAddress"
 	}
