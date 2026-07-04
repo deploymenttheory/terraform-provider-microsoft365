@@ -56,6 +56,11 @@ func graphDestinationType(destinationType string) string {
 	// The beta endpoint currently behaves differently for a single IP segment:
 	// POSTing destinationType "ipAddress" returns 400 InvalidJson_BadRequest
 	// ("Valid JSON content expected."), while destinationType "ip" succeeds.
+	// Direct API checks also showed dnsSuffix returning 400
+	// Invalid_AppSegments_NonwebApp_Duplicate ("DNS suffix can only be added to
+	// Quick Access configuration") and ipRange with a host range returning
+	// DestinationHost_InvalidIP. The schema only allows values observed to create
+	// and read back through this application-scoped endpoint.
 	// Keep Terraform's public schema aligned with Learn, but send the literal
 	// accepted by Graph.
 	if destinationType == "ipAddress" {

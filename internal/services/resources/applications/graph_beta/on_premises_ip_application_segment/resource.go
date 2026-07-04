@@ -125,10 +125,11 @@ func (r *OnPremisesIpApplicationSegmentResource) Schema(ctx context.Context, req
 			},
 			"destination_type": schema.StringAttribute{
 				MarkdownDescription: "The type of destination for the application segment." +
-					"The possible values are: `ipAddress`, `ipRange`, `ipRangeCidr`, `fqdn`, `dnsSuffix`, `unknownFutureValue`.",
+					"The supported values are: `ipAddress`, `ipRangeCidr`, and `fqdn`. " +
+					"Microsoft Learn lists additional enum members for `ipApplicationSegment`, but this application-scoped Graph endpoint currently rejects `dnsSuffix` for nonweb applications and does not create a usable address range for `ipRange`.",
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("ipAddress", "ipRange", "ipRangeCidr", "fqdn", "dnsSuffix", "unknownFutureValue"),
+					stringvalidator.OneOf("ipAddress", "ipRangeCidr", "fqdn"),
 				},
 			},
 			"ports": schema.SetAttribute{

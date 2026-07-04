@@ -41,6 +41,12 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 		if requestBody["destinationType"] == "ipAddress" {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"InvalidJson_BadRequest","message":"Valid JSON content expected."}}`), nil
 		}
+		if requestBody["destinationType"] == "dnsSuffix" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"Invalid_AppSegments_NonwebApp_Duplicate","message":"DNS suffix can only be added to Quick Access configuration"}}`), nil
+		}
+		if requestBody["destinationType"] == "ipRange" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"DestinationHost_InvalidIP","message":"IP address invalid"}}`), nil
+		}
 		if requestBody["port"] != float64(0) {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"port must be 0 for ip application segments"}}`), nil
 		}
@@ -113,6 +119,12 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 		}
 		if requestBody["destinationType"] == "ipAddress" {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"InvalidJson_BadRequest","message":"Valid JSON content expected."}}`), nil
+		}
+		if requestBody["destinationType"] == "dnsSuffix" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"Invalid_AppSegments_NonwebApp_Duplicate","message":"DNS suffix can only be added to Quick Access configuration"}}`), nil
+		}
+		if requestBody["destinationType"] == "ipRange" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"DestinationHost_InvalidIP","message":"IP address invalid"}}`), nil
 		}
 		if requestBody["port"] != float64(0) {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"port must be 0 for ip application segments"}}`), nil

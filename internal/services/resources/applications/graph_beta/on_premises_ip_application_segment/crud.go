@@ -3,6 +3,7 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -13,6 +14,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+var ipApplicationSegmentApplicationLocks sync.Map
+
+func lockIpApplicationSegmentWrites(applicationObjectID string) func() {
+	actual, _ := ipApplicationSegmentApplicationLocks.LoadOrStore(applicationObjectID, &sync.Mutex{})
+	mutex := actual.(*sync.Mutex)
+	mutex.Lock()
+	return mutex.Unlock
+}
 
 // Create handles the Create operation for IP application segment resources.
 //
@@ -45,6 +55,14 @@ func (r *OnPremisesIpApplicationSegmentResource) Create(ctx context.Context, req
 		)
 		return
 	}
+
+	// Graph stores applicationSegments under the application's segmentsConfiguration.
+	// Concurrent writes to the same application can return a segment id that then
+	// 404s on read, even for documented values such as fqdn and ipRangeCidr. Keep
+	// the write and follow-up read together so parallel Terraform resources for
+	// the same application settle predictably.
+	unlock := lockIpApplicationSegmentWrites(object.ApplicationObjectID.ValueString())
+	defer unlock()
 
 	createdIpApplicationSegment, err := r.createIpApplicationSegment(ctx, object.ApplicationObjectID.ValueString(), requestBody)
 	if err != nil {
@@ -192,6 +210,9 @@ func (r *OnPremisesIpApplicationSegmentResource) Update(ctx context.Context, req
 		return
 	}
 
+	unlock := lockIpApplicationSegmentWrites(state.ApplicationObjectID.ValueString())
+	defer unlock()
+
 	if err := r.updateIpApplicationSegment(ctx, state.ApplicationObjectID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
 		return
@@ -246,6 +267,9 @@ func (r *OnPremisesIpApplicationSegmentResource) Delete(ctx context.Context, req
 		return
 	}
 	defer cancel()
+
+	unlock := lockIpApplicationSegmentWrites(data.ApplicationObjectID.ValueString())
+	defer unlock()
 
 	if err := r.deleteIpApplicationSegment(ctx, data.ApplicationObjectID.ValueString(), data.ID.ValueString()); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
