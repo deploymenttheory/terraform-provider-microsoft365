@@ -1,10 +1,14 @@
 {
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications('12345678-1234-1234-1234-123456789012')/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/$entity",
+  "action": "tunnel",
   "id": "33333333-3333-3333-3333-333333333333",
   "destinationHost": "192.168.1.200",
-  "destinationType": "ipAddress",
+  "destinationType": "ip",
+  "exclusions": null,
+  "inclusions": null,
+  "port": 0,
   "ports": [
     "443-443"
   ],
   "protocol": "tcp"
 }
-
