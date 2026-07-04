@@ -57,6 +57,12 @@ This example demonstrates configuration using a specific hostname with multiple 
 
 {{ tffile "examples/resources/microsoft365_graph_beta_applications_on_premises_ip_application_segment/resource_fqdn.tf" }}
 
+### Wildcard FQDN
+
+This example shows how to use a wildcard hostname with `destination_type = "fqdn"`.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_on_premises_ip_application_segment/resource_wildcard_fqdn.tf" }}
+
 ### UDP Protocol
 
 This example demonstrates configuration using UDP protocol, useful for applications like VoIP or video conferencing.

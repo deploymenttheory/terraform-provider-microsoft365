@@ -60,7 +60,9 @@ func graphDestinationType(destinationType string) string {
 	// Invalid_AppSegments_NonwebApp_Duplicate ("DNS suffix can only be added to
 	// Quick Access configuration") and ipRange with a host range returning
 	// DestinationHost_InvalidIP. The schema only allows values observed to create
-	// and read back through this application-scoped endpoint.
+	// and read back through this application-scoped endpoint. Wildcard hosts such
+	// as "*.internal.example.com" are supported when sent as destinationType fqdn;
+	// they should not be modeled as dnsSuffix for this endpoint.
 	// Keep Terraform's public schema aligned with Learn, but send the literal
 	// accepted by Graph.
 	if destinationType == "ipAddress" {

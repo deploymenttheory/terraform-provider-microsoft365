@@ -76,7 +76,7 @@ func TestUnitResourceIpApplicationSegment_02_Maximal(t *testing.T) {
 					// Basic attributes
 					testCheckExists("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal", "application_object_id", "12345678-1234-1234-1234-123456789012"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal", "destination_host", "maximal.example.com"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal", "destination_host", "*.example.com"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal", "destination_type", "fqdn"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal", "protocol", "tcp"),
 
@@ -163,7 +163,7 @@ func TestUnitResourceIpApplicationSegment_05_Update(t *testing.T) {
 				Config: testConfigIpSegmentMaximal(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal", "ports.#", "4"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal", "destination_host", "maximal.example.com"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_maximal", "destination_host", "*.example.com"),
 				),
 			},
 		},

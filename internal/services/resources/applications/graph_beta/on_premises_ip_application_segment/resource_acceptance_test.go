@@ -117,7 +117,7 @@ func TestAccResourceIpApplicationSegment_02_Maximal(t *testing.T) {
 					check.That(resourceType+".ip_segment_maximal").ExistsInGraph(testResource),
 					check.That(resourceType+".ip_segment_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".ip_segment_maximal").Key("application_object_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".ip_segment_maximal").Key("destination_host").HasValue("maximal.example.com"),
+					check.That(resourceType+".ip_segment_maximal").Key("destination_host").HasValue("*.example.com"),
 					check.That(resourceType+".ip_segment_maximal").Key("destination_type").HasValue("fqdn"),
 					check.That(resourceType+".ip_segment_maximal").Key("protocol").HasValue("tcp"),
 

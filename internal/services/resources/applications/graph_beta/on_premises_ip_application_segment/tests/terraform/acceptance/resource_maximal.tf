@@ -27,7 +27,7 @@ resource "microsoft365_graph_beta_applications_application" "test_minimal" {
 
 resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "ip_segment_maximal" {
   application_object_id = microsoft365_graph_beta_applications_application.test_minimal.id
-  destination_host      = "maximal.example.com"
+  destination_host      = "*.example.com"
   destination_type      = "fqdn"
   ports = [
     "80-80",
