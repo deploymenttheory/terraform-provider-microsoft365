@@ -7,15 +7,11 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
 // Create handles the Create operation for IP application segment resources.
@@ -50,27 +46,21 @@ func (r *OnPremisesIpApplicationSegmentResource) Create(ctx context.Context, req
 		return
 	}
 
-	endpoint := fmt.Sprintf(
-		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
-		object.ApplicationObjectID.ValueString(),
-	)
-
-	config := customrequests.PostRequestConfig{
-		APIVersion:  customrequests.GraphAPIBeta,
-		Endpoint:    endpoint,
-		RequestBody: requestBody,
-	}
-
-	errorMapping := abstractions.ErrorMappings{
-		"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
-	}
-	createdIpApplicationSegment, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), config, graphmodels.CreateIpApplicationSegmentFromDiscriminatorValue, errorMapping)
+	createdIpApplicationSegment, err := r.createIpApplicationSegment(ctx, object.ApplicationObjectID.ValueString(), requestBody)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
-	object.ID = types.StringValue(*createdIpApplicationSegment.(graphmodels.IpApplicationSegmentable).GetId())
+	if createdIpApplicationSegment.id == nil {
+		resp.Diagnostics.AddError(
+			"Error creating ip application segment",
+			"The API returned an invalid response without an id.",
+		)
+		return
+	}
+
+	object.ID = types.StringValue(*createdIpApplicationSegment.id)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -137,34 +127,22 @@ func (r *OnPremisesIpApplicationSegmentResource) Read(ctx context.Context, req r
 		}
 	}
 
-	endpoint := fmt.Sprintf(
-		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
-		object.ApplicationObjectID.ValueString(),
-	)
-
-	config := customrequests.GetRequestConfig{
-		APIVersion: customrequests.GraphAPIBeta,
-		Endpoint:   endpoint,
-		ResourceID: object.ID.ValueString(),
-	}
-
-	errorMapping := abstractions.ErrorMappings{
-		"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
-	}
-	ipApplicationSegment, err := customrequests.GetRequest(
-		ctx,
-		r.client.GetAdapter(),
-		config,
-		graphmodels.CreateIpApplicationSegmentFromDiscriminatorValue,
-		errorMapping,
-	)
+	ipApplicationSegment, err := r.getIpApplicationSegment(ctx, object.ApplicationObjectID.ValueString(), object.ID.ValueString())
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, ipApplicationSegment.(graphmodels.IpApplicationSegmentable))
+	if ipApplicationSegment == nil {
+		resp.Diagnostics.AddError(
+			"Error reading ip application segment",
+			fmt.Sprintf("Received nil ip application segment for ID: %s", object.ID.ValueString()),
+		)
+		return
+	}
+
+	MapRemoteResourceStateToTerraform(ctx, &object, ipApplicationSegment)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -214,25 +192,16 @@ func (r *OnPremisesIpApplicationSegmentResource) Update(ctx context.Context, req
 		return
 	}
 
-	endpoint := fmt.Sprintf(
-		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
-		state.ApplicationObjectID.ValueString(),
-	)
-
-	config := customrequests.PatchRequestConfig{
-		APIVersion:        customrequests.GraphAPIBeta,
-		Endpoint:          endpoint,
-		ResourceID:        state.ID.ValueString(),
-		ResourceIDPattern: "/{id}",
-		RequestBody:       requestBody,
+	if err := r.updateIpApplicationSegment(ctx, state.ApplicationObjectID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
+		return
 	}
 
-	if err := customrequests.PatchRequestByResourceId(
-		ctx,
-		r.client.GetAdapter(),
-		config,
-	); err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
+	plan.ID = state.ID
+	plan.ApplicationObjectID = state.ApplicationObjectID
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -278,19 +247,7 @@ func (r *OnPremisesIpApplicationSegmentResource) Delete(ctx context.Context, req
 	}
 	defer cancel()
 
-	endpoint := fmt.Sprintf(
-		"applications/%s/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
-		data.ApplicationObjectID.ValueString(),
-	)
-
-	config := customrequests.DeleteRequestConfig{
-		APIVersion:        customrequests.GraphAPIBeta,
-		Endpoint:          endpoint,
-		ResourceID:        data.ID.ValueString(),
-		ResourceIDPattern: "/{id}",
-	}
-
-	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), config); err != nil {
+	if err := r.deleteIpApplicationSegment(ctx, data.ApplicationObjectID.ValueString(), data.ID.ValueString()); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

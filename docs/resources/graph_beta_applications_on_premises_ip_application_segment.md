@@ -198,10 +198,10 @@ Import is supported using the following syntax:
 ```shell
 #!/bin/bash
 
-# Import an existing IP application segment by its ID
-terraform import microsoft365_graph_beta_applications_on_premises_ip_application_segment.example_ip_address "00000000-0000-0000-0000-000000000000"
+# Import an existing IP application segment by application object ID and segment ID
+terraform import microsoft365_graph_beta_applications_on_premises_ip_application_segment.example_ip_address "11111111-1111-1111-1111-111111111111/00000000-0000-0000-0000-000000000000"
 
-# The ID format is the segment's unique identifier (GUID)
-# You can find the segment ID in the Azure Portal or via Microsoft Graph API:
+# The ID format is: {application_object_id}/{ip_application_segment_id}
+# You can find both IDs in the Azure Portal or via Microsoft Graph API:
 # GET https://graph.microsoft.com/beta/applications/{application-id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments
 ```

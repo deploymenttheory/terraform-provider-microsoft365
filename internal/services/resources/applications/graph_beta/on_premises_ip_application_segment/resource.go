@@ -2,7 +2,9 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 
 import (
 	"context"
+	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -73,7 +75,17 @@ func (r *OnPremisesIpApplicationSegmentResource) Configure(ctx context.Context, 
 
 // ImportState imports the resource state.
 func (r *OnPremisesIpApplicationSegmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	parts := strings.Split(req.ID, "/")
+	if len(parts) != 2 {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID in format 'application_object_id/ip_application_segment_id', got: %s", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("application_object_id"), parts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
@@ -103,6 +115,9 @@ func (r *OnPremisesIpApplicationSegmentResource) Schema(ctx context.Context, req
 			"application_object_id": schema.StringAttribute{
 				MarkdownDescription: "The unique object identifier of the application.",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"destination_host": schema.StringAttribute{
 				MarkdownDescription: "Either the IP address, IP range, or FQDN of the application segment, with or without wildcards.",
