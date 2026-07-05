@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/filteringProfiles/$entity",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "name": "Test Maximal Filtering Profile",
+  "description": "Maximal filtering profile for testing with all features",
+  "state": "disabled",
+  "priority": 200,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "version": "1.0.0",
+  "policies": [],
+  "conditionalAccessPolicies": []
+}
