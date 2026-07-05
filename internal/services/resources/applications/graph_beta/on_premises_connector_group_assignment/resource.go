@@ -37,6 +37,12 @@ var (
 
 func NewOnPremisesConnectorGroupAssignmentResource() resource.Resource {
 	return &OnPremisesConnectorGroupAssignmentResource{
+		// Microsoft Learn lists delegated Directory.ReadWrite.All for
+		// PUT /applications/{id}/connectorGroup/$ref and marks application
+		// permissions as "Not supported":
+		// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post-applications?view=graph-rest-beta
+		// Use the same permission for read/write diagnostics instead of the
+		// provider's more common Directory.Read.All read hint.
 		ReadPermissions: []string{
 			"Directory.ReadWrite.All",
 		},

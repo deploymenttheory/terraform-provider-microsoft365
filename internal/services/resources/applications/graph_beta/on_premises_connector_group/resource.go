@@ -33,6 +33,10 @@ var (
 
 func NewOnPremisesConnectorGroupResource() resource.Resource {
 	return &OnPremisesConnectorGroupResource{
+		// Microsoft Learn lists Directory.ReadWrite.All for connectorGroup
+		// create/update/delete and does not list Directory.Read.All:
+		// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post?view=graph-rest-beta
+		// Use the Learn-documented permission for both read/write diagnostics.
 		ReadPermissions: []string{
 			"Directory.ReadWrite.All",
 		},
@@ -92,6 +96,10 @@ func (r *OnPremisesConnectorGroupResource) Schema(ctx context.Context, req resou
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
+					// The generated SDK enum follows beta CSDL metadata and omits
+					// "japan", but direct API verification on 2026-07-05 returned
+					// that value for the tenant default connector group. Keep it
+					// valid so imported defaults can plan without drift.
 					stringvalidator.OneOf("nam", "eur", "aus", "asia", "ind", "unknownFutureValue", "japan"),
 				},
 			},

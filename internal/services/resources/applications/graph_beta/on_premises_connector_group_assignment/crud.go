@@ -39,6 +39,13 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Create(ctx context.Context,
 		return
 	}
 
+	// Assignment is only valid for applications that already have Application
+	// Proxy on-premises publishing enabled. Learn documents the $ref endpoint at
+	// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post-applications?view=graph-rest-beta,
+	// but the prerequisite is easy to miss from this resource alone. Direct API
+	// verification on 2026-07-05 returned Application_NotFound with
+	// "Application '{id}' not found or OnPremisesPublishing is not enabled for
+	// your tenant." for an existing application without onPremisesPublishing.
 	err = r.client.
 		Applications().
 		ByApplicationId(object.ApplicationID.ValueString()).
@@ -57,6 +64,10 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Create(ctx context.Context,
 		return
 	}
 
+	// The assignment endpoint is eventually consistent enough that an immediate
+	// GET can briefly return the previous connector group. Reuse the provider's
+	// normal create read-retry flow so the resource only persists once Graph
+	// reports the requested connector group.
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
@@ -120,6 +131,12 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Read(ctx context.Context, r
 	}
 
 	if connectorGroup == nil || connectorGroup.GetId() == nil || *connectorGroup.GetId() != object.ConnectorGroupID.ValueString() {
+		// Deleting /applications/{id}/connectorGroup/$ref does not make the
+		// navigation property disappear in this tenant. Direct API verification
+		// on 2026-07-05 showed GET /applications/{id}/connectorGroup returning
+		// the tenant default connector group after DELETE. Treat any current
+		// connector group ID different from connector_group_id as this managed
+		// assignment being absent.
 		if operation == constants.TfOperationRead {
 			tflog.Warn(ctx, "Connector group assignment not found on application, removing from state", map[string]any{
 				"application_id":     object.ApplicationID.ValueString(),
@@ -172,6 +189,13 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Delete(ctx context.Context,
 	}
 	defer cancel()
 
+	// Learn documents the assignment as a $ref relationship:
+	// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post-applications?view=graph-rest-beta
+	// The generated SDK exposes Delete on that same /connectorGroup/$ref path.
+	// Direct API verification on 2026-07-05 confirmed DELETE works, but Graph may
+	// then expose the tenant default connector group on the application navigation
+	// property. Read therefore uses ID comparison rather than requiring
+	// GET /connectorGroup to return 404.
 	err := r.client.
 		Applications().
 		ByApplicationId(object.ApplicationID.ValueString()).

@@ -22,6 +22,14 @@ func constructUpdateResource(ctx context.Context, plan, state *OnPremisesConnect
 func constructResource(ctx context.Context, name types.String, region types.String, includeRegion bool) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
+	// Microsoft Learn documents connectorGroup create/update at:
+	// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post?view=graph-rest-beta
+	// https://learn.microsoft.com/en-us/graph/api/connectorgroup-update?view=graph-rest-beta
+	//
+	// Direct API verification on 2026-07-05 showed that connectorGroupType and
+	// isDefault are system-managed values. Graph accepted those fields in create
+	// payloads but ignored them, and PATCH rejected them as read-only. Keep this
+	// request body intentionally narrow so Terraform only sends writable fields.
 	requestBody := &connectorGroupRequestBody{}
 
 	if !name.IsNull() && !name.IsUnknown() {
@@ -46,6 +54,13 @@ func constructResource(ctx context.Context, name types.String, region types.Stri
 }
 
 func shouldSendRegion(plan, state types.String) bool {
+	// Region is writable according to Learn, but only while the connector group
+	// has no assigned connectors or applications:
+	// https://learn.microsoft.com/en-us/graph/api/resources/connectorgroup?view=graph-rest-beta
+	//
+	// PATCH requests verified on 2026-07-05 return 204 with no response body.
+	// Omitting an unchanged region avoids unnecessary Graph validation of a
+	// field that can become non-writable after assignments are added.
 	if plan.IsNull() || plan.IsUnknown() {
 		return false
 	}

@@ -12,6 +12,13 @@ import (
 func constructResource(ctx context.Context, data *OnPremisesConnectorGroupAssignmentResourceModel) (graphmodels.ReferenceUpdateable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
+	// Microsoft Learn documents assignment as a reference update:
+	// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post-applications?view=graph-rest-beta
+	//
+	// This intentionally differs from most relationship resources in the
+	// provider, which often POST a concrete assignment object. Graph requires a
+	// PUT to /applications/{application-id}/connectorGroup/$ref with only
+	// @odata.id pointing at the connector group collection item.
 	requestBody := graphmodels.NewReferenceUpdate()
 	odataID := connectorGroupODataID(data.ConnectorGroupID.ValueString())
 	requestBody.SetOdataId(&odataID)
@@ -26,6 +33,9 @@ func constructResource(ctx context.Context, data *OnPremisesConnectorGroupAssign
 }
 
 func connectorGroupODataID(connectorGroupID string) string {
+	// Learn's example uses the Application Proxy connector group collection URL
+	// as the reference target, not /applications/{id}/connectorGroup:
+	// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post-applications?view=graph-rest-beta
 	return fmt.Sprintf("https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/%s", connectorGroupID)
 }
 
