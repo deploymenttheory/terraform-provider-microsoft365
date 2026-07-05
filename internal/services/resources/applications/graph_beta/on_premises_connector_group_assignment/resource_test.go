@@ -48,6 +48,40 @@ func TestUnitResourceConnectorGroupAssignment_01_Minimal(t *testing.T) {
 	})
 }
 
+func TestUnitResourceConnectorGroupAssignment_02_DeleteSkipsDifferentCurrentAssignment(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, assignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+
+	const applicationID = "11111111-1111-1111-1111-111111111111"
+	const externallyAssignedConnectorGroupID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigConnectorGroupAssignmentMinimal(),
+			},
+			{
+				PreConfig: func() {
+					assignmentMock.AssignConnectorGroup(applicationID, externallyAssignedConnectorGroupID)
+				},
+				Config:  testConfigConnectorGroupAssignmentMinimal(),
+				Destroy: true,
+			},
+		},
+	})
+
+	connectorGroupID, ok := assignmentMock.AssignedConnectorGroup(applicationID)
+	if !ok {
+		t.Fatalf("expected externally assigned connector group to remain after Terraform destroy")
+	}
+	if connectorGroupID != externallyAssignedConnectorGroupID {
+		t.Fatalf("assigned connector group = %q, expected %q", connectorGroupID, externallyAssignedConnectorGroupID)
+	}
+}
+
 func testConfigConnectorGroupAssignmentMinimal() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
 	if err != nil {

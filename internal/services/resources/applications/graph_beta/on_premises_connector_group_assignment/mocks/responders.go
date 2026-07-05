@@ -108,6 +108,21 @@ func (m *OnPremisesConnectorGroupAssignmentMock) CleanupMockState() {
 	resetMockState()
 }
 
+func (m *OnPremisesConnectorGroupAssignmentMock) AssignConnectorGroup(applicationID, connectorGroupID string) {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	mockState.assignments[applicationID] = connectorGroupID
+}
+
+func (m *OnPremisesConnectorGroupAssignmentMock) AssignedConnectorGroup(applicationID string) (string, bool) {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	connectorGroupID, ok := mockState.assignments[applicationID]
+	return connectorGroupID, ok
+}
+
 func resetMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()

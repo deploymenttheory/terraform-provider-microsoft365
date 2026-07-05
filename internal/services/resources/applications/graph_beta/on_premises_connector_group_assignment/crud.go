@@ -189,6 +189,35 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Delete(ctx context.Context,
 	}
 	defer cancel()
 
+	connectorGroup, err := r.client.
+		Applications().
+		ByApplicationId(object.ApplicationID.ValueString()).
+		ConnectorGroup().
+		Get(ctx, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
+		if !resp.Diagnostics.HasError() {
+			resp.State.RemoveResource(ctx)
+		}
+		return
+	}
+
+	if connectorGroup == nil || connectorGroup.GetId() == nil || *connectorGroup.GetId() != object.ConnectorGroupID.ValueString() {
+		// /applications/{id}/connectorGroup/$ref is a singleton relationship.
+		// If the application has already moved to a different connector group,
+		// deleting the $ref would remove that other assignment. This mirrors Read,
+		// which treats a different current connector group ID as this managed
+		// assignment being absent.
+		tflog.Warn(ctx, "Connector group assignment no longer matches Terraform state; removing state without deleting current Graph assignment", map[string]any{
+			"application_id":              object.ApplicationID.ValueString(),
+			"state_connector_group_id":    object.ConnectorGroupID.ValueString(),
+			"current_connector_group_id":  connectorGroupIDForLog(connectorGroup),
+			"current_connector_group_nil": connectorGroup == nil,
+		})
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
 	// Learn documents the assignment as a $ref relationship:
 	// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post-applications?view=graph-rest-beta
 	// The generated SDK exposes Delete on that same /connectorGroup/$ref path.
@@ -196,7 +225,7 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Delete(ctx context.Context,
 	// then expose the tenant default connector group on the application navigation
 	// property. Read therefore uses ID comparison rather than requiring
 	// GET /connectorGroup to return 404.
-	err := r.client.
+	err = r.client.
 		Applications().
 		ByApplicationId(object.ApplicationID.ValueString()).
 		ConnectorGroup().
@@ -210,4 +239,12 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Delete(ctx context.Context,
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+func connectorGroupIDForLog(connectorGroup interface{ GetId() *string }) string {
+	if connectorGroup == nil || connectorGroup.GetId() == nil {
+		return ""
+	}
+
+	return *connectorGroup.GetId()
 }
