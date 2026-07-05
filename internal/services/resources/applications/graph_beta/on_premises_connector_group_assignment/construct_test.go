@@ -12,12 +12,28 @@ func TestConstructResourceBuildsConnectorGroupReference(t *testing.T) {
 		ConnectorGroupID: types.StringValue("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
 	}
 
-	body, err := constructResource(context.Background(), data)
+	body, err := constructResource(context.Background(), data, "https://graph.microsoft.com/beta")
 	if err != nil {
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
 	expected := "https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+	if body.GetOdataId() == nil || *body.GetOdataId() != expected {
+		t.Fatalf("@odata.id = %#v, expected %q", body.GetOdataId(), expected)
+	}
+}
+
+func TestConstructResourceUsesConfiguredGraphBaseURL(t *testing.T) {
+	data := &OnPremisesConnectorGroupAssignmentResourceModel{
+		ConnectorGroupID: types.StringValue("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+	}
+
+	body, err := constructResource(context.Background(), data, "https://graph.microsoft.us/beta/")
+	if err != nil {
+		t.Fatalf("constructResource returned error: %v", err)
+	}
+
+	expected := "https://graph.microsoft.us/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
 	if body.GetOdataId() == nil || *body.GetOdataId() != expected {
 		t.Fatalf("@odata.id = %#v, expected %q", body.GetOdataId(), expected)
 	}

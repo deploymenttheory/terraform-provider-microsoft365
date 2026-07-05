@@ -15,7 +15,7 @@ import (
 func TestNewConnectorGroupRequestInformationBuildsApplicationProxyURL(t *testing.T) {
 	requestInfo, err := newConnectorGroupRequestInformation(
 		context.Background(),
-		testRequestAdapter{},
+		testRequestAdapter{baseURL: defaultGraphBetaBaseURL},
 		abstractions.GET,
 		"connector-group-id",
 		nil,
@@ -42,6 +42,29 @@ func TestNewConnectorGroupRequestInformationBuildsApplicationProxyURL(t *testing
 	}
 }
 
+func TestNewConnectorGroupRequestInformationUsesConfiguredBaseURL(t *testing.T) {
+	requestInfo, err := newConnectorGroupRequestInformation(
+		context.Background(),
+		testRequestAdapter{baseURL: "https://graph.microsoft.us/beta/"},
+		abstractions.GET,
+		"connector-group-id",
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("newConnectorGroupRequestInformation returned error: %v", err)
+	}
+
+	uri, err := requestInfo.GetUri()
+	if err != nil {
+		t.Fatalf("GetUri returned error: %v", err)
+	}
+
+	expected := "https://graph.microsoft.us/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/connector-group-id"
+	if uri.String() != expected {
+		t.Fatalf("uri = %q, expected %q", uri.String(), expected)
+	}
+}
+
 func TestNewConnectorGroupRequestInformationSerializesCreatePayload(t *testing.T) {
 	name := "unit-test-connector-group"
 	region := "nam"
@@ -52,7 +75,7 @@ func TestNewConnectorGroupRequestInformationSerializesCreatePayload(t *testing.T
 
 	requestInfo, err := newConnectorGroupRequestInformation(
 		context.Background(),
-		testRequestAdapter{},
+		testRequestAdapter{baseURL: defaultGraphBetaBaseURL},
 		abstractions.POST,
 		"",
 		body,
@@ -97,7 +120,7 @@ func TestConstructUpdateResourceOmitsUnchangedRegion(t *testing.T) {
 
 	requestInfo, err := newConnectorGroupRequestInformation(
 		context.Background(),
-		testRequestAdapter{},
+		testRequestAdapter{baseURL: defaultGraphBetaBaseURL},
 		abstractions.PATCH,
 		"connector-group-id",
 		body,
@@ -123,7 +146,9 @@ func mustString(value string) types.String {
 	return types.StringValue(value)
 }
 
-type testRequestAdapter struct{}
+type testRequestAdapter struct {
+	baseURL string
+}
 
 func (testRequestAdapter) Send(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) (s.Parsable, error) {
 	return nil, nil
@@ -159,10 +184,10 @@ func (testRequestAdapter) GetSerializationWriterFactory() s.SerializationWriterF
 
 func (testRequestAdapter) EnableBackingStore(store.BackingStoreFactory) {}
 
-func (testRequestAdapter) SetBaseUrl(string) {}
+func (a testRequestAdapter) SetBaseUrl(string) {}
 
-func (testRequestAdapter) GetBaseUrl() string {
-	return graphBetaBaseURL
+func (a testRequestAdapter) GetBaseUrl() string {
+	return a.baseURL
 }
 
 func (testRequestAdapter) ConvertToNativeRequest(context.Context, *abstractions.RequestInformation) (any, error) {

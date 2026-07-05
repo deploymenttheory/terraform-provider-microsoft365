@@ -30,7 +30,7 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Create(ctx context.Context,
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, r.client.GetAdapter().GetBaseUrl())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing connector group assignment",

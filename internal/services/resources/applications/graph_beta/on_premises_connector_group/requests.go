@@ -3,6 +3,7 @@ package graphBetaApplicationsOnPremisesConnectorGroup
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
@@ -10,7 +11,7 @@ import (
 )
 
 const (
-	graphBetaBaseURL = "https://graph.microsoft.com/beta"
+	defaultGraphBetaBaseURL = "https://graph.microsoft.com/beta"
 
 	// Microsoft Learn documents connectorGroup CRUD at:
 	// https://learn.microsoft.com/en-us/graph/api/resources/connectorgroup?view=graph-rest-beta
@@ -130,7 +131,7 @@ func (r *OnPremisesConnectorGroupResource) deleteConnectorGroup(ctx context.Cont
 
 func newConnectorGroupRequestInformation(ctx context.Context, adapter abstractions.RequestAdapter, method abstractions.HttpMethod, connectorGroupID string, requestBody s.Parsable) (*abstractions.RequestInformation, error) {
 	pathParameters := map[string]string{
-		"baseurl": graphBetaBaseURL,
+		"baseurl": graphBetaBaseURL(adapter),
 	}
 
 	urlTemplate := connectorGroupsURLTemplate
@@ -149,4 +150,12 @@ func newConnectorGroupRequestInformation(ctx context.Context, adapter abstractio
 	}
 
 	return requestInfo, nil
+}
+
+func graphBetaBaseURL(adapter abstractions.RequestAdapter) string {
+	if adapter == nil || adapter.GetBaseUrl() == "" {
+		return defaultGraphBetaBaseURL
+	}
+
+	return strings.TrimRight(adapter.GetBaseUrl(), "/")
 }
