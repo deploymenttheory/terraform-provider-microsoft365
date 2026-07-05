@@ -43,6 +43,10 @@ This resource manages the relationship between an application and an Application
 
 The resource ID is a composite ID in the format `application_id/connector_group_id`. Changing either `application_id` or `connector_group_id` recreates the assignment.
 
+The target application must have Application Proxy on-premises publishing enabled before assigning a connector group. Direct API verification on 2026-07-05 returned `Application_NotFound` with the message `Application '{id}' not found or OnPremisesPublishing is not enabled for your tenant.` when the application existed but `onPremisesPublishing` was not enabled.
+
+Direct API verification on 2026-07-05 also observed that deleting the assignment reference returns the application to the tenant default connector group rather than making `GET /applications/{application-id}/connectorGroup` return `404`. The provider treats a current connector group ID that differs from `connector_group_id` as the managed assignment being absent and removes the resource from state during refresh.
+
 Microsoft Graph accepts a request body containing only the connector group reference:
 
 ```json
