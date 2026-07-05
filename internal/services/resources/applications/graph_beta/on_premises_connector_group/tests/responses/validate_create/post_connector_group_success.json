@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#onPremisesPublishingProfiles('applicationProxy')/connectorGroups/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "name": "unit-test-connector-group",
+  "connectorGroupType": "applicationProxy",
+  "isDefault": false,
+  "region": "japan"
+}
