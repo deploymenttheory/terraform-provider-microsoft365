@@ -38,10 +38,6 @@ var _ mocks.MockRegistrar = (*FilteringProfileMock)(nil)
 
 // RegisterMocks registers HTTP mock responses for Filtering Profile operations
 func (m *FilteringProfileMock) RegisterMocks() {
-	// License check endpoint
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/subscribedSkus",
-		m.getLicenseResponder())
-
 	// POST /networkAccess/filteringProfiles - Create
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/networkAccess/filteringProfiles",
 		m.createFilteringProfileResponder())
@@ -283,27 +279,8 @@ func (m *FilteringProfileMock) CleanupMockState() {
 	}
 }
 
-// getLicenseResponder handles GET requests for license checking
-func (m *FilteringProfileMock) getLicenseResponder() httpmock.Responder {
-	return func(req *http.Request) (*http.Response, error) {
-		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "license", "get_subscribed_skus_success.json"))
-		if err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load license mock"}}`), nil
-		}
-		var response map[string]any
-		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse JSON response"}}`), nil
-		}
-		return factories.SuccessResponse(200, response)(req)
-	}
-}
-
 // RegisterErrorMocks registers mock responses that simulate error conditions
 func (m *FilteringProfileMock) RegisterErrorMocks() {
-	// License check endpoint
-	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/subscribedSkus",
-		m.getLicenseResponder())
-
 	// POST - Create error
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/networkAccess/filteringProfiles",
 		func(req *http.Request) (*http.Response, error) {

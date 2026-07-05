@@ -30,14 +30,13 @@ The Microsoft Graph beta metadata exposes the writable profile fields used by th
 GET /beta/networkaccess/filteringProfiles?$expand=policies($expand=policy),ConditionalAccessPolicies
 ```
 
-Microsoft Learn currently documents list, get, and update operations for filtering profiles. The generated Microsoft Graph beta Go SDK exposes collection `Post` and item `Delete` request builders for `/networkAccess/filteringProfiles`; this resource uses those SDK builders for create and delete to stay aligned with the Graph service surface.
+Microsoft Learn currently documents list, get, and update operations for filtering profiles. The generated Microsoft Graph beta Go SDK exposes collection `Post` and item `Delete` request builders for `/networkAccess/filteringProfiles`. Create and update use the provider Graph adapter with a minimal Kiota request payload containing only writable fields accepted by the endpoint.
 
 ## Microsoft Graph API Permissions
 
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `LicenseAssignment.Read.All` (used by the provider license precheck against `/subscribedSkus`)
 - `NetworkAccess.Read.All`
 - `NetworkAccess.ReadWrite.All`
 

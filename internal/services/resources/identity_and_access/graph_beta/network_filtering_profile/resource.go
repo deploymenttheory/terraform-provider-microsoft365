@@ -42,11 +42,9 @@ var (
 func NewNetworkFilteringProfileResource() resource.Resource {
 	return &NetworkFilteringProfileResource{
 		ReadPermissions: []string{
-			"LicenseAssignment.Read.All",
 			"NetworkAccess.Read.All",
 		},
 		WritePermissions: []string{
-			"LicenseAssignment.Read.All",
 			"NetworkAccess.ReadWrite.All",
 		},
 		ResourcePath: "/networkAccess/filteringProfiles",

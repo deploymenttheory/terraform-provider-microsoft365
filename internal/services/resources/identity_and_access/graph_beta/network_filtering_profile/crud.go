@@ -8,7 +8,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/license"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -22,7 +21,6 @@ import (
 //   - POST /networkAccess/filteringProfiles
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-post?view=graph-rest-beta
-// Note: Requires specific Microsoft Entra licensing for Global Secure Access
 func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkFilteringProfileResourceModel
 
@@ -30,18 +28,6 @@ func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resour
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Validate tenant has required license before attempting API call
-	if !license.HasRequiredLicense(ctx, r.client, "NetworkFilteringProfile") {
-		resp.Diagnostics.AddError(
-			"Missing Required License",
-			fmt.Sprintf(
-				"This resource requires a tenant license that was not found.\n\n%s",
-				license.FormatRequiredLicensesMessage("NetworkFilteringProfile"),
-			),
-		)
 		return
 	}
 
@@ -175,18 +161,6 @@ func (r *NetworkFilteringProfileResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	// Validate tenant has required license before attempting API call
-	if !license.HasRequiredLicense(ctx, r.client, "NetworkFilteringProfile") {
-		resp.Diagnostics.AddError(
-			"Missing Required License",
-			fmt.Sprintf(
-				"This resource requires a tenant license that was not found.\n\n%s",
-				license.FormatRequiredLicensesMessage("NetworkFilteringProfile"),
-			),
-		)
-		return
-	}
-
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
@@ -245,18 +219,6 @@ func (r *NetworkFilteringProfileResource) Delete(ctx context.Context, req resour
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Validate tenant has required license before attempting API call
-	if !license.HasRequiredLicense(ctx, r.client, "NetworkFilteringProfile") {
-		resp.Diagnostics.AddError(
-			"Missing Required License",
-			fmt.Sprintf(
-				"This resource requires a tenant license that was not found.\n\n%s",
-				license.FormatRequiredLicensesMessage("NetworkFilteringProfile"),
-			),
-		)
 		return
 	}
 
