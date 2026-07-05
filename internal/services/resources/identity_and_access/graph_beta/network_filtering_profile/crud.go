@@ -52,8 +52,17 @@ func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	object.ID = types.StringValue(*baseResource.GetId())
-	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, *baseResource.GetId()))
+	createdID := baseResource.GetId()
+	if createdID == nil {
+		resp.Diagnostics.AddError(
+			"Error creating filtering profile",
+			"The API returned an invalid response without an id.",
+		)
+		return
+	}
+
+	object.ID = types.StringValue(*createdID)
+	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, *createdID))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
