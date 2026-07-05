@@ -95,7 +95,9 @@ func (r *OnPremisesConnectorGroupAssignmentResource) IdentitySchema(ctx context.
 
 func (r *OnPremisesConnectorGroupAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Assigns a Microsoft Entra Application Proxy connector group to an application using the Microsoft Graph beta `/applications/{id}/connectorGroup/$ref` endpoint.",
+		MarkdownDescription: "Assigns a Microsoft Entra Application Proxy connector group to an application using the Microsoft Graph beta `/applications/{id}/connectorGroup/$ref` endpoint. " +
+			"The target application must already have Application Proxy on-premises publishing enabled, for example with `microsoft365_graph_beta_applications_application_on_premises_publishing`. " +
+			"Deleting this resource removes the connector group reference from the application; Microsoft Graph may then expose the tenant default connector group on the application, so the provider treats any current connector group ID different from `connector_group_id` as this managed assignment being absent.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier for this connector group assignment. This is a composite ID formed by combining the application ID and connector group ID.",
@@ -105,7 +107,7 @@ func (r *OnPremisesConnectorGroupAssignmentResource) Schema(ctx context.Context,
 				},
 			},
 			"application_id": schema.StringAttribute{
-				MarkdownDescription: "The unique object identifier of the application.",
+				MarkdownDescription: "The unique object identifier of the application. This is the Application object's `id`, not the Application/client `app_id`, and corresponds to the `{application-id}` path parameter in `/applications/{application-id}/connectorGroup/$ref`.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(

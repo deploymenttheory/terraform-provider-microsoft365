@@ -78,7 +78,10 @@ func (r *OnPremisesConnectorGroupResource) IdentitySchema(ctx context.Context, r
 
 func (r *OnPremisesConnectorGroupResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages a Microsoft Entra Application Proxy connector group using the Microsoft Graph beta `/onPremisesPublishingProfiles/applicationProxy/connectorGroups` endpoint.",
+		MarkdownDescription: "Manages a Microsoft Entra Application Proxy connector group using the Microsoft Graph beta `/onPremisesPublishingProfiles/applicationProxy/connectorGroups` endpoint. " +
+			"New connector groups are managed normally and are deleted from Microsoft Graph when the Terraform resource is destroyed. " +
+			"If the tenant default connector group (`is_default = true`) is imported, destroy removes it from Terraform state only and leaves the remote default connector group in place because it is system-managed by Microsoft Graph. " +
+			"The `region` value is preserved from the API response, including observed values such as `japan` that are not currently listed in Microsoft Graph beta metadata.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier of the connector group.",
@@ -108,7 +111,7 @@ func (r *OnPremisesConnectorGroupResource) Schema(ctx context.Context, req resou
 				Computed:            true,
 			},
 			"is_default": schema.BoolAttribute{
-				MarkdownDescription: "Indicates whether this is the default connector group. Only one connector group can be the default connector group, and this value is set by Microsoft Graph.",
+				MarkdownDescription: "Indicates whether this is the default connector group. Only one connector group can be the default connector group, and this value is set by Microsoft Graph. If this value is `true`, Terraform destroy removes the resource from state only and does not attempt to delete the remote default connector group.",
 				Computed:            true,
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),

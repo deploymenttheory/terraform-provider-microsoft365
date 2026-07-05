@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_applications_on_premises_connector_group Re
 subcategory: "Applications"
 
 description: |-
-  Manages a Microsoft Entra Application Proxy connector group using the Microsoft Graph beta /onPremisesPublishingProfiles/applicationProxy/connectorGroups endpoint.
+  Manages a Microsoft Entra Application Proxy connector group using the Microsoft Graph beta /onPremisesPublishingProfiles/applicationProxy/connectorGroups endpoint. New connector groups are managed normally and are deleted from Microsoft Graph when the Terraform resource is destroyed. If the tenant default connector group (is_default = true) is imported, destroy removes it from Terraform state only and leaves the remote default connector group in place because it is system-managed by Microsoft Graph. The region value is preserved from the API response, including observed values such as japan that are not currently listed in Microsoft Graph beta metadata.
 ---
 
 # microsoft365_graph_beta_applications_on_premises_connector_group (Resource)
 
-Manages a Microsoft Entra Application Proxy connector group using the Microsoft Graph beta `/onPremisesPublishingProfiles/applicationProxy/connectorGroups` endpoint.
+Manages a Microsoft Entra Application Proxy connector group using the Microsoft Graph beta `/onPremisesPublishingProfiles/applicationProxy/connectorGroups` endpoint. New connector groups are managed normally and are deleted from Microsoft Graph when the Terraform resource is destroyed. If the tenant default connector group (`is_default = true`) is imported, destroy removes it from Terraform state only and leaves the remote default connector group in place because it is system-managed by Microsoft Graph. The `region` value is preserved from the API response, including observed values such as `japan` that are not currently listed in Microsoft Graph beta metadata.
 
 ## Microsoft Documentation
 
@@ -89,7 +89,7 @@ resource "microsoft365_graph_beta_applications_on_premises_connector_group" "wit
 
 - `connector_group_type` (String) The connector group type returned by Microsoft Graph. Direct beta metadata currently lists `applicationProxy`.
 - `id` (String) The unique identifier of the connector group.
-- `is_default` (Boolean) Indicates whether this is the default connector group. Only one connector group can be the default connector group, and this value is set by Microsoft Graph.
+- `is_default` (Boolean) Indicates whether this is the default connector group. Only one connector group can be the default connector group, and this value is set by Microsoft Graph. If this value is `true`, Terraform destroy removes the resource from state only and does not attempt to delete the remote default connector group.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

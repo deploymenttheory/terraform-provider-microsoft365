@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_applications_on_premises_connector_group_as
 subcategory: "Applications"
 
 description: |-
-  Assigns a Microsoft Entra Application Proxy connector group to an application using the Microsoft Graph beta /applications/{id}/connectorGroup/$ref endpoint.
+  Assigns a Microsoft Entra Application Proxy connector group to an application using the Microsoft Graph beta /applications/{id}/connectorGroup/$ref endpoint. The target application must already have Application Proxy on-premises publishing enabled, for example with microsoft365_graph_beta_applications_application_on_premises_publishing. Deleting this resource removes the connector group reference from the application; Microsoft Graph may then expose the tenant default connector group on the application, so the provider treats any current connector group ID different from connector_group_id as this managed assignment being absent.
 ---
 
 # microsoft365_graph_beta_applications_on_premises_connector_group_assignment (Resource)
 
-Assigns a Microsoft Entra Application Proxy connector group to an application using the Microsoft Graph beta `/applications/{id}/connectorGroup/$ref` endpoint.
+Assigns a Microsoft Entra Application Proxy connector group to an application using the Microsoft Graph beta `/applications/{id}/connectorGroup/$ref` endpoint. The target application must already have Application Proxy on-premises publishing enabled, for example with `microsoft365_graph_beta_applications_application_on_premises_publishing`. Deleting this resource removes the connector group reference from the application; Microsoft Graph may then expose the tenant default connector group on the application, so the provider treats any current connector group ID different from `connector_group_id` as this managed assignment being absent.
 
 ## Microsoft Documentation
 
@@ -71,7 +71,7 @@ resource "microsoft365_graph_beta_applications_on_premises_connector_group_assig
 
 ### Required
 
-- `application_id` (String) The unique object identifier of the application.
+- `application_id` (String) The unique object identifier of the application. This is the Application object's `id`, not the Application/client `app_id`, and corresponds to the `{application-id}` path parameter in `/applications/{application-id}/connectorGroup/$ref`.
 - `connector_group_id` (String) The unique identifier of the Application Proxy connector group to assign to the application.
 
 ### Optional
