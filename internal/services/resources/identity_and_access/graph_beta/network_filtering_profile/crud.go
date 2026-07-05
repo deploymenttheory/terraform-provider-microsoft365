@@ -20,7 +20,9 @@ import (
 // API Calls:
 //   - POST /networkAccess/filteringProfiles
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-post?view=graph-rest-beta
+// Microsoft Learn documents filteringProfile plus list/get/update operations,
+// while live Graph probing and the beta SDK confirm POST on this collection.
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-filteringprofile?view=graph-rest-beta
 func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkFilteringProfileResourceModel
 
@@ -220,7 +222,9 @@ func (r *NetworkFilteringProfileResource) Update(ctx context.Context, req resour
 // API Calls:
 //   - DELETE /networkAccess/filteringProfiles/{filteringProfileId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-delete?view=graph-rest-beta
+// Microsoft Learn does not currently document delete for filteringProfile, but
+// the beta SDK exposes the DELETE builder and live verification confirmed it.
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-filteringprofile?view=graph-rest-beta
 func (r *NetworkFilteringProfileResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object NetworkFilteringProfileResourceModel
 

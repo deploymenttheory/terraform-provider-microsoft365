@@ -12,7 +12,18 @@ import (
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 )
 
-// constructResource maps the Terraform schema to the SDK model
+// constructResource maps Terraform schema values to the minimal Graph payload.
+//
+// The generated beta SDK FilteringProfile serializer emits read-only/null fields
+// such as createdDateTime, lastModifiedDateTime, and version. The
+// /networkAccess/filteringProfiles endpoint rejects those fields on create with
+// "400 Invalid request parameters", so this resource intentionally uses a small
+// custom Kiota Parsable that serializes only the fields observed as writable.
+//
+// Microsoft Learn documents filteringProfile and the supported read/update
+// surface here:
+// https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-filteringprofile?view=graph-rest-beta
+// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-update?view=graph-rest-beta
 func constructResource(ctx context.Context, data *NetworkFilteringProfileResourceModel) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 

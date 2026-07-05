@@ -11,6 +11,16 @@ import (
 )
 
 const (
+	// Microsoft Learn currently documents the filteringProfile resource plus
+	// list/get/update operations:
+	// https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-filteringprofile?view=graph-rest-beta
+	// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-list?view=graph-rest-beta
+	// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-get?view=graph-rest-beta
+	// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-update?view=graph-rest-beta
+	//
+	// The beta SDK also exposes collection POST and item DELETE builders for the
+	// same /networkAccess/filteringProfiles paths. Live Graph probing confirmed
+	// POST works when the payload includes name, description, priority, and state.
 	filteringProfilesURLTemplate    = "{+baseurl}/networkAccess/filteringProfiles"
 	filteringProfileItemURLTemplate = filteringProfilesURLTemplate + "/{filteringProfileId}"
 )
