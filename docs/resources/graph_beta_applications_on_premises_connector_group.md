@@ -52,6 +52,8 @@ Direct API verification on 2026-07-05 also observed:
 
 Microsoft Graph only allows `region` to be changed while no connectors or applications are assigned to the connector group.
 
+The tenant default connector group is returned with `isDefault = true`. Because that connector group is system-managed, this provider does not attempt to delete it. If the default connector group is imported into this resource and later destroyed, Terraform removes it from state only and leaves the remote default connector group in place.
+
 ## Example Usage
 
 ### Minimal Connector Group

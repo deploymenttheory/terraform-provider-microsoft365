@@ -104,10 +104,43 @@ func TestUnitResourceConnectorGroup_03_Update(t *testing.T) {
 	})
 }
 
+func TestUnitResourceConnectorGroup_04_ImportDefaultRemovesStateOnlyOnDestroy(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, connectorGroupMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer connectorGroupMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:        testConfigConnectorGroupDefaultImport(),
+				ResourceName:  "microsoft365_graph_beta_applications_on_premises_connector_group.default",
+				ImportState:   true,
+				ImportStateId: "d45b8113-f74e-478b-8f6b-d94458a8f6f1",
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_connector_group.default", "id", "d45b8113-f74e-478b-8f6b-d94458a8f6f1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_connector_group.default", "name", "Default"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_connector_group.default", "is_default", "true"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_connector_group.default", "region", "japan"),
+				),
+			},
+		},
+	})
+}
+
 func testConfigConnectorGroupMinimal() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_minimal.tf")
 	if err != nil {
 		panic("failed to load connector group minimal config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigConnectorGroupDefaultImport() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_default_import.tf")
+	if err != nil {
+		panic("failed to load connector group default import config: " + err.Error())
 	}
 	return unitTestConfig
 }

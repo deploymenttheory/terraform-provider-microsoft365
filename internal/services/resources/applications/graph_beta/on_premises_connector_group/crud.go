@@ -222,6 +222,23 @@ func (r *OnPremisesConnectorGroupResource) Delete(ctx context.Context, req resou
 	}
 	defer cancel()
 
+	if !data.IsDefault.IsNull() && !data.IsDefault.IsUnknown() && data.IsDefault.ValueBool() {
+		// Direct API verification on 2026-07-05 observed the tenant default
+		// connector group with isDefault=true. Because the default is
+		// system-managed, attempting a real DELETE would be risky if Graph ever
+		// accepted it. Treat destroy of an imported default connector group like
+		// AWS default resources: remove it from Terraform state, but leave the
+		// remote default in place.
+		//
+		// Learn documents isDefault as read-only:
+		// https://learn.microsoft.com/en-us/graph/api/resources/connectorgroup?view=graph-rest-beta
+		tflog.Warn(ctx, "Default connector group cannot be deleted in Microsoft Graph; removing from Terraform state only", map[string]any{
+			"connector_group_id": data.ID.ValueString(),
+		})
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
 	if err := r.deleteConnectorGroup(ctx, data.ID.ValueString()); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return

@@ -12,6 +12,8 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
+const defaultConnectorGroupID = "d45b8113-f74e-478b-8f6b-d94458a8f6f1"
+
 var mockState struct {
 	sync.Mutex
 	connectorGroups map[string]map[string]any
@@ -30,6 +32,7 @@ var _ mocks.MockRegistrar = (*OnPremisesConnectorGroupMock)(nil)
 func (m *OnPremisesConnectorGroupMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.connectorGroups = make(map[string]map[string]any)
+	mockState.connectorGroups[defaultConnectorGroupID] = defaultConnectorGroupResponse()
 	mockState.Unlock()
 
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups$`, func(req *http.Request) (*http.Response, error) {
@@ -151,4 +154,16 @@ func (m *OnPremisesConnectorGroupMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.connectorGroups = make(map[string]map[string]any)
 	mockState.Unlock()
+}
+
+func defaultConnectorGroupResponse() map[string]any {
+	return map[string]any{
+		"@odata.context":      "https://graph.microsoft.com/beta/$metadata#onPremisesPublishingProfiles/applicationProxy/connectorGroups/$entity",
+		"id":                  defaultConnectorGroupID,
+		"name":                "Default",
+		"connectorGroupType":  "applicationProxy",
+		"isDefault":           true,
+		"region":              "japan",
+		"members@odata.count": 0,
+	}
 }
