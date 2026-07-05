@@ -20,7 +20,6 @@ Manages a Microsoft Entra Application Proxy connector group using the Microsoft 
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
-- `Directory.Read.All`
 - `Directory.ReadWrite.All`
 
 **Optional:**

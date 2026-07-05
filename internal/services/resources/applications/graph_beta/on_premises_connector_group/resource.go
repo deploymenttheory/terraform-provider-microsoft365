@@ -34,7 +34,7 @@ var (
 func NewOnPremisesConnectorGroupResource() resource.Resource {
 	return &OnPremisesConnectorGroupResource{
 		ReadPermissions: []string{
-			"Directory.Read.All",
+			"Directory.ReadWrite.All",
 		},
 		WritePermissions: []string{
 			"Directory.ReadWrite.All",
