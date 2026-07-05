@@ -27,6 +27,7 @@ import (
 	graphBetaApplicationOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_owner"
 	graphBetaApplicationPasswordCredential "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/application_password_credential"
 	graphBetaApplicationsOnPremisesConnectorGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/on_premises_connector_group"
+	graphBetaApplicationsOnPremisesConnectorGroupAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/on_premises_connector_group_assignment"
 	graphBetaApplicationsOnPremisesIpApplicationSegment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/on_premises_ip_application_segment"
 	graphBetaServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal"
 	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
@@ -209,6 +210,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaApplicationOwner.NewApplicationOwnerResource,
 		graphBetaApplicationPasswordCredential.NewApplicationPasswordCredentialResource,
 		graphBetaApplicationsOnPremisesConnectorGroup.NewOnPremisesConnectorGroupResource,
+		graphBetaApplicationsOnPremisesConnectorGroupAssignment.NewOnPremisesConnectorGroupAssignmentResource,
 		graphBetaApplicationsOnPremisesIpApplicationSegment.NewOnPremisesIpApplicationSegmentResource,
 		graphBetaServicePrincipal.NewServicePrincipalResource,
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,

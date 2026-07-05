@@ -1,0 +1,66 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Assign a connectorGroup to an application](https://learn.microsoft.com/en-us/graph/api/connectorgroup-post-applications?view=graph-rest-beta&tabs=http)
+- [connectorGroup resource type](https://learn.microsoft.com/en-us/graph/api/resources/connectorgroup?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+Microsoft Learn documents the following delegated permission for this {{.Type | lower}}:
+
+**Required:**
+- `Directory.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+Microsoft Learn lists application permissions for this API as `Not supported`.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.42.0 | Experimental | Initial release |
+
+## API Behavior Notes
+
+This resource manages the relationship between an application and an Application Proxy connector group using Microsoft Graph beta reference endpoints:
+
+- `PUT /applications/{application-id}/connectorGroup/$ref`
+- `GET /applications/{application-id}/connectorGroup`
+- `DELETE /applications/{application-id}/connectorGroup/$ref`
+
+The resource ID is a composite ID in the format `application_id/connector_group_id`. Changing either `application_id` or `connector_group_id` recreates the assignment.
+
+Microsoft Graph accepts a request body containing only the connector group reference:
+
+```json
+{
+  "@odata.id": "https://graph.microsoft.com/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{connector-group-id}"
+}
+```
+
+## Example Usage
+
+### Minimal Connector Group Assignment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_on_premises_connector_group_assignment/resource_minimal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_on_premises_connector_group_assignment/import.sh" }}
