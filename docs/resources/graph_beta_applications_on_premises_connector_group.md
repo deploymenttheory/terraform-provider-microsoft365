@@ -34,7 +34,7 @@ This resource uses Microsoft Graph beta Application Proxy connector group endpoi
 - `PATCH /onPremisesPublishingProfiles/applicationProxy/connectorGroups/{connectorGroup-id}`
 - `DELETE /onPremisesPublishingProfiles/applicationProxy/connectorGroups/{connectorGroup-id}`
 
-Microsoft Graph beta metadata lists `connectorGroupRegion` values `nam`, `eur`, `aus`, `asia`, `ind`, and `unknownFutureValue`. Direct API verification on 2026-07-05 returned the tenant default connector group with `region = "japan"`, which is not currently listed in beta metadata or represented by the generated SDK enum. The provider preserves that raw API value in state.
+Microsoft Graph beta metadata lists `connectorGroupRegion` values `nam`, `eur`, `aus`, `asia`, `ind`, and `unknownFutureValue`. The `unknownFutureValue` value is the Microsoft Graph evolvable enum sentinel and is accepted by the Terraform schema for API compatibility; normal configurations should use a concrete region value. Direct API verification on 2026-07-05 returned the tenant default connector group with `region = "japan"`, which is not currently listed in beta metadata or represented by the generated SDK enum. The provider preserves that raw API value in state.
 
 Direct API verification on 2026-07-05 also observed:
 
@@ -76,7 +76,7 @@ resource "microsoft365_graph_beta_applications_on_premises_connector_group" "wit
 
 ### Optional
 
-- `region` (String) The region the connector group is assigned to and optimizes traffic for. Microsoft Graph beta metadata lists `nam`, `eur`, `aus`, `asia`, `ind`, and `unknownFutureValue`. Direct API verification on 2026-07-05 also observed `japan` on the default connector group, even though that value is absent from beta metadata and the generated SDK enum. Region can only be changed while no connectors or applications are assigned to the connector group.
+- `region` (String) The region the connector group is assigned to and optimizes traffic for. Microsoft Graph beta metadata lists `nam`, `eur`, `aus`, `asia`, `ind`, and `unknownFutureValue`. The `unknownFutureValue` value is the Microsoft Graph evolvable enum sentinel and is accepted for API compatibility; normal configurations should use a concrete region value. Direct API verification on 2026-07-05 also observed `japan` on the default connector group, even though that value is absent from beta metadata and the generated SDK enum. Region can only be changed while no connectors or applications are assigned to the connector group.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

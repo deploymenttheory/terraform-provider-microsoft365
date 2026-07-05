@@ -95,7 +95,7 @@ func (r *OnPremisesConnectorGroupResource) Schema(ctx context.Context, req resou
 				Required:            true,
 			},
 			"region": schema.StringAttribute{
-				MarkdownDescription: "The region the connector group is assigned to and optimizes traffic for. Microsoft Graph beta metadata lists `nam`, `eur`, `aus`, `asia`, `ind`, and `unknownFutureValue`. Direct API verification on 2026-07-05 also observed `japan` on the default connector group, even though that value is absent from beta metadata and the generated SDK enum. Region can only be changed while no connectors or applications are assigned to the connector group.",
+				MarkdownDescription: "The region the connector group is assigned to and optimizes traffic for. Microsoft Graph beta metadata lists `nam`, `eur`, `aus`, `asia`, `ind`, and `unknownFutureValue`. The `unknownFutureValue` value is the Microsoft Graph evolvable enum sentinel and is accepted for API compatibility; normal configurations should use a concrete region value. Direct API verification on 2026-07-05 also observed `japan` on the default connector group, even though that value is absent from beta metadata and the generated SDK enum. Region can only be changed while no connectors or applications are assigned to the connector group.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
