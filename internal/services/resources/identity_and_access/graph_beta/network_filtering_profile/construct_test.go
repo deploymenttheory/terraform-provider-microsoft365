@@ -18,16 +18,21 @@ func TestConstructResourceMapsWritableFields(t *testing.T) {
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	if got := body.GetName(); got == nil || *got != "test-profile" {
+	requestBody, ok := body.(*filteringProfileRequestBody)
+	if !ok {
+		t.Fatalf("constructResource returned %T, expected filteringProfileRequestBody", body)
+	}
+
+	if got := requestBody.name; got == nil || *got != "test-profile" {
 		t.Fatalf("name = %v, expected test-profile", got)
 	}
-	if got := body.GetDescription(); got == nil || *got != "Managed by Terraform" {
+	if got := requestBody.description; got == nil || *got != "Managed by Terraform" {
 		t.Fatalf("description = %v, expected Managed by Terraform", got)
 	}
-	if got := body.GetPriority(); got == nil || *got != 100 {
+	if got := requestBody.priority; got == nil || *got != 100 {
 		t.Fatalf("priority = %v, expected 100", got)
 	}
-	if got := body.GetState(); got == nil || got.String() != "enabled" {
+	if got := requestBody.state; got == nil || *got != "enabled" {
 		t.Fatalf("state = %v, expected enabled", got)
 	}
 }

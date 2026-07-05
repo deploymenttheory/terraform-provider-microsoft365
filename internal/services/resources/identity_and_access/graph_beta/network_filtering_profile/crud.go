@@ -60,11 +60,7 @@ func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	baseResource, err := r.client.
-		NetworkAccess().
-		FilteringProfiles().
-		Post(ctx, requestBody, nil)
-
+	baseResource, err := r.createFilteringProfile(ctx, requestBody)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -206,13 +202,7 @@ func (r *NetworkFilteringProfileResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	_, err = r.client.
-		NetworkAccess().
-		FilteringProfiles().
-		ByFilteringProfileId(state.ID.ValueString()).
-		Patch(ctx, requestBody, nil)
-
-	if err != nil {
+	if err := r.updateFilteringProfile(ctx, state.ID.ValueString(), requestBody); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}

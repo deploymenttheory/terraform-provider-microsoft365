@@ -42,9 +42,11 @@ var (
 func NewNetworkFilteringProfileResource() resource.Resource {
 	return &NetworkFilteringProfileResource{
 		ReadPermissions: []string{
+			"LicenseAssignment.Read.All",
 			"NetworkAccess.Read.All",
 		},
 		WritePermissions: []string{
+			"LicenseAssignment.Read.All",
 			"NetworkAccess.ReadWrite.All",
 		},
 		ResourcePath: "/networkAccess/filteringProfiles",
@@ -110,21 +112,13 @@ func (r *NetworkFilteringProfileResource) Schema(ctx context.Context, req resour
 			},
 			"priority": schema.Int64Attribute{
 				MarkdownDescription: "The priority used to order the filtering profile for processing. Microsoft Graph beta exposes this as an `Int64` on `microsoft.graph.networkaccess.filteringProfile`.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Int64{
-					planmodifiers.UseStateForUnknownInt64(),
-				},
+				Required:            true,
 			},
 			"state": schema.StringAttribute{
 				MarkdownDescription: "The state of the filtering profile. Possible values are: `enabled`, `disabled`, `unknownFutureValue`. `unknownFutureValue` is accepted for Graph enum compatibility; normal configurations should use `enabled` or `disabled`.",
-				Optional:            true,
-				Computed:            true,
+				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("enabled", "disabled", "unknownFutureValue"),
-				},
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
 				},
 			},
 			"created_date_time": schema.StringAttribute{

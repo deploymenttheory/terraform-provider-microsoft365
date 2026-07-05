@@ -37,6 +37,7 @@ Microsoft Learn currently documents list, get, and update operations for filteri
 The following client `application` permissions are needed in order to use this resource:
 
 **Required:**
+- `LicenseAssignment.Read.All` (used by the provider license precheck against `/subscribedSkus`)
 - `NetworkAccess.Read.All`
 - `NetworkAccess.ReadWrite.All`
 
@@ -71,12 +72,12 @@ resource "microsoft365_graph_beta_identity_and_access_network_filtering_profile"
 ### Required
 
 - `name` (String) The name of the Global Secure Access security profile.
+- `priority` (Number) The priority used to order the filtering profile for processing. Microsoft Graph beta exposes this as an `Int64` on `microsoft.graph.networkaccess.filteringProfile`.
+- `state` (String) The state of the filtering profile. Possible values are: `enabled`, `disabled`, `unknownFutureValue`. `unknownFutureValue` is accepted for Graph enum compatibility; normal configurations should use `enabled` or `disabled`.
 
 ### Optional
 
 - `description` (String) Optional description of the Global Secure Access security profile. Maximum length is 1500 characters.
-- `priority` (Number) The priority used to order the filtering profile for processing. Microsoft Graph beta exposes this as an `Int64` on `microsoft.graph.networkaccess.filteringProfile`.
-- `state` (String) The state of the filtering profile. Possible values are: `enabled`, `disabled`, `unknownFutureValue`. `unknownFutureValue` is accepted for Graph enum compatibility; normal configurations should use `enabled` or `disabled`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
