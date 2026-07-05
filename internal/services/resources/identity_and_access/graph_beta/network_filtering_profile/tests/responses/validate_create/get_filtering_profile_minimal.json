@@ -1,0 +1,13 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/filteringProfiles/$entity",
+  "id": "00000000-0000-0000-0000-000000000002",
+  "name": "Test Minimal Filtering Profile",
+  "description": null,
+  "state": "enabled",
+  "priority": 100,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "version": "1.0.0",
+  "policies": [],
+  "conditionalAccessPolicies": []
+}

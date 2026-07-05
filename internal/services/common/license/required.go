@@ -45,6 +45,11 @@ var RequiredLicenses = map[string][]string{
 		constants.ServicePlanEntraPremiumInternetAccess, // Internet Access service plan
 	},
 
+	"NetworkFilteringProfile": {
+		constants.SKUMicrosoftEntraSuite,                // Microsoft Entra Suite (includes Global Secure Access)
+		constants.ServicePlanEntraPremiumInternetAccess, // Internet Access service plan
+	},
+
 	"PrivateAccessPolicy": {
 		constants.SKUMicrosoftEntraSuite,               // Microsoft Entra Suite (includes Global Secure Access)
 		constants.ServicePlanEntraPremiumPrivateAccess, // Private Access service plan
