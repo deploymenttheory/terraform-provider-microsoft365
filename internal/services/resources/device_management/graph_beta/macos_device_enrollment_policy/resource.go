@@ -63,10 +63,12 @@ func NewMacOSDeviceEnrollmentPolicyResource() resource.Resource {
 		ReadPermissions: []string{
 			"DeviceManagementConfiguration.Read.All",
 			"DeviceManagementServiceConfig.Read.All",
+			"Directory.Read.All",
+			"Group.Read.All",
+			"GroupMember.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementConfiguration.ReadWrite.All",
-			"DeviceManagementServiceConfig.ReadWrite.All",
 		},
 		ResourcePath: "/deviceManagement/configurationPolicies",
 	}
