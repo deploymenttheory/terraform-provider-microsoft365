@@ -23,19 +23,25 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfil
 	data.State = convert.GraphToFrameworkEnum(link.GetState())
 	data.Version = convert.GraphToFrameworkString(link.GetVersion())
 
+	var policyODataType string
 	if policy := link.GetPolicy(); policy != nil {
 		data.PolicyID = convert.GraphToFrameworkString(policy.GetId())
 		if policyType := policy.GetOdataType(); policyType != nil {
-			data.PolicyODataType = types.StringValue(*policyType)
-			data.PolicyType = policyTypeFromPolicyODataType(*policyType)
+			policyODataType = *policyType
 		}
 	}
 
+	var linkODataType string
 	if odataType := link.GetOdataType(); odataType != nil {
-		data.PolicyLinkODataType = types.StringValue(*odataType)
-		if data.PolicyType.IsNull() || data.PolicyType.IsUnknown() {
-			data.PolicyType = policyTypeFromLinkODataType(*odataType)
-		}
+		linkODataType = *odataType
+	}
+	if policyType, ok := policyTypeFromODataTypes(linkODataType, policyODataType); ok {
+		data.PolicyType = policyType
+	} else {
+		tflog.Warn(ctx, "Remote policy link type is not supported by this Terraform resource version", map[string]any{
+			"link_odata_type":   linkODataType,
+			"policy_odata_type": policyODataType,
+		})
 	}
 
 	if filteringLink, ok := link.(models.FilteringPolicyLinkable); ok {
@@ -49,40 +55,6 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfil
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating %s with id %s", ResourceName, data.ID.ValueString()))
-}
-
-func policyTypeFromPolicyODataType(odataType string) types.String {
-	switch odataType {
-	case filteringPolicyODataType:
-		return types.StringValue(policyTypeFiltering)
-	case webFilteringPolicyODataType:
-		return types.StringValue(policyTypeWebFiltering)
-	case cloudFirewallPolicyODataType:
-		return types.StringValue(policyTypeCloudFirewall)
-	case threatIntelligencePolicyODataType:
-		return types.StringValue(policyTypeThreatIntelligence)
-	case tlsInspectionPolicyODataType:
-		return types.StringValue(policyTypeTlsInspection)
-	default:
-		return types.StringValue(policyTypeCustom)
-	}
-}
-
-func policyTypeFromLinkODataType(odataType string) types.String {
-	switch odataType {
-	case filteringPolicyLinkODataType:
-		return types.StringValue(policyTypeFiltering)
-	case webFilteringPolicyLinkODataType:
-		return types.StringValue(policyTypeWebFiltering)
-	case cloudFirewallPolicyLinkODataType:
-		return types.StringValue(policyTypeCloudFirewall)
-	case threatIntelligencePolicyLinkODataType:
-		return types.StringValue(policyTypeThreatIntelligence)
-	case tlsInspectionPolicyLinkODataType:
-		return types.StringValue(policyTypeTlsInspection)
-	default:
-		return types.StringValue(policyTypeCustom)
-	}
 }
 
 func findPolicyLink(profile models.FilteringProfileable, policyLinkID, policyID string) models.PolicyLinkable {

@@ -44,12 +44,6 @@ func TestMapRemoteStateToTerraformKnownPolicyTypes(t *testing.T) {
 			policyODataType:    tlsInspectionPolicyODataType,
 			expectedPolicyType: policyTypeTlsInspection,
 		},
-		{
-			name:               "custom",
-			linkODataType:      "#microsoft.graph.networkaccess.examplePolicyLink",
-			policyODataType:    "#microsoft.graph.networkaccess.examplePolicy",
-			expectedPolicyType: policyTypeCustom,
-		},
 	}
 
 	for _, tt := range tests {
@@ -70,12 +64,6 @@ func TestMapRemoteStateToTerraformKnownPolicyTypes(t *testing.T) {
 
 			if data.PolicyType.ValueString() != tt.expectedPolicyType {
 				t.Fatalf("policy_type = %q, want %q", data.PolicyType.ValueString(), tt.expectedPolicyType)
-			}
-			if data.PolicyLinkODataType.ValueString() != tt.linkODataType {
-				t.Fatalf("policy_link_odata_type = %q, want %q", data.PolicyLinkODataType.ValueString(), tt.linkODataType)
-			}
-			if data.PolicyODataType.ValueString() != tt.policyODataType {
-				t.Fatalf("policy_odata_type = %q, want %q", data.PolicyODataType.ValueString(), tt.policyODataType)
 			}
 			if data.ID.ValueString() != "profile-id/link-id" {
 				t.Fatalf("id = %q, want profile-id/link-id", data.ID.ValueString())

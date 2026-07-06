@@ -103,33 +103,6 @@ func TestConstructUpdateResourceWebFilteringPolicy(t *testing.T) {
 	assertJSONMapEqual(t, expected, actual)
 }
 
-func TestConstructCreateResourceCustomPolicy(t *testing.T) {
-	model := &NetworkFilteringProfilePolicyLinkResourceModel{
-		PolicyID:            types.StringValue("11111111-1111-1111-1111-111111111111"),
-		PolicyType:          types.StringValue(policyTypeCustom),
-		PolicyLinkODataType: types.StringValue("#microsoft.graph.networkaccess.examplePolicyLink"),
-		PolicyODataType:     types.StringValue("#microsoft.graph.networkaccess.examplePolicy"),
-		State:               types.StringValue("enabled"),
-	}
-
-	body, err := constructCreateResource(context.Background(), model)
-	if err != nil {
-		t.Fatalf("constructCreateResource returned error: %v", err)
-	}
-
-	actual := serializeParsableForTest(t, body)
-	expected := map[string]any{
-		"@odata.type": "#microsoft.graph.networkaccess.examplePolicyLink",
-		"state":       "enabled",
-		"policy": map[string]any{
-			"id":          "11111111-1111-1111-1111-111111111111",
-			"@odata.type": "#microsoft.graph.networkaccess.examplePolicy",
-		},
-	}
-
-	assertJSONMapEqual(t, expected, actual)
-}
-
 func serializeParsableForTest(t *testing.T, body s.Parsable) map[string]any {
 	t.Helper()
 

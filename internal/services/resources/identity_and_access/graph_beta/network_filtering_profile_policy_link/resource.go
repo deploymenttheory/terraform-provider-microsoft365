@@ -32,7 +32,6 @@ const (
 	policyTypeCloudFirewall      = "cloud_firewall_policy"
 	policyTypeThreatIntelligence = "threat_intelligence_policy"
 	policyTypeTlsInspection      = "tls_inspection_policy"
-	policyTypeCustom             = "custom"
 )
 
 var (
@@ -127,7 +126,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 				},
 			},
 			"policy_type": schema.StringAttribute{
-				MarkdownDescription: "The policy type to link. Known values are `filtering_policy`, `web_filtering_policy`, `cloud_firewall_policy`, `threat_intelligence_policy`, and `tls_inspection_policy`. Use `custom` with `policy_link_odata_type` and `policy_odata_type` for portal-first policy link types not yet generated in the Microsoft Graph beta SDK.",
+				MarkdownDescription: "The policy type to link. Known values are `filtering_policy`, `web_filtering_policy`, `cloud_firewall_policy`, `threat_intelligence_policy`, and `tls_inspection_policy`.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -136,28 +135,9 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 						policyTypeCloudFirewall,
 						policyTypeThreatIntelligence,
 						policyTypeTlsInspection,
-						policyTypeCustom,
 					),
 				},
 				PlanModifiers: []planmodifier.String{
-					planmodifiers.RequiresReplaceString(),
-				},
-			},
-			"policy_link_odata_type": schema.StringAttribute{
-				MarkdownDescription: "The `@odata.type` value used for the policy link request body. This is computed for known `policy_type` values and must be configured when `policy_type` is `custom`.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-					planmodifiers.RequiresReplaceString(),
-				},
-			},
-			"policy_odata_type": schema.StringAttribute{
-				MarkdownDescription: "The nested policy `@odata.type` value used for the policy reference in the create request body. This is computed for known `policy_type` values and must be configured when `policy_type` is `custom`.",
-				Optional:            true,
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
 					planmodifiers.RequiresReplaceString(),
 				},
 			},

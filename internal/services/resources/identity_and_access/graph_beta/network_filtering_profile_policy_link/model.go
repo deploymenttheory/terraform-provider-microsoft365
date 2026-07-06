@@ -12,8 +12,6 @@ type NetworkFilteringProfilePolicyLinkResourceModel struct {
 	PolicyID             types.String   `tfsdk:"policy_id"`
 	PolicyLinkID         types.String   `tfsdk:"policy_link_id"`
 	PolicyType           types.String   `tfsdk:"policy_type"`
-	PolicyLinkODataType  types.String   `tfsdk:"policy_link_odata_type"`
-	PolicyODataType      types.String   `tfsdk:"policy_odata_type"`
 	State                types.String   `tfsdk:"state"`
 	Priority             types.Int64    `tfsdk:"priority"`
 	LoggingState         types.String   `tfsdk:"logging_state"`

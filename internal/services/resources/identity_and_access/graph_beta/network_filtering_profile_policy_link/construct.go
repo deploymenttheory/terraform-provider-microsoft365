@@ -38,41 +38,54 @@ type policyODataTypes struct {
 }
 
 func resolvePolicyODataTypes(data *NetworkFilteringProfilePolicyLinkResourceModel) (policyODataTypes, error) {
-	switch data.PolicyType.ValueString() {
-	case policyTypeFiltering:
-		return policyODataTypes{link: filteringPolicyLinkODataType, policy: filteringPolicyODataType}, nil
-	case policyTypeWebFiltering:
-		return policyODataTypes{link: webFilteringPolicyLinkODataType, policy: webFilteringPolicyODataType}, nil
-	case policyTypeCloudFirewall:
-		return policyODataTypes{link: cloudFirewallPolicyLinkODataType, policy: cloudFirewallPolicyODataType}, nil
-	case policyTypeThreatIntelligence:
-		return policyODataTypes{link: threatIntelligencePolicyLinkODataType, policy: threatIntelligencePolicyODataType}, nil
-	case policyTypeTlsInspection:
-		return policyODataTypes{link: tlsInspectionPolicyLinkODataType, policy: tlsInspectionPolicyODataType}, nil
-	case policyTypeCustom:
-		// Custom exists for portal-first Global Secure Access policy link types that
-		// are visible in Entra admin center XHR before they are published in Learn or
-		// generated into the Microsoft Graph beta SDK.
-		if data.PolicyLinkODataType.IsNull() || data.PolicyLinkODataType.IsUnknown() || data.PolicyLinkODataType.ValueString() == "" {
-			return policyODataTypes{}, fmt.Errorf("policy_link_odata_type is required when policy_type is custom")
-		}
-		if data.PolicyODataType.IsNull() || data.PolicyODataType.IsUnknown() || data.PolicyODataType.ValueString() == "" {
-			return policyODataTypes{}, fmt.Errorf("policy_odata_type is required when policy_type is custom")
-		}
-		return policyODataTypes{link: data.PolicyLinkODataType.ValueString(), policy: data.PolicyODataType.ValueString()}, nil
-	default:
-		return policyODataTypes{}, fmt.Errorf("unsupported policy_type %q", data.PolicyType.ValueString())
+	if odataTypes, ok := policyTypeToODataTypes[data.PolicyType.ValueString()]; ok {
+		return odataTypes, nil
 	}
+
+	return policyODataTypes{}, fmt.Errorf("unsupported policy_type %q", data.PolicyType.ValueString())
+}
+
+var policyTypeToODataTypes = map[string]policyODataTypes{
+	policyTypeFiltering: {
+		link:   filteringPolicyLinkODataType,
+		policy: filteringPolicyODataType,
+	},
+	policyTypeWebFiltering: {
+		link:   webFilteringPolicyLinkODataType,
+		policy: webFilteringPolicyODataType,
+	},
+	policyTypeCloudFirewall: {
+		link:   cloudFirewallPolicyLinkODataType,
+		policy: cloudFirewallPolicyODataType,
+	},
+	policyTypeThreatIntelligence: {
+		link:   threatIntelligencePolicyLinkODataType,
+		policy: threatIntelligencePolicyODataType,
+	},
+	policyTypeTlsInspection: {
+		link:   tlsInspectionPolicyLinkODataType,
+		policy: tlsInspectionPolicyODataType,
+	},
+}
+
+func policyTypeFromODataTypes(linkODataType, policyODataType string) (types.String, bool) {
+	for policyType, odataTypes := range policyTypeToODataTypes {
+		if linkODataType != "" && odataTypes.link == linkODataType {
+			return types.StringValue(policyType), true
+		}
+		if policyODataType != "" && odataTypes.policy == policyODataType {
+			return types.StringValue(policyType), true
+		}
+	}
+
+	return types.StringNull(), false
 }
 
 func populateComputedRequestFields(data *NetworkFilteringProfilePolicyLinkResourceModel) error {
-	odataTypes, err := resolvePolicyODataTypes(data)
+	_, err := resolvePolicyODataTypes(data)
 	if err != nil {
 		return err
 	}
-
-	data.PolicyLinkODataType = types.StringValue(odataTypes.link)
-	data.PolicyODataType = types.StringValue(odataTypes.policy)
 
 	if data.PolicyType.ValueString() == policyTypeFiltering {
 		if data.Priority.IsNull() || data.Priority.IsUnknown() {

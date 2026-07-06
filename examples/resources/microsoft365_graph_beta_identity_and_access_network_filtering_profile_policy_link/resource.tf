@@ -20,12 +20,3 @@ resource "microsoft365_graph_beta_identity_and_access_network_filtering_profile_
   policy_type          = "tls_inspection_policy"
   state                = "enabled"
 }
-
-resource "microsoft365_graph_beta_identity_and_access_network_filtering_profile_policy_link" "portal_first_policy_type" {
-  filtering_profile_id   = microsoft365_graph_beta_identity_and_access_network_filtering_profile.example.id
-  policy_id              = "00000000-0000-0000-0000-000000000000"
-  policy_type            = "custom"
-  policy_link_odata_type = "#microsoft.graph.networkaccess.examplePolicyLink"
-  policy_odata_type      = "#microsoft.graph.networkaccess.examplePolicy"
-  state                  = "enabled"
-}
