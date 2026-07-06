@@ -22,7 +22,7 @@ This resource manages a Microsoft Entra Global Secure Access **Security profile*
 
 This resource uses the beta `/networkAccess/filteringProfiles/{filteringProfileId}/policies` endpoint.
 
-Microsoft Learn documents `policyLink` as an abstract type with `filteringPolicyLink`, `cloudFirewallPolicyLink`, `threatIntelligencePolicyLink`, and `tlsInspectionPolicyLink` derived types. The Entra admin center was also observed linking web filtering policies with `#microsoft.graph.networkaccess.webFilteringPolicyLink`, which is not currently generated in the Microsoft Graph beta Go SDK. The provider sends explicit `@odata.type` values so both documented link types and portal-first link types can be managed.
+Microsoft Learn documents `policyLink` as an abstract type with `filteringPolicyLink`, `cloudFirewallPolicyLink`, `threatIntelligencePolicyLink`, and `tlsInspectionPolicyLink` derived types. The Entra admin center was also observed linking web filtering policies with `#microsoft.graph.networkaccess.webFilteringPolicyLink`, which is not currently generated in the Microsoft Graph beta Go SDK. The Entra admin center JavaScript bundle also defines portal-first `promptPolicyLink`, `filePolicyLink`, and `securityProviderPolicyLink` types. The provider sends explicit `@odata.type` values so both documented link types and portal-first link types can be managed.
 
 Observed Entra admin center traffic for creating a legacy filtering policy link uses:
 
@@ -33,6 +33,10 @@ POST /beta/networkaccess/filteringProfiles/{filteringProfileId}/policies
 with a `#microsoft.graph.networkaccess.filteringPolicyLink` body containing `priority`, `state`, `loggingState`, and a nested `#microsoft.graph.networkaccess.filteringPolicy` reference.
 
 Observed Entra admin center traffic for creating a web filtering policy link uses the same collection endpoint with a `#microsoft.graph.networkaccess.webFilteringPolicyLink` body containing `state` and a nested `#microsoft.graph.networkaccess.webFilteringPolicy` reference.
+
+Observed Entra admin center traffic for creating a content policy link uses the same collection endpoint with a `#microsoft.graph.networkaccess.filePolicyLink` body containing `state` and a nested `#microsoft.graph.networkaccess.filePolicy` reference. This Graph type naming does not match the UI label; Terraform exposes it as `content_policy`.
+
+Observed Entra admin center traffic for selecting Netskope DLP policies queries `/networkAccess/securityProviderPolicies` with a Netskope schema filter. Terraform exposes this as `netskope_dlp_policy` and maps it to `#microsoft.graph.networkaccess.securityProviderPolicyLink` internally.
 
 ## Behavior Notes
 

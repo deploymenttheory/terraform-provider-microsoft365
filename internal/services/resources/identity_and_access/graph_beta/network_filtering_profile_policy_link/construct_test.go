@@ -63,6 +63,81 @@ func TestConstructCreateResourceWebFilteringPolicy(t *testing.T) {
 	assertJSONMapEqual(t, expected, actual)
 }
 
+func TestConstructCreateResourcePromptPolicy(t *testing.T) {
+	model := &NetworkFilteringProfilePolicyLinkResourceModel{
+		PolicyID:   types.StringValue("e0759300-3367-4118-985b-e6a79c3d404f"),
+		PolicyType: types.StringValue(policyTypePrompt),
+		State:      types.StringValue("enabled"),
+	}
+
+	body, err := constructCreateResource(context.Background(), model)
+	if err != nil {
+		t.Fatalf("constructCreateResource returned error: %v", err)
+	}
+
+	actual := serializeParsableForTest(t, body)
+	expected := map[string]any{
+		"@odata.type": promptPolicyLinkODataType,
+		"state":       "enabled",
+		"policy": map[string]any{
+			"id":          "e0759300-3367-4118-985b-e6a79c3d404f",
+			"@odata.type": promptPolicyODataType,
+		},
+	}
+
+	assertJSONMapEqual(t, expected, actual)
+}
+
+func TestConstructCreateResourceContentPolicy(t *testing.T) {
+	model := &NetworkFilteringProfilePolicyLinkResourceModel{
+		PolicyID:   types.StringValue("44444444-4444-4444-4444-444444444444"),
+		PolicyType: types.StringValue(policyTypeContent),
+		State:      types.StringValue("enabled"),
+	}
+
+	body, err := constructCreateResource(context.Background(), model)
+	if err != nil {
+		t.Fatalf("constructCreateResource returned error: %v", err)
+	}
+
+	actual := serializeParsableForTest(t, body)
+	expected := map[string]any{
+		"@odata.type": filePolicyLinkODataType,
+		"state":       "enabled",
+		"policy": map[string]any{
+			"id":          "44444444-4444-4444-4444-444444444444",
+			"@odata.type": filePolicyODataType,
+		},
+	}
+
+	assertJSONMapEqual(t, expected, actual)
+}
+
+func TestConstructCreateResourceNetskopeDlpPolicy(t *testing.T) {
+	model := &NetworkFilteringProfilePolicyLinkResourceModel{
+		PolicyID:   types.StringValue("55555555-5555-5555-5555-555555555555"),
+		PolicyType: types.StringValue(policyTypeNetskopeDlp),
+		State:      types.StringValue("enabled"),
+	}
+
+	body, err := constructCreateResource(context.Background(), model)
+	if err != nil {
+		t.Fatalf("constructCreateResource returned error: %v", err)
+	}
+
+	actual := serializeParsableForTest(t, body)
+	expected := map[string]any{
+		"@odata.type": securityProviderPolicyLinkODataType,
+		"state":       "enabled",
+		"policy": map[string]any{
+			"id":          "55555555-5555-5555-5555-555555555555",
+			"@odata.type": securityProviderPolicyODataType,
+		},
+	}
+
+	assertJSONMapEqual(t, expected, actual)
+}
+
 func TestConstructUpdateResourceFilteringPolicy(t *testing.T) {
 	model := &NetworkFilteringProfilePolicyLinkResourceModel{
 		PolicyType: types.StringValue(policyTypeFiltering),
@@ -97,6 +172,66 @@ func TestConstructUpdateResourceWebFilteringPolicy(t *testing.T) {
 	actual := serializeParsableForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": webFilteringPolicyLinkODataType,
+		"state":       "disabled",
+	}
+
+	assertJSONMapEqual(t, expected, actual)
+}
+
+func TestConstructUpdateResourcePromptPolicy(t *testing.T) {
+	model := &NetworkFilteringProfilePolicyLinkResourceModel{
+		PolicyType: types.StringValue(policyTypePrompt),
+		State:      types.StringValue("disabled"),
+	}
+
+	body, err := constructUpdateResource(context.Background(), model)
+	if err != nil {
+		t.Fatalf("constructUpdateResource returned error: %v", err)
+	}
+
+	actual := serializeParsableForTest(t, body)
+	expected := map[string]any{
+		"@odata.type": promptPolicyLinkODataType,
+		"state":       "disabled",
+	}
+
+	assertJSONMapEqual(t, expected, actual)
+}
+
+func TestConstructUpdateResourceContentPolicy(t *testing.T) {
+	model := &NetworkFilteringProfilePolicyLinkResourceModel{
+		PolicyType: types.StringValue(policyTypeContent),
+		State:      types.StringValue("disabled"),
+	}
+
+	body, err := constructUpdateResource(context.Background(), model)
+	if err != nil {
+		t.Fatalf("constructUpdateResource returned error: %v", err)
+	}
+
+	actual := serializeParsableForTest(t, body)
+	expected := map[string]any{
+		"@odata.type": filePolicyLinkODataType,
+		"state":       "disabled",
+	}
+
+	assertJSONMapEqual(t, expected, actual)
+}
+
+func TestConstructUpdateResourceNetskopeDlpPolicy(t *testing.T) {
+	model := &NetworkFilteringProfilePolicyLinkResourceModel{
+		PolicyType: types.StringValue(policyTypeNetskopeDlp),
+		State:      types.StringValue("disabled"),
+	}
+
+	body, err := constructUpdateResource(context.Background(), model)
+	if err != nil {
+		t.Fatalf("constructUpdateResource returned error: %v", err)
+	}
+
+	actual := serializeParsableForTest(t, body)
+	expected := map[string]any{
+		"@odata.type": securityProviderPolicyLinkODataType,
 		"state":       "disabled",
 	}
 

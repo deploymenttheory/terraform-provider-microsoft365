@@ -29,6 +29,27 @@ func TestValidateFilteringPolicyOnlyFields(t *testing.T) {
 			wantErrors:   0,
 		},
 		{
+			name:         "prompt policy with omitted fields",
+			policyType:   types.StringValue(policyTypePrompt),
+			priority:     types.Int64Null(),
+			loggingState: types.StringNull(),
+			wantErrors:   0,
+		},
+		{
+			name:         "content policy with omitted fields",
+			policyType:   types.StringValue(policyTypeContent),
+			priority:     types.Int64Null(),
+			loggingState: types.StringNull(),
+			wantErrors:   0,
+		},
+		{
+			name:         "netskope dlp policy with omitted fields",
+			policyType:   types.StringValue(policyTypeNetskopeDlp),
+			priority:     types.Int64Null(),
+			loggingState: types.StringNull(),
+			wantErrors:   0,
+		},
+		{
 			name:         "web filtering policy rejects priority",
 			policyType:   types.StringValue(policyTypeWebFiltering),
 			priority:     types.Int64Value(100),

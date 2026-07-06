@@ -18,12 +18,30 @@ const (
 	// XHR was observed linking V2 web filtering policies by POSTing this explicit
 	// @odata.type to /networkAccess/filteringProfiles/{filteringProfileId}/policies.
 	//
+	// prompt_policy, content_policy, and netskope_dlp_policy are portal-first cases:
+	// the Entra admin center JavaScript bundle defines promptPolicyLink,
+	// filePolicyLink, contentPolicyLink, and securityProviderPolicyLink, but these
+	// types were not present in Microsoft Graph beta $metadata or the generated Go
+	// SDK when this resource was added. Observed Entra admin center XHR for the UI's
+	// content policy option sends filePolicyLink/filePolicy.
+	//
+	// Netskope DLP policy selection was observed querying
+	// /networkAccess/securityProviderPolicies with a Netskope schema filter, so
+	// Terraform exposes that UI concept as netskope_dlp_policy while keeping the
+	// generic securityProviderPolicy Graph type internal.
+	//
 	// Keep these values as strings instead of SDK constructors so portal-first policy
 	// link types can be sent before the generated SDK catches up.
 	filteringPolicyLinkODataType          = "#microsoft.graph.networkaccess.filteringPolicyLink"
 	filteringPolicyODataType              = "#microsoft.graph.networkaccess.filteringPolicy"
 	webFilteringPolicyLinkODataType       = "#microsoft.graph.networkaccess.webFilteringPolicyLink"
 	webFilteringPolicyODataType           = "#microsoft.graph.networkaccess.webFilteringPolicy"
+	promptPolicyLinkODataType             = "#microsoft.graph.networkaccess.promptPolicyLink"
+	promptPolicyODataType                 = "#microsoft.graph.networkaccess.promptPolicy"
+	filePolicyLinkODataType               = "#microsoft.graph.networkaccess.filePolicyLink"
+	filePolicyODataType                   = "#microsoft.graph.networkaccess.filePolicy"
+	securityProviderPolicyLinkODataType   = "#microsoft.graph.networkaccess.securityProviderPolicyLink"
+	securityProviderPolicyODataType       = "#microsoft.graph.networkaccess.securityProviderPolicy"
 	cloudFirewallPolicyLinkODataType      = "#microsoft.graph.networkaccess.cloudFirewallPolicyLink"
 	cloudFirewallPolicyODataType          = "#microsoft.graph.networkaccess.cloudFirewallPolicy"
 	threatIntelligencePolicyLinkODataType = "#microsoft.graph.networkaccess.threatIntelligencePolicyLink"
@@ -53,6 +71,18 @@ var policyTypeToODataTypes = map[string]policyODataTypes{
 	policyTypeWebFiltering: {
 		link:   webFilteringPolicyLinkODataType,
 		policy: webFilteringPolicyODataType,
+	},
+	policyTypePrompt: {
+		link:   promptPolicyLinkODataType,
+		policy: promptPolicyODataType,
+	},
+	policyTypeContent: {
+		link:   filePolicyLinkODataType,
+		policy: filePolicyODataType,
+	},
+	policyTypeNetskopeDlp: {
+		link:   securityProviderPolicyLinkODataType,
+		policy: securityProviderPolicyODataType,
 	},
 	policyTypeCloudFirewall: {
 		link:   cloudFirewallPolicyLinkODataType,

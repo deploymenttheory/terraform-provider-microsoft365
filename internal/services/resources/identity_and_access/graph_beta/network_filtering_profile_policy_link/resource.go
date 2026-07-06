@@ -29,6 +29,9 @@ const (
 
 	policyTypeFiltering          = "filtering_policy"
 	policyTypeWebFiltering       = "web_filtering_policy"
+	policyTypePrompt             = "prompt_policy"
+	policyTypeContent            = "content_policy"
+	policyTypeNetskopeDlp        = "netskope_dlp_policy"
 	policyTypeCloudFirewall      = "cloud_firewall_policy"
 	policyTypeThreatIntelligence = "threat_intelligence_policy"
 	policyTypeTlsInspection      = "tls_inspection_policy"
@@ -127,12 +130,15 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 				},
 			},
 			"policy_type": schema.StringAttribute{
-				MarkdownDescription: "The policy type to link. Known values are `filtering_policy`, `web_filtering_policy`, `cloud_firewall_policy`, `threat_intelligence_policy`, and `tls_inspection_policy`.",
+				MarkdownDescription: "The policy type to link. Known values are `filtering_policy`, `web_filtering_policy`, `prompt_policy`, `content_policy`, `netskope_dlp_policy`, `cloud_firewall_policy`, `threat_intelligence_policy`, and `tls_inspection_policy`.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
 						policyTypeFiltering,
 						policyTypeWebFiltering,
+						policyTypePrompt,
+						policyTypeContent,
+						policyTypeNetskopeDlp,
 						policyTypeCloudFirewall,
 						policyTypeThreatIntelligence,
 						policyTypeTlsInspection,

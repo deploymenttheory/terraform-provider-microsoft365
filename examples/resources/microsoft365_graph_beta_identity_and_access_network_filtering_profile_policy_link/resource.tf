@@ -20,3 +20,24 @@ resource "microsoft365_graph_beta_identity_and_access_network_filtering_profile_
   policy_type          = "tls_inspection_policy"
   state                = "enabled"
 }
+
+resource "microsoft365_graph_beta_identity_and_access_network_filtering_profile_policy_link" "prompt" {
+  filtering_profile_id = microsoft365_graph_beta_identity_and_access_network_filtering_profile.example.id
+  policy_id            = "00000000-0000-0000-0000-000000000000"
+  policy_type          = "prompt_policy"
+  state                = "enabled"
+}
+
+resource "microsoft365_graph_beta_identity_and_access_network_filtering_profile_policy_link" "content" {
+  filtering_profile_id = microsoft365_graph_beta_identity_and_access_network_filtering_profile.example.id
+  policy_id            = "00000000-0000-0000-0000-000000000000"
+  policy_type          = "content_policy"
+  state                = "enabled"
+}
+
+resource "microsoft365_graph_beta_identity_and_access_network_filtering_profile_policy_link" "netskope_dlp" {
+  filtering_profile_id = microsoft365_graph_beta_identity_and_access_network_filtering_profile.example.id
+  policy_id            = "00000000-0000-0000-0000-000000000000"
+  policy_type          = "netskope_dlp_policy"
+  state                = "enabled"
+}

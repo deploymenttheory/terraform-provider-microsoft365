@@ -27,6 +27,24 @@ func TestMapRemoteStateToTerraformKnownPolicyTypes(t *testing.T) {
 			expectedPolicyType: policyTypeWebFiltering,
 		},
 		{
+			name:               "prompt",
+			linkODataType:      promptPolicyLinkODataType,
+			policyODataType:    promptPolicyODataType,
+			expectedPolicyType: policyTypePrompt,
+		},
+		{
+			name:               "content",
+			linkODataType:      filePolicyLinkODataType,
+			policyODataType:    filePolicyODataType,
+			expectedPolicyType: policyTypeContent,
+		},
+		{
+			name:               "netskope dlp",
+			linkODataType:      securityProviderPolicyLinkODataType,
+			policyODataType:    securityProviderPolicyODataType,
+			expectedPolicyType: policyTypeNetskopeDlp,
+		},
+		{
 			name:               "cloud firewall",
 			linkODataType:      cloudFirewallPolicyLinkODataType,
 			policyODataType:    cloudFirewallPolicyODataType,
