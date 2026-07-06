@@ -11,6 +11,7 @@ import (
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -32,10 +33,11 @@ const (
 )
 
 var (
-	_ resource.Resource                = &NetworkWebContentFilteringPolicyRuleResource{}
-	_ resource.ResourceWithConfigure   = &NetworkWebContentFilteringPolicyRuleResource{}
-	_ resource.ResourceWithImportState = &NetworkWebContentFilteringPolicyRuleResource{}
-	_ resource.ResourceWithIdentity    = &NetworkWebContentFilteringPolicyRuleResource{}
+	_ resource.Resource                     = &NetworkWebContentFilteringPolicyRuleResource{}
+	_ resource.ResourceWithConfigure        = &NetworkWebContentFilteringPolicyRuleResource{}
+	_ resource.ResourceWithImportState      = &NetworkWebContentFilteringPolicyRuleResource{}
+	_ resource.ResourceWithIdentity         = &NetworkWebContentFilteringPolicyRuleResource{}
+	_ resource.ResourceWithConfigValidators = &NetworkWebContentFilteringPolicyRuleResource{}
 )
 
 func NewNetworkWebContentFilteringPolicyRuleResource() resource.Resource {
@@ -86,6 +88,15 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) IdentitySchema(ctx contex
 				RequiredForImport: true,
 			},
 		},
+	}
+}
+
+func (r *NetworkWebContentFilteringPolicyRuleResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.AtLeastOneOf(
+			path.MatchRoot("urls_or_fqdns"),
+			path.MatchRoot("web_categories"),
+		),
 	}
 }
 
@@ -141,14 +152,20 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Contex
 				},
 			},
 			"urls_or_fqdns": schema.SetAttribute{
-				MarkdownDescription: "URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. The Entra portal shows these as comma-separated text, while Microsoft Graph stores them as a values array; Terraform follows the Graph shape with one set element per destination.",
+				MarkdownDescription: "URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. At least one of `urls_or_fqdns` or `web_categories` must be specified; both can be set on the same rule. If set, this attribute must contain at least one value. The Entra portal shows URL/FQDN destinations as comma-separated text, while Microsoft Graph stores them as a values array; Terraform follows the Graph shape with one set element per destination.",
 				ElementType:         types.StringType,
 				Optional:            true,
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+				},
 			},
 			"web_categories": schema.SetAttribute{
-				MarkdownDescription: "Web category IDs for the rule, for example `AlcoholAndTobacco`. Category IDs are passed through to Microsoft Graph unchanged.",
+				MarkdownDescription: "Web category IDs for the rule, for example `AlcoholAndTobacco`. At least one of `urls_or_fqdns` or `web_categories` must be specified; both can be set on the same rule. If set, this attribute must contain at least one value. Category IDs are passed through to Microsoft Graph unchanged.",
 				ElementType:         types.StringType,
 				Optional:            true,
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+				},
 			},
 			"http_methods": schema.SetAttribute{
 				MarkdownDescription: "HTTP methods that must match the rule. The Entra portal sends these as comma-separated lowercase values.",

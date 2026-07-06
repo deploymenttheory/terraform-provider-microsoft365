@@ -135,8 +135,8 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
 - `http_methods` (Set of String) HTTP methods that must match the rule. The Entra portal sends these as comma-separated lowercase values.
 - `session_types` (Set of String) Session types that must match the rule. Possible values are `user` and `agent`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `urls_or_fqdns` (Set of String) URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. The Entra portal shows these as comma-separated text, while Microsoft Graph stores them as a values array; Terraform follows the Graph shape with one set element per destination.
-- `web_categories` (Set of String) Web category IDs for the rule, for example `AlcoholAndTobacco`. Category IDs are passed through to Microsoft Graph unchanged.
+- `urls_or_fqdns` (Set of String) URL or FQDN destination patterns for the rule, for example `www.MySite.com`, `www.MySite.com/a/b/c`, `www.MySite.com/a/*`, or `*.mysite.com`. Use `*` to match any URL or FQDN. At least one of `urls_or_fqdns` or `web_categories` must be specified; both can be set on the same rule. If set, this attribute must contain at least one value. The Entra portal shows URL/FQDN destinations as comma-separated text, while Microsoft Graph stores them as a values array; Terraform follows the Graph shape with one set element per destination.
+- `web_categories` (Set of String) Web category IDs for the rule, for example `AlcoholAndTobacco`. At least one of `urls_or_fqdns` or `web_categories` must be specified; both can be set on the same rule. If set, this attribute must contain at least one value. Category IDs are passed through to Microsoft Graph unchanged.
 
 ### Read-Only
 
