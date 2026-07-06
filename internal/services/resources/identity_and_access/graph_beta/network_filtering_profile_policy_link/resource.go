@@ -35,10 +35,11 @@ const (
 )
 
 var (
-	_ resource.Resource                = &NetworkFilteringProfilePolicyLinkResource{}
-	_ resource.ResourceWithConfigure   = &NetworkFilteringProfilePolicyLinkResource{}
-	_ resource.ResourceWithImportState = &NetworkFilteringProfilePolicyLinkResource{}
-	_ resource.ResourceWithIdentity    = &NetworkFilteringProfilePolicyLinkResource{}
+	_ resource.Resource                     = &NetworkFilteringProfilePolicyLinkResource{}
+	_ resource.ResourceWithConfigure        = &NetworkFilteringProfilePolicyLinkResource{}
+	_ resource.ResourceWithConfigValidators = &NetworkFilteringProfilePolicyLinkResource{}
+	_ resource.ResourceWithImportState      = &NetworkFilteringProfilePolicyLinkResource{}
+	_ resource.ResourceWithIdentity         = &NetworkFilteringProfilePolicyLinkResource{}
 )
 
 func NewNetworkFilteringProfilePolicyLinkResource() resource.Resource {
@@ -151,7 +152,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 				},
 			},
 			"priority": schema.Int64Attribute{
-				MarkdownDescription: "The priority for a `filtering_policy` link. The Entra admin center sends this for legacy filtering policy links and does not send it for `web_filtering_policy` links.",
+				MarkdownDescription: "The priority for a `filtering_policy` link. The Entra admin center sends this for legacy filtering policy links and does not send it for `web_filtering_policy` links. Omit this for non-`filtering_policy` links.",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Int64{
@@ -160,7 +161,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 				},
 			},
 			"logging_state": schema.StringAttribute{
-				MarkdownDescription: "The logging state for a `filtering_policy` link. The Entra admin center sends this for legacy filtering policy links and does not send it for `web_filtering_policy` links.",
+				MarkdownDescription: "The logging state for a `filtering_policy` link. The Entra admin center sends this for legacy filtering policy links and does not send it for `web_filtering_policy` links. Omit this for non-`filtering_policy` links.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{
