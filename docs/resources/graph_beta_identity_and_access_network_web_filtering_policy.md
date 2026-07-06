@@ -1,13 +1,13 @@
 ---
-page_title: "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft Entra Global Secure Access web content filtering policies using the Microsoft Graph beta /networkaccess/webFilteringPolicies endpoint observed from the Entra portal.
+  Manages Microsoft Entra Global Secure Access web filtering policies using the Microsoft Graph beta /networkaccess/webFilteringPolicies endpoint observed from the Entra portal.
 ---
 
-# microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy (Resource)
+# microsoft365_graph_beta_identity_and_access_network_web_filtering_policy (Resource)
 
-Manages Microsoft Entra Global Secure Access web content filtering policies using the Microsoft Graph beta `/networkaccess/webFilteringPolicies` endpoint observed from the Entra portal.
+Manages Microsoft Entra Global Secure Access web filtering policies using the Microsoft Graph beta `/networkaccess/webFilteringPolicies` endpoint observed from the Entra portal.
 
 This resource manages Microsoft Entra Global Secure Access **Web content filtering policies**.
 
@@ -33,7 +33,7 @@ This endpoint is distinct from the documented `/networkAccess/filteringPolicies`
 
 ## Behavior Notes
 
-- This resource creates the web content filtering policy container. Manage individual match rules with `microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule`.
+- This resource creates the web filtering policy container. Manage individual match rules with `microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule`.
 - `default_action` controls what happens when traffic reaches the policy but no rule matches. Use `allow` for an allow-by-default policy with explicit block rules, or `block` for a block-by-default policy with explicit allow rules.
 - Rules are evaluated by their own priority values. Keep rule priorities unique and leave gaps so future rules can be inserted without renumbering.
 - The description limit is enforced at 8192 characters, matching the Graph error returned by this portal-backed endpoint.
@@ -52,15 +52,15 @@ The following client `application` permissions are needed in order to use this r
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy" "allow_by_default" {
+resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy" "allow_by_default" {
   name           = "Web Content Filtering Policy"
-  description    = "Global Secure Access web content filtering policy managed by Terraform"
+  description    = "Global Secure Access web filtering policy managed by Terraform"
   default_action = "allow"
 }
 
-resource "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy" "block_by_default" {
+resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy" "block_by_default" {
   name           = "Block By Default Web Content Filtering Policy"
-  description    = "Global Secure Access web content filtering policy staged by Terraform"
+  description    = "Global Secure Access web filtering policy staged by Terraform"
   default_action = "block"
 }
 ```
@@ -71,16 +71,16 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
 ### Required
 
 - `default_action` (String) The default action applied by the policy. Possible values are `allow` and `block`.
-- `name` (String) The name of the web content filtering policy.
+- `name` (String) The name of the web filtering policy.
 
 ### Optional
 
-- `description` (String) Optional description of the web content filtering policy. Maximum length is 8192 characters.
+- `description` (String) Optional description of the web filtering policy. Maximum length is 8192 characters.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `id` (String) The unique identifier for the web content filtering policy.
+- `id` (String) The unique identifier for the web filtering policy.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
@@ -99,5 +99,5 @@ Import is supported using the following syntax:
 ```shell
 #!/bin/bash
 # Import using ID format: {id}
-terraform import microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy.example 00000000-0000-0000-0000-000000000000
+terraform import microsoft365_graph_beta_identity_and_access_network_web_filtering_policy.example 00000000-0000-0000-0000-000000000000
 ```

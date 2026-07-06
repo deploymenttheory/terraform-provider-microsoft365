@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicyRule
+package graphBetaNetworkWebFilteringPolicyRule
 
 import (
 	"context"
@@ -30,7 +30,7 @@ import (
 //     strings because that is what the endpoint returns and accepts.
 //   - Custom request header insertions are nested under
 //     action.headerSettings.modifications for allow rules.
-func constructResource(ctx context.Context, data *NetworkWebContentFilteringPolicyRuleResourceModel) (s.Parsable, error) {
+func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleResourceModel) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	urlsOrFqdns, err := stringSetValues(ctx, data.UrlsOrFqdns)
@@ -87,7 +87,7 @@ func constructResource(ctx context.Context, data *NetworkWebContentFilteringPoli
 		}
 	}
 
-	requestBody := &webContentFilteringPolicyRuleRequestBody{
+	requestBody := &webFilteringPolicyRuleRequestBody{
 		odataType:   webFilteringRuleODataType,
 		name:        data.Name.ValueStringPointer(),
 		description: data.Description.ValueStringPointer(),
@@ -186,7 +186,7 @@ func commaStringPointer(values []string) *string {
 	return &value
 }
 
-type webContentFilteringPolicyRuleRequestBody struct {
+type webFilteringPolicyRuleRequestBody struct {
 	odataType          string
 	name               *string
 	description        *string
@@ -196,7 +196,7 @@ type webContentFilteringPolicyRuleRequestBody struct {
 	matchingConditions *matchingConditionsRequestBody
 }
 
-func (b *webContentFilteringPolicyRuleRequestBody) Serialize(writer s.SerializationWriter) error {
+func (b *webFilteringPolicyRuleRequestBody) Serialize(writer s.SerializationWriter) error {
 	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (b *webContentFilteringPolicyRuleRequestBody) Serialize(writer s.Serializat
 	return nil
 }
 
-func (b *webContentFilteringPolicyRuleRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+func (b *webFilteringPolicyRuleRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
 

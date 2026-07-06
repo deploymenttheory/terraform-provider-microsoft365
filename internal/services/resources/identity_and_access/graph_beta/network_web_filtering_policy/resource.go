@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicy
+package graphBetaNetworkWebFilteringPolicy
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	ResourceName  = "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy"
+	ResourceName  = "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -25,14 +25,14 @@ const (
 )
 
 var (
-	_ resource.Resource                = &NetworkWebContentFilteringPolicyResource{}
-	_ resource.ResourceWithConfigure   = &NetworkWebContentFilteringPolicyResource{}
-	_ resource.ResourceWithImportState = &NetworkWebContentFilteringPolicyResource{}
-	_ resource.ResourceWithIdentity    = &NetworkWebContentFilteringPolicyResource{}
+	_ resource.Resource                = &NetworkWebFilteringPolicyResource{}
+	_ resource.ResourceWithConfigure   = &NetworkWebFilteringPolicyResource{}
+	_ resource.ResourceWithImportState = &NetworkWebFilteringPolicyResource{}
+	_ resource.ResourceWithIdentity    = &NetworkWebFilteringPolicyResource{}
 )
 
-func NewNetworkWebContentFilteringPolicyResource() resource.Resource {
-	return &NetworkWebContentFilteringPolicyResource{
+func NewNetworkWebFilteringPolicyResource() resource.Resource {
+	return &NetworkWebFilteringPolicyResource{
 		ReadPermissions: []string{
 			"NetworkAccess.Read.All",
 		},
@@ -43,26 +43,26 @@ func NewNetworkWebContentFilteringPolicyResource() resource.Resource {
 	}
 }
 
-type NetworkWebContentFilteringPolicyResource struct {
+type NetworkWebFilteringPolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
 }
 
-func (r *NetworkWebContentFilteringPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetworkWebFilteringPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
-func (r *NetworkWebContentFilteringPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworkWebFilteringPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-func (r *NetworkWebContentFilteringPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworkWebFilteringPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *NetworkWebContentFilteringPolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (r *NetworkWebFilteringPolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -72,23 +72,23 @@ func (r *NetworkWebContentFilteringPolicyResource) IdentitySchema(ctx context.Co
 	}
 }
 
-func (r *NetworkWebContentFilteringPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworkWebFilteringPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Microsoft Entra Global Secure Access web content filtering policies using the Microsoft Graph beta `/networkaccess/webFilteringPolicies` endpoint observed from the Entra portal.",
+		MarkdownDescription: "Manages Microsoft Entra Global Secure Access web filtering policies using the Microsoft Graph beta `/networkaccess/webFilteringPolicies` endpoint observed from the Entra portal.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The unique identifier for the web content filtering policy.",
+				MarkdownDescription: "The unique identifier for the web filtering policy.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the web content filtering policy.",
+				MarkdownDescription: "The name of the web filtering policy.",
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Optional description of the web content filtering policy. Maximum length is 8192 characters.",
+				MarkdownDescription: "Optional description of the web filtering policy. Maximum length is 8192 characters.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{

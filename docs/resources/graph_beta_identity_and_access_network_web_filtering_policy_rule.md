@@ -1,13 +1,13 @@
 ---
-page_title: "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule Resource - terraform-provider-microsoft365"
+page_title: "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages rules for Microsoft Entra Global Secure Access web content filtering policies using the Microsoft Graph beta /networkaccess/webFilteringPolicies/{id}/policyRules endpoint observed from the Entra portal.
+  Manages rules for Microsoft Entra Global Secure Access web filtering policies using the Microsoft Graph beta /networkaccess/webFilteringPolicies/{id}/policyRules endpoint observed from the Entra portal.
 ---
 
-# microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule (Resource)
+# microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule (Resource)
 
-Manages rules for Microsoft Entra Global Secure Access web content filtering policies using the Microsoft Graph beta `/networkaccess/webFilteringPolicies/{id}/policyRules` endpoint observed from the Entra portal.
+Manages rules for Microsoft Entra Global Secure Access web filtering policies using the Microsoft Graph beta `/networkaccess/webFilteringPolicies/{id}/policyRules` endpoint observed from the Entra portal.
 
 This resource manages rules for Microsoft Entra Global Secure Access **Web content filtering policies**.
 
@@ -63,14 +63,14 @@ The following client `application` permissions are needed in order to use this r
 ## Example Usage
 
 ```terraform
-resource "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy" "example" {
+resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy" "example" {
   name           = "Web Content Filtering Policy"
-  description    = "Global Secure Access web content filtering policy managed by Terraform"
+  description    = "Global Secure Access web filtering policy managed by Terraform"
   default_action = "allow"
 }
 
-resource "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule" "example" {
-  web_content_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy.example.id
+resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule" "example" {
+  web_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_filtering_policy.example.id
 
   name        = "Example Web Content Filtering Rule"
   description = "Allow matching web traffic"
@@ -84,8 +84,8 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
   session_types  = ["user", "agent"]
 }
 
-resource "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule" "with_headers" {
-  web_content_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy.example.id
+resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule" "with_headers" {
+  web_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_filtering_policy.example.id
 
   name        = "Allow With Custom Headers"
   description = "Allow matching web traffic and add custom headers"
@@ -103,8 +103,8 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
   ]
 }
 
-resource "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule" "category_only" {
-  web_content_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy.example.id
+resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule" "category_only" {
+  web_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_filtering_policy.example.id
 
   name        = "Block AI Agents Category"
   description = "Block traffic that matches a selected web category"
@@ -123,15 +123,15 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
 ### Required
 
 - `action` (String) The action for matching traffic. Possible values are `allow` and `block`.
-- `name` (String) The name of the web content filtering rule.
+- `name` (String) The name of the web filtering rule.
 - `priority` (Number) The rule priority. Lower numbers are evaluated before higher numbers. The Entra portal accepts values from 100 to 65000.
 - `status` (String) The rule status. Possible values are `enabled` and `disabled`.
-- `web_content_filtering_policy_id` (String) The ID of the web content filtering policy that owns this rule.
+- `web_filtering_policy_id` (String) The ID of the web filtering policy that owns this rule.
 
 ### Optional
 
 - `custom_headers` (Attributes List) Custom request headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`. (see [below for nested schema](#nestedatt--custom_headers))
-- `description` (String) Optional description of the web content filtering rule. Maximum length is 8192 characters.
+- `description` (String) Optional description of the web filtering rule. Maximum length is 8192 characters.
 - `http_methods` (Set of String) HTTP methods that must match the rule. The Entra portal sends these as comma-separated lowercase values.
 - `session_types` (Set of String) Session types that must match the rule. Possible values are `user` and `agent`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
@@ -140,7 +140,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_content_filter
 
 ### Read-Only
 
-- `id` (String) The unique identifier for the web content filtering policy rule.
+- `id` (String) The unique identifier for the web filtering policy rule.
 
 <a id="nestedatt--custom_headers"></a>
 ### Nested Schema for `custom_headers`
@@ -167,6 +167,6 @@ Import is supported using the following syntax:
 
 ```shell
 #!/bin/bash
-# Import using ID format: {web_content_filtering_policy_id}/{rule_id}
-terraform import microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule.example 00000000-0000-0000-0000-000000000000/11111111-1111-1111-1111-111111111111
+# Import using ID format: {web_filtering_policy_id}/{rule_id}
+terraform import microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule.example 00000000-0000-0000-0000-000000000000/11111111-1111-1111-1111-111111111111
 ```

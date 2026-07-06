@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicy
+package graphBetaNetworkWebFilteringPolicy
 
 import (
 	"strings"
@@ -11,26 +11,26 @@ const (
 	defaultActionBlockODataType = "#microsoft.graph.networkaccess.webFilteringActionBlock"
 )
 
-type webContentFilteringPolicyResponse struct {
+type webFilteringPolicyResponse struct {
 	id            *string
 	name          *string
 	description   *string
 	defaultAction *string
 }
 
-func newWebContentFilteringPolicyResponse() *webContentFilteringPolicyResponse {
-	return &webContentFilteringPolicyResponse{}
+func newWebFilteringPolicyResponse() *webFilteringPolicyResponse {
+	return &webFilteringPolicyResponse{}
 }
 
-func createWebContentFilteringPolicyResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
-	return newWebContentFilteringPolicyResponse(), nil
+func createWebFilteringPolicyResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
+	return newWebFilteringPolicyResponse(), nil
 }
 
-func (r *webContentFilteringPolicyResponse) Serialize(writer s.SerializationWriter) error {
+func (r *webFilteringPolicyResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
 
-func (r *webContentFilteringPolicyResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+func (r *webFilteringPolicyResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"id": func(n s.ParseNode) error {
 			value, err := n.GetStringValue()
@@ -57,14 +57,14 @@ func (r *webContentFilteringPolicyResponse) GetFieldDeserializers() map[string]f
 			return nil
 		},
 		"settings": func(n s.ParseNode) error {
-			value, err := n.GetObjectValue(createWebContentFilteringPolicySettingsResponseFromDiscriminatorValue)
+			value, err := n.GetObjectValue(createWebFilteringPolicySettingsResponseFromDiscriminatorValue)
 			if err != nil {
 				return err
 			}
 			if value == nil {
 				return nil
 			}
-			settings, ok := value.(*webContentFilteringPolicySettingsResponse)
+			settings, ok := value.(*webFilteringPolicySettingsResponse)
 			if !ok {
 				return nil
 			}
@@ -74,29 +74,29 @@ func (r *webContentFilteringPolicyResponse) GetFieldDeserializers() map[string]f
 	}
 }
 
-type webContentFilteringPolicySettingsResponse struct {
+type webFilteringPolicySettingsResponse struct {
 	defaultAction *string
 }
 
-func createWebContentFilteringPolicySettingsResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
-	return &webContentFilteringPolicySettingsResponse{}, nil
+func createWebFilteringPolicySettingsResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
+	return &webFilteringPolicySettingsResponse{}, nil
 }
 
-func (r *webContentFilteringPolicySettingsResponse) Serialize(writer s.SerializationWriter) error {
+func (r *webFilteringPolicySettingsResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
 
-func (r *webContentFilteringPolicySettingsResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+func (r *webFilteringPolicySettingsResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"defaultAction": func(n s.ParseNode) error {
-			value, err := n.GetObjectValue(createWebContentFilteringPolicyDefaultActionResponseFromDiscriminatorValue)
+			value, err := n.GetObjectValue(createWebFilteringPolicyDefaultActionResponseFromDiscriminatorValue)
 			if err != nil {
 				return err
 			}
 			if value == nil {
 				return nil
 			}
-			action, ok := value.(*webContentFilteringPolicyDefaultActionResponse)
+			action, ok := value.(*webFilteringPolicyDefaultActionResponse)
 			if !ok {
 				return nil
 			}
@@ -106,19 +106,19 @@ func (r *webContentFilteringPolicySettingsResponse) GetFieldDeserializers() map[
 	}
 }
 
-type webContentFilteringPolicyDefaultActionResponse struct {
+type webFilteringPolicyDefaultActionResponse struct {
 	odataType *string
 }
 
-func createWebContentFilteringPolicyDefaultActionResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
-	return &webContentFilteringPolicyDefaultActionResponse{}, nil
+func createWebFilteringPolicyDefaultActionResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
+	return &webFilteringPolicyDefaultActionResponse{}, nil
 }
 
-func (r *webContentFilteringPolicyDefaultActionResponse) Serialize(writer s.SerializationWriter) error {
+func (r *webFilteringPolicyDefaultActionResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
 
-func (r *webContentFilteringPolicyDefaultActionResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+func (r *webFilteringPolicyDefaultActionResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"@odata.type": func(n s.ParseNode) error {
 			value, err := n.GetStringValue()

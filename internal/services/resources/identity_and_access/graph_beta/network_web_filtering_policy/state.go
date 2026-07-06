@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicy
+package graphBetaNetworkWebFilteringPolicy
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func MapRemoteStateToTerraform(ctx context.Context, data *NetworkWebContentFilteringPolicyResourceModel, remoteResource *webContentFilteringPolicyResponse) {
+func MapRemoteStateToTerraform(ctx context.Context, data *NetworkWebFilteringPolicyResourceModel, remoteResource *webFilteringPolicyResponse) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return

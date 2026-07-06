@@ -1,13 +1,13 @@
-package graphBetaNetworkWebContentFilteringPolicy
+package graphBetaNetworkWebFilteringPolicy
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// NetworkWebContentFilteringPolicyResourceModel represents the Terraform schema
-// for Global Secure Access web content filtering policies.
-type NetworkWebContentFilteringPolicyResourceModel struct {
+// NetworkWebFilteringPolicyResourceModel represents the Terraform schema
+// for Global Secure Access web filtering policies.
+type NetworkWebFilteringPolicyResourceModel struct {
 	ID            types.String   `tfsdk:"id"`
 	Name          types.String   `tfsdk:"name"`
 	Description   types.String   `tfsdk:"description"`

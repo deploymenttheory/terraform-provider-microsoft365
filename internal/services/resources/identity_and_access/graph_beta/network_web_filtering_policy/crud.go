@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicyRule
+package graphBetaNetworkWebFilteringPolicy
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var object NetworkWebContentFilteringPolicyRuleResourceModel
+func (r *NetworkWebFilteringPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var object NetworkWebFilteringPolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
@@ -30,19 +30,19 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Create(ctx context.Contex
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing resource for Create Method", fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()))
 		return
 	}
 
-	created, err := r.createWebContentFilteringPolicyRule(ctx, object.WebContentFilteringPolicyID.ValueString(), requestBody)
+	created, err := r.createWebFilteringPolicy(ctx, requestBody)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 	if created.id == nil {
-		resp.Diagnostics.AddError("Error creating web content filtering policy rule", "The API returned an invalid response without an id.")
+		resp.Diagnostics.AddError("Error creating web filtering policy", "The API returned an invalid response without an id.")
 		return
 	}
 
@@ -63,8 +63,8 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Create(ctx context.Contex
 	}
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var object NetworkWebContentFilteringPolicyRuleResourceModel
+func (r *NetworkWebFilteringPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var object NetworkWebFilteringPolicyResourceModel
 	var identity sharedmodels.ResourceIdentity
 
 	operation := constants.TfOperationRead
@@ -93,19 +93,19 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Read(ctx context.Context,
 		}
 	}
 
-	rule, err := r.getWebContentFilteringPolicyRule(ctx, object.WebContentFilteringPolicyID.ValueString(), object.ID.ValueString())
+	policy, err := r.getWebFilteringPolicy(ctx, object.ID.ValueString())
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, rule)
+	MapRemoteStateToTerraform(ctx, &object, policy)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan NetworkWebContentFilteringPolicyRuleResourceModel
-	var state NetworkWebContentFilteringPolicyRuleResourceModel
+func (r *NetworkWebFilteringPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan NetworkWebFilteringPolicyResourceModel
+	var state NetworkWebFilteringPolicyResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -119,13 +119,13 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Update(ctx context.Contex
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing resource for Update Method", fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()))
 		return
 	}
 
-	if err := r.updateWebContentFilteringPolicyRule(ctx, state.WebContentFilteringPolicyID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
+	if err := r.updateWebFilteringPolicy(ctx, state.ID.ValueString(), requestBody); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -147,8 +147,8 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Update(ctx context.Contex
 	}
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var object NetworkWebContentFilteringPolicyRuleResourceModel
+func (r *NetworkWebFilteringPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var object NetworkWebFilteringPolicyResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -161,7 +161,7 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) Delete(ctx context.Contex
 	}
 	defer cancel()
 
-	if err := r.deleteWebContentFilteringPolicyRule(ctx, object.WebContentFilteringPolicyID.ValueString(), object.ID.ValueString()); err != nil {
+	if err := r.deleteWebFilteringPolicy(ctx, object.ID.ValueString()); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicyRule
+package graphBetaNetworkWebFilteringPolicyRule
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	ResourceName  = "microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule"
+	ResourceName  = "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule"
 	CreateTimeout = 180
 	UpdateTimeout = 180
 	ReadTimeout   = 180
@@ -33,55 +33,55 @@ const (
 )
 
 var (
-	_ resource.Resource                     = &NetworkWebContentFilteringPolicyRuleResource{}
-	_ resource.ResourceWithConfigure        = &NetworkWebContentFilteringPolicyRuleResource{}
-	_ resource.ResourceWithImportState      = &NetworkWebContentFilteringPolicyRuleResource{}
-	_ resource.ResourceWithIdentity         = &NetworkWebContentFilteringPolicyRuleResource{}
-	_ resource.ResourceWithConfigValidators = &NetworkWebContentFilteringPolicyRuleResource{}
+	_ resource.Resource                     = &NetworkWebFilteringPolicyRuleResource{}
+	_ resource.ResourceWithConfigure        = &NetworkWebFilteringPolicyRuleResource{}
+	_ resource.ResourceWithImportState      = &NetworkWebFilteringPolicyRuleResource{}
+	_ resource.ResourceWithIdentity         = &NetworkWebFilteringPolicyRuleResource{}
+	_ resource.ResourceWithConfigValidators = &NetworkWebFilteringPolicyRuleResource{}
 )
 
-func NewNetworkWebContentFilteringPolicyRuleResource() resource.Resource {
-	return &NetworkWebContentFilteringPolicyRuleResource{
+func NewNetworkWebFilteringPolicyRuleResource() resource.Resource {
+	return &NetworkWebFilteringPolicyRuleResource{
 		ReadPermissions: []string{
 			"NetworkAccess.Read.All",
 		},
 		WritePermissions: []string{
 			"NetworkAccess.ReadWrite.All",
 		},
-		ResourcePath: "/networkaccess/webFilteringPolicies/{webContentFilteringPolicyId}/policyRules",
+		ResourcePath: "/networkaccess/webFilteringPolicies/{webFilteringPolicyId}/policyRules",
 	}
 }
 
-type NetworkWebContentFilteringPolicyRuleResource struct {
+type NetworkWebFilteringPolicyRuleResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *NetworkWebFilteringPolicyRuleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *NetworkWebFilteringPolicyRuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NetworkWebFilteringPolicyRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, "/")
 	if len(idParts) != 2 {
 		resp.Diagnostics.AddError(
 			"Invalid Import ID",
-			fmt.Sprintf("Expected import ID in format 'webContentFilteringPolicyId/ruleId', got: %s", req.ID),
+			fmt.Sprintf("Expected import ID in format 'webFilteringPolicyId/ruleId', got: %s", req.ID),
 		)
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("web_content_filtering_policy_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("web_filtering_policy_id"), idParts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (r *NetworkWebFilteringPolicyRuleResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -91,7 +91,7 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) IdentitySchema(ctx contex
 	}
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+func (r *NetworkWebFilteringPolicyRuleResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		resourcevalidator.AtLeastOneOf(
 			path.MatchRoot("urls_or_fqdns"),
@@ -100,30 +100,30 @@ func (r *NetworkWebContentFilteringPolicyRuleResource) ConfigValidators(ctx cont
 	}
 }
 
-func (r *NetworkWebContentFilteringPolicyRuleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages rules for Microsoft Entra Global Secure Access web content filtering policies using the Microsoft Graph beta `/networkaccess/webFilteringPolicies/{id}/policyRules` endpoint observed from the Entra portal.",
+		MarkdownDescription: "Manages rules for Microsoft Entra Global Secure Access web filtering policies using the Microsoft Graph beta `/networkaccess/webFilteringPolicies/{id}/policyRules` endpoint observed from the Entra portal.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "The unique identifier for the web content filtering policy rule.",
+				MarkdownDescription: "The unique identifier for the web filtering policy rule.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
 			},
-			"web_content_filtering_policy_id": schema.StringAttribute{
-				MarkdownDescription: "The ID of the web content filtering policy that owns this rule.",
+			"web_filtering_policy_id": schema.StringAttribute{
+				MarkdownDescription: "The ID of the web filtering policy that owns this rule.",
 				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.RequiresReplaceString(),
 				},
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The name of the web content filtering rule.",
+				MarkdownDescription: "The name of the web filtering rule.",
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Optional description of the web content filtering rule. Maximum length is 8192 characters.",
+				MarkdownDescription: "Optional description of the web filtering rule. Maximum length is 8192 characters.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{

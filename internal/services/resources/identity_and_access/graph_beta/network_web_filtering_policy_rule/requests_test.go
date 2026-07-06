@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicyRule
+package graphBetaNetworkWebFilteringPolicyRule
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 )
 
-func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPortalPayload(t *testing.T) {
+func TestNewWebFilteringPolicyRuleRequestInformationSerializesObservedPortalPayload(t *testing.T) {
 	ctx := context.Background()
 	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"*.example.com", "www.MySite.com/a/*"})
 	if diags.HasError() {
@@ -32,7 +32,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPor
 		t.Fatalf("failed to build session_types set: %s", diags.Errors()[0].Detail())
 	}
 
-	body, err := constructResource(ctx, &NetworkWebContentFilteringPolicyRuleResourceModel{
+	body, err := constructResource(ctx, &NetworkWebFilteringPolicyRuleResourceModel{
 		Name:          types.StringValue("sample-rule-for-codex"),
 		Description:   types.StringValue("sample rule for codex"),
 		Action:        types.StringValue("allow"),
@@ -47,16 +47,16 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPor
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	requestInfo, err := newWebContentFilteringPolicyRuleRequestInformation(
+	requestInfo, err := newWebFilteringPolicyRuleRequestInformation(
 		ctx,
-		webContentFilteringPolicyRuleTestRequestAdapter{},
+		webFilteringPolicyRuleTestRequestAdapter{},
 		abstractions.POST,
 		"05bd8400-14ae-4eb0-b7d7-339cd312d8f2",
 		"",
 		body,
 	)
 	if err != nil {
-		t.Fatalf("newWebContentFilteringPolicyRuleRequestInformation returned error: %v", err)
+		t.Fatalf("newWebFilteringPolicyRuleRequestInformation returned error: %v", err)
 	}
 
 	var payload map[string]any
@@ -108,7 +108,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedPor
 	}
 }
 
-func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedCategoryOnlyPayload(t *testing.T) {
+func TestNewWebFilteringPolicyRuleRequestInformationSerializesObservedCategoryOnlyPayload(t *testing.T) {
 	ctx := context.Background()
 	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AIAgents"})
 	if diags.HasError() {
@@ -119,7 +119,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedCat
 		t.Fatalf("failed to build session_types set: %s", diags.Errors()[0].Detail())
 	}
 
-	payload := serializedRulePayload(t, ctx, &NetworkWebContentFilteringPolicyRuleResourceModel{
+	payload := serializedRulePayload(t, ctx, &NetworkWebFilteringPolicyRuleResourceModel{
 		Name:          types.StringValue("sample"),
 		Description:   types.StringValue(""),
 		Action:        types.StringValue("block"),
@@ -158,7 +158,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesObservedCat
 	}
 }
 
-func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesCustomHeadersUnderAction(t *testing.T) {
+func TestNewWebFilteringPolicyRuleRequestInformationSerializesCustomHeadersUnderAction(t *testing.T) {
 	ctx := context.Background()
 	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"headers.example.com"})
 	if diags.HasError() {
@@ -174,7 +174,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesCustomHeade
 		t.Fatalf("failed to build custom_headers list: %s", diags.Errors()[0].Detail())
 	}
 
-	payload := serializedRulePayload(t, ctx, &NetworkWebContentFilteringPolicyRuleResourceModel{
+	payload := serializedRulePayload(t, ctx, &NetworkWebFilteringPolicyRuleResourceModel{
 		Name:          types.StringValue("allow-with-custom-headers"),
 		Description:   types.StringValue(""),
 		Action:        types.StringValue("allow"),
@@ -210,7 +210,7 @@ func TestNewWebContentFilteringPolicyRuleRequestInformationSerializesCustomHeade
 func TestConstructResourceRequiresAtLeastOneDestination(t *testing.T) {
 	ctx := context.Background()
 
-	_, err := constructResource(ctx, &NetworkWebContentFilteringPolicyRuleResourceModel{
+	_, err := constructResource(ctx, &NetworkWebFilteringPolicyRuleResourceModel{
 		Name:        types.StringValue("missing-destination"),
 		Description: types.StringValue(""),
 		Action:      types.StringValue("block"),
@@ -266,7 +266,7 @@ func TestConstructResourceRejectsEscapedLineBreakCustomHeaderValues(t *testing.T
 				t.Fatalf("failed to build custom_headers list: %s", diags.Errors()[0].Detail())
 			}
 
-			_, err := constructResource(ctx, &NetworkWebContentFilteringPolicyRuleResourceModel{
+			_, err := constructResource(ctx, &NetworkWebFilteringPolicyRuleResourceModel{
 				Name:          types.StringValue("escaped-line-break-header"),
 				Description:   types.StringValue(""),
 				Action:        types.StringValue("allow"),
@@ -285,7 +285,7 @@ func TestConstructResourceRejectsEscapedLineBreakCustomHeaderValues(t *testing.T
 	}
 }
 
-func serializedRulePayload(t *testing.T, ctx context.Context, model *NetworkWebContentFilteringPolicyRuleResourceModel) map[string]any {
+func serializedRulePayload(t *testing.T, ctx context.Context, model *NetworkWebFilteringPolicyRuleResourceModel) map[string]any {
 	t.Helper()
 
 	body, err := constructResource(ctx, model)
@@ -293,16 +293,16 @@ func serializedRulePayload(t *testing.T, ctx context.Context, model *NetworkWebC
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	requestInfo, err := newWebContentFilteringPolicyRuleRequestInformation(
+	requestInfo, err := newWebFilteringPolicyRuleRequestInformation(
 		ctx,
-		webContentFilteringPolicyRuleTestRequestAdapter{},
+		webFilteringPolicyRuleTestRequestAdapter{},
 		abstractions.POST,
 		"05bd8400-14ae-4eb0-b7d7-339cd312d8f2",
 		"",
 		body,
 	)
 	if err != nil {
-		t.Fatalf("newWebContentFilteringPolicyRuleRequestInformation returned error: %v", err)
+		t.Fatalf("newWebFilteringPolicyRuleRequestInformation returned error: %v", err)
 	}
 
 	var payload map[string]any
@@ -313,49 +313,49 @@ func serializedRulePayload(t *testing.T, ctx context.Context, model *NetworkWebC
 	return payload
 }
 
-type webContentFilteringPolicyRuleTestRequestAdapter struct{}
+type webFilteringPolicyRuleTestRequestAdapter struct{}
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) Send(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) (s.Parsable, error) {
+func (webFilteringPolicyRuleTestRequestAdapter) Send(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) (s.Parsable, error) {
 	return nil, nil
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) SendEnum(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) (any, error) {
+func (webFilteringPolicyRuleTestRequestAdapter) SendEnum(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) (any, error) {
 	return nil, nil
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) SendCollection(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) ([]s.Parsable, error) {
+func (webFilteringPolicyRuleTestRequestAdapter) SendCollection(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) ([]s.Parsable, error) {
 	return nil, nil
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) SendEnumCollection(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) ([]any, error) {
+func (webFilteringPolicyRuleTestRequestAdapter) SendEnumCollection(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) ([]any, error) {
 	return nil, nil
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) SendPrimitive(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) (any, error) {
+func (webFilteringPolicyRuleTestRequestAdapter) SendPrimitive(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) (any, error) {
 	return nil, nil
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) SendPrimitiveCollection(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) ([]any, error) {
+func (webFilteringPolicyRuleTestRequestAdapter) SendPrimitiveCollection(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) ([]any, error) {
 	return nil, nil
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) SendNoContent(context.Context, *abstractions.RequestInformation, abstractions.ErrorMappings) error {
+func (webFilteringPolicyRuleTestRequestAdapter) SendNoContent(context.Context, *abstractions.RequestInformation, abstractions.ErrorMappings) error {
 	return nil
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) GetSerializationWriterFactory() s.SerializationWriterFactory {
+func (webFilteringPolicyRuleTestRequestAdapter) GetSerializationWriterFactory() s.SerializationWriterFactory {
 	return jsonserialization.NewJsonSerializationWriterFactory()
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) EnableBackingStore(store.BackingStoreFactory) {
+func (webFilteringPolicyRuleTestRequestAdapter) EnableBackingStore(store.BackingStoreFactory) {
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) SetBaseUrl(string) {}
+func (webFilteringPolicyRuleTestRequestAdapter) SetBaseUrl(string) {}
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) GetBaseUrl() string {
+func (webFilteringPolicyRuleTestRequestAdapter) GetBaseUrl() string {
 	return "https://graph.microsoft.com/beta"
 }
 
-func (webContentFilteringPolicyRuleTestRequestAdapter) ConvertToNativeRequest(context.Context, *abstractions.RequestInformation) (any, error) {
+func (webFilteringPolicyRuleTestRequestAdapter) ConvertToNativeRequest(context.Context, *abstractions.RequestInformation) (any, error) {
 	return nil, nil
 }

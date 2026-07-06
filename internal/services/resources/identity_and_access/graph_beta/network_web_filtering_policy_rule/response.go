@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicyRule
+package graphBetaNetworkWebFilteringPolicyRule
 
 import (
 	"strings"
@@ -19,7 +19,7 @@ const (
 	headerModificationAddODataType              = "#microsoft.graph.networkaccess.headerModificationAdd"
 )
 
-type webContentFilteringPolicyRuleResponse struct {
+type webFilteringPolicyRuleResponse struct {
 	id            *string
 	name          *string
 	description   *string
@@ -38,19 +38,19 @@ type customHeaderResponse struct {
 	headerValue *string
 }
 
-func newWebContentFilteringPolicyRuleResponse() *webContentFilteringPolicyRuleResponse {
-	return &webContentFilteringPolicyRuleResponse{}
+func newWebFilteringPolicyRuleResponse() *webFilteringPolicyRuleResponse {
+	return &webFilteringPolicyRuleResponse{}
 }
 
-func createWebContentFilteringPolicyRuleResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
-	return newWebContentFilteringPolicyRuleResponse(), nil
+func createWebFilteringPolicyRuleResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
+	return newWebFilteringPolicyRuleResponse(), nil
 }
 
-func (r *webContentFilteringPolicyRuleResponse) Serialize(writer s.SerializationWriter) error {
+func (r *webFilteringPolicyRuleResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
 
-func (r *webContentFilteringPolicyRuleResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+func (r *webFilteringPolicyRuleResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"id": func(n s.ParseNode) error {
 			value, err := n.GetStringValue()

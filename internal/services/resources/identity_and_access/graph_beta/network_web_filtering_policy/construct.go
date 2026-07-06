@@ -1,4 +1,4 @@
-package graphBetaNetworkWebContentFilteringPolicy
+package graphBetaNetworkWebFilteringPolicy
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
-// constructResource builds the portal-observed web content filtering policy
+// constructResource builds the portal-observed web filtering policy
 // payload for /networkaccess/webFilteringPolicies.
 //
 // Microsoft Graph beta currently documents the older/generic
@@ -20,12 +20,12 @@ import (
 // settings.defaultAction.@odata.type plus an empty policyRules array on create.
 // policyRules is intentionally create-only here because subsequent rule
 // management happens through the child /policyRules resource.
-func constructResource(ctx context.Context, data *NetworkWebContentFilteringPolicyResourceModel, includePolicyRules bool) (s.Parsable, error) {
+func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyResourceModel, includePolicyRules bool) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := &webContentFilteringPolicyRequestBody{
-		settings: &webContentFilteringPolicySettingsRequestBody{
-			defaultAction: &webContentFilteringPolicyDefaultActionRequestBody{
+	requestBody := &webFilteringPolicyRequestBody{
+		settings: &webFilteringPolicySettingsRequestBody{
+			defaultAction: &webFilteringPolicyDefaultActionRequestBody{
 				odataType: graphDefaultActionODataType(data.DefaultAction.ValueString()),
 			},
 		},
@@ -49,14 +49,14 @@ func constructResource(ctx context.Context, data *NetworkWebContentFilteringPoli
 	return requestBody, nil
 }
 
-type webContentFilteringPolicyRequestBody struct {
+type webFilteringPolicyRequestBody struct {
 	name               *string
 	description        *string
-	settings           *webContentFilteringPolicySettingsRequestBody
+	settings           *webFilteringPolicySettingsRequestBody
 	includePolicyRules bool
 }
 
-func (b *webContentFilteringPolicyRequestBody) Serialize(writer s.SerializationWriter) error {
+func (b *webFilteringPolicyRequestBody) Serialize(writer s.SerializationWriter) error {
 	if err := writer.WriteStringValue("name", b.name); err != nil {
 		return err
 	}
@@ -75,30 +75,30 @@ func (b *webContentFilteringPolicyRequestBody) Serialize(writer s.SerializationW
 	return nil
 }
 
-func (b *webContentFilteringPolicyRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+func (b *webFilteringPolicyRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
 
-type webContentFilteringPolicySettingsRequestBody struct {
-	defaultAction *webContentFilteringPolicyDefaultActionRequestBody
+type webFilteringPolicySettingsRequestBody struct {
+	defaultAction *webFilteringPolicyDefaultActionRequestBody
 }
 
-func (b *webContentFilteringPolicySettingsRequestBody) Serialize(writer s.SerializationWriter) error {
+func (b *webFilteringPolicySettingsRequestBody) Serialize(writer s.SerializationWriter) error {
 	return writer.WriteObjectValue("defaultAction", b.defaultAction)
 }
 
-func (b *webContentFilteringPolicySettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+func (b *webFilteringPolicySettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
 
-type webContentFilteringPolicyDefaultActionRequestBody struct {
+type webFilteringPolicyDefaultActionRequestBody struct {
 	odataType string
 }
 
-func (b *webContentFilteringPolicyDefaultActionRequestBody) Serialize(writer s.SerializationWriter) error {
+func (b *webFilteringPolicyDefaultActionRequestBody) Serialize(writer s.SerializationWriter) error {
 	return writer.WriteStringValue("@odata.type", &b.odataType)
 }
 
-func (b *webContentFilteringPolicyDefaultActionRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+func (b *webFilteringPolicyDefaultActionRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
