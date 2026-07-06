@@ -25,7 +25,9 @@ The following client `application` permissions are needed in order to use this r
 - `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
 - `DeviceManagementServiceConfig.Read.All`
-- `DeviceManagementServiceConfig.ReadWrite.All`
+- `Directory.Read.All`
+- `Group.Read.All`
+- `GroupMember.Read.All`
 
 **Optional:**
 - `None` `[N/A]`
