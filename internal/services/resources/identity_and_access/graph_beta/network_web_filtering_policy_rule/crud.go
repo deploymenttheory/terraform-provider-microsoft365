@@ -161,10 +161,50 @@ func (r *NetworkWebFilteringPolicyRuleResource) Delete(ctx context.Context, req 
 	}
 	defer cancel()
 
-	if err := r.deleteWebFilteringPolicyRule(ctx, object.WebFilteringPolicyID.ValueString(), object.ID.ValueString()); err != nil {
+	if err := r.deleteWebFilteringPolicyRuleWithPreconditionRetry(ctx, object.WebFilteringPolicyID.ValueString(), object.ID.ValueString()); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
 	resp.State.RemoveResource(ctx)
+}
+
+func (r *NetworkWebFilteringPolicyRuleResource) deleteWebFilteringPolicyRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string) error {
+	const (
+		maxPreconditionRetries = 3
+		preconditionRetryDelay = 5 * time.Second
+	)
+
+	var lastErr error
+	for attempt := 0; attempt <= maxPreconditionRetries; attempt++ {
+		if err := r.deleteWebFilteringPolicyRule(ctx, policyID, ruleID); err != nil {
+			lastErr = err
+			errorInfo := errors.GraphError(ctx, err)
+			if errorInfo.StatusCode != 412 && errorInfo.ErrorCode != "PreconditionFailed" {
+				return err
+			}
+
+			// Tenant verification showed Microsoft Graph can return 412 when Terraform
+			// deletes multiple rules from the same web filtering policy in parallel.
+			// Retrying lets the policy/rule collection state settle before the next delete.
+			if attempt < maxPreconditionRetries {
+				tflog.Warn(ctx, "Retrying web filtering policy rule delete after Graph precondition failure", map[string]any{
+					"policy_id": policyID,
+					"rule_id":   ruleID,
+					"attempt":   attempt + 1,
+				})
+
+				select {
+				case <-time.After(preconditionRetryDelay):
+					continue
+				case <-ctx.Done():
+					return fmt.Errorf("context cancelled while retrying web filtering policy rule delete: %w", ctx.Err())
+				}
+			}
+		} else {
+			return nil
+		}
+	}
+
+	return lastErr
 }
