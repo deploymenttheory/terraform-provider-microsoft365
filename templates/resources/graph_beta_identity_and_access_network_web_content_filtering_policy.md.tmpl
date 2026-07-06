@@ -1,0 +1,62 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+This resource manages Microsoft Entra Global Secure Access **Web content filtering policies**.
+
+## Microsoft Documentation
+
+Microsoft Graph beta metadata and Microsoft Learn do not currently expose a documented `webFilteringPolicy` resource type for this portal surface.
+
+The provider implementation is based on Microsoft Entra admin center network traffic observed from the Global Secure Access Web content filtering blade.
+
+## Microsoft Graph API
+
+This resource uses the beta `/networkaccess/webFilteringPolicies` endpoint.
+
+Observed portal traffic for creating a policy uses:
+
+```http
+POST /beta/networkaccess/webFilteringPolicies
+```
+
+with a payload containing `name`, `description`, `settings.defaultAction.@odata.type`, and an empty `policyRules` array on create. The provider serializes `default_action = "allow"` as `#microsoft.graph.networkaccess.webFilteringActionAllow` and `default_action = "block"` as `#microsoft.graph.networkaccess.webFilteringActionBlock`.
+
+This endpoint is distinct from the documented `/networkAccess/filteringPolicies` endpoint used by the `microsoft.graph.networkaccess.filteringPolicy` resource.
+
+## Behavior Notes
+
+- This resource creates the web content filtering policy container. Manage individual match rules with `microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy_rule`.
+- `default_action` controls what happens when traffic reaches the policy but no rule matches. Use `allow` for an allow-by-default policy with explicit block rules, or `block` for a block-by-default policy with explicit allow rules.
+- Rules are evaluated by their own priority values. Keep rule priorities unique and leave gaps so future rules can be inserted without renumbering.
+- The description limit is enforced at 8192 characters, matching the Graph error returned by this portal-backed endpoint.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_web_content_filtering_policy/import.sh" }}
