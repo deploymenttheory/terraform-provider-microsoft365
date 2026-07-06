@@ -19,11 +19,5 @@ type NetworkWebFilteringPolicyRuleResourceModel struct {
 	WebCategories        types.Set      `tfsdk:"web_categories"`
 	HTTPMethods          types.Set      `tfsdk:"http_methods"`
 	SessionTypes         types.Set      `tfsdk:"session_types"`
-	CustomHeaders        types.List     `tfsdk:"custom_headers"`
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
-}
-
-type customHeaderModel struct {
-	HeaderName  types.String `tfsdk:"header_name"`
-	HeaderValue types.String `tfsdk:"header_value"`
 }

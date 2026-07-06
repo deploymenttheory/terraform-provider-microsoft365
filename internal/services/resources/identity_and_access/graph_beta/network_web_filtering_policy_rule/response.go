@@ -16,7 +16,6 @@ const (
 	webFilteringActionBlockODataType            = "#microsoft.graph.networkaccess.webFilteringActionBlock"
 	webFilteringURLDestinationODataType         = "#microsoft.graph.networkaccess.webFilteringUrlDestination"
 	webFilteringWebCategoryDestinationODataType = "#microsoft.graph.networkaccess.webFilteringWebCategoryDestination"
-	headerModificationAddODataType              = "#microsoft.graph.networkaccess.headerModificationAdd"
 )
 
 type webFilteringPolicyRuleResponse struct {
@@ -30,12 +29,6 @@ type webFilteringPolicyRuleResponse struct {
 	webCategories []string
 	httpMethods   []string
 	sessionTypes  []string
-	customHeaders []customHeaderResponse
-}
-
-type customHeaderResponse struct {
-	headerName  *string
-	headerValue *string
 }
 
 func newWebFilteringPolicyRuleResponse() *webFilteringPolicyRuleResponse {
@@ -95,7 +88,6 @@ func (r *webFilteringPolicyRuleResponse) GetFieldDeserializers() map[string]func
 			action, ok := value.(*actionResponse)
 			if ok {
 				r.action = terraformAction(action.odataType)
-				r.customHeaders = action.customHeaders
 			}
 			return nil
 		},
@@ -135,33 +127,11 @@ func (r *webFilteringPolicyRuleResponse) GetFieldDeserializers() map[string]func
 			}
 			return nil
 		},
-		"customHeaders": func(n s.ParseNode) error {
-			values, err := n.GetCollectionOfObjectValues(createCustomHeaderResponseFromDiscriminatorValue)
-			if err != nil {
-				return err
-			}
-			if values == nil {
-				return nil
-			}
-			r.customHeaders = make([]customHeaderResponse, 0, len(values))
-			for _, value := range values {
-				if value == nil {
-					continue
-				}
-				header, ok := value.(*customHeaderResponse)
-				if !ok {
-					continue
-				}
-				r.customHeaders = append(r.customHeaders, *header)
-			}
-			return nil
-		},
 	}
 }
 
 type actionResponse struct {
-	odataType     *string
-	customHeaders []customHeaderResponse
+	odataType *string
 }
 
 func createActionResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
@@ -180,58 +150,6 @@ func (r *actionResponse) GetFieldDeserializers() map[string]func(s.ParseNode) er
 				return err
 			}
 			r.odataType = value
-			return nil
-		},
-		"headerSettings": func(n s.ParseNode) error {
-			value, err := n.GetObjectValue(createHeaderSettingsResponseFromDiscriminatorValue)
-			if err != nil {
-				return err
-			}
-			if value == nil {
-				return nil
-			}
-			headerSettings, ok := value.(*headerSettingsResponse)
-			if ok {
-				r.customHeaders = headerSettings.modifications
-			}
-			return nil
-		},
-	}
-}
-
-type headerSettingsResponse struct {
-	modifications []customHeaderResponse
-}
-
-func createHeaderSettingsResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
-	return &headerSettingsResponse{}, nil
-}
-
-func (r *headerSettingsResponse) Serialize(writer s.SerializationWriter) error {
-	return nil
-}
-
-func (r *headerSettingsResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{
-		"modifications": func(n s.ParseNode) error {
-			values, err := n.GetCollectionOfObjectValues(createCustomHeaderResponseFromDiscriminatorValue)
-			if err != nil {
-				return err
-			}
-			if values == nil {
-				return nil
-			}
-			r.modifications = make([]customHeaderResponse, 0, len(values))
-			for _, value := range values {
-				if value == nil {
-					continue
-				}
-				header, ok := value.(*customHeaderResponse)
-				if !ok {
-					continue
-				}
-				r.modifications = append(r.modifications, *header)
-			}
 			return nil
 		},
 	}
@@ -425,35 +343,6 @@ func (r *sourcesResponse) GetFieldDeserializers() map[string]func(s.ParseNode) e
 				return err
 			}
 			r.sessionTypes = splitCommaValues(value)
-			return nil
-		},
-	}
-}
-
-func createCustomHeaderResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
-	return &customHeaderResponse{}, nil
-}
-
-func (r *customHeaderResponse) Serialize(writer s.SerializationWriter) error {
-	return nil
-}
-
-func (r *customHeaderResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{
-		"headerName": func(n s.ParseNode) error {
-			value, err := n.GetStringValue()
-			if err != nil {
-				return err
-			}
-			r.headerName = value
-			return nil
-		},
-		"headerValue": func(n s.ParseNode) error {
-			value, err := n.GetStringValue()
-			if err != nil {
-				return err
-			}
-			r.headerValue = value
 			return nil
 		},
 	}

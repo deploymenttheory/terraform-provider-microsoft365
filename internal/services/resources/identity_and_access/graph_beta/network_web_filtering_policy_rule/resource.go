@@ -3,14 +3,12 @@ package graphBetaNetworkWebFilteringPolicyRule
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -181,33 +179,6 @@ func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req 
 				Optional:            true,
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(stringvalidator.OneOf("user", "agent")),
-				},
-			},
-			"custom_headers": schema.ListNestedAttribute{
-				MarkdownDescription: "Custom request headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`. Some tenants may reject this setting with a BadRequest response when the backend header modifications feature is not enabled.",
-				Optional:            true,
-				Validators: []validator.List{
-					listvalidator.SizeAtMost(10),
-				},
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"header_name": schema.StringAttribute{
-							MarkdownDescription: "The custom header name.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthAtMost(128),
-								stringvalidator.RegexMatches(regexp.MustCompile(`^[!#$%&'*+\-.^_`+"`"+`|~0-9A-Za-z]+$`), "must be a valid HTTP header name"),
-							},
-						},
-						"header_value": schema.StringAttribute{
-							MarkdownDescription: "The custom header value.",
-							Required:            true,
-							Validators: []validator.String{
-								stringvalidator.LengthAtMost(2048),
-								stringvalidator.RegexMatches(regexp.MustCompile(`^[\x20-\x7E]*$`), "must contain only printable ASCII characters"),
-							},
-						},
-					},
 				},
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),

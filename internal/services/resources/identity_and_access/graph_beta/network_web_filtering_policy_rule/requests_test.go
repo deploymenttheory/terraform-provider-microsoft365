@@ -158,55 +158,6 @@ func TestNewWebFilteringPolicyRuleRequestInformationSerializesObservedCategoryOn
 	}
 }
 
-func TestNewWebFilteringPolicyRuleRequestInformationSerializesCustomHeadersUnderAction(t *testing.T) {
-	ctx := context.Background()
-	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"headers.example.com"})
-	if diags.HasError() {
-		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
-	}
-	customHeaders, diags := types.ListValueFrom(ctx, customHeaderObjectType(), []customHeaderModel{
-		{
-			HeaderName:  types.StringValue("X-Managed-By"),
-			HeaderValue: types.StringValue("Terraform"),
-		},
-	})
-	if diags.HasError() {
-		t.Fatalf("failed to build custom_headers list: %s", diags.Errors()[0].Detail())
-	}
-
-	payload := serializedRulePayload(t, ctx, &NetworkWebFilteringPolicyRuleResourceModel{
-		Name:          types.StringValue("allow-with-custom-headers"),
-		Description:   types.StringValue(""),
-		Action:        types.StringValue("allow"),
-		Priority:      types.Int64Value(200),
-		Status:        types.StringValue("enabled"),
-		UrlsOrFqdns:   urlsOrFqdns,
-		CustomHeaders: customHeaders,
-	})
-
-	if _, ok := payload["customHeaders"]; ok {
-		t.Fatalf("customHeaders was serialized at the top level; expected action.headerSettings.modifications")
-	}
-
-	action := payload["action"].(map[string]any)
-	headerSettings := action["headerSettings"].(map[string]any)
-	modifications := headerSettings["modifications"].([]any)
-	if len(modifications) != 1 {
-		t.Fatalf("modifications length = %d, expected 1", len(modifications))
-	}
-
-	modification := modifications[0].(map[string]any)
-	if modification["@odata.type"] != headerModificationAddODataType {
-		t.Fatalf("header modification @odata.type = %#v, expected %#v", modification["@odata.type"], headerModificationAddODataType)
-	}
-	if modification["headerName"] != "X-Managed-By" {
-		t.Fatalf("headerName = %#v, expected X-Managed-By", modification["headerName"])
-	}
-	if modification["headerValue"] != "Terraform" {
-		t.Fatalf("headerValue = %#v, expected Terraform", modification["headerValue"])
-	}
-}
-
 func TestConstructResourceRequiresAtLeastOneDestination(t *testing.T) {
 	ctx := context.Background()
 
@@ -222,66 +173,6 @@ func TestConstructResourceRequiresAtLeastOneDestination(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "at least one destination") {
 		t.Fatalf("constructResource error = %q, expected destination validation error", err.Error())
-	}
-}
-
-func TestConstructResourceRejectsEscapedLineBreakCustomHeaderValues(t *testing.T) {
-	ctx := context.Background()
-	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"headers.example.com"})
-	if diags.HasError() {
-		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
-	}
-
-	tests := []struct {
-		name        string
-		headerValue string
-	}{
-		{
-			name:        "percent encoded cr",
-			headerValue: "value%0dInjected",
-		},
-		{
-			name:        "percent encoded lf",
-			headerValue: "value%0AInjected",
-		},
-		{
-			name:        "hex escaped cr",
-			headerValue: `value\x0dInjected`,
-		},
-		{
-			name:        "unicode escaped lf",
-			headerValue: `value\u000aInjected`,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			customHeaders, diags := types.ListValueFrom(ctx, customHeaderObjectType(), []customHeaderModel{
-				{
-					HeaderName:  types.StringValue("X-Managed-By"),
-					HeaderValue: types.StringValue(tt.headerValue),
-				},
-			})
-			if diags.HasError() {
-				t.Fatalf("failed to build custom_headers list: %s", diags.Errors()[0].Detail())
-			}
-
-			_, err := constructResource(ctx, &NetworkWebFilteringPolicyRuleResourceModel{
-				Name:          types.StringValue("escaped-line-break-header"),
-				Description:   types.StringValue(""),
-				Action:        types.StringValue("allow"),
-				Priority:      types.Int64Value(100),
-				Status:        types.StringValue("enabled"),
-				UrlsOrFqdns:   urlsOrFqdns,
-				CustomHeaders: customHeaders,
-			})
-			if err == nil {
-				t.Fatal("constructResource returned nil error, expected escaped line break validation error")
-			}
-			if !strings.Contains(err.Error(), "escaped CR or LF") {
-				t.Fatalf("constructResource error = %q, expected escaped line break validation error", err.Error())
-			}
-		})
 	}
 }
 

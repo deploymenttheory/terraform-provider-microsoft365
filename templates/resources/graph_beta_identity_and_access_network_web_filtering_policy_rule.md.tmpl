@@ -28,8 +28,6 @@ POST /beta/networkaccess/webFilteringPolicies/{webFilteringPolicyId}/policyRules
 ```
 
 with `@odata.type = #microsoft.graph.networkaccess.webFilteringRule`, `action.@odata.type`, `settings.status`, and `matchingConditions.destinations.targets`.
-When custom headers are configured for an allow rule, the portal serializes them under `action.headerSettings.modifications`.
-Custom header values cannot contain CR/LF characters or escaped CR/LF sequences.
 
 Destination targets observed from the portal include:
 
@@ -45,9 +43,8 @@ Web category IDs are passed through unchanged. For example, the portal was obser
 - `web_categories` values are category IDs sent to Microsoft Graph unchanged. The portal category picker displays friendly names, but the API payload uses IDs such as `AIAgents`.
 - If `http_methods` is omitted, the rule matches all HTTP methods supported by the service. If `session_types` is omitted, the rule is not limited to a specific source session type.
 - Lower `priority` values are evaluated before higher values. Keep priorities unique within a policy to make rule ordering predictable.
-- `action = "allow"` permits matching traffic and can add custom request headers. `action = "block"` blocks matching traffic and cannot be combined with `custom_headers`.
-- `custom_headers` inserts custom HTTP request headers into matching traffic only when `action = "allow"`. This can be useful for tagging traffic for downstream services or routing decisions, but it should not be used for secrets or sensitive user data because the header can be forwarded to the destination. Some tenants may reject this setting when the backend header modifications feature is not enabled.
-- Custom header values cannot include CR/LF characters or common escaped CR/LF sequences. This mirrors the Entra portal validation and prevents header-injection style inputs before the request reaches Graph.
+- `action = "allow"` permits matching traffic. `action = "block"` blocks matching traffic.
+- The Entra portal has shown custom header controls in some flows, but successful portal create/update requests captured with Chrome DevTools did not include `headerSettings`, and follow-up GET responses did not return `headerSettings` or `customHeaders`. Explicit `headerSettings` payloads were rejected by Microsoft Graph in tenant testing, so this resource does not expose custom headers until a working API contract is observed.
 
 ## Microsoft Graph API Permissions
 

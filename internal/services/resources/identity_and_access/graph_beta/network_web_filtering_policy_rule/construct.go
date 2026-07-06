@@ -3,7 +3,6 @@ package graphBetaNetworkWebFilteringPolicyRule
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
@@ -28,11 +27,12 @@ import (
 //     API shape as set(string).
 //   - HTTP methods and session types are serialized back to comma-separated
 //     strings because that is what the endpoint returns and accepts.
-//   - Custom request header insertions are nested under
-//     action.headerSettings.modifications for allow rules. Tenant verification
-//     showed Graph can still reject this payload with "The property
-//     'headerSettings' is not available. The header modifications feature is
-//     currently disabled." when the backend feature is not enabled for a tenant.
+//
+// The portal UI has shown custom header controls, but DevTools verification of
+// successful create/update requests did not include headerSettings in the Graph
+// payload or response. Explicit headerSettings payloads are rejected by Graph in
+// this tenant, so custom headers are intentionally not exposed until a working
+// portal/API contract is observed.
 func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleResourceModel) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
@@ -51,13 +51,6 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 	sessionTypes, err := stringSetValues(ctx, data.SessionTypes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read session_types: %w", err)
-	}
-	customHeaders, err := customHeaderValues(ctx, data.CustomHeaders)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read custom_headers: %w", err)
-	}
-	if data.Action.ValueString() != "allow" && len(customHeaders) > 0 {
-		return nil, fmt.Errorf("custom_headers can only be used when action is allow")
 	}
 	if len(urlsOrFqdns) == 0 && len(webCategories) == 0 {
 		return nil, fmt.Errorf("at least one destination must be specified using urls_or_fqdns or web_categories")
@@ -83,11 +76,6 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 
 	action := &actionRequestBody{
 		odataType: graphActionODataType(data.Action.ValueString()),
-	}
-	if len(customHeaders) > 0 {
-		action.headerSettings = &headerSettingsRequestBody{
-			modifications: customHeaders,
-		}
 	}
 
 	requestBody := &webFilteringPolicyRuleRequestBody{
@@ -135,50 +123,6 @@ func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
 
 	return result, nil
 }
-
-// customHeaderValues preserves the Entra portal's header insertion model. These
-// are request headers added to traffic that matches an allow rule, not response
-// headers returned by the destination. The portal rejects CR/LF injection both
-// as literal control characters and as common escaped forms; schema validation
-// handles literal control characters and hasCustomHeaderValueLineBreakEscape
-// handles escaped forms observed in the portal validator.
-func customHeaderValues(ctx context.Context, value types.List) ([]s.Parsable, error) {
-	if value.IsNull() || value.IsUnknown() {
-		return nil, nil
-	}
-
-	var headers []customHeaderModel
-	diags := value.ElementsAs(ctx, &headers, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
-	}
-
-	result := make([]s.Parsable, 0, len(headers))
-	for _, header := range headers {
-		headerName := header.HeaderName.ValueString()
-		headerValue := header.HeaderValue.ValueString()
-		if hasCustomHeaderValueLineBreakEscape(headerValue) {
-			return nil, fmt.Errorf("custom_headers header_value for %q must not contain escaped CR or LF sequences", headerName)
-		}
-		result = append(result, &customHeaderRequestBody{
-			odataType:   headerModificationAddODataType,
-			headerName:  header.HeaderName.ValueStringPointer(),
-			headerValue: header.HeaderValue.ValueStringPointer(),
-		})
-	}
-
-	return result, nil
-}
-
-func hasCustomHeaderValueLineBreakEscape(value string) bool {
-	return customHeaderLineBreakEscapePattern.MatchString(value)
-}
-
-// The Entra portal custom header validator rejects literal CR/LF characters and
-// common escaped forms such as %0d, %0a, \x0d, and \u000a. Literal CR/LF are
-// already rejected by the schema's printable-ASCII validator; this pattern keeps
-// Terraform from accepting escaped values that the portal blocks.
-var customHeaderLineBreakEscapePattern = regexp.MustCompile(`(?i)(%0[da]|\\x0[da]|\\u000[da])`)
 
 func commaStringPointer(values []string) *string {
 	if len(values) == 0 {
@@ -230,36 +174,14 @@ func (b *webFilteringPolicyRuleRequestBody) GetFieldDeserializers() map[string]f
 }
 
 type actionRequestBody struct {
-	odataType      string
-	headerSettings *headerSettingsRequestBody
+	odataType string
 }
 
 func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
-		return err
-	}
-	if b.headerSettings != nil {
-		if err := writer.WriteObjectValue("headerSettings", b.headerSettings); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return writer.WriteStringValue("@odata.type", &b.odataType)
 }
 
 func (b *actionRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type headerSettingsRequestBody struct {
-	modifications []s.Parsable
-}
-
-func (b *headerSettingsRequestBody) Serialize(writer s.SerializationWriter) error {
-	return writer.WriteCollectionOfObjectValues("modifications", b.modifications)
-}
-
-func (b *headerSettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
 
@@ -342,25 +264,5 @@ func (b *sourcesRequestBody) Serialize(writer s.SerializationWriter) error {
 }
 
 func (b *sourcesRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type customHeaderRequestBody struct {
-	odataType   string
-	headerName  *string
-	headerValue *string
-}
-
-func (b *customHeaderRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
-		return err
-	}
-	if err := writer.WriteStringValue("headerName", b.headerName); err != nil {
-		return err
-	}
-	return writer.WriteStringValue("headerValue", b.headerValue)
-}
-
-func (b *customHeaderRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
