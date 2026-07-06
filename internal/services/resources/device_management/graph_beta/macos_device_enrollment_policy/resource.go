@@ -208,6 +208,23 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 					"this profile. If omitted, it is automatically resolved to the tenant's single Apple ADE/ABM (or ASM) token; if the tenant " +
 					"has more than one Apple token, this must be set explicitly.",
 			},
+			"is_default_policy_assignment": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+				MarkdownDescription: "Whether this policy is the default macOS enrollment profile for its `dep_onboarding_settings_id`, " +
+					"set via the dedicated `setDefaultProfile` action. Always reflects the DEP token's actual current default on " +
+					"refresh, regardless of configuration.\n\n" +
+					"~> **No unassign action:** Microsoft Graph does not expose an `unsetDefaultProfile`/`clearDefaultProfile` action - " +
+					"`setDefaultProfile` is the only operation available. Setting this to `false` on a policy that is currently the " +
+					"DEP token's default has no effect on Graph; the next refresh reports `true` again. Only setting a different " +
+					"policy's `is_default_policy_assignment` to `true` changes which profile is the default. A change from `true` to " +
+					"`false` while this policy is still the token's current default can therefore never converge, and the provider " +
+					"rejects the update with a validation error. Promote the replacement policy first - in the same apply, give this " +
+					"policy a `depends_on` for the replacement so the promotion runs first, or apply the promotion separately.",
+			},
 			"device_security_group": schema.StringAttribute{
 				Optional: true,
 				MarkdownDescription: "The ID of the static Microsoft Entra security group to use for enrollment time grouping (the " +

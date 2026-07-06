@@ -15,6 +15,7 @@ Manages a macOS Automated Device Enrollment (ADE) profile using the `/deviceMana
 - [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
 - [Set up automated device enrollment for macOS](https://learn.microsoft.com/en-us/mem/intune/enrollment/device-enrollment-program-enroll-macos)
 - [Set up enrollment time grouping in Microsoft Intune](https://learn.microsoft.com/en-us/mem/intune/enrollment/enrollment-time-grouping)
+- [enrollmentProfile: setDefaultProfile action](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-enrollmentprofile-setdefaultprofile?view=graph-rest-beta)
 
 ## Microsoft Graph API Permissions
 
@@ -97,6 +98,11 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
   # Uncomment to target a specific Apple ABM/ASM token when the tenant has more than one;
   # otherwise this is auto-resolved.
   # dep_onboarding_settings_id = "00000000-0000-0000-0000-000000000000"
+
+  # Makes this the default macOS enrollment profile for the DEP token via the setDefaultProfile
+  # action. Only one policy per DEP token can be the default; setting this to true elsewhere
+  # supersedes this assignment. There is no "unassign" action - see the resource documentation.
+  is_default_policy_assignment = true
 
   requires_user_authentication                               = true
   enable_authentication_via_company_portal                   = false
@@ -291,6 +297,9 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
 - `file_vault_disabled` (Boolean) Whether to hide the FileVault pane in Setup Assistant.
 - `icloud_diagnostics_disabled` (Boolean) Whether to hide the iCloud Analytics pane in Setup Assistant.
 - `icloud_storage_disabled` (Boolean) Whether to hide the iCloud Storage pane in Setup Assistant.
+- `is_default_policy_assignment` (Boolean) Whether this policy is the default macOS enrollment profile for its `dep_onboarding_settings_id`, set via the dedicated `setDefaultProfile` action. Always reflects the DEP token's actual current default on refresh, regardless of configuration.
+
+~> **No unassign action:** Microsoft Graph does not expose an `unsetDefaultProfile`/`clearDefaultProfile` action - `setDefaultProfile` is the only operation available. Setting this to `false` on a policy that is currently the DEP token's default has no effect on Graph; the next refresh reports `true` again. Only setting a different policy's `is_default_policy_assignment` to `true` changes which profile is the default. A change from `true` to `false` while this policy is still the token's current default can therefore never converge, and the provider rejects the update with a validation error. Promote the replacement policy first - in the same apply, give this policy a `depends_on` for the replacement so the promotion runs first, or apply the promotion separately.
 - `location_services_disabled` (Boolean) Whether to hide the Location Services pane in Setup Assistant.
 - `lockdown_mode_disabled` (Boolean) Whether to hide the Lockdown Mode pane in Setup Assistant.
 - `locked_enrollment_enabled` (Boolean) Whether enrollment is locked to the authorized user/device, preventing the MDM profile from being removed before enrollment completes.
@@ -375,6 +384,21 @@ Optional:
   must be between 1 and 125 characters - Microsoft Graph rejects empty values.
 - **Enrollment time grouping**: see the Known Issues section above and the dedicated
   `device_security_group` prerequisites example.
+- **`is_default_policy_assignment` is a singleton per DEP token**: only one macOS enrollment
+  policy can be the default for a given `dep_onboarding_settings_id` at a time. Setting this to
+  `true` on another policy for the same token supersedes this one's assignment on its next apply.
+- **No unassign action**: Microsoft Graph does not expose an `unsetDefaultProfile` or
+  `clearDefaultProfile` action - `setDefaultProfile` is the only operation available for this
+  relationship. Setting `is_default_policy_assignment` to `false` on a policy that is currently
+  the DEP token's default has no effect on Graph; the next refresh reports `true` again. A `true`
+  to `false` change while the policy is still the token's current default can therefore never
+  converge, so the provider rejects it with a validation error during update. Promote the
+  replacement policy first: in the same apply, give the demoted policy a `depends_on` for the
+  replacement so the promotion runs first, or apply the promotion separately - once another
+  policy is the default, this attribute refreshes to `false` on its own.
+- **Drift detection**: `is_default_policy_assignment` is re-derived from the DEP token's current
+  default profile on every refresh. If the default is changed outside Terraform (e.g. in the
+  Intune admin center), the next plan shows a diff and `apply` restores the configured assignment.
 
 ## Import
 

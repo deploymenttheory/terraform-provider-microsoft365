@@ -2,9 +2,9 @@ package constants
 
 const (
 	// hashicorp/random
-	ExternalProviderRandomVersion = ">= 3.7.2"
+	ExternalProviderRandomVersion = ">= 3.9.0"
 	// hashicorp/time
-	ExternalProviderTimeVersion = ">= 0.13.1"
+	ExternalProviderTimeVersion = ">= 0.14.0"
 	// hashicorp/tls
-	ExternalProviderTLSVersion = ">= 4.2.0"
+	ExternalProviderTLSVersion = ">= 4.3.0"
 )

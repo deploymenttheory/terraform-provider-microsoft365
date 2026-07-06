@@ -31,6 +31,12 @@ type MacOSDeviceEnrollmentPolicyResourceModel struct {
 	// on Create if omitted; used to build the `creationSource` field sent to Graph.
 	DepOnboardingSettingsId types.String `tfsdk:"dep_onboarding_settings_id"`
 
+	// IsDefaultPolicyAssignment controls whether this policy is the default macOS enrollment
+	// profile for its dep_onboarding_settings_id, via the dedicated setDefaultProfile action on
+	// /deviceManagement/depOnboardingSettings/{id}/enrollmentProfiles/{enrollmentProfileId}.
+	// Reflects the DEP token's actual current default on every Read, regardless of configuration.
+	IsDefaultPolicyAssignment types.Bool `tfsdk:"is_default_policy_assignment"`
+
 	// DeviceSecurityGroup is the enrollment time device membership target (the "Device group" tab
 	// in the Intune admin center). It is set/cleared via the dedicated
 	// setEnrollmentTimeDeviceMembershipTarget/clearEnrollmentTimeDeviceMembershipTarget actions on

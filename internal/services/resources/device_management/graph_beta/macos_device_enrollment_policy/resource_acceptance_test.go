@@ -236,3 +236,43 @@ func TestAccResourceMacOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *testing.T
 		},
 	})
 }
+
+// Scenario 05: Default Policy Assignment (setDefaultProfile action)
+func TestAccResourceMacOSDeviceEnrollmentPolicy_05_DefaultPolicyAssignment(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating macOS ADE enrollment policy as the DEP token default")
+				},
+				Config: loadAcceptanceTestTerraform("007_scenario_default_policy_assignment.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("macos device enrollment policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".default_assignment").ExistsInGraph(testResource),
+					check.That(resourceType+".default_assignment").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".default_assignment").Key("is_default_policy_assignment").HasValue("true"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing default macOS ADE enrollment policy")
+				},
+				ResourceName:            resourceType + ".default_assignment",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
