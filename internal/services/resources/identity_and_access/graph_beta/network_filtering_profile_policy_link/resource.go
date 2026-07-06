@@ -27,14 +27,14 @@ const (
 	ReadTimeout   = 180
 	DeleteTimeout = 180
 
-	policyTypeFiltering          = "filtering_policy"
-	policyTypeWebFiltering       = "web_filtering_policy"
-	policyTypePrompt             = "prompt_policy"
-	policyTypeContent            = "content_policy"
-	policyTypeNetskopeDlp        = "netskope_dlp_policy"
-	policyTypeCloudFirewall      = "cloud_firewall_policy"
-	policyTypeThreatIntelligence = "threat_intelligence_policy"
-	policyTypeTlsInspection      = "tls_inspection_policy"
+	policyTypeFiltering          = "filtering"
+	policyTypeWebFiltering       = "web_filtering"
+	policyTypePrompt             = "prompt"
+	policyTypeContent            = "content"
+	policyTypeNetskopeDlp        = "netskope_dlp"
+	policyTypeCloudFirewall      = "cloud_firewall"
+	policyTypeThreatIntelligence = "threat_intelligence"
+	policyTypeTlsInspection      = "tls_inspection"
 )
 
 var (
@@ -130,7 +130,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 				},
 			},
 			"policy_type": schema.StringAttribute{
-				MarkdownDescription: "The policy type to link. Known values are `filtering_policy`, `web_filtering_policy`, `prompt_policy`, `content_policy`, `netskope_dlp_policy`, `cloud_firewall_policy`, `threat_intelligence_policy`, and `tls_inspection_policy`.",
+				MarkdownDescription: "The policy type to link. Known values are `filtering`, `web_filtering`, `prompt`, `content`, `netskope_dlp`, `cloud_firewall`, `threat_intelligence`, and `tls_inspection`.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf(
@@ -158,7 +158,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 				},
 			},
 			"priority": schema.Int64Attribute{
-				MarkdownDescription: "The priority for a `filtering_policy` link. The Entra admin center sends this for legacy filtering policy links and does not send it for `web_filtering_policy` links. Omit this for non-`filtering_policy` links.",
+				MarkdownDescription: "The priority for a `filtering` link. The Entra admin center sends this for legacy filtering policy links and does not send it for `web_filtering` links. Omit this for non-`filtering` links.",
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers: []planmodifier.Int64{
@@ -167,7 +167,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 				},
 			},
 			"logging_state": schema.StringAttribute{
-				MarkdownDescription: "The logging state for a `filtering_policy` link. The Entra admin center sends this for legacy filtering policy links and does not send it for `web_filtering_policy` links. Omit this for non-`filtering_policy` links.",
+				MarkdownDescription: "The logging state for a `filtering` link. The Entra admin center sends this for legacy filtering policy links and does not send it for `web_filtering` links. Omit this for non-`filtering` links.",
 				Optional:            true,
 				Computed:            true,
 				Validators: []validator.String{

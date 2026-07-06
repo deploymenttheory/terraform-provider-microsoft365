@@ -18,7 +18,7 @@ const (
 	// XHR was observed linking V2 web filtering policies by POSTing this explicit
 	// @odata.type to /networkAccess/filteringProfiles/{filteringProfileId}/policies.
 	//
-	// prompt_policy, content_policy, and netskope_dlp_policy are portal-first cases:
+	// prompt, content, and netskope_dlp are portal-first cases:
 	// the Entra admin center JavaScript bundle defines promptPolicyLink,
 	// filePolicyLink, contentPolicyLink, and securityProviderPolicyLink, but these
 	// types were not present in Microsoft Graph beta $metadata or the generated Go
@@ -27,7 +27,7 @@ const (
 	//
 	// Netskope DLP policy selection was observed querying
 	// /networkAccess/securityProviderPolicies with a Netskope schema filter, so
-	// Terraform exposes that UI concept as netskope_dlp_policy while keeping the
+	// Terraform exposes that UI concept as netskope_dlp while keeping the
 	// generic securityProviderPolicy Graph type internal.
 	//
 	// Keep these values as strings instead of SDK constructors so portal-first policy

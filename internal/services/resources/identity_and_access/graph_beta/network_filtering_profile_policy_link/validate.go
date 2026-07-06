@@ -19,7 +19,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) ConfigValidators(ctx context
 type filteringPolicyOnlyFieldsValidator struct{}
 
 func (v filteringPolicyOnlyFieldsValidator) Description(_ context.Context) string {
-	return "priority and logging_state must only be set when policy_type is filtering_policy"
+	return "priority and logging_state must only be set when policy_type is filtering"
 }
 
 func (v filteringPolicyOnlyFieldsValidator) MarkdownDescription(ctx context.Context) string {
@@ -66,7 +66,7 @@ func validateFilteringPolicyOnlyFields(policyType types.String, priority types.I
 	if !priority.IsNull() && !priority.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("priority"),
-			"priority is only supported for filtering_policy",
+			"priority is only supported for filtering",
 			fmt.Sprintf("priority must be omitted when policy_type is %q. Microsoft Graph only accepts priority on filteringPolicyLink requests.", policyType.ValueString()),
 		)
 	}
@@ -74,7 +74,7 @@ func validateFilteringPolicyOnlyFields(policyType types.String, priority types.I
 	if !loggingState.IsNull() && !loggingState.IsUnknown() {
 		diags.AddAttributeError(
 			path.Root("logging_state"),
-			"logging_state is only supported for filtering_policy",
+			"logging_state is only supported for filtering",
 			fmt.Sprintf("logging_state must be omitted when policy_type is %q. Microsoft Graph only accepts loggingState on filteringPolicyLink requests.", policyType.ValueString()),
 		)
 	}
