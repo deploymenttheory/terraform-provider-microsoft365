@@ -103,9 +103,9 @@ func (r *NetworkFilteringProfileResource) Schema(ctx context.Context, req resour
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "Optional description of the Global Secure Access security profile. Maximum length is 1500 characters.",
+				MarkdownDescription: "Optional description of the Global Secure Access security profile. Maximum length is 8192 characters.",
 				Validators: []validator.String{
-					stringvalidator.LengthAtMost(1500),
+					stringvalidator.LengthAtMost(8192),
 				},
 			},
 			"priority": schema.Int64Attribute{
