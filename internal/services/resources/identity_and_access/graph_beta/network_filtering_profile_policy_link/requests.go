@@ -11,12 +11,20 @@ import (
 )
 
 const (
-	// Microsoft Learn documents two different create shapes on the same page:
+	// Microsoft Learn documents two different create shapes on the filteringPolicyLink create page:
 	// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringpolicylink-post?view=graph-rest-beta
-	// The Entra admin center XHR uses POST /networkAccess/filteringProfiles/{id}/policies with an
-	// explicit policyLink body that references an existing policy. Keep the URL and request bodies
-	// explicit so V2 webFilteringPolicyLink can be sent even though the current beta SDK discriminator
-	// does not include that link type.
+	//
+	// It shows a relationship-style path in one section, but the Entra admin center XHR
+	// and the Learn example both use POST /networkAccess/filteringProfiles/{id}/policies
+	// with an explicit policyLink body that references an existing policy.
+	//
+	// Updates use PATCH /networkAccess/filteringProfiles/{id}/policies/{policyLinkId}
+	// with a small typed body, matching:
+	// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringpolicylink-update?view=graph-rest-beta
+	//
+	// Keep the URL and request bodies explicit so V2 webFilteringPolicyLink and other
+	// portal-first link types can be sent even when the generated beta SDK discriminator
+	// does not include those types yet.
 	filteringProfilePoliciesURLTemplate   = "{+baseurl}/networkAccess/filteringProfiles/{filteringProfileId}/policies"
 	filteringProfilePolicyLinkURLTemplate = filteringProfilePoliciesURLTemplate + "/{policyLinkId}"
 )

@@ -9,6 +9,17 @@ import (
 )
 
 const (
+	// Microsoft Learn documents policyLink as an abstract type with these Graph beta
+	// derived types:
+	// https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-policylink?view=graph-rest-beta
+	//
+	// webFilteringPolicyLink is intentionally included even though it is not in the
+	// current Microsoft Graph beta Go SDK policyLink discriminator. Entra admin center
+	// XHR was observed linking V2 web filtering policies by POSTing this explicit
+	// @odata.type to /networkAccess/filteringProfiles/{filteringProfileId}/policies.
+	//
+	// Keep these values as strings instead of SDK constructors so portal-first policy
+	// link types can be sent before the generated SDK catches up.
 	filteringPolicyLinkODataType          = "#microsoft.graph.networkaccess.filteringPolicyLink"
 	filteringPolicyODataType              = "#microsoft.graph.networkaccess.filteringPolicy"
 	webFilteringPolicyLinkODataType       = "#microsoft.graph.networkaccess.webFilteringPolicyLink"
@@ -39,6 +50,9 @@ func resolvePolicyODataTypes(data *NetworkFilteringProfilePolicyLinkResourceMode
 	case policyTypeTlsInspection:
 		return policyODataTypes{link: tlsInspectionPolicyLinkODataType, policy: tlsInspectionPolicyODataType}, nil
 	case policyTypeCustom:
+		// Custom exists for portal-first Global Secure Access policy link types that
+		// are visible in Entra admin center XHR before they are published in Learn or
+		// generated into the Microsoft Graph beta SDK.
 		if data.PolicyLinkODataType.IsNull() || data.PolicyLinkODataType.IsUnknown() || data.PolicyLinkODataType.ValueString() == "" {
 			return policyODataTypes{}, fmt.Errorf("policy_link_odata_type is required when policy_type is custom")
 		}
