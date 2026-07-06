@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 func (r *NetworkWebFilteringPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -125,7 +126,7 @@ func (r *NetworkWebFilteringPolicyRuleResource) Update(ctx context.Context, req 
 		return
 	}
 
-	if err := r.updateWebFilteringPolicyRule(ctx, state.WebFilteringPolicyID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
+	if err := r.updateWebFilteringPolicyRuleWithPreconditionRetry(ctx, state.WebFilteringPolicyID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -169,7 +170,19 @@ func (r *NetworkWebFilteringPolicyRuleResource) Delete(ctx context.Context, req 
 	resp.State.RemoveResource(ctx)
 }
 
+func (r *NetworkWebFilteringPolicyRuleResource) updateWebFilteringPolicyRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string, requestBody s.Parsable) error {
+	return r.withWebFilteringPolicyRulePreconditionRetry(ctx, "update", policyID, ruleID, func() error {
+		return r.updateWebFilteringPolicyRule(ctx, policyID, ruleID, requestBody)
+	})
+}
+
 func (r *NetworkWebFilteringPolicyRuleResource) deleteWebFilteringPolicyRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string) error {
+	return r.withWebFilteringPolicyRulePreconditionRetry(ctx, "delete", policyID, ruleID, func() error {
+		return r.deleteWebFilteringPolicyRule(ctx, policyID, ruleID)
+	})
+}
+
+func (r *NetworkWebFilteringPolicyRuleResource) withWebFilteringPolicyRulePreconditionRetry(ctx context.Context, operation, policyID, ruleID string, fn func() error) error {
 	const (
 		maxPreconditionRetries = 3
 		preconditionRetryDelay = 5 * time.Second
@@ -177,18 +190,20 @@ func (r *NetworkWebFilteringPolicyRuleResource) deleteWebFilteringPolicyRuleWith
 
 	var lastErr error
 	for attempt := 0; attempt <= maxPreconditionRetries; attempt++ {
-		if err := r.deleteWebFilteringPolicyRule(ctx, policyID, ruleID); err != nil {
+		if err := fn(); err != nil {
 			lastErr = err
 			errorInfo := errors.GraphError(ctx, err)
 			if errorInfo.StatusCode != 412 && errorInfo.ErrorCode != "PreconditionFailed" {
 				return err
 			}
 
-			// Tenant verification showed Microsoft Graph can return 412 when Terraform
-			// deletes multiple rules from the same web filtering policy in parallel.
-			// Retrying lets the policy/rule collection state settle before the next delete.
+			// Tenant verification showed Microsoft Graph can return 412 when
+			// Terraform updates or deletes multiple rules from the same web
+			// filtering policy in parallel. Retrying lets the policy/rule
+			// collection state settle before the next request.
 			if attempt < maxPreconditionRetries {
-				tflog.Warn(ctx, "Retrying web filtering policy rule delete after Graph precondition failure", map[string]any{
+				tflog.Warn(ctx, "Retrying web filtering policy rule operation after Graph precondition failure", map[string]any{
+					"operation": operation,
 					"policy_id": policyID,
 					"rule_id":   ruleID,
 					"attempt":   attempt + 1,
@@ -198,7 +213,7 @@ func (r *NetworkWebFilteringPolicyRuleResource) deleteWebFilteringPolicyRuleWith
 				case <-time.After(preconditionRetryDelay):
 					continue
 				case <-ctx.Done():
-					return fmt.Errorf("context cancelled while retrying web filtering policy rule delete: %w", ctx.Err())
+					return fmt.Errorf("context cancelled while retrying web filtering policy rule %s: %w", operation, ctx.Err())
 				}
 			}
 		} else {
