@@ -1,0 +1,104 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
+- [Set up automated device enrollment for Apple devices](https://learn.microsoft.com/en-us/mem/intune/enrollment/device-enrollment-program-enroll-ios)
+- [Set up enrollment time grouping in Microsoft Intune](https://learn.microsoft.com/en-us/mem/intune/enrollment/enrollment-time-grouping)
+- [enrollmentProfile: setDefaultProfile action](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-enrollmentprofile-setdefaultprofile?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+- `DeviceManagementServiceConfig.Read.All`
+- `Directory.Read.All`
+- `Group.Read.All`
+- `GroupMember.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.56.0-alpha | Experimental | Initial release |
+
+## Known Issues
+
+### `device_security_group` Requires Delegated Authentication - 07/03/2026
+
+Enrollment time grouping (setting `device_security_group`) is implemented via the dedicated
+`setEnrollmentTimeDeviceMembershipTarget` / `clearEnrollmentTimeDeviceMembershipTarget` actions on
+`/deviceManagement/configurationPolicies/{id}`, rather than through the settings catalog.
+
+**Issue Summary:**
+- These endpoints return an `Internal Server Error - 500` from the Intune backend (`DeviceConfigV2`)
+  when called with application permissions (client credentials) - the auth flow this provider
+  always uses.
+- The identical request succeeds when made with delegated (signed-in user) permissions, e.g. from
+  the Intune admin center.
+- All other attributes on this resource are unaffected and work correctly with application
+  permissions.
+
+**Impact:**
+- `device_security_group` cannot be set or changed through this provider when it is configured
+  with a service principal / client credentials, which is the only supported configuration.
+
+**Workaround:**
+None currently, other than configuring the group's membership target directly through the Intune
+admin center, outside of Terraform.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_visionos_device_enrollment_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Settings catalog**: this resource manages visionOS ADE profiles through the modern
+  `/deviceManagement/configurationPolicies` settings catalog endpoint.
+- **User authentication**: visionOS Automated Device Enrollment only supports enrollment without
+  user affinity - Microsoft Graph rejects `requires_user_authentication = true`. Unlike iOS/iPadOS,
+  there is no authentication method choice or await-final-configuration option; the separate
+  `await_device_configured` toggle controls whether devices are locked in Setup Assistant until
+  enrollment-time configuration is installed.
+- **Support department/phone**: `support_department` (1-125 characters) and
+  `support_phone_number` (1-50 characters) are required - Microsoft Graph rejects empty values.
+- **Enrollment time grouping**: see the Known Issues section above.
+- **`is_default_policy_assignment` is a singleton per DEP token**: only one visionOS enrollment
+  policy can be the default for a given `dep_onboarding_settings_id` at a time. Setting this to
+  `true` on another policy for the same token supersedes this one's assignment on its next apply.
+- **No unassign action**: Microsoft Graph does not expose an `unsetDefaultProfile` or
+  `clearDefaultProfile` action - `setDefaultProfile` is the only operation available for this
+  relationship. Setting `is_default_policy_assignment` to `false` on a policy that is currently
+  the DEP token's default has no effect on Graph; the next refresh reports `true` again. A `true`
+  to `false` change while the policy is still the token's current default can therefore never
+  converge, so the provider rejects it with a validation error during update. Promote the
+  replacement policy first: in the same apply, give the demoted policy a `depends_on` for the
+  replacement so the promotion runs first, or apply the promotion separately - once another
+  policy is the default, this attribute refreshes to `false` on its own.
+- **Drift detection**: `is_default_policy_assignment` is re-derived from the DEP token's current
+  default profile on every refresh. If the default is changed outside Terraform (e.g. in the
+  Intune admin center), the next plan shows a diff and `apply` restores the configured assignment.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_visionos_device_enrollment_policy/import.sh" }}
