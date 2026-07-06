@@ -184,7 +184,7 @@ func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req 
 				},
 			},
 			"custom_headers": schema.ListNestedAttribute{
-				MarkdownDescription: "Custom request headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`.",
+				MarkdownDescription: "Custom request headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`. Some tenants may reject this setting with a BadRequest response when the backend header modifications feature is not enabled.",
 				Optional:            true,
 				Validators: []validator.List{
 					listvalidator.SizeAtMost(10),

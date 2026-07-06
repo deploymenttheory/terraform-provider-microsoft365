@@ -29,7 +29,10 @@ import (
 //   - HTTP methods and session types are serialized back to comma-separated
 //     strings because that is what the endpoint returns and accepts.
 //   - Custom request header insertions are nested under
-//     action.headerSettings.modifications for allow rules.
+//     action.headerSettings.modifications for allow rules. Tenant verification
+//     showed Graph can still reject this payload with "The property
+//     'headerSettings' is not available. The header modifications feature is
+//     currently disabled." when the backend feature is not enabled for a tenant.
 func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleResourceModel) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 

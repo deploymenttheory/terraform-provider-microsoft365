@@ -46,7 +46,7 @@ Web category IDs are passed through unchanged. For example, the portal was obser
 - If `http_methods` is omitted, the rule matches all HTTP methods supported by the service. If `session_types` is omitted, the rule is not limited to a specific source session type.
 - Lower `priority` values are evaluated before higher values. Keep priorities unique within a policy to make rule ordering predictable.
 - `action = "allow"` permits matching traffic and can add custom request headers. `action = "block"` blocks matching traffic and cannot be combined with `custom_headers`.
-- `custom_headers` inserts custom HTTP request headers into matching traffic only when `action = "allow"`. This can be useful for tagging traffic for downstream services or routing decisions, but it should not be used for secrets or sensitive user data because the header can be forwarded to the destination.
+- `custom_headers` inserts custom HTTP request headers into matching traffic only when `action = "allow"`. This can be useful for tagging traffic for downstream services or routing decisions, but it should not be used for secrets or sensitive user data because the header can be forwarded to the destination. Some tenants may reject this setting when the backend header modifications feature is not enabled.
 - Custom header values cannot include CR/LF characters or common escaped CR/LF sequences. This mirrors the Entra portal validation and prevents header-injection style inputs before the request reaches Graph.
 
 ## Microsoft Graph API Permissions
@@ -130,7 +130,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_poli
 
 ### Optional
 
-- `custom_headers` (Attributes List) Custom request headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`. (see [below for nested schema](#nestedatt--custom_headers))
+- `custom_headers` (Attributes List) Custom request headers to add for allow rules. Microsoft Graph accepts these only when `action` is `allow`; the Entra portal serializes them as `action.headerSettings.modifications`. Some tenants may reject this setting with a BadRequest response when the backend header modifications feature is not enabled. (see [below for nested schema](#nestedatt--custom_headers))
 - `description` (String) Optional description of the web filtering rule. Maximum length is 8192 characters.
 - `http_methods` (Set of String) HTTP methods that must match the rule. The Entra portal sends these as comma-separated lowercase values.
 - `session_types` (Set of String) Session types that must match the rule. Possible values are `user` and `agent`.
