@@ -28,6 +28,11 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
   # otherwise this is auto-resolved.
   # dep_onboarding_settings_id = "00000000-0000-0000-0000-000000000000"
 
+  # Makes this the default macOS enrollment profile for the DEP token via the setDefaultProfile
+  # action. Only one policy per DEP token can be the default; setting this to true elsewhere
+  # supersedes this assignment. There is no "unassign" action - see the resource documentation.
+  is_default_policy_assignment = true
+
   requires_user_authentication                               = true
   enable_authentication_via_company_portal                   = false
   require_company_portal_on_setup_assistant_enrolled_devices = true

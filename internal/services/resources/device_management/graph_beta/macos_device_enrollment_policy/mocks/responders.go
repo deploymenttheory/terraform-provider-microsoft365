@@ -26,9 +26,10 @@ const intuneProvisioningClientAppID = "f1346770-5b25-470b-88bd-d5744ab7952c"
 
 var mockState struct {
 	sync.Mutex
-	policies          map[string]map[string]any // policy ID -> top-level fields echoed from POST/PUT
-	policySettings    map[string][]any          // policy ID -> settings array echoed from POST/PUT
-	membershipTargets map[string]string         // policy ID -> current device_security_group target, if set
+	policies             map[string]map[string]any // policy ID -> top-level fields echoed from POST/PUT
+	policySettings       map[string][]any          // policy ID -> settings array echoed from POST/PUT
+	membershipTargets    map[string]string         // policy ID -> current device_security_group target, if set
+	defaultMacOSProfiles map[string]string         // dep_onboarding_settings_id -> default policy ID, if set
 }
 
 func init() {
@@ -42,6 +43,7 @@ func resetMockState() {
 	mockState.policies = make(map[string]map[string]any)
 	mockState.policySettings = make(map[string][]any)
 	mockState.membershipTargets = make(map[string]string)
+	mockState.defaultMacOSProfiles = make(map[string]string)
 }
 
 // MacOSDeviceEnrollmentPolicyMock provides mock responses for macOS ADE enrollment policy operations.
@@ -67,6 +69,48 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 					},
 				},
 			})
+		})
+
+	// Read a single DEP token, expanding its default macOS enrollment profile - GET
+	// /deviceManagement/depOnboardingSettings/{id}?$expand=defaultMacOsEnrollmentProfile. Used by
+	// resolveIsDefaultPolicyAssignment on every Read.
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/depOnboardingSettings/[0-9a-fA-F-]+`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			id := parts[len(parts)-1]
+
+			mockState.Lock()
+			defaultPolicyID, hasDefault := mockState.defaultMacOSProfiles[id]
+			mockState.Unlock()
+
+			response := map[string]any{
+				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/depOnboardingSettings/$entity",
+				"id":             id,
+			}
+			if hasDefault {
+				response["defaultMacOsEnrollmentProfile"] = map[string]any{
+					"id": "ECV2_" + id + "_" + defaultPolicyID,
+				}
+			}
+
+			return httpmock.NewJsonResponse(200, response)
+		})
+
+	// Set default macOS enrollment profile - POST
+	// /deviceManagement/depOnboardingSettings/{depId}/enrollmentProfiles/{enrollmentProfileId}/setDefaultProfile.
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/depOnboardingSettings/[0-9a-fA-F-]+/enrollmentProfiles/.+/setDefaultProfile$`,
+		func(req *http.Request) (*http.Response, error) {
+			parts := strings.Split(req.URL.Path, "/")
+			// [...  "depOnboardingSettings", "{depId}", "enrollmentProfiles", "{depId}_{policyId}", "setDefaultProfile"]
+			depId := parts[len(parts)-4]
+			enrollmentProfileId := parts[len(parts)-2]
+			policyId := strings.TrimPrefix(enrollmentProfileId, depId+"_")
+
+			mockState.Lock()
+			mockState.defaultMacOSProfiles[depId] = policyId
+			mockState.Unlock()
+
+			return httpmock.NewStringResponse(204, ""), nil
 		})
 
 	// Security group owners - used by validateSecurityGroupOwnership. Every group is mocked as

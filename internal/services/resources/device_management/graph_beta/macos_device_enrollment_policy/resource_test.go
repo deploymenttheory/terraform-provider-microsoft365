@@ -259,3 +259,87 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_07_Error_AuthenticationMethodRe
 		},
 	})
 }
+
+// ====================================================================================
+// Scenario 08: Default Policy Assignment (setDefaultProfile action)
+// ====================================================================================
+
+func TestUnitResourceMacOSDeviceEnrollmentPolicy_08_DefaultPolicyAssignment(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, enrollmentPolicyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer enrollmentPolicyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("011_scenario_default_policy_assignment.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".default_assignment").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".default_assignment").Key("is_default_policy_assignment").HasValue("true"),
+				),
+			},
+		},
+	})
+}
+
+// ====================================================================================
+// Scenario 08b: Default Policy Assignment Unset Error (cannot flip to false while the policy is
+// still the DEP token's current default - rejected by validateRequest during Update, since Graph
+// has no unset action and nothing else in the plan promotes a replacement)
+// ====================================================================================
+
+func TestUnitResourceMacOSDeviceEnrollmentPolicy_08b_DefaultPolicyAssignmentUnsetError(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, enrollmentPolicyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer enrollmentPolicyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("011_scenario_default_policy_assignment.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".default_assignment").Key("is_default_policy_assignment").HasValue("true"),
+				),
+			},
+			{
+				Config:      loadUnitTestTerraform("014_scenario_default_policy_assignment_unset_error.tf"),
+				ExpectError: regexp.MustCompile(`cannot unset the default policy assignment`),
+			},
+		},
+	})
+}
+
+// ====================================================================================
+// Scenario 09: Default Policy Assignment Switch (create default, then switch to another policy)
+// ====================================================================================
+
+func TestUnitResourceMacOSDeviceEnrollmentPolicy_09_DefaultPolicyAssignmentSwitch(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, enrollmentPolicyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer enrollmentPolicyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("012_scenario_default_policy_assignment_switch_step_01.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".switch_a").Key("is_default_policy_assignment").HasValue("true"),
+					check.That(resourceType+".switch_b").Key("is_default_policy_assignment").HasValue("false"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("013_scenario_default_policy_assignment_switch_step_02.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".switch_a").Key("is_default_policy_assignment").HasValue("false"),
+					check.That(resourceType+".switch_b").Key("is_default_policy_assignment").HasValue("true"),
+				),
+			},
+		},
+	})
+}

@@ -66,6 +66,15 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Create(ctx context.Context, req re
 
 	object.ID = types.StringValue(*baseResource.GetId())
 
+	if !object.IsDefaultPolicyAssignment.IsNull() && !object.IsDefaultPolicyAssignment.IsUnknown() && object.IsDefaultPolicyAssignment.ValueBool() {
+		tflog.Debug(ctx, fmt.Sprintf("Setting policy ID %s as default macOS enrollment profile for dep_onboarding_settings_id %s", object.ID.ValueString(), depOnboardingSettingsId))
+
+		if err := r.setDefaultMacOSProfileWithRetry(ctx, depOnboardingSettingsId, object.ID.ValueString()); err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+			return
+		}
+	}
+
 	if !object.DeviceSecurityGroup.IsNull() && !object.DeviceSecurityGroup.IsUnknown() {
 		deviceSecurityGroupID := object.DeviceSecurityGroup.ValueString()
 
@@ -160,6 +169,13 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Read(ctx context.Context, req reso
 	}
 
 	mapResourceToState(ctx, &object, baseResource)
+
+	isDefault, err := r.resolveIsDefaultPolicyAssignment(ctx, object.DepOnboardingSettingsId.ValueString(), object.ID.ValueString())
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	object.IsDefaultPolicyAssignment = types.BoolValue(isDefault)
 
 	allSettings, err := r.listAllPolicySettingsWithPageIterator(ctx, object.ID.ValueString())
 	if err != nil {
@@ -274,6 +290,14 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Update(ctx context.Context, req re
 	}
 	defer cancel()
 
+	if err := r.validateRequest(ctx, &plan, &state); err != nil {
+		resp.Diagnostics.AddError(
+			"Validation Error",
+			fmt.Sprintf("Pre-request validation failed for resource %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
 	// creationSource must be resent unchanged on every PUT: omitting it (the prior behavior here)
 	// causes Graph to reject the request with a 400, and live Intune admin center traffic always
 	// includes it on Update too.
@@ -298,6 +322,24 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Update(ctx context.Context, req re
 	if err := customrequest.PutRequestByResourceId(ctx, r.client.GetAdapter(), putRequest); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
+	}
+
+	planIsDefault := !plan.IsDefaultPolicyAssignment.IsNull() && !plan.IsDefaultPolicyAssignment.IsUnknown() && plan.IsDefaultPolicyAssignment.ValueBool()
+	stateIsDefault := !state.IsDefaultPolicyAssignment.IsNull() && state.IsDefaultPolicyAssignment.ValueBool()
+
+	if planIsDefault && !stateIsDefault {
+		tflog.Debug(ctx, fmt.Sprintf("Setting policy ID %s as default macOS enrollment profile for dep_onboarding_settings_id %s", state.ID.ValueString(), plan.DepOnboardingSettingsId.ValueString()))
+
+		if err := r.setDefaultMacOSProfileWithRetry(ctx, plan.DepOnboardingSettingsId.ValueString(), state.ID.ValueString()); err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+			return
+		}
+	} else if !planIsDefault && stateIsDefault {
+		// validateRequest has already confirmed against the live token default that this policy is
+		// no longer the default (Graph has no unset action), so there is nothing to call here - the
+		// post-update read derives false on its own.
+		tflog.Debug(ctx, fmt.Sprintf("Policy ID %s is no longer the default macOS enrollment profile for dep_onboarding_settings_id %s; no Graph action required for is_default_policy_assignment false",
+			state.ID.ValueString(), plan.DepOnboardingSettingsId.ValueString()))
 	}
 
 	planDeviceSecurityGroupID := ""

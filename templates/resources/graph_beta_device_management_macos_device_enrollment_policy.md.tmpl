@@ -15,6 +15,7 @@ description: |-
 - [deviceManagementConfigurationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfigv2-devicemanagementconfigurationpolicy?view=graph-rest-beta)
 - [Set up automated device enrollment for macOS](https://learn.microsoft.com/en-us/mem/intune/enrollment/device-enrollment-program-enroll-macos)
 - [Set up enrollment time grouping in Microsoft Intune](https://learn.microsoft.com/en-us/mem/intune/enrollment/enrollment-time-grouping)
+- [enrollmentProfile: setDefaultProfile action](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-enrollmentprofile-setdefaultprofile?view=graph-rest-beta)
 
 ## Microsoft Graph API Permissions
 
@@ -94,6 +95,21 @@ admin center, outside of Terraform.
   must be between 1 and 125 characters - Microsoft Graph rejects empty values.
 - **Enrollment time grouping**: see the Known Issues section above and the dedicated
   `device_security_group` prerequisites example.
+- **`is_default_policy_assignment` is a singleton per DEP token**: only one macOS enrollment
+  policy can be the default for a given `dep_onboarding_settings_id` at a time. Setting this to
+  `true` on another policy for the same token supersedes this one's assignment on its next apply.
+- **No unassign action**: Microsoft Graph does not expose an `unsetDefaultProfile` or
+  `clearDefaultProfile` action - `setDefaultProfile` is the only operation available for this
+  relationship. Setting `is_default_policy_assignment` to `false` on a policy that is currently
+  the DEP token's default has no effect on Graph; the next refresh reports `true` again. A `true`
+  to `false` change while the policy is still the token's current default can therefore never
+  converge, so the provider rejects it with a validation error during update. Promote the
+  replacement policy first: in the same apply, give the demoted policy a `depends_on` for the
+  replacement so the promotion runs first, or apply the promotion separately - once another
+  policy is the default, this attribute refreshes to `false` on its own.
+- **Drift detection**: `is_default_policy_assignment` is re-derived from the DEP token's current
+  default profile on every refresh. If the default is changed outside Terraform (e.g. in the
+  Intune admin center), the next plan shows a diff and `apply` restores the configured assignment.
 
 ## Import
 
