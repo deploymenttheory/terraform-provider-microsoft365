@@ -1,0 +1,254 @@
+package graphBetaIOSiPadOSDeviceEnrollmentPolicy
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	builders "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
+)
+
+// constructResource builds the DeviceManagementConfigurationPolicy request body for the iOS/iPadOS
+// ADE enrollment policy. creationSource (built from depOnboardingSettingsId) is sent on both Create
+// and Update - matching the macOS ADE policy, where live Intune admin center traffic resends it
+// unchanged on every PUT.
+func constructResource(ctx context.Context, planModel *IOSiPadOSDeviceEnrollmentPolicyResourceModel, depOnboardingSettingsId string) (models.DeviceManagementConfigurationPolicyable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+
+	configurationPolicy := models.NewDeviceManagementConfigurationPolicy()
+
+	convert.FrameworkToGraphString(planModel.Name, configurationPolicy.SetName)
+	convert.FrameworkToGraphString(planModel.Description, configurationPolicy.SetDescription)
+
+	templateId := TemplateID
+	templateReference := models.NewDeviceManagementConfigurationPolicyTemplateReference()
+	templateReference.SetTemplateId(&templateId)
+
+	if parsedFamily, err := models.ParseDeviceManagementConfigurationTemplateFamily(TemplateFamily); err == nil {
+		if family, ok := parsedFamily.(*models.DeviceManagementConfigurationTemplateFamily); ok && family != nil {
+			templateReference.SetTemplateFamily(family)
+		}
+	}
+	configurationPolicy.SetTemplateReference(templateReference)
+
+	if parsedPlatform, err := models.ParseDeviceManagementConfigurationPlatforms(Platforms); err == nil {
+		if platform, ok := parsedPlatform.(*models.DeviceManagementConfigurationPlatforms); ok && platform != nil {
+			configurationPolicy.SetPlatforms(platform)
+		}
+	}
+
+	if parsedTech, err := models.ParseDeviceManagementConfigurationTechnologies(Technologies); err == nil {
+		if tech, ok := parsedTech.(*models.DeviceManagementConfigurationTechnologies); ok && tech != nil {
+			configurationPolicy.SetTechnologies(tech)
+		}
+	}
+
+	if err := convert.FrameworkToGraphStringSet(ctx, planModel.RoleScopeTagIds, configurationPolicy.SetRoleScopeTagIds); err != nil {
+		return nil, fmt.Errorf("%w: %w", sentinels.ErrSetRoleScopeTags, err)
+	}
+
+	if depOnboardingSettingsId != "" {
+		creationSource := CreationSourcePrefix + depOnboardingSettingsId
+		configurationPolicy.SetAdditionalData(map[string]any{
+			"creationSource": creationSource,
+		})
+	}
+
+	settings := constructSettings(planModel)
+	configurationPolicy.SetSettings(settings)
+
+	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), configurationPolicy); err != nil {
+		tflog.Error(ctx, "Failed to debug log object", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
+	tflog.Debug(ctx, "Finished constructing resource")
+
+	return configurationPolicy, nil
+}
+
+// constructSettings builds the full settings catalog tree for the iOS/iPadOS ADE enrollment policy.
+func constructSettings(planModel *IOSiPadOSDeviceEnrollmentPolicyResourceModel) []models.DeviceManagementConfigurationSettingable {
+	var settings []models.DeviceManagementConfigurationSettingable
+
+	settings = append(settings, constructUserAffinitySetting(planModel))
+
+	settings = append(settings, builders.ConstructBoolChoiceSettingInstance(
+		SettingDefLockedEnrollment,
+		planModel.LockedEnrollmentEnabled.ValueBool(),
+		SettingInstanceTemplateLockedEnrollment,
+		SettingValueTemplateLockedEnrollment,
+	))
+
+	settings = append(settings, constructStringChoiceSetting(
+		SettingDefDeviceNameTemplateChoices,
+		SettingDefAppleDeviceNameTemplate,
+		planModel.DeviceNameTemplate,
+		SettingInstanceTemplateDeviceNameTemplateChoices,
+		SettingValueTemplateDeviceNameTemplateChoices,
+	))
+
+	settings = append(settings, constructStringChoiceSetting(
+		SettingDefActivateCellularDataChoices,
+		SettingDefActivateCellularData,
+		planModel.CellularDataActivationUrl,
+		SettingInstanceTemplateActivateCellularData,
+		SettingValueTemplateActivateCellularData,
+	))
+
+	settings = append(settings, builders.ConstructStringSimpleSettingInstance(
+		SettingDefDepartment,
+		planModel.SupportDepartment.ValueString(),
+		SettingInstanceTemplateDepartment,
+		SettingValueTemplateDepartment,
+	))
+	settings = append(settings, builders.ConstructStringSimpleSettingInstance(
+		SettingDefDepartmentPhone,
+		planModel.SupportPhoneNumber.ValueString(),
+		SettingInstanceTemplateDepartmentPhone,
+		SettingValueTemplateDepartmentPhone,
+	))
+
+	settings = append(settings, constructSetupAssistantSettings(planModel)...)
+
+	return settings
+}
+
+// constructUserAffinitySetting builds ade_useraffinity, with its ade_authenticationmethod child
+// present only when requires_user_authentication is true. When Setup Assistant with modern
+// authentication is selected, the ade_modernauth_awaitfinalconfiguration child is nested under the
+// authentication method - the only shape observed in live Intune admin center traffic. Neither
+// nested setting carries template references.
+func constructUserAffinitySetting(planModel *IOSiPadOSDeviceEnrollmentPolicyResourceModel) models.DeviceManagementConfigurationSettingable {
+	requiresAuth := planModel.RequiresUserAuthentication.ValueBool()
+
+	var children []models.DeviceManagementConfigurationSettingInstanceable
+	if requiresAuth {
+		authValue := AuthenticationMethodSetupAssistantLegacy
+		var authChildren []models.DeviceManagementConfigurationSettingInstanceable
+
+		if planModel.EnableAuthenticationViaCompanyPortal.ValueBool() {
+			authValue = AuthenticationMethodCompanyPortal
+		}
+		if planModel.RequireSetupAssistantWithModernAuthentication.ValueBool() {
+			authValue = AuthenticationMethodSetupAssistantModernAuth
+
+			awaitSetting := builders.ConstructBoolChoiceSettingInstance(
+				SettingDefAwaitFinalConfiguration,
+				planModel.AwaitFinalConfiguration.ValueBool(),
+				"", "",
+			)
+			authChildren = append(authChildren, awaitSetting.GetSettingInstance())
+		}
+
+		authSetting := builders.ConstructChoiceSettingWithChildren(SettingDefAuthenticationMethod, authValue, "", "", authChildren)
+		children = append(children, authSetting.GetSettingInstance())
+	}
+
+	value := SettingDefUserAffinity + "_0"
+	if requiresAuth {
+		value = SettingDefUserAffinity + "_1"
+	}
+
+	return builders.ConstructChoiceSettingWithChildren(
+		SettingDefUserAffinity,
+		value,
+		SettingInstanceTemplateUserAffinity,
+		SettingValueTemplateUserAffinity,
+		children,
+	)
+}
+
+// constructStringChoiceSetting builds one of the enable/disable choice settings that carries an
+// optional string child (ade_devicenametemplatechoices/ade_appledevicenametemplate and
+// ade_activatecellulardatachoices/ade_activatecellulardata). A null/empty value sends the choice
+// as "_0" with no children; a value sends "_1" with the string child. The child carries no
+// template references - matching live Intune admin center traffic.
+func constructStringChoiceSetting(
+	choiceSettingDefinitionId string,
+	childSettingDefinitionId string,
+	value types.String,
+	settingInstanceTemplateId string,
+	settingValueTemplateId string,
+) models.DeviceManagementConfigurationSettingable {
+	var children []models.DeviceManagementConfigurationSettingInstanceable
+
+	choiceValue := choiceSettingDefinitionId + "_0"
+	if !value.IsNull() && !value.IsUnknown() && value.ValueString() != "" {
+		choiceValue = choiceSettingDefinitionId + "_1"
+		childInstance := builders.ConstructStringSimpleSettingInstance(
+			childSettingDefinitionId, value.ValueString(), "", "",
+		).GetSettingInstance()
+		children = append(children, childInstance)
+	}
+
+	return builders.ConstructChoiceSettingWithChildren(
+		choiceSettingDefinitionId,
+		choiceValue,
+		settingInstanceTemplateId,
+		settingValueTemplateId,
+		children,
+	)
+}
+
+// setupAssistantBoolSetting describes one Setup Assistant screen toggle.
+type setupAssistantBoolSetting struct {
+	settingDefinitionId       string
+	enabled                   bool
+	settingInstanceTemplateId string
+	settingValueTemplateId    string
+}
+
+// constructSetupAssistantSettings builds every Setup Assistant screen toggle. Each schema
+// attribute is named `<screen>_disabled`, so the value passed to Graph is the logical negation.
+func constructSetupAssistantSettings(planModel *IOSiPadOSDeviceEnrollmentPolicyResourceModel) []models.DeviceManagementConfigurationSettingable {
+	specs := []setupAssistantBoolSetting{
+		{SettingDefPasscode, !planModel.PasscodeDisabled.ValueBool(), SettingInstanceTemplatePasscode, SettingValueTemplatePasscode},
+		{SettingDefLocationServices, !planModel.LocationServicesDisabled.ValueBool(), SettingInstanceTemplateLocationServices, SettingValueTemplateLocationServices},
+		{SettingDefRestore, !planModel.RestoreDisabled.ValueBool(), SettingInstanceTemplateRestore, SettingValueTemplateRestore},
+		{SettingDefAppleId, !planModel.AppleIdDisabled.ValueBool(), SettingInstanceTemplateAppleId, SettingValueTemplateAppleId},
+		{SettingDefTermsAndConditions, !planModel.TermsAndConditionsDisabled.ValueBool(), SettingInstanceTemplateTermsAndConditions, SettingValueTemplateTermsAndConditions},
+		{SettingDefTouchFaceId, !planModel.TouchIdDisabled.ValueBool(), SettingInstanceTemplateTouchFaceId, SettingValueTemplateTouchFaceId},
+		{SettingDefApplePay, !planModel.ApplePayDisabled.ValueBool(), SettingInstanceTemplateApplePay, SettingValueTemplateApplePay},
+		{SettingDefSiri, !planModel.SiriDisabled.ValueBool(), SettingInstanceTemplateSiri, SettingValueTemplateSiri},
+		{SettingDefDiagnosticsData, !planModel.DiagnosticsDisabled.ValueBool(), SettingInstanceTemplateDiagnosticsData, SettingValueTemplateDiagnosticsData},
+		{SettingDefPrivacy, !planModel.PrivacyPaneDisabled.ValueBool(), SettingInstanceTemplatePrivacy, SettingValueTemplatePrivacy},
+		{SettingDefAndroidMigration, !planModel.RestoreFromAndroidDisabled.ValueBool(), SettingInstanceTemplateAndroidMigration, SettingValueTemplateAndroidMigration},
+		{SettingDefIMessageFaceTime, !planModel.IMessageAndFaceTimeDisabled.ValueBool(), SettingInstanceTemplateIMessageFaceTime, SettingValueTemplateIMessageFaceTime},
+		{SettingDefScreenTime, !planModel.ScreenTimeScreenDisabled.ValueBool(), SettingInstanceTemplateScreenTime, SettingValueTemplateScreenTime},
+		{SettingDefSimSetup, !planModel.SimSetupScreenDisabled.ValueBool(), SettingInstanceTemplateSimSetup, SettingValueTemplateSimSetup},
+		{SettingDefSoftwareUpdate, !planModel.SoftwareUpdateScreenDisabled.ValueBool(), SettingInstanceTemplateSoftwareUpdate, SettingValueTemplateSoftwareUpdate},
+		{SettingDefWatchMigration, !planModel.WatchMigrationScreenDisabled.ValueBool(), SettingInstanceTemplateWatchMigration, SettingValueTemplateWatchMigration},
+		{SettingDefAppearance, !planModel.AppearanceScreenDisabled.ValueBool(), SettingInstanceTemplateAppearance, SettingValueTemplateAppearance},
+		{SettingDefDeviceMigration, !planModel.DeviceToDeviceMigrationDisabled.ValueBool(), SettingInstanceTemplateDeviceMigration, SettingValueTemplateDeviceMigration},
+		{SettingDefRestoreCompleted, !planModel.RestoreCompletedScreenDisabled.ValueBool(), SettingInstanceTemplateRestoreCompleted, SettingValueTemplateRestoreCompleted},
+		{SettingDefSoftwareUpdateCompleted, !planModel.SoftwareUpdateCompletedScreenDisabled.ValueBool(), SettingInstanceTemplateSoftwareUpdateCompleted, SettingValueTemplateSoftwareUpdateCompleted},
+		{SettingDefGetStarted, !planModel.GetStartedScreenDisabled.ValueBool(), SettingInstanceTemplateGetStarted, SettingValueTemplateGetStarted},
+		{SettingDefActionButton, !planModel.ActionButtonScreenDisabled.ValueBool(), SettingInstanceTemplateActionButton, SettingValueTemplateActionButton},
+		{SettingDefSafety, !planModel.SafetyScreenDisabled.ValueBool(), SettingInstanceTemplateSafety, SettingValueTemplateSafety},
+		{SettingDefTermsOfAddress, !planModel.TermsOfAddressScreenDisabled.ValueBool(), SettingInstanceTemplateTermsOfAddress, SettingValueTemplateTermsOfAddress},
+		{SettingDefIntelligence, !planModel.AppleIntelligenceDisabled.ValueBool(), SettingInstanceTemplateIntelligence, SettingValueTemplateIntelligence},
+		{SettingDefEnableLockdownMode, !planModel.LockdownModeDisabled.ValueBool(), SettingInstanceTemplateEnableLockdownMode, SettingValueTemplateEnableLockdownMode},
+		{SettingDefAppStore, !planModel.AppStoreDisabled.ValueBool(), SettingInstanceTemplateAppStore, SettingValueTemplateAppStore},
+		{SettingDefCameraButton, !planModel.CameraButtonScreenDisabled.ValueBool(), SettingInstanceTemplateCameraButton, SettingValueTemplateCameraButton},
+		{SettingDefMultitasking, !planModel.MultitaskingScreenDisabled.ValueBool(), SettingInstanceTemplateMultitasking, SettingValueTemplateMultitasking},
+		{SettingDefOSShowcase, !planModel.OsShowcaseScreenDisabled.ValueBool(), SettingInstanceTemplateOSShowcase, SettingValueTemplateOSShowcase},
+		{SettingDefSafetyAndHandling, !planModel.SafetyAndHandlingScreenDisabled.ValueBool(), SettingInstanceTemplateSafetyAndHandling, SettingValueTemplateSafetyAndHandling},
+		{SettingDefWebContentFiltering, !planModel.WebContentFilteringDisabled.ValueBool(), SettingInstanceTemplateWebContentFiltering, SettingValueTemplateWebContentFiltering},
+	}
+
+	settings := make([]models.DeviceManagementConfigurationSettingable, 0, len(specs))
+	for _, spec := range specs {
+		settings = append(settings, builders.ConstructBoolChoiceSettingInstance(
+			spec.settingDefinitionId, spec.enabled, spec.settingInstanceTemplateId, spec.settingValueTemplateId,
+		))
+	}
+	return settings
+}
