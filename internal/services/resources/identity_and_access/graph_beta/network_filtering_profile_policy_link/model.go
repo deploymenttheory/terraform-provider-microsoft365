@@ -7,16 +7,14 @@ import (
 )
 
 type NetworkFilteringProfilePolicyLinkResourceModel struct {
-	ID                   types.String   `tfsdk:"id"`
-	FilteringProfileID   types.String   `tfsdk:"filtering_profile_id"`
-	PolicyID             types.String   `tfsdk:"policy_id"`
-	PolicyLinkID         types.String   `tfsdk:"policy_link_id"`
-	PolicyType           types.String   `tfsdk:"policy_type"`
-	State                types.String   `tfsdk:"state"`
-	Priority             types.Int64    `tfsdk:"priority"`
-	LoggingState         types.String   `tfsdk:"logging_state"`
-	CreatedDateTime      types.String   `tfsdk:"created_date_time"`
-	LastModifiedDateTime types.String   `tfsdk:"last_modified_date_time"`
-	Version              types.String   `tfsdk:"version"`
-	Timeouts             timeouts.Value `tfsdk:"timeouts"`
+	ID                 types.String   `tfsdk:"id"`
+	FilteringProfileID types.String   `tfsdk:"filtering_profile_id"`
+	PolicyID           types.String   `tfsdk:"policy_id"`
+	PolicyLinkID       types.String   `tfsdk:"policy_link_id"`
+	PolicyType         types.String   `tfsdk:"policy_type"`
+	State              types.String   `tfsdk:"state"`
+	Priority           types.Int64    `tfsdk:"priority"`
+	LoggingState       types.String   `tfsdk:"logging_state"`
+	Version            types.String   `tfsdk:"version"`
+	Timeouts           timeouts.Value `tfsdk:"timeouts"`
 }

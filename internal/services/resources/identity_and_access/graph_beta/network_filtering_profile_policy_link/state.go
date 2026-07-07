@@ -47,13 +47,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfil
 	if filteringLink, ok := link.(models.FilteringPolicyLinkable); ok {
 		data.Priority = convert.GraphToFrameworkInt64(filteringLink.GetPriority())
 		data.LoggingState = convert.GraphToFrameworkEnum(filteringLink.GetLoggingState())
-		data.CreatedDateTime = convert.GraphToFrameworkTime(filteringLink.GetCreatedDateTime())
-		data.LastModifiedDateTime = convert.GraphToFrameworkTime(filteringLink.GetLastModifiedDateTime())
 	} else {
 		data.Priority = types.Int64Null()
 		data.LoggingState = types.StringNull()
-		data.CreatedDateTime = types.StringNull()
-		data.LastModifiedDateTime = types.StringNull()
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating %s with id %s", ResourceName, data.ID.ValueString()))

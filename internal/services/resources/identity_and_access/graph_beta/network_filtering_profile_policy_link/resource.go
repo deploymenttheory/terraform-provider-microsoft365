@@ -178,14 +178,6 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 					planmodifiers.RequiresReplaceString(),
 				},
 			},
-			"created_date_time": schema.StringAttribute{
-				MarkdownDescription: "The date and time when the policy link was created.",
-				Computed:            true,
-			},
-			"last_modified_date_time": schema.StringAttribute{
-				MarkdownDescription: "The date and time when the policy link was last modified.",
-				Computed:            true,
-			},
 			"version": schema.StringAttribute{
 				MarkdownDescription: "The Graph version string for the policy link.",
 				Computed:            true,

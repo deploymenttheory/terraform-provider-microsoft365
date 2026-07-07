@@ -89,12 +89,6 @@ func TestMapRemoteStateToTerraformKnownPolicyTypes(t *testing.T) {
 			if !data.Priority.IsNull() {
 				t.Fatalf("priority = %#v, want null for base policy link", data.Priority)
 			}
-			if !data.CreatedDateTime.IsNull() {
-				t.Fatalf("created_date_time = %#v, want null for base policy link", data.CreatedDateTime)
-			}
-			if !data.LastModifiedDateTime.IsNull() {
-				t.Fatalf("last_modified_date_time = %#v, want null for base policy link", data.LastModifiedDateTime)
-			}
 		})
 	}
 }
