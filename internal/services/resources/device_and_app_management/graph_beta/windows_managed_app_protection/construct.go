@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoft/kiota-abstractions-go/serialization"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -32,8 +33,23 @@ func constructResource(ctx context.Context, data *WindowsManagedAppProtectionRes
 	convert.FrameworkToGraphString(data.MaximumRequiredOsVersion, requestBody.SetMaximumRequiredOsVersion)
 	convert.FrameworkToGraphString(data.MaximumWarningOsVersion, requestBody.SetMaximumWarningOsVersion)
 	convert.FrameworkToGraphString(data.MaximumWipeOsVersion, requestBody.SetMaximumWipeOsVersion)
-	convert.FrameworkToGraphString(data.PeriodOfflineBeforeWipeIsEnforced, requestBody.SetPeriodOfflineBeforeWipeIsEnforced)
-	convert.FrameworkToGraphString(data.PeriodOfflineBeforeAccessCheck, requestBody.SetPeriodOfflineBeforeAccessCheck)
+	
+	//Manual parsing necessary for these two fields
+	if !data.PeriodOfflineBeforeWipeIsEnforced.IsNull() && !data.PeriodOfflineBeforeWipeIsEnforced.IsUnknown() {
+    	duration, err := serialization.ParseISODuration(data.PeriodOfflineBeforeWipeIsEnforced.ValueString())
+    	if err != nil {
+        	return nil, fmt.Errorf("invalid period_offline_before_wipe_is_enforced value: %s", err)
+    	}
+    	requestBody.SetPeriodOfflineBeforeWipeIsEnforced(duration)
+	}
+
+	if !data.PeriodOfflineBeforeAccessCheck.IsNull() && !data.PeriodOfflineBeforeAccessCheck.IsUnknown() {
+    	duration, err := serialization.ParseISODuration(data.PeriodOfflineBeforeAccessCheck.ValueString())
+    	if err != nil {
+        	return nil, fmt.Errorf("invalid period_offline_before_access_check value: %s", err)
+    	}
+    	requestBody.SetPeriodOfflineBeforeAccessCheck(duration)
+	}
 
 	// Optional bools
 	convert.FrameworkToGraphBool(data.PrintBlocked, requestBody.SetPrintBlocked)

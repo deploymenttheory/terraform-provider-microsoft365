@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -94,7 +95,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsManagedAppProte
 			data.RoleScopeTagIds = listVal
 		}
 	} else {
-		data.RoleScopeTagIds = types.ListValueMust(types.StringType, []attr.Value{})
+		data.RoleScopeTagIds, _ = types.ListValue(types.StringType, []attr.Value{})
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
