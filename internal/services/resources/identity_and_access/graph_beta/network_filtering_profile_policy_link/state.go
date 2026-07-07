@@ -52,6 +52,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfil
 	} else {
 		data.Priority = types.Int64Null()
 		data.LoggingState = types.StringNull()
+		data.CreatedDateTime = types.StringNull()
+		data.LastModifiedDateTime = types.StringNull()
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating %s with id %s", ResourceName, data.ID.ValueString()))
