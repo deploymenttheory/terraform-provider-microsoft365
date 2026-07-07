@@ -1,0 +1,70 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+This resource manages rules for Microsoft Entra Global Secure Access **Web content filtering policies**.
+
+## Microsoft Documentation
+
+Microsoft Graph beta metadata and Microsoft Learn do not currently expose a documented `webFilteringRule` resource type for this portal surface.
+
+The provider implementation is based on Microsoft Entra admin center network traffic observed from the Global Secure Access Web content filtering blade.
+
+## Microsoft Graph API
+
+This resource uses the beta `/networkaccess/webFilteringPolicies/{webFilteringPolicyId}/policyRules` endpoint.
+
+Observed portal traffic for creating a rule uses:
+
+```http
+POST /beta/networkaccess/webFilteringPolicies/{webFilteringPolicyId}/policyRules
+```
+
+with `@odata.type = #microsoft.graph.networkaccess.webFilteringRule`, `action.@odata.type`, `settings.status`, and `matchingConditions.destinations.targets`.
+
+Destination targets observed from the portal include:
+
+- `#microsoft.graph.networkaccess.webFilteringUrlDestination`
+- `#microsoft.graph.networkaccess.webFilteringWebCategoryDestination`
+
+Web category IDs are passed through unchanged. For example, the portal was observed sending `AlcoholAndTobacco` and `AIAgents`.
+
+## Behavior Notes
+
+- At least one destination must be configured using `urls_or_fqdns`, `web_categories`, or both.
+- `urls_or_fqdns` values are URL/FQDN patterns without a URL scheme. The Entra portal displays these as comma-separated text, but Microsoft Graph stores them as a values array and Terraform follows that API shape with one set element per destination, for example `["www.MySite.com", "www.MySite.com/a/b/c", "www.MySite.com/a/*", "*.mysite.com"]`. The provider does not validate URL/FQDN pattern syntax locally; unsupported values are returned by Microsoft Graph.
+- `web_categories` values are category IDs sent to Microsoft Graph unchanged. The portal category picker displays friendly names, but the API payload uses IDs such as `AIAgents`.
+- If `http_methods` is omitted, the rule matches all HTTP methods supported by the service. If `session_types` is omitted, the rule is not limited to a specific source session type.
+- Lower `priority` values are evaluated before higher values. Keep priorities unique within a policy to make rule ordering predictable.
+- `action = "allow"` permits matching traffic. `action = "block"` blocks matching traffic.
+- The Entra portal has shown custom header controls in some flows, but successful portal create/update requests captured with Chrome DevTools did not include `headerSettings`, and follow-up GET responses did not return `headerSettings` or `customHeaders`. Explicit `headerSettings` payloads were rejected by Microsoft Graph in tenant testing, so this resource does not expose custom headers until a working API contract is observed.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule/import.sh" }}

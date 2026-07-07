@@ -107,19 +107,19 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
 }
 ```
 
-### DNS Suffix (Wildcard Domain)
+### Wildcard FQDN
 
-This example shows how to use a wildcard domain to match all subdomains.
+This example shows how to use a wildcard hostname with `destination_type = "fqdn"`.
 
 ```terraform
-# IP Application Segment with DNS Suffix (Wildcard Domain)
-# This example demonstrates how to configure an application segment using a wildcard
-# domain to match all subdomains.
+# IP Application Segment with wildcard FQDN
+# The application-scoped Graph endpoint accepts wildcard hosts when
+# destination_type is fqdn. dnsSuffix is reserved for Quick Access configuration.
 
-resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "dns_suffix" {
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "wildcard_fqdn" {
   application_object_id = "00000000-0000-0000-0000-000000000000"
   destination_host      = "*.internal.contoso.com"
-  destination_type      = "dnsSuffix"
+  destination_type      = "fqdn"
   ports = [
     "80-80",
     "443-443",
@@ -169,7 +169,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
 
 - `application_object_id` (String) The unique object identifier of the application.
 - `destination_host` (String) Either the IP address, IP range, or FQDN of the application segment, with or without wildcards.
-- `destination_type` (String) The type of destination for the application segment.The possible values are: `ipAddress`, `ipRange`, `ipRangeCidr`, `fqdn`, `dnsSuffix`, `unknownFutureValue`.
+- `destination_type` (String) The type of destination for the application segment.The supported values are: `ipAddress`, `ipRangeCidr`, and `fqdn`. Microsoft Learn lists additional enum members for `ipApplicationSegment`, but this application-scoped Graph endpoint currently rejects `dnsSuffix` for nonweb applications and does not create a usable address range for `ipRange`.
 - `ports` (Set of String) List of ports supported for the application segment.
 - `protocol` (String) Indicates the protocol of the network traffic acquired for the application segment.The possible values are: `tcp`, `udp`, `unknownFutureValue`.
 
@@ -198,10 +198,10 @@ Import is supported using the following syntax:
 ```shell
 #!/bin/bash
 
-# Import an existing IP application segment by its ID
-terraform import microsoft365_graph_beta_applications_on_premises_ip_application_segment.example_ip_address "00000000-0000-0000-0000-000000000000"
+# Import an existing IP application segment by application object ID and segment ID
+terraform import microsoft365_graph_beta_applications_on_premises_ip_application_segment.example_ip_address "11111111-1111-1111-1111-111111111111/00000000-0000-0000-0000-000000000000"
 
-# The ID format is the segment's unique identifier (GUID)
-# You can find the segment ID in the Azure Portal or via Microsoft Graph API:
+# The ID format is: {application_object_id}/{ip_application_segment_id}
+# You can find both IDs in the Azure Portal or via Microsoft Graph API:
 # GET https://graph.microsoft.com/beta/applications/{application-id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments
 ```

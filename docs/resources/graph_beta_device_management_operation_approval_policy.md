@@ -98,12 +98,18 @@ resource "microsoft365_graph_beta_device_management_operation_approval_policy" "
 - **windows10AndLater**: Windows 10 and later platform
 - **windows81AndLater**: Windows 8.1 and later platform
 - **windows10X**: Windows 10X platform
+- **unknownFutureValue**: Evolvable enumeration sentinel value. Do not use.
 - `policy_type` (String) The policy type for the OperationApprovalPolicy. Possible values are:
 
-- **unknown**: Unknown policy type
-- **app**: Application policy
-- **script**: Script policy
-- **role**: Role policy
+- **unknown**: Default. Unknown policy type.
+- **deviceWipe**: Device wipe policy type.
+- **deviceRetire**: Device retire policy type.
+- **deviceDelete**: Device delete policy type.
+- **app**: Application policy type.
+- **script**: Script policy type.
+- **role**: Role policy type.
+- **unknownFutureValue**: Evolvable enumeration sentinel value. Do not use.
+- **tenantConfiguration**: Tenant configuration policy type.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -116,12 +122,17 @@ resource "microsoft365_graph_beta_device_management_operation_approval_policy" "
 
 Required:
 
-- `policy_type` (String) The policy type for the OperationApprovalPolicy. Possible values are:
+- `policy_type` (String) The policy type for the policy set. Possible values are:
 
-- **unknown**: Unknown policy type
-- **app**: Application policy
-- **script**: Script policy
-- **role**: Role policy
+- **unknown**: Default. Unknown policy type.
+- **deviceWipe**: Device wipe policy type.
+- **deviceRetire**: Device retire policy type.
+- **deviceDelete**: Device delete policy type.
+- **app**: Application policy type.
+- **script**: Script policy type.
+- **role**: Role policy type.
+- **unknownFutureValue**: Evolvable enumeration sentinel value. Do not use.
+- **tenantConfiguration**: Tenant configuration policy type.
 
 Optional:
 

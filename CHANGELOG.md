@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.56.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.55.2-alpha...v0.56.0-alpha) (2026-07-06)
+
+
+### Features
+
+* add Application Proxy connector group resources ([#3213](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3213)) ([e899000](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e899000432d83bc7d32d1182982d26a32a0d3025))
+* Add Global Secure Access filtering profile resource ([#3222](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3222)) ([9ab123e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9ab123ed5eaaf3e648f595548735c60df8968137))
+* Add Graph beta Global Secure Access web filtering policy resources ([#3227](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3227)) ([8a8f650](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8a8f650b19554982ca9aef3b219d27e9e58d5243))
+* add macOS DEP (ADE) enrollment profile resource (depMacOSEnrollmentProfile) ([#3202](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3202)) ([94f3f3d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/94f3f3d66380002660b578a5c5cffb8178b65217))
+* add token lifetime policy and service principal assignment resources ([#3183](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3183)) ([e7f3a9d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e7f3a9dc987274b4ddeada02268adf916e50e685))
+* add traffic_routing_method attribute to microsoft365_graph_beta_applications_application_on_premises_publishing resource ([#3184](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3184)) ([d99ce3c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d99ce3ccd4c9ae9b3e5e884d56c2e223ec30c614))
+* Add VisionOS Device Enrollment Policy resource to provider ([#3230](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3230)) ([148676e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/148676e409b3755641d282a5a8c9cb78a4438ae4))
+* added field 'is_default_policy_assignment' to macos_device_enrollment_policy and added resource 'identity_and_access_cross_tenant_access_partner_group_sync_settings' ([#3225](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3225)) ([4f54769](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4f5476963410981ecd9497bdaf9941811eb91a06))
+* added resource ios_ipados_device_enrollment_policy ([#3228](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3228)) ([1d8bada](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1d8bada9403c283617f3f7dbd1b7d29d2253ba6c))
+
+
+### Bug Fixes
+
+* Align filtering profile description validation ([#3224](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3224)) ([67c09bb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/67c09bb2fadc965e52c4ba3c7d6c38b844d41139))
+* on-premises IP application segment resource ([#3210](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3210)) ([6d9d490](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6d9d490dcd5a3b318e2b9a6588ae9e2a33265568))
+* update OperationApprovalPolicy resource schema ([#3181](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3181)) ([5b96c6d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5b96c6d56c2240bf6044a4b53dd6395d6786d19e))
+
 ## [0.55.2-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.55.1-alpha...v0.55.2-alpha) (2026-06-23)
 
 

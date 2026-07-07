@@ -1,0 +1,67 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+This resource manages the Microsoft Entra admin center Global Secure Access **Security profiles** objects represented by Microsoft Graph beta as `microsoft.graph.networkaccess.filteringProfile`.
+
+The resource manages the profile object itself. Filtering policy links returned from the profile's `policies` navigation property and Conditional Access policy references returned from `conditionalAccessPolicies` are not managed by this resource. Conditional Access Global Secure Access filtering profile assignments are managed by the Conditional Access policy resource using the `global_secure_access_filtering_profile.profile_id` setting.
+
+## Microsoft Documentation
+
+- [filteringProfile resource type](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-filteringprofile?view=graph-rest-beta)
+- [List filteringProfiles](https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-list?view=graph-rest-beta)
+- [Read filteringProfile](https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-get?view=graph-rest-beta)
+- [Update filteringProfile](https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-update?view=graph-rest-beta)
+
+## Microsoft Graph API
+
+This resource uses the beta `/networkAccess/filteringProfiles` endpoint.
+
+The Microsoft Graph beta metadata exposes the writable profile fields used by this resource: `name`, `description`, `state`, and `priority`. The Entra admin center Security profiles page was observed listing profiles with:
+
+```http
+GET /beta/networkaccess/filteringProfiles?$expand=policies($expand=policy),ConditionalAccessPolicies
+```
+
+Microsoft Learn currently documents list, get, and update operations for filtering profiles. The generated Microsoft Graph beta Go SDK exposes collection `Post` and item `Delete` request builders for `/networkAccess/filteringProfiles`. Create and update use the provider Graph adapter with a minimal Kiota request payload containing only writable fields accepted by the endpoint.
+
+## Behavior Notes
+
+- This resource manages the Global Secure Access Security profile object and its ordering state. It does not attach web content filtering policies to the profile.
+- Use `priority` to order Security profiles. Lower values are processed before higher values.
+- Use `state = "disabled"` to keep a profile configured but inactive. `unknownFutureValue` is accepted only for Graph enum compatibility; normal configurations should use `enabled` or `disabled`.
+- The description limit is enforced at 8192 characters, matching the Graph error returned by this endpoint family.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Default Profiles and Import
+
+Entra tenants can contain a built-in baseline filtering profile. Portal traffic observed for this resource returned a `Baseline profile` at priority `65000`. Import existing profiles before managing them with Terraform. Avoid deleting Microsoft-created baseline profiles unless you have verified that the tenant allows removal and that the profile is not required by your Global Secure Access configuration.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_filtering_profile/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_filtering_profile/import.sh" }}

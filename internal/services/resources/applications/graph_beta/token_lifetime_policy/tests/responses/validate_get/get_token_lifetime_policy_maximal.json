@@ -1,0 +1,10 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/tokenLifetimePolicies/$entity",
+    "@odata.type": "#microsoft.graph.tokenLifetimePolicy",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "displayName": "unit-test-token-lifetime-policy-max",
+    "description": "Unit test maximal token lifetime policy",
+    "isOrganizationDefault": true,
+    "definition": ["{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"02:00:00\",\"MaxInactiveTime\":\"30.00:00:00\",\"MaxAgeSingleFactor\":\"until-revoked\",\"MaxAgeMultiFactor\":\"until-revoked\",\"MaxAgeSessionSingleFactor\":\"until-revoked\",\"MaxAgeSessionMultiFactor\":\"until-revoked\"}}"],
+    "deletedDateTime": null
+}

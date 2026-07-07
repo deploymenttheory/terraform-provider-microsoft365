@@ -264,6 +264,18 @@ func (r *OnPremisesPublishingResource) Schema(ctx context.Context, req resource.
 					boolplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"traffic_routing_method": schema.StringAttribute{
+				MarkdownDescription: "Indicates how the connector routes traffic to the backend application. " +
+					"Possible values are: `none`, `random`, `sessionPersistence`, `performance`.",
+				Optional: true,
+				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("none", "random", "sessionPersistence", "performance"),
+				},
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"waf_provider": schema.StringAttribute{
 				MarkdownDescription: "Web Application Firewall (WAF) provider for the application.",
 				Optional:            true,

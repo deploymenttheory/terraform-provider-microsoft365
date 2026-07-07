@@ -38,6 +38,18 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
+		if requestBody["destinationType"] == "ipAddress" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"InvalidJson_BadRequest","message":"Valid JSON content expected."}}`), nil
+		}
+		if requestBody["destinationType"] == "dnsSuffix" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"Invalid_AppSegments_NonwebApp_Duplicate","message":"DNS suffix can only be added to Quick Access configuration"}}`), nil
+		}
+		if requestBody["destinationType"] == "ipRange" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"DestinationHost_InvalidIP","message":"IP address invalid"}}`), nil
+		}
+		if requestBody["port"] != float64(0) {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"port must be 0 for ip application segments"}}`), nil
+		}
 
 		// Generate a UUID for the new resource
 		newId := uuid.New().String()
@@ -63,6 +75,9 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 		}
 		if ports, ok := requestBody["ports"]; ok {
 			responseObj["ports"] = ports
+		}
+		if port, ok := requestBody["port"]; ok {
+			responseObj["port"] = port
 		}
 		if protocol, ok := requestBody["protocol"]; ok {
 			responseObj["protocol"] = protocol
@@ -101,6 +116,18 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+		}
+		if requestBody["destinationType"] == "ipAddress" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"InvalidJson_BadRequest","message":"Valid JSON content expected."}}`), nil
+		}
+		if requestBody["destinationType"] == "dnsSuffix" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"Invalid_AppSegments_NonwebApp_Duplicate","message":"DNS suffix can only be added to Quick Access configuration"}}`), nil
+		}
+		if requestBody["destinationType"] == "ipRange" {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"DestinationHost_InvalidIP","message":"IP address invalid"}}`), nil
+		}
+		if requestBody["port"] != float64(0) {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"port must be 0 for ip application segments"}}`), nil
 		}
 
 		mockState.Lock()

@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.operationApprovalPolicy",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "Test Operation Approval Policy",
+  "description": "",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "policyType": "app",
+  "policyPlatform": "notApplicable",
+  "policySet": {
+    "@odata.type": "microsoft.graph.operationApprovalPolicySet",
+    "policyType": "app",
+    "policyPlatform": "notApplicable"
+  },
+  "approverGroupIds": [
+    "11111111-1111-1111-1111-111111111111"
+  ]
+}

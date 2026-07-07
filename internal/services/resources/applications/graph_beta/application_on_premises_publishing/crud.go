@@ -2,16 +2,21 @@ package graphBetaApplicationsOnPremisesPublishing
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	graphapplications "github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
+	grapherrors "github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
 // Create handles the Create operation for On-Premises Publishing resources.
@@ -37,43 +42,28 @@ func (r *OnPremisesPublishingResource) Create(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource for Create method",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
 	// PATCH the application with on-premises publishing settings
-	_, err = r.client.
-		Applications().
-		ByApplicationId(object.ApplicationID.ValueString()).
-		Patch(ctx, requestBody, nil)
-
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+	if err := r.patchOnPremisesPublishing(ctx, object); err != nil {
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully configured on-premises publishing for application: %s", object.ApplicationID.ValueString()))
 
-	// Read the application to populate state with actual values
-	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
-
-	// Set initial state with application_id so Read can work
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = onPremisesPublishingStateKnown
 
-	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading resource state after create",
@@ -128,10 +118,10 @@ func (r *OnPremisesPublishingResource) Read(ctx context.Context, req resource.Re
 	application, err := r.client.
 		Applications().
 		ByApplicationId(object.ApplicationID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, applicationReadRequestConfiguration())
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
@@ -168,22 +158,8 @@ func (r *OnPremisesPublishingResource) Update(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource for Update method",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	_, err = r.client.
-		Applications().
-		ByApplicationId(plan.ApplicationID.ValueString()).
-		Patch(ctx, requestBody, nil)
-
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+	if err := r.patchOnPremisesPublishing(ctx, plan); err != nil {
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -198,8 +174,9 @@ func (r *OnPremisesPublishingResource) Update(ctx context.Context, req resource.
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = onPremisesPublishingStateKnown
 
-	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading resource state after update",
@@ -234,21 +211,107 @@ func (r *OnPremisesPublishingResource) Delete(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	// Clear on-premises publishing by patching with null
-	requestBody := graphmodels.NewApplication()
-	requestBody.SetOnPremisesPublishing(nil)
-
-	_, err := r.client.
-		Applications().
-		ByApplicationId(data.ApplicationID.ValueString()).
-		Patch(ctx, requestBody, nil)
-
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+	if err := r.patchRawApplication(ctx, data.ApplicationID.ValueString(), map[string]any{"onPremisesPublishing": nil}); err != nil {
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+func (r *OnPremisesPublishingResource) patchOnPremisesPublishing(ctx context.Context, data OnPremisesPublishingResourceModel) error {
+	return r.patchRawApplication(ctx, data.ApplicationID.ValueString(), constructOnPremisesPublishingPatchPayload(data))
+}
+
+func onPremisesPublishingStateKnown(ctx context.Context, state tfsdk.State) bool {
+	var data OnPremisesPublishingResourceModel
+	if diags := state.Get(ctx, &data); diags.HasError() {
+		return false
+	}
+
+	stringValues := []types.String{
+		data.ApplicationID,
+		data.AlternateUrl,
+		data.ApplicationServerTimeout,
+		data.ApplicationType,
+		data.ExternalAuthenticationType,
+		data.InternalUrl,
+		data.ExternalUrl,
+		data.TrafficRoutingMethod,
+		data.WafProvider,
+	}
+	for _, value := range stringValues {
+		if value.IsUnknown() {
+			return false
+		}
+	}
+
+	boolValues := []types.Bool{
+		data.IsAccessibleViaZTNAClient,
+		data.IsBackendCertificateValidationEnabled,
+		data.IsContinuousAccessEvaluationEnabled,
+		data.IsDnsResolutionEnabled,
+		data.IsHttpOnlyCookieEnabled,
+		data.IsOnPremPublishingEnabled,
+		data.IsPersistentCookieEnabled,
+		data.IsSecureCookieEnabled,
+		data.IsStateSessionEnabled,
+		data.IsTranslateHostHeaderEnabled,
+		data.IsTranslateLinksInBodyEnabled,
+		data.UseAlternateUrlForTranslationAndRedirect,
+	}
+	for _, value := range boolValues {
+		if value.IsUnknown() {
+			return false
+		}
+	}
+
+	return true
+}
+
+func applicationReadRequestConfiguration() *graphapplications.ApplicationItemRequestBuilderGetRequestConfiguration {
+	// onPremisesPublishing is the managed property for this resource. Select it
+	// explicitly because Graph application GET responses do not reliably include
+	// this nested property in the default projection.
+	return &graphapplications.ApplicationItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &graphapplications.ApplicationItemRequestBuilderGetQueryParameters{
+			Select: []string{"id", "onPremisesPublishing"},
+		},
+	}
+}
+
+func (r *OnPremisesPublishingResource) patchRawApplication(ctx context.Context, applicationID string, payload map[string]any) error {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request payload: %w", err)
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("PATCH %s raw application payload", ResourceName), map[string]any{
+		"application_id": applicationID,
+		"json":           string(body),
+	})
+
+	requestInfo := abstractions.NewRequestInformation()
+	requestInfo.Method = abstractions.PATCH
+	requestInfo.UrlTemplate = "{+baseurl}/applications/{application%2Did}"
+	requestInfo.PathParameters = map[string]string{
+		"baseurl":          r.client.GetAdapter().GetBaseUrl(),
+		"application%2Did": applicationID,
+	}
+	requestInfo.Headers.Add("Content-Type", "application/json")
+	requestInfo.Headers.Add("Accept", "application/json")
+	requestInfo.Content = body
+
+	// The generated Application.Patch method serializes a top-level @odata.type,
+	// and Graph rejects that payload when only updating onPremisesPublishing.
+	// Use Kiota RequestInformation directly so authentication, middleware, and
+	// OData error mapping still go through the SDK adapter while the JSON body
+	// stays limited to the properties Graph accepts.
+	errorMapping := abstractions.ErrorMappings{
+		"XXX": grapherrors.CreateODataErrorFromDiscriminatorValue,
+	}
+
+	return r.client.GetAdapter().SendNoContent(ctx, requestInfo, errorMapping)
 }

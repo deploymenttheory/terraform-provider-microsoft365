@@ -42,6 +42,7 @@ For more information, see the [Microsoft Graph API documentation](https://learn.
 - `is_translate_host_header_enabled` (Boolean) Indicates if the host header should be translated for Application Proxy.
 - `is_translate_links_in_body_enabled` (Boolean) Indicates if links in the body should be translated for Application Proxy.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `traffic_routing_method` (String) Indicates how the connector routes traffic to the backend application. Possible values are: `none`, `random`, `sessionPersistence`, `performance`.
 - `use_alternate_url_for_translation_and_redirect` (Boolean) Indicates whether the application should use `alternate_url` instead of `external_url`.
 - `waf_provider` (String) Web Application Firewall (WAF) provider for the application.
 

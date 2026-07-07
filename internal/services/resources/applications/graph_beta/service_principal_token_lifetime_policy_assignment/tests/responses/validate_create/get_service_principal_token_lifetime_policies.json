@@ -1,0 +1,13 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/tokenLifetimePolicies",
+    "value": [
+        {
+            "@odata.type": "#microsoft.graph.tokenLifetimePolicy",
+            "id": "00000000-0000-0000-0000-000000000010",
+            "displayName": "test-token-lifetime-policy",
+            "description": "Test policy",
+            "isOrganizationDefault": false,
+            "definition": ["{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"01:00:00\"}}"]
+        }
+    ]
+}
