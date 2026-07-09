@@ -209,7 +209,7 @@ func (r *WindowsManagedAppProtectionResource) Schema(ctx context.Context, req re
 			"period_offline_before_access_check": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("PT720H"),
+				Default:  stringdefault.StaticString("P30D"),
 				MarkdownDescription: "The period after which access is checked when the device is not connected to the internet. " +
 					"ISO 8601 duration format. e.g. `PT5M` for 5 minutes, `PT0S` to block immediately.",
 			},
