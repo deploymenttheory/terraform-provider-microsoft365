@@ -103,16 +103,10 @@ func (r *WindowsManagedAppProtectionResource) Schema(ctx context.Context, req re
 			},
 			"last_modified_date_time": schema.StringAttribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 				MarkdownDescription: "The date and time the policy was last modified. Set by the API, read-only.",
 			},
 			"version": schema.StringAttribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					planmodifiers.UseStateForUnknownString(),
-				},
 				MarkdownDescription: "Version of the entity. Set by the API, read-only.",
 			},
 			"is_assigned": schema.BoolAttribute{
