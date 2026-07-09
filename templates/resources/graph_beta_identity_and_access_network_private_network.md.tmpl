@@ -1,0 +1,86 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+This resource manages Microsoft Entra Global Secure Access **Private Networks**.
+
+## Microsoft Documentation
+
+Microsoft Learn documents the Private networks experience as part of Intelligent Local Access (ILA) for Microsoft Entra Private Access:
+
+- [Enable Intelligent Local Access](https://learn.microsoft.com/en-us/entra/global-secure-access/enable-intelligent-local-access)
+
+Microsoft Graph beta metadata and Microsoft Learn do not currently expose a documented `privateNetwork` Graph resource page for this portal surface.
+
+The provider implementation is based on Microsoft Entra admin center network traffic observed from the Global Secure Access Private Networks blade.
+
+## Intelligent Local Access Context
+
+Intelligent Local Access uses Global Secure Access client DNS probes to determine whether a client is on a corporate or private network. When a configured Private network is detected, selected Microsoft Entra Private Access applications can be locally bypassed instead of being sent through the cloud backend.
+
+In the Entra admin center, the documented Private network configuration includes:
+
+- A friendly network name.
+- One or more DNS server IPv4 addresses used for DNS resolution.
+- An FQDN that should be resolved by those DNS servers.
+- One or more expected resolved IP values, represented as an IP address, CIDR range, or start/end IP range.
+- Target resources, such as Quick Access or Private Access enterprise apps, that should be locally bypassed when this Private network is detected.
+
+## Microsoft Graph API
+
+This resource uses the beta `/networkaccess/privateNetworks` endpoint.
+
+Observed portal traffic uses:
+
+```http
+POST /beta/networkaccess/privateNetworks
+PATCH /beta/networkaccess/privateNetworks/{privateNetworkId}
+GET /beta/networkaccess/privateNetworks/{privateNetworkId}
+```
+
+The request payload contains `name`, `appIds`, and a `networkIdentifications` collection. The DNS resolution identification uses `#microsoft.graph.networkaccess.dnsResolutionIdentification` with DNS server addresses, an FQDN to resolve, and expected IP resolutions.
+
+Expected IP resolutions support the portal-observed Graph discriminator values:
+
+- `#microsoft.graph.networkaccess.ipAddress`
+- `#microsoft.graph.networkaccess.ipSubnet`
+- `#microsoft.graph.networkaccess.ipRange`
+
+## Behavior Notes
+
+- `app_ids` contains Microsoft Entra application client IDs for target resources, not service principal object IDs.
+- The Entra portal presents expected IP resolutions as comma-separated values, while Graph stores them as a collection.
+- `expected_ip_resolutions.type = "ip_address"` and `"ip_subnet"` use `value`.
+- `expected_ip_resolutions.type = "ip_range"` uses `begin_address` and `end_address`.
+- Microsoft recommends keeping the number of Private networks to a minimum. A Private network should represent a logical network where the same Private Access applications are reachable, rather than a separate definition for each individual application.
+- Product licensing is required for Global Secure Access / Microsoft Entra Private Access. The Entra admin center also requires an administrative role such as Global Secure Access Administrator or Privileged Role Administrator to configure Private networks.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_private_network/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_private_network/import.sh" }}
