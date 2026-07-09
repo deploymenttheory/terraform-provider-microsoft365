@@ -1,0 +1,38 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/privateNetworks/$entity",
+  "id": "maximal",
+  "name": "unit-test-private-network-updated",
+  "appIds": [
+    "81ff8e33-3181-475b-ade6-e27147234bb3"
+  ],
+  "networkIdentifications@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/privateNetworks('maximal')/networkIdentifications",
+  "networkIdentifications": [
+    {
+      "@odata.type": "#microsoft.graph.networkaccess.dnsResolutionIdentification",
+      "id": "00000000-0000-0000-0000-000000000103",
+      "serverAddresses": [
+        {
+          "value": "8.8.8.8"
+        }
+      ],
+      "fqdnToResolve": {
+        "value": "example.com"
+      },
+      "expectedIpResolutions": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipAddress",
+          "value": "192.168.1.11"
+        },
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipSubnet",
+          "value": "192.168.1.1/16"
+        },
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipRange",
+          "beginAddress": "192.168.1.1",
+          "endAddress": "192.168.1.2"
+        }
+      ]
+    }
+  ]
+}

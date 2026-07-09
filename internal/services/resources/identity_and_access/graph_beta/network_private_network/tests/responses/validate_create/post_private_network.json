@@ -1,0 +1,27 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/privateNetworks/$entity",
+  "id": "00000000-0000-0000-0000-000000000101",
+  "name": "unit-test-private-network-minimal",
+  "appIds": [],
+  "networkIdentifications@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/privateNetworks('00000000-0000-0000-0000-000000000101')/networkIdentifications",
+  "networkIdentifications": [
+    {
+      "@odata.type": "#microsoft.graph.networkaccess.dnsResolutionIdentification",
+      "id": "00000000-0000-0000-0000-000000000102",
+      "serverAddresses": [
+        {
+          "value": "8.8.8.8"
+        }
+      ],
+      "fqdnToResolve": {
+        "value": "example.com"
+      },
+      "expectedIpResolutions": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipAddress",
+          "value": "192.168.1.10"
+        }
+      ]
+    }
+  ]
+}
