@@ -95,15 +95,24 @@ func (r *WindowsManagedAppProtectionResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "The unique identifier for this Windows managed app protection policy. Set by the API on creation.",
 			},
 			"created_date_time": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The date and time the policy was created. Set by the API, read-only.",
 			},
 			"last_modified_date_time": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The date and time the policy was last modified. Set by the API, read-only.",
 			},
 			"version": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "Version of the entity. Set by the API, read-only.",
 			},
 			"is_assigned": schema.BoolAttribute{
@@ -121,7 +130,7 @@ func (r *WindowsManagedAppProtectionResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "Policy display name. Must be unique within your tenant.",
 			},
 
-			// --- Optional ---
+			// --- Optional with defaults (no plan modifier needed — default covers the unknown) ---
 			"description": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -170,15 +179,6 @@ func (r *WindowsManagedAppProtectionResource) Schema(ctx context.Context, req re
 					stringvalidator.OneOf("allApps", "none"),
 				},
 			},
-			"app_action_if_unable_to_authenticate_user": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				MarkdownDescription: "Action to take when the user is unable to check in because their authentication token is invalid. " +
-					"Possible values: `block`, `wipe`, `warn`, `blockWhenSettingIsSupported`. If not set, no action is taken.",
-				Validators: []validator.String{
-					stringvalidator.OneOf("block", "wipe", "warn", "blockWhenSettingIsSupported"),
-				},
-			},
 			"maximum_allowed_device_threat_level": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -199,61 +199,6 @@ func (r *WindowsManagedAppProtectionResource) Schema(ctx context.Context, req re
 					stringvalidator.OneOf("block", "wipe"),
 				},
 			},
-			"minimum_required_sdk_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions less than the specified version will block the managed app from accessing company data. e.g. `8.1.0`.",
-			},
-			"minimum_wipe_sdk_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions less than the specified version will wipe the managed app and associated company data. e.g. `8.1.0`.",
-			},
-			"minimum_required_os_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions less than the specified version will block the managed app from accessing company data. e.g. `10.0.19041`.",
-			},
-			"minimum_warning_os_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions less than the specified version will result in a warning message on the managed app. e.g. `10.0.19041`.",
-			},
-			"minimum_wipe_os_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions less than the specified version will wipe the managed app and associated company data. e.g. `10.0.19041`.",
-			},
-			"minimum_required_app_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions less than the specified version will block the managed app from accessing company data.",
-			},
-			"minimum_warning_app_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions less than the specified version will result in a warning message on the managed app.",
-			},
-			"minimum_wipe_app_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions less than the specified version will wipe the managed app and associated company data.",
-			},
-			"maximum_required_os_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions greater than the specified version will block the managed app from accessing company data.",
-			},
-			"maximum_warning_os_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions greater than the specified version will result in a warning message on the managed app.",
-			},
-			"maximum_wipe_os_version": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				MarkdownDescription: "Versions greater than the specified version will wipe the managed app and associated company data.",
-			},
 			"period_offline_before_wipe_is_enforced": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -267,6 +212,108 @@ func (r *WindowsManagedAppProtectionResource) Schema(ctx context.Context, req re
 				Default:  stringdefault.StaticString("PT720H"),
 				MarkdownDescription: "The period after which access is checked when the device is not connected to the internet. " +
 					"ISO 8601 duration format. e.g. `PT5M` for 5 minutes, `PT0S` to block immediately.",
+			},
+
+			// --- Optional without defaults (plan modifier required to suppress unknown after apply) ---
+			"app_action_if_unable_to_authenticate_user": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Action to take when the user is unable to check in because their authentication token is invalid. " +
+					"Possible values: `block`, `wipe`, `warn`, `blockWhenSettingIsSupported`. If not set, no action is taken.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("block", "wipe", "warn", "blockWhenSettingIsSupported"),
+				},
+			},
+			"minimum_required_sdk_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions less than the specified version will block the managed app from accessing company data. e.g. `8.1.0`.",
+			},
+			"minimum_wipe_sdk_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions less than the specified version will wipe the managed app and associated company data. e.g. `8.1.0`.",
+			},
+			"minimum_required_os_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions less than the specified version will block the managed app from accessing company data. e.g. `10.0.19041`.",
+			},
+			"minimum_warning_os_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions less than the specified version will result in a warning message on the managed app. e.g. `10.0.19041`.",
+			},
+			"minimum_wipe_os_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions less than the specified version will wipe the managed app and associated company data. e.g. `10.0.19041`.",
+			},
+			"minimum_required_app_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions less than the specified version will block the managed app from accessing company data.",
+			},
+			"minimum_warning_app_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions less than the specified version will result in a warning message on the managed app.",
+			},
+			"minimum_wipe_app_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions less than the specified version will wipe the managed app and associated company data.",
+			},
+			"maximum_required_os_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions greater than the specified version will block the managed app from accessing company data.",
+			},
+			"maximum_warning_os_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions greater than the specified version will result in a warning message on the managed app.",
+			},
+			"maximum_wipe_os_version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
+				MarkdownDescription: "Versions greater than the specified version will wipe the managed app and associated company data.",
 			},
 
 			"timeouts": commonschema.ResourceTimeouts(ctx),
