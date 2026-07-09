@@ -96,7 +96,11 @@ func TestUnitResourceNetworkPrivateNetwork_03_InvalidExpectedIPResolution(t *tes
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigHelper("resource_invalid.tf"),
-				ExpectError: regexp.MustCompile(`expected_ip_resolutions value is required`),
+				ExpectError: regexp.MustCompile(`type "ip_address" requires "value"`),
+			},
+			{
+				Config:      testConfigHelper("resource_invalid_range.tf"),
+				ExpectError: regexp.MustCompile(`type "ip_range" requires "begin_address"`),
 			},
 		},
 	})

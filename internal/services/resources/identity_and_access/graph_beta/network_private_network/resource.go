@@ -131,6 +131,9 @@ func (r *NetworkPrivateNetworkResource) Schema(ctx context.Context, req resource
 							setvalidator.SizeAtLeast(1),
 						},
 						NestedObject: schema.NestedAttributeObject{
+							Validators: []validator.Object{
+								expectedIPResolutionObject(),
+							},
 							Attributes: map[string]schema.Attribute{
 								"type": schema.StringAttribute{
 									MarkdownDescription: "The expected IP resolution type. Possible values are `ip_address`, `ip_subnet`, and `ip_range`.",
