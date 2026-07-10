@@ -126,14 +126,14 @@ func (d *NetworkForwardingProfileDataSource) Schema(ctx context.Context, _ datas
 						"service_principal_id":     schema.StringAttribute{Computed: true, MarkdownDescription: "The associated service principal object ID."},
 						"policies": schema.ListNestedAttribute{
 							Computed:            true,
-							MarkdownDescription: "Forwarding policy links associated with the profile. The policy link ID and policy ID are distinct Graph identifiers.",
+							MarkdownDescription: "Forwarding policy links associated with the profile. `policy_link_id` is the Graph policyLink object ID used by the forwarding profile policies endpoint; `policy_id` is the linked forwarding policy ID.",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
-									"policy_link_id":          schema.StringAttribute{Computed: true, MarkdownDescription: "The forwarding policy link ID."},
+									"policy_link_id":          schema.StringAttribute{Computed: true, MarkdownDescription: "The forwarding policy link ID used in `/networkAccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}`."},
 									"priority":                schema.Int64Attribute{Computed: true, MarkdownDescription: "The forwarding policy link priority."},
 									"state":                   schema.StringAttribute{Computed: true, MarkdownDescription: "The forwarding policy link state."},
 									"version":                 schema.StringAttribute{Computed: true, MarkdownDescription: "The forwarding policy link version."},
-									"policy_id":               schema.StringAttribute{Computed: true, MarkdownDescription: "The linked forwarding policy ID."},
+									"policy_id":               schema.StringAttribute{Computed: true, MarkdownDescription: "The linked forwarding policy ID. Use this value as `forwarding_policy_id` when managing forwarding policy rules."},
 									"policy_name":             schema.StringAttribute{Computed: true, MarkdownDescription: "The linked forwarding policy name."},
 									"policy_description":      schema.StringAttribute{Computed: true, MarkdownDescription: "The linked forwarding policy description."},
 									"policy_version":          schema.StringAttribute{Computed: true, MarkdownDescription: "The linked forwarding policy version."},

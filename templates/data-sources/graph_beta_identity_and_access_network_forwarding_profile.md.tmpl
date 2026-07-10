@@ -43,8 +43,8 @@ This data source supports filtering using the following attributes:
 
 ## Behavior Notes
 
-- `policy_link_id` identifies the link between a forwarding profile and a policy.
-- `policy_id` identifies the linked forwarding policy. Use this ID with Internet Access forwarding policy rule resources.
+- `policy_link_id` identifies the Graph policyLink object used by `/networkAccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}`.
+- `policy_id` identifies the linked forwarding policy. Use this ID as `forwarding_policy_id` with Internet Access forwarding policy rule resources.
 - Microsoft-managed forwarding profile policy links are returned for discovery and state management; they are not created by this provider.
 
 ## Example Usage

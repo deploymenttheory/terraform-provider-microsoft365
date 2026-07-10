@@ -37,7 +37,8 @@ The following client `application` permissions are needed in order to use this r
 
 ## Behavior Notes
 
-- `policy_link_id` is distinct from the linked `policy_id`.
+- `policy_link_id` is the Graph policyLink object ID used by `/networkAccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}`.
+- `policy_id` is the linked forwarding policy ID. Use `policy_id`, not `policy_link_id`, as `forwarding_policy_id` for forwarding policy rule resources.
 - This resource should be used for adopted Microsoft-managed policy links, such as the Internet Access `Default Acquire` link.
 - Destroy does not delete the Graph object. Re-apply can adopt the same link again.
 
@@ -69,7 +70,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_forwarding_profile
 ### Required
 
 - `forwarding_profile_id` (String) The forwarding profile ID.
-- `policy_link_id` (String) The forwarding policy link ID. This is distinct from the linked forwarding policy ID.
+- `policy_link_id` (String) The forwarding policy link ID used in `/networkAccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}`. This is distinct from the linked forwarding policy ID.
 - `state` (String) The forwarding policy link state. Possible values are `enabled` and `disabled`.
 
 ### Optional
@@ -80,7 +81,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_forwarding_profile
 
 - `id` (String) Terraform identifier in `{forwarding_profile_id}/{policy_link_id}` format.
 - `policy_description` (String) The linked forwarding policy description.
-- `policy_id` (String) The linked forwarding policy ID.
+- `policy_id` (String) The linked forwarding policy ID. Use this value as `forwarding_policy_id` when managing forwarding policy rules.
 - `policy_name` (String) The linked forwarding policy name.
 - `priority` (Number) The forwarding policy link priority.
 - `traffic_forwarding_type` (String) The linked forwarding policy traffic forwarding type.
