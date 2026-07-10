@@ -69,21 +69,27 @@ Provider implementation sends:
 }
 ```
 
-User-provided Graph observation for a Microsoft 365 traffic profile policy link:
+Live service principal observation for a Microsoft 365 traffic profile policy link:
 
 ```http
 PATCH https://graph.microsoft.com/beta/networkaccess/forwardingProfiles/233d4bc3-a943-44f1-8f7a-62852fdb79d5/policies/e4dad1ae-c5c7-4ad6-aa76-3e6fb6e734f2
 ```
 
-Body:
+Provider-shaped body:
 
 ```json
-{"state":"disabled"}
+{"@odata.type":"#microsoft.graph.networkaccess.forwardingPolicyLink","state":"disabled"}
 ```
 
 Observed status: `204`.
 
-This was not replayed by Codex during live probing to avoid changing active Microsoft 365 traffic forwarding behavior. The provider resource is generic for forwarding profile policy links and uses the same PATCH endpoint.
+Verification:
+
+- Initial GET returned `state = "enabled"` for policy link `e4dad1ae-c5c7-4ad6-aa76-3e6fb6e734f2`, policy `Exchange Online`, `trafficForwardingType = "m365"`.
+- PATCH to `disabled` returned `204`; follow-up GET returned `state = "disabled"`.
+- PATCH restore to `enabled` returned `204`; follow-up GET returned `state = "enabled"`.
+
+The provider resource is generic for forwarding profile policy links and uses the same PATCH endpoint for Internet Access and Microsoft 365 traffic profile policy links.
 
 ## Observed Internet Access FQDN Rule Create
 
