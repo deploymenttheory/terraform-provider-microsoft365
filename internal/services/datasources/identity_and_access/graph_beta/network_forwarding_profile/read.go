@@ -10,8 +10,19 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/networkaccess"
+)
+
+type lookupMethod int
+
+const (
+	lookupByForwardingProfileID lookupMethod = iota
+	lookupByName
+	lookupByTrafficForwardingType
+	lookupListAll
+	lookupUnset
 )
 
 func (d *NetworkForwardingProfileDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -22,9 +33,12 @@ func (d *NetworkForwardingProfileDataSource) Read(ctx context.Context, req datas
 		return
 	}
 
-	filterType := object.FilterType.ValueString()
-	if filterType != "all" && (object.FilterValue.IsNull() || object.FilterValue.ValueString() == "") {
-		resp.Diagnostics.AddError("Missing Required Parameter", fmt.Sprintf("filter_value must be provided when filter_type is %q", filterType))
+	method := determineLookupMethod(object)
+	if method == lookupUnset {
+		resp.Diagnostics.AddError(
+			"Missing Query Criteria",
+			"One of forwarding_profile_id, name, traffic_forwarding_type, or list_all must be specified.",
+		)
 		return
 	}
 
@@ -37,8 +51,8 @@ func (d *NetworkForwardingProfileDataSource) Read(ctx context.Context, req datas
 	expand := []string{"policies($expand=policy)"}
 	items := make([]ForwardingProfileModel, 0)
 
-	if filterType == "id" {
-		profile, err := d.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(object.FilterValue.ValueString()).Get(ctx, &networkaccess.ForwardingProfilesForwardingProfileItemRequestBuilderGetRequestConfiguration{
+	if method == lookupByForwardingProfileID {
+		profile, err := d.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(object.ForwardingProfileID.ValueString()).Get(ctx, &networkaccess.ForwardingProfilesForwardingProfileItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &networkaccess.ForwardingProfilesForwardingProfileItemRequestBuilderGetQueryParameters{Expand: expand},
 		})
 		if err != nil {
@@ -54,26 +68,61 @@ func (d *NetworkForwardingProfileDataSource) Read(ctx context.Context, req datas
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
-		filterValue := strings.ToLower(object.FilterValue.ValueString())
 		for _, profile := range profiles.GetValue() {
 			mapped := MapRemoteStateToDataSource(profile)
-			switch filterType {
-			case "all":
+			switch method {
+			case lookupListAll:
 				items = append(items, mapped)
-			case "name":
-				if strings.Contains(strings.ToLower(mapped.Name.ValueString()), filterValue) {
+			case lookupByName:
+				if strings.EqualFold(mapped.Name.ValueString(), object.Name.ValueString()) {
 					items = append(items, mapped)
 				}
-			case "traffic_forwarding_type":
-				if strings.EqualFold(mapped.TrafficForwardingType.ValueString(), object.FilterValue.ValueString()) {
+			case lookupByTrafficForwardingType:
+				if strings.EqualFold(mapped.TrafficForwardingType.ValueString(), object.TrafficForwardingType.ValueString()) {
 					items = append(items, mapped)
 				}
 			}
 		}
 	}
 
+	object.ID = types.StringValue(dataSourceID(object, method))
 	object.Items = items
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished datasource read for %s, found %d items", DataSourceName, len(items)))
+}
+
+func determineLookupMethod(object NetworkForwardingProfileDataSourceModel) lookupMethod {
+	if hasStringValue(object.ForwardingProfileID) {
+		return lookupByForwardingProfileID
+	}
+	if hasStringValue(object.Name) {
+		return lookupByName
+	}
+	if hasStringValue(object.TrafficForwardingType) {
+		return lookupByTrafficForwardingType
+	}
+	if !object.ListAll.IsNull() && !object.ListAll.IsUnknown() && object.ListAll.ValueBool() {
+		return lookupListAll
+	}
+	return lookupUnset
+}
+
+func hasStringValue(value types.String) bool {
+	return !value.IsNull() && !value.IsUnknown() && strings.TrimSpace(value.ValueString()) != ""
+}
+
+func dataSourceID(object NetworkForwardingProfileDataSourceModel, method lookupMethod) string {
+	switch method {
+	case lookupByForwardingProfileID:
+		return "forwarding_profile_id/" + object.ForwardingProfileID.ValueString()
+	case lookupByName:
+		return "name/" + object.Name.ValueString()
+	case lookupByTrafficForwardingType:
+		return "traffic_forwarding_type/" + object.TrafficForwardingType.ValueString()
+	case lookupListAll:
+		return "list_all"
+	default:
+		return "unknown"
+	}
 }

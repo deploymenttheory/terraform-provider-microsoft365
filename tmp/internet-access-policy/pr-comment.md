@@ -20,8 +20,7 @@
 
 ```hcl
 data "microsoft365_graph_beta_identity_and_access_network_forwarding_profile" "internet" {
-  filter_type  = "traffic_forwarding_type"
-  filter_value = "internet"
+  traffic_forwarding_type = "internet"
 }
 
 locals {
@@ -83,4 +82,3 @@ Generated docs, then failed validation on pre-existing oversized docs:
 ## Terraform Plan/Apply/Update/Destroy Logs
 
 Not run. Live Terraform apply requires a tenant with Global Secure Access enabled and service principal credentials with `NetworkAccess.ReadWrite.All`.
-

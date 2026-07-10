@@ -36,8 +36,10 @@ The following client `application` permissions are needed in order to use this {
 
 This data source supports filtering using the following attributes:
 
-- `filter_type` (Required): Type of filter to apply. Valid values are `all`, `id`, `name`, and `traffic_forwarding_type`.
-- `filter_value` (Optional): Value to filter by. Required unless `filter_type` is `all`.
+- `forwarding_profile_id` (Optional): The forwarding profile ID. Conflicts with `name`, `traffic_forwarding_type`, and `list_all`.
+- `name` (Optional): The forwarding profile name to match exactly, ignoring case. Conflicts with `forwarding_profile_id`, `traffic_forwarding_type`, and `list_all`.
+- `traffic_forwarding_type` (Optional): The forwarding profile traffic type. Valid values are `internet`, `m365`, and `private`. Conflicts with `forwarding_profile_id`, `name`, and `list_all`.
+- `list_all` (Optional): Retrieve all forwarding profiles. Conflicts with `forwarding_profile_id`, `name`, and `traffic_forwarding_type`.
 
 ## Behavior Notes
 

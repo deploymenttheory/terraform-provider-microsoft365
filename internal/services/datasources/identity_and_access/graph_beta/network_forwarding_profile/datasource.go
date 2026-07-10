@@ -2,12 +2,16 @@ package graphBetaNetworkForwardingProfile
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -47,20 +51,65 @@ func (d *NetworkForwardingProfileDataSource) Schema(ctx context.Context, _ datas
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves Microsoft Entra Global Secure Access forwarding profiles using Microsoft Graph beta `/networkAccess/forwardingProfiles` and expands associated forwarding policy links.",
 		Attributes: map[string]schema.Attribute{
-			"filter_type": schema.StringAttribute{
-				Required:            true,
-				MarkdownDescription: "Type of filter to apply. Valid values are `all`, `id`, `name`, and `traffic_forwarding_type`.",
+			"id": schema.StringAttribute{
+				Computed:            true,
+				MarkdownDescription: "The unique identifier for the data source operation.",
+			},
+			"forwarding_profile_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The forwarding profile ID. Conflicts with `name`, `traffic_forwarding_type`, and `list_all`.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("all", "id", "name", "traffic_forwarding_type"),
+					stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "must be a valid UUID"),
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("name"),
+						path.MatchRoot("traffic_forwarding_type"),
+						path.MatchRoot("list_all"),
+					),
+					stringvalidator.AtLeastOneOf(
+						path.MatchRoot("forwarding_profile_id"),
+						path.MatchRoot("name"),
+						path.MatchRoot("traffic_forwarding_type"),
+						path.MatchRoot("list_all"),
+					),
 				},
 			},
-			"filter_value": schema.StringAttribute{
+			"name": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "Filter value. Required unless `filter_type` is `all`.",
+				MarkdownDescription: "The forwarding profile name to match exactly, ignoring case. Conflicts with `forwarding_profile_id`, `traffic_forwarding_type`, and `list_all`.",
+				Validators: []validator.String{
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("forwarding_profile_id"),
+						path.MatchRoot("traffic_forwarding_type"),
+						path.MatchRoot("list_all"),
+					),
+				},
+			},
+			"traffic_forwarding_type": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The forwarding profile traffic type. Valid values are `internet`, `m365`, and `private`. Conflicts with `forwarding_profile_id`, `name`, and `list_all`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf("internet", "m365", "private"),
+					stringvalidator.ConflictsWith(
+						path.MatchRoot("forwarding_profile_id"),
+						path.MatchRoot("name"),
+						path.MatchRoot("list_all"),
+					),
+				},
+			},
+			"list_all": schema.BoolAttribute{
+				Optional:            true,
+				MarkdownDescription: "Retrieve all forwarding profiles. Conflicts with `forwarding_profile_id`, `name`, and `traffic_forwarding_type`.",
+				Validators: []validator.Bool{
+					boolvalidator.ConflictsWith(
+						path.MatchRoot("forwarding_profile_id"),
+						path.MatchRoot("name"),
+						path.MatchRoot("traffic_forwarding_type"),
+					),
+				},
 			},
 			"items": schema.ListNestedAttribute{
 				Computed:            true,
-				MarkdownDescription: "Forwarding profiles matching the filter.",
+				MarkdownDescription: "Forwarding profiles matching the query criteria.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"id":                       schema.StringAttribute{Computed: true, MarkdownDescription: "The forwarding profile ID."},

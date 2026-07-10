@@ -6,10 +6,13 @@ import (
 )
 
 type NetworkForwardingProfileDataSourceModel struct {
-	FilterType  types.String             `tfsdk:"filter_type"`
-	FilterValue types.String             `tfsdk:"filter_value"`
-	Items       []ForwardingProfileModel `tfsdk:"items"`
-	Timeouts    timeouts.Value           `tfsdk:"timeouts"`
+	ID                    types.String             `tfsdk:"id"`
+	ForwardingProfileID   types.String             `tfsdk:"forwarding_profile_id"`
+	Name                  types.String             `tfsdk:"name"`
+	TrafficForwardingType types.String             `tfsdk:"traffic_forwarding_type"`
+	ListAll               types.Bool               `tfsdk:"list_all"`
+	Items                 []ForwardingProfileModel `tfsdk:"items"`
+	Timeouts              timeouts.Value           `tfsdk:"timeouts"`
 }
 
 type ForwardingProfileModel struct {

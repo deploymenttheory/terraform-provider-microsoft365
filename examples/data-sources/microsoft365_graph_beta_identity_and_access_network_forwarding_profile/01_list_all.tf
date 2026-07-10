@@ -1,5 +1,5 @@
 data "microsoft365_graph_beta_identity_and_access_network_forwarding_profile" "all" {
-  filter_type = "all"
+  list_all = true
 
   timeouts = {
     read = "3m"
