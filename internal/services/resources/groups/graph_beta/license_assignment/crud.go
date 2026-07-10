@@ -3,6 +3,8 @@ package graphBetaGroupLicenseAssignment
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -15,6 +17,43 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
 )
+
+// groupLicenseLocks serializes assignLicense operations per group.
+//
+// The assignLicense endpoint mutates the group's whole license set and is asynchronous:
+// it returns 202 Accepted and the actual add/remove is applied later by the backend
+// licensing service (see the Response section of
+// https://learn.microsoft.com/en-us/graph/api/group-assignlicense?view=graph-rest-beta).
+// Microsoft documents that group license processing takes time to complete and can fail
+// after the request was accepted:
+//   - https://learn.microsoft.com/en-us/entra/identity/users/licensing-group-advanced
+//     ("How long does it take for licenses to be modified after group changes")
+//   - https://learn.microsoft.com/en-us/entra/fundamentals/licensing-groups-resolve-problems
+//
+// There is no official documentation of the concurrency semantics of overlapping
+// assignLicense calls against the same group. Because each call rewrites the same license
+// set asynchronously, concurrent POSTs from multiple Terraform resources targeting the same
+// group (Terraform applies resources in parallel by default) have been observed in the field
+// to silently lose adds or removes. Serializing per group is therefore a defensive measure
+// consistent with Microsoft's eventual-consistency guidance for Entra
+// (https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/):
+// each Create/Update/Delete takes the group's lock and holds it until the change is
+// confirmed by a read-back.
+var groupLicenseLocks sync.Map // group id -> *sync.Mutex
+
+// lockGroupLicense acquires the per-group license lock and returns the unlock func.
+// Callers acquire it before starting their operation timeout so time spent waiting on
+// sibling license assignments does not consume the resource's own timeout budget.
+func lockGroupLicense(ctx context.Context, groupID string) func() {
+	m, _ := groupLicenseLocks.LoadOrStore(groupID, &sync.Mutex{})
+	mu := m.(*sync.Mutex)
+	start := time.Now()
+	mu.Lock()
+	if waited := time.Since(start); waited > time.Second {
+		tflog.Debug(ctx, fmt.Sprintf("Waited %s for the license assignment lock on group %s", waited, groupID))
+	}
+	return mu.Unlock
+}
 
 // Create handles the Create operation for Group License Assignment resources.
 //
@@ -32,6 +71,10 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Serialize with sibling license assignments targeting the same group (see groupLicenseLocks).
+	unlock := lockGroupLicense(ctx, object.GroupId.ValueString())
+	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -151,7 +194,18 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, group)
+	// The group existing is not enough — this resource represents a single license (SKU)
+	// on the group. When the SKU is absent from assignedLicenses, the license assignment
+	// does not exist, so remove it from state. During post-write ReadWithRetry polling this
+	// causes the consistency predicate to fail and the read to be retried, which is how a
+	// not-yet-propagated (or asynchronously failed) assignLicense is detected instead of
+	// being silently reported as successful.
+	if found := MapRemoteResourceStateToTerraform(ctx, &object, group); !found {
+		tflog.Warn(ctx, fmt.Sprintf("License SKU %s is not assigned to group %s, removing %s from state",
+			object.SkuId.ValueString(), object.GroupId.ValueString(), ResourceName))
+		resp.State.RemoveResource(ctx)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -178,6 +232,10 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Serialize with sibling license assignments targeting the same group (see groupLicenseLocks).
+	unlock := lockGroupLicense(ctx, plan.GroupId.ValueString())
+	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -240,7 +298,20 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 //   - POST /groups/{groupId}/assignLicense (with removeLicenses parameter)
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/group-assignlicense?view=graph-rest-beta
-// Note: Uses same assignLicense endpoint with removeLicenses to remove the license
+// Note: Uses same assignLicense endpoint with removeLicenses to remove the license.
+// assignLicense is asynchronous — it returns 202 Accepted and the removal is processed later
+// by the backend licensing service (https://learn.microsoft.com/en-us/graph/api/group-assignlicense?view=graph-rest-beta).
+// Microsoft documents that a group cannot be deleted until license removal processing has
+// actually completed ("A group with active licenses assigned cannot be deleted"), and that
+// removals can fail after being accepted, e.g. when removed SKUs contain service plans that
+// other assigned SKUs depend on:
+//   - https://learn.microsoft.com/en-us/entra/fundamentals/licensing-groups-resolve-problems
+//   - https://learn.microsoft.com/en-us/answers/questions/2006508/how-to-remove-multiple-licenses-from-a-security-gr
+//
+// Delete therefore polls the group's assignedLicenses until the SKU is actually gone before
+// removing the resource from state. Returning early on the 202 would let a dependent group
+// deletion run while the group still has active licenses, and a silently failed removal would
+// be unrecoverable via Terraform because the resource would already be gone from state.
 func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object GroupLicenseAssignmentResourceModel
 
@@ -250,6 +321,10 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// Serialize with sibling license assignments targeting the same group (see groupLicenseLocks).
+	unlock := lockGroupLicense(ctx, object.GroupId.ValueString())
+	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
@@ -278,6 +353,23 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("License removal request accepted for license %s on group: %s, waiting for removal to complete",
+		object.SkuId.ValueString(), object.GroupId.ValueString()))
+
+	if err := r.waitForLicenseRemoval(ctx, object.GroupId.ValueString(), object.SkuId.ValueString()); err != nil {
+		resp.Diagnostics.AddError(
+			"License removal did not complete",
+			fmt.Sprintf("The removal of license %s from group %s was accepted by the API but the license "+
+				"is still assigned after waiting. Group license processing is asynchronous and can fail "+
+				"silently (e.g. when removed SKUs contain service plans that other assigned SKUs depend on) "+
+				"or become stuck. Check the group's license processing state in the Microsoft Entra portal "+
+				"and reprocess if needed, then retry. The resource has been kept in Terraform state so the "+
+				"removal can be retried. Error: %s",
+				object.SkuId.ValueString(), object.GroupId.ValueString(), err.Error()),
+		)
+		return
+	}
+
 	tflog.Debug(ctx, fmt.Sprintf("Successfully removed license %s from group: %s", object.SkuId.ValueString(), object.GroupId.ValueString()))
 
 	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
@@ -285,4 +377,55 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+// waitForLicenseRemoval polls the group's assignedLicenses until the given SKU is no longer
+// present, the group itself is gone (404), or the context deadline is reached. This closes the
+// gap between the asynchronous 202 Accepted returned by assignLicense and the license actually
+// being removed by the backend licensing service.
+func (r *GroupLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Context, groupID, skuID string) error {
+	const pollInterval = 5 * time.Second
+
+	requestParameters := &groups.GroupItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &groups.GroupItemRequestBuilderGetQueryParameters{
+			Select: []string{"id", "assignedLicenses"},
+		},
+	}
+
+	return crud.PollUntil(ctx, pollInterval, func(ctx context.Context) (bool, error) {
+		group, err := r.client.
+			Groups().
+			ByGroupId(groupID).
+			Get(ctx, requestParameters)
+
+		if err != nil {
+			errorInfo := errors.GraphError(ctx, err)
+			if errorInfo.StatusCode == 404 {
+				tflog.Debug(ctx, fmt.Sprintf("Group %s no longer exists, treating license removal as complete", groupID))
+				return true, nil
+			}
+			// Permanent errors (authorization, bad request, ...) will not resolve by
+			// polling — fail fast instead of consuming the whole delete timeout.
+			if errors.IsNonRetryableReadError(&errorInfo) {
+				return false, &crud.FatalPollError{Err: err}
+			}
+			// Transient read errors should not fail the delete outright — keep polling
+			// until the deadline and surface the last error if the wait times out.
+			tflog.Debug(ctx, fmt.Sprintf("Error reading group %s while waiting for license removal, will retry: %s", groupID, err.Error()))
+			return false, err
+		}
+
+		for _, license := range group.GetAssignedLicenses() {
+			if license == nil || license.GetSkuId() == nil {
+				continue
+			}
+			// The API returns SKU ids in canonical lowercase form while the configured
+			// sku_id may use any casing, so compare case-insensitively.
+			if strings.EqualFold(license.GetSkuId().String(), skuID) {
+				tflog.Debug(ctx, fmt.Sprintf("License %s still assigned to group %s, waiting %s before re-checking", skuID, groupID, pollInterval))
+				return false, fmt.Errorf("license %s is still assigned to group %s", skuID, groupID)
+			}
+		}
+		return true, nil
+	})
 }
