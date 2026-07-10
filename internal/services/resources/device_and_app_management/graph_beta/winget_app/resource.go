@@ -224,16 +224,25 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			"large_icon": schema.SingleNestedAttribute{
 				Computed: true,
 				Optional: true,
+				PlanModifiers: []planmodifier.Object{
+					planmodifiers.UseStateForUnknownObject(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"type": schema.StringAttribute{
 						Computed:            true,
 						Optional:            true,
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 						MarkdownDescription: "The MIME type of the app's large icon, automatically populated based on the `package_identifier` when `automatically_generate_metadata` is true. Example: `image/png`",
 					},
 					"value": schema.StringAttribute{
 						Computed:            true,
 						Optional:            true,
 						Sensitive:           true, // not sensitive in a true sense, but we don't want to show the icon base64 encode in the plan.
+						PlanModifiers: []planmodifier.String{
+							planmodifiers.UseStateForUnknownString(),
+						},
 						MarkdownDescription: "The icon image to use for the winget app. This field is automatically populated based on the `package_identifier` when `automatically_generate_metadata` is set to true.",
 					},
 				},
@@ -241,23 +250,38 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The date and time the app was created. This property is read-only.",
 			},
 			"last_modified_date_time": schema.StringAttribute{
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The date and time the app was last modified. This property is read-only.",
 			},
 			"upload_state": schema.Int32Attribute{
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
+				},
 				MarkdownDescription: "The upload state. Possible values are: 0 - Not Ready, 1 - Ready, 2 - Processing. This property is read-only.",
 			},
 			"publishing_state": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The publishing state for the app. The app cannot be assigned unless the app is published. " +
 					"Possible values are: notPublished, processing, published.",
 			},
 			"is_assigned": schema.BoolAttribute{
 				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.UseStateForUnknownBool(),
+				},
 				MarkdownDescription: "The value indicating whether the app is assigned to at least one group. This property is read-only.",
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
@@ -273,18 +297,30 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"dependent_app_count": schema.Int32Attribute{
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
+				},
 				MarkdownDescription: "The total number of dependencies the child app has. This property is read-only.",
 			},
 			"superseding_app_count": schema.Int32Attribute{
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
+				},
 				MarkdownDescription: "The total number of apps this app directly or indirectly supersedes. This property is read-only.",
 			},
 			"superseded_app_count": schema.Int32Attribute{
 				Computed:            true,
+				PlanModifiers: []planmodifier.Int32{
+					planmodifiers.UseStateForUnknownInt32(),
+				},
 				MarkdownDescription: "The total number of apps this app is directly or indirectly superseded by. This property is read-only.",
 			},
 			"manifest_hash": schema.StringAttribute{
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "Hash of package metadata properties used to validate that the application matches the metadata in the source repository.",
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
