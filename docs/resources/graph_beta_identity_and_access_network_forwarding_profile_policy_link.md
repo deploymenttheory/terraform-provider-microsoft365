@@ -39,7 +39,8 @@ The following client `application` permissions are needed in order to use this r
 
 - `policy_link_id` is the Graph policyLink object ID used by `/networkAccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}`.
 - `policy_id` is the linked forwarding policy ID. Use `policy_id`, not `policy_link_id`, as `forwarding_policy_id` for forwarding policy rule resources.
-- This resource should be used for adopted Microsoft-managed policy links, such as the Internet Access `Default Acquire` link.
+- This resource should be used for adopted Microsoft-managed policy links, such as the Internet Access `Default Acquire` link or Microsoft 365 traffic policy links like `Exchange Online`.
+- The resource is forwarding profile policy link generic. It is not limited to Internet Access profiles when the Graph policy link supports `state` updates.
 - Destroy does not delete the Graph object. Re-apply can adopt the same link again.
 
 ## Example Usage

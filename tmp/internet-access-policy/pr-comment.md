@@ -78,6 +78,7 @@ Observed from user-provided Graph/DevTools traffic and live service principal pr
 
 - `GET /beta/networkaccess/forwardingProfiles/{id}?$expand=policies($expand=policy)` returns forwarding profile fields and policy links; `policy_link_id` and `policy_id` are distinct.
 - `PATCH /beta/networkaccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}` accepts `{"state":"enabled"}`.
+- `PATCH /beta/networkaccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}` also works for Microsoft 365 traffic profile policy links; Exchange Online disable returned 204 in user-provided Graph observation.
 - `POST /beta/networkaccess/forwardingPolicies/{forwardingPolicyId}/policyRules` accepts `#microsoft.graph.networkaccess.internetAccessForwardingRule` with FQDN destinations, ports, protocol, and action.
 - Rule item `GET` returns `clientFallbackAction`.
 - Rule item `PATCH` returned 204.

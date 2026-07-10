@@ -43,6 +43,8 @@ Key observed contract:
 - `Custom Acquire` policy ID observed as `dad2a411-e330-440d-a7c7-2c830dce5991`.
 - `Custom bypass` policy ID observed as `20b11851-d497-4a6e-8c98-a9bd9461eeb2`.
 - `Default Acquire` policy link ID observed as `09837256-2cba-4dde-a121-4d6a129f13db`; linked policy ID observed as `f0474b3e-307a-4230-bc1c-cd8ac2f1a2cf`.
+- Microsoft 365 traffic profile ID observed as `233d4bc3-a943-44f1-8f7a-62852fdb79d5`.
+- Microsoft 365 `Exchange Online` policy link ID observed as `e4dad1ae-c5c7-4ad6-aa76-3e6fb6e734f2`; linked policy ID observed as `1d6ed541-47fe-4899-9868-4edde0465e2e`.
 
 ## Observed Policy Link State PATCH
 
@@ -66,6 +68,22 @@ Provider implementation sends:
   "state": "enabled"
 }
 ```
+
+User-provided Graph observation for a Microsoft 365 traffic profile policy link:
+
+```http
+PATCH https://graph.microsoft.com/beta/networkaccess/forwardingProfiles/233d4bc3-a943-44f1-8f7a-62852fdb79d5/policies/e4dad1ae-c5c7-4ad6-aa76-3e6fb6e734f2
+```
+
+Body:
+
+```json
+{"state":"disabled"}
+```
+
+Observed status: `204`.
+
+This was not replayed by Codex during live probing to avoid changing active Microsoft 365 traffic forwarding behavior. The provider resource is generic for forwarding profile policy links and uses the same PATCH endpoint.
 
 ## Observed Internet Access FQDN Rule Create
 
