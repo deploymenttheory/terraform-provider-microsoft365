@@ -188,12 +188,25 @@ func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.R
 	}
 
 	// The user existing is not enough — this resource represents a single license (SKU)
-	// on the user. When the SKU is absent from assignedLicenses, the license assignment
-	// does not exist, so remove it from state. During post-write ReadWithRetry polling this
-	// causes the consistency predicate to fail and the read to be retried, which is how a
-	// not-yet-propagated (or failed) assignLicense is detected instead of being silently
-	// reported as successful.
+	// on the user. A single read that lacks the SKU is not authoritative because reads can
+	// be served by lagging replicas. Before removing state, re-check until the read timeout
+	// expires so a transient stale read does not make Terraform forget a live assignment.
 	if found := MapRemoteResourceStateToTerraform(ctx, &object, user); !found {
+		if err := r.waitForLicensePresence(ctx, object.UserId.ValueString(), object.SkuId.ValueString()); err == nil {
+			user, err = r.client.
+				Users().
+				ByUserId(object.UserId.ValueString()).
+				Get(ctx, requestParameters)
+			if err != nil {
+				errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+				return
+			}
+			if found := MapRemoteResourceStateToTerraform(ctx, &object, user); found {
+				resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+				return
+			}
+		}
+
 		tflog.Warn(ctx, fmt.Sprintf("License SKU %s is not assigned to user %s, removing %s from state",
 			object.SkuId.ValueString(), object.UserId.ValueString(), ResourceName))
 		resp.State.RemoveResource(ctx)
@@ -366,6 +379,8 @@ func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource
 // (e.g. deleting the user's last license before disabling the account) observe stale data.
 func (r *UserLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Context, userID, skuID string) error {
 	const pollInterval = 5 * time.Second
+	const requiredAbsentReads = 2
+	absentReads := 0
 
 	requestParameters := &users.UserItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &users.UserItemRequestBuilderGetQueryParameters{
@@ -396,6 +411,7 @@ func (r *UserLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Contex
 			return false, err
 		}
 
+		found := false
 		for _, license := range user.GetAssignedLicenses() {
 			if license == nil || license.GetSkuId() == nil {
 				continue
@@ -403,10 +419,57 @@ func (r *UserLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Contex
 			// The API returns SKU ids in canonical lowercase form while the configured
 			// sku_id may use any casing, so compare case-insensitively.
 			if strings.EqualFold(license.GetSkuId().String(), skuID) {
+				found = true
+				absentReads = 0
 				tflog.Debug(ctx, fmt.Sprintf("License %s still assigned to user %s, waiting %s before re-checking", skuID, userID, pollInterval))
 				return false, fmt.Errorf("license %s is still assigned to user %s", skuID, userID)
 			}
 		}
+		if !found {
+			absentReads++
+		}
+		if absentReads < requiredAbsentReads {
+			return false, fmt.Errorf("license %s was absent from user %s on read %d/%d; confirming removal",
+				skuID, userID, absentReads, requiredAbsentReads)
+		}
 		return true, nil
+	})
+}
+
+// waitForLicensePresence polls until the given SKU is visible in assignedLicenses. It is
+// used by Read before removing state so one stale read cannot turn an eventually-consistent
+// live assignment into Terraform drift.
+func (r *UserLicenseAssignmentResource) waitForLicensePresence(ctx context.Context, userID, skuID string) error {
+	const pollInterval = 5 * time.Second
+
+	requestParameters := &users.UserItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &users.UserItemRequestBuilderGetQueryParameters{
+			Select: []string{"id", "assignedLicenses"},
+		},
+	}
+
+	return crud.PollUntil(ctx, pollInterval, func(ctx context.Context) (bool, error) {
+		user, err := r.client.
+			Users().
+			ByUserId(userID).
+			Get(ctx, requestParameters)
+
+		if err != nil {
+			errorInfo := errors.GraphError(ctx, err)
+			if errors.IsNonRetryableReadError(&errorInfo) {
+				return false, &crud.FatalPollError{Err: err}
+			}
+			return false, err
+		}
+
+		for _, license := range user.GetAssignedLicenses() {
+			if license == nil || license.GetSkuId() == nil {
+				continue
+			}
+			if strings.EqualFold(license.GetSkuId().String(), skuID) {
+				return true, nil
+			}
+		}
+		return false, fmt.Errorf("license %s is not yet visible on user %s", skuID, userID)
 	})
 }

@@ -195,12 +195,27 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 	}
 
 	// The group existing is not enough — this resource represents a single license (SKU)
-	// on the group. When the SKU is absent from assignedLicenses, the license assignment
-	// does not exist, so remove it from state. During post-write ReadWithRetry polling this
-	// causes the consistency predicate to fail and the read to be retried, which is how a
-	// not-yet-propagated (or asynchronously failed) assignLicense is detected instead of
-	// being silently reported as successful.
+	// on the group. A single read that lacks the SKU is not authoritative, however:
+	// group license writes are asynchronous and reads can be served by lagging replicas.
+	// Before removing state, re-check until the read timeout expires so a transient stale
+	// read does not make Terraform forget a live license assignment and later try to delete
+	// the still-licensed group.
 	if found := MapRemoteResourceStateToTerraform(ctx, &object, group); !found {
+		if err := r.waitForLicensePresence(ctx, object.GroupId.ValueString(), object.SkuId.ValueString()); err == nil {
+			group, err = r.client.
+				Groups().
+				ByGroupId(object.GroupId.ValueString()).
+				Get(ctx, requestParameters)
+			if err != nil {
+				errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+				return
+			}
+			if found := MapRemoteResourceStateToTerraform(ctx, &object, group); found {
+				resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+				return
+			}
+		}
+
 		tflog.Warn(ctx, fmt.Sprintf("License SKU %s is not assigned to group %s, removing %s from state",
 			object.SkuId.ValueString(), object.GroupId.ValueString(), ResourceName))
 		resp.State.RemoveResource(ctx)
@@ -385,6 +400,8 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 // being removed by the backend licensing service.
 func (r *GroupLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Context, groupID, skuID string) error {
 	const pollInterval = 5 * time.Second
+	const requiredAbsentReads = 2
+	absentReads := 0
 
 	requestParameters := &groups.GroupItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &groups.GroupItemRequestBuilderGetQueryParameters{
@@ -415,6 +432,7 @@ func (r *GroupLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Conte
 			return false, err
 		}
 
+		found := false
 		for _, license := range group.GetAssignedLicenses() {
 			if license == nil || license.GetSkuId() == nil {
 				continue
@@ -422,10 +440,57 @@ func (r *GroupLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Conte
 			// The API returns SKU ids in canonical lowercase form while the configured
 			// sku_id may use any casing, so compare case-insensitively.
 			if strings.EqualFold(license.GetSkuId().String(), skuID) {
+				found = true
+				absentReads = 0
 				tflog.Debug(ctx, fmt.Sprintf("License %s still assigned to group %s, waiting %s before re-checking", skuID, groupID, pollInterval))
 				return false, fmt.Errorf("license %s is still assigned to group %s", skuID, groupID)
 			}
 		}
+		if !found {
+			absentReads++
+		}
+		if absentReads < requiredAbsentReads {
+			return false, fmt.Errorf("license %s was absent from group %s on read %d/%d; confirming removal",
+				skuID, groupID, absentReads, requiredAbsentReads)
+		}
 		return true, nil
+	})
+}
+
+// waitForLicensePresence polls until the given SKU is visible in assignedLicenses. It is
+// used by Read before removing state so one stale read cannot turn an eventually-consistent
+// live assignment into Terraform drift.
+func (r *GroupLicenseAssignmentResource) waitForLicensePresence(ctx context.Context, groupID, skuID string) error {
+	const pollInterval = 5 * time.Second
+
+	requestParameters := &groups.GroupItemRequestBuilderGetRequestConfiguration{
+		QueryParameters: &groups.GroupItemRequestBuilderGetQueryParameters{
+			Select: []string{"id", "assignedLicenses"},
+		},
+	}
+
+	return crud.PollUntil(ctx, pollInterval, func(ctx context.Context) (bool, error) {
+		group, err := r.client.
+			Groups().
+			ByGroupId(groupID).
+			Get(ctx, requestParameters)
+
+		if err != nil {
+			errorInfo := errors.GraphError(ctx, err)
+			if errors.IsNonRetryableReadError(&errorInfo) {
+				return false, &crud.FatalPollError{Err: err}
+			}
+			return false, err
+		}
+
+		for _, license := range group.GetAssignedLicenses() {
+			if license == nil || license.GetSkuId() == nil {
+				continue
+			}
+			if strings.EqualFold(license.GetSkuId().String(), skuID) {
+				return true, nil
+			}
+		}
+		return false, fmt.Errorf("license %s is not yet visible on group %s", skuID, groupID)
 	})
 }
