@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // groupLicenseLocks serializes assignLicense operations per group.
@@ -201,16 +202,8 @@ func (r *GroupLicenseAssignmentResource) Read(ctx context.Context, req resource.
 	// read does not make Terraform forget a live license assignment and later try to delete
 	// the still-licensed group.
 	if found := MapRemoteResourceStateToTerraform(ctx, &object, group); !found {
-		if err := r.waitForLicensePresence(ctx, object.GroupId.ValueString(), object.SkuId.ValueString()); err == nil {
-			group, err = r.client.
-				Groups().
-				ByGroupId(object.GroupId.ValueString()).
-				Get(ctx, requestParameters)
-			if err != nil {
-				errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
-				return
-			}
-			if found := MapRemoteResourceStateToTerraform(ctx, &object, group); found {
+		if confirmedGroup, err := r.waitForLicensePresence(ctx, object.GroupId.ValueString(), object.SkuId.ValueString()); err == nil {
+			if found := MapRemoteResourceStateToTerraform(ctx, &object, confirmedGroup); found {
 				resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 				return
 			}
@@ -460,16 +453,17 @@ func (r *GroupLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Conte
 // waitForLicensePresence polls until the given SKU is visible in assignedLicenses. It is
 // used by Read before removing state so one stale read cannot turn an eventually-consistent
 // live assignment into Terraform drift.
-func (r *GroupLicenseAssignmentResource) waitForLicensePresence(ctx context.Context, groupID, skuID string) error {
+func (r *GroupLicenseAssignmentResource) waitForLicensePresence(ctx context.Context, groupID, skuID string) (graphmodels.Groupable, error) {
 	const pollInterval = 5 * time.Second
+	var confirmedGroup graphmodels.Groupable
 
 	requestParameters := &groups.GroupItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &groups.GroupItemRequestBuilderGetQueryParameters{
-			Select: []string{"id", "assignedLicenses"},
+			Select: []string{"id", "displayName", "assignedLicenses"},
 		},
 	}
 
-	return crud.PollUntil(ctx, pollInterval, func(ctx context.Context) (bool, error) {
+	err := crud.PollUntil(ctx, pollInterval, func(ctx context.Context) (bool, error) {
 		group, err := r.client.
 			Groups().
 			ByGroupId(groupID).
@@ -488,9 +482,14 @@ func (r *GroupLicenseAssignmentResource) waitForLicensePresence(ctx context.Cont
 				continue
 			}
 			if strings.EqualFold(license.GetSkuId().String(), skuID) {
+				confirmedGroup = group
 				return true, nil
 			}
 		}
 		return false, fmt.Errorf("license %s is not yet visible on group %s", skuID, groupID)
 	})
+	if err != nil {
+		return nil, err
+	}
+	return confirmedGroup, nil
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
@@ -192,16 +193,8 @@ func (r *UserLicenseAssignmentResource) Read(ctx context.Context, req resource.R
 	// be served by lagging replicas. Before removing state, re-check until the read timeout
 	// expires so a transient stale read does not make Terraform forget a live assignment.
 	if found := MapRemoteResourceStateToTerraform(ctx, &object, user); !found {
-		if err := r.waitForLicensePresence(ctx, object.UserId.ValueString(), object.SkuId.ValueString()); err == nil {
-			user, err = r.client.
-				Users().
-				ByUserId(object.UserId.ValueString()).
-				Get(ctx, requestParameters)
-			if err != nil {
-				errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
-				return
-			}
-			if found := MapRemoteResourceStateToTerraform(ctx, &object, user); found {
+		if confirmedUser, err := r.waitForLicensePresence(ctx, object.UserId.ValueString(), object.SkuId.ValueString()); err == nil {
+			if found := MapRemoteResourceStateToTerraform(ctx, &object, confirmedUser); found {
 				resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 				return
 			}
@@ -439,16 +432,17 @@ func (r *UserLicenseAssignmentResource) waitForLicenseRemoval(ctx context.Contex
 // waitForLicensePresence polls until the given SKU is visible in assignedLicenses. It is
 // used by Read before removing state so one stale read cannot turn an eventually-consistent
 // live assignment into Terraform drift.
-func (r *UserLicenseAssignmentResource) waitForLicensePresence(ctx context.Context, userID, skuID string) error {
+func (r *UserLicenseAssignmentResource) waitForLicensePresence(ctx context.Context, userID, skuID string) (graphmodels.Userable, error) {
 	const pollInterval = 5 * time.Second
+	var confirmedUser graphmodels.Userable
 
 	requestParameters := &users.UserItemRequestBuilderGetRequestConfiguration{
 		QueryParameters: &users.UserItemRequestBuilderGetQueryParameters{
-			Select: []string{"id", "assignedLicenses"},
+			Select: []string{"id", "userPrincipalName", "assignedLicenses"},
 		},
 	}
 
-	return crud.PollUntil(ctx, pollInterval, func(ctx context.Context) (bool, error) {
+	err := crud.PollUntil(ctx, pollInterval, func(ctx context.Context) (bool, error) {
 		user, err := r.client.
 			Users().
 			ByUserId(userID).
@@ -467,9 +461,14 @@ func (r *UserLicenseAssignmentResource) waitForLicensePresence(ctx context.Conte
 				continue
 			}
 			if strings.EqualFold(license.GetSkuId().String(), skuID) {
+				confirmedUser = user
 				return true, nil
 			}
 		}
 		return false, fmt.Errorf("license %s is not yet visible on user %s", skuID, userID)
 	})
+	if err != nil {
+		return nil, err
+	}
+	return confirmedUser, nil
 }
