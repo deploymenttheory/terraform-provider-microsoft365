@@ -3,6 +3,7 @@
 ## What Changed
 
 - Added data source `microsoft365_graph_beta_identity_and_access_network_forwarding_profile`.
+- Added data source `microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link`.
 - Added resource `microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link`.
 - Added resource `microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule`.
 - Registered all three in the provider.
@@ -21,24 +22,18 @@
 ## Example HCL
 
 ```hcl
-data "microsoft365_graph_beta_identity_and_access_network_forwarding_profile" "internet" {
+data "microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link" "custom_acquire" {
   traffic_forwarding_type = "internet"
+  policy_name             = "Custom Acquire"
 }
 
-locals {
-  internet_profile = one(data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile.internet.items)
-  custom_acquire_policy = one([
-    for link in local.internet_profile.policies : link
-    if link.policy_name == "Custom Acquire"
-  ])
-  custom_bypass_policy = one([
-    for link in local.internet_profile.policies : link
-    if link.policy_name == "Custom bypass"
-  ])
+data "microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link" "custom_bypass" {
+  traffic_forwarding_type = "internet"
+  policy_name             = "Custom bypass"
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "fqdn" {
-  forwarding_policy_id = local.custom_acquire_policy.policy_id
+  forwarding_policy_id = data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link.custom_acquire.policy_id
 
   name      = "Example Internet Access FQDN rule"
   action    = "forward"
@@ -55,7 +50,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "cidr_bypass" {
-  forwarding_policy_id = local.custom_bypass_policy.policy_id
+  forwarding_policy_id = data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link.custom_bypass.policy_id
 
   name      = "Example Internet Access CIDR bypass rule"
   action    = "bypass"
@@ -91,8 +86,9 @@ Observed from user-provided Graph/DevTools traffic and live service principal pr
 ## Verification
 
 ```text
-go test ./internal/services/datasources/identity_and_access/graph_beta/network_forwarding_profile ./internal/services/resources/identity_and_access/graph_beta/network_forwarding_profile_policy_link ./internal/services/resources/identity_and_access/graph_beta/network_internet_access_forwarding_policy_rule
+go test ./internal/services/datasources/identity_and_access/graph_beta/network_forwarding_profile ./internal/services/datasources/identity_and_access/graph_beta/network_forwarding_profile_policy_link ./internal/services/resources/identity_and_access/graph_beta/network_forwarding_profile_policy_link ./internal/services/resources/identity_and_access/graph_beta/network_internet_access_forwarding_policy_rule ./internal/provider
 ok   github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/network_forwarding_profile
+ok   github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/network_forwarding_profile_policy_link
 ok   github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_forwarding_profile_policy_link
 ok   github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_internet_access_forwarding_policy_rule
 ```
@@ -117,6 +113,7 @@ Key log files:
 - `tmp/internet-access-policy/live/terraform-phase2b-apply.log`
 - `tmp/internet-access-policy/live/terraform-destroy-plan.log`
 - `tmp/internet-access-policy/live/terraform-destroy-apply.log`
+- `tmp/internet-access-policy/live/terraform-policy-link-datasource-plan.log`
 - `tmp/internet-access-policy/live/rule-get-after-update.summary.json`
 - `tmp/internet-access-policy/live/rule-get-after-destroy-status.tsv`
 - `tmp/internet-access-policy/live/policy-link-after-destroy.summary.json`
@@ -131,6 +128,11 @@ phase1 apply: partial live probe exposed Graph constraints:
 phase1b apply: 3 added, 0 changed, 0 destroyed
 phase2b apply: 0 added, 5 changed, 0 destroyed
 destroy apply: 0 added, 0 changed, 6 destroyed
+
+policy-link data source plan:
+- custom_acquire read id 72661c0d-027e-4dff-8c76-af103f200903/f576d498-0067-4cc8-960b-b6e3ebf571ea
+- custom_bypass read id 72661c0d-027e-4dff-8c76-af103f200903/f7558597-f118-42eb-b794-ecaaddf0d0eb
+- default_acquire read id 72661c0d-027e-4dff-8c76-af103f200903/09837256-2cba-4dde-a121-4d6a129f13db
 
 post-destroy rule GET statuses:
 fqdn_bypass_udp  404

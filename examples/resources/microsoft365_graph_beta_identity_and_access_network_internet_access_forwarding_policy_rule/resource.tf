@@ -1,21 +1,15 @@
-data "microsoft365_graph_beta_identity_and_access_network_forwarding_profile" "internet" {
+data "microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link" "custom_acquire" {
   traffic_forwarding_type = "internet"
+  policy_name             = "Custom Acquire"
 }
 
-locals {
-  internet_profile = one(data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile.internet.items)
-  custom_acquire_policy = one([
-    for link in local.internet_profile.policies : link
-    if link.policy_name == "Custom Acquire"
-  ])
-  custom_bypass_policy = one([
-    for link in local.internet_profile.policies : link
-    if link.policy_name == "Custom bypass"
-  ])
+data "microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link" "custom_bypass" {
+  traffic_forwarding_type = "internet"
+  policy_name             = "Custom bypass"
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "fqdn" {
-  forwarding_policy_id = local.custom_acquire_policy.policy_id
+  forwarding_policy_id = data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link.custom_acquire.policy_id
 
   name      = "Example Internet Access FQDN rule"
   action    = "forward"
@@ -32,7 +26,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "cidr" {
-  forwarding_policy_id = local.custom_bypass_policy.policy_id
+  forwarding_policy_id = data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link.custom_bypass.policy_id
 
   name      = "Example Internet Access CIDR bypass rule"
   action    = "bypass"
@@ -49,7 +43,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "ip_range" {
-  forwarding_policy_id = local.custom_bypass_policy.policy_id
+  forwarding_policy_id = data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link.custom_bypass.policy_id
 
   name      = "Example Internet Access IP range bypass rule"
   action    = "bypass"

@@ -134,7 +134,7 @@ Read-Only:
 - `is_custom_profile` (Boolean) Whether this is a custom forwarding profile.
 - `last_modified_date_time` (String) The last modified timestamp.
 - `name` (String) The forwarding profile name.
-- `policies` (Attributes List) Forwarding policy links associated with the profile. The policy link ID and policy ID are distinct Graph identifiers. (see [below for nested schema](#nestedatt--items--policies))
+- `policies` (Attributes List) Forwarding policy links associated with the profile. `policy_link_id` is the Graph policyLink object ID used by the forwarding profile policies endpoint; `policy_id` is the linked forwarding policy ID. (see [below for nested schema](#nestedatt--items--policies))
 - `priority` (Number) The forwarding profile priority.
 - `service_principal_app_id` (String) The associated service principal application ID.
 - `service_principal_id` (String) The associated service principal object ID.
