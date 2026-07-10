@@ -38,7 +38,8 @@ The following client `application` permissions are needed in order to use this r
 ## Behavior Notes
 
 - Use the forwarding policy `policy_id` from the forwarding profile data source as `forwarding_policy_id`.
-- `action` supports `forward` and `bypass`.
+- `action` supports `forward` and `bypass`. Graph requires `forward` rules on acquire policies such as `Custom Acquire`, and `bypass` rules on bypass policies such as `Custom bypass`.
+- `name` and `action` are create-time values for this Graph resource. Changing either value requires Terraform to replace the rule.
 - `protocol` supports `tcp` and `udp` until additional Graph contract probing confirms other values.
 - Destination `type` supports `fqdn`, `ip_address`, `ip_range`, and `ip_subnet`. Use CIDR notation in `value` for `ip_subnet`.
 - The generated Microsoft Graph beta Go SDK exposes policy rule builders, but this resource uses Kiota `RequestInformation` and custom `Parsable` request/response types for the observed polymorphic Internet Access payload.
@@ -55,6 +56,10 @@ locals {
   custom_acquire_policy = one([
     for link in local.internet_profile.policies : link
     if link.policy_name == "Custom Acquire"
+  ])
+  custom_bypass_policy = one([
+    for link in local.internet_profile.policies : link
+    if link.policy_name == "Custom bypass"
   ])
 }
 
@@ -76,7 +81,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "cidr" {
-  forwarding_policy_id = local.custom_acquire_policy.policy_id
+  forwarding_policy_id = local.custom_bypass_policy.policy_id
 
   name      = "Example Internet Access CIDR bypass rule"
   action    = "bypass"
@@ -93,10 +98,10 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "ip_range" {
-  forwarding_policy_id = local.custom_acquire_policy.policy_id
+  forwarding_policy_id = local.custom_bypass_policy.policy_id
 
-  name      = "Example Internet Access IP range rule"
-  action    = "forward"
+  name      = "Example Internet Access IP range bypass rule"
+  action    = "bypass"
   rule_type = "ip_range"
   ports     = ["443"]
   protocol  = "udp"
@@ -116,10 +121,10 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 
 ### Required
 
-- `action` (String) The forwarding action. Possible values are `forward` and `bypass`.
+- `action` (String) The forwarding action. Possible values are `forward` and `bypass`. Graph requires `forward` for acquire policies and `bypass` for bypass policies; changing this value requires replacement.
 - `destinations` (Attributes List) Destinations for the rule. FQDN, IP address, IP range, and CIDR/IP subnet shapes are supported. (see [below for nested schema](#nestedatt--destinations))
 - `forwarding_policy_id` (String) The forwarding policy ID that owns this rule.
-- `name` (String) The rule name.
+- `name` (String) The rule name. Graph does not allow updating this value after creation; changing it requires replacement.
 - `ports` (Set of String) Network ports matched by the rule. Observed Internet Access rules use values such as `80` and `443`.
 - `protocol` (String) Network protocol. Validated values are `tcp` and `udp` until additional Graph contract probing confirms more values.
 - `rule_type` (String) The destination rule type. Possible values are `fqdn`, `ip_address`, `ip_range`, and `ip_subnet`.

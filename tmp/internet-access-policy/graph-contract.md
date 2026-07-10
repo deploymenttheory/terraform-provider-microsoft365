@@ -4,23 +4,25 @@ Date: 2026-07-10
 
 ## Authentication
 
-Live probing with service principal authentication was not run in this workspace because the required environment variables were not set:
+Live probing was run with a temporary service principal created by Azure CLI:
 
-- `AZURE_TENANT_ID`: unset
-- `AZURE_CLIENT_ID`: unset
-- `AZURE_CLIENT_SECRET`: unset
+- Tenant ID: `2cbe968c-9683-4d8a-af06-dab1bb350a04`
+- App display name: `codex-iap-terraform-20260710073944`
+- App ID: `ea74fefa-eecb-4b80-a543-a750177d1a67`
 
-`az` is installed (`azure-cli 2.87.0`). To run live probing:
+The service principal was granted Microsoft Graph application permissions:
+
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+Authentication command shape:
 
 ```bash
 az login --service-principal --tenant "$AZURE_TENANT_ID" -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET"
 TOKEN="$(az account get-access-token --resource https://graph.microsoft.com --query accessToken -o tsv)"
 ```
 
-The service principal needs Microsoft Graph application permissions:
-
-- `NetworkAccess.Read.All`
-- `NetworkAccess.ReadWrite.All`
+The secret is intentionally not recorded.
 
 ## Observed Forwarding Profile GET
 
@@ -39,6 +41,7 @@ Key observed contract:
 - `policies` contains `#microsoft.graph.networkaccess.forwardingPolicyLink` items.
 - Link ID and policy ID are distinct.
 - `Custom Acquire` policy ID observed as `dad2a411-e330-440d-a7c7-2c830dce5991`.
+- `Custom bypass` policy ID observed as `20b11851-d497-4a6e-8c98-a9bd9461eeb2`.
 - `Default Acquire` policy link ID observed as `09837256-2cba-4dde-a121-4d6a129f13db`; linked policy ID observed as `f0474b3e-307a-4230-bc1c-cd8ac2f1a2cf`.
 
 ## Observed Policy Link State PATCH
@@ -151,7 +154,7 @@ Request body:
 
 Observed status: `204`.
 
-Provider implementation sends the full writable body on update (`id`, `name`, `action`, `ruleType`, `ports`, `protocol`, `destinations`, and `@odata.type`) and refreshes state with GET after 204.
+Provider implementation sends `id`, `ruleType`, `ports`, `protocol`, `destinations`, and `@odata.type` on update, and refreshes state with GET after 204. Live probing showed `name` is not patchable.
 
 ## Observed Internet Access Rule DELETE
 
@@ -176,23 +179,42 @@ The user noted that Internet Access destinations include FQDN, IP, IP range, and
 
 The non-FQDN shapes are implemented from the observed Graph type naming pattern and should be live-probed before merge in a tenant with safe test data.
 
-## Probe Matrix Still Needed
+## Live Terraform Probe Results
 
-Run these against a disposable rule in the Custom Acquire forwarding policy:
+Terraform was run against a local provider build through `TF_CLI_CONFIG_FILE` development overrides.
 
-- POST/GET/PATCH/DELETE FQDN rule with `protocol = tcp`.
-- POST/GET/PATCH/DELETE FQDN rule with `protocol = udp`.
-- POST/GET/PATCH/DELETE IP address rule.
-- POST/GET/PATCH/DELETE IP range rule.
-- POST/GET/PATCH/DELETE CIDR/IP subnet rule.
-- POST with `action = forward`.
-- POST with `action = bypass`.
-- PATCH `name`, `action`, `protocol`, `ports`, and `destinations` independently.
-- Invalid probes:
-  - missing rule `@odata.type`
-  - invalid `ruleType`
-  - unsupported destination type
-  - empty `ports`
-  - invalid `protocol`
-  - mismatched `ruleType` and destination `@odata.type`
+Successful create/apply coverage:
 
+- `fqdn` + `forward` + `tcp` on `Custom Acquire`.
+- `fqdn` + `bypass` + `udp` on `Custom bypass`.
+- `ipAddress` + `forward` + `tcp` on `Custom Acquire`.
+- `ipRange` + `bypass` + `udp` on `Custom bypass`.
+- `ipSubnet` + `forward` + `tcp` on `Custom Acquire`.
+- Forwarding profile policy link adopt/apply for `Custom Acquire`; destroy removed Terraform state only.
+
+Successful update coverage:
+
+- FQDN destination value, ports, and protocol.
+- IP address value, ports, and protocol.
+- IP range begin/end address, ports, and protocol.
+- IP subnet CIDR value, ports, and protocol.
+
+Successful destroy coverage:
+
+- All five temporary rule GETs returned `404` after Terraform destroy.
+- The Microsoft-managed forwarding policy link GET returned `200` after Terraform destroy.
+
+Observed Graph constraints:
+
+- `action = "bypass"` on the `Custom Acquire` policy returned `400` with `Only Forward action is allowed for acquire policies`.
+- Patching `name` returned `400` with `Updating the property Name for entity InternetAccessForwardingRule is not allowed`.
+- Parallel rule writes can return `412 PreconditionFailed`; the resource now retries precondition failures like the existing web filtering rule resource.
+
+Probe matrix still not covered:
+
+- Missing rule `@odata.type`.
+- Invalid `ruleType`.
+- Unsupported destination type.
+- Empty `ports`.
+- Invalid `protocol`.
+- Mismatched `ruleType` and destination `@odata.type`.

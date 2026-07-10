@@ -34,8 +34,6 @@ func constructResource(ctx context.Context, data *NetworkInternetAccessForwardin
 
 	body := &internetAccessForwardingRuleRequestBody{
 		ODataType:    internetAccessForwardingRuleODataType,
-		Name:         data.Name.ValueString(),
-		Action:       data.Action.ValueString(),
 		RuleType:     graphRuleType(data.RuleType.ValueString()),
 		Ports:        ports,
 		Protocol:     data.Protocol.ValueString(),
@@ -43,6 +41,10 @@ func constructResource(ctx context.Context, data *NetworkInternetAccessForwardin
 	}
 	if includeID && !data.ID.IsNull() && !data.ID.IsUnknown() {
 		body.ID = data.ID.ValueString()
+	}
+	if !includeID {
+		body.Name = data.Name.ValueString()
+		body.Action = data.Action.ValueString()
 	}
 	return body, nil
 }

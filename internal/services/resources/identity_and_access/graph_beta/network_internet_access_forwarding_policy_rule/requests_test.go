@@ -112,6 +112,12 @@ func TestInternetAccessForwardingRuleUpdateIncludesID(t *testing.T) {
 	if payload["protocol"] != "tcp" {
 		t.Fatalf("protocol = %#v, expected tcp", payload["protocol"])
 	}
+	if _, ok := payload["name"]; ok {
+		t.Fatalf("update payload included name, but Graph rejects name updates")
+	}
+	if _, ok := payload["action"]; ok {
+		t.Fatalf("update payload included action, but action changes require replacement")
+	}
 }
 
 func TestConstructResourceValidatesRequiredDestinationShape(t *testing.T) {

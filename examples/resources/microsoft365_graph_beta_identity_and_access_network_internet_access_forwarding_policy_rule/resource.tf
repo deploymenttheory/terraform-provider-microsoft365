@@ -8,6 +8,10 @@ locals {
     for link in local.internet_profile.policies : link
     if link.policy_name == "Custom Acquire"
   ])
+  custom_bypass_policy = one([
+    for link in local.internet_profile.policies : link
+    if link.policy_name == "Custom bypass"
+  ])
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "fqdn" {
@@ -28,7 +32,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "cidr" {
-  forwarding_policy_id = local.custom_acquire_policy.policy_id
+  forwarding_policy_id = local.custom_bypass_policy.policy_id
 
   name      = "Example Internet Access CIDR bypass rule"
   action    = "bypass"
@@ -45,10 +49,10 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 }
 
 resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "ip_range" {
-  forwarding_policy_id = local.custom_acquire_policy.policy_id
+  forwarding_policy_id = local.custom_bypass_policy.policy_id
 
-  name      = "Example Internet Access IP range rule"
-  action    = "forward"
+  name      = "Example Internet Access IP range bypass rule"
+  action    = "bypass"
   rule_type = "ip_range"
   ports     = ["443"]
   protocol  = "udp"

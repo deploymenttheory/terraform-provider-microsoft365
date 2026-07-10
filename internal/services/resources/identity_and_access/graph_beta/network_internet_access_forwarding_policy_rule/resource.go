@@ -110,14 +110,20 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Schema(ctx context.C
 				},
 			},
 			"name": schema.StringAttribute{
-				MarkdownDescription: "The rule name.",
+				MarkdownDescription: "The rule name. Graph does not allow updating this value after creation; changing it requires replacement.",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.RequiresReplaceString(),
+				},
 			},
 			"action": schema.StringAttribute{
-				MarkdownDescription: "The forwarding action. Possible values are `forward` and `bypass`.",
+				MarkdownDescription: "The forwarding action. Possible values are `forward` and `bypass`. Graph requires `forward` for acquire policies and `bypass` for bypass policies; changing this value requires replacement.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("forward", "bypass"),
+				},
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.RequiresReplaceString(),
 				},
 			},
 			"rule_type": schema.StringAttribute{

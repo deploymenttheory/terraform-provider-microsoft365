@@ -15,6 +15,8 @@
 - Internet Access forwarding policy rules use Kiota `RequestInformation` and custom `Parsable` request/response types. The SDK has policyRules builders, but the observed `internetAccessForwardingRule` and destination polymorphism are safer to model explicitly for now.
 - Policy link destroy is a remote no-op and only removes Terraform state, because Microsoft manages these links.
 - Internet Access rule destroy calls DELETE and expects 204.
+- `name` and `action` are create-time values for Internet Access rules. Live Graph probing rejected PATCHing `name`, and Graph constrains `action` by policy type (`forward` for acquire policies, `bypass` for bypass policies).
+- Internet Access rule create/update/delete retry Graph `412 PreconditionFailed`, matching the existing web filtering policy rule pattern for parallel writes within one policy.
 
 ## Example HCL
 
@@ -28,6 +30,10 @@ locals {
   custom_acquire_policy = one([
     for link in local.internet_profile.policies : link
     if link.policy_name == "Custom Acquire"
+  ])
+  custom_bypass_policy = one([
+    for link in local.internet_profile.policies : link
+    if link.policy_name == "Custom bypass"
   ])
 }
 
@@ -47,11 +53,28 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
     }
   ]
 }
+
+resource "microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule" "cidr_bypass" {
+  forwarding_policy_id = local.custom_bypass_policy.policy_id
+
+  name      = "Example Internet Access CIDR bypass rule"
+  action    = "bypass"
+  rule_type = "ip_subnet"
+  ports     = ["443"]
+  protocol  = "tcp"
+
+  destinations = [
+    {
+      type  = "ip_subnet"
+      value = "192.0.2.0/24"
+    }
+  ]
+}
 ```
 
 ## Graph Evidence Summary
 
-Observed from user-provided Graph/DevTools traffic:
+Observed from user-provided Graph/DevTools traffic and live service principal probing:
 
 - `GET /beta/networkaccess/forwardingProfiles/{id}?$expand=policies($expand=policy)` returns forwarding profile fields and policy links; `policy_link_id` and `policy_id` are distinct.
 - `PATCH /beta/networkaccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}` accepts `{"state":"enabled"}`.
@@ -59,8 +82,10 @@ Observed from user-provided Graph/DevTools traffic:
 - Rule item `GET` returns `clientFallbackAction`.
 - Rule item `PATCH` returned 204.
 - Rule item `DELETE` returned 204.
-
-Additional live probing with service principal credentials was not run in this workspace because `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, and `AZURE_CLIENT_SECRET` were unset. See `tmp/internet-access-policy/graph-contract.md` for the probe matrix.
+- Live create/update/delete confirmed destination shapes for `fqdn`, `ipAddress`, `ipRange`, and `ipSubnet`.
+- Live probing confirmed `action = "forward"` belongs on acquire policies and `action = "bypass"` belongs on bypass policies.
+- Live probing confirmed PATCH must omit `name`; changing `name` now requires replacement.
+- Live destroy confirmed temporary rules return 404 after deletion, while the Microsoft-managed forwarding profile policy link still returns 200.
 
 ## Verification
 
@@ -81,4 +106,38 @@ Generated docs, then failed validation on pre-existing oversized docs:
 
 ## Terraform Plan/Apply/Update/Destroy Logs
 
-Not run. Live Terraform apply requires a tenant with Global Secure Access enabled and service principal credentials with `NetworkAccess.ReadWrite.All`.
+Live Terraform was run with a temporary Azure CLI-created service principal granted `NetworkAccess.Read.All` and `NetworkAccess.ReadWrite.All`.
+
+Key log files:
+
+- `tmp/internet-access-policy/live/terraform-phase1-plan.log`
+- `tmp/internet-access-policy/live/terraform-phase1b-apply.log`
+- `tmp/internet-access-policy/live/terraform-phase2b-plan.log`
+- `tmp/internet-access-policy/live/terraform-phase2b-apply.log`
+- `tmp/internet-access-policy/live/terraform-destroy-plan.log`
+- `tmp/internet-access-policy/live/terraform-destroy-apply.log`
+- `tmp/internet-access-policy/live/rule-get-after-update.summary.json`
+- `tmp/internet-access-policy/live/rule-get-after-destroy-status.tsv`
+- `tmp/internet-access-policy/live/policy-link-after-destroy.summary.json`
+
+Summary:
+
+```text
+phase1 apply: partial live probe exposed Graph constraints:
+- action=bypass on Custom Acquire returned 400 Only Forward action is allowed for acquire policies
+- parallel writes returned 412 PreconditionFailed
+
+phase1b apply: 3 added, 0 changed, 0 destroyed
+phase2b apply: 0 added, 5 changed, 0 destroyed
+destroy apply: 0 added, 0 changed, 6 destroyed
+
+post-destroy rule GET statuses:
+fqdn_bypass_udp  404
+fqdn_forward_tcp 404
+ip_address       404
+ip_range         404
+ip_subnet        404
+
+post-destroy policy link GET:
+status 200, id f576d498-0067-4cc8-960b-b6e3ebf571ea, state enabled, policy Custom Acquire
+```

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -33,7 +34,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Create(ctx context.C
 		return
 	}
 
-	created, err := r.createRule(ctx, object.ForwardingPolicyID.ValueString(), requestBody)
+	created, err := r.createRuleWithPreconditionRetry(ctx, object.ForwardingPolicyID.ValueString(), requestBody)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -125,7 +126,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Update(ctx context.C
 		return
 	}
 
-	if err := r.updateRule(ctx, state.ForwardingPolicyID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
+	if err := r.updateRuleWithPreconditionRetry(ctx, state.ForwardingPolicyID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -159,11 +160,73 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Delete(ctx context.C
 	}
 	defer cancel()
 
-	if err := r.deleteRule(ctx, object.ForwardingPolicyID.ValueString(), object.ID.ValueString()); err != nil {
+	if err := r.deleteRuleWithPreconditionRetry(ctx, object.ForwardingPolicyID.ValueString(), object.ID.ValueString()); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Deleted %s with id %s", ResourceName, object.ID.ValueString()))
 	resp.State.RemoveResource(ctx)
+}
+
+func (r *NetworkInternetAccessForwardingPolicyRuleResource) createRuleWithPreconditionRetry(ctx context.Context, policyID string, requestBody s.Parsable) (*internetAccessForwardingRuleResponse, error) {
+	var created *internetAccessForwardingRuleResponse
+	err := r.withPolicyRulePreconditionRetry(ctx, "create", policyID, "", func() error {
+		result, err := r.createRule(ctx, policyID, requestBody)
+		if err != nil {
+			return err
+		}
+		created = result
+		return nil
+	})
+	return created, err
+}
+
+func (r *NetworkInternetAccessForwardingPolicyRuleResource) updateRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string, requestBody s.Parsable) error {
+	return r.withPolicyRulePreconditionRetry(ctx, "update", policyID, ruleID, func() error {
+		return r.updateRule(ctx, policyID, ruleID, requestBody)
+	})
+}
+
+func (r *NetworkInternetAccessForwardingPolicyRuleResource) deleteRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string) error {
+	return r.withPolicyRulePreconditionRetry(ctx, "delete", policyID, ruleID, func() error {
+		return r.deleteRule(ctx, policyID, ruleID)
+	})
+}
+
+func (r *NetworkInternetAccessForwardingPolicyRuleResource) withPolicyRulePreconditionRetry(ctx context.Context, operation, policyID, ruleID string, fn func() error) error {
+	const (
+		maxPreconditionRetries = 3
+		preconditionRetryDelay = 5 * time.Second
+	)
+
+	var lastErr error
+	for attempt := 0; attempt <= maxPreconditionRetries; attempt++ {
+		if err := fn(); err != nil {
+			lastErr = err
+			errorInfo := errors.GraphError(ctx, err)
+			if errorInfo.StatusCode != 412 && errorInfo.ErrorCode != "PreconditionFailed" {
+				return err
+			}
+			if attempt < maxPreconditionRetries {
+				tflog.Warn(ctx, "Retrying internet access forwarding policy rule operation after Graph precondition failure", map[string]any{
+					"operation": operation,
+					"policy_id": policyID,
+					"rule_id":   ruleID,
+					"attempt":   attempt + 1,
+				})
+
+				select {
+				case <-time.After(preconditionRetryDelay):
+					continue
+				case <-ctx.Done():
+					return fmt.Errorf("context cancelled while retrying internet access forwarding policy rule %s: %w", operation, ctx.Err())
+				}
+			}
+		} else {
+			return nil
+		}
+	}
+
+	return lastErr
 }
