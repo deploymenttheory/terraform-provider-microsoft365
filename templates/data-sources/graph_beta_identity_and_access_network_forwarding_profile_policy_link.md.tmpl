@@ -1,0 +1,49 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Use this data source when Terraform configuration needs a specific forwarding profile policy link by linked policy name, such as `Custom Acquire`, `Custom bypass`, `Default Acquire`, or Microsoft 365 traffic policies like `Exchange Online`.
+
+## Microsoft Documentation
+
+- [What is Global Secure Access?](https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access)
+- [Traffic forwarding profiles](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding)
+- [Internet Access](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-internet-access)
+
+## Microsoft Graph API
+
+This data source uses Microsoft Graph beta `/networkAccess/forwardingProfiles` with `$expand=policies($expand=policy)`.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Query Notes
+
+- `policy_name` matches the linked forwarding policy name exactly, ignoring case.
+- Use one forwarding profile selector: `forwarding_profile_id`, `forwarding_profile_name`, or `traffic_forwarding_type`.
+- `policy_link_id` is the Graph policyLink object ID used by `/networkAccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}`.
+- `policy_id` is the linked forwarding policy ID. Use `policy_id` as `forwarding_policy_id` when managing forwarding policy rules.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link/01_by_policy_name.tf" }}
+
+## Microsoft 365 Traffic Policy Link
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link/02_m365_exchange_online.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
