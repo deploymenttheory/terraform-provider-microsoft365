@@ -47,15 +47,35 @@ func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) Create(ctx conte
 
 	tflog.Debug(ctx, fmt.Sprintf("Assigning token lifetime policy %s to service principal %s", policyID, spID))
 
-	err := r.client.
-		ServicePrincipals().
-		ByServicePrincipalId(spID).
-		TokenLifetimePolicies().
-		Ref().
-		Post(ctx, refBody, nil)
+	// A token lifetime policy created moments earlier may not have propagated across
+	// Microsoft Entra replicas yet, in which case the $ref POST fails with 404
+	// ("Unable to read the company information from the directory"). WriteWithRetry
+	// treats such 404s as propagation delays and retries rather than failing the apply.
+	writeOpts := crud.DefaultWriteWithRetryOptions()
+	writeOpts.Operation = constants.TfOperationCreate
+	writeOpts.ResourceTypeName = ResourceName
+	writeOpts.ResourceID = spID + "/" + policyID
+
+	var lastWriteErr error
+	err := crud.WriteWithRetry(ctx, func(ctx context.Context) error {
+		lastWriteErr = r.client.
+			ServicePrincipals().
+			ByServicePrincipalId(spID).
+			TokenLifetimePolicies().
+			Ref().
+			Post(ctx, refBody, nil)
+		return lastWriteErr
+	}, writeOpts)
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		if lastWriteErr != nil {
+			errors.HandleKiotaGraphError(ctx, lastWriteErr, resp, constants.TfOperationCreate, r.WritePermissions)
+		} else {
+			resp.Diagnostics.AddError(
+				"Error assigning token lifetime policy",
+				fmt.Sprintf("Could not assign token lifetime policy %s to service principal %s: %s", policyID, spID, err.Error()),
+			)
+		}
 		return
 	}
 
@@ -74,6 +94,7 @@ func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) Create(ctx conte
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = servicePrincipalTokenLifetimePolicyAssignmentConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
