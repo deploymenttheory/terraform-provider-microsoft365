@@ -156,6 +156,58 @@ func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) CleanupMockState() {
 	}
 }
 
+// RegisterEventualConsistencyMocks overrides the assign and list responders to simulate
+// Microsoft Entra replication lag around resource creation:
+//   - the first post404Count $ref POSTs fail with the 404 returned when the referenced
+//     token lifetime policy has not yet propagated across Entra replicas
+//     ("Unable to read the company information from the directory"), then delegate to
+//     the normal assign responder
+//   - after a successful POST, the first staleListCount list GETs return an empty
+//     collection (a stale replica that does not include the new assignment yet), then
+//     delegate to the normal list responder
+//
+// Call after RegisterMocks.
+func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) RegisterEventualConsistencyMocks(post404Count, staleListCount int) {
+	var mu sync.Mutex
+	postFailuresRemaining := post404Count
+	staleListsRemaining := staleListCount
+
+	assign := m.assignTokenLifetimePolicyResponder()
+	list := m.listTokenLifetimePoliciesResponder()
+
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F-]+/tokenLifetimePolicies/\$ref$`,
+		func(req *http.Request) (*http.Response, error) {
+			mu.Lock()
+			if postFailuresRemaining > 0 {
+				postFailuresRemaining--
+				mu.Unlock()
+				return httpmock.NewStringResponse(404, `{"error":{"code":"Request_ResourceNotFound","message":"Unable to read the company information from the directory."}}`), nil
+			}
+			mu.Unlock()
+			return assign(req)
+		})
+
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F-]+/tokenLifetimePolicies$`,
+		func(req *http.Request) (*http.Response, error) {
+			mockState.Lock()
+			assignmentExists := len(mockState.assignments) > 0
+			mockState.Unlock()
+
+			mu.Lock()
+			if assignmentExists && staleListsRemaining > 0 {
+				staleListsRemaining--
+				mu.Unlock()
+				response := map[string]any{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/tokenLifetimePolicies",
+					"value":          []any{},
+				}
+				return factories.SuccessResponse(200, response)(req)
+			}
+			mu.Unlock()
+			return list(req)
+		})
+}
+
 // RegisterErrorMocks registers mock responses that simulate error conditions
 func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/error-id/tokenLifetimePolicies/\$ref$`,

@@ -53,6 +53,38 @@ func TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_01_Basic(t *t
 	})
 }
 
+// TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_02_EventualConsistency
+// simulates Microsoft Entra replication lag during create:
+//   - the first $ref POST fails with the 404 seen when the referenced policy has not yet
+//     propagated ("Unable to read the company information from the directory")
+//   - after the POST succeeds, the first list GET returns an empty collection (stale replica)
+//
+// Without the WriteWithRetry wrapper the first response fails the apply, and without the
+// ConsistencyPredicate the stale list produces "Missing Resource State After Create".
+func TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_02_EventualConsistency(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, assignmentMock, tlpMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+	defer tlpMock.CleanupMockState()
+
+	assignmentMock.RegisterEventualConsistencyMocks(1, 1)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigBasic(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceType+".basic", "service_principal_id", "00000000-0000-0000-0000-000000000020"),
+					resource.TestCheckResourceAttr(resourceType+".basic", "token_lifetime_policy_id", "00000000-0000-0000-0000-000000000010"),
+					resource.TestMatchResourceAttr(resourceType+".basic", "id", regexp.MustCompile(`^[0-9a-fA-F-]+/[0-9a-fA-F-]+$`)),
+				),
+			},
+		},
+	})
+}
+
 func testConfigBasic() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_basic.tf")
 	if err != nil {
