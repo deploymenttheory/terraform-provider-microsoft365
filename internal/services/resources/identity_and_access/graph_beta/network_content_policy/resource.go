@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
@@ -80,7 +81,8 @@ func (r *NetworkContentPolicyResource) Schema(ctx context.Context, req resource.
 			"description": schema.StringAttribute{
 				MarkdownDescription: "The description of the content policy. Defaults to an empty string.",
 				Optional:            true,
-				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
+				Computed:            true,
+				Default:             stringdefault.StaticString(""),
 				Validators:          []validator.String{stringvalidator.LengthAtMost(8192)},
 			},
 			"default_action": schema.StringAttribute{

@@ -115,7 +115,7 @@ func TestConstructUpdateResourceClearsDescription(t *testing.T) {
 	}
 }
 
-func TestDescriptionSchemaIsOptionalAndNotComputed(t *testing.T) {
+func TestDescriptionSchemaIsOptionalAndComputedWithDefault(t *testing.T) {
 	resourceUnderTest := NewNetworkContentPolicyResource().(*NetworkContentPolicyResource)
 	response := &frameworkresource.SchemaResponse{}
 	resourceUnderTest.Schema(context.Background(), frameworkresource.SchemaRequest{}, response)
@@ -127,11 +127,11 @@ func TestDescriptionSchemaIsOptionalAndNotComputed(t *testing.T) {
 	if !description.Optional {
 		t.Fatal("description must be optional")
 	}
-	if description.Computed {
-		t.Fatal("description must not be computed")
+	if !description.Computed {
+		t.Fatal("description must be computed so the provider can supply its default")
 	}
-	if len(description.PlanModifiers) != 1 {
-		t.Fatalf("description plan modifiers = %d, expected empty-string default modifier", len(description.PlanModifiers))
+	if description.Default == nil {
+		t.Fatal("description must have an empty-string default")
 	}
 }
 
