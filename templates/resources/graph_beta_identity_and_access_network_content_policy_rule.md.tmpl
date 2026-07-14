@@ -1,0 +1,56 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+This resource manages rules within a Microsoft Entra Global Secure Access content policy.
+
+## Microsoft Documentation
+
+Microsoft Graph beta metadata and Microsoft Learn do not currently expose the portal-backed `fileRule` type used by this resource. The implementation is based on Microsoft Entra admin center traffic and live Microsoft Graph beta verification.
+
+## Microsoft Graph API
+
+This resource uses:
+
+```http
+POST   /beta/networkaccess/filePolicies/{contentPolicyId}/policyRules
+GET    /beta/networkaccess/filePolicies/{contentPolicyId}/policyRules/{ruleId}
+PATCH  /beta/networkaccess/filePolicies/{contentPolicyId}/policyRules/{ruleId}
+DELETE /beta/networkaccess/filePolicies/{contentPolicyId}/policyRules/{ruleId}
+```
+
+The Terraform destination types map to the following Graph discriminator values:
+
+- `web_category`: `#microsoft.graph.networkaccess.filePolicyWebCategoryDestination`
+- `fqdn`: `#microsoft.graph.networkaccess.filePolicyFqdnDestination`
+- `url`: `#microsoft.graph.networkaccess.filePolicyUrlDestination`
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_content_policy_rule/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_content_policy_rule/import.sh" }}
