@@ -2,6 +2,7 @@ package graphBetaApplicationsServicePrincipalTokenLifetimePolicyAssignment_test
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
@@ -18,10 +19,12 @@ func setupMockEnvironment() (*mocks.Mocks, *spAssignmentMocks.ServicePrincipalTo
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	assignmentMock := &spAssignmentMocks.ServicePrincipalTokenLifetimePolicyAssignmentMock{}
-	assignmentMock.RegisterMocks()
 	tlpMock := &tokenLifetimePolicyMocks.TokenLifetimePolicyMock{}
 	tlpMock.RegisterMocks()
+	// Registered after tlpMock so the assignment mock's referenced-policy GET responder
+	// (which serves a canned policy for any id) wins over tlpMock's stateful one.
+	assignmentMock := &spAssignmentMocks.ServicePrincipalTokenLifetimePolicyAssignmentMock{}
+	assignmentMock.RegisterMocks()
 	return mockClient, assignmentMock, tlpMock
 }
 
@@ -55,12 +58,14 @@ func TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_01_Basic(t *t
 
 // TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_02_EventualConsistency
 // simulates Microsoft Entra replication lag during create:
-//   - the first $ref POST fails with the 404 seen when the referenced policy has not yet
-//     propagated ("Unable to read the company information from the directory")
-//   - after the POST succeeds, the first list GET returns an empty collection (stale replica)
+//   - the first GET of the referenced policy returns the 404 seen while a just-created
+//     policy has not yet propagated ("Unable to read the company information from the
+//     directory") — Create's propagation wait must absorb it before the $ref POST
+//   - after the POST succeeds, the first list GET returns an empty collection (stale
+//     replica) — without the ConsistencyPredicate this produces "Missing Resource State
+//     After Create"
 //
-// Without the WriteWithRetry wrapper the first response fails the apply, and without the
-// ConsistencyPredicate the stale list produces "Missing Resource State After Create".
+// The non-idempotent $ref POST must be issued exactly once.
 func TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_02_EventualConsistency(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock, tlpMock := setupMockEnvironment()
@@ -83,6 +88,16 @@ func TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_02_EventualCo
 			},
 		},
 	})
+
+	postCalls := 0
+	for key, count := range httpmock.GetCallCountInfo() {
+		if strings.HasPrefix(key, "POST ") && strings.Contains(key, `/tokenLifetimePolicies/\$ref`) {
+			postCalls += count
+		}
+	}
+	if postCalls != 1 {
+		t.Fatalf("expected the non-idempotent $ref POST to be issued exactly once, got %d", postCalls)
+	}
 }
 
 func testConfigBasic() string {

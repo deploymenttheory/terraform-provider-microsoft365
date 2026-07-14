@@ -41,6 +41,27 @@ func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) RegisterMocks() {
 	// DELETE /servicePrincipals/{id}/tokenLifetimePolicies/{policyId}/$ref - Remove
 	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F-]+/tokenLifetimePolicies/[0-9a-fA-F-]+/\$ref$`,
 		m.removeTokenLifetimePolicyResponder())
+
+	// GET /policies/tokenLifetimePolicies/{id} - Create's pre-assignment propagation check
+	// reads the referenced policy; serve a canned policy for any id
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/policies/tokenLifetimePolicies/[0-9a-fA-F-]+$`,
+		m.getReferencedPolicyResponder())
+}
+
+func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) getReferencedPolicyResponder() httpmock.Responder {
+	return func(req *http.Request) (*http.Response, error) {
+		pathParts := strings.Split(req.URL.Path, "/")
+		policyID := pathParts[len(pathParts)-1]
+
+		response := map[string]any{
+			"@odata.context":        "https://graph.microsoft.com/beta/$metadata#policies/tokenLifetimePolicies/$entity",
+			"id":                    policyID,
+			"displayName":           "test-token-lifetime-policy",
+			"isOrganizationDefault": false,
+			"definition":            []string{"{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"01:00:00\"}}"},
+		}
+		return factories.SuccessResponse(200, response)(req)
+	}
 }
 
 func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) assignTokenLifetimePolicyResponder() httpmock.Responder {
@@ -156,35 +177,35 @@ func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) CleanupMockState() {
 	}
 }
 
-// RegisterEventualConsistencyMocks overrides the assign and list responders to simulate
-// Microsoft Entra replication lag around resource creation:
-//   - the first post404Count $ref POSTs fail with the 404 returned when the referenced
-//     token lifetime policy has not yet propagated across Entra replicas
-//     ("Unable to read the company information from the directory"), then delegate to
-//     the normal assign responder
+// RegisterEventualConsistencyMocks overrides the referenced-policy and list responders to
+// simulate Microsoft Entra replication lag around resource creation:
+//   - the first policyGet404Count GETs of the referenced token lifetime policy return the
+//     404 seen while a just-created policy has not yet propagated across Entra replicas,
+//     then delegate to the normal referenced-policy responder (exercises Create's
+//     pre-assignment propagation wait)
 //   - after a successful POST, the first staleListCount list GETs return an empty
 //     collection (a stale replica that does not include the new assignment yet), then
-//     delegate to the normal list responder
+//     delegate to the normal list responder (exercises the post-create ConsistencyPredicate)
 //
 // Call after RegisterMocks.
-func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) RegisterEventualConsistencyMocks(post404Count, staleListCount int) {
+func (m *ServicePrincipalTokenLifetimePolicyAssignmentMock) RegisterEventualConsistencyMocks(policyGet404Count, staleListCount int) {
 	var mu sync.Mutex
-	postFailuresRemaining := post404Count
+	policyGetFailuresRemaining := policyGet404Count
 	staleListsRemaining := staleListCount
 
-	assign := m.assignTokenLifetimePolicyResponder()
+	getPolicy := m.getReferencedPolicyResponder()
 	list := m.listTokenLifetimePoliciesResponder()
 
-	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F-]+/tokenLifetimePolicies/\$ref$`,
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/policies/tokenLifetimePolicies/[0-9a-fA-F-]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			mu.Lock()
-			if postFailuresRemaining > 0 {
-				postFailuresRemaining--
+			if policyGetFailuresRemaining > 0 {
+				policyGetFailuresRemaining--
 				mu.Unlock()
 				return httpmock.NewStringResponse(404, `{"error":{"code":"Request_ResourceNotFound","message":"Unable to read the company information from the directory."}}`), nil
 			}
 			mu.Unlock()
-			return assign(req)
+			return getPolicy(req)
 		})
 
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/servicePrincipals/[0-9a-fA-F-]+/tokenLifetimePolicies$`,

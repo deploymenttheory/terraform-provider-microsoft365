@@ -49,33 +49,26 @@ func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) Create(ctx conte
 
 	// A token lifetime policy created moments earlier may not have propagated across
 	// Microsoft Entra replicas yet, in which case the $ref POST fails with 404
-	// ("Unable to read the company information from the directory"). WriteWithRetry
-	// treats such 404s as propagation delays and retries rather than failing the apply.
-	writeOpts := crud.DefaultWriteWithRetryOptions()
-	writeOpts.Operation = constants.TfOperationCreate
-	writeOpts.ResourceTypeName = ResourceName
-	writeOpts.ResourceID = spID + "/" + policyID
+	// ("Unable to read the company information from the directory"). The POST is not
+	// idempotent, so it is never retried; instead, wait until the referenced policy is
+	// readable (an idempotent GET) before attempting the assignment exactly once.
+	if err := r.waitForTokenLifetimePolicyPropagation(ctx, policyID); err != nil {
+		resp.Diagnostics.AddError(
+			"Error verifying token lifetime policy before assignment",
+			fmt.Sprintf("Token lifetime policy %s could not be read prior to assigning it to service principal %s: %s", policyID, spID, err.Error()),
+		)
+		return
+	}
 
-	var lastWriteErr error
-	err := crud.WriteWithRetry(ctx, func(ctx context.Context) error {
-		lastWriteErr = r.client.
-			ServicePrincipals().
-			ByServicePrincipalId(spID).
-			TokenLifetimePolicies().
-			Ref().
-			Post(ctx, refBody, nil)
-		return lastWriteErr
-	}, writeOpts)
+	err := r.client.
+		ServicePrincipals().
+		ByServicePrincipalId(spID).
+		TokenLifetimePolicies().
+		Ref().
+		Post(ctx, refBody, nil)
 
 	if err != nil {
-		if lastWriteErr != nil {
-			errors.HandleKiotaGraphError(ctx, lastWriteErr, resp, constants.TfOperationCreate, r.WritePermissions)
-		} else {
-			resp.Diagnostics.AddError(
-				"Error assigning token lifetime policy",
-				fmt.Sprintf("Could not assign token lifetime policy %s to service principal %s: %s", policyID, spID, err.Error()),
-			)
-		}
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -106,6 +99,55 @@ func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) Create(ctx conte
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
+}
+
+// waitForTokenLifetimePolicyPropagation polls GET /policies/tokenLifetimePolicies/{id} until
+// the referenced policy is visible, treating 404 as Microsoft Entra replication lag. Reads are
+// idempotent, so polling is safe; the subsequent non-idempotent $ref POST is performed exactly
+// once. A successful read does not strictly guarantee that the replica resolving the $ref POST
+// has the policy — Graph exposes no propagation-complete signal — but reading immediately
+// before the write is the closest achievable precondition. Polling is bounded by the create
+// timeout on ctx; the same permission that authorizes the $ref POST
+// (Policy.ReadWrite.ApplicationConfiguration) authorizes this read.
+//
+// See: https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/
+func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) waitForTokenLifetimePolicyPropagation(ctx context.Context, policyID string) error {
+	const pollInterval = 2 * time.Second
+
+	deadline, hasDeadline := ctx.Deadline()
+	if !hasDeadline {
+		return fmt.Errorf("context must have a deadline")
+	}
+
+	for attempt := 1; ; attempt++ {
+		_, err := r.client.
+			Policies().
+			TokenLifetimePolicies().
+			ByTokenLifetimePolicyId(policyID).
+			Get(ctx, nil)
+
+		if err == nil {
+			tflog.Debug(ctx, fmt.Sprintf("Token lifetime policy %s is visible in the directory (attempt %d)", policyID, attempt))
+			return nil
+		}
+
+		errorInfo := errors.GraphError(ctx, err)
+		if errorInfo.StatusCode != 404 {
+			return err
+		}
+
+		if time.Until(deadline) < pollInterval+time.Second {
+			return fmt.Errorf("policy was not visible in the directory before the create timeout (last error: %w)", err)
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Token lifetime policy %s not visible yet (attempt %d), waiting %s for Entra propagation", policyID, attempt, pollInterval))
+
+		select {
+		case <-time.After(pollInterval):
+		case <-ctx.Done():
+			return fmt.Errorf("context cancelled while waiting for policy propagation: %w", ctx.Err())
+		}
+	}
 }
 
 // Read handles the Read operation for Service Principal Token Lifetime Policy Assignment resources.
