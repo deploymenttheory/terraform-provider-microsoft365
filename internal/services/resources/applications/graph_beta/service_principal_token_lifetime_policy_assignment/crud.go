@@ -112,14 +112,7 @@ func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) Create(ctx conte
 //
 // See: https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/
 func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) waitForTokenLifetimePolicyPropagation(ctx context.Context, policyID string) error {
-	const pollInterval = 2 * time.Second
-
-	deadline, hasDeadline := ctx.Deadline()
-	if !hasDeadline {
-		return fmt.Errorf("context must have a deadline")
-	}
-
-	for attempt := 1; ; attempt++ {
+	return crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
 		_, err := r.client.
 			Policies().
 			TokenLifetimePolicies().
@@ -127,27 +120,18 @@ func (r *ServicePrincipalTokenLifetimePolicyAssignmentResource) waitForTokenLife
 			Get(ctx, nil)
 
 		if err == nil {
-			tflog.Debug(ctx, fmt.Sprintf("Token lifetime policy %s is visible in the directory (attempt %d)", policyID, attempt))
-			return nil
+			tflog.Debug(ctx, fmt.Sprintf("Token lifetime policy %s is visible in the directory", policyID))
+			return true, nil
 		}
 
 		errorInfo := errors.GraphError(ctx, err)
 		if errorInfo.StatusCode != 404 {
-			return err
+			return false, &crud.FatalPollError{Err: err}
 		}
 
-		if time.Until(deadline) < pollInterval+time.Second {
-			return fmt.Errorf("policy was not visible in the directory before the create timeout (last error: %w)", err)
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Token lifetime policy %s not visible yet (attempt %d), waiting %s for Entra propagation", policyID, attempt, pollInterval))
-
-		select {
-		case <-time.After(pollInterval):
-		case <-ctx.Done():
-			return fmt.Errorf("context cancelled while waiting for policy propagation: %w", ctx.Err())
-		}
-	}
+		tflog.Debug(ctx, fmt.Sprintf("Token lifetime policy %s not visible yet, awaiting Entra propagation", policyID))
+		return false, fmt.Errorf("token lifetime policy %s is not visible in the directory yet: %w", policyID, err)
+	})
 }
 
 // Read handles the Read operation for Service Principal Token Lifetime Policy Assignment resources.
