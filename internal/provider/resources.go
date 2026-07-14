@@ -57,6 +57,7 @@ import (
 	graphBetaDeviceAndAppManagementWindowsManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_managed_mobile_app"
 	graphBetaDeviceAndAppManagementWindowsWebApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_web_app"
 	graphBetaDeviceAndAppManagementWinGetApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/winget_app"
+	graphBetaDeviceAndAppManagementWindowsManagedAppProtection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/windows_managed_app_protection"
 
 	// Graph Beta - Device management
 	graphBetaDeviceManagementAndroidDeviceOwnerCompliancePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/android_device_owner_compliance_policy"
@@ -265,6 +266,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceAndAppManagementIOSManagedMobileApp.NewIOSManagedMobileAppResource,
 		graphBetaDeviceAndAppManagementIOSManagedDeviceAppConfigurationPolicy.NewIOSManagedDeviceAppConfigurationPolicyResource,
 		graphBetaDeviceAndAppManagementWindowsManagedMobileApp.NewWindowsManagedMobileAppResource,
+		graphBetaDeviceAndAppManagementWindowsManagedAppProtection.NewWindowsManagedAppProtectionResource,
 
 		// Graph Beta - Device management
 		graphBetaDeviceManagementAndroidDeviceOwnerCompliancePolicy.NewAndroidDeviceOwnerCompliancePolicyResource,
