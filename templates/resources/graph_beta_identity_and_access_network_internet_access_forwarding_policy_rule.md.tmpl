@@ -1,0 +1,57 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+This resource manages Microsoft Entra Global Secure Access Internet Access forwarding policy rules.
+
+## Microsoft Documentation
+
+- [What is Global Secure Access?](https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access)
+- [Internet Access](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-internet-access)
+- [List policyRules](https://learn.microsoft.com/en-us/graph/api/networkaccess-policy-list-policyrules?view=graph-rest-beta)
+- [Update policyRule](https://learn.microsoft.com/en-us/graph/api/networkaccess-policyrule-update?view=graph-rest-beta)
+
+## Microsoft Graph API
+
+This resource uses Microsoft Graph beta `/networkAccess/forwardingPolicies/{forwardingPolicyId}/policyRules`.
+
+The initial supported shape is `#microsoft.graph.networkaccess.internetAccessForwardingRule` with `rule_type` values for FQDN, IP address, IP range, and CIDR/IP subnet destinations. The provider sends explicit Graph `@odata.type` values for the rule and destinations.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Behavior Notes
+
+- Use the forwarding policy `policy_id` from the forwarding profile data source as `forwarding_policy_id`.
+- `action` supports `forward` and `bypass`. Graph requires `forward` rules on acquire policies such as `Custom Acquire`, and `bypass` rules on bypass policies such as `Custom bypass`.
+- `name` and `action` are create-time values for this Graph resource. Changing either value requires Terraform to replace the rule.
+- `protocol` supports `tcp` and `udp` until additional Graph contract probing confirms other values.
+- Destination `type` supports `fqdn`, `ip_address`, `ip_range`, and `ip_subnet`. Use CIDR notation in `value` for `ip_subnet`.
+- The generated Microsoft Graph beta Go SDK exposes policy rule builders, but this resource uses Kiota `RequestInformation` and custom `Parsable` request/response types for the observed polymorphic Internet Access payload.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_internet_access_forwarding_policy_rule/import.sh" }}

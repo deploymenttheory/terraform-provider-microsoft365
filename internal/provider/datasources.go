@@ -42,6 +42,8 @@ import (
 	graphBetaIdentityAndAccessConditionalAccessTemplate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/conditional_access_template"
 	graphBetaIdentityAndAccessDevice "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/device"
 	graphBetaIdentityAndAccessDirectoryRole "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/directory_role"
+	graphBetaIdentityAndAccessNetworkForwardingProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/network_forwarding_profile"
+	graphBetaIdentityAndAccessNetworkForwardingProfilePolicyLink "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/network_forwarding_profile_policy_link"
 	graphBetaIdentityAndAccessRoleDefinitions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/role_definitions"
 	graphBetaIdentityAndAccessTenantInformation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/tenant_information"
 
@@ -140,6 +142,8 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		graphBetaIdentityAndAccessDevice.NewDeviceDataSource,
 		graphBetaIdentityAndAccessDirectoryRole.NewDirectoryRoleDataSource,
 		graphBetaIdentityAndAccessDirectorySettingTemplates.NewDirectorySettingTemplatesDataSource,
+		graphBetaIdentityAndAccessNetworkForwardingProfile.NewNetworkForwardingProfileDataSource,
+		graphBetaIdentityAndAccessNetworkForwardingProfilePolicyLink.NewNetworkForwardingProfilePolicyLinkDataSource,
 		graphBetaIdentityAndAccessRoleDefinitions.NewRoleDefinitionsDataSource,
 		graphBetaIdentityAndAccessTenantInformation.NewTenantInformationDataSource,
 		// Graph Beta - M365 Admin datasources
