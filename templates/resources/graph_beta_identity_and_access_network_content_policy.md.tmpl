@@ -1,0 +1,58 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+This resource manages Microsoft Entra Global Secure Access **content policies**.
+
+## Microsoft Documentation
+
+Microsoft Graph beta metadata and Microsoft Learn do not currently expose a documented `filePolicy` resource type for this portal surface. The provider implementation is based on Microsoft Entra admin center network traffic observed from the Global Secure Access content policy blade.
+
+## Microsoft Graph API
+
+This resource uses the beta `/networkaccess/filePolicies` endpoint.
+
+Observed portal traffic for creating a policy uses:
+
+```http
+POST /beta/networkaccess/filePolicies
+```
+
+with a payload containing `name`, `description`, and `settings.defaultAction`. Update uses `PATCH /beta/networkaccess/filePolicies/{id}`, and delete uses `DELETE /beta/networkaccess/filePolicies/{id}`. The resource does not send or manage `policyRules`.
+
+The Graph type is named `filePolicy`, while the Entra admin center labels this feature as a content policy. Terraform follows the user-facing content policy terminology.
+
+## Behavior Notes
+
+- This resource manages the content policy container. Content policy rules are not managed by this resource.
+- `default_action` controls what happens when no rule matches. The portal-observed and currently supported value is `allow`.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_content_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_content_policy/import.sh" }}
