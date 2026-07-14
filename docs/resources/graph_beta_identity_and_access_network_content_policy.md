@@ -32,7 +32,7 @@ The Graph type is named `filePolicy`, while the Entra admin center labels this f
 ## Behavior Notes
 
 - This resource manages the content policy container. Content policy rules are not managed by this resource.
-- `default_action` controls what happens when no rule matches. The portal-observed and currently supported value is `allow`.
+- `default_action` controls what happens when no rule matches. The supported value is `allow`. A live Graph probe using `deny` returned HTTP 400 with `Invalid request parameters`.
 
 ## Microsoft Graph API Permissions
 
@@ -60,7 +60,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_content_policy" "e
 
 ### Required
 
-- `default_action` (String) The default action applied by the content policy. The portal-observed value is `allow`.
+- `default_action` (String) The default action applied by the content policy. The supported value is `allow`; a live Graph probe rejected `deny` with HTTP 400.
 - `name` (String) The name of the content policy.
 
 ### Optional

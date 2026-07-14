@@ -84,7 +84,7 @@ func (r *NetworkContentPolicyResource) Schema(ctx context.Context, req resource.
 				Validators:          []validator.String{stringvalidator.LengthAtMost(8192)},
 			},
 			"default_action": schema.StringAttribute{
-				MarkdownDescription: "The default action applied by the content policy. The portal-observed value is `allow`.",
+				MarkdownDescription: "The default action applied by the content policy. The supported value is `allow`; a live Graph probe rejected `deny` with HTTP 400.",
 				Required:            true,
 				Validators:          []validator.String{stringvalidator.OneOf("allow")},
 			},
