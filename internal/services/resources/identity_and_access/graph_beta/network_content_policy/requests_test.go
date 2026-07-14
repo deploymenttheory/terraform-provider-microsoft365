@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	frameworkresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	resourceschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
@@ -81,6 +83,55 @@ func TestNewContentPolicyRequestInformationSerializesUpdateWithoutPolicyRules(t 
 	}
 	if payload["description"] != "sample update" {
 		t.Fatalf("description = %#v, expected sample update", payload["description"])
+	}
+}
+
+func TestConstructUpdateResourceClearsDescription(t *testing.T) {
+	plan := &NetworkContentPolicyResourceModel{
+		Name:          types.StringValue("test for codex"),
+		Description:   types.StringValue(""),
+		DefaultAction: types.StringValue("allow"),
+	}
+	state := &NetworkContentPolicyResourceModel{
+		Name:          types.StringValue("test for codex"),
+		Description:   types.StringValue("sample"),
+		DefaultAction: types.StringValue("allow"),
+	}
+	body, err := constructUpdateResource(context.Background(), plan, state)
+	if err != nil {
+		t.Fatalf("constructUpdateResource returned error: %v", err)
+	}
+	requestInfo, err := newContentPolicyRequestInformation(context.Background(), contentPolicyTestRequestAdapter{}, abstractions.PATCH, "policy-id", body)
+	if err != nil {
+		t.Fatalf("newContentPolicyRequestInformation returned error: %v", err)
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(requestInfo.Content, &payload); err != nil {
+		t.Fatalf("failed to unmarshal request content: %v", err)
+	}
+	if description, exists := payload["description"]; !exists || description != "" {
+		t.Fatalf("description = %#v, expected explicit empty string", description)
+	}
+}
+
+func TestDescriptionSchemaIsOptionalAndNotComputed(t *testing.T) {
+	resourceUnderTest := NewNetworkContentPolicyResource().(*NetworkContentPolicyResource)
+	response := &frameworkresource.SchemaResponse{}
+	resourceUnderTest.Schema(context.Background(), frameworkresource.SchemaRequest{}, response)
+
+	description, ok := response.Schema.Attributes["description"].(resourceschema.StringAttribute)
+	if !ok {
+		t.Fatalf("description attribute has type %T, expected schema.StringAttribute", response.Schema.Attributes["description"])
+	}
+	if !description.Optional {
+		t.Fatal("description must be optional")
+	}
+	if description.Computed {
+		t.Fatal("description must not be computed")
+	}
+	if len(description.PlanModifiers) != 1 {
+		t.Fatalf("description plan modifiers = %d, expected empty-string default modifier", len(description.PlanModifiers))
 	}
 }
 

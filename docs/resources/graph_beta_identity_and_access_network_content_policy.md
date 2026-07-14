@@ -65,7 +65,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_content_policy" "e
 
 ### Optional
 
-- `description` (String) Optional description of the content policy.
+- `description` (String) The description of the content policy. Defaults to an empty string.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

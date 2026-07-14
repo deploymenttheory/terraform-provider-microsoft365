@@ -78,9 +78,9 @@ func (r *NetworkContentPolicyResource) Schema(ctx context.Context, req resource.
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "Optional description of the content policy.",
+				MarkdownDescription: "The description of the content policy. Defaults to an empty string.",
 				Optional:            true,
-				Computed:            true,
+				PlanModifiers:       []planmodifier.String{planmodifiers.DefaultValueString("")},
 				Validators:          []validator.String{stringvalidator.LengthAtMost(8192)},
 			},
 			"default_action": schema.StringAttribute{
