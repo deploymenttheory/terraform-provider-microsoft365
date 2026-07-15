@@ -55,29 +55,6 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel, isUpda
 					requestBody.SetLargeIcon(largeIcon)
 				}
 			}
-		} else {
-			// Use the provided values from the model
-			convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
-			convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
-			convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
-
-			if !data.LargeIcon.IsNull() {
-				largeIcon := graphmodels.NewMimeContent()
-				var iconData map[string]attr.Value
-				data.LargeIcon.As(context.Background(), &iconData, basetypes.ObjectAsOptions{})
-
-				iconType := "image/png"
-				largeIcon.SetTypeEscaped(&iconType)
-
-				if valueVal, ok := iconData["value"].(types.String); ok {
-					iconBytes, err := base64.StdEncoding.DecodeString(valueVal.ValueString())
-					if err != nil {
-						return nil, fmt.Errorf("failed to decode icon base64: %v", err)
-					}
-					largeIcon.SetValue(iconBytes)
-				}
-				requestBody.SetLargeIcon(largeIcon)
-			}
 		}
 
 		// Fields that are idempotent and should only be set during creation
@@ -96,6 +73,36 @@ func constructResource(ctx context.Context, data *WinGetAppResourceModel, isUpda
 				return nil, fmt.Errorf("invalid run_as_account value: %s. Expected 'system' or 'user'", runAsAccount)
 			}
 			requestBody.SetInstallExperience(installExperience)
+		}
+	}
+
+	// When automatically_generate_metadata is false, the user supplies description, publisher,
+	// display_name, and large_icon directly in config. Unlike the store-fetch branch above, this
+	// must run on BOTH create and update - it was previously nested inside the `if !isUpdate` block,
+	// which meant edits to these fields after the initial create were silently dropped from the PATCH
+	// request. The remote value never changed to match config, so Terraform showed a perpetual diff
+	// on every subsequent plan no matter what the config said.
+	if !data.AutomaticallyGenerateMetadata.ValueBool() {
+		convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
+		convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
+		convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
+
+		if !data.LargeIcon.IsNull() {
+			largeIcon := graphmodels.NewMimeContent()
+			var iconData map[string]attr.Value
+			data.LargeIcon.As(context.Background(), &iconData, basetypes.ObjectAsOptions{})
+
+			iconType := "image/png"
+			largeIcon.SetTypeEscaped(&iconType)
+
+			if valueVal, ok := iconData["value"].(types.String); ok {
+				iconBytes, err := base64.StdEncoding.DecodeString(valueVal.ValueString())
+				if err != nil {
+					return nil, fmt.Errorf("failed to decode icon base64: %v", err)
+				}
+				largeIcon.SetValue(iconBytes)
+			}
+			requestBody.SetLargeIcon(largeIcon)
 		}
 	}
 
