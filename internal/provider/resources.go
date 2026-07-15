@@ -147,6 +147,7 @@ import (
 
 	// graphBetaIdentityAndAccessDirectorySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/directory_settings"
 	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
+	graphBetaIdentityAndAccessNetworkContentPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_content_policy"
 	graphBetaIdentityAndAccessNetworkContentPolicyRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_content_policy_rule"
 	graphBetaIdentityAndAccessNetworkFilteringPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_filtering_policy"
 	graphBetaIdentityAndAccessNetworkFilteringProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_filtering_profile"
@@ -355,6 +356,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessCrossTenantAccessPartnerUserSyncSettings.NewCrossTenantAccessPartnerUserSyncSettingsResource,
 		graphBetaIdentityAndAccessCrossTenantAccessPolicy.NewCrossTenantAccessPolicyResource,
 		// graphBetaIdentityAndAccessDirectorySettings.NewDirectorySettingsResource,
+		graphBetaIdentityAndAccessNetworkContentPolicy.NewNetworkContentPolicyResource,
 		graphBetaIdentityAndAccessNetworkContentPolicyRule.NewNetworkContentPolicyRuleResource,
 		graphBetaIdentityAndAccessNetworkFilteringProfile.NewNetworkFilteringProfileResource,
 		graphBetaIdentityAndAccessNetworkFilteringPolicy.NewNetworkFilteringPolicyResource,
