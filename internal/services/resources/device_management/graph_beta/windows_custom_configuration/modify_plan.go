@@ -3,14 +3,16 @@ package graphBetaWindowsCustomConfiguration
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-// ModifyPlan validates that each OMA setting value can be converted to the data type
-// implied by its odata_type, and that file_name is only used with file based setting types.
+// ModifyPlan validates the OMA settings list:
+//   - each value must parse according to its odata_type and already be in the canonical form
+//     the Graph API returns on read, otherwise the post-apply Read would rewrite the value and
+//     fail with "Provider produced inconsistent result after apply"
+//   - file_name is only allowed for file based setting types
+//   - oma_uri must be unique across settings (encrypted value resolution matches by OMA-URI)
 func (r *WindowsCustomConfigurationResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.Plan.Raw.IsNull() {
 		return
@@ -33,7 +35,22 @@ func (r *WindowsCustomConfigurationResource) ModifyPlan(ctx context.Context, req
 		return
 	}
 
+	seenOmaUris := make(map[string]int, len(settingModels))
+
 	for idx, settingModel := range settingModels {
+		if !settingModel.OmaUri.IsNull() && !settingModel.OmaUri.IsUnknown() {
+			omaUri := settingModel.OmaUri.ValueString()
+			if firstIdx, seen := seenOmaUris[omaUri]; seen {
+				resp.Diagnostics.AddError(
+					"Duplicate OMA-URI",
+					fmt.Sprintf("oma_settings[%d]: oma_uri %q is already used by oma_settings[%d]. "+
+						"Each OMA setting must target a unique OMA-URI.", idx, omaUri, firstIdx),
+				)
+			} else {
+				seenOmaUris[omaUri] = idx
+			}
+		}
+
 		if settingModel.OdataType.IsNull() || settingModel.OdataType.IsUnknown() ||
 			settingModel.Value.IsNull() || settingModel.Value.IsUnknown() {
 			continue
@@ -51,35 +68,23 @@ func (r *WindowsCustomConfigurationResource) ModifyPlan(ctx context.Context, req
 			)
 		}
 
-		switch odataType {
-		case "#microsoft.graph.omaSettingInteger":
-			if _, err := strconv.ParseInt(value, 10, 32); err != nil {
-				resp.Diagnostics.AddError(
-					"Invalid OMA Setting Value",
-					fmt.Sprintf("oma_settings[%d]: value %q is not a valid integer.", idx, value),
-				)
-			}
-		case "#microsoft.graph.omaSettingBoolean":
-			if _, err := strconv.ParseBool(value); err != nil {
-				resp.Diagnostics.AddError(
-					"Invalid OMA Setting Value",
-					fmt.Sprintf("oma_settings[%d]: value %q is not a valid boolean.", idx, value),
-				)
-			}
-		case "#microsoft.graph.omaSettingDateTime":
-			if _, err := time.Parse(time.RFC3339, value); err != nil {
-				resp.Diagnostics.AddError(
-					"Invalid OMA Setting Value",
-					fmt.Sprintf("oma_settings[%d]: value %q is not a valid RFC3339 timestamp (e.g. 2024-01-01T00:00:00Z).", idx, value),
-				)
-			}
-		case "#microsoft.graph.omaSettingFloatingPoint":
-			if _, err := strconv.ParseFloat(value, 32); err != nil {
-				resp.Diagnostics.AddError(
-					"Invalid OMA Setting Value",
-					fmt.Sprintf("oma_settings[%d]: value %q is not a valid floating point number.", idx, value),
-				)
-			}
+		parsedValue, err := parseOmaSettingValue(odataType, value)
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Invalid OMA Setting Value",
+				fmt.Sprintf("oma_settings[%d]: %s.", idx, err.Error()),
+			)
+			continue
+		}
+
+		if parsedValue.canonical != value {
+			resp.Diagnostics.AddError(
+				"Non-canonical OMA Setting Value",
+				fmt.Sprintf("oma_settings[%d]: value %q is not in the canonical form %q that the Graph API "+
+					"returns on read. Use the canonical form to avoid a persistent diff "+
+					"(booleans: true/false, integers without leading zeros, floats without trailing zeros, "+
+					"timestamps in UTC, e.g. 2024-01-01T00:00:00Z).", idx, value, parsedValue.canonical),
+			)
 		}
 	}
 }

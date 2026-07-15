@@ -90,6 +90,40 @@ func TestUnitResourceWindowsCustomConfiguration_02_InvalidOmaSettingValue(t *tes
 	})
 }
 
+func TestUnitResourceWindowsCustomConfiguration_02a_NonCanonicalValue(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, configMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer configMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_non_canonical_value.tf"),
+				ExpectError: regexp.MustCompile("is not in the canonical form"),
+			},
+		},
+	})
+}
+
+func TestUnitResourceWindowsCustomConfiguration_02b_DuplicateOmaUri(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, configMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer configMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_duplicate_oma_uri.tf"),
+				ExpectError: regexp.MustCompile("Duplicate OMA-URI"),
+			},
+		},
+	})
+}
+
 func TestUnitResourceWindowsCustomConfiguration_03_CreateWithError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupErrorMockEnvironment()

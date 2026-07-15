@@ -126,7 +126,7 @@ Required:
 - `display_name` (String) The display name of the OMA setting.
 - `odata_type` (String) The OData type of the OMA setting, which determines the data type of `value`. Possible values are: `#microsoft.graph.omaSettingString`, `#microsoft.graph.omaSettingInteger`, `#microsoft.graph.omaSettingBoolean`, `#microsoft.graph.omaSettingBase64`, `#microsoft.graph.omaSettingDateTime`, `#microsoft.graph.omaSettingFloatingPoint`, `#microsoft.graph.omaSettingStringXml`.
 - `oma_uri` (String) The OMA-URI of the setting, e.g. `./Device/Vendor/MSFT/Policy/Config/VSCode~Policy~Application/UpdateMode`.
-- `value` (String) The value of the OMA setting, expressed as a string and converted according to `odata_type`: string and stringXml values are used as-is, integer values must be whole numbers, boolean values must be `true` or `false`, base64 values must be base64-encoded content, dateTime values must be RFC3339 timestamps (e.g. `2024-01-01T00:00:00Z`), and floatingPoint values must be decimal numbers.
+- `value` (String) The value of the OMA setting, expressed as a string and converted according to `odata_type`: string and stringXml values are used as-is, integer values must be whole numbers without leading zeros, boolean values must be `true` or `false` (lowercase), base64 values must be base64-encoded content, dateTime values must be UTC RFC3339 timestamps (e.g. `2024-01-01T00:00:00Z`), and floatingPoint values must be decimal numbers without trailing zeros. Values must be in this canonical form because it is what the Graph API returns on read; non-canonical values are rejected at plan time.
 
 Optional:
 

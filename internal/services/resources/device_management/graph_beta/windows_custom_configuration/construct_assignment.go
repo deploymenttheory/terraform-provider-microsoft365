@@ -39,21 +39,15 @@ func constructAssignment(ctx context.Context, data *WindowsCustomConfigurationRe
 		graphAssignment := graphmodels.NewDeviceConfigurationAssignment()
 
 		if assignment.Type.IsNull() || assignment.Type.IsUnknown() {
-			tflog.Error(ctx, "Assignment target type is missing or invalid", map[string]any{
-				"index": idx,
-			})
-			continue
+			return nil, fmt.Errorf("assignments[%d]: target type is missing or invalid", idx)
 		}
 
 		targetType := assignment.Type.ValueString()
 
 		target := constructTarget(ctx, targetType, assignment)
 		if target == nil {
-			tflog.Error(ctx, "Failed to create target", map[string]any{
-				"index":      idx,
-				"targetType": targetType,
-			})
-			continue
+			return nil, fmt.Errorf("assignments[%d]: failed to construct assignment target of type %q "+
+				"(group targets require a non-empty group_id)", idx, targetType)
 		}
 
 		graphAssignment.SetTarget(target)

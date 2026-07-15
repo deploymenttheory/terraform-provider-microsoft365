@@ -183,10 +183,12 @@ func (r *WindowsCustomConfigurationResource) Schema(ctx context.Context, _ resou
 						"value": schema.StringAttribute{
 							Required: true,
 							MarkdownDescription: "The value of the OMA setting, expressed as a string and converted according to " +
-								"`odata_type`: string and stringXml values are used as-is, integer values must be whole numbers, " +
-								"boolean values must be `true` or `false`, base64 values must be base64-encoded content, " +
-								"dateTime values must be RFC3339 timestamps (e.g. `2024-01-01T00:00:00Z`), and floatingPoint " +
-								"values must be decimal numbers.",
+								"`odata_type`: string and stringXml values are used as-is, integer values must be whole numbers " +
+								"without leading zeros, boolean values must be `true` or `false` (lowercase), base64 values must " +
+								"be base64-encoded content, dateTime values must be UTC RFC3339 timestamps (e.g. " +
+								"`2024-01-01T00:00:00Z`), and floatingPoint values must be decimal numbers without trailing " +
+								"zeros. Values must be in this canonical form because it is what the Graph API returns on read; " +
+								"non-canonical values are rejected at plan time.",
 						},
 						"file_name": schema.StringAttribute{
 							Optional: true,

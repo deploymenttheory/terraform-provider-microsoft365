@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -158,7 +159,10 @@ func (r *WindowsCustomConfigurationResource) Read(ctx context.Context, req resou
 	}
 
 	if winConfig, ok := respResource.(graphmodels.Windows10CustomConfigurationable); ok {
-		r.resolveEncryptedOmaSettingValues(ctx, &object, winConfig)
+		r.resolveEncryptedOmaSettingValues(ctx, &object, winConfig, &resp.Diagnostics)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
 	MapRemoteResourceStateToTerraform(ctx, &object, respResource)
@@ -174,8 +178,10 @@ func (r *WindowsCustomConfigurationResource) Read(ctx context.Context, req resou
 // resolveEncryptedOmaSettingValues replaces masked ("****") values of encrypted OMA settings
 // with their plain text values retrieved via the getOmaSettingPlainTextValue function.
 // If the plain text value cannot be retrieved, the value from the current Terraform state is
-// preserved (matched by OMA-URI) to avoid perpetual drift.
-func (r *WindowsCustomConfigurationResource) resolveEncryptedOmaSettingValues(ctx context.Context, object *WindowsCustomConfigurationResourceModel, config graphmodels.Windows10CustomConfigurationable) {
+// preserved (matched by OMA-URI) to avoid perpetual drift. If neither source is available
+// (e.g. a failed retrieval during import, where no prior state exists), an error is raised
+// instead of writing the masked value into state.
+func (r *WindowsCustomConfigurationResource) resolveEncryptedOmaSettingValues(ctx context.Context, object *WindowsCustomConfigurationResourceModel, config graphmodels.Windows10CustomConfigurationable, diagnostics *diag.Diagnostics) {
 	stateValues := make(map[string]string)
 	if !object.OmaSettings.IsNull() && !object.OmaSettings.IsUnknown() {
 		var stateSettings []OmaSettingResourceModel
@@ -194,6 +200,7 @@ func (r *WindowsCustomConfigurationResource) resolveEncryptedOmaSettingValues(ct
 		}
 
 		var plainTextValue *string
+		var retrievalErr error
 		if secretReferenceValueId := setting.GetSecretReferenceValueId(); secretReferenceValueId != nil {
 			plainTextResponse, err := r.client.
 				DeviceManagement().
@@ -202,6 +209,7 @@ func (r *WindowsCustomConfigurationResource) resolveEncryptedOmaSettingValues(ct
 				GetOmaSettingPlainTextValueWithSecretReferenceValueId(secretReferenceValueId).
 				GetAsGetOmaSettingPlainTextValueWithSecretReferenceValueIdGetResponse(ctx, nil)
 			if err != nil {
+				retrievalErr = err
 				tflog.Warn(ctx, "Failed to retrieve plain text value for encrypted oma setting, falling back to state value", map[string]any{
 					"omaUri": setting.GetOmaUri(),
 					"error":  err.Error(),
@@ -220,7 +228,22 @@ func (r *WindowsCustomConfigurationResource) resolveEncryptedOmaSettingValues(ct
 		}
 
 		if plainTextValue == nil {
-			continue
+			omaUri := ""
+			if uri := setting.GetOmaUri(); uri != nil {
+				omaUri = *uri
+			}
+			errDetail := "the getOmaSettingPlainTextValue function did not return a value"
+			if retrievalErr != nil {
+				errDetail = retrievalErr.Error()
+			}
+			diagnostics.AddError(
+				"Unable to resolve encrypted OMA setting value",
+				fmt.Sprintf("The Graph API masks the value of the encrypted OMA setting %q as \"****\" and its plain text "+
+					"value could not be retrieved (%s). No prior state value exists to fall back to. Writing the masked "+
+					"value into state would cause a persistent diff, so the read was aborted. Retry the operation once "+
+					"the getOmaSettingPlainTextValue call succeeds.", omaUri, errDetail),
+			)
+			return
 		}
 
 		switch typedSetting := setting.(type) {
@@ -250,13 +273,13 @@ func (r *WindowsCustomConfigurationResource) Update(ctx context.Context, req res
 	var plan WindowsCustomConfigurationResourceModel
 	var state WindowsCustomConfigurationResourceModel
 
-	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
-
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {

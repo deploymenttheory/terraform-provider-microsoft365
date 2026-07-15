@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
@@ -30,6 +31,21 @@ func init() {
 type WindowsCustomConfigurationMock struct{}
 
 var _ mocks.MockRegistrar = (*WindowsCustomConfigurationMock)(nil)
+
+// loadJSONResponse parses a JSON response fixture file into a map.
+func loadJSONResponse(responseFile string) (map[string]any, error) {
+	jsonStr, err := helpers.ParseJSONFile(responseFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse JSON file '%s': %w", responseFile, err)
+	}
+
+	var responseObj map[string]any
+	if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
+		return nil, fmt.Errorf("failed to parse response JSON: %w", err)
+	}
+
+	return responseObj, nil
+}
 
 // maskEncryptedOmaSettings simulates the Graph API behaviour of masking string based OMA setting
 // values in responses: omaSettingString values are replaced with "****", flagged as encrypted and
@@ -85,30 +101,38 @@ func (m *WindowsCustomConfigurationMock) RegisterMocks() {
 			})
 		}
 
+		responseObj, err := loadJSONResponse("../tests/responses/validate_create/post_windows_custom_configuration_success.json")
+		if err != nil {
+			return httpmock.NewJsonResponse(500, map[string]any{
+				"error": map[string]any{"code": "InternalError", "message": err.Error()},
+			})
+		}
+
+		// Override the fixture with request values
+		for k, v := range requestBody {
+			responseObj[k] = v
+		}
 		id := uuid.New().String()
-		requestBody["id"] = id
-		requestBody["createdDateTime"] = "2024-01-01T00:00:00Z"
-		requestBody["lastModifiedDateTime"] = "2024-01-01T00:00:00Z"
-		requestBody["version"] = 1
+		responseObj["id"] = id
 
 		mockState.Lock()
-		maskEncryptedOmaSettings(requestBody, id)
-		mockState.deviceConfigurations[id] = requestBody
+		maskEncryptedOmaSettings(responseObj, id)
+		mockState.deviceConfigurations[id] = responseObj
 		mockState.Unlock()
 
-		return httpmock.NewJsonResponse(201, requestBody)
+		return httpmock.NewJsonResponse(201, responseObj)
 	})
 
 	// GET /deviceManagement/deviceConfigurations/{id}/getOmaSettingPlainTextValue(secretReferenceValueId='{id}')
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/[^/]+/getOmaSettingPlainTextValue.*$`, func(req *http.Request) (*http.Response, error) {
-		rawURL := req.URL.Path
-		start := strings.Index(rawURL, "secretReferenceValueId='")
+		path := req.URL.Path
+		start := strings.Index(path, "secretReferenceValueId='")
 		if start == -1 {
 			return httpmock.NewJsonResponse(400, map[string]any{
 				"error": map[string]any{"code": "BadRequest", "message": "Missing secretReferenceValueId"},
 			})
 		}
-		secretReferenceValueId := rawURL[start+len("secretReferenceValueId='"):]
+		secretReferenceValueId := path[start+len("secretReferenceValueId='"):]
 		if end := strings.Index(secretReferenceValueId, "'"); end != -1 {
 			secretReferenceValueId = secretReferenceValueId[:end]
 		}
@@ -123,10 +147,15 @@ func (m *WindowsCustomConfigurationMock) RegisterMocks() {
 			})
 		}
 
-		return httpmock.NewJsonResponse(200, map[string]any{
-			"@odata.context": "https://graph.microsoft.com/beta/$metadata#Edm.String",
-			"value":          value,
-		})
+		responseObj, err := loadJSONResponse("../tests/responses/validate_get/get_oma_setting_plain_text_value.json")
+		if err != nil {
+			return httpmock.NewJsonResponse(500, map[string]any{
+				"error": map[string]any{"code": "InternalError", "message": err.Error()},
+			})
+		}
+		responseObj["value"] = value
+
+		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
 	// GET /deviceManagement/deviceConfigurations/{id} - Get specific device configuration
@@ -140,12 +169,21 @@ func (m *WindowsCustomConfigurationMock) RegisterMocks() {
 		mockState.Unlock()
 
 		if !exists {
-			return httpmock.NewJsonResponse(404, map[string]any{
-				"error": map[string]any{"code": "ResourceNotFound", "message": "Resource not found"},
+			jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_custom_configuration_not_found.json")
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalError","message":"Failed to parse error response"}}`), nil
+			}
+			return httpmock.NewStringResponse(404, jsonStr), nil
+		}
+
+		responseObj, err := loadJSONResponse("../tests/responses/validate_get/get_windows_custom_configuration.json")
+		if err != nil {
+			return httpmock.NewJsonResponse(500, map[string]any{
+				"error": map[string]any{"code": "InternalError", "message": err.Error()},
 			})
 		}
 
-		responseObj := make(map[string]any, len(config)+1)
+		// Override the fixture with stored config values
 		for k, v := range config {
 			responseObj[k] = v
 		}
@@ -184,7 +222,19 @@ func (m *WindowsCustomConfigurationMock) RegisterMocks() {
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
 		}
 
-		return httpmock.NewJsonResponse(200, existing)
+		responseObj, err := loadJSONResponse("../tests/responses/validate_update/patch_windows_custom_configuration_success.json")
+		if err != nil {
+			return httpmock.NewJsonResponse(500, map[string]any{
+				"error": map[string]any{"code": "InternalError", "message": err.Error()},
+			})
+		}
+
+		// Override the fixture with the updated stored config values
+		for k, v := range existing {
+			responseObj[k] = v
+		}
+
+		return httpmock.NewJsonResponse(200, responseObj)
 	})
 
 	// DELETE /deviceManagement/deviceConfigurations/{id} - Delete device configuration
@@ -231,7 +281,15 @@ func (m *WindowsCustomConfigurationMock) RegisterMocks() {
 		mockState.assignments[configId] = storedAssignments
 		mockState.Unlock()
 
-		return httpmock.NewJsonResponse(200, map[string]any{"value": storedAssignments})
+		responseObj, err := loadJSONResponse("../tests/responses/validate_assign/post_windows_custom_configuration_assign_success.json")
+		if err != nil {
+			return httpmock.NewJsonResponse(500, map[string]any{
+				"error": map[string]any{"code": "InternalError", "message": err.Error()},
+			})
+		}
+		responseObj["value"] = storedAssignments
+
+		return httpmock.NewJsonResponse(200, responseObj)
 	})
 }
 
@@ -246,14 +304,22 @@ func (m *WindowsCustomConfigurationMock) RegisterErrorMocks() {
 
 	// POST /deviceManagement/deviceConfigurations - Create device configuration (Error)
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations", func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewJsonResponse(400, map[string]any{
-			"error": map[string]any{"code": "BadRequest", "message": "Error creating windows custom configuration"},
-		})
+		errorObj, err := loadJSONResponse("../tests/responses/validate_create/post_windows_custom_configuration_error.json")
+		if err != nil {
+			return httpmock.NewJsonResponse(500, map[string]any{
+				"error": map[string]any{"code": "InternalError", "message": err.Error()},
+			})
+		}
+		return httpmock.NewJsonResponse(400, errorObj)
 	})
 
 	// GET /deviceManagement/deviceConfigurations/{id} - Not found error
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)(\?.*)?$`, func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`), nil
+		jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_delete/get_windows_custom_configuration_not_found.json")
+		if err != nil {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalError","message":"Failed to parse error response"}}`), nil
+		}
+		return httpmock.NewStringResponse(404, jsonStr), nil
 	})
 
 	// Other operations also return errors

@@ -3,8 +3,6 @@ package graphBetaWindowsCustomConfiguration
 import (
 	"context"
 	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -55,33 +53,30 @@ func constructResource(ctx context.Context, data *WindowsCustomConfigurationReso
 // constructOmaSetting constructs the correct microsoft.graph.omaSetting subtype from the
 // Terraform model, converting the string value to the type expected by the Graph API.
 func constructOmaSetting(data OmaSettingResourceModel) (graphmodels.OmaSettingable, error) {
+	odataType := data.OdataType.ValueString()
 	value := data.Value.ValueString()
+
+	parsedValue, err := parseOmaSettingValue(odataType, value)
+	if err != nil {
+		return nil, err
+	}
 
 	var omaSetting graphmodels.OmaSettingable
 
-	switch data.OdataType.ValueString() {
+	switch odataType {
 	case "#microsoft.graph.omaSettingString":
 		setting := graphmodels.NewOmaSettingString()
 		setting.SetValue(&value)
 		omaSetting = setting
 
 	case "#microsoft.graph.omaSettingInteger":
-		intValue, err := strconv.ParseInt(value, 10, 32)
-		if err != nil {
-			return nil, fmt.Errorf("value %q is not a valid integer: %s", value, err)
-		}
 		setting := graphmodels.NewOmaSettingInteger()
-		int32Value := int32(intValue)
-		setting.SetValue(&int32Value)
+		setting.SetValue(&parsedValue.intValue)
 		omaSetting = setting
 
 	case "#microsoft.graph.omaSettingBoolean":
-		boolValue, err := strconv.ParseBool(value)
-		if err != nil {
-			return nil, fmt.Errorf("value %q is not a valid boolean: %s", value, err)
-		}
 		setting := graphmodels.NewOmaSettingBoolean()
-		setting.SetValue(&boolValue)
+		setting.SetValue(&parsedValue.boolValue)
 		omaSetting = setting
 
 	case "#microsoft.graph.omaSettingBase64":
@@ -91,22 +86,13 @@ func constructOmaSetting(data OmaSettingResourceModel) (graphmodels.OmaSettingab
 		omaSetting = setting
 
 	case "#microsoft.graph.omaSettingDateTime":
-		timeValue, err := time.Parse(time.RFC3339, value)
-		if err != nil {
-			return nil, fmt.Errorf("value %q is not a valid RFC3339 timestamp: %s", value, err)
-		}
 		setting := graphmodels.NewOmaSettingDateTime()
-		setting.SetValue(&timeValue)
+		setting.SetValue(&parsedValue.timeValue)
 		omaSetting = setting
 
 	case "#microsoft.graph.omaSettingFloatingPoint":
-		floatValue, err := strconv.ParseFloat(value, 32)
-		if err != nil {
-			return nil, fmt.Errorf("value %q is not a valid floating point number: %s", value, err)
-		}
 		setting := graphmodels.NewOmaSettingFloatingPoint()
-		float32Value := float32(floatValue)
-		setting.SetValue(&float32Value)
+		setting.SetValue(&parsedValue.floatValue)
 		omaSetting = setting
 
 	case "#microsoft.graph.omaSettingStringXml":
@@ -116,7 +102,7 @@ func constructOmaSetting(data OmaSettingResourceModel) (graphmodels.OmaSettingab
 		omaSetting = setting
 
 	default:
-		return nil, fmt.Errorf("unsupported oma setting odata type: %s", data.OdataType.ValueString())
+		return nil, fmt.Errorf("unsupported oma setting odata type: %s", odataType)
 	}
 
 	convert.FrameworkToGraphString(data.DisplayName, omaSetting.SetDisplayName)
