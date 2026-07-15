@@ -3,6 +3,7 @@ package graphBetaWindowsCustomConfiguration
 import (
 	"context"
 
+	commonattr "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/attr"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -11,7 +12,7 @@ import (
 )
 
 // WindowsCustomConfigurationAssignmentType returns the object type for WindowsCustomConfigurationAssignmentModel
-func WindowsCustomConfigurationAssignmentType() attr.Type {
+func WindowsCustomConfigurationAssignmentType() types.ObjectType {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"type":        types.StringType,
@@ -34,7 +35,7 @@ func mapAssignmentsToTerraform(ctx context.Context, data *WindowsCustomConfigura
 		"resourceId":      data.ID.ValueString(),
 	})
 
-	assignmentValues := []attr.Value{}
+	assignmentObjects := make([]map[string]attr.Value, 0, len(assignments))
 
 	for i, assignment := range assignments {
 		tflog.Debug(ctx, "Processing assignment", map[string]any{
@@ -249,60 +250,19 @@ func mapAssignmentsToTerraform(ctx context.Context, data *WindowsCustomConfigura
 			assignmentObj["filter_type"] = types.StringValue("none")
 		}
 
-		tflog.Debug(ctx, "Creating assignment object value", map[string]any{
-			"assignmentIndex": i,
-			"assignmentId":    assignment.GetId(),
-			"resourceId":      data.ID.ValueString(),
-		})
-
-		objValue, diags := types.ObjectValue(WindowsCustomConfigurationAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
-		if !diags.HasError() {
-			tflog.Debug(ctx, "Successfully created assignment object", map[string]any{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
-			assignmentValues = append(assignmentValues, objValue)
-		} else {
-			tflog.Error(ctx, "Failed to create assignment object value", map[string]any{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"errors":          diags.Errors(),
-				"resourceId":      data.ID.ValueString(),
-			})
-		}
+		assignmentObjects = append(assignmentObjects, assignmentObj)
 	}
 
-	tflog.Debug(ctx, "Creating assignments set", map[string]any{
-		"processedAssignments": len(assignmentValues),
-		"originalAssignments":  len(assignments),
-		"resourceId":           data.ID.ValueString(),
-	})
-
-	if len(assignmentValues) > 0 {
-		setVal, diags := types.SetValue(WindowsCustomConfigurationAssignmentType(), assignmentValues)
-		if diags.HasError() {
-			tflog.Error(ctx, "Failed to create assignments set", map[string]any{
-				"errors":     diags.Errors(),
-				"resourceId": data.ID.ValueString(),
-			})
-			data.Assignments = types.SetNull(WindowsCustomConfigurationAssignmentType())
-		} else {
-			tflog.Debug(ctx, "Successfully created assignments set", map[string]any{
-				"assignmentCount": len(assignmentValues),
-				"resourceId":      data.ID.ValueString(),
-			})
-			data.Assignments = setVal
-		}
-	} else {
-		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]any{
-			"resourceId": data.ID.ValueString(),
-		})
-		data.Assignments = types.SetNull(WindowsCustomConfigurationAssignmentType())
-	}
+	assignmentType := WindowsCustomConfigurationAssignmentType()
+	data.Assignments = commonattr.ObjectSetFromSlice(
+		ctx,
+		assignmentType.AttrTypes,
+		func(i int) map[string]attr.Value { return assignmentObjects[i] },
+		len(assignmentObjects),
+	)
 
 	tflog.Debug(ctx, "Finished mapping assignments to Terraform state", map[string]any{
-		"finalAssignmentCount": len(assignmentValues),
+		"finalAssignmentCount": len(assignmentObjects),
 		"originalAssignments":  len(assignments),
 		"resourceId":           data.ID.ValueString(),
 	})
