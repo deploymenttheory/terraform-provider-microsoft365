@@ -46,8 +46,14 @@ The following client `application` permissions are needed in order to use this r
 ## Example Usage
 
 ```terraform
+resource "microsoft365_graph_beta_identity_and_access_network_content_policy" "example" {
+  name           = "Content Policy"
+  description    = "Global Secure Access content policy managed by Terraform"
+  default_action = "allow"
+}
+
 resource "microsoft365_graph_beta_identity_and_access_network_content_policy_rule" "example" {
-  content_policy_id  = "00000000-0000-0000-0000-000000000000"
+  content_policy_id  = microsoft365_graph_beta_identity_and_access_network_content_policy.example.id
   name               = "Inspect uploaded and downloaded files"
   description        = "Scan matching files with Microsoft Purview"
   action             = "scanPurview"
