@@ -103,7 +103,7 @@ func (m *ContentPolicyRuleMock) updateResponder() httpmock.Responder {
 		mockState.Lock()
 		mockState.rules[key] = updated
 		mockState.Unlock()
-		return factories.SuccessResponse(200, updated)(req)
+		return factories.EmptySuccessResponse(204)(req)
 	}
 }
 

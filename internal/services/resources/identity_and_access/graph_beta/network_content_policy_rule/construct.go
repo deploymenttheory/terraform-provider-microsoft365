@@ -182,18 +182,22 @@ func (b *contentPolicyRuleFileAttributesRequestBody) Serialize(writer s.Serializ
 	if err := writer.WriteStringValue("activities", b.activities); err != nil {
 		return err
 	}
-	if len(b.contentTypes) > 0 {
-		if err := writer.WriteCollectionOfStringValues("contentTypes", b.contentTypes); err != nil {
-			return err
-		}
+	if err := writer.WriteCollectionOfStringValues("contentTypes", nonNilContentPolicyRuleValues(b.contentTypes)); err != nil {
+		return err
 	}
-	if len(b.textContentTypes) > 0 {
-		if err := writer.WriteCollectionOfStringValues("textContentTypes", b.textContentTypes); err != nil {
-			return err
-		}
+	if err := writer.WriteCollectionOfStringValues("textContentTypes", nonNilContentPolicyRuleValues(b.textContentTypes)); err != nil {
+		return err
 	}
 	return nil
 }
+
+func nonNilContentPolicyRuleValues(values []string) []string {
+	if values == nil {
+		return []string{}
+	}
+	return values
+}
+
 func (b *contentPolicyRuleFileAttributesRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }

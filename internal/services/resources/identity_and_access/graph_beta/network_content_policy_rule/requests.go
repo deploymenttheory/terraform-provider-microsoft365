@@ -25,14 +25,12 @@ func (r *NetworkContentPolicyRuleResource) getContentPolicyRule(ctx context.Cont
 }
 
 func (r *NetworkContentPolicyRuleResource) updateContentPolicyRule(ctx context.Context, policyID, ruleID string, body s.Parsable) error {
-	result, err := r.sendContentPolicyRule(ctx, abstractions.PATCH, policyID, ruleID, body)
+	adapter := r.client.GetAdapter()
+	requestInfo, err := newContentPolicyRuleRequestInformation(ctx, adapter, abstractions.PATCH, policyID, ruleID, body)
 	if err != nil {
 		return err
 	}
-	if result == nil {
-		return fmt.Errorf("update content policy rule returned nil response")
-	}
-	return nil
+	return adapter.SendNoContent(ctx, requestInfo, contentPolicyRuleErrorMapping)
 }
 
 func (r *NetworkContentPolicyRuleResource) deleteContentPolicyRule(ctx context.Context, policyID, ruleID string) error {

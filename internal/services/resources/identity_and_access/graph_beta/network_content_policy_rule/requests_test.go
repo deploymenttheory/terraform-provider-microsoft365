@@ -69,6 +69,44 @@ func TestContentPolicyRuleRequestSerializesObservedPortalPayload(t *testing.T) {
 	}
 }
 
+func TestContentPolicyRuleRequestSerializesClearedOptionalContentTypes(t *testing.T) {
+	ctx := context.Background()
+	model := &NetworkContentPolicyRuleResourceModel{
+		Name:             types.StringValue("rule name"),
+		Description:      types.StringValue("rule description"),
+		Action:           types.StringValue("scanPurview"),
+		Priority:         types.Int64Value(101),
+		Status:           types.StringValue("enabled"),
+		Activities:       stringSetValue(t, ctx, "download"),
+		ContentTypes:     types.SetNull(types.StringType),
+		TextContentTypes: stringSetValue(t, ctx, "plain"),
+		SessionTypes:     stringSetValue(t, ctx, "user"),
+		Destinations: types.ListValueMust(contentPolicyRuleDestinationObjectType(), []attr.Value{
+			destinationValue(t, ctx, destinationTypeFQDN, "example.com"),
+		}),
+	}
+	body, err := constructResource(ctx, model)
+	if err != nil {
+		t.Fatalf("constructResource returned error: %v", err)
+	}
+	requestInfo, err := newContentPolicyRuleRequestInformation(ctx, contentPolicyRuleTestRequestAdapter{}, abstractions.PATCH, "parent-id", "rule-id", body)
+	if err != nil {
+		t.Fatalf("newContentPolicyRuleRequestInformation returned error: %v", err)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(requestInfo.Content, &payload); err != nil {
+		t.Fatalf("unmarshal payload: %v", err)
+	}
+	attributes := payload["matchingConditions"].(map[string]any)["fileAttributes"].(map[string]any)
+	contentTypes, ok := attributes["contentTypes"].([]any)
+	if !ok || len(contentTypes) != 0 {
+		t.Fatalf("contentTypes = %#v, want an explicit empty array", attributes["contentTypes"])
+	}
+	if textContentTypes := attributes["textContentTypes"].([]any); len(textContentTypes) != 1 || textContentTypes[0] != "plain" {
+		t.Fatalf("textContentTypes = %#v", textContentTypes)
+	}
+}
+
 func stringSetValue(t *testing.T, ctx context.Context, values ...string) types.Set {
 	t.Helper()
 	value, diags := types.SetValueFrom(ctx, types.StringType, values)
