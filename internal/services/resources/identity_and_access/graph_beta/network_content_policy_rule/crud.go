@@ -150,24 +150,28 @@ func (r *NetworkContentPolicyRuleResource) deleteContentPolicyRuleWithPreconditi
 func (r *NetworkContentPolicyRuleResource) withContentPolicyRulePreconditionRetry(ctx context.Context, operation, policyID, ruleID string, fn func() error) error {
 	const maxRetries = 3
 	const retryDelay = 5 * time.Second
-	var lastErr error
-	for attempt := 0; attempt <= maxRetries; attempt++ {
-		lastErr = fn()
-		if lastErr == nil {
-			return nil
+	attempt := 0
+	return crud.PollUntil(ctx, retryDelay, func(ctx context.Context) (bool, error) {
+		err := fn()
+		if err == nil {
+			return true, nil
 		}
-		info := errors.GraphError(ctx, lastErr)
+
+		info := errors.GraphError(ctx, err)
 		if info.StatusCode != 412 && info.ErrorCode != "PreconditionFailed" {
-			return lastErr
+			return false, &crud.FatalPollError{Err: err}
 		}
-		if attempt < maxRetries {
-			tflog.Warn(ctx, "Retrying content policy rule operation after Graph precondition failure", map[string]any{"operation": operation, "policy_id": policyID, "rule_id": ruleID, "attempt": attempt + 1})
-			select {
-			case <-time.After(retryDelay):
-			case <-ctx.Done():
-				return fmt.Errorf("context cancelled while retrying content policy rule %s: %w", operation, ctx.Err())
-			}
+		if attempt >= maxRetries {
+			return false, &crud.FatalPollError{Err: err}
 		}
-	}
-	return lastErr
+
+		attempt++
+		tflog.Warn(ctx, "Retrying content policy rule operation after Graph precondition failure", map[string]any{
+			"operation": operation,
+			"policy_id": policyID,
+			"rule_id":   ruleID,
+			"attempt":   attempt,
+		})
+		return false, err
+	})
 }

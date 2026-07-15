@@ -3,8 +3,9 @@ package graphBetaNetworkContentPolicyRule
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	commonattr "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/attr"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -19,22 +20,10 @@ const (
 )
 
 func constructResource(ctx context.Context, data *NetworkContentPolicyRuleResourceModel) (s.Parsable, error) {
-	activities, err := contentPolicyRuleStringSetValues(ctx, data.Activities)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read activities: %w", err)
-	}
-	contentTypes, err := contentPolicyRuleStringSetValues(ctx, data.ContentTypes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read content_types: %w", err)
-	}
-	textContentTypes, err := contentPolicyRuleStringSetValues(ctx, data.TextContentTypes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read text_content_types: %w", err)
-	}
-	sessionTypes, err := contentPolicyRuleStringSetValues(ctx, data.SessionTypes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read session_types: %w", err)
-	}
+	activities := commonattr.StringSetElements(data.Activities)
+	contentTypes := commonattr.StringSetElements(data.ContentTypes)
+	textContentTypes := commonattr.StringSetElements(data.TextContentTypes)
+	sessionTypes := commonattr.StringSetElements(data.SessionTypes)
 	destinations, err := contentPolicyRuleDestinationValues(ctx, data.Destinations)
 	if err != nil {
 		return nil, err
@@ -66,18 +55,6 @@ func constructResource(ctx context.Context, data *NetworkContentPolicyRuleResour
 	return body, nil
 }
 
-func contentPolicyRuleStringSetValues(ctx context.Context, value types.Set) ([]string, error) {
-	if value.IsNull() || value.IsUnknown() {
-		return nil, nil
-	}
-	var result []string
-	diags := value.ElementsAs(ctx, &result, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
-	}
-	return result, nil
-}
-
 func contentPolicyRuleDestinationValues(ctx context.Context, value types.List) ([]s.Parsable, error) {
 	if value.IsNull() || value.IsUnknown() {
 		return nil, nil
@@ -89,10 +66,7 @@ func contentPolicyRuleDestinationValues(ctx context.Context, value types.List) (
 	}
 	result := make([]s.Parsable, 0, len(models))
 	for _, model := range models {
-		values, err := contentPolicyRuleStringSetValues(ctx, model.Values)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read destination values: %w", err)
-		}
+		values := commonattr.StringSetElements(model.Values)
 		odataType, err := graphContentPolicyRuleDestinationType(model.Type.ValueString())
 		if err != nil {
 			return nil, err
@@ -130,7 +104,7 @@ func joinedContentPolicyRuleValues(values []string) *string {
 	if len(values) == 0 {
 		return nil
 	}
-	value := strings.Join(values, ",")
+	value := helpers.JoinWithSeparator(values, ",")
 	return &value
 }
 

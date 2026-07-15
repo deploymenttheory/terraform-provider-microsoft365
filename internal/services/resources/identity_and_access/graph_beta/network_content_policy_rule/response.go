@@ -3,6 +3,7 @@ package graphBetaNetworkContentPolicyRule
 import (
 	"strings"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
@@ -198,7 +199,7 @@ func (r *contentPolicyRuleSourcesResponse) GetFieldDeserializers() map[string]fu
 }
 
 func splitContentPolicyRuleValues(value string) []string {
-	parts := strings.Split(value, ",")
+	parts := helpers.SplitCommaSeparatedString(value)
 	result := make([]string, 0, len(parts))
 	for _, part := range parts {
 		if trimmed := strings.TrimSpace(part); trimmed != "" {
