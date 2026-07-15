@@ -336,6 +336,22 @@ func (m *WindowsCustomConfigurationMock) RegisterErrorMocks() {
 	})
 }
 
+// RegisterAssignmentErrorMock overrides the assignment endpoint while keeping the successful
+// create and delete responders, allowing tests to verify create rollback behavior.
+func (m *WindowsCustomConfigurationMock) RegisterAssignmentErrorMock() {
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/deviceConfigurations/([^/]+)/assign$`, func(req *http.Request) (*http.Response, error) {
+		return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Error assigning windows custom configuration"}}`), nil
+	})
+}
+
+// DeviceConfigurationCount returns the number of profiles held by the mock tenant.
+func (m *WindowsCustomConfigurationMock) DeviceConfigurationCount() int {
+	mockState.Lock()
+	defer mockState.Unlock()
+
+	return len(mockState.deviceConfigurations)
+}
+
 func (m *WindowsCustomConfigurationMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.deviceConfigurations = make(map[string]map[string]any)

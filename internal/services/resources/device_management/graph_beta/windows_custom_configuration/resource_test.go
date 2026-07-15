@@ -124,6 +124,27 @@ func TestUnitResourceWindowsCustomConfiguration_02b_DuplicateOmaUri(t *testing.T
 	})
 }
 
+func TestUnitResourceWindowsCustomConfiguration_02c_MissingAssignmentGroupId(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, configMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer configMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_missing_group_id.tf"),
+				ExpectError: regexp.MustCompile("Attribute Required"),
+			},
+		},
+	})
+
+	if count := configMock.DeviceConfigurationCount(); count != 0 {
+		t.Fatalf("missing group_id validation created %d tenant profiles; want 0", count)
+	}
+}
+
 func TestUnitResourceWindowsCustomConfiguration_03_CreateWithError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, configMock := setupErrorMockEnvironment()
@@ -139,6 +160,28 @@ func TestUnitResourceWindowsCustomConfiguration_03_CreateWithError(t *testing.T)
 			},
 		},
 	})
+}
+
+func TestUnitResourceWindowsCustomConfiguration_03a_AssignmentErrorRollsBackCreate(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, configMock := setupMockEnvironment()
+	configMock.RegisterAssignmentErrorMock()
+	defer httpmock.DeactivateAndReset()
+	defer configMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_maximal.tf"),
+				ExpectError: regexp.MustCompile("Bad Request|request was invalid or malformed"),
+			},
+		},
+	})
+
+	if count := configMock.DeviceConfigurationCount(); count != 0 {
+		t.Fatalf("assignment failure left %d tenant profiles after rollback; want 0", count)
+	}
 }
 
 func TestUnitResourceWindowsCustomConfiguration_04_Update(t *testing.T) {

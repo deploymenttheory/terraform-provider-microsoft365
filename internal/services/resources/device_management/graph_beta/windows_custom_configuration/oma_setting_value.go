@@ -2,6 +2,7 @@ package graphBetaWindowsCustomConfiguration
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 )
@@ -59,7 +60,7 @@ func parseOmaSettingValue(odataType, value string) (parsedOmaSettingValue, error
 
 	case "#microsoft.graph.omaSettingFloatingPoint":
 		floatValue, err := strconv.ParseFloat(value, 32)
-		if err != nil {
+		if err != nil || math.IsNaN(floatValue) || math.IsInf(floatValue, 0) {
 			return parsedOmaSettingValue{}, fmt.Errorf("value %q is not a valid floating point number", value)
 		}
 		return parsedOmaSettingValue{

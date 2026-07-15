@@ -7,6 +7,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	customvalidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -199,8 +200,23 @@ func (r *WindowsCustomConfigurationResource) Schema(ctx context.Context, _ resou
 					},
 				},
 			},
-			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
+			"assignments": windowsCustomConfigurationAssignmentsSchema(),
 			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}
+}
+
+// windowsCustomConfigurationAssignmentsSchema reuses the common device configuration assignment
+// schema and adds the conditional group_id validation required before this resource mutates the tenant.
+func windowsCustomConfigurationAssignmentsSchema() schema.SetNestedAttribute {
+	assignmentsSchema := commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema()
+	groupIDAttribute := assignmentsSchema.NestedObject.Attributes["group_id"].(schema.StringAttribute)
+	groupIDAttribute.Validators = append(
+		groupIDAttribute.Validators,
+		customvalidator.RequiredWhenEquals("type", types.StringValue("groupAssignmentTarget")),
+		customvalidator.RequiredWhenEquals("type", types.StringValue("exclusionGroupAssignmentTarget")),
+	)
+	assignmentsSchema.NestedObject.Attributes["group_id"] = groupIDAttribute
+
+	return assignmentsSchema
 }

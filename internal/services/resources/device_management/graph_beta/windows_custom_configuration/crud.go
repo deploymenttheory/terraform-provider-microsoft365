@@ -43,6 +43,15 @@ func (r *WindowsCustomConfigurationResource) Create(ctx context.Context, req res
 		return
 	}
 
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for create method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
 	requestResource, err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
@@ -55,15 +64,6 @@ func (r *WindowsCustomConfigurationResource) Create(ctx context.Context, req res
 
 	object.ID = types.StringValue(*requestResource.GetId())
 
-	requestAssignment, err := constructAssignment(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for create method",
-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
 	_, err = r.client.
 		DeviceManagement().
 		DeviceConfigurations().
@@ -72,6 +72,7 @@ func (r *WindowsCustomConfigurationResource) Create(ctx context.Context, req res
 		Post(ctx, requestAssignment, nil)
 
 	if err != nil {
+		r.rollbackCreatedResource(ctx, object.ID.ValueString(), &resp.Diagnostics)
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
@@ -296,6 +297,15 @@ func (r *WindowsCustomConfigurationResource) Update(ctx context.Context, req res
 		return
 	}
 
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
 	_, err = r.client.
 		DeviceManagement().
 		DeviceConfigurations().
@@ -304,16 +314,6 @@ func (r *WindowsCustomConfigurationResource) Update(ctx context.Context, req res
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
-		return
-	}
-
-	// Always handle assignments - either update with new assignments or remove all assignments if nil
-	requestAssignment, err := constructAssignment(ctx, &plan)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for update method",
-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-		)
 		return
 	}
 
@@ -351,6 +351,21 @@ func (r *WindowsCustomConfigurationResource) Update(ctx context.Context, req res
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
+}
+
+// rollbackCreatedResource removes a profile when a later create step fails, preventing an
+// untracked tenant object from being left behind. The original create diagnostic remains primary.
+func (r *WindowsCustomConfigurationResource) rollbackCreatedResource(ctx context.Context, id string, diagnostics *diag.Diagnostics) {
+	if err := r.client.
+		DeviceManagement().
+		DeviceConfigurations().
+		ByDeviceConfigurationId(id).
+		Delete(ctx, nil); err != nil {
+		diagnostics.AddWarning(
+			"Unable to roll back Windows custom configuration",
+			fmt.Sprintf("Assignment failed after creating Windows custom configuration %q, and the provider could not delete it: %s. Remove the profile manually before retrying.", id, err.Error()),
+		)
+	}
 }
 
 // Delete handles the Delete operation for Windows custom configuration profiles.
