@@ -25,6 +25,7 @@ The following client `application` permissions are needed in order to use this r
 - `DeviceManagementConfiguration.Read.All`
 - `DeviceManagementConfiguration.ReadWrite.All`
 - `DeviceManagementServiceConfig.Read.All`
+- `DeviceManagementServiceConfig.ReadWrite.All`
 - `Directory.Read.All`
 - `Group.Read.All`
 - `GroupMember.Read.All`
@@ -70,8 +71,6 @@ admin center, outside of Terraform.
 resource "microsoft365_graph_beta_device_management_visionos_device_enrollment_policy" "minimal" {
   name = "visionOS ADE - Minimal"
 
-  requires_user_authentication = false
-
   support_department   = "IT Support"
   support_phone_number = "+1-555-0100"
 
@@ -83,8 +82,9 @@ resource "microsoft365_graph_beta_device_management_visionos_device_enrollment_p
   }
 }
 
-# Example 2: Maximal visionOS ADE enrollment profile exercising the full settings tree - user
-# affinity, await configuration, locked enrollment, and every Setup Assistant screen toggle.
+# Example 2: Maximal visionOS ADE enrollment profile exercising the full settings tree - await
+# configuration, locked enrollment, and every Setup Assistant screen toggle. requires_user_authentication
+# is omitted: visionOS ADE only supports enrollment without user affinity, so it always defaults to false.
 resource "microsoft365_graph_beta_device_management_visionos_device_enrollment_policy" "maximal" {
   name        = "visionOS ADE - Maximal"
   description = "visionOS ADE enrollment policy exercising the full settings tree"
@@ -99,9 +99,8 @@ resource "microsoft365_graph_beta_device_management_visionos_device_enrollment_p
   # documentation.
   is_default_policy_assignment = true
 
-  requires_user_authentication = true
-  await_device_configured      = true
-  locked_enrollment_enabled    = true
+  await_device_configured   = true
+  locked_enrollment_enabled = true
 
   support_department   = "IT Support"
   support_phone_number = "+1-555-0100"
@@ -139,7 +138,6 @@ resource "microsoft365_graph_beta_device_management_visionos_device_enrollment_p
 ### Required
 
 - `name` (String) The display name of the enrollment profile.
-- `requires_user_authentication` (Boolean) Whether the enrollment requires user authentication (user affinity). When `false`, the device enrolls without an associated user (shared/kiosk device path). visionOS uses the basic user affinity setting - unlike iOS/iPadOS, there is no authentication method choice.
 - `support_department` (String) The department name shown to the user on the Setup Assistant Remote Management pane. Must be between 1 and 125 characters.
 - `support_phone_number` (String) The support phone number shown to the user on the Setup Assistant Remote Management pane. Must be between 1 and 50 characters.
 
@@ -163,6 +161,7 @@ resource "microsoft365_graph_beta_device_management_visionos_device_enrollment_p
 - `locked_enrollment_enabled` (Boolean) Whether enrollment is locked to the authorized user/device, preventing the MDM profile from being removed before enrollment completes.
 - `passcode_disabled` (Boolean) Whether to hide the passcode and password lock pane in Setup Assistant. When shown, users are prompted for a passcode. Always require a passcode for unsecured devices unless access is controlled in some other way (such as through a kiosk mode configuration that restricts the device to one app).
 - `privacy_pane_disabled` (Boolean) Whether to hide the privacy setup pane in Setup Assistant.
+- `requires_user_authentication` (Boolean) Whether the enrollment requires user authentication (user affinity). visionOS Automated Device Enrollment only supports enrollment without user affinity - Microsoft Graph rejects `true` (`ade_useraffinitybasic_1` is not a valid option for this settings catalog template). Unlike iOS/iPadOS, this is not user-configurable; the attribute is retained for parity with the other ADE enrollment policy resources but must be left as `false`.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `screen_time_screen_disabled` (Boolean) Whether to hide the Screen Time pane in Setup Assistant.
 - `siri_disabled` (Boolean) Whether to hide the Siri setup pane in Setup Assistant.
@@ -198,7 +197,8 @@ Optional:
 
 - **Settings catalog**: this resource manages visionOS ADE profiles through the modern
   `/deviceManagement/configurationPolicies` settings catalog endpoint.
-- **User authentication**: visionOS uses the basic user affinity setting - unlike iOS/iPadOS,
+- **User authentication**: visionOS Automated Device Enrollment only supports enrollment without
+  user affinity - Microsoft Graph rejects `requires_user_authentication = true`. Unlike iOS/iPadOS,
   there is no authentication method choice or await-final-configuration option; the separate
   `await_device_configured` toggle controls whether devices are locked in Setup Assistant until
   enrollment-time configuration is installed.

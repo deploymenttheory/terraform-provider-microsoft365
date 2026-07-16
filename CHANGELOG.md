@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.57.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.0-alpha...v0.57.1-alpha) (2026-07-15)
+
+
+### Bug Fixes
+
+* **deps:** update go.sum to remove deprecated dependencies and bump versions ([#3365](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3365)) ([d398ec0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d398ec077ae1d55342f1300193516addd0c48c54))
+
+## [0.57.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.56.0-alpha...v0.57.0-alpha) (2026-07-15)
+
+
+### Features
+
+* add Global Secure Access content policy resource ([#3317](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3317)) ([026edb4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/026edb441b908688ec5d44fa7e10bc6bb59eb438))
+* add Global Secure Access content policy rule resource ([#3364](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3364)) ([67d88d2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/67d88d2543e1fa7ca521f2112b7ccfa7d4021f27))
+* add windows custom configuration (OMA-URI) device profile resource ([#3363](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3363)) ([3c0e37e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3c0e37ee444c418f039b1c859a785d1ec82ffa85))
+* Adds a Microsoft Entra Global Secure Access Intelligent Local Access ([#3263](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3263)) ([07443c1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/07443c187751998dab5b879ee3dbb58d24fc784d))
+* Adds a Microsoft Graph beta resource for Microsoft Entra Global Secure Access Security profile policy links ([#3231](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3231)) ([dfd6aad](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dfd6aadd9d197607d9b6bc4da0794aedd4ffdd8c))
+* Support Global Secure Access Internet policy support ([#3265](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3265)) ([4499fb7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4499fb750d6267a021e811ab3c4c3193658cbbf8))
+* windows managed app protection ([#3262](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3262)) ([4b2befa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4b2befa003a3db7efc364f35a5f68466c9084f5d))
+
+
+### Bug Fixes
+
+* handle Entra eventual consistency when creating service principal token lifetime policy assignments ([#3316](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3316)) ([7690e40](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7690e4091db36c27564a16a806cc94cc4ef2b7d8))
+* OS version regex ([e037e64](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e037e64599292c432808233c0ee88863efbdf051))
+* OS version regex ([#3233](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3233)) ([e037e64](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e037e64599292c432808233c0ee88863efbdf051))
+* verify group and user license assignment changes are actually applied before reporting success ([#3264](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3264)) ([21ba347](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/21ba347faa00a2e3acaf6fe8f88ea1266e31d8a6))
+* winget app computed state drift ([#3318](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3318)) ([58e3d96](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/58e3d96fa874eae67888f4aa1631456bf24f0bee))
+
 ## [0.56.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.55.2-alpha...v0.56.0-alpha) (2026-07-06)
 
 

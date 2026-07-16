@@ -1,0 +1,26 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations(assignments())/$entity",
+  "@odata.type": "#microsoft.graph.windows10CustomConfiguration",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "roleScopeTagIds": ["0"],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "description": null,
+  "displayName": "windows-custom-configuration",
+  "version": 1,
+  "omaSettings": [
+    {
+      "@odata.type": "#microsoft.graph.omaSettingString",
+      "displayName": "Example Setting",
+      "description": null,
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Example/Setting",
+      "secretReferenceValueId": "00000000-0000-0000-0000-000000000000_secret_0",
+      "isEncrypted": true,
+      "value": "****"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/filePolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000201",
+  "name": "unit-test-content-policy-minimal",
+  "description": "",
+  "version": "1.0.0",
+  "lastModifiedDateTime": "2026-07-14T13:13:22.1939318Z",
+  "settings": {
+    "defaultAction": "allow"
+  }
+}

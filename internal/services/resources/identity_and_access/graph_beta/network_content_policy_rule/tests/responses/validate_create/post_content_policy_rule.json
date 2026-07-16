@@ -1,0 +1,37 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/filePolicies('00000000-0000-0000-0000-000000000301')/policyRules/$entity",
+  "@odata.type": "#microsoft.graph.networkaccess.fileRule",
+  "id": "00000000-0000-0000-0000-000000000302",
+  "name": "unit-test-content-policy-rule",
+  "priority": 101,
+  "description": "managed by Terraform",
+  "action": "scanPurview",
+  "settings": {
+    "status": "enabled"
+  },
+  "matchingConditions": {
+    "identities": null,
+    "destinations": [
+      {
+        "@odata.type": "#microsoft.graph.networkaccess.filePolicyWebCategoryDestination",
+        "values": ["AlcoholAndTobacco"]
+      },
+      {
+        "@odata.type": "#microsoft.graph.networkaccess.filePolicyFqdnDestination",
+        "values": ["example.com", "*.example.com"]
+      },
+      {
+        "@odata.type": "#microsoft.graph.networkaccess.filePolicyUrlDestination",
+        "values": ["https://example.com/path"]
+      }
+    ],
+    "fileAttributes": {
+      "activities": "download,upload",
+      "contentTypes": ["text/csv", "application/pdf"],
+      "textContentTypes": ["json", "plain"]
+    },
+    "sources": {
+      "sessionType": "user,agent"
+    }
+  }
+}
