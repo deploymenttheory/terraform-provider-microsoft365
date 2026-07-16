@@ -145,6 +145,8 @@ Optional:
 - `end_address` (String) The ending IP address when `type` is `ip_range`.
 - `value` (String) The IP address value when `type` is `ip_address`, or CIDR value when `type` is `ip_subnet`.
 
+
+
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
