@@ -1,0 +1,2 @@
+# {resource_id}
+terraform import microsoft365_graph_beta_device_and_app_management_windows_managed_app_protection.example windows-managed-app-protection-policy-id
