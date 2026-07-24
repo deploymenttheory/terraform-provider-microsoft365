@@ -7,7 +7,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
   destination_host      = "voip.contoso.com"
   destination_type      = "fqdn"
   ports                 = ["5060-5061", "10000-20000"]
-  protocol              = "udp"
+  protocol              = ["udp"]
 
   timeouts = {
     create = "5m"

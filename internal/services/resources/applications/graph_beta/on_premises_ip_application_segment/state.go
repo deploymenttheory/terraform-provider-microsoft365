@@ -3,6 +3,7 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -21,7 +22,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *OnPremisesIpAp
 	}
 	data.Ports = convert.GraphToFrameworkStringSet(ctx, remoteResource.ports)
 	if remoteResource.protocol != nil {
-		data.Protocol = convert.GraphToFrameworkString(remoteResource.protocol)
+		data.Protocol = convert.GraphToFrameworkStringSet(ctx, terraformProtocols(*remoteResource.protocol))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
@@ -37,4 +38,16 @@ func terraformDestinationType(destinationType string) string {
 	}
 
 	return destinationType
+}
+
+func terraformProtocols(protocol string) []string {
+	parts := strings.Split(protocol, ",")
+	protocols := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if protocol := strings.TrimSpace(part); protocol != "" {
+			protocols = append(protocols, protocol)
+		}
+	}
+
+	return protocols
 }

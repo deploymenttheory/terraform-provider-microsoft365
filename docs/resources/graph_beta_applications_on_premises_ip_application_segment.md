@@ -53,7 +53,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
   destination_host      = "192.168.1.100"
   destination_type      = "ipAddress"
   ports                 = ["80-80"]
-  protocol              = "tcp"
+  protocol              = ["tcp"]
 }
 ```
 
@@ -71,7 +71,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
   destination_host      = "192.168.1.0/24"
   destination_type      = "ipRangeCidr"
   ports                 = ["443-443"]
-  protocol              = "tcp"
+  protocol              = ["tcp"]
 
   timeouts = {
     create = "5m"
@@ -96,7 +96,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
   destination_host      = "app.contoso.com"
   destination_type      = "fqdn"
   ports                 = ["443-443", "8443-8443"]
-  protocol              = "tcp"
+  protocol              = ["tcp"]
 
   timeouts = {
     create = "5m"
@@ -126,7 +126,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
     "8080-8080",
     "8443-8443"
   ]
-  protocol = "tcp"
+  protocol = ["tcp"]
 
   timeouts = {
     create = "5m"
@@ -151,7 +151,31 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
   destination_host      = "voip.contoso.com"
   destination_type      = "fqdn"
   ports                 = ["5060-5061", "10000-20000"]
-  protocol              = "udp"
+  protocol              = ["udp"]
+
+  timeouts = {
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+    delete = "5m"
+  }
+}
+```
+
+### TCP and UDP Protocols
+
+This example enables both protocols. Because `protocol` is a set, `["tcp", "udp"]` and `["udp", "tcp"]` are equivalent.
+
+```terraform
+# IP Application Segment with TCP and UDP Protocols
+# A set models the protocols without depending on input order.
+
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "tcp_udp_app" {
+  application_object_id = "00000000-0000-0000-0000-000000000000"
+  destination_host      = "192.168.1.100"
+  destination_type      = "ipAddress"
+  ports                 = ["443-443"]
+  protocol              = ["tcp", "udp"]
 
   timeouts = {
     create = "5m"
@@ -171,7 +195,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
 - `destination_host` (String) Either the IP address, IP range, or FQDN of the application segment, with or without wildcards.
 - `destination_type` (String) The type of destination for the application segment.The supported values are: `ipAddress`, `ipRangeCidr`, and `fqdn`. Microsoft Learn lists additional enum members for `ipApplicationSegment`, but this application-scoped Graph endpoint currently rejects `dnsSuffix` for nonweb applications and does not create a usable address range for `ipRange`.
 - `ports` (Set of String) List of ports supported for the application segment.
-- `protocol` (String) Indicates the protocol of the network traffic acquired for the application segment.The possible values are: `tcp`, `udp`, `unknownFutureValue`.
+- `protocol` (Set of String) The protocols of the network traffic acquired for the application segment. Supported values are `tcp` and `udp`; specify both values to enable both protocols.
 
 ### Optional
 

@@ -42,6 +42,9 @@ var (
 
 	// Enables identity schema for list resource support
 	_ resource.ResourceWithIdentity = &OnPremisesIpApplicationSegmentResource{}
+
+	// Enables migration of protocol from string to set(string)
+	_ resource.ResourceWithUpgradeState = &OnPremisesIpApplicationSegmentResource{}
 )
 
 func NewOnPremisesIpApplicationSegmentResource() resource.Resource {
@@ -102,6 +105,7 @@ func (r *OnPremisesIpApplicationSegmentResource) IdentitySchema(ctx context.Cont
 // Schema defines the schema for the resource.
 func (r *OnPremisesIpApplicationSegmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Version: 1,
 		MarkdownDescription: "Manages an IP application segment for on-premises publishing. " +
 			"IP application segments define the destination hosts, ports, and protocols for applications published through Azure AD Application Proxy.",
 		Attributes: map[string]schema.Attribute{
@@ -142,12 +146,17 @@ func (r *OnPremisesIpApplicationSegmentResource) Schema(ctx context.Context, req
 					),
 				},
 			},
-			"protocol": schema.StringAttribute{
-				MarkdownDescription: "Indicates the protocol of the network traffic acquired for the application segment." +
-					"The possible values are: `tcp`, `udp`, `unknownFutureValue`.",
-				Required: true,
-				Validators: []validator.String{
-					stringvalidator.OneOf("tcp", "udp"),
+			"protocol": schema.SetAttribute{
+				MarkdownDescription: "The protocols of the network traffic acquired for the application segment. " +
+					"Supported values are `tcp` and `udp`; specify both values to enable both protocols.",
+				Required:    true,
+				ElementType: types.StringType,
+				Validators: []validator.Set{
+					setvalidator.SizeAtLeast(1),
+					setvalidator.SizeAtMost(2),
+					setvalidator.ValueStringsAre(
+						stringvalidator.OneOf("tcp", "udp"),
+					),
 				},
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
