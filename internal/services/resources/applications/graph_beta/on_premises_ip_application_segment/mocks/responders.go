@@ -80,7 +80,7 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 			responseObj["port"] = port
 		}
 		if protocol, ok := requestBody["protocol"]; ok {
-			responseObj["protocol"] = protocol
+			responseObj["protocol"] = normalizeProtocolResponse(protocol)
 		}
 
 		// Store in mock state
@@ -139,6 +139,9 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 
 		// Update fields from request
 		for key, value := range requestBody {
+			if key == "protocol" {
+				value = normalizeProtocolResponse(value)
+			}
 			segment[key] = value
 		}
 		mockState.ipApplicationSegments[segmentId] = segment
@@ -165,6 +168,15 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 
 		return httpmock.NewStringResponse(204, ""), nil
 	})
+}
+
+func normalizeProtocolResponse(value any) any {
+	protocol, ok := value.(string)
+	if !ok {
+		return value
+	}
+
+	return strings.ReplaceAll(protocol, " ", "")
 }
 
 func (m *OnPremisesIpApplicationSegmentMock) RegisterErrorMocks() {

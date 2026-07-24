@@ -30,5 +30,5 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
   destination_host      = "192.168.1.0/24"
   destination_type      = "ipRangeCidr"
   ports                 = ["443-443"]
-  protocol              = "tcp"
+  protocol              = ["tcp"]
 }

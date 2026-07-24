@@ -36,17 +36,52 @@ func TestTerraformDestinationType(t *testing.T) {
 	}
 }
 
+func TestGraphProtocols(t *testing.T) {
+	protocols := []string{"udp", "tcp"}
+	if got := graphProtocols(protocols); got != "tcp,udp" {
+		t.Fatalf("graphProtocols(%q) = %q, expected %q", protocols, got, "tcp,udp")
+	}
+}
+
+func TestTerraformProtocols(t *testing.T) {
+	tests := map[string][]string{
+		"tcp":      {"tcp"},
+		"udp":      {"udp"},
+		"tcp,udp":  {"tcp", "udp"},
+		"udp, tcp": {"udp", "tcp"},
+	}
+
+	for input, expected := range tests {
+		got := terraformProtocols(input)
+		if len(got) != len(expected) {
+			t.Fatalf("terraformProtocols(%q) = %q, expected %q", input, got, expected)
+		}
+		for i := range expected {
+			if got[i] != expected[i] {
+				t.Fatalf("terraformProtocols(%q) = %q, expected %q", input, got, expected)
+			}
+		}
+	}
+}
+
 func TestConstructResourceMapsIpAddressForGraph(t *testing.T) {
 	ports, diags := types.SetValue(types.StringType, []attr.Value{types.StringValue("443-443")})
 	if diags.HasError() {
 		t.Fatalf("failed to build ports set: %v", diags)
+	}
+	protocols, diags := types.SetValue(types.StringType, []attr.Value{
+		types.StringValue("udp"),
+		types.StringValue("tcp"),
+	})
+	if diags.HasError() {
+		t.Fatalf("failed to build protocol set: %v", diags)
 	}
 
 	body, err := constructResource(context.Background(), &OnPremisesIpApplicationSegmentResourceModel{
 		DestinationHost: types.StringValue("10.10.10.10"),
 		DestinationType: types.StringValue("ipAddress"),
 		Ports:           ports,
-		Protocol:        types.StringValue("tcp"),
+		Protocol:        protocols,
 	})
 	if err != nil {
 		t.Fatalf("constructResource returned error: %v", err)
@@ -65,5 +100,8 @@ func TestConstructResourceMapsIpAddressForGraph(t *testing.T) {
 	}
 	if len(segmentBody.ports) != 1 || segmentBody.ports[0] != "443-443" {
 		t.Fatalf("ports = %#v, expected [443-443]", segmentBody.ports)
+	}
+	if segmentBody.protocol != "tcp,udp" {
+		t.Fatalf("protocol = %q, expected %q", segmentBody.protocol, "tcp,udp")
 	}
 }

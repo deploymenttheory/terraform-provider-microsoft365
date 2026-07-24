@@ -66,7 +66,8 @@ func TestAccResourceIpApplicationSegment_01_Minimal(t *testing.T) {
 					check.That(resourceType+".ip_segment_minimal").Key("application_object_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".ip_segment_minimal").Key("destination_host").HasValue("192.168.1.100"),
 					check.That(resourceType+".ip_segment_minimal").Key("destination_type").HasValue("ipAddress"),
-					check.That(resourceType+".ip_segment_minimal").Key("protocol").HasValue("tcp"),
+					check.That(resourceType+".ip_segment_minimal").Key("protocol.#").HasValue("1"),
+					check.That(resourceType+".ip_segment_minimal").Key("protocol.*").ContainsTypeSetElement("tcp"),
 
 					// Ports
 					check.That(resourceType+".ip_segment_minimal").Key("ports.#").HasValue("1"),
@@ -119,7 +120,9 @@ func TestAccResourceIpApplicationSegment_02_Maximal(t *testing.T) {
 					check.That(resourceType+".ip_segment_maximal").Key("application_object_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".ip_segment_maximal").Key("destination_host").HasValue("*.example.com"),
 					check.That(resourceType+".ip_segment_maximal").Key("destination_type").HasValue("fqdn"),
-					check.That(resourceType+".ip_segment_maximal").Key("protocol").HasValue("tcp"),
+					check.That(resourceType+".ip_segment_maximal").Key("protocol.#").HasValue("2"),
+					check.That(resourceType+".ip_segment_maximal").Key("protocol.*").ContainsTypeSetElement("tcp"),
+					check.That(resourceType+".ip_segment_maximal").Key("protocol.*").ContainsTypeSetElement("udp"),
 
 					// Ports
 					check.That(resourceType+".ip_segment_maximal").Key("ports.#").HasValue("4"),
@@ -174,7 +177,8 @@ func TestAccResourceIpApplicationSegment_03_IpRange(t *testing.T) {
 					check.That(resourceType+".ip_segment_range").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".ip_segment_range").Key("destination_host").HasValue("192.168.1.0/24"),
 					check.That(resourceType+".ip_segment_range").Key("destination_type").HasValue("ipRangeCidr"),
-					check.That(resourceType+".ip_segment_range").Key("protocol").HasValue("tcp"),
+					check.That(resourceType+".ip_segment_range").Key("protocol.#").HasValue("1"),
+					check.That(resourceType+".ip_segment_range").Key("protocol.*").ContainsTypeSetElement("tcp"),
 					check.That(resourceType+".ip_segment_range").Key("ports.#").HasValue("1"),
 					check.That(resourceType+".ip_segment_range").Key("ports.*").ContainsTypeSetElement("443-443"),
 				),
@@ -224,7 +228,8 @@ func TestAccResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 					check.That(resourceType+".ip_segment_fqdn").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".ip_segment_fqdn").Key("destination_host").HasValue("app.example.com"),
 					check.That(resourceType+".ip_segment_fqdn").Key("destination_type").HasValue("fqdn"),
-					check.That(resourceType+".ip_segment_fqdn").Key("protocol").HasValue("tcp"),
+					check.That(resourceType+".ip_segment_fqdn").Key("protocol.#").HasValue("1"),
+					check.That(resourceType+".ip_segment_fqdn").Key("protocol.*").ContainsTypeSetElement("tcp"),
 					check.That(resourceType+".ip_segment_fqdn").Key("ports.#").HasValue("2"),
 					check.That(resourceType+".ip_segment_fqdn").Key("ports.*").ContainsTypeSetElement("443-443"),
 					check.That(resourceType+".ip_segment_fqdn").Key("ports.*").ContainsTypeSetElement("8443-8443"),

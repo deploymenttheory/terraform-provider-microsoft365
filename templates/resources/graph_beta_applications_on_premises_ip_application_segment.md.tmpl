@@ -69,6 +69,12 @@ This example demonstrates configuration using UDP protocol, useful for applicati
 
 {{ tffile "examples/resources/microsoft365_graph_beta_applications_on_premises_ip_application_segment/resource_udp_protocol.tf" }}
 
+### TCP and UDP Protocols
+
+This example enables both protocols. Because `protocol` is a set, `["tcp", "udp"]` and `["udp", "tcp"]` are equivalent.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_on_premises_ip_application_segment/resource_tcp_udp_protocols.tf" }}
+
 {{ .SchemaMarkdown | trimspace }}
 
 ## Import
