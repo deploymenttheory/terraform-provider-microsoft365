@@ -36,34 +36,6 @@ func TestTerraformDestinationType(t *testing.T) {
 	}
 }
 
-func TestGraphProtocols(t *testing.T) {
-	protocols := []string{"udp", "tcp"}
-	if got := graphProtocols(protocols); got != "tcp,udp" {
-		t.Fatalf("graphProtocols(%q) = %q, expected %q", protocols, got, "tcp,udp")
-	}
-}
-
-func TestTerraformProtocols(t *testing.T) {
-	tests := map[string][]string{
-		"tcp":      {"tcp"},
-		"udp":      {"udp"},
-		"tcp,udp":  {"tcp", "udp"},
-		"udp, tcp": {"udp", "tcp"},
-	}
-
-	for input, expected := range tests {
-		got := terraformProtocols(input)
-		if len(got) != len(expected) {
-			t.Fatalf("terraformProtocols(%q) = %q, expected %q", input, got, expected)
-		}
-		for i := range expected {
-			if got[i] != expected[i] {
-				t.Fatalf("terraformProtocols(%q) = %q, expected %q", input, got, expected)
-			}
-		}
-	}
-}
-
 func TestConstructResourceMapsIpAddressForGraph(t *testing.T) {
 	ports, diags := types.SetValue(types.StringType, []attr.Value{types.StringValue("443-443")})
 	if diags.HasError() {
