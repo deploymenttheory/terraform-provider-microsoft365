@@ -176,7 +176,12 @@ func normalizeProtocolResponse(value any) any {
 		return value
 	}
 
-	return strings.ReplaceAll(protocol, " ", "")
+	protocols := strings.Split(protocol, ",")
+	for i := range protocols {
+		protocols[i] = strings.TrimSpace(protocols[i])
+	}
+
+	return strings.Join(protocols, ",")
 }
 
 func (m *OnPremisesIpApplicationSegmentMock) RegisterErrorMocks() {
