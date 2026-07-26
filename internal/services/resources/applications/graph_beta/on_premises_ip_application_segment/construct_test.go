@@ -41,12 +41,19 @@ func TestConstructResourceMapsIpAddressForGraph(t *testing.T) {
 	if diags.HasError() {
 		t.Fatalf("failed to build ports set: %v", diags)
 	}
+	protocols, diags := types.SetValue(types.StringType, []attr.Value{
+		types.StringValue("udp"),
+		types.StringValue("tcp"),
+	})
+	if diags.HasError() {
+		t.Fatalf("failed to build protocol set: %v", diags)
+	}
 
 	body, err := constructResource(context.Background(), &OnPremisesIpApplicationSegmentResourceModel{
 		DestinationHost: types.StringValue("10.10.10.10"),
 		DestinationType: types.StringValue("ipAddress"),
 		Ports:           ports,
-		Protocol:        types.StringValue("tcp"),
+		Protocol:        protocols,
 	})
 	if err != nil {
 		t.Fatalf("constructResource returned error: %v", err)
@@ -65,5 +72,8 @@ func TestConstructResourceMapsIpAddressForGraph(t *testing.T) {
 	}
 	if len(segmentBody.ports) != 1 || segmentBody.ports[0] != "443-443" {
 		t.Fatalf("ports = %#v, expected [443-443]", segmentBody.ports)
+	}
+	if segmentBody.protocol != "tcp,udp" {
+		t.Fatalf("protocol = %q, expected %q", segmentBody.protocol, "tcp,udp")
 	}
 }

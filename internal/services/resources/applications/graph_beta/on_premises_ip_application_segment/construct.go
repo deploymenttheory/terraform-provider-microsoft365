@@ -3,6 +3,8 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -31,8 +33,10 @@ func constructResource(ctx context.Context, data *OnPremisesIpApplicationSegment
 		return nil, fmt.Errorf("failed to set ports: %w", err)
 	}
 
-	if !data.Protocol.IsNull() && !data.Protocol.IsUnknown() {
-		requestBody.protocol = data.Protocol.ValueString()
+	if err := convert.FrameworkToGraphStringSet(ctx, data.Protocol, func(protocols []string) {
+		requestBody.protocol = graphProtocols(protocols)
+	}); err != nil {
+		return nil, fmt.Errorf("failed to set protocol: %w", err)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
@@ -70,6 +74,11 @@ func graphDestinationType(destinationType string) string {
 	}
 
 	return destinationType
+}
+
+func graphProtocols(protocols []string) string {
+	sort.Strings(protocols)
+	return strings.Join(protocols, ",")
 }
 
 type ipApplicationSegmentRequestBody struct {

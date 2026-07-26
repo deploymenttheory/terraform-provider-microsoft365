@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
     "8080-8080",
     "8443-8443"
   ]
-  protocol = "tcp"
+  protocol = ["tcp"]
 
   timeouts = {
     create = "5m"
