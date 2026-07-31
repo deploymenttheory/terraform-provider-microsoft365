@@ -120,6 +120,31 @@ func TestUnitResourceIpApplicationSegment_03_IpRange(t *testing.T) {
 	})
 }
 
+func TestUnitResourceIpApplicationSegment_03a_IpRangeStartEnd(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, ipSegmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer ipSegmentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigIpSegmentRangeStartEnd(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "destination_host", "192.168.1.1..192.168.1.10"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "destination_type", "ipRange"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "protocol.#", "1"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "protocol.*", "tcp"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "ports.#", "1"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "ports.*", "80-80"),
+				),
+			},
+		},
+	})
+}
+
 func TestUnitResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
@@ -196,6 +221,14 @@ func testConfigIpSegmentRange() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_ip_range.tf")
 	if err != nil {
 		panic("failed to load ip application segment range config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigIpSegmentRangeStartEnd() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_ip_range_start_end.tf")
+	if err != nil {
+		panic("failed to load ip application segment range start..end config: " + err.Error())
 	}
 	return unitTestConfig
 }

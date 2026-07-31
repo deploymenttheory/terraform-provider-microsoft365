@@ -124,16 +124,18 @@ func (r *OnPremisesIpApplicationSegmentResource) Schema(ctx context.Context, req
 				},
 			},
 			"destination_host": schema.StringAttribute{
-				MarkdownDescription: "Either the IP address, IP range, or FQDN of the application segment, with or without wildcards.",
-				Required:            true,
+				MarkdownDescription: "Either the IP address, IP range, or FQDN of the application segment, with or without wildcards. " +
+					"For `destination_type = \"ipRange\"`, use the start and end addresses separated by `..`, for example `192.168.1.1..192.168.1.10`. " +
+					"For CIDR notation such as `192.168.1.0/24`, use `destination_type = \"ipRangeCidr\"`; the Graph API normalizes CIDR hosts to `ipRangeCidr` regardless of the requested type.",
+				Required: true,
 			},
 			"destination_type": schema.StringAttribute{
 				MarkdownDescription: "The type of destination for the application segment." +
-					"The supported values are: `ipAddress`, `ipRangeCidr`, and `fqdn`. " +
-					"Microsoft Learn lists additional enum members for `ipApplicationSegment`, but this application-scoped Graph endpoint currently rejects `dnsSuffix` for nonweb applications and does not create a usable address range for `ipRange`.",
+					"The supported values are: `ipAddress`, `ipRange`, `ipRangeCidr`, and `fqdn`. " +
+					"Microsoft Learn also lists `dnsSuffix` for `ipApplicationSegment`, but this resource does not support it because the application-scoped Graph endpoint discards `ports` and `protocol` for `dnsSuffix` segments, which this resource requires.",
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("ipAddress", "ipRangeCidr", "fqdn"),
+					stringvalidator.OneOf("ipAddress", "ipRange", "ipRangeCidr", "fqdn"),
 				},
 			},
 			"ports": schema.SetAttribute{

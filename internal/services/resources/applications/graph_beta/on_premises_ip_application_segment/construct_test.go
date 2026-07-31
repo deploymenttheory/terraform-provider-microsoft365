@@ -11,6 +11,7 @@ import (
 func TestGraphDestinationType(t *testing.T) {
 	tests := map[string]string{
 		"ipAddress":   "ip",
+		"ipRange":     "ipRange",
 		"ipRangeCidr": "ipRangeCidr",
 		"fqdn":        "fqdn",
 	}
@@ -25,6 +26,7 @@ func TestGraphDestinationType(t *testing.T) {
 func TestTerraformDestinationType(t *testing.T) {
 	tests := map[string]string{
 		"ip":          "ipAddress",
+		"ipRange":     "ipRange",
 		"ipRangeCidr": "ipRangeCidr",
 		"fqdn":        "fqdn",
 	}

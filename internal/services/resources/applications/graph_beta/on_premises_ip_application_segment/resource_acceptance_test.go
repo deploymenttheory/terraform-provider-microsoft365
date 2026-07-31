@@ -196,6 +196,57 @@ func TestAccResourceIpApplicationSegment_03_IpRange(t *testing.T) {
 	})
 }
 
+// TestAccResourceIpApplicationSegment_03a_IpRangeStartEnd tests IP range (start..end) configuration
+func TestAccResourceIpApplicationSegment_03a_IpRangeStartEnd(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating IP range (start..end) application segment")
+				},
+				Config: loadAcceptanceTestTerraform("resource_ip_range_start_end.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("IP application segment", 10*time.Second)
+						time.Sleep(10 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".ip_segment_range_start_end").ExistsInGraph(testResource),
+					check.That(resourceType+".ip_segment_range_start_end").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ip_segment_range_start_end").Key("destination_host").HasValue("192.168.1.1..192.168.1.10"),
+					check.That(resourceType+".ip_segment_range_start_end").Key("destination_type").HasValue("ipRange"),
+					check.That(resourceType+".ip_segment_range_start_end").Key("protocol.#").HasValue("1"),
+					check.That(resourceType+".ip_segment_range_start_end").Key("protocol.*").ContainsTypeSetElement("tcp"),
+					check.That(resourceType+".ip_segment_range_start_end").Key("ports.#").HasValue("1"),
+					check.That(resourceType+".ip_segment_range_start_end").Key("ports.*").ContainsTypeSetElement("80-80"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing IP range (start..end) application segment")
+				},
+				ResourceName:            resourceType + ".ip_segment_range_start_end",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
 // TestAccIpApplicationSegmentResource_FQDN tests FQDN configuration
 func TestAccResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 	resource.Test(t, resource.TestCase{
