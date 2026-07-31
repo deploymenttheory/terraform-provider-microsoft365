@@ -38,6 +38,37 @@ func TestTerraformDestinationType(t *testing.T) {
 	}
 }
 
+func TestValidateIpRangeHost(t *testing.T) {
+	valid := []string{
+		"192.168.1.1..192.168.1.10",
+		"192.168.1.5..192.168.1.5",
+		"10.0.0.0..10.255.255.255",
+	}
+	for _, host := range valid {
+		if err := validateIpRangeHost(host); err != nil {
+			t.Fatalf("validateIpRangeHost(%q) = %v, expected nil", host, err)
+		}
+	}
+
+	invalid := []string{
+		"192.168.1.0/24",            // CIDR is stored as ipRangeCidr by Graph
+		"192.168.1.5",               // single IP is stored as ip by Graph
+		"host.example.test",         // FQDN is stored as fqdn by Graph
+		"192.168.1.1-192.168.1.10",  // hyphenated ranges return 400
+		"192.168.1.10..192.168.1.1", // reversed ranges return 500
+		"2001:db8::1..2001:db8::5",  // IPv6 ranges return 400
+		"192.168.1.1..192.168.1.10..192.168.1.20",
+		"192.168.1.1..",
+		"..192.168.1.10",
+		"",
+	}
+	for _, host := range invalid {
+		if err := validateIpRangeHost(host); err == nil {
+			t.Fatalf("validateIpRangeHost(%q) = nil, expected error", host)
+		}
+	}
+}
+
 func TestConstructResourceMapsIpAddressForGraph(t *testing.T) {
 	ports, diags := types.SetValue(types.StringType, []attr.Value{types.StringValue("443-443")})
 	if diags.HasError() {

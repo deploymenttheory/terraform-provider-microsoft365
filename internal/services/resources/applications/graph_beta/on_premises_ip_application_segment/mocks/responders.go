@@ -166,13 +166,16 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 }
 
 // normalizeSegmentRequest mirrors the real beta endpoint's observed behavior
-// for destination types this resource does not send verbatim. It mutates
-// requestBody in place and returns a non-nil error response when the real
-// endpoint would reject the request:
+// for destination types this resource does not send verbatim. The real
+// endpoint infers the stored destination type from the host format (CIDR hosts
+// become "ipRangeCidr", single IPs become "ip", FQDNs become "fqdn"); the
+// resource's ValidateConfig prevents such mismatches from being sent for
+// "ipRange". It mutates requestBody in place and returns a non-nil error
+// response when the real endpoint would reject the request:
 //   - "ipRange" requires destinationHost as start and end addresses separated
-//     by "..", e.g. "192.168.1.1..192.168.1.10"; other range forms return 400
-//     DestinationHost_InvalidIP, while CIDR hosts are normalized to
-//     destinationType "ipRangeCidr".
+//     by "..", e.g. "192.168.1.1..192.168.1.10"; CIDR hosts are normalized to
+//     destinationType "ipRangeCidr" and other forms return 400
+//     DestinationHost_InvalidIP.
 //   - "dnsSuffix" is accepted, but Graph discards the segment's ports
 //     (returned as []) and protocol (returned as "0").
 func normalizeSegmentRequest(requestBody map[string]any) *http.Response {
