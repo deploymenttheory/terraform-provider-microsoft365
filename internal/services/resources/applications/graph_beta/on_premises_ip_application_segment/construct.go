@@ -60,13 +60,21 @@ func graphDestinationType(destinationType string) string {
 	// The beta endpoint currently behaves differently for a single IP segment:
 	// POSTing destinationType "ipAddress" returns 400 InvalidJson_BadRequest
 	// ("Valid JSON content expected."), while destinationType "ip" succeeds.
-	// Direct API checks also showed dnsSuffix returning 400
-	// Invalid_AppSegments_NonwebApp_Duplicate ("DNS suffix can only be added to
-	// Quick Access configuration") and ipRange with a host range returning
-	// DestinationHost_InvalidIP. The schema only allows values observed to create
-	// and read back through this application-scoped endpoint. Wildcard hosts such
-	// as "*.internal.example.com" are supported when sent as destinationType fqdn;
-	// they should not be modeled as dnsSuffix for this endpoint.
+	// Direct API checks (2026-07) showed:
+	//   - The endpoint infers the stored destination type from the host format
+	//     regardless of the requested destinationType. ipRange stays ipRange
+	//     only for IPv4 "start..end" hosts (e.g. "192.168.1.1..192.168.1.10");
+	//     CIDR, single-IP, and FQDN hosts are stored as ipRangeCidr, ip, and
+	//     fqdn respectively, hyphenated ranges return 400
+	//     DestinationHost_InvalidIP, reversed ranges return 500, and IPv6
+	//     ranges return 400 DestinationHost_Invalid. ValidateConfig enforces
+	//     the "start..end" format at plan time to prevent drift.
+	//   - dnsSuffix is accepted, but Graph discards the segment's ports
+	//     (returned as []) and protocol (returned as "0"), so it cannot
+	//     round-trip through this resource's required ports/protocol schema.
+	// The schema only allows values observed to create and read back through
+	// this application-scoped endpoint. Wildcard hosts such as
+	// "*.internal.example.com" are supported when sent as destinationType fqdn.
 	// Keep Terraform's public schema aligned with Learn, but send the literal
 	// accepted by Graph.
 	if destinationType == "ipAddress" {

@@ -82,6 +82,32 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
 }
 ```
 
+### IP Range (start..end Notation)
+
+This example shows how to configure an application segment for a contiguous range of IP addresses using the `start..end` notation.
+
+```terraform
+# IP Application Segment with IP Range (start..end notation)
+# This example demonstrates how to configure an application segment for a
+# contiguous range of IP addresses using the start..end notation required by
+# the Graph API for destination_type = "ipRange".
+
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "ip_range_start_end" {
+  application_object_id = "00000000-0000-0000-0000-000000000000"
+  destination_host      = "192.168.1.1..192.168.1.10"
+  destination_type      = "ipRange"
+  ports                 = ["80-80"]
+  protocol              = ["tcp"]
+
+  timeouts = {
+    create = "5m"
+    read   = "5m"
+    update = "5m"
+    delete = "5m"
+  }
+}
+```
+
 ### Fully Qualified Domain Name (FQDN)
 
 This example demonstrates configuration using a specific hostname with multiple ports.
@@ -168,8 +194,8 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
 ### Required
 
 - `application_object_id` (String) The unique object identifier of the application.
-- `destination_host` (String) Either the IP address, IP range, or FQDN of the application segment, with or without wildcards.
-- `destination_type` (String) The type of destination for the application segment.The supported values are: `ipAddress`, `ipRangeCidr`, and `fqdn`. Microsoft Learn lists additional enum members for `ipApplicationSegment`, but this application-scoped Graph endpoint currently rejects `dnsSuffix` for nonweb applications and does not create a usable address range for `ipRange`.
+- `destination_host` (String) Either the IP address, IP range, or FQDN of the application segment, with or without wildcards. For `destination_type = "ipRange"`, use the IPv4 start and end addresses separated by `..` with start <= end, for example `192.168.1.1..192.168.1.10`; this format is validated at plan time because the Graph API infers the stored destination type from the host format (for example, a CIDR host such as `192.168.1.0/24` is stored as `ipRangeCidr` even when `ipRange` is requested), which would otherwise cause a permanent diff.
+- `destination_type` (String) The type of destination for the application segment. The supported values are: `ipAddress`, `ipRange`, `ipRangeCidr`, and `fqdn`. Microsoft Learn also lists `dnsSuffix` for `ipApplicationSegment`, but this resource does not support it because the application-scoped Graph endpoint discards `ports` and `protocol` for `dnsSuffix` segments, which this resource requires.
 - `ports` (Set of String) List of ports supported for the application segment.
 - `protocol` (Set of String) The protocols of the network traffic acquired for the application segment. Supported values are `tcp` and `udp`; specify both values to enable both protocols.
 

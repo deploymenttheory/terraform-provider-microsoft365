@@ -120,6 +120,69 @@ func TestUnitResourceIpApplicationSegment_03_IpRange(t *testing.T) {
 	})
 }
 
+func TestUnitResourceIpApplicationSegment_03a_IpRangeStartEnd(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, ipSegmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer ipSegmentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigIpSegmentRangeStartEnd(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "destination_host", "192.168.1.1..192.168.1.10"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "destination_type", "ipRange"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "protocol.#", "1"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "protocol.*", "tcp"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "ports.#", "1"),
+					resource.TestCheckTypeSetElemAttr("microsoft365_graph_beta_applications_on_premises_ip_application_segment.ip_segment_range_start_end", "ports.*", "80-80"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceIpApplicationSegment_03b_IpRangeInvalidHost(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, ipSegmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer ipSegmentMock.CleanupMockState()
+
+	// The Graph API infers the stored destination type from the host format,
+	// so these configurations would apply successfully but drift permanently.
+	// They must be rejected at plan time.
+	invalidHosts := []string{
+		"192.168.1.0/24",            // stored as ipRangeCidr
+		"192.168.1.5",               // stored as ip
+		"192.168.1.1-192.168.1.10",  // 400 DestinationHost_InvalidIP
+		"192.168.1.10..192.168.1.1", // 500 InternalServerError
+	}
+
+	for _, host := range invalidHosts {
+		config := `
+resource "microsoft365_graph_beta_applications_on_premises_ip_application_segment" "ip_segment_range_invalid" {
+  application_object_id = "12345678-1234-1234-1234-123456789012"
+  destination_host      = "` + host + `"
+  destination_type      = "ipRange"
+  ports                 = ["80-80"]
+  protocol              = ["tcp"]
+}
+`
+		resource.UnitTest(t, resource.TestCase{
+			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			Steps: []resource.TestStep{
+				{
+					Config:      config,
+					ExpectError: regexp.MustCompile(`Invalid IP Range Destination Host`),
+				},
+			},
+		})
+	}
+}
+
 func TestUnitResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
@@ -196,6 +259,14 @@ func testConfigIpSegmentRange() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_ip_range.tf")
 	if err != nil {
 		panic("failed to load ip application segment range config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigIpSegmentRangeStartEnd() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_ip_range_start_end.tf")
+	if err != nil {
+		panic("failed to load ip application segment range start..end config: " + err.Error())
 	}
 	return unitTestConfig
 }
