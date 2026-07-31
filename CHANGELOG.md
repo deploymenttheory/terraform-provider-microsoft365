@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.58.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.1-alpha...v0.58.0-alpha) (2026-07-31)
+
+
+### Features
+
+* support ipRange destination type for on-premises IP application segments ([#3490](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3490)) ([16eb2c0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/16eb2c0222bcddbe1a9fd30c56630010302a5de8))
+
+
+### Bug Fixes
+
+* support multiple on-premises IP segment protocols ([#3449](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3449)) ([ab8220c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ab8220c5e95dbb66ca0618f7346eb3ff85c3ce70))
+
 ## [0.57.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.0-alpha...v0.57.1-alpha) (2026-07-15)
 
 
