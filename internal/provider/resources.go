@@ -32,6 +32,7 @@ import (
 	graphBetaServicePrincipal "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal"
 	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
 	graphBetaServicePrincipalOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_owner"
+	graphBetaServicePrincipalTokenSigningCertificate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_token_signing_certificate"
 	graphBetaApplicationsServicePrincipalTokenLifetimePolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_token_lifetime_policy_assignment"
 	graphBetaApplicationsTokenLifetimePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/token_lifetime_policy"
 
@@ -229,6 +230,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaServicePrincipal.NewServicePrincipalResource,
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
 		graphBetaServicePrincipalOwner.NewServicePrincipalOwnerResource,
+		graphBetaServicePrincipalTokenSigningCertificate.NewServicePrincipalTokenSigningCertificateResource,
 		graphBetaApplicationsTokenLifetimePolicy.NewTokenLifetimePolicyResource,
 		graphBetaApplicationsServicePrincipalTokenLifetimePolicyAssignment.NewServicePrincipalTokenLifetimePolicyAssignmentResource,
 
