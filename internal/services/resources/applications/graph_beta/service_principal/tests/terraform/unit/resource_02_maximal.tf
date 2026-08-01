@@ -9,5 +9,10 @@ resource "microsoft365_graph_beta_applications_service_principal" "test_maximal"
   notification_email_addresses  = ["admin@example.com", "security@example.com"]
   preferred_single_sign_on_mode = "saml"
   tags                          = ["HideApp", "WindowsAzureActiveDirectoryIntegratedApp"]
+  alternative_names             = ["isExplicit=True", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"]
   hard_delete                   = true
+
+  saml_single_sign_on_settings = {
+    relay_state = "https://example.com/relay"
+  }
 }

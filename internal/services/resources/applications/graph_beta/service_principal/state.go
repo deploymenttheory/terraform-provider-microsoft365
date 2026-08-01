@@ -5,9 +5,16 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
+
+// samlSingleSignOnSettingsAttrTypes defines the attribute types for the saml_single_sign_on_settings nested object
+var samlSingleSignOnSettingsAttrTypes = map[string]attr.Type{
+	"relay_state": types.StringType,
+}
 
 // MapRemoteStateToTerraform maps the remote state from Microsoft Graph API to the Terraform state
 func MapRemoteStateToTerraform(ctx context.Context, data ServicePrincipalResourceModel, remoteResource graphmodels.ServicePrincipalable) ServicePrincipalResourceModel {
@@ -47,6 +54,24 @@ func MapRemoteStateToTerraform(ctx context.Context, data ServicePrincipalResourc
 	data.Tags = convert.GraphToFrameworkStringSetFiltered(ctx, remoteResource.GetTags(), data.Tags)
 
 	data.NotificationEmailAddresses = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetNotificationEmailAddresses())
+
+	// GraphToFrameworkStringSet maps an empty remote list to null; keep a configured
+	// empty set ([] clears the collection) so the planned value round-trips.
+	remoteAlternativeNames := convert.GraphToFrameworkStringSet(ctx, remoteResource.GetAlternativeNames())
+	configuredEmptySet := !data.AlternativeNames.IsNull() && !data.AlternativeNames.IsUnknown() && len(data.AlternativeNames.Elements()) == 0
+	if !(remoteAlternativeNames.IsNull() && configuredEmptySet) {
+		data.AlternativeNames = remoteAlternativeNames
+	}
+
+	// Map SAML single sign-on settings
+	if samlSettings := remoteResource.GetSamlSingleSignOnSettings(); samlSettings != nil {
+		samlAttrs := map[string]attr.Value{
+			"relay_state": convert.GraphToFrameworkString(samlSettings.GetRelayState()),
+		}
+		data.SamlSingleSignOnSettings, _ = types.ObjectValue(samlSingleSignOnSettingsAttrTypes, samlAttrs)
+	} else {
+		data.SamlSingleSignOnSettings = types.ObjectNull(samlSingleSignOnSettingsAttrTypes)
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping %s remote state to Terraform state", ResourceName))
 

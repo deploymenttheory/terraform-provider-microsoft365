@@ -103,6 +103,7 @@ resource "microsoft365_graph_beta_applications_service_principal" "example" {
 ### Optional
 
 - `account_enabled` (Boolean) True if the service principal account is enabled; otherwise, false. If set to false, then no users are able to sign in to this app, even if they're assigned to it. Supports `$filter` (`eq`, `ne`, `not`, `in`).
+- `alternative_names` (Set of String) Used to retrieve service principals by subscription, identify resource group and full resource IDs for managed identities. Set to `[]` to clear previously configured values. Supports `$filter` (`eq`, `not`, `ge`, `le`, `startsWith`).
 - `app_role_assignment_required` (Boolean) Specifies whether users or other service principals need to be granted an app role assignment for this service principal before users can sign in or apps can get tokens. The default value is false. Not nullable. Supports `$filter` (`eq`, `ne`, `NOT`).
 - `description` (String) Free text field to provide an internal end-user facing description of the service principal. End-user portals such MyApps displays the application description in this field. The maximum allowed size is 1,024 characters. Supports `$filter` (`eq`, `ne`, `not`, `ge`, `le`, `startsWith`) and `$search`.
 - `hard_delete` (Boolean) When `true`, the service principal will be permanently deleted (hard delete) during destroy. When `false` (default), the service principal will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
@@ -110,6 +111,7 @@ resource "microsoft365_graph_beta_applications_service_principal" "example" {
 - `notes` (String) Free text field to capture information about the service principal, typically used for operational purposes. Maximum allowed size is 1,024 characters.
 - `notification_email_addresses` (Set of String) Specifies the list of email addresses where Microsoft Entra ID sends a notification when the active certificate is near the expiration date. This is only for the certificates used to sign the SAML token issued for Microsoft Entra Gallery applications.
 - `preferred_single_sign_on_mode` (String) Specifies the single sign-on mode configured for this application. Microsoft Entra ID uses the preferred single sign-on mode to launch the application from Microsoft 365 or the Microsoft Entra My Apps. The supported values are `password`, `saml`, `notSupported`, and `oidc`.
+- `saml_single_sign_on_settings` (Attributes) The collection for settings related to SAML single sign-on. When this block is absent from the configuration, updates actively clear the property on the service principal. (see [below for nested schema](#nestedatt--saml_single_sign_on_settings))
 - `tags` (Set of String) Custom strings that can be used to categorize and identify the service principal. Note: Microsoft may automatically add system-managed tags in addition to the tags you specify.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
@@ -122,6 +124,14 @@ resource "microsoft365_graph_beta_applications_service_principal" "example" {
 - `service_principal_names` (Set of String) Contains the list of identifiersUris, copied over from the associated application. Additional values can be added to hybrid applications. These values can be used to identify the permissions exposed by this app within Microsoft Entra ID. Read-only.
 - `service_principal_type` (String) Identifies if the service principal represents an application or a managed identity. Read-only.
 - `sign_in_audience` (String) Specifies what Microsoft accounts are supported for the application. Read-only.
+
+<a id="nestedatt--saml_single_sign_on_settings"></a>
+### Nested Schema for `saml_single_sign_on_settings`
+
+Required:
+
+- `relay_state` (String) The relative URI the service provider would redirect to after completion of the single sign-on flow.
+
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`

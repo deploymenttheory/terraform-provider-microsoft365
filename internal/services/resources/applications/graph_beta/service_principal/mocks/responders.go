@@ -89,6 +89,12 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			if tags, ok := requestBody["tags"].([]any); ok {
 				servicePrincipal["tags"] = tags
 			}
+			if alternativeNames, ok := requestBody["alternativeNames"].([]any); ok {
+				servicePrincipal["alternativeNames"] = alternativeNames
+			}
+			if samlSingleSignOnSettings, ok := requestBody["samlSingleSignOnSettings"].(map[string]any); ok {
+				servicePrincipal["samlSingleSignOnSettings"] = samlSingleSignOnSettings
+			}
 
 			mockState.Lock()
 			mockState.servicePrincipals[id] = servicePrincipal
@@ -156,6 +162,17 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			}
 			if tags, ok := requestBody["tags"].([]any); ok {
 				servicePrincipal["tags"] = tags
+			}
+			if alternativeNames, ok := requestBody["alternativeNames"].([]any); ok {
+				servicePrincipal["alternativeNames"] = alternativeNames
+			}
+			// An explicit JSON null clears the property (sent when the block is removed)
+			if raw, keyPresent := requestBody["samlSingleSignOnSettings"]; keyPresent {
+				if raw == nil {
+					delete(servicePrincipal, "samlSingleSignOnSettings")
+				} else if samlSingleSignOnSettings, ok := raw.(map[string]any); ok {
+					servicePrincipal["samlSingleSignOnSettings"] = samlSingleSignOnSettings
+				}
 			}
 
 			mockState.servicePrincipals[id] = servicePrincipal

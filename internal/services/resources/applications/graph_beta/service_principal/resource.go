@@ -156,6 +156,16 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"alternative_names": schema.SetAttribute{
+				MarkdownDescription: "Used to retrieve service principals by subscription, identify resource group and full resource IDs for managed identities. " +
+					"Set to `[]` to clear previously configured values. Supports `$filter` (`eq`, `not`, `ge`, `le`, `startsWith`).",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
+			},
 			"account_enabled": schema.BoolAttribute{
 				MarkdownDescription: "True if the service principal account is enabled; otherwise, false. If set to false, then no users are able to sign in to this app, even if they're assigned to it. Supports `$filter` (`eq`, `ne`, `not`, `in`).",
 				Optional:            true,
@@ -240,6 +250,17 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"saml_single_sign_on_settings": schema.SingleNestedAttribute{
+				MarkdownDescription: "The collection for settings related to SAML single sign-on. " +
+					"When this block is absent from the configuration, updates actively clear the property on the service principal.",
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"relay_state": schema.StringAttribute{
+						MarkdownDescription: "The relative URI the service provider would redirect to after completion of the single sign-on flow.",
+						Required:            true,
+					},
 				},
 			},
 			"service_principal_type": schema.StringAttribute{

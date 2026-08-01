@@ -88,6 +88,18 @@ func servicePrincipalConsistencyPredicate(expected *ServicePrincipalResourceMode
 				return false
 			}
 		}
+		if !expected.AlternativeNames.IsNull() && !expected.AlternativeNames.IsUnknown() {
+			if !actual.AlternativeNames.Equal(expected.AlternativeNames) {
+				return false
+			}
+		}
+		// Compared even when the expected value is null: updates clear the property with an
+		// explicit null, so a stale replica still returning the old object must retry.
+		if !expected.SamlSingleSignOnSettings.IsUnknown() {
+			if !actual.SamlSingleSignOnSettings.Equal(expected.SamlSingleSignOnSettings) {
+				return false
+			}
+		}
 
 		return true
 	}

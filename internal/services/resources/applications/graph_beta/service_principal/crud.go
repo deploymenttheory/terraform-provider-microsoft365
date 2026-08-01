@@ -38,7 +38,7 @@ func (r *ServicePrincipalResource) Create(ctx context.Context, req resource.Crea
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -174,7 +174,7 @@ func (r *ServicePrincipalResource) Update(ctx context.Context, req resource.Upda
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Update method",
