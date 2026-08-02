@@ -3,12 +3,15 @@ page_title: "microsoft365_graph_beta_applications_service_principal Resource - t
 subcategory: "Applications"
 description: |-
   Manages a Service Principal in Microsoft Entra ID. Service principals are the local representation of an application object in a specific tenant. They define what the app can do in the specific tenant, who can access the app, and what resources the app can access.
+  This resource models only the properties the service principal itself owns. Properties that Microsoft Entra reflects from the backing application — such as its display name, home page, logout URL, reply URLs, app roles and permission scopes — are deliberately not exposed here and will not be added: they change whenever the application changes. Read them from the microsoft365_graph_beta_applications_application resource, or from the service principal data source for an application this configuration does not manage.
   For more information, see the Microsoft Graph API documentation https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-serviceprincipals?view=graph-rest-beta.
 ---
 
 # microsoft365_graph_beta_applications_service_principal (Resource)
 
 Manages a Service Principal in Microsoft Entra ID. Service principals are the local representation of an application object in a specific tenant. They define what the app can do in the specific tenant, who can access the app, and what resources the app can access.
+
+This resource models only the properties the service principal itself owns. Properties that Microsoft Entra reflects from the backing application — such as its display name, home page, logout URL, reply URLs, app roles and permission scopes — are deliberately not exposed here and will not be added: they change whenever the application changes. Read them from the `microsoft365_graph_beta_applications_application` resource, or from the service principal data source for an application this configuration does not manage.
 
 For more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-serviceprincipals?view=graph-rest-beta).
 
