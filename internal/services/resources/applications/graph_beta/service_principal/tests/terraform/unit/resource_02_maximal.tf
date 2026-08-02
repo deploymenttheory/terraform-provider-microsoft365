@@ -10,7 +10,8 @@ resource "microsoft365_graph_beta_applications_service_principal" "test_maximal"
   preferred_single_sign_on_mode = "saml"
   tags                          = ["HideApp", "WindowsAzureActiveDirectoryIntegratedApp"]
   alternative_names             = ["isExplicit=True", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test"]
-  token_encryption_key_id       = "cccccccc-1111-2222-3333-444444444444"
+  # References the key credential seeded by the mock; Graph rejects unknown key IDs
+  token_encryption_key_id       = "dddddddd-1111-2222-3333-444444444444"
   hard_delete                   = true
 
   saml_single_sign_on_settings = {

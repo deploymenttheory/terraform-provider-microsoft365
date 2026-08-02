@@ -123,10 +123,10 @@ resource "microsoft365_graph_beta_applications_service_principal" "example" {
 - `created_by_app_id` (String) The appId of the application that created this service principal. Set internally by Microsoft Entra ID. Read-only.
 - `id` (String) The unique identifier (object ID) for the service principal. Read-only.
 - `is_disabled` (Boolean) Specifies whether the service principal is deactivated so the app can't obtain new access tokens or access protected resources. Read-only; the API rejects writes to this property.
-- `key_credentials` (Attributes Set) The collection of key credentials associated with the service principal. Read-only; manage token signing certificates through the dedicated service principal token signing certificate resource. The key material itself is never returned by the API. (see [below for nested schema](#nestedatt--key_credentials))
+- `key_credentials` (Attributes Set) The collection of key credentials associated with the service principal. Read-only on this resource; certificates are added through dedicated credential resources or the addTokenSigningCertificate API. Private key material is never returned by the API, and this resource does not expose the public `key` field. (see [below for nested schema](#nestedatt--key_credentials))
 - `password_credentials` (Attributes Set) The collection of password credentials associated with the service principal. Read-only. The secret itself is never returned by the API. (see [below for nested schema](#nestedatt--password_credentials))
 - `preferred_token_signing_key_end_date_time` (String) Specifies the expiration date of the key credential used for token signing, marked by `preferred_token_signing_key_thumbprint`. Read-only.
-- `preferred_token_signing_key_thumbprint` (String) The thumbprint of the certificate used to sign SAML responses for applications with `preferred_single_sign_on_mode` set to `saml`. Read-only here; manage it through the dedicated service principal preferred token signing key thumbprint resource.
+- `preferred_token_signing_key_thumbprint` (String) The thumbprint of the certificate used to sign SAML responses for applications with `preferred_single_sign_on_mode` set to `saml`. Read-only on this resource; it is set when a token signing certificate is activated on the service principal.
 - `service_principal_type` (String) Identifies if the service principal represents an application or a managed identity. Read-only.
 
 <a id="nestedatt--saml_single_sign_on_settings"></a>

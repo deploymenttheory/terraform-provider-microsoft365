@@ -127,6 +127,8 @@ func TestAccResourceServicePrincipal_02_Maximal(t *testing.T) {
 					check.That(resourceType+".test_maximal").Key("notification_email_addresses.#").HasValue("2"),
 					check.That(resourceType+".test_maximal").Key("preferred_single_sign_on_mode").HasValue("saml"),
 					check.That(resourceType+".test_maximal").Key("tags.#").HasValue("2"),
+					check.That(resourceType+".test_maximal").Key("alternative_names.#").HasValue("2"),
+					check.That(resourceType+".test_maximal").Key("saml_single_sign_on_settings.relay_state").HasValue("https://example.com/relay"),
 					check.That(resourceType+".test_maximal").Key("service_principal_type").HasValue("Application"),
 				),
 			},

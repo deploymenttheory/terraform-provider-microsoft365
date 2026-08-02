@@ -189,8 +189,8 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				},
 			},
 			"key_credentials": schema.SetNestedAttribute{
-				MarkdownDescription: "The collection of key credentials associated with the service principal. Read-only; manage token signing certificates through the dedicated service principal token signing certificate resource. " +
-					"The key material itself is never returned by the API.",
+				MarkdownDescription: "The collection of key credentials associated with the service principal. Read-only on this resource; certificates are added through dedicated credential resources or the addTokenSigningCertificate API. " +
+					"Private key material is never returned by the API, and this resource does not expose the public `key` field.",
 				Computed: true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -262,8 +262,8 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				Computed:            true,
 			},
 			"preferred_token_signing_key_thumbprint": schema.StringAttribute{
-				MarkdownDescription: "The thumbprint of the certificate used to sign SAML responses for applications with `preferred_single_sign_on_mode` set to `saml`. Read-only here; " +
-					"manage it through the dedicated service principal preferred token signing key thumbprint resource.",
+				MarkdownDescription: "The thumbprint of the certificate used to sign SAML responses for applications with `preferred_single_sign_on_mode` set to `saml`. " +
+					"Read-only on this resource; it is set when a token signing certificate is activated on the service principal.",
 				Computed: true,
 			},
 			"token_encryption_key_id": schema.StringAttribute{

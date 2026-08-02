@@ -49,6 +49,11 @@ func constructResource(ctx context.Context, data *ServicePrincipalResourceModel,
 	// are applied once at the end.
 	explicitNulls := map[string]any{}
 
+	// Only a null (absent from configuration) requests a clear. An unknown value cannot
+	// reach Create or Update for these Optional-only attributes today, but if one ever
+	// did — e.g. if the attribute later became Computed — clearing would be wrong, so
+	// unknowns are omitted from the request entirely.
+
 	// Optional nested object: samlSingleSignOnSettings
 	if !data.SamlSingleSignOnSettings.IsNull() && !data.SamlSingleSignOnSettings.IsUnknown() {
 		var samlSettings SamlSingleSignOnSettingsModel
@@ -60,7 +65,7 @@ func constructResource(ctx context.Context, data *ServicePrincipalResourceModel,
 		graphSamlSettings := graphmodels.NewSamlSingleSignOnSettings()
 		convert.FrameworkToGraphString(samlSettings.RelayState, graphSamlSettings.SetRelayState)
 		requestBody.SetSamlSingleSignOnSettings(graphSamlSettings)
-	} else {
+	} else if data.SamlSingleSignOnSettings.IsNull() {
 		explicitNulls["samlSingleSignOnSettings"] = nil
 	}
 
@@ -70,7 +75,7 @@ func constructResource(ctx context.Context, data *ServicePrincipalResourceModel,
 		if err := convert.FrameworkToGraphUUID(data.TokenEncryptionKeyID, requestBody.SetTokenEncryptionKeyId); err != nil {
 			return nil, fmt.Errorf("failed to set token_encryption_key_id: %w", err)
 		}
-	} else {
+	} else if data.TokenEncryptionKeyID.IsNull() {
 		explicitNulls["tokenEncryptionKeyId"] = nil
 	}
 
