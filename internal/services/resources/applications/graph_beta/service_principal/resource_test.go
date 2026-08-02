@@ -88,7 +88,21 @@ func TestUnitResourceServicePrincipal_02_Maximal(t *testing.T) {
 					// Computed properties returned by the API
 					check.That(resourceType+".test_maximal").Key("app_owner_organization_id").HasValue("2cbe968c-9683-4d8a-af06-dab1bb350a04"),
 					check.That(resourceType+".test_maximal").Key("created_by_app_id").HasValue("04b07795-8ddb-461a-bbee-02f9e1bf7b46"),
-					check.That(resourceType+".test_maximal").Key("key_credentials.#").HasValue("0"),
+					// Credential collections round-trip the API wire format: base64 identifier,
+					// UUID key ID and RFC3339 timestamps
+					check.That(resourceType+".test_maximal").Key("key_credentials.#").HasValue("1"),
+					check.That(resourceType+".test_maximal").Key("key_credentials.0.custom_key_identifier").HasValue("a8NSGsQqlkjIPN1kEpJ8QIe4AgI="),
+					check.That(resourceType+".test_maximal").Key("key_credentials.0.display_name").HasValue("CN=test-signing"),
+					check.That(resourceType+".test_maximal").Key("key_credentials.0.key_id").HasValue("dddddddd-1111-2222-3333-444444444444"),
+					check.That(resourceType+".test_maximal").Key("key_credentials.0.start_date_time").HasValue("2026-01-01T00:00:00Z"),
+					check.That(resourceType+".test_maximal").Key("key_credentials.0.end_date_time").HasValue("2027-01-01T00:00:00Z"),
+					check.That(resourceType+".test_maximal").Key("key_credentials.0.type").HasValue("AsymmetricX509Cert"),
+					check.That(resourceType+".test_maximal").Key("key_credentials.0.usage").HasValue("Sign"),
+					check.That(resourceType+".test_maximal").Key("password_credentials.#").HasValue("1"),
+					check.That(resourceType+".test_maximal").Key("password_credentials.0.custom_key_identifier").HasValue("a8NSGsQqlkjIPN1kEpJ8QIe4AgI="),
+					check.That(resourceType+".test_maximal").Key("password_credentials.0.hint").HasValue("abc"),
+					check.That(resourceType+".test_maximal").Key("password_credentials.0.key_id").HasValue("eeeeeeee-1111-2222-3333-444444444444"),
+					check.That(resourceType+".test_maximal").Key("password_credentials.0.end_date_time").HasValue("2027-01-01T00:00:00Z"),
 				),
 			},
 			{

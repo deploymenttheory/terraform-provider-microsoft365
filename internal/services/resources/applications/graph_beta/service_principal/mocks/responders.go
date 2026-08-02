@@ -62,8 +62,28 @@ func RegisterServicePrincipalMockResponders() *MockState {
 				"tags":                      []string{},
 				"appOwnerOrganizationId":    "2cbe968c-9683-4d8a-af06-dab1bb350a04",
 				"createdByAppId":            "04b07795-8ddb-461a-bbee-02f9e1bf7b46",
-				"keyCredentials":            []any{},
-				"passwordCredentials":       []any{},
+				"keyCredentials": []any{
+					map[string]any{
+						// Base64 of the certificate thumbprint, as the API returns it
+						"customKeyIdentifier": "a8NSGsQqlkjIPN1kEpJ8QIe4AgI=",
+						"displayName":         "CN=test-signing",
+						"endDateTime":         "2027-01-01T00:00:00Z",
+						"keyId":               "dddddddd-1111-2222-3333-444444444444",
+						"startDateTime":       "2026-01-01T00:00:00Z",
+						"type":                "AsymmetricX509Cert",
+						"usage":               "Sign",
+					},
+				},
+				"passwordCredentials": []any{
+					map[string]any{
+						"customKeyIdentifier": "a8NSGsQqlkjIPN1kEpJ8QIe4AgI=",
+						"displayName":         "test-secret",
+						"endDateTime":         "2027-01-01T00:00:00Z",
+						"hint":                "abc",
+						"keyId":               "eeeeeeee-1111-2222-3333-444444444444",
+						"startDateTime":       "2026-01-01T00:00:00Z",
+					},
+				},
 			}
 
 			// Apply optional fields from request
