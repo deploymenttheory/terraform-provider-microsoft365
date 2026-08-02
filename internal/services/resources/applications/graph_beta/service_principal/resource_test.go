@@ -46,7 +46,6 @@ func TestUnitResourceServicePrincipal_01_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_minimal").Key("app_id").HasValue("11111111-1111-1111-1111-111111111111"),
-					check.That(resourceType+".test_minimal").Key("display_name").HasValue("Test Service Principal"),
 					check.That(resourceType+".test_minimal").Key("account_enabled").HasValue("true"),
 					check.That(resourceType+".test_minimal").Key("service_principal_type").HasValue("Application"),
 				),
@@ -74,7 +73,6 @@ func TestUnitResourceServicePrincipal_02_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_maximal").Key("app_id").HasValue("22222222-2222-2222-2222-222222222222"),
-					check.That(resourceType+".test_maximal").Key("display_name").Exists(),
 					check.That(resourceType+".test_maximal").Key("account_enabled").HasValue("true"),
 					check.That(resourceType+".test_maximal").Key("app_role_assignment_required").HasValue("true"),
 					check.That(resourceType+".test_maximal").Key("description").HasValue("Maximal service principal configuration for testing"),
@@ -85,7 +83,12 @@ func TestUnitResourceServicePrincipal_02_Maximal(t *testing.T) {
 					check.That(resourceType+".test_maximal").Key("tags.#").HasValue("2"),
 					check.That(resourceType+".test_maximal").Key("alternative_names.#").HasValue("2"),
 					check.That(resourceType+".test_maximal").Key("saml_single_sign_on_settings.relay_state").HasValue("https://example.com/relay"),
+					check.That(resourceType+".test_maximal").Key("token_encryption_key_id").HasValue("cccccccc-1111-2222-3333-444444444444"),
 					check.That(resourceType+".test_maximal").Key("service_principal_type").HasValue("Application"),
+					// Computed properties returned by the API
+					check.That(resourceType+".test_maximal").Key("app_owner_organization_id").HasValue("2cbe968c-9683-4d8a-af06-dab1bb350a04"),
+					check.That(resourceType+".test_maximal").Key("created_by_app_id").HasValue("04b07795-8ddb-461a-bbee-02f9e1bf7b46"),
+					check.That(resourceType+".test_maximal").Key("key_credentials.#").HasValue("0"),
 				),
 			},
 			{
@@ -163,6 +166,40 @@ resource "microsoft365_graph_beta_applications_service_principal" "test_minimal"
 }`,
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType + ".test_minimal").Key("alternative_names.#").HasValue("0"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceServicePrincipal_06_ClearTokenEncryptionKeyId(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	mockState := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer mockState.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+resource "microsoft365_graph_beta_applications_service_principal" "test_minimal" {
+  app_id                  = "11111111-1111-1111-1111-111111111111"
+  token_encryption_key_id = "cccccccc-1111-2222-3333-444444444444"
+}`,
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType + ".test_minimal").Key("token_encryption_key_id").HasValue("cccccccc-1111-2222-3333-444444444444"),
+				),
+			},
+			{
+				// Removing the attribute must clear the property remotely (explicit JSON null)
+				// and converge without an inconsistent-result error
+				Config: `
+resource "microsoft365_graph_beta_applications_service_principal" "test_minimal" {
+  app_id = "11111111-1111-1111-1111-111111111111"
+}`,
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType + ".test_minimal").Key("token_encryption_key_id").DoesNotExist(),
 				),
 			},
 		},

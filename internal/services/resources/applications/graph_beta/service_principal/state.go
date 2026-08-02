@@ -2,6 +2,7 @@ package graphBetaServicePrincipal
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -28,26 +29,30 @@ func MapRemoteStateToTerraform(ctx context.Context, data ServicePrincipalResourc
 	// Map basic fields using helpers
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.AppID = convert.GraphToFrameworkString(remoteResource.GetAppId())
-	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 
 	// Map boolean fields
 	data.AccountEnabled = convert.GraphToFrameworkBool(remoteResource.GetAccountEnabled())
 	data.AppRoleAssignmentRequired = convert.GraphToFrameworkBool(remoteResource.GetAppRoleAssignmentRequired())
+	data.IsDisabled = convert.GraphToFrameworkBool(remoteResource.GetIsDisabled())
 
 	// Map optional string fields
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
-	data.Homepage = convert.GraphToFrameworkString(remoteResource.GetHomepage())
 	data.LoginURL = convert.GraphToFrameworkString(remoteResource.GetLoginUrl())
-	data.LogoutURL = convert.GraphToFrameworkString(remoteResource.GetLogoutUrl())
 	data.Notes = convert.GraphToFrameworkString(remoteResource.GetNotes())
 	data.PreferredSingleSignOnMode = convert.GraphToFrameworkString(remoteResource.GetPreferredSingleSignOnMode())
+	data.TokenEncryptionKeyID = convert.GraphToFrameworkUUID(remoteResource.GetTokenEncryptionKeyId())
 
 	// Map computed string fields
 	data.ServicePrincipalType = convert.GraphToFrameworkString(remoteResource.GetServicePrincipalType())
-	data.SignInAudience = convert.GraphToFrameworkString(remoteResource.GetSignInAudience())
+	data.AppOwnerOrganizationID = convert.GraphToFrameworkUUID(remoteResource.GetAppOwnerOrganizationId())
+	data.ApplicationTemplateID = convert.GraphToFrameworkString(remoteResource.GetApplicationTemplateId())
+	data.CreatedByAppID = convert.GraphToFrameworkString(remoteResource.GetCreatedByAppId())
+	data.PreferredTokenSigningKeyEndDateTime = convert.GraphToFrameworkTime(remoteResource.GetPreferredTokenSigningKeyEndDateTime())
+	data.PreferredTokenSigningKeyThumbprint = convert.GraphToFrameworkString(remoteResource.GetPreferredTokenSigningKeyThumbprint())
 
-	// Map collection fields
-	data.ServicePrincipalNames = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetServicePrincipalNames())
+	// Map computed collections
+	data.KeyCredentials = mapKeyCredentials(remoteResource.GetKeyCredentials())
+	data.PasswordCredentials = mapPasswordCredentials(remoteResource.GetPasswordCredentials())
 
 	// Filter tags to only include configured values (excludes system-generated tags)
 	// This prevents drift when Microsoft adds system tags like "WindowsAzureActiveDirectoryIntegratedApp"
@@ -76,4 +81,86 @@ func MapRemoteStateToTerraform(ctx context.Context, data ServicePrincipalResourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping %s remote state to Terraform state", ResourceName))
 
 	return data
+}
+
+// bytesToBase64String encodes a binary Graph value (e.g. customKeyIdentifier) as base64,
+// matching how the Graph API represents the value on the wire.
+func bytesToBase64String(value []byte) types.String {
+	if value == nil {
+		return types.StringNull()
+	}
+	return types.StringValue(base64.StdEncoding.EncodeToString(value))
+}
+
+func mapKeyCredentials(keyCredentials []graphmodels.KeyCredentialable) types.Set {
+	elemType := types.ObjectType{AttrTypes: keyCredentialAttrTypes}
+	if len(keyCredentials) == 0 {
+		emptySet, _ := types.SetValue(elemType, []attr.Value{})
+		return emptySet
+	}
+
+	elements := make([]attr.Value, 0, len(keyCredentials))
+	for _, keyCred := range keyCredentials {
+		if keyCred == nil {
+			continue
+		}
+
+		attrs := map[string]attr.Value{
+			"custom_key_identifier": bytesToBase64String(keyCred.GetCustomKeyIdentifier()),
+			"display_name":          convert.GraphToFrameworkString(keyCred.GetDisplayName()),
+			"end_date_time":         convert.GraphToFrameworkTime(keyCred.GetEndDateTime()),
+			"key_id":                convert.GraphToFrameworkUUID(keyCred.GetKeyId()),
+			"start_date_time":       convert.GraphToFrameworkTime(keyCred.GetStartDateTime()),
+			"type":                  convert.GraphToFrameworkString(keyCred.GetTypeEscaped()),
+			"usage":                 convert.GraphToFrameworkString(keyCred.GetUsage()),
+		}
+
+		objVal, diags := types.ObjectValue(keyCredentialAttrTypes, attrs)
+		if diags.HasError() {
+			continue
+		}
+		elements = append(elements, objVal)
+	}
+
+	setVal, diags := types.SetValue(elemType, elements)
+	if diags.HasError() {
+		return types.SetNull(elemType)
+	}
+	return setVal
+}
+
+func mapPasswordCredentials(passwordCredentials []graphmodels.PasswordCredentialable) types.Set {
+	elemType := types.ObjectType{AttrTypes: passwordCredentialAttrTypes}
+	if len(passwordCredentials) == 0 {
+		emptySet, _ := types.SetValue(elemType, []attr.Value{})
+		return emptySet
+	}
+
+	elements := make([]attr.Value, 0, len(passwordCredentials))
+	for _, passCred := range passwordCredentials {
+		if passCred == nil {
+			continue
+		}
+
+		attrs := map[string]attr.Value{
+			"custom_key_identifier": bytesToBase64String(passCred.GetCustomKeyIdentifier()),
+			"display_name":          convert.GraphToFrameworkString(passCred.GetDisplayName()),
+			"end_date_time":         convert.GraphToFrameworkTime(passCred.GetEndDateTime()),
+			"hint":                  convert.GraphToFrameworkString(passCred.GetHint()),
+			"key_id":                convert.GraphToFrameworkUUID(passCred.GetKeyId()),
+			"start_date_time":       convert.GraphToFrameworkTime(passCred.GetStartDateTime()),
+		}
+
+		objVal, diags := types.ObjectValue(passwordCredentialAttrTypes, attrs)
+		if diags.HasError() {
+			continue
+		}
+		elements = append(elements, objVal)
+	}
+
+	setVal, diags := types.SetValue(elemType, elements)
+	if diags.HasError() {
+		return types.SetNull(elemType)
+	}
+	return setVal
 }

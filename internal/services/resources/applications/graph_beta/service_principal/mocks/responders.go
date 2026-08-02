@@ -49,19 +49,21 @@ func RegisterServicePrincipalMockResponders() *MockState {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"appId is required"}}`), nil
 			}
 
-			// Generate mock service principal
+			// Generate mock service principal. Read-only fields mirror the shape of a real
+			// GET /servicePrincipals/{id} response for the properties this resource models.
 			id := "11111111-1111-1111-1111-111111111111"
 			servicePrincipal := map[string]any{
 				"@odata.context":            "https://graph.microsoft.com/beta/$metadata#servicePrincipals/$entity",
 				"id":                        id,
 				"appId":                     appId,
-				"displayName":               "Test Service Principal",
 				"accountEnabled":            true,
 				"appRoleAssignmentRequired": false,
 				"servicePrincipalType":      "Application",
-				"servicePrincipalNames":     []string{appId, "https://test.app"},
-				"signInAudience":            "AzureADMyOrg",
 				"tags":                      []string{},
+				"appOwnerOrganizationId":    "2cbe968c-9683-4d8a-af06-dab1bb350a04",
+				"createdByAppId":            "04b07795-8ddb-461a-bbee-02f9e1bf7b46",
+				"keyCredentials":            []any{},
+				"passwordCredentials":       []any{},
 			}
 
 			// Apply optional fields from request
@@ -94,6 +96,9 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			}
 			if samlSingleSignOnSettings, ok := requestBody["samlSingleSignOnSettings"].(map[string]any); ok {
 				servicePrincipal["samlSingleSignOnSettings"] = samlSingleSignOnSettings
+			}
+			if tokenEncryptionKeyId, ok := requestBody["tokenEncryptionKeyId"].(string); ok {
+				servicePrincipal["tokenEncryptionKeyId"] = tokenEncryptionKeyId
 			}
 
 			mockState.Lock()
@@ -172,6 +177,13 @@ func RegisterServicePrincipalMockResponders() *MockState {
 					delete(servicePrincipal, "samlSingleSignOnSettings")
 				} else if samlSingleSignOnSettings, ok := raw.(map[string]any); ok {
 					servicePrincipal["samlSingleSignOnSettings"] = samlSingleSignOnSettings
+				}
+			}
+			if raw, keyPresent := requestBody["tokenEncryptionKeyId"]; keyPresent {
+				if raw == nil {
+					delete(servicePrincipal, "tokenEncryptionKeyId")
+				} else if tokenEncryptionKeyId, ok := raw.(string); ok {
+					servicePrincipal["tokenEncryptionKeyId"] = tokenEncryptionKeyId
 				}
 			}
 

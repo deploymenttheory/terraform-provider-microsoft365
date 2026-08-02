@@ -114,16 +114,20 @@ resource "microsoft365_graph_beta_applications_service_principal" "example" {
 - `saml_single_sign_on_settings` (Attributes) The collection for settings related to SAML single sign-on. When this block is absent from the configuration, updates actively clear the property on the service principal. (see [below for nested schema](#nestedatt--saml_single_sign_on_settings))
 - `tags` (Set of String) Custom strings that can be used to categorize and identify the service principal. Note: Microsoft may automatically add system-managed tags in addition to the tags you specify.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `token_encryption_key_id` (String) Specifies the keyId of a public key from the key credentials collection. When configured, Microsoft Entra ID issues tokens for this application encrypted using the key specified by this property. The referenced key credential must already exist on the service principal. When this attribute is absent from the configuration, updates actively clear the property on the service principal.
 
 ### Read-Only
 
-- `display_name` (String) The display name for the service principal. Read-only, inherited from the application.
-- `homepage` (String) Home page or landing page of the application. Read-only, inherited from the application.
+- `app_owner_organization_id` (String) Contains the tenant ID where the application is registered. Applicable only to service principals backed by applications. Read-only. Equivalent to `application_tenant_id` in the azuread provider.
+- `application_template_id` (String) Unique identifier of the application template that the associated application was created from. Read-only. `null` if the app wasn't created from an application template.
+- `created_by_app_id` (String) The appId of the application that created this service principal. Set internally by Microsoft Entra ID. Read-only.
 - `id` (String) The unique identifier (object ID) for the service principal. Read-only.
-- `logout_url` (String) Specifies the URL that the Microsoft's authorization service uses to sign out a user using OpenId Connect front-channel, back-channel, or SAML sign out protocols. Read-only, inherited from the application.
-- `service_principal_names` (Set of String) Contains the list of identifiersUris, copied over from the associated application. Additional values can be added to hybrid applications. These values can be used to identify the permissions exposed by this app within Microsoft Entra ID. Read-only.
+- `is_disabled` (Boolean) Specifies whether the service principal is deactivated so the app can't obtain new access tokens or access protected resources. Read-only; the API rejects writes to this property.
+- `key_credentials` (Attributes Set) The collection of key credentials associated with the service principal. Read-only; manage token signing certificates through the dedicated service principal token signing certificate resource. The key material itself is never returned by the API. (see [below for nested schema](#nestedatt--key_credentials))
+- `password_credentials` (Attributes Set) The collection of password credentials associated with the service principal. Read-only. The secret itself is never returned by the API. (see [below for nested schema](#nestedatt--password_credentials))
+- `preferred_token_signing_key_end_date_time` (String) Specifies the expiration date of the key credential used for token signing, marked by `preferred_token_signing_key_thumbprint`. Read-only.
+- `preferred_token_signing_key_thumbprint` (String) The thumbprint of the certificate used to sign SAML responses for applications with `preferred_single_sign_on_mode` set to `saml`. Read-only here; manage it through the dedicated service principal preferred token signing key thumbprint resource.
 - `service_principal_type` (String) Identifies if the service principal represents an application or a managed identity. Read-only.
-- `sign_in_audience` (String) Specifies what Microsoft accounts are supported for the application. Read-only.
 
 <a id="nestedatt--saml_single_sign_on_settings"></a>
 ### Nested Schema for `saml_single_sign_on_settings`
@@ -142,6 +146,33 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+
+<a id="nestedatt--key_credentials"></a>
+### Nested Schema for `key_credentials`
+
+Read-Only:
+
+- `custom_key_identifier` (String) A base64-encoded custom key identifier.
+- `display_name` (String) The friendly name for the key.
+- `end_date_time` (String) The date and time at which the credential expires.
+- `key_id` (String) The unique identifier for the key.
+- `start_date_time` (String) The date and time at which the credential becomes valid.
+- `type` (String) The type of key credential, for example `Symmetric` or `AsymmetricX509Cert`.
+- `usage` (String) A string that describes the purpose for which the key can be used, for example `Verify` or `Sign`.
+
+
+<a id="nestedatt--password_credentials"></a>
+### Nested Schema for `password_credentials`
+
+Read-Only:
+
+- `custom_key_identifier` (String) A base64-encoded custom key identifier.
+- `display_name` (String) The friendly name for the password.
+- `end_date_time` (String) The date and time at which the password expires.
+- `hint` (String) Contains the first three characters of the password. Read-only.
+- `key_id` (String) The unique identifier for the password.
+- `start_date_time` (String) The date and time at which the password becomes valid.
 
 ## Import
 

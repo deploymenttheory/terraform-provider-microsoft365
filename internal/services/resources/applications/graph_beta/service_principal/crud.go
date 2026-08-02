@@ -259,7 +259,7 @@ func (r *ServicePrincipalResource) Delete(ctx context.Context, req resource.Dele
 		RetryInterval: 5 * time.Second,
 		ResourceType:  directory.ResourceTypeServicePrincipal,
 		ResourceID:    servicePrincipalId,
-		ResourceName:  data.DisplayName.ValueString(),
+		ResourceName:  data.AppID.ValueString(),
 	}
 
 	err := directory.ExecuteDeleteWithVerification(

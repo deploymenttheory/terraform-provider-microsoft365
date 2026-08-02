@@ -43,6 +43,12 @@ func constructResource(ctx context.Context, data *ServicePrincipalResourceModel,
 		return nil, fmt.Errorf("failed to set alternative_names: %w", err)
 	}
 
+	// Properties removed from the configuration must be cleared remotely with an explicit
+	// JSON null, which the generated setters cannot produce (they omit nil fields).
+	// SetAdditionalData replaces the whole map, so all explicit nulls accumulate here and
+	// are applied once at the end.
+	explicitNulls := map[string]any{}
+
 	// Optional nested object: samlSingleSignOnSettings
 	if !data.SamlSingleSignOnSettings.IsNull() && !data.SamlSingleSignOnSettings.IsUnknown() {
 		var samlSettings SamlSingleSignOnSettingsModel
@@ -54,11 +60,22 @@ func constructResource(ctx context.Context, data *ServicePrincipalResourceModel,
 		graphSamlSettings := graphmodels.NewSamlSingleSignOnSettings()
 		convert.FrameworkToGraphString(samlSettings.RelayState, graphSamlSettings.SetRelayState)
 		requestBody.SetSamlSingleSignOnSettings(graphSamlSettings)
-	} else if isUpdate {
-		// Removing the block from the configuration must clear the property remotely;
-		// omitting it from the PATCH would leave the existing settings in place and the
-		// post-apply read would report an inconsistent result.
-		requestBody.SetAdditionalData(map[string]any{"samlSingleSignOnSettings": nil})
+	} else {
+		explicitNulls["samlSingleSignOnSettings"] = nil
+	}
+
+	// Optional UUID field: tokenEncryptionKeyId. A stale key reference must be clearable,
+	// so removal from the configuration is also sent as an explicit null.
+	if !data.TokenEncryptionKeyID.IsNull() && !data.TokenEncryptionKeyID.IsUnknown() {
+		if err := convert.FrameworkToGraphUUID(data.TokenEncryptionKeyID, requestBody.SetTokenEncryptionKeyId); err != nil {
+			return nil, fmt.Errorf("failed to set token_encryption_key_id: %w", err)
+		}
+	} else {
+		explicitNulls["tokenEncryptionKeyId"] = nil
+	}
+
+	if isUpdate && len(explicitNulls) > 0 {
+		requestBody.SetAdditionalData(explicitNulls)
 	}
 
 	return requestBody, nil
