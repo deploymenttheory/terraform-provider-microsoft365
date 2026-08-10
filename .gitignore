@@ -40,6 +40,9 @@ coverage.html
 *.log
 *.bak
 
+# Local-only dev workflows (not part of shared CI)
+.github/workflows/manual-build.yml
+
 # Windows-specific 
 *.winfile eol=crlf
 
