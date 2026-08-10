@@ -44,9 +44,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AndroidManagedAppProte
 		data.IsAssigned = types.BoolValue(false)
 	}
 	if v := remoteResource.GetDeployedAppCount(); v != nil {
-		data.DeployedAppCount = types.Int64Value(int64(*v))
+    	data.DeployedAppCount = types.Int32Value(*v)
 	} else {
-		data.DeployedAppCount = types.Int64Value(0)
+    	data.DeployedAppCount = types.Int32Value(0)
 	}
 
 	// --- Required ---
@@ -135,16 +135,16 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AndroidManagedAppProte
 		data.EncryptAppData = types.BoolValue(true)
 	}
 
-	// --- Optional int64 ---
+	// --- Optional int32 ---
 	if v := remoteResource.GetMaximumPinRetries(); v != nil {
-		data.MaximumPinRetries = types.Int64Value(int64(*v))
+    	data.MaximumPinRetries = types.Int32Value(*v)
 	} else {
-		data.MaximumPinRetries = types.Int64Value(5)
+    	data.MaximumPinRetries = types.Int32Value(5)
 	}
 	if v := remoteResource.GetMinimumPinLength(); v != nil {
-		data.MinimumPinLength = types.Int64Value(int64(*v))
+    	data.MinimumPinLength = types.Int32Value(*v)
 	} else {
-		data.MinimumPinLength = types.Int64Value(4)
+    	data.MinimumPinLength = types.Int32Value(4)
 	}
 
 	// --- Duration fields ---

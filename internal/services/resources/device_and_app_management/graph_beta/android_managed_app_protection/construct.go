@@ -47,14 +47,14 @@ func constructResource(ctx context.Context, data *AndroidManagedAppProtectionRes
 	convert.FrameworkToGraphBool(data.DisableAppEncryptionIfDeviceEncryptionIsEnabled, requestBody.SetDisableAppEncryptionIfDeviceEncryptionIsEnabled)
 	convert.FrameworkToGraphBool(data.EncryptAppData, requestBody.SetEncryptAppData)
 
-	// Optional int64
+	// Optional int32
 	if !data.MaximumPinRetries.IsNull() && !data.MaximumPinRetries.IsUnknown() {
-		v := int32(data.MaximumPinRetries.ValueInt64())
-		requestBody.SetMaximumPinRetries(&v)
+    	v := data.MaximumPinRetries.ValueInt32()
+    	requestBody.SetMaximumPinRetries(&v)
 	}
 	if !data.MinimumPinLength.IsNull() && !data.MinimumPinLength.IsUnknown() {
-		v := int32(data.MinimumPinLength.ValueInt64())
-		requestBody.SetMinimumPinLength(&v)
+		v := data.MinimumPinLength.ValueInt32()
+    	requestBody.SetMinimumPinLength(&v)
 	}
 
 	// Duration fields

@@ -15,7 +15,7 @@ type AndroidManagedAppProtectionResourceModel struct {
 	LastModifiedDateTime types.String `tfsdk:"last_modified_date_time"`
 	Version              types.String `tfsdk:"version"`
 	IsAssigned           types.Bool   `tfsdk:"is_assigned"`
-	DeployedAppCount     types.Int64  `tfsdk:"deployed_app_count"`
+	DeployedAppCount     types.Int32  `tfsdk:"deployed_app_count"`
 
 	// Required
 	DisplayName types.String `tfsdk:"display_name"`
@@ -34,9 +34,9 @@ type AndroidManagedAppProtectionResourceModel struct {
 	SaveAsBlocked                                   types.Bool   `tfsdk:"save_as_blocked"`
 	PeriodOfflineBeforeWipeIsEnforced               types.String `tfsdk:"period_offline_before_wipe_is_enforced"`
 	PinRequired                                     types.Bool   `tfsdk:"pin_required"`
-	MaximumPinRetries                               types.Int64  `tfsdk:"maximum_pin_retries"`
+	MaximumPinRetries                               types.Int32  `tfsdk:"maximum_pin_retries"`
 	SimplePinBlocked                                types.Bool   `tfsdk:"simple_pin_blocked"`
-	MinimumPinLength                                types.Int64  `tfsdk:"minimum_pin_length"`
+	MinimumPinLength                                types.Int32  `tfsdk:"minimum_pin_length"`
 	PinCharacterSet                                 types.String `tfsdk:"pin_character_set"`
 	PeriodBeforePinReset                            types.String `tfsdk:"period_before_pin_reset"`
 	AllowedDataStorageLocations                     types.List   `tfsdk:"allowed_data_storage_locations"`

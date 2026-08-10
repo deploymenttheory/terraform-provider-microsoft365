@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -110,7 +110,7 @@ func (r *AndroidManagedAppProtectionResource) Schema(ctx context.Context, req re
 				Computed:            true,
 				MarkdownDescription: "Indicates if the policy is deployed to any inclusion groups. Set by the API, read-only.",
 			},
-			"deployed_app_count": schema.Int64Attribute{
+			"deployed_app_count": schema.Int32Attribute{
 				Computed:            true,
 				MarkdownDescription: "Count of apps to which the current policy is deployed. Set by the API, read-only.",
 			},
@@ -212,10 +212,10 @@ func (r *AndroidManagedAppProtectionResource) Schema(ctx context.Context, req re
 				Default:             booldefault.StaticBool(true),
 				MarkdownDescription: "Indicates whether an app-level PIN is required.",
 			},
-			"maximum_pin_retries": schema.Int64Attribute{
+			"maximum_pin_retries": schema.Int32Attribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             int64default.StaticInt64(5),
+				Default:             int32default.StaticInt32(5),
 				MarkdownDescription: "Maximum number of incorrect PIN retry attempts before the managed app is either blocked or wiped. Valid values 1 to 65535.",
 			},
 			"simple_pin_blocked": schema.BoolAttribute{
@@ -224,10 +224,10 @@ func (r *AndroidManagedAppProtectionResource) Schema(ctx context.Context, req re
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Indicates whether simple PINs are blocked.",
 			},
-			"minimum_pin_length": schema.Int64Attribute{
+			"minimum_pin_length": schema.Int32Attribute{
 				Optional:            true,
 				Computed:            true,
-				Default:             int64default.StaticInt64(4),
+				Default:             int32default.StaticInt32(4),
 				MarkdownDescription: "Minimum PIN length required for an app-level PIN if PinRequired is set to true.",
 			},
 			"pin_character_set": schema.StringAttribute{
