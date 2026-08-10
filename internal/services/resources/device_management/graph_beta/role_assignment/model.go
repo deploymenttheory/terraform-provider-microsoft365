@@ -12,6 +12,7 @@ type RoleAssignmentResourceModel struct {
 	Description      types.String                      `tfsdk:"description"`
 	RoleDefinitionId types.String                      `tfsdk:"role_definition_id"`
 	Members          types.Set                         `tfsdk:"members"`
+	RoleScopeTagIds  types.Set                         `tfsdk:"role_scope_tag_ids"`
 	ScopeConfig      []ScopeConfigurationResourceModel `tfsdk:"scope_configuration"`
 	Timeouts         timeouts.Value                    `tfsdk:"timeouts"`
 }

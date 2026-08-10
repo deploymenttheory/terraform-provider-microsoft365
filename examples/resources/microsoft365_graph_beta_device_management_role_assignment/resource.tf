@@ -3,6 +3,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "specific_s
   display_name       = "Custom Assignment - Specific Scopes"
   description        = "Assignment to specific resource scopes"
   role_definition_id = "00000000-0000-0000-0000-000000000000"
+  role_scope_tag_ids = ["0", "1"]
 
   members = [
     "00000000-0000-0000-0000-000000000001",
@@ -23,6 +24,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "all_licens
   display_name       = "Policy Manager - All Licensed Users"
   description        = "Assignment to all licensed users"
   role_definition_id = "0bd113fe-6be5-400c-a28f-ae5553f9c0be" # Policy and Profile manager
+  role_scope_tag_ids = ["0"]
 
   members = [
     "00000000-0000-0000-0000-000000000001",
@@ -39,6 +41,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "all_device
   display_name       = "Device Manager - All Devices"
   description        = "Assignment to all devices"
   role_definition_id = "0bd113fe-6be5-400c-a28f-ae5553f9c0be" # Policy and Profile manager
+  role_scope_tag_ids = ["0"]
 
   members = [
     "00000000-0000-0000-0000-000000000001",
@@ -68,6 +71,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "custom_rol
   display_name       = "Custom Role Assignment"
   description        = "Assignment using custom role definition"
   role_definition_id = microsoft365_graph_beta_device_management_role_definition.custom_role.id
+  role_scope_tag_ids = ["0"]
 
   members = [
     "00000000-0000-0000-0000-000000000001",
@@ -92,6 +96,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "help_desk_
   display_name       = "Help Desk Team Assignment"
   description        = "Help desk operators with device access"
   role_definition_id = local.built_in_roles.help_desk_operator
+  role_scope_tag_ids = ["0"]
 
   members = [
     "helpdesk-group@contoso.com"

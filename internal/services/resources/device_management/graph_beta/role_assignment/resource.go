@@ -6,12 +6,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
@@ -21,6 +18,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 )
 
 const (
@@ -70,17 +72,29 @@ type RoleAssignmentResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *RoleAssignmentResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *RoleAssignmentResource) Metadata(
+	ctx context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *RoleAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *RoleAssignmentResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *RoleAssignmentResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
 	fmt.Printf("DEBUG: ImportState called with ID: %s\n", req.ID)
 
 	// Parse composite ID format: id/role_definition_id
@@ -101,7 +115,8 @@ func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.I
 
 	// Set the resource ID and role definition ID
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("role_definition_id"), idParts[1])...)
+	resp.Diagnostics.Append(
+		resp.State.SetAttribute(ctx, path.Root("role_definition_id"), idParts[1])...)
 
 	if resp.Diagnostics.HasError() {
 		fmt.Printf("DEBUG: Diagnostics has errors after setting attributes\n")
@@ -111,7 +126,9 @@ func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.I
 		return
 	}
 
-	fmt.Printf("DEBUG: Successfully set attributes, now calling Read to populate remaining fields\n")
+	fmt.Printf(
+		"DEBUG: Successfully set attributes, now calling Read to populate remaining fields\n",
+	)
 
 	// After setting the basic attributes, call Read to populate all other attributes from the API
 	readReq := resource.ReadRequest{State: resp.State}
@@ -131,7 +148,11 @@ func (r *RoleAssignmentResource) ImportState(ctx context.Context, req resource.I
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
-func (r *RoleAssignmentResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (r *RoleAssignmentResource) IdentitySchema(
+	ctx context.Context,
+	req resource.IdentitySchemaRequest,
+	resp *resource.IdentitySchemaResponse,
+) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -141,7 +162,11 @@ func (r *RoleAssignmentResource) IdentitySchema(ctx context.Context, req resourc
 	}
 }
 
-func (r *RoleAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *RoleAssignmentResource) Schema(
+	ctx context.Context,
+	req resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages role assignments using the `/deviceManagement/roleAssignments` endpoint. This resource is used to role assignments bind role definitions to users or groups with specific scope configurations, enabling granular access control for device management and administrative functions within Intune.",
 		Attributes: map[string]schema.Attribute{
@@ -200,6 +225,17 @@ func (r *RoleAssignmentResource) Schema(ctx context.Context, req resource.Schema
 					),
 				},
 			},
+			"role_scope_tag_ids": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Set of role scope tag IDs for this role assignment. Defaults to Intune default scope tag `0`.",
+				PlanModifiers: []planmodifier.Set{
+					planmodifiers.DefaultSetValue(
+						[]attr.Value{types.StringValue("0")},
+					),
+				},
+			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 		Blocks: map[string]schema.Block{
@@ -213,7 +249,11 @@ func (r *RoleAssignmentResource) Schema(ctx context.Context, req resource.Schema
 						"type": schema.StringAttribute{
 							Required: true,
 							Validators: []validator.String{
-								stringvalidator.OneOf("ResourceScopes", "AllLicensedUsers", "AllDevices"),
+								stringvalidator.OneOf(
+									"ResourceScopes",
+									"AllLicensedUsers",
+									"AllDevices",
+								),
 							},
 							MarkdownDescription: "The type of scope configuration. Valid values are: `ResourceScopes`, `AllLicensedUsers`, `AllDevices`.",
 						},

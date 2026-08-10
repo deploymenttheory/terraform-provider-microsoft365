@@ -7,12 +7,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/uuid"
+	"github.com/jarcoal/httpmock"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
-
-	"github.com/google/uuid"
-	"github.com/jarcoal/httpmock"
 )
 
 // mockState tracks the state of resources for consistent responses
@@ -26,7 +26,12 @@ func init() {
 	mockState.roleAssignments = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
-	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+	httpmock.RegisterNoResponder(
+		httpmock.NewStringResponder(
+			404,
+			`{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`,
+		),
+	)
 
 	// Register with global registry
 	mocks.GlobalRegistry.Register("role_assignment", &RoleAssignmentMock{})
@@ -42,20 +47,32 @@ var _ mocks.MockRegistrar = (*RoleAssignmentMock)(nil)
 // This implements the MockRegistrar interface
 func (m *RoleAssignmentMock) RegisterMocks() {
 	// POST /deviceManagement/roleAssignments - Create
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/roleAssignments",
-		m.createRoleAssignmentResponder())
+	httpmock.RegisterResponder(
+		"POST",
+		"https://graph.microsoft.com/beta/deviceManagement/roleAssignments",
+		m.createRoleAssignmentResponder(),
+	)
 
 	// GET /deviceManagement/roleAssignments/{id} - Read
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleAssignments/([^/]+)$`,
-		m.getRoleAssignmentResponder())
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/roleAssignments/([^/]+)$`,
+		m.getRoleAssignmentResponder(),
+	)
 
 	// PATCH /deviceManagement/roleAssignments/{id} - Update
-	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleAssignments/([^/]+)$`,
-		m.updateRoleAssignmentResponder())
+	httpmock.RegisterResponder(
+		"PATCH",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/roleAssignments/([^/]+)$`,
+		m.updateRoleAssignmentResponder(),
+	)
 
 	// DELETE /deviceManagement/roleAssignments/{id} - Delete
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/roleAssignments/([^/]+)$`,
-		m.deleteRoleAssignmentResponder())
+	httpmock.RegisterResponder(
+		"DELETE",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/roleAssignments/([^/]+)$`,
+		m.deleteRoleAssignmentResponder(),
+	)
 }
 
 // RegisterErrorMocks sets up error mock responses
@@ -76,7 +93,10 @@ func (m *RoleAssignmentMock) createRoleAssignmentResponder() httpmock.Responder 
 	return func(req *http.Request) (*http.Response, error) {
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
+			return httpmock.NewStringResponse(
+				400,
+				`{"error":{"code":"BadRequest","message":"Invalid JSON"}}`,
+			), nil
 		}
 
 		// Load base response from JSON file - choose based on request content
@@ -87,29 +107,83 @@ func (m *RoleAssignmentMock) createRoleAssignmentResponder() httpmock.Responder 
 		if scopeType, exists := requestBody["scopeType"]; exists {
 			switch scopeType {
 			case "AllDevices":
-				jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_all_devices.json"))
+				jsonContent, err = helpers.ParseJSONFile(
+					filepath.Join(
+						"..",
+						"tests",
+						"responses",
+						"validate_create",
+						"get_role_assignment_all_devices.json",
+					),
+				)
 			case "AllLicensedUsers":
-				jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_minimal.json"))
+				jsonContent, err = helpers.ParseJSONFile(
+					filepath.Join(
+						"..",
+						"tests",
+						"responses",
+						"validate_create",
+						"get_role_assignment_minimal.json",
+					),
+				)
 			default:
-				jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_minimal.json"))
+				jsonContent, err = helpers.ParseJSONFile(
+					filepath.Join(
+						"..",
+						"tests",
+						"responses",
+						"validate_create",
+						"get_role_assignment_minimal.json",
+					),
+				)
 			}
 		} else if resourceScopes, exists := requestBody["resourceScopes"]; exists {
 			if scopes, ok := resourceScopes.([]any); ok && len(scopes) > 0 {
-				jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_maximal.json"))
+				jsonContent, err = helpers.ParseJSONFile(
+					filepath.Join(
+						"..",
+						"tests",
+						"responses",
+						"validate_create",
+						"get_role_assignment_maximal.json",
+					),
+				)
 			} else {
-				jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_minimal.json"))
+				jsonContent, err = helpers.ParseJSONFile(
+					filepath.Join(
+						"..",
+						"tests",
+						"responses",
+						"validate_create",
+						"get_role_assignment_minimal.json",
+					),
+				)
 			}
 		} else {
-			jsonContent, err = helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_minimal.json"))
+			jsonContent, err = helpers.ParseJSONFile(
+				filepath.Join(
+					"..",
+					"tests",
+					"responses",
+					"validate_create",
+					"get_role_assignment_minimal.json",
+				),
+			)
 		}
 
 		if err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			return httpmock.NewStringResponse(
+				500,
+				`{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`,
+			), nil
 		}
 
 		var response map[string]any
 		if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+			return httpmock.NewStringResponse(
+				500,
+				`{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`,
+			), nil
 		}
 
 		// Generate a new ID for the created resource
@@ -125,6 +199,9 @@ func (m *RoleAssignmentMock) createRoleAssignmentResponder() httpmock.Responder 
 		}
 		if members, ok := requestBody["members"]; ok {
 			response["members"] = members
+		}
+		if roleScopeTagIds, ok := requestBody["roleScopeTagIds"]; ok {
+			response["roleScopeTagIds"] = roleScopeTagIds
 		}
 		if resourceScopes, ok := requestBody["resourceScopes"]; ok {
 			response["resourceScopes"] = resourceScopes
@@ -163,40 +240,85 @@ func (m *RoleAssignmentMock) getRoleAssignmentResponder() httpmock.Responder {
 		// Check for special test IDs
 		switch {
 		case strings.Contains(id, "minimal"):
-			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_minimal.json"))
+			jsonContent, err := helpers.ParseJSONFile(
+				filepath.Join(
+					"..",
+					"tests",
+					"responses",
+					"validate_create",
+					"get_role_assignment_minimal.json",
+				),
+			)
 			if err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`,
+				), nil
 			}
 			var response map[string]any
 			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`,
+				), nil
 			}
 			response["id"] = id
 			return factories.SuccessResponse(200, response)(req)
 		case strings.Contains(id, "maximal"):
-			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_maximal.json"))
+			jsonContent, err := helpers.ParseJSONFile(
+				filepath.Join(
+					"..",
+					"tests",
+					"responses",
+					"validate_create",
+					"get_role_assignment_maximal.json",
+				),
+			)
 			if err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`,
+				), nil
 			}
 			var response map[string]any
 			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`,
+				), nil
 			}
 			response["id"] = id
 			return factories.SuccessResponse(200, response)(req)
 		case strings.Contains(id, "all-devices"):
-			jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "get_role_assignment_all_devices.json"))
+			jsonContent, err := helpers.ParseJSONFile(
+				filepath.Join(
+					"..",
+					"tests",
+					"responses",
+					"validate_create",
+					"get_role_assignment_all_devices.json",
+				),
+			)
 			if err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`,
+				), nil
 			}
 			var response map[string]any
 			if err := json.Unmarshal([]byte(jsonContent), &response); err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to parse mock response"}}`,
+				), nil
 			}
 			response["id"] = id
 			return factories.SuccessResponse(200, response)(req)
 		default:
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Role assignment not found"}}`), nil
+			return httpmock.NewStringResponse(
+				404,
+				`{"error":{"code":"ResourceNotFound","message":"Role assignment not found"}}`,
+			), nil
 		}
 	}
 }
@@ -209,14 +331,20 @@ func (m *RoleAssignmentMock) updateRoleAssignmentResponder() httpmock.Responder 
 
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
+			return httpmock.NewStringResponse(
+				400,
+				`{"error":{"code":"BadRequest","message":"Invalid JSON"}}`,
+			), nil
 		}
 
 		mockState.Lock()
 		roleAssignment, exists := mockState.roleAssignments[id]
 		if !exists {
 			mockState.Unlock()
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Role assignment not found"}}`), nil
+			return httpmock.NewStringResponse(
+				404,
+				`{"error":{"code":"ResourceNotFound","message":"Role assignment not found"}}`,
+			), nil
 		}
 
 		// Update the stored role assignment
@@ -243,7 +371,10 @@ func (m *RoleAssignmentMock) deleteRoleAssignmentResponder() httpmock.Responder 
 		_, exists := mockState.roleAssignments[id]
 		if !exists {
 			mockState.Unlock()
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Role assignment not found"}}`), nil
+			return httpmock.NewStringResponse(
+				404,
+				`{"error":{"code":"ResourceNotFound","message":"Role assignment not found"}}`,
+			), nil
 		}
 
 		delete(mockState.roleAssignments, id)
