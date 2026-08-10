@@ -10886,6 +10886,11 @@
         "id": "POWER_VIRTUAL_AGENTS_O365_P2",
         "name": "Power Virtual Agents for Office 365",
         "guid": "041fe683-03e4-45b6-b1af-c0cdc516daee"
+      },
+      {
+        "id": "ATP_ENTERPRISE",
+        "name": "Microsoft Defender for Office 365 (Plan 1)",
+        "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
       }
     ]
   },
@@ -12412,6 +12417,11 @@
         "id": "MCOSTANDARD",
         "name": "Skype for Business Online (Plan 2)",
         "guid": "0feaeb32-d00e-4d66-bd5a-43b5b83db82c"
+      },
+      {
+        "id": "ATP_ENTERPRISE",
+        "name": "Microsoft Defender for Office 365 (Plan 1)",
+        "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
       }
     ]
   },
@@ -12489,6 +12499,11 @@
         "id": "MCOSTANDARD",
         "name": "Skype for Business Online (Plan 2)",
         "guid": "0feaeb32-d00e-4d66-bd5a-43b5b83db82c"
+      },
+      {
+        "id": "ATP_ENTERPRISE",
+        "name": "Microsoft Defender for Office 365 (Plan 1)",
+        "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
       }
     ]
   },
@@ -18853,6 +18868,16 @@
         "id": "Defender_for_Iot_Enterprise",
         "name": "Defender for IoT - Enterprise IoT Security",
         "guid": "99cd49a9-0e54-4e07-aea1-d8d9f5f704f5"
+      },
+      {
+        "id": "CLOUD_PKI",
+        "name": "Microsoft Cloud PKI",
+        "guid": "795aec3a-93a2-45be-92c4-47b9a76340ca"
+      },
+      {
+        "id": "3_PARTY_APP_PATCH",
+        "name": "Intune Enterprise Application Management",
+        "guid": "3afa0b92-83ef-41c1-8d64-586ab882a951"
       }
     ]
   },
@@ -19476,6 +19501,11 @@
         "id": "FLOW_O365_P2_GOV",
         "name": "Power Automate for Office 365 for Government",
         "guid": "c537f360-6a00-4ace-a7f5-9128d0ac1e4b"
+      },
+      {
+        "id": "ATP_ENTERPRISE",
+        "name": "Microsoft Defender for Office 365 (Plan 1)",
+        "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
       }
     ]
   },
@@ -25231,6 +25261,11 @@
         "id": "POWER_VIRTUAL_AGENTS_O365_P1",
         "name": "Power Virtual Agents for Office 365",
         "guid": "0683001c-0492-4d59-9515-d9a6426b5813"
+      },
+      {
+        "id": "MDOLITE_ENTERPRISE",
+        "name": "Microsoft 365 built-in email and collaboration security",
+        "guid": "c6675fa4-68fe-415f-aec1-a44520f0c3a3"
       }
     ]
   },
@@ -25739,6 +25774,11 @@
         "id": "POWER_VIRTUAL_AGENTS_O365_P2",
         "name": "Power Virtual Agents for Office 365",
         "guid": "041fe683-03e4-45b6-b1af-c0cdc516daee"
+      },
+      {
+        "id": "ATP_ENTERPRISE",
+        "name": "Microsoft Defender for Office 365 (Plan 1)",
+        "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
       }
     ]
   },
@@ -26217,6 +26257,11 @@
         "id": "MCOSTANDARD",
         "name": "Skype for Business Online (Plan 2)",
         "guid": "0feaeb32-d00e-4d66-bd5a-43b5b83db82c"
+      },
+      {
+        "id": "ATP_ENTERPRISE",
+        "name": "Microsoft Defender for Office 365 (Plan 1)",
+        "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
       }
     ]
   },
@@ -26269,6 +26314,11 @@
         "id": "MCOSTANDARD",
         "name": "Skype for Business Online (Plan 2)",
         "guid": "0feaeb32-d00e-4d66-bd5a-43b5b83db82c"
+      },
+      {
+        "id": "ATP_ENTERPRISE",
+        "name": "Microsoft Defender for Office 365 (Plan 1)",
+        "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
       }
     ]
   },
@@ -28104,6 +28154,11 @@
         "id": "FLOW_O365_P2_GOV",
         "name": "Power Automate for Office 365 for Government",
         "guid": "c537f360-6a00-4ace-a7f5-9128d0ac1e4b"
+      },
+      {
+        "id": "ATP_ENTERPRISE",
+        "name": "Microsoft Defender for Office 365 (Plan 1)",
+        "guid": "f20fedf3-f3c3-43c3-8267-2bfdd51c0939"
       }
     ]
   },
