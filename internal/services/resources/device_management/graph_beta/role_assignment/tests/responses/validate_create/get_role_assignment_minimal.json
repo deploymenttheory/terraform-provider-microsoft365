@@ -6,6 +6,9 @@
   "members": [
     "ea8e2fb8-e909-44e6-bae7-56757cf6f347"
   ],
+  "roleScopeTagIds": [
+    "0"
+  ],
   "resourceScopes": [],
   "scopeType": "AllLicensedUsers",
   "roleDefinition@odata.bind": "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('0bd113fe-6be5-400c-a28f-ae5553f9c0be')"
