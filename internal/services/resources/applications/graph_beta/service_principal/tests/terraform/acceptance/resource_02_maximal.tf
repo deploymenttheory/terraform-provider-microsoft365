@@ -28,7 +28,14 @@ resource "microsoft365_graph_beta_applications_service_principal" "test_maximal"
   notification_email_addresses  = ["admin@example.com", "security@example.com"]
   preferred_single_sign_on_mode = "saml"
   tags                          = ["HideApp", "WindowsAzureActiveDirectoryIntegratedApp"]
+  alternative_names             = ["isExplicit=True", "acc-test-sp-maximal"]
   hard_delete                   = true
+
+  # token_encryption_key_id is not exercised here: Graph rejects it unless the
+  # referenced key credential already exists on the service principal.
+  saml_single_sign_on_settings = {
+    relay_state = "https://example.com/relay"
+  }
 
   depends_on = [time_sleep.wait_for_app_max]
 }

@@ -15,7 +15,10 @@ import (
 // causing at least one field to differ and triggering a retry.
 //
 // app_id identifies the application registration that backs this service principal and is an
-// immutable key. service_principal_type is Computed (set by Entra) and is not compared.
+// immutable key. Computed properties are not compared: those set by Entra (such as
+// service_principal_type) and those reflected from the associated application (such as
+// display_name) are not written by this resource, and the reflected ones can change during
+// the same apply when the backing application is updated.
 //
 // See: https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/
 func servicePrincipalConsistencyPredicate(expected *ServicePrincipalResourceModel) func(ctx context.Context, state tfsdk.State) bool {
@@ -35,9 +38,12 @@ func servicePrincipalConsistencyPredicate(expected *ServicePrincipalResourceMode
 
 		// Compare all user-specified mutable fields. If any field set in the plan does not
 		// match the read-back state, the responding replica has not yet received the write.
-		if !actual.DisplayName.Equal(expected.DisplayName) {
-			return false
-		}
+		//
+		// Properties reflected from the associated application (display_name, homepage,
+		// logout_url, and the other Computed reflections) are deliberately not compared:
+		// this resource never writes them, and they legitimately change when the backing
+		// application is updated in the same apply. Asserting on them would retry until
+		// the limit and fail an otherwise successful update.
 		if !expected.AccountEnabled.IsNull() && !expected.AccountEnabled.IsUnknown() {
 			if !actual.AccountEnabled.Equal(expected.AccountEnabled) {
 				return false
@@ -53,18 +59,8 @@ func servicePrincipalConsistencyPredicate(expected *ServicePrincipalResourceMode
 				return false
 			}
 		}
-		if !expected.Homepage.IsNull() && !expected.Homepage.IsUnknown() {
-			if !actual.Homepage.Equal(expected.Homepage) {
-				return false
-			}
-		}
 		if !expected.LoginURL.IsNull() && !expected.LoginURL.IsUnknown() {
 			if !actual.LoginURL.Equal(expected.LoginURL) {
-				return false
-			}
-		}
-		if !expected.LogoutURL.IsNull() && !expected.LogoutURL.IsUnknown() {
-			if !actual.LogoutURL.Equal(expected.LogoutURL) {
 				return false
 			}
 		}
@@ -85,6 +81,23 @@ func servicePrincipalConsistencyPredicate(expected *ServicePrincipalResourceMode
 		}
 		if !expected.Tags.IsNull() && !expected.Tags.IsUnknown() {
 			if !actual.Tags.Equal(expected.Tags) {
+				return false
+			}
+		}
+		if !expected.AlternativeNames.IsNull() && !expected.AlternativeNames.IsUnknown() {
+			if !actual.AlternativeNames.Equal(expected.AlternativeNames) {
+				return false
+			}
+		}
+		// Compared even when the expected value is null: updates clear the property with an
+		// explicit null, so a stale replica still returning the old object must retry.
+		if !expected.SamlSingleSignOnSettings.IsUnknown() {
+			if !actual.SamlSingleSignOnSettings.Equal(expected.SamlSingleSignOnSettings) {
+				return false
+			}
+		}
+		if !expected.TokenEncryptionKeyID.IsUnknown() {
+			if !actual.TokenEncryptionKeyID.Equal(expected.TokenEncryptionKeyID) {
 				return false
 			}
 		}

@@ -133,6 +133,11 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 		MarkdownDescription: "Manages a Service Principal in Microsoft Entra ID. " +
 			"Service principals are the local representation of an application object in a specific tenant. " +
 			"They define what the app can do in the specific tenant, who can access the app, and what resources the app can access.\n\n" +
+			"This resource models only the properties the service principal itself owns. Properties that Microsoft Entra reflects from the " +
+			"backing application — such as its display name, home page, logout URL, reply URLs, app roles and permission scopes — are " +
+			"deliberately not exposed here and will not be added: they change whenever the application changes. Read them from the " +
+			"`microsoft365_graph_beta_applications_application` resource, or from the service principal data source for an application " +
+			"this configuration does not manage.\n\n" +
 			"For more information, see the [Microsoft Graph API documentation](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-post-serviceprincipals?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -149,11 +154,130 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"display_name": schema.StringAttribute{
-				MarkdownDescription: "The display name for the service principal. Read-only, inherited from the application.",
+			"alternative_names": schema.SetAttribute{
+				MarkdownDescription: "Used to retrieve service principals by subscription, identify resource group and full resource IDs for managed identities. " +
+					"Set to `[]` to clear previously configured values. Supports `$filter` (`eq`, `not`, `ge`, `le`, `startsWith`).",
+				ElementType: types.StringType,
+				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Set{
+					setplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"app_owner_organization_id": schema.StringAttribute{
+				MarkdownDescription: "Contains the tenant ID where the application is registered. Applicable only to service principals backed by applications. Read-only. " +
+					"Equivalent to `application_tenant_id` in the azuread provider.",
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"application_template_id": schema.StringAttribute{
+				MarkdownDescription: "Unique identifier of the application template that the associated application was created from. Read-only. `null` if the app wasn't created from an application template.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"created_by_app_id": schema.StringAttribute{
+				MarkdownDescription: "The appId of the application that created this service principal. Set internally by Microsoft Entra ID. Read-only.",
+				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"is_disabled": schema.BoolAttribute{
+				MarkdownDescription: "Specifies whether the service principal is deactivated so the app can't obtain new access tokens or access protected resources. Read-only; the API rejects writes to this property.",
+				Computed:            true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
+			},
+			"key_credentials": schema.SetNestedAttribute{
+				MarkdownDescription: "The collection of key credentials associated with the service principal. Read-only on this resource; certificates are added through dedicated credential resources or the addTokenSigningCertificate API. " +
+					"Private key material is never returned by the API, and this resource does not expose the public `key` field.",
+				Computed: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"custom_key_identifier": schema.StringAttribute{
+							MarkdownDescription: "A base64-encoded custom key identifier.",
+							Computed:            true,
+						},
+						"display_name": schema.StringAttribute{
+							MarkdownDescription: "The friendly name for the key.",
+							Computed:            true,
+						},
+						"end_date_time": schema.StringAttribute{
+							MarkdownDescription: "The date and time at which the credential expires.",
+							Computed:            true,
+						},
+						"key_id": schema.StringAttribute{
+							MarkdownDescription: "The unique identifier for the key.",
+							Computed:            true,
+						},
+						"start_date_time": schema.StringAttribute{
+							MarkdownDescription: "The date and time at which the credential becomes valid.",
+							Computed:            true,
+						},
+						"type": schema.StringAttribute{
+							MarkdownDescription: "The type of key credential, for example `Symmetric` or `AsymmetricX509Cert`.",
+							Computed:            true,
+						},
+						"usage": schema.StringAttribute{
+							MarkdownDescription: "A string that describes the purpose for which the key can be used, for example `Verify` or `Sign`.",
+							Computed:            true,
+						},
+					},
+				},
+			},
+			"password_credentials": schema.SetNestedAttribute{
+				MarkdownDescription: "The collection of password credentials associated with the service principal. Read-only. The secret itself is never returned by the API.",
+				Computed:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"custom_key_identifier": schema.StringAttribute{
+							MarkdownDescription: "A base64-encoded custom key identifier.",
+							Computed:            true,
+						},
+						"display_name": schema.StringAttribute{
+							MarkdownDescription: "The friendly name for the password.",
+							Computed:            true,
+						},
+						"end_date_time": schema.StringAttribute{
+							MarkdownDescription: "The date and time at which the password expires.",
+							Computed:            true,
+						},
+						"hint": schema.StringAttribute{
+							MarkdownDescription: "Contains the first three characters of the password. Read-only.",
+							Computed:            true,
+						},
+						"key_id": schema.StringAttribute{
+							MarkdownDescription: "The unique identifier for the password.",
+							Computed:            true,
+						},
+						"start_date_time": schema.StringAttribute{
+							MarkdownDescription: "The date and time at which the password becomes valid.",
+							Computed:            true,
+						},
+					},
+				},
+			},
+			"preferred_token_signing_key_end_date_time": schema.StringAttribute{
+				MarkdownDescription: "Specifies the expiration date of the key credential used for token signing, marked by `preferred_token_signing_key_thumbprint`. Read-only.",
+				Computed:            true,
+			},
+			"preferred_token_signing_key_thumbprint": schema.StringAttribute{
+				MarkdownDescription: "The thumbprint of the certificate used to sign SAML responses for applications with `preferred_single_sign_on_mode` set to `saml`. " +
+					"Read-only on this resource; it is set when a token signing certificate is activated on the service principal.",
+				Computed: true,
+			},
+			"token_encryption_key_id": schema.StringAttribute{
+				MarkdownDescription: "Specifies the keyId of a public key from the key credentials collection. When configured, Microsoft Entra ID issues tokens for this application encrypted using the key specified by this property. " +
+					"The referenced key credential must already exist on the service principal. " +
+					"When this attribute is absent from the configuration, updates actively clear the property on the service principal.",
+				Optional: true,
+				Validators: []validator.String{
+					attribute.RegexMatches(regexp.MustCompile(constants.GuidRegex), "must be a valid GUID"),
 				},
 			},
 			"account_enabled": schema.BoolAttribute{
@@ -183,13 +307,6 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
-			"homepage": schema.StringAttribute{
-				MarkdownDescription: "Home page or landing page of the application. Read-only, inherited from the application.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
 			"login_url": schema.StringAttribute{
 				MarkdownDescription: "Specifies the URL where the service provider redirects the user to Microsoft Entra ID to authenticate. Microsoft Entra ID uses the URL to launch the application from Microsoft 365 or the Microsoft Entra My Apps. When blank, Microsoft Entra ID performs IdP-initiated sign-on for applications configured with SAML-based single sign-on.",
 				Optional:            true,
@@ -197,13 +314,6 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 				Validators: []validator.String{
 					attribute.RegexMatches(regexp.MustCompile(constants.HttpOrHttpsUrlRegex), "must be a valid HTTP or HTTPS URL"),
 				},
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"logout_url": schema.StringAttribute{
-				MarkdownDescription: "Specifies the URL that the Microsoft's authorization service uses to sign out a user using OpenId Connect front-channel, back-channel, or SAML sign out protocols. Read-only, inherited from the application.",
-				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -242,23 +352,19 @@ func (r *ServicePrincipalResource) Schema(ctx context.Context, req resource.Sche
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
+			"saml_single_sign_on_settings": schema.SingleNestedAttribute{
+				MarkdownDescription: "The collection for settings related to SAML single sign-on. " +
+					"When this block is absent from the configuration, updates actively clear the property on the service principal.",
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"relay_state": schema.StringAttribute{
+						MarkdownDescription: "The relative URI the service provider would redirect to after completion of the single sign-on flow.",
+						Required:            true,
+					},
+				},
+			},
 			"service_principal_type": schema.StringAttribute{
 				MarkdownDescription: "Identifies if the service principal represents an application or a managed identity. Read-only.",
-				Computed:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"service_principal_names": schema.SetAttribute{
-				MarkdownDescription: "Contains the list of identifiersUris, copied over from the associated application. Additional values can be added to hybrid applications. These values can be used to identify the permissions exposed by this app within Microsoft Entra ID. Read-only.",
-				ElementType:         types.StringType,
-				Computed:            true,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
-			},
-			"sign_in_audience": schema.StringAttribute{
-				MarkdownDescription: "Specifies what Microsoft accounts are supported for the application. Read-only.",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
