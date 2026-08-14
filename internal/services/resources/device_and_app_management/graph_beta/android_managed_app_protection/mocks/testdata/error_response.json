@@ -1,0 +1,6 @@
+{
+	"error": {
+		"code": "BadRequest",
+		"message": "Invalid Android Managed App Protection data"
+	}
+}
