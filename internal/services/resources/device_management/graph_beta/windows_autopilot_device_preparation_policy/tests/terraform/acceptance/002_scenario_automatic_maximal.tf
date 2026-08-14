@@ -4,6 +4,25 @@ resource "random_string" "suffix_auto_maximal" {
   upper   = false
 }
 
+data "microsoft365_graph_beta_applications_service_principal" "intune_provisioning_client_auto_maximal" {
+  app_id = "f1346770-5b25-470b-88bd-d5744ab7952c"
+}
+
+resource "microsoft365_graph_beta_groups_group" "acc_test_auto_maximal_device_group" {
+  display_name     = "acc-test-autopilot-dpp-auto-max-device-group-${random_string.suffix_auto_maximal.result}"
+  mail_nickname    = "acc-test-autopilot-dpp-auto-max-dg-${random_string.suffix_auto_maximal.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Device security group for automatic mode Windows Autopilot device preparation policy"
+  hard_delete      = true
+}
+
+resource "microsoft365_graph_beta_groups_group_owner_assignment" "acc_test_auto_maximal_device_group_owner" {
+  group_id          = microsoft365_graph_beta_groups_group.acc_test_auto_maximal_device_group.id
+  owner_id          = data.microsoft365_graph_beta_applications_service_principal.intune_provisioning_client_auto_maximal.id
+  owner_object_type = "ServicePrincipal"
+}
+
 # ==============================================================================
 # WinGet App Dependency
 # ==============================================================================
@@ -77,6 +96,8 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_1"
   }
 
+  device_security_group = microsoft365_graph_beta_groups_group.acc_test_auto_maximal_device_group.id
+
   allowed_apps = [
     {
       app_id   = microsoft365_graph_beta_device_and_app_management_win_get_app.acc_test_auto_maximal_app.id
@@ -95,5 +116,8 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
     delete = "60s"
   }
 
-  depends_on = [time_sleep.wait_for_dependencies_auto_maximal]
+  depends_on = [
+    time_sleep.wait_for_dependencies_auto_maximal,
+    microsoft365_graph_beta_groups_group_owner_assignment.acc_test_auto_maximal_device_group_owner,
+  ]
 }
