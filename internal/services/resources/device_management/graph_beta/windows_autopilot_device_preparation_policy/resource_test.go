@@ -2,6 +2,7 @@ package graphBetaWindowsAutopilotDevicePreparationPolicy_test
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -54,6 +55,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_01_AutomaticMinimal
 					check.That(resourceType+".auto_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".auto_minimal").Key("name").HasValue("unit-test-autopilot-dpp-auto-minimal"),
 					check.That(resourceType+".auto_minimal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
+					check.That(resourceType+".auto_minimal").Key("device_security_group").HasValue("00000000-0000-0000-0000-000000000001"),
 					check.That(resourceType+".auto_minimal").Key("allowed_apps.#").HasValue("1"),
 					check.That(resourceType+".auto_minimal").Key("allowed_apps.0.app_id").HasValue("00000000-0000-0000-0000-000000000001"),
 					check.That(resourceType+".auto_minimal").Key("allowed_apps.0.app_type").HasValue("winGetApp"),
@@ -79,6 +81,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_02_AutomaticMaximal
 					check.That(resourceType+".auto_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".auto_maximal").Key("name").HasValue("unit-test-autopilot-dpp-auto-maximal"),
 					check.That(resourceType+".auto_maximal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
+					check.That(resourceType+".auto_maximal").Key("device_security_group").HasValue("00000000-0000-0000-0000-000000000001"),
 					check.That(resourceType+".auto_maximal").Key("allowed_apps.#").HasValue("3"),
 					check.That(resourceType+".auto_maximal").Key("allowed_scripts.#").HasValue("2"),
 				),
@@ -190,6 +193,35 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMaxima
 			},
 		},
 	})
+}
+
+// Test 08: Automatic mode without an optional device security group
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_08_AutomaticWithoutDeviceSecurityGroup(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("007_scenario_automatic_without_device_security_group.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".auto_without_device_group").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".auto_without_device_group").Key("name").HasValue("unit-test-autopilot-dpp-auto-without-device-group"),
+					check.That(resourceType+".auto_without_device_group").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
+					check.That(resourceType+".auto_without_device_group").Key("allowed_apps.#").HasValue("1"),
+				),
+			},
+		},
+	})
+
+	for key, count := range httpmock.GetCallCountInfo() {
+		if strings.HasPrefix(key, "POST ") && strings.Contains(key, "/setEnrollmentTimeDeviceMembershipTarget") && count != 0 {
+			t.Fatalf("expected no enrollment-time device membership target call without a device group, got %d", count)
+		}
+	}
 }
 
 // Test 07: Error handling - API rejection

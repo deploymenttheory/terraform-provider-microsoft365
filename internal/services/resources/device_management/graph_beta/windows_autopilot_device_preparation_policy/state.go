@@ -33,9 +33,14 @@ func mapResourceToState(
 	stateModel.Description = convert.GraphToFrameworkString(resource.GetDescription())
 	stateModel.IsAssigned = convert.GraphToFrameworkBool(resource.GetIsAssigned())
 	stateModel.CreatedDateTime = convert.GraphToFrameworkTime(resource.GetCreatedDateTime())
-	stateModel.LastModifiedDateTime = convert.GraphToFrameworkTime(resource.GetLastModifiedDateTime())
+	stateModel.LastModifiedDateTime = convert.GraphToFrameworkTime(
+		resource.GetLastModifiedDateTime(),
+	)
 	stateModel.SettingsCount = convert.GraphToFrameworkInt32(resource.GetSettingCount())
-	stateModel.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, resource.GetRoleScopeTagIds())
+	stateModel.RoleScopeTagIds = convert.GraphToFrameworkStringSet(
+		ctx,
+		resource.GetRoleScopeTagIds(),
+	)
 
 	if platforms := resource.GetPlatforms(); platforms != nil {
 		stateModel.Platforms = types.StringValue(platforms.String())
@@ -70,7 +75,10 @@ func mapResourceToState(
 		}
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource state with id %s", stateModel.ID.ValueString()))
+	tflog.Debug(
+		ctx,
+		fmt.Sprintf("Finished mapping resource state with id %s", stateModel.ID.ValueString()),
+	)
 }
 
 // mapSettingsToState extracts settings from the response and maps them to the state model
@@ -139,11 +147,9 @@ func mapSettingsToState(
 
 		// Process the setting based on its definition ID
 		switch *settingDefinitionId {
-		// Device Security Group (user-driven only)
+		// Device Security Group is configured through the enrollment-time target action.
 		case "enrollment_autopilot_dpp_devicegroup":
-			if isUserDriven {
-				extractStringValue(ctx, settingInstance, &stateModel.DeviceSecurityGroup)
-			}
+			extractStringValue(ctx, settingInstance, &stateModel.DeviceSecurityGroup)
 
 		// Deployment Settings
 		case "enrollment_autopilot_dpp_deploymenttype":
@@ -152,7 +158,11 @@ func mapSettingsToState(
 		case "enrollment_autopilot_dpp_deploymentmode":
 			// deployment_mode only for user-driven
 			if isUserDriven {
-				extractChoiceValue(ctx, settingInstance, &stateModel.DeploymentSettings.DeploymentMode)
+				extractChoiceValue(
+					ctx,
+					settingInstance,
+					&stateModel.DeploymentSettings.DeploymentMode,
+				)
 			}
 		case "enrollment_autopilot_dpp_jointype":
 			// join_type only for user-driven
@@ -172,7 +182,11 @@ func mapSettingsToState(
 			}
 		case "enrollment_autopilot_dpp_custonerror":
 			if isUserDriven {
-				extractStringValue(ctx, settingInstance, &stateModel.OOBESettings.CustomErrorMessage)
+				extractStringValue(
+					ctx,
+					settingInstance,
+					&stateModel.OOBESettings.CustomErrorMessage,
+				)
 			}
 		case "enrollment_autopilot_dpp_allowskip":
 			if isUserDriven {
