@@ -140,14 +140,14 @@ func MobileAppDmgInstallerMetadataSchema() schema.SingleNestedAttribute {
 func MobileAppWin32LobInstallerMetadataSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional:            true,
-		MarkdownDescription: "Metadata related to the win32 lob app installer file, such as size and checksums. This is automatically computed during app creation and updates.",
+		MarkdownDescription: "Metadata related to the Win32 LOB app installer file. Changing the installer source publishes a new content version on the existing application and preserves its application ID and assignments.",
 		PlanModifiers: []planmodifier.Object{
 			planmodifiers.UseStateForUnknownObject(),
 		},
 		Attributes: map[string]schema.Attribute{
 			"installer_file_path_source": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The path to the win32 lob app installer file to be uploaded. The file must be a valid `.intunewin` file. Value is not returned by API call.",
+				MarkdownDescription: "The path to a valid `.intunewin` package. Changing this path uploads a new content version without replacing the application. Value is not returned by API call.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(`.*\.intunewin$`),
@@ -156,12 +156,11 @@ func MobileAppWin32LobInstallerMetadataSchema() schema.SingleNestedAttribute {
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
-					stringplanmodifier.RequiresReplace(),
 				},
 			},
 			"installer_url_source": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The web location of the win32 lob app installer file, can be a http(s) URL. The file must be a valid `.intunewin` file. Value is not returned by API call.",
+				MarkdownDescription: "An HTTP(S) URL for a valid `.intunewin` package. Changing this URL uploads a new content version without replacing the application. Value is not returned by API call.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
@@ -170,7 +169,6 @@ func MobileAppWin32LobInstallerMetadataSchema() schema.SingleNestedAttribute {
 				},
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
-					stringplanmodifier.RequiresReplace(),
 				},
 			},
 		},

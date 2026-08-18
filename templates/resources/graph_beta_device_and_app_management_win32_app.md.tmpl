@@ -51,8 +51,9 @@ The following client `application` permissions are needed in order to use this {
 ## Important Notes
 
 - **Windows Specific**: This resource is specifically for managing Win32 Line of Business (LOB) applications on Windows devices.
-- **App Package Format**: Win32 LOB apps are typically in .msi, .exe, or .appx format and are custom applications developed for the organization.
-- **Content Upload**: The resource handles uploading the app content to Intune for distribution to target devices.
+- **App Package Format**: Installer sources must be valid `.intunewin` packages containing `IntuneWinPackage/Metadata/Detection.xml` and the matching encrypted file under `IntuneWinPackage/Contents/`.
+- **Content Upload**: The resource uploads the original encrypted inner content and commits it with the encryption metadata from `Detection.xml`. Microsoft Graph receives the inner content filename, even when the outer `.intunewin` archive has a different name.
+- **Content Updates**: Changing `installer_file_path_source` or `installer_url_source` creates and commits a new content version on the existing application. The application ID and its assignments are preserved, and Terraform tracks only the currently committed version. Changes to a package at an unchanged path or URL do not create a Terraform plan automatically.
 - **Assignment Required**: Apps must be assigned to user or device groups to be deployed through Intune.
 - **Detection Rules**: Configure detection rules to determine if the app is successfully installed on target devices. Multiple detection rule types are supported:
   - **Registry**: Check registry keys and values
@@ -71,4 +72,4 @@ The following client `application` permissions are needed in order to use this {
 
 Import is supported using the following syntax:
 
-{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_and_app_management_win32_app/import.sh" }} 
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_and_app_management_win32_app/import.sh" }}
