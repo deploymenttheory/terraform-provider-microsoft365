@@ -48,6 +48,7 @@ func NewServicePrincipalPreferredTokenSigningKeyThumbprintResource() resource.Re
 		},
 		WritePermissions: []string{
 			"Application.ReadWrite.All",
+			"Directory.ReadWrite.All",
 		},
 		ResourcePath: "/servicePrincipals",
 	}
