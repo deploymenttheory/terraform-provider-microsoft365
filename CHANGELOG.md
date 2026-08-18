@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.1-alpha...v1.0.0-alpha) (2026-08-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* display_name, homepage, logout_url, service_principal_names and sign_in_audience are removed from microsoft365_graph_beta_applications_service_principal. Read them from the backing application resource or the service principal data source instead.
+
+### Features
+
+* add role_scope_tag_ids to beta device management role assignment ([#3607](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3607)) ([ba465b3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ba465b35bb89ce0c3897c2d239d2a1ce02585852))
+* android managed app protection ([#3369](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3369)) ([cf01a71](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cf01a71262ef3b80684be675d818d792d4f5ee2e))
+* model the service principal's own properties and drop application-derived ones ([#3492](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3492)) ([2456909](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2456909274b4201a15150440152f6de01527b063))
+* support automatic mode device group assignments ([#3624](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3624)) ([56a6eaf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/56a6eafe8386b4f623b51eea117b35e419ca145b))
+* support Entra ID SAML SSO token signing certificate lifecycle for service principals ([#3491](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3491)) ([1a450c7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1a450c7a3af8eed6ad4943b6998e0640924f8b65))
+* support ipRange destination type for on-premises IP application segments ([#3490](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3490)) ([16eb2c0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/16eb2c0222bcddbe1a9fd30c56630010302a5de8))
+
+
+### Bug Fixes
+
+* **settings_catalog_template_json:** read assignments from /assignmen… ([#3623](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3623)) ([de8fc3b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/de8fc3b242c448efbd613dd59eff1efd8ee7faf1))
+* **settings_catalog_template_json:** read assignments from /assignments endpoint ([de8fc3b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/de8fc3b242c448efbd613dd59eff1efd8ee7faf1))
+* support multiple on-premises IP segment protocols ([#3449](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3449)) ([ab8220c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ab8220c5e95dbb66ca0618f7346eb3ff85c3ce70))
+
 ## [0.57.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.0-alpha...v0.57.1-alpha) (2026-07-15)
 
 
