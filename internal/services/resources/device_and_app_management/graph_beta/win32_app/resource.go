@@ -235,7 +235,7 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"file_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The name of the main Lob application file.",
+				MarkdownDescription: "The configured name of the main LOB application file. The encrypted content filename sent to Microsoft Graph is read from the package's `Detection.xml` metadata.",
 			},
 			"size": schema.Int64Attribute{
 				Computed:            true,

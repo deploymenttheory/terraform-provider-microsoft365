@@ -473,7 +473,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "notepad_
 - `allow_available_uninstall` (Boolean) When TRUE, indicates that uninstall is supported from the company portal for the Windows app (Win32) with an Available assignment. When FALSE, indicates that uninstall is not supported for the Windows app (Win32) with an Available assignment. Default value is FALSE.
 - `description` (String) Required. The description of the resource. Maximum length is 10000 characters.
 - `display_name` (String) The admin provided or imported title of the app.
-- `file_name` (String) The name of the main Lob application file.
+- `file_name` (String) The configured name of the main LOB application file. The encrypted content filename sent to Microsoft Graph is read from the package's `Detection.xml` metadata.
 - `install_command_line` (String) The command line to install this app. Typically formatted as 'msiexec /i "application_name.msi" /qn'
 - `minimum_supported_windows_release` (String) The value for the minimum supported windows release.
 - `publisher` (String) The publisher of the Intune macOS pkg application.
@@ -483,7 +483,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "notepad_
 
 - `allowed_architectures` (Set of String) The Windows architecture(s) for which this app can run on. Possible values are: none, x64, x86, arm64.
 - `app_icon` (Attributes) The source information for the app icon. Supports various image formats (JPEG, PNG, GIF, etc.) which will be automatically converted to PNG as required by Microsoft Intune. (see [below for nested schema](#nestedatt--app_icon))
-- `app_installer` (Attributes) Metadata related to the win32 lob app installer file, such as size and checksums. This is automatically computed during app creation and updates. (see [below for nested schema](#nestedatt--app_installer))
+- `app_installer` (Attributes) Metadata related to the Win32 LOB app installer file. Changing the installer source publishes a new content version on the existing application and preserves its application ID and assignments. (see [below for nested schema](#nestedatt--app_installer))
 - `categories` (Set of String) Set of category names to associate with this application. You can use either thebpredefined Intune category names like 'Business', 'Productivity', etc., or provide specific category UUIDs. Predefined values include: 'Other apps', 'Books & Reference', 'Data management', 'Productivity', 'Business', 'Development & Design', 'Photos & Media', 'Collaboration & Social', 'Computer management'.
 - `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
 - `detection_rules` (Attributes List, Deprecated) **DEPRECATED**: Use the `rules` block instead with key rule_type set to `detection`, to configure the detection rules to detect Win32 Line of Business (LoB) app. (see [below for nested schema](#nestedatt--detection_rules))
@@ -535,8 +535,8 @@ Optional:
 
 Optional:
 
-- `installer_file_path_source` (String) The path to the win32 lob app installer file to be uploaded. The file must be a valid `.intunewin` file. Value is not returned by API call.
-- `installer_url_source` (String) The web location of the win32 lob app installer file, can be a http(s) URL. The file must be a valid `.intunewin` file. Value is not returned by API call.
+- `installer_file_path_source` (String) The path to a valid `.intunewin` package. Changing this path uploads a new content version without replacing the application. Value is not returned by API call.
+- `installer_url_source` (String) An HTTP(S) URL for a valid `.intunewin` package. Changing this URL uploads a new content version without replacing the application. Value is not returned by API call.
 
 
 <a id="nestedatt--content_version"></a>
@@ -686,8 +686,9 @@ Optional:
 ## Important Notes
 
 - **Windows Specific**: This resource is specifically for managing Win32 Line of Business (LOB) applications on Windows devices.
-- **App Package Format**: Win32 LOB apps are typically in .msi, .exe, or .appx format and are custom applications developed for the organization.
-- **Content Upload**: The resource handles uploading the app content to Intune for distribution to target devices.
+- **App Package Format**: Installer sources must be valid `.intunewin` packages containing `IntuneWinPackage/Metadata/Detection.xml` and the matching encrypted file under `IntuneWinPackage/Contents/`.
+- **Content Upload**: The resource uploads the original encrypted inner content and commits it with the encryption metadata from `Detection.xml`. Microsoft Graph receives the inner content filename, even when the outer `.intunewin` archive has a different name.
+- **Content Updates**: Changing `installer_file_path_source` or `installer_url_source` creates and commits a new content version on the existing application. The application ID and its assignments are preserved, and Terraform tracks only the currently committed version. Changes to a package at an unchanged path or URL do not create a Terraform plan automatically.
 - **Assignment Required**: Apps must be assigned to user or device groups to be deployed through Intune.
 - **Detection Rules**: Configure detection rules to determine if the app is successfully installed on target devices. Multiple detection rule types are supported:
   - **Registry**: Check registry keys and values
@@ -709,4 +710,4 @@ Import is supported using the following syntax:
 ```shell
 # {resource_id}
 terraform import microsoft365_graph_beta_device_and_app_management_win32_app.example 00000000-0000-0000-0000-000000000000
-``` 
+```
