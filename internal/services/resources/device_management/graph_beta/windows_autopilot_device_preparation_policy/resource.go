@@ -80,18 +80,30 @@ type WindowsAutopilotDevicePreparationPolicyResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Metadata(
+	ctx context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state and infers the deployment_type from the template ID.
 // Since deployment_type is required in the schema, we need to infer it from the template ID during import.
-func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
 	resourceID := req.ID
 
 	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s", ResourceName, resourceID))
@@ -106,7 +118,6 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(ctx contex
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(resourceID).
 		Get(ctx, nil)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error fetching resource during import",
@@ -126,7 +137,10 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(ctx contex
 			default:
 				resp.Diagnostics.AddError(
 					"Unknown template ID",
-					fmt.Sprintf("Template ID %s does not match any known deployment type", *templateID),
+					fmt.Sprintf(
+						"Template ID %s does not match any known deployment type",
+						*templateID,
+					),
 				)
 				return
 			}
@@ -142,11 +156,20 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(ctx contex
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Setting deployment_type to: %s", deploymentType))
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("deployment_settings").AtName("deployment_type"), deploymentType)...)
+	resp.Diagnostics.Append(
+		resp.State.SetAttribute(
+			ctx,
+			path.Root("deployment_settings").AtName("deployment_type"),
+			deploymentType,
+		)...)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
-func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(
+	ctx context.Context,
+	req resource.IdentitySchemaRequest,
+	resp *resource.IdentitySchemaResponse,
+) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -157,7 +180,11 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) IdentitySchema(ctx con
 }
 
 // Function to create the full Windows Autopilot Device Preparation Policy schema
-func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
+	ctx context.Context,
+	req resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Windows Autopilot Device Preparation Policy using the `/deviceManagement/configurationPolicies` endpoint. This resource is used to windows Autopilot Device Preparation is used to set up and configure new devices, getting them ready for productive use by delivering consistent configurations and enhancing the setup experience.",
 		Attributes: map[string]schema.Attribute{
@@ -247,7 +274,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 			},
 			"deployment_settings": schema.SingleNestedAttribute{
 				Optional:            true,
-				MarkdownDescription: "Deployment settings for the Windows Autopilot Device Preparation policy. The deployment_type field is required and determines the policy template. User-driven mode (deployment_type_0) requires additional fields like deployment_mode and account_type. Self-deploying mode (deployment_type_1) only requires deployment_type.",
+				MarkdownDescription: "Deployment settings for the Windows Autopilot Device Preparation policy. The deployment_type field is required and determines the policy template. User-driven mode (deployment_type_0) requires additional fields like deployment_mode and account_type. Automatic mode (deployment_type_1) can use device_security_group as the enrollment-time device membership target when one is provided.",
 				Attributes: map[string]schema.Attribute{
 					"deployment_mode": schema.StringAttribute{
 						Optional:            true,
@@ -264,7 +291,7 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(ctx context.Con
 					},
 					"deployment_type": schema.StringAttribute{
 						Required:            true,
-						MarkdownDescription: "The deployment type determines the policy template and available settings. Valid values are: 'enrollment_autopilot_dpp_deploymenttype_0' (User-driven mode with full configuration, device security group, and assignments) or 'enrollment_autopilot_dpp_deploymenttype_1' (Self-deploying/automatic mode with simpler configuration).",
+						MarkdownDescription: "The deployment type determines the policy template and available settings. Valid values are: 'enrollment_autopilot_dpp_deploymenttype_0' (User-driven mode with full configuration and assignments) or 'enrollment_autopilot_dpp_deploymenttype_1' (Automatic mode with a device security group used as the enrollment-time device membership target).",
 						Validators: []validator.String{
 							stringvalidator.OneOf(
 								"enrollment_autopilot_dpp_deploymenttype_0", // User-driven

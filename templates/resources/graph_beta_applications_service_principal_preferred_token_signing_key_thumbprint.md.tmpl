@@ -1,0 +1,47 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [servicePrincipal resource type](https://learn.microsoft.com/en-us/graph/api/resources/serviceprincipal?view=graph-rest-beta)
+- [Update servicePrincipal](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-update?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Application.Read.All`
+- `Application.ReadWrite.All`
+- `Directory.Read.All`
+- `Directory.ReadWrite.All`
+
+**Optional:**
+- `Application.ReadWrite.OwnedBy` (if managing only applications owned by the service principal)
+
+Find out more about the permissions required for managing service principals at Microsoft Learn [here](https://learn.microsoft.com/en-us/graph/api/resources/serviceprincipal?view=graph-rest-beta).
+
+## Important Notes
+
+- **SAML Certificate Activation**: Setting this property activates a token signing certificate for SAML single sign-on. The thumbprint must reference a token signing certificate that exists on the same service principal — Microsoft Graph does not validate this.
+- **Certificate Rotation**: Changing the thumbprint updates the service principal in place. Combine with `create_before_destroy` on the certificate resource for zero-downtime rotation.
+- **Destroy Behavior**: Destroying this resource clears `preferredTokenSigningKeyThumbprint`, returning the service principal to Microsoft Entra's automatic signing key selection. The certificate itself is not removed.
+- **Thumbprint Format**: The thumbprint is a 40-character hexadecimal SHA-1 hash without colons or spaces. Casing is compared case-insensitively and the configured casing is preserved in state.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_preferred_token_signing_key_thumbprint/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_service_principal_preferred_token_signing_key_thumbprint/import.sh" }}

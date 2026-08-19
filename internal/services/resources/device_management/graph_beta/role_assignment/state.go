@@ -9,7 +9,11 @@ import (
 )
 
 // MapRemoteStateToTerraform maps the remote object state to the Terraform state
-func MapRemoteStateToTerraform(ctx context.Context, data *RoleAssignmentResourceModel, remoteResource graphmodels.DeviceAndAppManagementRoleAssignmentable) {
+func MapRemoteStateToTerraform(
+	ctx context.Context,
+	data *RoleAssignmentResourceModel,
+	remoteResource graphmodels.DeviceAndAppManagementRoleAssignmentable,
+) {
 	if remoteResource == nil {
 		return
 	}
@@ -41,6 +45,19 @@ func MapRemoteStateToTerraform(ctx context.Context, data *RoleAssignmentResource
 		data.Members = membersSet
 	} else {
 		data.Members = types.SetNull(types.StringType)
+	}
+
+	// Map role scope tag IDs
+	if remoteResource.GetRoleScopeTagIds() != nil {
+		roleScopeTagIds := remoteResource.GetRoleScopeTagIds()
+		roleScopeTagElements := make([]attr.Value, len(roleScopeTagIds))
+		for i, roleScopeTagId := range roleScopeTagIds {
+			roleScopeTagElements[i] = types.StringValue(roleScopeTagId)
+		}
+		roleScopeTagSet, _ := types.SetValue(types.StringType, roleScopeTagElements)
+		data.RoleScopeTagIds = roleScopeTagSet
+	} else {
+		data.RoleScopeTagIds = types.SetNull(types.StringType)
 	}
 
 	// Map role definition ID from additional data
@@ -96,7 +113,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *RoleAssignmentResource
 }
 
 // mapResourceScopes maps the resource scopes from the remote resource
-func mapResourceScopes(remoteResource graphmodels.DeviceAndAppManagementRoleAssignmentable, scopeConfig *ScopeConfigurationResourceModel) {
+func mapResourceScopes(
+	remoteResource graphmodels.DeviceAndAppManagementRoleAssignmentable,
+	scopeConfig *ScopeConfigurationResourceModel,
+) {
 	if remoteResource.GetResourceScopes() != nil {
 		resourceScopes := remoteResource.GetResourceScopes()
 		scopeElements := make([]attr.Value, len(resourceScopes))

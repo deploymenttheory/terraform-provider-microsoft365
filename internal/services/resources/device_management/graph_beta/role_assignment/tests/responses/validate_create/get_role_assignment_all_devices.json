@@ -7,6 +7,9 @@
     "ea8e2fb8-e909-44e6-bae7-56757cf6f347",
     "b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"
   ],
+  "roleScopeTagIds": [
+    "0"
+  ],
   "resourceScopes": [],
   "scopeType": "AllDevices",
   "roleDefinition@odata.bind": "https://graph.microsoft.com/beta/deviceManagement/roleDefinitions('9e0cc482-82df-4ab2-a24c-0c23a3f52e1e')"

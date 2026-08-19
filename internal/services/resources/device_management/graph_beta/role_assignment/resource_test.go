@@ -49,6 +49,8 @@ func TestUnitResourceRoleAssignment_01_Schema(t *testing.T) {
 					check.That(resourceType+".minimal").Key("description").HasValue("Minimal role assignment for unit testing"),
 					check.That(resourceType+".minimal").Key("role_definition_id").HasValue("0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
 					check.That(resourceType+".minimal").Key("members.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("role_scope_tag_ids.#").HasValue("1"),
+					check.That(resourceType+".minimal").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
 					check.That(resourceType+".minimal").Key("scope_configuration.#").HasValue("1"),
 					check.That(resourceType+".minimal").Key("scope_configuration.0.type").HasValue("AllLicensedUsers"),
 					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -76,6 +78,7 @@ func TestUnitResourceRoleAssignment_02_Minimal(t *testing.T) {
 					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-role-assignment-minimal"),
 					check.That(resourceType+".minimal").Key("description").HasValue("Minimal role assignment for unit testing"),
 					check.That(resourceType+".minimal").Key("role_definition_id").HasValue("0bd113fe-6be5-400c-a28f-ae5553f9c0be"),
+					check.That(resourceType+".minimal").Key("role_scope_tag_ids.#").HasValue("1"),
 					check.That(resourceType+".minimal").Key("scope_configuration.0.type").HasValue("AllLicensedUsers"),
 				),
 			},
@@ -117,6 +120,10 @@ func TestUnitResourceRoleAssignment_03_Maximal(t *testing.T) {
 					check.That(resourceType+".maximal").Key("description").HasValue("Comprehensive role assignment for unit testing with all features"),
 					check.That(resourceType+".maximal").Key("role_definition_id").HasValue("9e0cc482-82df-4ab2-a24c-0c23a3f52e1e"),
 					check.That(resourceType+".maximal").Key("members.#").HasValue("3"),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.#").HasValue("3"),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.*").ContainsTypeSetElement("1"),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.*").ContainsTypeSetElement("2"),
 					check.That(resourceType+".maximal").Key("scope_configuration.0.type").HasValue("ResourceScopes"),
 					check.That(resourceType+".maximal").Key("scope_configuration.0.resource_scopes.#").HasValue("3"),
 				),
@@ -140,6 +147,7 @@ func TestUnitResourceRoleAssignment_04_UpdateInPlace(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").Exists(),
 					check.That(resourceType+".minimal").Key("display_name").HasValue("unit-test-role-assignment-minimal"),
+					check.That(resourceType+".minimal").Key("role_scope_tag_ids.#").HasValue("1"),
 					check.That(resourceType+".minimal").Key("scope_configuration.0.type").HasValue("AllLicensedUsers"),
 				),
 			},
@@ -148,6 +156,7 @@ func TestUnitResourceRoleAssignment_04_UpdateInPlace(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".maximal").Key("id").Exists(),
 					check.That(resourceType+".maximal").Key("display_name").HasValue("unit-test-role-assignment-maximal"),
+					check.That(resourceType+".maximal").Key("role_scope_tag_ids.#").HasValue("3"),
 					check.That(resourceType+".maximal").Key("scope_configuration.0.type").HasValue("ResourceScopes"),
 				),
 			},
@@ -242,6 +251,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
   display_name       = "unit-test-role-assignment-all-devices"
   description        = "Role assignment for all devices scope"
   role_definition_id = "9e0cc482-82df-4ab2-a24c-0c23a3f52e1e"
+	role_scope_tag_ids = ["0"]
   
   members = [
     "ea8e2fb8-e909-44e6-bae7-56757cf6f347",
@@ -256,6 +266,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").Key("display_name").HasValue("unit-test-role-assignment-all-devices"),
 					check.That(resourceType+".test").Key("scope_configuration.0.type").HasValue("AllDevices"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.#").HasValue("1"),
 					check.That(resourceType+".test").Key("members.#").HasValue("2"),
 				),
 			},
@@ -279,6 +290,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
   display_name       = "unit-test-role-assignment-members"
   description        = "Minimal role assignment for unit testing"
   role_definition_id = "0bd113fe-6be5-400c-a28f-ae5553f9c0be"
+	role_scope_tag_ids = ["0", "1"]
   
   members = [
     "ea8e2fb8-e909-44e6-bae7-56757cf6f347",
@@ -293,6 +305,7 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "test" {
 `,
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").Key("members.#").HasValue("3"),
+					check.That(resourceType+".test").Key("role_scope_tag_ids.#").HasValue("2"),
 					check.That(resourceType+".test").Key("members.*").ContainsTypeSetElement("ea8e2fb8-e909-44e6-bae7-56757cf6f347"),
 					check.That(resourceType+".test").Key("members.*").ContainsTypeSetElement("b15228f4-9d49-41ed-9b4f-0e7c721fd9c2"),
 					check.That(resourceType+".test").Key("members.*").ContainsTypeSetElement("35d09841-af73-43e6-a59f-024fef1b6b95"),

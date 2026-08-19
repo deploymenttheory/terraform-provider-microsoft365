@@ -9,6 +9,12 @@ resource "microsoft365_graph_beta_device_management_role_assignment" "maximal" {
     "35d09841-af73-43e6-a59f-024fef1b6b95"
   ]
 
+  role_scope_tag_ids = [
+    "0",
+    "1",
+    "2"
+  ]
+
   scope_configuration {
     type = "ResourceScopes"
     resource_scopes = [

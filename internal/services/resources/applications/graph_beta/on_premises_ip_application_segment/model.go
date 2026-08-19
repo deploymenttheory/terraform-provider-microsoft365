@@ -13,6 +13,6 @@ type OnPremisesIpApplicationSegmentResourceModel struct {
 	DestinationHost     types.String   `tfsdk:"destination_host"`
 	DestinationType     types.String   `tfsdk:"destination_type"`
 	Ports               types.Set      `tfsdk:"ports"`
-	Protocol            types.String   `tfsdk:"protocol"`
+	Protocol            types.Set      `tfsdk:"protocol"`
 	Timeouts            timeouts.Value `tfsdk:"timeouts"`
 }

@@ -7,7 +7,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
   destination_host      = "app.contoso.com"
   destination_type      = "fqdn"
   ports                 = ["443-443", "8443-8443"]
-  protocol              = "tcp"
+  protocol              = ["tcp"]
 
   timeouts = {
     create = "5m"

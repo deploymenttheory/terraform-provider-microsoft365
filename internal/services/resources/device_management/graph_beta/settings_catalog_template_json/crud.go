@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
@@ -12,11 +17,6 @@ import (
 	identitymodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_management"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for Device Management Template resources.
@@ -33,7 +33,11 @@ import (
 // The function ensures that both the Device Management Template  and its assignments
 // (if specified) are created properly. The settings must be defined during creation
 // as they are required for a successful deployment, while assignments are optional.
-func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *DeviceManagementTemplateJsonResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var plan sharedmodels.SettingsCatalogJsonResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
@@ -43,7 +47,12 @@ func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req r
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		plan.Timeouts.Create,
+		CreateTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -62,9 +71,14 @@ func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req r
 		DeviceManagement().
 		ConfigurationPolicies().
 		Post(ctx, requestBody, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationCreate,
+			r.WritePermissions,
+		)
 		return
 	}
 
@@ -85,9 +99,14 @@ func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req r
 		ByDeviceManagementConfigurationPolicyId(plan.ID.ValueString()).
 		Assign().
 		Post(ctx, requestAssignment, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationUpdate,
+			r.WritePermissions,
+		)
 		return
 	}
 
@@ -128,7 +147,11 @@ func (r *DeviceManagementTemplateJsonResource) Create(ctx context.Context, req r
 // The function ensures that all components (base resource, settings, and assignments)
 // are properly read and mapped into the Terraform state, providing a complete view
 // of the resource's current configuration on the server.
-func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *DeviceManagementTemplateJsonResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	var object sharedmodels.SettingsCatalogJsonResourceModel
 	var baseResource models.DeviceManagementConfigurationPolicyable
 	var identity identitymodels.ResourceIdentity
@@ -148,7 +171,12 @@ func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req res
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Read,
+		ReadTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -167,12 +195,7 @@ func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req res
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Get(ctx, &devicemanagement.ConfigurationPoliciesDeviceManagementConfigurationPolicyItemRequestBuilderGetRequestConfiguration{
-			QueryParameters: &devicemanagement.ConfigurationPoliciesDeviceManagementConfigurationPolicyItemRequestBuilderGetQueryParameters{
-				Expand: []string{"assignments"},
-			},
-		})
-
+		Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -198,13 +221,27 @@ func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req res
 		r.client.GetAdapter(),
 		settingsConfig,
 	)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
 	sharedstater.StateConfigurationPolicySettings(ctx, &object, settingsResponse)
+
+	assignmentsResponse, err := r.client.
+		DeviceManagement().
+		ConfigurationPolicies().
+		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
+		Assignments().
+		Get(ctx, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+
+	if assignmentsResponse != nil {
+		MapAssignmentsToTerraform(ctx, &object, assignmentsResponse.GetValue())
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -227,7 +264,11 @@ func (r *DeviceManagementTemplateJsonResource) Read(ctx context.Context, req res
 //
 // The function ensures that both the settings and assignments are updated atomically,
 // and the final state reflects the actual state of the resource on the server.
-func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *DeviceManagementTemplateJsonResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 	var plan sharedmodels.SettingsCatalogJsonResourceModel
 	var state sharedmodels.SettingsCatalogJsonResourceModel
 
@@ -239,7 +280,12 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		plan.Timeouts.Update,
+		UpdateTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -265,7 +311,6 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 		ctx,
 		r.client.GetAdapter(),
 		putRequest)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
@@ -286,9 +331,14 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 		ByDeviceManagementConfigurationPolicyId(state.ID.ValueString()).
 		Assign().
 		Post(ctx, requestAssignment, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationUpdate,
+			r.WritePermissions,
+		)
 		return
 	}
 
@@ -308,7 +358,10 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+	tflog.Debug(
+		ctx,
+		fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()),
+	)
 }
 
 // Delete handles the Delete operation for Device Management Template resources.
@@ -319,7 +372,11 @@ func (r *DeviceManagementTemplateJsonResource) Update(ctx context.Context, req r
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
-func (r *DeviceManagementTemplateJsonResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *DeviceManagementTemplateJsonResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
 	var object sharedmodels.SettingsCatalogJsonResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
@@ -329,7 +386,12 @@ func (r *DeviceManagementTemplateJsonResource) Delete(ctx context.Context, req r
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Delete,
+		DeleteTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -340,9 +402,14 @@ func (r *DeviceManagementTemplateJsonResource) Delete(ctx context.Context, req r
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
 		Delete(ctx, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationDelete,
+			r.WritePermissions,
+		)
 		return
 	}
 

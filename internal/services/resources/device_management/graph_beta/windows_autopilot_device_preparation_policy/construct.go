@@ -16,8 +16,11 @@ import (
 )
 
 // constructResource builds the resource model for the Windows Autopilot Device Preparation Policy.
-func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) (models.DeviceManagementConfigurationPolicyable, error) {
-
+func constructResource(
+	ctx context.Context,
+	client *msgraphbetasdk.GraphServiceClient,
+	planModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+) (models.DeviceManagementConfigurationPolicyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	if diags := validateRequest(ctx, client, planModel); diags.HasError() {
@@ -28,7 +31,8 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 	// deployment_type_0 = User-driven (uses user-driven template)
 	// deployment_type_1 = Self-deploying/automatic (uses automatic template)
 	var deploymentType string
-	if planModel.DeploymentSettings != nil && !planModel.DeploymentSettings.DeploymentType.IsNull() {
+	if planModel.DeploymentSettings != nil &&
+		!planModel.DeploymentSettings.DeploymentType.IsNull() {
 		deploymentType = planModel.DeploymentSettings.DeploymentType.ValueString()
 	}
 
@@ -38,20 +42,26 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 	case DeploymentTypeSelfDeploying:
 		return constructAutomaticPolicy(ctx, planModel)
 	default:
-		return nil, fmt.Errorf("deployment_settings.deployment_type is required and must be '%s' (user-driven) or '%s' (self-deploying)", DeploymentTypeUserDriven, DeploymentTypeSelfDeploying)
+		return nil, fmt.Errorf(
+			"deployment_settings.deployment_type is required and must be '%s' (user-driven) or '%s' (self-deploying)",
+			DeploymentTypeUserDriven,
+			DeploymentTypeSelfDeploying,
+		)
 	}
 }
 
-// constructAutomaticPolicy builds a self-deploying/automatic mode policy (simpler structure, no device security group)
-func constructAutomaticPolicy(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) (models.DeviceManagementConfigurationPolicyable, error) {
+// constructAutomaticPolicy builds a self-deploying/automatic mode policy.
+func constructAutomaticPolicy(
+	ctx context.Context,
+	planModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+) (models.DeviceManagementConfigurationPolicyable, error) {
 	tflog.Debug(ctx, "Constructing self-deploying/automatic mode policy")
 
 	// Validate that self-deploying mode doesn't have user-driven only fields
 	if planModel.OOBESettings != nil {
-		return nil, fmt.Errorf("oobe_settings cannot be set for self-deploying/automatic mode policies (deployment_type_1)")
-	}
-	if !planModel.DeviceSecurityGroup.IsNull() && !planModel.DeviceSecurityGroup.IsUnknown() {
-		return nil, fmt.Errorf("device_security_group cannot be set for self-deploying/automatic mode policies (deployment_type_1)")
+		return nil, fmt.Errorf(
+			"oobe_settings cannot be set for self-deploying/automatic mode policies (deployment_type_1)",
+		)
 	}
 	if !planModel.Assignments.IsNull() && !planModel.Assignments.IsUnknown() {
 		return nil, fmt.Errorf("assignments cannot be set for automatic mode policies")
@@ -94,7 +104,11 @@ func constructAutomaticPolicy(ctx context.Context, planModel *WindowsAutopilotDe
 		configurationPolicy.SetTechnologies(tech)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, planModel.RoleScopeTagIds, configurationPolicy.SetRoleScopeTagIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(
+		ctx,
+		planModel.RoleScopeTagIds,
+		configurationPolicy.SetRoleScopeTagIds,
+	); err != nil {
 		return nil, fmt.Errorf("%w: %w", sentinels.ErrSetRoleScopeTags, err)
 	}
 
@@ -105,7 +119,14 @@ func constructAutomaticPolicy(ctx context.Context, planModel *WindowsAutopilotDe
 	}
 	configurationPolicy.SetSettings(settings)
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s (automatic mode)", ResourceName), configurationPolicy); err != nil {
+	if err := constructors.DebugLogGraphObject(
+		ctx,
+		fmt.Sprintf(
+			"Final JSON to be sent to Graph API for resource %s (automatic mode)",
+			ResourceName,
+		),
+		configurationPolicy,
+	); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
@@ -117,7 +138,10 @@ func constructAutomaticPolicy(ctx context.Context, planModel *WindowsAutopilotDe
 }
 
 // constructUserDrivenPolicy builds a user-driven mode policy (full structure with device security group)
-func constructUserDrivenPolicy(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) (models.DeviceManagementConfigurationPolicyable, error) {
+func constructUserDrivenPolicy(
+	ctx context.Context,
+	planModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+) (models.DeviceManagementConfigurationPolicyable, error) {
 	tflog.Debug(ctx, "Constructing user-driven mode policy")
 
 	// Validate that user-driven mode has required fields
@@ -181,7 +205,14 @@ func constructUserDrivenPolicy(ctx context.Context, planModel *WindowsAutopilotD
 	}
 	configurationPolicy.SetSettings(settings)
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s (automatic mode)", ResourceName), configurationPolicy); err != nil {
+	if err := constructors.DebugLogGraphObject(
+		ctx,
+		fmt.Sprintf(
+			"Final JSON to be sent to Graph API for resource %s (automatic mode)",
+			ResourceName,
+		),
+		configurationPolicy,
+	); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
 		})
@@ -193,7 +224,10 @@ func constructUserDrivenPolicy(ctx context.Context, planModel *WindowsAutopilotD
 }
 
 // constructAutomaticPolicySettings builds settings for automatic mode policies (apps and scripts).
-func constructAutomaticPolicySettings(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) ([]models.DeviceManagementConfigurationSettingable, error) {
+func constructAutomaticPolicySettings(
+	ctx context.Context,
+	planModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+) ([]models.DeviceManagementConfigurationSettingable, error) {
 	var settings []models.DeviceManagementConfigurationSettingable
 
 	settings = appendAllowedAppsAutomatic(settings, planModel.AllowedApps)
@@ -212,7 +246,10 @@ func constructAutomaticPolicySettings(ctx context.Context, planModel *WindowsAut
 //
 // It then calls the generic helpers to construct the setting instance and value
 // This func is unique per policy type and therefore per terraform resource type that uses templates.
-func constructUserDrivenPolicySettings(ctx context.Context, planModel *WindowsAutopilotDevicePreparationPolicyResourceModel) ([]models.DeviceManagementConfigurationSettingable, error) {
+func constructUserDrivenPolicySettings(
+	ctx context.Context,
+	planModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+) ([]models.DeviceManagementConfigurationSettingable, error) {
 	var settings []models.DeviceManagementConfigurationSettingable
 
 	if planModel.DeploymentSettings != nil {

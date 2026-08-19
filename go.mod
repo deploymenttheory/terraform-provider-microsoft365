@@ -3,7 +3,7 @@ module github.com/deploymenttheory/terraform-provider-microsoft365
 go 1.25.8
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.22.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.23.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.14.0
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/google/uuid v1.6.0
@@ -12,16 +12,16 @@ require (
 	github.com/hashicorp/terraform-plugin-framework-timeouts v0.7.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
-	github.com/hashicorp/terraform-plugin-log v0.10.0
+	github.com/hashicorp/terraform-plugin-log v0.11.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
-	github.com/jarcoal/httpmock v1.4.1
+	github.com/jarcoal/httpmock v1.4.2
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/microsoft/kiota-abstractions-go v1.9.4
 	github.com/microsoft/kiota-http-go v1.5.6
 	github.com/microsoft/kiota-serialization-json-go v1.1.4
-	github.com/microsoftgraph/msgraph-beta-sdk-go v0.163.0
-	github.com/microsoftgraph/msgraph-sdk-go v1.100.0
+	github.com/microsoftgraph/msgraph-beta-sdk-go v0.165.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.101.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.4.1
 	github.com/sassoftware/relic/v8 v8.2.0
 	github.com/stretchr/testify v1.11.1
@@ -108,11 +108,11 @@ require (
 	go.opentelemetry.io/otel v1.43.0 // indirect
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
-	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/crypto v0.54.0 // indirect
 	golang.org/x/mod v0.37.0 // indirect
-	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/net v0.57.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/tools v0.47.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect

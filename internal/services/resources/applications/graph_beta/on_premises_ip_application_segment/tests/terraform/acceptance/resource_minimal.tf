@@ -29,5 +29,5 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
   destination_host      = "192.168.1.100"
   destination_type      = "ipAddress"
   ports                 = ["80-80"]
-  protocol              = "tcp"
+  protocol              = ["tcp"]
 }

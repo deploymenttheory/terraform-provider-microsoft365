@@ -29,6 +29,24 @@ func (m *MockState) CleanupMockState() {
 	m.deletedItems = make(map[string]map[string]any)
 }
 
+// hasKeyCredential reports whether the service principal's keyCredentials collection
+// contains the given keyId. Graph enforces this reference before accepting a
+// tokenEncryptionKeyId ("No KeyCredential found with the configured TokenEncryptionKeyId").
+func hasKeyCredential(servicePrincipal map[string]any, keyId string) bool {
+	credentials, ok := servicePrincipal["keyCredentials"].([]any)
+	if !ok {
+		return false
+	}
+	for _, raw := range credentials {
+		if credential, ok := raw.(map[string]any); ok && credential["keyId"] == keyId {
+			return true
+		}
+	}
+	return false
+}
+
+const invalidTokenEncryptionKeyIdResponse = `{"error":{"code":"Request_BadRequest","message":"No KeyCredential found with the configured TokenEncryptionKeyId."}}`
+
 // RegisterServicePrincipalMockResponders registers mock HTTP responders for service principal operations
 func RegisterServicePrincipalMockResponders() *MockState {
 	mockState.Lock()
@@ -49,19 +67,50 @@ func RegisterServicePrincipalMockResponders() *MockState {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"appId is required"}}`), nil
 			}
 
-			// Generate mock service principal
+			// Generate mock service principal. Read-only fields mirror the shape of a real
+			// GET /servicePrincipals/{id} response for the properties this resource models.
 			id := "11111111-1111-1111-1111-111111111111"
 			servicePrincipal := map[string]any{
 				"@odata.context":            "https://graph.microsoft.com/beta/$metadata#servicePrincipals/$entity",
 				"id":                        id,
 				"appId":                     appId,
-				"displayName":               "Test Service Principal",
 				"accountEnabled":            true,
 				"appRoleAssignmentRequired": false,
 				"servicePrincipalType":      "Application",
-				"servicePrincipalNames":     []string{appId, "https://test.app"},
-				"signInAudience":            "AzureADMyOrg",
 				"tags":                      []string{},
+				"appOwnerOrganizationId":    "2cbe968c-9683-4d8a-af06-dab1bb350a04",
+				"createdByAppId":            "04b07795-8ddb-461a-bbee-02f9e1bf7b46",
+				"keyCredentials":            []any{},
+				"passwordCredentials":       []any{},
+			}
+
+			// Requests that carry a description simulate a service principal whose backing
+			// application already has certificates (e.g. instantiated from a gallery
+			// template), so the wire-format mapping of both credential collections is
+			// exercised; bare requests keep the empty collections a fresh principal has.
+			if _, hasDescription := requestBody["description"]; hasDescription {
+				servicePrincipal["keyCredentials"] = []any{
+					map[string]any{
+						// Base64 of the certificate thumbprint, as the API returns it
+						"customKeyIdentifier": "a8NSGsQqlkjIPN1kEpJ8QIe4AgI=",
+						"displayName":         "CN=test-signing",
+						"endDateTime":         "2027-01-01T00:00:00Z",
+						"keyId":               "dddddddd-1111-2222-3333-444444444444",
+						"startDateTime":       "2026-01-01T00:00:00Z",
+						"type":                "AsymmetricX509Cert",
+						"usage":               "Sign",
+					},
+				}
+				servicePrincipal["passwordCredentials"] = []any{
+					map[string]any{
+						"customKeyIdentifier": "a8NSGsQqlkjIPN1kEpJ8QIe4AgI=",
+						"displayName":         "test-secret",
+						"endDateTime":         "2027-01-01T00:00:00Z",
+						"hint":                "abc",
+						"keyId":               "eeeeeeee-1111-2222-3333-444444444444",
+						"startDateTime":       "2026-01-01T00:00:00Z",
+					},
+				}
 			}
 
 			// Apply optional fields from request
@@ -88,6 +137,18 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			}
 			if tags, ok := requestBody["tags"].([]any); ok {
 				servicePrincipal["tags"] = tags
+			}
+			if alternativeNames, ok := requestBody["alternativeNames"].([]any); ok {
+				servicePrincipal["alternativeNames"] = alternativeNames
+			}
+			if samlSingleSignOnSettings, ok := requestBody["samlSingleSignOnSettings"].(map[string]any); ok {
+				servicePrincipal["samlSingleSignOnSettings"] = samlSingleSignOnSettings
+			}
+			if tokenEncryptionKeyId, ok := requestBody["tokenEncryptionKeyId"].(string); ok {
+				if !hasKeyCredential(servicePrincipal, tokenEncryptionKeyId) {
+					return httpmock.NewStringResponse(400, invalidTokenEncryptionKeyIdResponse), nil
+				}
+				servicePrincipal["tokenEncryptionKeyId"] = tokenEncryptionKeyId
 			}
 
 			mockState.Lock()
@@ -156,6 +217,28 @@ func RegisterServicePrincipalMockResponders() *MockState {
 			}
 			if tags, ok := requestBody["tags"].([]any); ok {
 				servicePrincipal["tags"] = tags
+			}
+			if alternativeNames, ok := requestBody["alternativeNames"].([]any); ok {
+				servicePrincipal["alternativeNames"] = alternativeNames
+			}
+			// An explicit JSON null clears the property (sent when the block is removed)
+			if raw, keyPresent := requestBody["samlSingleSignOnSettings"]; keyPresent {
+				if raw == nil {
+					delete(servicePrincipal, "samlSingleSignOnSettings")
+				} else if samlSingleSignOnSettings, ok := raw.(map[string]any); ok {
+					servicePrincipal["samlSingleSignOnSettings"] = samlSingleSignOnSettings
+				}
+			}
+			if raw, keyPresent := requestBody["tokenEncryptionKeyId"]; keyPresent {
+				if raw == nil {
+					delete(servicePrincipal, "tokenEncryptionKeyId")
+				} else if tokenEncryptionKeyId, ok := raw.(string); ok {
+					if !hasKeyCredential(servicePrincipal, tokenEncryptionKeyId) {
+						mockState.Unlock()
+						return httpmock.NewStringResponse(400, invalidTokenEncryptionKeyIdResponse), nil
+					}
+					servicePrincipal["tokenEncryptionKeyId"] = tokenEncryptionKeyId
+				}
 			}
 
 			mockState.servicePrincipals[id] = servicePrincipal
