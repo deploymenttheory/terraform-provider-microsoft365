@@ -40,4 +40,4 @@
 	"periodOnlineBeforeAccessCheck": "PT30M",
 	"periodOfflineBeforeWipeIsEnforced": "P30D",
 	"allowedDataStorageLocations": ["oneDriveForBusiness", "sharePoint"]
-}`
+}
