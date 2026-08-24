@@ -83,6 +83,13 @@ func (r *MobileAppAssignmentResource) ModifyPlan(ctx context.Context, req resour
 			return
 		}
 
+		// An unknown configured value cannot yet be classified as set or unset, and may
+		// still resolve to null. Leave it for a later plan, matching ValidateConfig, which
+		// also declines to evaluate unknown values.
+		if configured.IsUnknown() {
+			continue
+		}
+
 		// Explicitly configured by the practitioner rather than materialised from the
 		// schema default, so it must not be silently discarded.
 		if !configured.IsNull() {

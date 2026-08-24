@@ -19,7 +19,9 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
 
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "unknown_intent" {
   mobile_app_id = "00000000-0000-0000-0000-000000000001"
-  intent        = microsoft365_graph_beta_device_and_app_management_mobile_app_assignment.seed.id != "" ? "available" : "available"
+  # Distinct branches, so the expression cannot be folded to a constant. seed.id is a
+  # non-empty generated id, so this always resolves to "available", but only after apply.
+  intent = length(microsoft365_graph_beta_device_and_app_management_mobile_app_assignment.seed.id) > 0 ? "available" : "uninstall"
   source        = "direct"
 
   target = {
