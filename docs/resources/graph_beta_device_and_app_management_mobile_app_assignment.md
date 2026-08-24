@@ -536,7 +536,7 @@ Optional:
 
 Optional:
 
-- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.
+- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE. This setting is only supported when `intent` is `required`, and must not be configured for any other intent. When it is omitted, the provider does not send it.
 - `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
 - `uninstall_on_device_removal` (Boolean) When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.
 - `vpn_configuration_id` (String) This is the unique identifier (Id) of the VPN Configuration to apply to the app.
@@ -547,7 +547,7 @@ Optional:
 
 Optional:
 
-- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.
+- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE. This setting is only supported when `intent` is `required`, and must not be configured for any other intent. When it is omitted, the provider does not send it.
 - `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
 - `uninstall_on_device_removal` (Boolean) When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.
 - `vpn_configuration_id` (String) This is the unique identifier (Id) of the VPN Configuration to apply to the app.
@@ -558,7 +558,7 @@ Optional:
 
 Optional:
 
-- `is_removable` (Boolean) Whether or not the app can be removed by the user. By default, this property is set to FALSE.
+- `is_removable` (Boolean) Whether or not the app can be removed by the user. By default, this property is set to FALSE. This setting is only supported when `intent` is `required`, and must not be configured for any other intent. When it is omitted, the provider does not send it.
 - `prevent_auto_app_update` (Boolean) When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. By default, this property is set to FALSE.
 - `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
 - `uninstall_on_device_removal` (Boolean) Whether or not to uninstall the app when device is removed from Intune. By default, this property is set to FALSE.

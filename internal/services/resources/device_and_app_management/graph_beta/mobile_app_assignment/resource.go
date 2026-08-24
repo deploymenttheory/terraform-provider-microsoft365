@@ -44,6 +44,9 @@ var (
 	// Enables plan modification/diff suppression
 	_ resource.ResourceWithModifyPlan = &MobileAppAssignmentResource{}
 
+	// Enables config validation before plan
+	_ resource.ResourceWithValidateConfig = &MobileAppAssignmentResource{}
+
 	// Enables identity schema for list resource support
 	_ resource.ResourceWithIdentity = &MobileAppAssignmentResource{}
 
@@ -268,7 +271,7 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 							"is_removable": schema.BoolAttribute{
 								Optional:            true,
 								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.",
+								MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE. This setting is only supported when `intent` is `required`, and must not be configured for any other intent. When it is omitted, the provider does not send it.",
 								Default:             booldefault.StaticBool(true),
 							},
 							"prevent_managed_app_backup": schema.BoolAttribute{
@@ -295,7 +298,7 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 							"is_removable": schema.BoolAttribute{
 								Optional:            true,
 								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.",
+								MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE. This setting is only supported when `intent` is `required`, and must not be configured for any other intent. When it is omitted, the provider does not send it.",
 								Default:             booldefault.StaticBool(true),
 							},
 							"prevent_managed_app_backup": schema.BoolAttribute{
@@ -322,7 +325,7 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 							"is_removable": schema.BoolAttribute{
 								Optional:            true,
 								Computed:            true,
-								MarkdownDescription: "Whether or not the app can be removed by the user. By default, this property is set to FALSE.",
+								MarkdownDescription: "Whether or not the app can be removed by the user. By default, this property is set to FALSE. This setting is only supported when `intent` is `required`, and must not be configured for any other intent. When it is omitted, the provider does not send it.",
 								Default:             booldefault.StaticBool(false),
 							},
 							"prevent_auto_app_update": schema.BoolAttribute{

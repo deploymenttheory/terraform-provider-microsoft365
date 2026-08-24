@@ -52,7 +52,7 @@ func ConstructMobileAppAssignment(ctx context.Context, data MobileAppAssignmentR
 
 	// Set Settings
 	if data.Settings != nil {
-		settings, err := constructMobileAppAssignmentSettings(ctx, data.Settings)
+		settings, err := constructMobileAppAssignmentSettings(ctx, data.Settings, data.Intent.ValueString())
 		if err != nil {
 			return nil, fmt.Errorf("error constructing settings: %v", err)
 		}
@@ -148,7 +148,7 @@ func constructAssignmentTarget(ctx context.Context, data *AssignmentTargetResour
 	return target, nil
 }
 
-func constructMobileAppAssignmentSettings(ctx context.Context, data *MobileAppAssignmentSettingsResourceModel) (graphmodels.MobileAppAssignmentSettingsable, error) {
+func constructMobileAppAssignmentSettings(ctx context.Context, data *MobileAppAssignmentSettingsResourceModel, intent string) (graphmodels.MobileAppAssignmentSettingsable, error) {
 	if data == nil {
 		return nil, nil
 	}
@@ -166,7 +166,7 @@ func constructMobileAppAssignmentSettings(ctx context.Context, data *MobileAppAs
 
 	// Handle iOS Lob App settings
 	if data.IosLob != nil {
-		settings, err := constructIosLobAppAssignmentSettings(data.IosLob)
+		settings, err := constructIosLobAppAssignmentSettings(data.IosLob, intent)
 		if err != nil {
 			return nil, fmt.Errorf("error constructing iOS Lob app assignment settings: %v", err)
 		}
@@ -175,7 +175,7 @@ func constructMobileAppAssignmentSettings(ctx context.Context, data *MobileAppAs
 
 	// Handle iOS Store App settings
 	if data.IosStore != nil {
-		settings, err := constructIosStoreAppAssignmentSettings(data.IosStore)
+		settings, err := constructIosStoreAppAssignmentSettings(data.IosStore, intent)
 		if err != nil {
 			return nil, fmt.Errorf("error constructing iOS Store app assignment settings: %v", err)
 		}
@@ -184,7 +184,7 @@ func constructMobileAppAssignmentSettings(ctx context.Context, data *MobileAppAs
 
 	// Handle iOS VPP App settings
 	if data.IosVpp != nil {
-		settings, err := constructIosVppAppAssignmentSettings(data.IosVpp)
+		settings, err := constructIosVppAppAssignmentSettings(data.IosVpp, intent)
 		if err != nil {
 			return nil, fmt.Errorf("error constructing iOS VPP app assignment settings: %v", err)
 		}
@@ -295,14 +295,19 @@ func constructAndroidManagedStoreAppAssignmentSettings(ctx context.Context, data
 	return settings, nil
 }
 
-func constructIosLobAppAssignmentSettings(data *IosLobAppAssignmentSettingsResourceModel) (*graphmodels.IosLobAppAssignmentSettings, error) {
+func constructIosLobAppAssignmentSettings(data *IosLobAppAssignmentSettingsResourceModel, intent string) (*graphmodels.IosLobAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("iOS Lob App data is required")
 	}
 
 	settings := graphmodels.NewIosLobAppAssignmentSettings()
 
-	convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	// The service only supports isRemovable for required intent and returns HTTP 400
+	// otherwise, so never send it for any other intent. This also covers the case where
+	// intent was unknown at plan time and ModifyPlan could not clear the default.
+	if intent == intentRequired {
+		convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	}
 	convert.FrameworkToGraphBool(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
 	convert.FrameworkToGraphBool(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
 	convert.FrameworkToGraphString(data.VpnConfigurationId, settings.SetVpnConfigurationId)
@@ -310,14 +315,19 @@ func constructIosLobAppAssignmentSettings(data *IosLobAppAssignmentSettingsResou
 	return settings, nil
 }
 
-func constructIosStoreAppAssignmentSettings(data *IosStoreAppAssignmentSettingsResourceModel) (*graphmodels.IosStoreAppAssignmentSettings, error) {
+func constructIosStoreAppAssignmentSettings(data *IosStoreAppAssignmentSettingsResourceModel, intent string) (*graphmodels.IosStoreAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("iOS Store App data is required")
 	}
 
 	settings := graphmodels.NewIosStoreAppAssignmentSettings()
 
-	convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	// The service only supports isRemovable for required intent and returns HTTP 400
+	// otherwise, so never send it for any other intent. This also covers the case where
+	// intent was unknown at plan time and ModifyPlan could not clear the default.
+	if intent == intentRequired {
+		convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	}
 	convert.FrameworkToGraphBool(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
 	convert.FrameworkToGraphBool(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
 	convert.FrameworkToGraphString(data.VpnConfigurationId, settings.SetVpnConfigurationId)
@@ -325,14 +335,19 @@ func constructIosStoreAppAssignmentSettings(data *IosStoreAppAssignmentSettingsR
 	return settings, nil
 }
 
-func constructIosVppAppAssignmentSettings(data *IosVppAppAssignmentSettingsResourceModel) (*graphmodels.IosVppAppAssignmentSettings, error) {
+func constructIosVppAppAssignmentSettings(data *IosVppAppAssignmentSettingsResourceModel, intent string) (*graphmodels.IosVppAppAssignmentSettings, error) {
 	if data == nil {
 		return nil, fmt.Errorf("iOS VPP App data is required")
 	}
 
 	settings := graphmodels.NewIosVppAppAssignmentSettings()
 
-	convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	// The service only supports isRemovable for required intent and returns HTTP 400
+	// otherwise, so never send it for any other intent. This also covers the case where
+	// intent was unknown at plan time and ModifyPlan could not clear the default.
+	if intent == intentRequired {
+		convert.FrameworkToGraphBool(data.IsRemovable, settings.SetIsRemovable)
+	}
 	convert.FrameworkToGraphBool(data.PreventAutoAppUpdate, settings.SetPreventAutoAppUpdate)
 	convert.FrameworkToGraphBool(data.PreventManagedAppBackup, settings.SetPreventManagedAppBackup)
 	convert.FrameworkToGraphBool(data.UninstallOnDeviceRemoval, settings.SetUninstallOnDeviceRemoval)
