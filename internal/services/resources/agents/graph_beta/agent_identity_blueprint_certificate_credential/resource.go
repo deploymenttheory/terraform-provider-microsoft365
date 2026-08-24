@@ -169,7 +169,6 @@ func NewAgentIdentityBlueprintCertificateCredentialResource() resource.Resource 
 		ProviderTypeName: "microsoft365",
 		TypeName:         ResourceName,
 		ReadPermissions: []string{
-			"AgentIdentityBlueprint.Read.All",
 			"Application.Read.All",
 			"Directory.Read.All",
 		},

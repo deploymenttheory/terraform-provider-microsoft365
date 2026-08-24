@@ -32,7 +32,9 @@ func NewGroupDataSource() datasource.DataSource {
 			"Directory.Read.All",
 			"Group.ManageProtection.All",
 			"Group.Read.All",
+			"Group.ReadBasic.All",
 			"GroupMember.Read.All",
+			"GroupMember.ReadBasic.All",
 		},
 	}
 }

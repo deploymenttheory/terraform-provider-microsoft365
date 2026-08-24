@@ -47,18 +47,10 @@ var (
 func NewAgentIdentityBlueprintServicePrincipalResource() resource.Resource {
 	return &AgentIdentityBlueprintServicePrincipalResource{
 		ReadPermissions: []string{
-			"AgentIdentity.Read.All",
-			"AgentIdentityBlueprintPrincipal.Read.All",
 			"Application.Read.All",
 			"Directory.Read.All",
 		},
 		WritePermissions: []string{
-			"AgentIdentity.Create.All",
-			"AgentIdentity.DeleteRestore.All",
-			"AgentIdentity.EnableDisable.All",
-			"AgentIdentity.ReadWrite.All",
-			"AgentIdentityBlueprintPrincipal.DeleteRestore.All",
-			"AgentIdentityBlueprintPrincipal.EnableDisable.All",
 			"Application.ReadWrite.All",
 			"Directory.ReadWrite.All",
 		},
