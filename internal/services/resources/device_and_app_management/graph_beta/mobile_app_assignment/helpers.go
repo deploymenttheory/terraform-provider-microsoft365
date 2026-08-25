@@ -27,7 +27,7 @@ func matchesAssignment(ctx context.Context, object MobileAppAssignmentResourceMo
 	}
 
 	target := assignment.GetTarget()
-	if target != nil {
+	if target != nil && object.Target != nil {
 		odataType := target.GetOdataType()
 		if odataType != nil {
 			targetType := getTargetTypeFromOdataType(*odataType)

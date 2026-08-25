@@ -36,8 +36,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data MobileAppAssignmentReso
 }
 
 // mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target
-func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) AssignmentTargetResourceModel {
-	target := AssignmentTargetResourceModel{
+func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) *AssignmentTargetResourceModel {
+	target := &AssignmentTargetResourceModel{
 		DeviceAndAppManagementAssignmentFilterId:   convert.GraphToFrameworkString(remoteTarget.GetDeviceAndAppManagementAssignmentFilterId()),
 		DeviceAndAppManagementAssignmentFilterType: convert.GraphToFrameworkEnum(remoteTarget.GetDeviceAndAppManagementAssignmentFilterType()),
 	}
@@ -97,6 +97,10 @@ func mapRemoteSettingsToTerraform(remoteSettings graphmodels.MobileAppAssignment
 	case *graphmodels.MicrosoftStoreForBusinessAppAssignmentSettings:
 		settings = MobileAppAssignmentSettingsResourceModel{
 			MicrosoftStoreForBusiness: mapMicrosoftStoreSettingsToTerraform(v),
+		}
+	case *graphmodels.Win32CatalogAppAssignmentSettings:
+		settings = MobileAppAssignmentSettingsResourceModel{
+			Win32Catalog: mapWin32CatalogSettingsToTerraform(v),
 		}
 	case *graphmodels.Win32LobAppAssignmentSettings:
 		settings = MobileAppAssignmentSettingsResourceModel{
@@ -224,6 +228,12 @@ func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssig
 		Notifications:                convert.GraphToFrameworkEnum(remoteSettings.GetNotifications()),
 	}
 
+	if autoUpdateSettings := remoteSettings.GetAutoUpdateSettings(); autoUpdateSettings != nil {
+		settings.AutoUpdateSettings = &Win32LobAppAutoUpdateSettingsResourceModel{
+			AutoUpdateSupersededAppsState: convert.GraphToFrameworkEnum(autoUpdateSettings.GetAutoUpdateSupersededAppsState()),
+		}
+	}
+
 	if installSettings := remoteSettings.GetInstallTimeSettings(); installSettings != nil {
 		settings.InstallTimeSettings = &MobileAppInstallTimeSettingsResourceModel{
 			DeadlineDateTime: convert.GraphToFrameworkTime(installSettings.GetDeadlineDateTime()),
@@ -241,6 +251,30 @@ func mapWin32LobSettingsToTerraform(remoteSettings *graphmodels.Win32LobAppAssig
 	}
 
 	return settings
+}
+
+// mapWin32CatalogSettingsToTerraform maps Win32 catalog settings to a Terraform assignment
+// settings.
+//
+// Win32CatalogAppAssignmentSettings embeds Win32LobAppAssignmentSettings in the SDK, so the
+// field set is identical and the LOB mapper does the work.
+func mapWin32CatalogSettingsToTerraform(remoteSettings *graphmodels.Win32CatalogAppAssignmentSettings) *Win32CatalogAppAssignmentSettingsResourceModel {
+	if remoteSettings == nil {
+		return nil
+	}
+
+	lobSettings := mapWin32LobSettingsToTerraform(&remoteSettings.Win32LobAppAssignmentSettings)
+	if lobSettings == nil {
+		return nil
+	}
+
+	return &Win32CatalogAppAssignmentSettingsResourceModel{
+		AutoUpdateSettings:           lobSettings.AutoUpdateSettings,
+		DeliveryOptimizationPriority: lobSettings.DeliveryOptimizationPriority,
+		InstallTimeSettings:          lobSettings.InstallTimeSettings,
+		Notifications:                lobSettings.Notifications,
+		RestartSettings:              lobSettings.RestartSettings,
+	}
 }
 
 // mapWindowsAppXSettingsToTerraform maps a Windows AppX settings to a Terraform assignment settings

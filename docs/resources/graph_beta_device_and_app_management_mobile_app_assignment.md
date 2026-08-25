@@ -536,9 +536,9 @@ Optional:
 
 Optional:
 
-- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.
-- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
-- `uninstall_on_device_removal` (Boolean) When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.
+- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. Only supported when `intent` is `required`; the Intune service rejects this setting for every other intent. When omitted the setting is not sent and the service default (TRUE) applies.
+- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.
+- `uninstall_on_device_removal` (Boolean) When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (TRUE) applies.
 - `vpn_configuration_id` (String) This is the unique identifier (Id) of the VPN Configuration to apply to the app.
 
 
@@ -547,9 +547,9 @@ Optional:
 
 Optional:
 
-- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.
-- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
-- `uninstall_on_device_removal` (Boolean) When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.
+- `is_removable` (Boolean) When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. Only supported when `intent` is `required`; the Intune service rejects this setting for every other intent. When omitted the setting is not sent and the service default (TRUE) applies.
+- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.
+- `uninstall_on_device_removal` (Boolean) When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (TRUE) applies.
 - `vpn_configuration_id` (String) This is the unique identifier (Id) of the VPN Configuration to apply to the app.
 
 
@@ -558,11 +558,11 @@ Optional:
 
 Optional:
 
-- `is_removable` (Boolean) Whether or not the app can be removed by the user. By default, this property is set to FALSE.
-- `prevent_auto_app_update` (Boolean) When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. By default, this property is set to FALSE.
-- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.
-- `uninstall_on_device_removal` (Boolean) Whether or not to uninstall the app when device is removed from Intune. By default, this property is set to FALSE.
-- `use_device_licensing` (Boolean) Whether or not to use device licensing. By default, this property is set to FALSE.
+- `is_removable` (Boolean) Whether or not the app can be removed by the user. Only supported when `intent` is `required`; the Intune service rejects this setting for every other intent. When omitted the setting is not sent and the service default (FALSE) applies.
+- `prevent_auto_app_update` (Boolean) When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. When omitted the setting is not sent and the service default (FALSE) applies.
+- `prevent_managed_app_backup` (Boolean) When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.
+- `uninstall_on_device_removal` (Boolean) Whether or not to uninstall the app when device is removed from Intune. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.
+- `use_device_licensing` (Boolean) Whether or not to use device licensing. When omitted the setting is not sent and the service default (FALSE, user licensing) applies.
 - `vpn_configuration_id` (String) The VPN Configuration Id to apply for this app.
 
 
@@ -754,7 +754,10 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
-# {resource_id}
-terraform import microsoft365_graph_beta_device_and_app_management_win_get_app.example win-get-app-id
+# An assignment is addressed by the app that owns it as well as by its own id, so both are
+# needed. The assignment id is reported by Graph as {groupId}_{intentIndex}_{n}.
+#
+# {mobile_app_id}:{assignment_id}
+terraform import microsoft365_graph_beta_device_and_app_management_mobile_app_assignment.example 00000000-0000-0000-0000-000000000000:11111111-1111-1111-1111-111111111111_0_0
 ```
 

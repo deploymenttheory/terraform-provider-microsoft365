@@ -3,6 +3,8 @@ package attribute
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -287,6 +289,132 @@ func (v mutuallyExclusiveBoolValidator) ValidateBool(ctx context.Context, req va
 func MutuallyExclusiveBool(otherField string, validationMessage string) validator.Bool {
 	return &mutuallyExclusiveBoolValidator{
 		otherField:        otherField,
+		validationMessage: validationMessage,
+	}
+}
+
+// conditionalBoolPresenceValidator validates that a boolean field may only be configured at
+// all - with either value - depending on the value held by another string attribute.
+//
+// This differs from conditionalStringBoolValidator, which constrains which *value* the
+// boolean may take. Here the constraint is on presence: some Graph settings are rejected
+// outright by the service unless a sibling discriminator holds a particular value, so the
+// provider must be able to leave the field out of the request entirely.
+type conditionalBoolPresenceValidator struct {
+	dependentPath     path.Path
+	values            []string
+	allowList         bool
+	validationMessage string
+}
+
+// Description describes the validation in plain text formatting.
+func (v conditionalBoolPresenceValidator) Description(_ context.Context) string {
+	if v.validationMessage != "" {
+		return v.validationMessage
+	}
+
+	if v.allowList {
+		return fmt.Sprintf("this field can only be set when %s is one of: %s",
+			v.dependentPath, strings.Join(v.values, ", "))
+	}
+
+	return fmt.Sprintf("this field cannot be set when %s is one of: %s",
+		v.dependentPath, strings.Join(v.values, ", "))
+}
+
+// MarkdownDescription describes the validation in Markdown formatting.
+func (v conditionalBoolPresenceValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateBool performs the validation.
+func (v conditionalBoolPresenceValidator) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
+	// An absent or not yet known field cannot violate a presence constraint.
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	if req.Config.Raw.IsNull() {
+		return
+	}
+
+	var dependentValue types.String
+	if diags := req.Config.GetAttribute(ctx, v.dependentPath, &dependentValue); diags.HasError() {
+		// The dependent attribute is not part of this schema; nothing to validate against.
+		return
+	}
+
+	// The constraint cannot be evaluated until the dependent value is known. The service
+	// still rejects an unsupported combination at apply time, with its own error.
+	if dependentValue.IsNull() || dependentValue.IsUnknown() {
+		return
+	}
+
+	matched := slices.Contains(v.values, dependentValue.ValueString())
+	if matched == v.allowList {
+		return
+	}
+
+	errorMessage := v.validationMessage
+	if errorMessage == "" {
+		if v.allowList {
+			errorMessage = fmt.Sprintf("This field cannot be set when %s is %q. It is only supported when %s is one of: %s.",
+				v.dependentPath, dependentValue.ValueString(), v.dependentPath, strings.Join(v.values, ", "))
+		} else {
+			errorMessage = fmt.Sprintf("This field cannot be set when %s is %q.",
+				v.dependentPath, dependentValue.ValueString())
+		}
+	}
+
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		"Invalid Attribute Combination",
+		errorMessage,
+	)
+}
+
+// BoolSupportedOnlyWhenStringIn returns a boolean validator which ensures that the field is
+// only configured when the string attribute at dependentPath holds one of the given values.
+// Setting the field to either true or false is an error for any other value.
+//
+// Use it for Graph settings the service accepts only in a specific mode, where the provider
+// must omit the field from the request otherwise. Such attributes must not carry a schema
+// Default, since a default is materialised into the plan for every configuration and would
+// then be sent in every request.
+//
+// Example usage - is_removable is only supported for a required install intent:
+//
+//	validate.BoolSupportedOnlyWhenStringIn(
+//	    path.Root("intent"),
+//	    []string{"required"},
+//	    "is_removable is only supported when intent is 'required'.",
+//	)
+func BoolSupportedOnlyWhenStringIn(dependentPath path.Path, values []string, validationMessage string) validator.Bool {
+	return &conditionalBoolPresenceValidator{
+		dependentPath:     dependentPath,
+		values:            values,
+		allowList:         true,
+		validationMessage: validationMessage,
+	}
+}
+
+// BoolUnsupportedWhenStringIn returns a boolean validator which ensures that the field is not
+// configured when the string attribute at dependentPath holds one of the given values. It is
+// the inverse of BoolSupportedOnlyWhenStringIn, for the cases where the unsupported values
+// are the shorter and more stable list.
+//
+// Example usage - uninstall_on_device_removal is rejected for an uninstall intent:
+//
+//	validate.BoolUnsupportedWhenStringIn(
+//	    path.Root("intent"),
+//	    []string{"uninstall"},
+//	    "uninstall_on_device_removal is not supported when intent is 'uninstall'.",
+//	)
+func BoolUnsupportedWhenStringIn(dependentPath path.Path, values []string, validationMessage string) validator.Bool {
+	return &conditionalBoolPresenceValidator{
+		dependentPath:     dependentPath,
+		values:            values,
+		allowList:         false,
 		validationMessage: validationMessage,
 	}
 }

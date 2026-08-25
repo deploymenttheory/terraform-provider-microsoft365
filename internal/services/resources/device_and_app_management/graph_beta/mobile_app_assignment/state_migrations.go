@@ -84,7 +84,8 @@ func upgradeStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, r
 
 	// Warn if existing state references the temporarily-unsupported target type so that
 	// operators know the assignment cannot be created or updated until support is restored.
-	if !priorState.Target.TargetType.IsNull() &&
+	if priorState.Target != nil &&
+		!priorState.Target.TargetType.IsNull() &&
 		priorState.Target.TargetType.ValueString() == "androidFotaDeployment" {
 		resp.Diagnostics.AddWarning(
 			"Android FOTA Deployment assignment target type is temporarily unsupported",
