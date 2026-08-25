@@ -44,7 +44,7 @@ func mapSettingsToState(
 		switch *defIdPtr {
 		case SettingDefUserAffinity:
 			if value, ok := extractChoiceValue(instance); ok {
-				stateModel.UserAffinity = types.BoolValue(boolFromChoiceValue(SettingDefUserAffinity, value))
+				stateModel.RequiresUserAuthentication = types.BoolValue(boolFromChoiceValue(SettingDefUserAffinity, value))
 			}
 		case SettingDefAwaitConfiguration:
 			if value, ok := extractChoiceValue(instance); ok {

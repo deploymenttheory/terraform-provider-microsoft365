@@ -45,8 +45,8 @@ type VisionOSDeviceEnrollmentPolicyResourceModel struct {
 	// User affinity / await configuration. visionOS ADE only supports enrollment without user
 	// affinity - Graph rejects ade_useraffinitybasic_1 - so RequiresUserAuthentication is
 	// Optional/Computed and defaults to false; it is not expected to ever be true.
-	UserAffinity          types.Bool `tfsdk:"user_affinity"`
-	AwaitDeviceConfigured types.Bool `tfsdk:"await_device_configured"`
+	RequiresUserAuthentication types.Bool `tfsdk:"requires_user_authentication"`
+	AwaitDeviceConfigured      types.Bool `tfsdk:"await_device_configured"`
 
 	LockedEnrollmentEnabled types.Bool `tfsdk:"locked_enrollment_enabled"`
 
