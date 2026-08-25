@@ -172,4 +172,9 @@ const (
 	// DayOfWeekRegex matches lowercase day of week names.
 	// Valid values: "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"
 	DayOfWeekRegex = `^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$`
+
+	// AlphanumericWithSeparatorsRegex matches a string containing only uppercase letters,
+	// lowercase letters, numbers, dots, hyphens and underscores.
+	// Example: "xpfftq037jwmhs", "9NZVDKPMR9RD", "Microsoft.VisualStudioCode", "my-app_v1.2"
+	AlphanumericWithSeparatorsRegex = `^[A-Za-z0-9._-]+$`
 )
