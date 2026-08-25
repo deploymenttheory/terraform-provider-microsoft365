@@ -50,6 +50,7 @@ func NewServicePrincipalAppRoleAssignedToResource() resource.Resource {
 		},
 		WritePermissions: []string{
 			"AppRoleAssignment.ReadWrite.All",
+			"Application.ReadWrite.All",
 		},
 		ResourcePath: "/servicePrincipals/{servicePrincipal-id}/appRoleAssignedTo",
 	}

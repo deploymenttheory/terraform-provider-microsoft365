@@ -47,16 +47,10 @@ var (
 func NewAgentIdentityBlueprintIdentifierUriResource() resource.Resource {
 	return &AgentIdentityBlueprintIdentifierUriResource{
 		ReadPermissions: []string{
-			"AgentIdentityBlueprint.Read.All",
 			"Application.Read.All",
 			"Directory.Read.All",
 		},
 		WritePermissions: []string{
-			"AgentIdentityBlueprint.AddRemoveCreds.All",
-			"AgentIdentityBlueprint.ReadWrite.All",
-			"AgentIdentityBlueprint.UpdateAuthProperties.All",
-			"AgentIdentityBlueprint.UpdateBranding.All",
-			"AgentIdentityBlueprintPrincipal.ReadWrite.All",
 			"Application.ReadWrite.All",
 		},
 		ResourcePath: "/applications",

@@ -45,7 +45,6 @@ var (
 func NewAgentIdentityBlueprintFederatedIdentityCredentialResource() resource.Resource {
 	return &AgentIdentityBlueprintFederatedIdentityCredentialResource{
 		ReadPermissions: []string{
-			"AgentIdentityBlueprint.Read.All",
 			"Application.Read.All",
 			"Directory.Read.All",
 		},

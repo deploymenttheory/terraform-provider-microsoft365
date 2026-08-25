@@ -41,6 +41,7 @@ func NewGuidListSharderResource() resource.Resource {
 			"Device.Read.All",
 			"Directory.Read.All",
 			"Group.Read.All",
+			"Group.ReadBasic.All",
 			"User.Read.All",
 			"User.ReadBasic.All",
 		},

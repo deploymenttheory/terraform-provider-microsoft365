@@ -38,7 +38,6 @@ var (
 func NewAgentIdentityBlueprintPasswordCredentialResource() resource.Resource {
 	return &AgentIdentityBlueprintPasswordCredentialResource{
 		ReadPermissions: []string{
-			"AgentIdentityBlueprint.Read.All",
 			"Application.Read.All",
 			"Directory.Read.All",
 		},
