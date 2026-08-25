@@ -2,10 +2,12 @@ package graphBetaDeviceAndAppManagementAppAssignment
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,6 +32,42 @@ const (
 	ReadTimeout   = 180
 	DeleteTimeout = 180
 )
+
+// The Intune service constrains which Apple app assignment settings may be submitted with
+// which install intent, and rejects an unsupported combination with an HTTP 400 rather than
+// ignoring the field. Verified against POST /beta/deviceAppManagement/mobileApps/{id}/assignments:
+//
+//	isRemovable + any intent other than required
+//	    -> "IsRemovable setting is only supported for Required intent."
+//	uninstallOnDeviceRemoval + uninstall intent
+//	    -> "UninstallOnDeviceRemoval setting is not supported Uninstall intent."
+//	preventManagedAppBackup + uninstall intent
+//	    -> "PreventManagedAppBackup setting is not supported for Uninstall intent."
+//
+// These attributes therefore must not carry a schema Default. A default is materialised into
+// the plan for every configuration, including one that omits the attribute, and is then
+// serialised into every request, which makes the affected intents impossible to use at all.
+// Leaving them Optional-only keeps an omitted attribute null, and the null-skipping converters
+// in construct.go leave the field out of the request so the service default applies.
+var (
+	// intentsSupportingIsRemovable are the intents for which is_removable may be configured.
+	intentsSupportingIsRemovable = []string{"required"}
+
+	// intentsRejectingAppleAppSettings are the intents for which the Apple settings blocks
+	// reject uninstall_on_device_removal and prevent_managed_app_backup.
+	intentsRejectingAppleAppSettings = []string{"uninstall"}
+
+	isRemovableIntentMessage = "`is_removable` can only be set when `intent` is `required`. The Intune service rejects this setting for every other intent. Remove the attribute, or change the intent."
+)
+
+// unsupportedForIntentMessage builds the diagnostic for an Apple app assignment setting that
+// the service rejects for the uninstall intent.
+func unsupportedForIntentMessage(attributeName string) string {
+	return fmt.Sprintf(
+		"`%s` cannot be set when `intent` is `uninstall`. The Intune service rejects this setting for that intent. Remove the attribute, or change the intent.",
+		attributeName,
+	)
+}
 
 var (
 	// Basic resource interface (CRUD operations)
@@ -267,21 +305,24 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 						Attributes: map[string]schema.Attribute{
 							"is_removable": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.",
-								Default:             booldefault.StaticBool(true),
+								MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. Only supported when `intent` is `required`; the Intune service rejects this setting for every other intent. When omitted the setting is not sent and the service default (TRUE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolSupportedOnlyWhenStringIn(path.Root("intent"), intentsSupportingIsRemovable, isRemovableIntentMessage),
+								},
 							},
 							"prevent_managed_app_backup": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.",
-								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolUnsupportedWhenStringIn(path.Root("intent"), intentsRejectingAppleAppSettings, unsupportedForIntentMessage("prevent_managed_app_backup")),
+								},
 							},
 							"uninstall_on_device_removal": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.",
-								Default:             booldefault.StaticBool(true),
+								MarkdownDescription: "When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (TRUE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolUnsupportedWhenStringIn(path.Root("intent"), intentsRejectingAppleAppSettings, unsupportedForIntentMessage("uninstall_on_device_removal")),
+								},
 							},
 							"vpn_configuration_id": schema.StringAttribute{
 								Optional:            true,
@@ -294,21 +335,24 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 						Attributes: map[string]schema.Attribute{
 							"is_removable": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. By default, this property is set to TRUE.",
-								Default:             booldefault.StaticBool(true),
+								MarkdownDescription: "When TRUE, indicates that the app can be uninstalled by the user. When FALSE, indicates that the app cannot be uninstalled by the user. Only supported when `intent` is `required`; the Intune service rejects this setting for every other intent. When omitted the setting is not sent and the service default (TRUE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolSupportedOnlyWhenStringIn(path.Root("intent"), intentsSupportingIsRemovable, isRemovableIntentMessage),
+								},
 							},
 							"prevent_managed_app_backup": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.",
-								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolUnsupportedWhenStringIn(path.Root("intent"), intentsRejectingAppleAppSettings, unsupportedForIntentMessage("prevent_managed_app_backup")),
+								},
 							},
 							"uninstall_on_device_removal": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. By default, this property is set to TRUE.",
-								Default:             booldefault.StaticBool(true),
+								MarkdownDescription: "When TRUE, indicates that the app should be uninstalled when the device is removed from Intune. When FALSE, indicates that the app will not be uninstalled when the device is removed from Intune. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (TRUE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolUnsupportedWhenStringIn(path.Root("intent"), intentsRejectingAppleAppSettings, unsupportedForIntentMessage("uninstall_on_device_removal")),
+								},
 							},
 							"vpn_configuration_id": schema.StringAttribute{
 								Optional:            true,
@@ -321,33 +365,32 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 						Attributes: map[string]schema.Attribute{
 							"is_removable": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "Whether or not the app can be removed by the user. By default, this property is set to FALSE.",
-								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Whether or not the app can be removed by the user. Only supported when `intent` is `required`; the Intune service rejects this setting for every other intent. When omitted the setting is not sent and the service default (FALSE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolSupportedOnlyWhenStringIn(path.Root("intent"), intentsSupportingIsRemovable, isRemovableIntentMessage),
+								},
 							},
 							"prevent_auto_app_update": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. By default, this property is set to FALSE.",
-								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "When TRUE, indicates that the app should not be automatically updated with the latest version from Apple app store. When FALSE, indicates that the app may be auto updated. When omitted the setting is not sent and the service default (FALSE) applies.",
 							},
 							"prevent_managed_app_backup": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. By default, this property is set to FALSE.",
-								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolUnsupportedWhenStringIn(path.Root("intent"), intentsRejectingAppleAppSettings, unsupportedForIntentMessage("prevent_managed_app_backup")),
+								},
 							},
 							"uninstall_on_device_removal": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "Whether or not to uninstall the app when device is removed from Intune. By default, this property is set to FALSE.",
-								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Whether or not to uninstall the app when device is removed from Intune. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.",
+								Validators: []validator.Bool{
+									validate.BoolUnsupportedWhenStringIn(path.Root("intent"), intentsRejectingAppleAppSettings, unsupportedForIntentMessage("uninstall_on_device_removal")),
+								},
 							},
 							"use_device_licensing": schema.BoolAttribute{
 								Optional:            true,
-								Computed:            true,
-								MarkdownDescription: "Whether or not to use device licensing. By default, this property is set to FALSE.",
-								Default:             booldefault.StaticBool(false),
+								MarkdownDescription: "Whether or not to use device licensing. When omitted the setting is not sent and the service default (FALSE, user licensing) applies.",
 							},
 							"vpn_configuration_id": schema.StringAttribute{
 								Optional:            true,
