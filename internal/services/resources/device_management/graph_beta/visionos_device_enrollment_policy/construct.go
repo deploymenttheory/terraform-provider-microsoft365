@@ -83,7 +83,7 @@ func constructSettings(planModel *VisionOSDeviceEnrollmentPolicyResourceModel) [
 
 	settings = append(settings, builders.ConstructBoolChoiceSettingInstance(
 		SettingDefUserAffinity,
-		planModel.UserAffinity.ValueBool(),
+		planModel.RequiresUserAuthentication.ValueBool(),
 		SettingInstanceTemplateUserAffinity,
 		SettingValueTemplateUserAffinity,
 	))
