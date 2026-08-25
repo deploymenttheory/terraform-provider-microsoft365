@@ -150,8 +150,8 @@ func (r *WinGetAppResource) Schema(ctx context.Context, req resource.SchemaReque
 					"attempting to modify this value will result in a failed request.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^[A-Za-z0-9]+$`),
-						"package_identifier value must contain only uppercase or lowercase letters and numbers.",
+						regexp.MustCompile(constants.AlphanumericWithSeparatorsRegex),
+						"package_identifier value must contain only uppercase or lowercase letters, numbers, dots, hyphens and underscores.",
 					),
 				},
 				PlanModifiers: []planmodifier.String{
