@@ -5,30 +5,22 @@ resource "random_string" "test_suffix" {
 }
 
 # ==============================================================================
-# Dependencies - an already published iOS store app, and the target group
+# Dependencies - the app the assignment hangs off, and its target group
 #
-# The app is looked up rather than created. Intune leaves a newly created iOS
-# store app in publishingState "processing" - still processing more than an hour
-# after creation when measured against a live tenant - publishingState is
-# read-only on both POST and PATCH, and the service rejects an assignment for any
-# app that is not published:
+# The app is the tenant's Microsoft Intune Company Portal, looked up by display
+# name through the mobile_app data source. It is a permanent fixture of the tenant and
+# is already published, which matters: Intune leaves a newly created iOS store app
+# in publishingState "processing", publishingState is read-only on both POST and
+# PATCH, and the service refuses to assign an app that is not published -
 #
 #   400 "Invalid operation: app's PublishingState is not 'Published'."
 #
-# so a scenario that creates its own app can never assign to it, whatever wait it
-# uses. Assignment behaviour is what is under test here, not app creation.
+# so a scenario that creates its own app cannot reliably assign to it. Assignment
+# behaviour is what these scenarios cover; app creation is not.
 # ==============================================================================
 
-data "microsoft365_graph_beta_device_and_app_management_mobile_app" "ios_store_apps_005" {
-  list_all        = true
-  app_type_filter = "iosStoreApp"
-}
-
-locals {
-  published_ios_store_app_id_005 = [
-    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.ios_store_apps_005.items :
-    app.id if app.publishing_state == "published"
-  ][0]
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "company_portal_005" {
+  display_name = "Microsoft Intune Company Portal"
 }
 
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_005_1" {
@@ -62,7 +54,7 @@ resource "time_sleep" "wait_for_dependencies_005" {
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_005" {
-  mobile_app_id = local.published_ios_store_app_id_005
+  mobile_app_id = data.microsoft365_graph_beta_device_and_app_management_mobile_app.company_portal_005.items[0].id
   intent        = "available"
   source        = "direct"
 
