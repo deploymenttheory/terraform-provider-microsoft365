@@ -105,8 +105,13 @@ func (r *IOSStoreAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "The unique identifier of the iOS Store app.",
 			},
 			"is_featured": schema.BoolAttribute{
-				Optional:            true,
-				MarkdownDescription: "The value indicating whether the app is marked as featured by the admin.",
+				Optional: true,
+				// Computed because Read maps whatever the service reports back into state.
+				// Without it an omitted attribute is null in the plan but false after apply,
+				// and every create fails with "Provider produced inconsistent result after
+				// apply ... .is_featured: was null, but now cty.False".
+				Computed:            true,
+				MarkdownDescription: "The value indicating whether the app is marked as featured by the admin. When omitted, the value the service reports is used.",
 			},
 			"privacy_information_url": schema.StringAttribute{
 				Optional:            true,

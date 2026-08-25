@@ -62,16 +62,6 @@ import (
 // Graph. CheckDestroy therefore waits 60 seconds before asserting, since the
 // permanent delete can take 60-90 seconds to propagate.
 //
-// ## is_featured on the dependency app
-//
-// Every scenario sets is_featured explicitly on its ios_store_app. That
-// attribute is Optional without Computed, but the resource's Read maps the
-// value the service returns, so omitting it fails the apply with
-// "Provider produced inconsistent result after apply ... .is_featured: was
-// null, but now cty.False". That is a pre-existing bug in ios_store_app,
-// unrelated to mobile_app_assignment, worked around here rather than fixed so
-// this change stays scoped.
-//
 // ## Import
 //
 // Import takes a composite id, <mobileAppId>:<assignmentId>, since an
