@@ -1,9 +1,11 @@
 # ==============================================================================
 # Validation: uninstall_on_device_removal set alongside an uninstall intent
 #
+# Expected to FAIL at plan time with:
+#   `uninstall_on_device_removal` cannot be set when `intent` is `uninstall`.
+#
 # The service rejects this combination with
-# "UninstallOnDeviceRemoval setting is not supported Uninstall intent."
-# so it is caught at plan time instead.
+#   "UninstallOnDeviceRemoval setting is not supported Uninstall intent."
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_007" {

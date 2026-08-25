@@ -1,9 +1,11 @@
 # ==============================================================================
 # Validation: is_removable set alongside an intent that does not support it
 #
-# Rejected at plan time by the schema validator rather than surfacing as an
-# opaque HTTP 400 part-way through the apply. No dependencies are declared: the
-# configuration never reaches the API.
+# Expected to FAIL at plan time with:
+#   `is_removable` can only be set when `intent` is `required`.
+#
+# Literal ids and no dependencies: the configuration is rejected during
+# validation and never reaches the API.
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_006" {

@@ -5,30 +5,30 @@ resource "random_string" "test_suffix" {
 }
 
 # ==============================================================================
-# Dependencies - the iOS store app the assignment hangs off, and its target group
+# Dependencies - an already published iOS store app, and the target group
+#
+# The app is looked up rather than created. Intune leaves a newly created iOS
+# store app in publishingState "processing" - still processing more than an hour
+# after creation when measured against a live tenant - publishingState is
+# read-only on both POST and PATCH, and the service rejects an assignment for any
+# app that is not published:
+#
+#   400 "Invalid operation: app's PublishingState is not 'Published'."
+#
+# so a scenario that creates its own app can never assign to it, whatever wait it
+# uses. Assignment behaviour is what is under test here, not app creation.
 # ==============================================================================
 
-resource "microsoft365_graph_beta_device_and_app_management_ios_store_app" "acc_test_app_001" {
-  display_name  = "acc-test-ios-store-app-001-${random_string.test_suffix.result}"
-  description   = "Test iOS store app for mobile app assignment available intent"
-  publisher     = "Terraform Provider Test"
-  app_store_url = "https://apps.apple.com/us/app/microsoft-edge/id1288723196"
+data "microsoft365_graph_beta_device_and_app_management_mobile_app" "ios_store_apps_001" {
+  list_all        = true
+  app_type_filter = "iosStoreApp"
+}
 
-  applicable_device_type = {
-    ipad            = true
-    iphone_and_ipod = true
-  }
-
-  minimum_supported_operating_system = {
-    v14_0 = true
-  }
-
-  timeouts = {
-    create = "3m"
-    read   = "1m"
-    update = "3m"
-    delete = "1m"
-  }
+locals {
+  published_ios_store_app_id_001 = [
+    for app in data.microsoft365_graph_beta_device_and_app_management_mobile_app.ios_store_apps_001.items :
+    app.id if app.publishing_state == "published"
+  ][0]
 }
 
 resource "microsoft365_graph_beta_groups_group" "acc_test_group_001_1" {
@@ -41,30 +41,27 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_001_1" {
 }
 
 # ==============================================================================
-# Pause - the app and group must have propagated before Intune will accept an
-# assignment that references them, otherwise the create fails with a 400 naming
-# an unknown group or app.
+# Pause - the group must have propagated before Intune will accept an assignment
+# that references it, otherwise the create fails with a 400 naming an unknown
+# group.
 # ==============================================================================
 
 resource "time_sleep" "wait_for_dependencies_001" {
-  depends_on = [
-    microsoft365_graph_beta_device_and_app_management_ios_store_app.acc_test_app_001,
-    microsoft365_graph_beta_groups_group.acc_test_group_001_1,
-  ]
+  depends_on = [microsoft365_graph_beta_groups_group.acc_test_group_001_1]
 
   create_duration = "25s"
 }
 
 # ==============================================================================
-# Mobile App Assignment - Scenario 1: available intent, minimal settings
+# Scenario 1: available intent, minimal settings
 #
 # is_removable is omitted. The Intune service rejects isRemovable for any intent
 # other than required, so the provider must not send the field at all. This is
-# the configuration reported in issue #3692.
+# the configuration reported in issue #3692 and it fails on main.
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_001" {
-  mobile_app_id = microsoft365_graph_beta_device_and_app_management_ios_store_app.acc_test_app_001.id
+  mobile_app_id = local.published_ios_store_app_id_001
   intent        = "available"
   source        = "direct"
 
