@@ -29,7 +29,7 @@ func ConstructMobileAppAssignment(ctx context.Context, data MobileAppAssignmentR
 	}
 
 	// Set Target
-	target, err := constructAssignmentTarget(ctx, &data.Target)
+	target, err := constructAssignmentTarget(ctx, data.Target)
 	if err != nil {
 		return nil, fmt.Errorf("error constructing mobile app assignment target: %v", err)
 	}
@@ -63,6 +63,44 @@ func ConstructMobileAppAssignment(ctx context.Context, data MobileAppAssignmentR
 
 	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment", assignment); err != nil {
 		tflog.Error(ctx, "Failed to log mobile app assignment", map[string]any{
+			"error": err.Error(),
+		})
+	}
+
+	return assignment, nil
+}
+
+// ConstructMobileAppAssignmentSettingsUpdate builds the request body for an in-place update
+// of an existing assignment.
+//
+// Graph rejects a PATCH that carries intent, source or target:
+//
+//	400 "Cannot patch read-only properties: 'Intent', 'Source', 'Target', 'Settings'."
+//
+// Despite naming Settings in that list, a body carrying settings alone is accepted. It
+// replaces the settings object wholesale, so a field left out of it is cleared rather than
+// preserved - which is exactly the behaviour the resource wants, since an omitted attribute
+// means "let the service default apply".
+//
+// intent, source, target and mobile_app_id all force replacement in the schema, so an update
+// only ever needs to carry settings.
+func ConstructMobileAppAssignmentSettingsUpdate(ctx context.Context, data MobileAppAssignmentResourceModel) (graphmodels.MobileAppAssignmentable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing settings update for %s", ResourceName))
+
+	assignment := graphmodels.NewMobileAppAssignment()
+
+	if data.Settings != nil {
+		settings, err := constructMobileAppAssignmentSettings(ctx, data.Settings)
+		if err != nil {
+			return nil, fmt.Errorf("error constructing settings: %v", err)
+		}
+		if settings != nil {
+			assignment.SetSettings(settings)
+		}
+	}
+
+	if err := constructors.DebugLogGraphObject(ctx, "Constructed mobile app assignment settings update", assignment); err != nil {
+		tflog.Error(ctx, "Failed to log mobile app assignment settings update", map[string]any{
 			"error": err.Error(),
 		})
 	}

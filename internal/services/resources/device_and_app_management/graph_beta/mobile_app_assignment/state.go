@@ -36,8 +36,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data MobileAppAssignmentReso
 }
 
 // mapRemoteTargetToTerraform maps a remote assignment target to a Terraform assignment target
-func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) AssignmentTargetResourceModel {
-	target := AssignmentTargetResourceModel{
+func mapRemoteTargetToTerraform(remoteTarget graphmodels.DeviceAndAppManagementAssignmentTargetable) *AssignmentTargetResourceModel {
+	target := &AssignmentTargetResourceModel{
 		DeviceAndAppManagementAssignmentFilterId:   convert.GraphToFrameworkString(remoteTarget.GetDeviceAndAppManagementAssignmentFilterId()),
 		DeviceAndAppManagementAssignmentFilterType: convert.GraphToFrameworkEnum(remoteTarget.GetDeviceAndAppManagementAssignmentFilterType()),
 	}

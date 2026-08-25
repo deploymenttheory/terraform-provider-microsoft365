@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
@@ -119,8 +120,27 @@ func (r *MobileAppAssignmentResource) Configure(ctx context.Context, req resourc
 }
 
 // ImportState imports the resource state.
+// ImportState imports an existing assignment.
+//
+// An assignment is addressed by the app that owns it as well as by its own id, and
+// mobile_app_id is required rather than derivable, so a bare assignment id leaves Read unable
+// to resolve the resource. The import id therefore carries both, matching the convention used
+// by device_configuration_assignment:
+//
+//	terraform import <address> <mobileAppId>:<assignmentId>
 func (r *MobileAppAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ":")
+
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
+		resp.Diagnostics.AddError(
+			"Invalid Import ID",
+			fmt.Sprintf("Expected import ID in format 'mobileAppId:assignmentId', got: %s", req.ID),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("mobile_app_id"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[1])...)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
@@ -267,7 +287,19 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 			"settings": schema.SingleNestedAttribute{
 				Optional: true,
 				PlanModifiers: []planmodifier.Object{
-					objectplanmodifier.RequiresReplace(),
+					// Settings are the one part of an assignment the service will patch, so
+					// changing them updates in place rather than replacing the assignment.
+					//
+					// Removing the block entirely still replaces: a PATCH body carrying no
+					// settings at all is a no-op to the service rather than a removal, which
+					// would leave state and service disagreeing.
+					objectplanmodifier.RequiresReplaceIf(
+						func(_ context.Context, req planmodifier.ObjectRequest, resp *objectplanmodifier.RequiresReplaceIfFuncResponse) {
+							resp.RequiresReplace = req.ConfigValue.IsNull() && !req.StateValue.IsNull()
+						},
+						"Replaces the assignment when the settings block is removed.",
+						"Replaces the assignment when the `settings` block is removed.",
+					),
 				},
 				Attributes: map[string]schema.Attribute{
 					"android_managed_store": schema.SingleNestedAttribute{

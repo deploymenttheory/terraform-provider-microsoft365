@@ -7,14 +7,17 @@ import (
 )
 
 type MobileAppAssignmentResourceModel struct {
-	MobileAppId types.String                              `tfsdk:"mobile_app_id"`
-	ID          types.String                              `tfsdk:"id"`
-	Intent      types.String                              `tfsdk:"intent"`
-	Target      AssignmentTargetResourceModel             `tfsdk:"target"`
-	Settings    *MobileAppAssignmentSettingsResourceModel `tfsdk:"settings"`
-	Source      types.String                              `tfsdk:"source"`
-	SourceId    types.String                              `tfsdk:"source_id"`
-	Timeouts    timeouts.Value                            `tfsdk:"timeouts"`
+	MobileAppId types.String `tfsdk:"mobile_app_id"`
+	ID          types.String `tfsdk:"id"`
+	Intent      types.String `tfsdk:"intent"`
+	// Target is a pointer so that a partially populated state - the one an import starts
+	// from, which holds only mobile_app_id and id - can still be decoded. A value type cannot
+	// hold the null the framework hands over, and Read fails with a value conversion error.
+	Target   *AssignmentTargetResourceModel            `tfsdk:"target"`
+	Settings *MobileAppAssignmentSettingsResourceModel `tfsdk:"settings"`
+	Source   types.String                              `tfsdk:"source"`
+	SourceId types.String                              `tfsdk:"source_id"`
+	Timeouts timeouts.Value                            `tfsdk:"timeouts"`
 }
 
 // REF: https://learn.microsoft.com/en-us/graph/api/resources/intune-shared-alldevicesassignmenttarget?view=graph-rest-beta

@@ -23,6 +23,14 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_store_app" "acc_
     v14_0 = true
   }
 
+  # Set explicitly: is_featured is Optional without Computed on the ios_store_app
+  # resource, but its Read maps the value the service returns, so leaving it out
+  # of configuration fails the apply with
+  # "Provider produced inconsistent result after apply ... .is_featured: was
+  # null, but now cty.False". Unrelated to this resource; see the note in
+  # resource_acceptance_test.go.
+  is_featured = false
+
   timeouts = {
     create = "3m"
     read   = "1m"
@@ -52,7 +60,7 @@ resource "time_sleep" "wait_for_dependencies_001" {
     microsoft365_graph_beta_groups_group.acc_test_group_001_1,
   ]
 
-  create_duration = "30s"
+  create_duration = "25s"
 }
 
 # ==============================================================================

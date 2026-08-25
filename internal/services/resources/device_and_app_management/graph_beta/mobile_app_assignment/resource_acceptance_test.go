@@ -48,13 +48,13 @@ import (
 //
 // ## Replacement rather than update (test 005)
 //
-// Both intent and settings carry RequiresReplace, and Graph rejects a PATCH
-// that carries intent, source or target ("Cannot patch read-only properties"),
-// so changing an assignment always destroys and recreates it. Terraform
-// destroys before creating, so the replacement does not collide with the
-// inclusion intent the original assignment holds on the same group. A
-// consistency wait between the two steps keeps the refresh in step 2 from
-// seeing the old assignment as drift.
+// intent carries RequiresReplace, so changing it destroys and recreates the
+// assignment. Terraform destroys before creating, so the replacement does not
+// collide with the inclusion intent the original assignment holds on the same
+// group. A consistency wait between the two steps keeps the refresh in step 2
+// from seeing the old assignment as drift.
+//
+// A settings-only change is an in-place PATCH, not a replacement.
 //
 // ## Group hard delete
 //
@@ -62,12 +62,21 @@ import (
 // Graph. CheckDestroy therefore waits 60 seconds before asserting, since the
 // permanent delete can take 60-90 seconds to propagate.
 //
-// ## No import steps
+// ## is_featured on the dependency app
 //
-// ImportState is a passthrough on id alone, but mobile_app_id is required to
-// address an assignment and is not part of the imported state, so Read cannot
-// resolve an imported resource. Import is not exercised here; it needs fixing
-// separately before it can be tested.
+// Every scenario sets is_featured explicitly on its ios_store_app. That
+// attribute is Optional without Computed, but the resource's Read maps the
+// value the service returns, so omitting it fails the apply with
+// "Provider produced inconsistent result after apply ... .is_featured: was
+// null, but now cty.False". That is a pre-existing bug in ios_store_app,
+// unrelated to mobile_app_assignment, worked around here rather than fixed so
+// this change stays scoped.
+//
+// ## Import
+//
+// Import takes a composite id, <mobileAppId>:<assignmentId>, since an
+// assignment cannot be addressed by its own id alone. Import steps are not
+// wired up here yet; they need ImportStateIdFunc to build that id from state.
 // ============================================================================
 
 // loadAcceptanceTestTerraform loads an acceptance test config and prepends the provider block
