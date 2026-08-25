@@ -22,7 +22,7 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
   # Distinct branches, so the expression cannot be folded to a constant. seed.id is a
   # non-empty generated id, so this always resolves to "available", but only after apply.
   intent = length(microsoft365_graph_beta_device_and_app_management_mobile_app_assignment.seed.id) > 0 ? "available" : "uninstall"
-  source        = "direct"
+  source = "direct"
 
   target = {
     target_type = "groupAssignment"

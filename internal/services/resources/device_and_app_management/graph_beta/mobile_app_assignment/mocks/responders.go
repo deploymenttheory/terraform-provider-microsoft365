@@ -162,6 +162,13 @@ func (m *MobileAppAssignmentMock) RegisterMocks() {
 				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 			}
 
+			// Recorded like creates, so tests can assert on the payload an update sends.
+			mockState.Lock()
+			mockState.requests = append(mockState.requests, update)
+			mockState.Unlock()
+
+			// Top level keys are replaced, not deep merged: Graph replaces the whole
+			// settings object on a PATCH, so a field left out of it is cleared.
 			merged := make(map[string]any, len(assignment))
 			for k, v := range assignment {
 				merged[k] = v

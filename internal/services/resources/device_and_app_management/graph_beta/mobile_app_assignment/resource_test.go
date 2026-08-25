@@ -385,3 +385,130 @@ func TestUnitResourceMobileAppAssignment_10_Create_Unknown_Intent(t *testing.T) 
 		},
 	})
 }
+
+// TestUnitResourceMobileAppAssignment_11_Update_Settings_InPlace verifies that changing a
+// setting updates the assignment in place rather than replacing it.
+//
+// Graph rejects a PATCH carrying intent, source or target with "Cannot patch read-only
+// properties", so the update must send settings alone. Settings are also the only part of an
+// assignment that does not force replacement.
+func TestUnitResourceMobileAppAssignment_11_Update_Settings_InPlace(t *testing.T) {
+	_, assignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+
+	mocks.SetupUnitTestEnvironment(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig(t, "resource_required_ios_vpp.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType + ".required_ios_vpp").Key("settings.ios_vpp.is_removable").HasValue("true"),
+				),
+			},
+			{
+				Config: testConfig(t, "resource_required_ios_vpp_updated.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					// Same id: updated in place, not replaced.
+					check.That(resourceType+".required_ios_vpp").Key("id").Exists(),
+					check.That(resourceType+".required_ios_vpp").Key("settings.ios_vpp.is_removable").HasValue("false"),
+					check.That(resourceType+".required_ios_vpp").Key("settings.ios_vpp.use_device_licensing").HasValue("true"),
+					checkSettingSent(t, assignmentMock, "iosVpp", "isRemovable", true, false),
+				),
+			},
+		},
+	})
+}
+
+// TestUnitResourceMobileAppAssignment_12_Import_CompositeId verifies that an assignment can be
+// imported using <mobileAppId>:<assignmentId>.
+//
+// An assignment cannot be addressed by its own id alone: mobile_app_id is required to query it
+// and is not derivable, so a bare id leaves Read with nothing to look up.
+func TestUnitResourceMobileAppAssignment_12_Import_CompositeId(t *testing.T) {
+	_, assignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+
+	mocks.SetupUnitTestEnvironment(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig(t, "resource_required_ios_vpp.tf"),
+			},
+			{
+				ResourceName: resourceType + ".required_ios_vpp",
+				ImportState:  true,
+				ImportStateIdFunc: func(state *terraform.State) (string, error) {
+					rs, ok := state.RootModule().Resources[resourceType+".required_ios_vpp"]
+					if !ok {
+						return "", fmt.Errorf("resource not found in state")
+					}
+					return rs.Primary.Attributes["mobile_app_id"] + ":" + rs.Primary.ID, nil
+				},
+				ImportStateVerify: true,
+				// timeouts are configuration only and are never returned by the API.
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// TestUnitResourceMobileAppAssignment_13_Import_InvalidId verifies the diagnostic raised when
+// the import id is not in the composite form.
+func TestUnitResourceMobileAppAssignment_13_Import_InvalidId(t *testing.T) {
+	_, assignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+
+	mocks.SetupUnitTestEnvironment(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig(t, "resource_required_ios_vpp.tf"),
+			},
+			{
+				ResourceName:  resourceType + ".required_ios_vpp",
+				ImportState:   true,
+				ImportStateId: "not-a-composite-id",
+				ExpectError:   diagnosticRegexp("Expected import ID in format 'mobileAppId:assignmentId'"),
+			},
+		},
+	})
+}
+
+// TestUnitResourceMobileAppAssignment_14_Create_Win32Catalog verifies the win32_catalog
+// settings block survives a round trip through Read.
+//
+// Read had no case for Win32CatalogAppAssignmentSettings and fell through to returning nil,
+// so a refresh nulled the whole settings block in state. That was invisible while Read
+// discarded its result, and became a permanent diff once Read was fixed.
+func TestUnitResourceMobileAppAssignment_14_Create_Win32Catalog(t *testing.T) {
+	_, assignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+
+	mocks.SetupUnitTestEnvironment(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig(t, "resource_required_win32_catalog.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".required_win32_catalog").Key("id").Exists(),
+					check.That(resourceType+".required_win32_catalog").Key("settings.win32_catalog.notifications").HasValue("showAll"),
+					check.That(resourceType+".required_win32_catalog").Key("settings.win32_catalog.delivery_optimization_priority").HasValue("foreground"),
+					check.That(resourceType+".required_win32_catalog").Key("settings.win32_catalog.auto_update_settings.auto_update_superseded_apps_state").HasValue("enabled"),
+					check.That(resourceType+".required_win32_catalog").Key("settings.win32_catalog.restart_settings.grace_period_in_minutes").HasValue("60"),
+				),
+			},
+		},
+	})
+}
