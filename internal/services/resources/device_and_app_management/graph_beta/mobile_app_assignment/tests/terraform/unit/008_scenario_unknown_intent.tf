@@ -1,6 +1,6 @@
-# The first assignment supplies a computed attribute so that the second assignment's intent is
+# The seed assignment supplies a computed attribute so that the second assignment's intent is
 # unknown at plan time, mirroring an intent interpolated from another resource.
-resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "seed" {
+resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "seed_008" {
   mobile_app_id = "00000000-0000-0000-0000-000000000001"
   intent        = "required"
   source        = "direct"
@@ -17,11 +17,12 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
   }
 }
 
-resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "unknown_intent" {
+resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_008" {
   mobile_app_id = "00000000-0000-0000-0000-000000000001"
-  # Distinct branches, so the expression cannot be folded to a constant. seed.id is a
+
+  # Distinct branches, so the expression cannot be folded to a constant. seed_008.id is a
   # non-empty generated id, so this always resolves to "available", but only after apply.
-  intent = length(microsoft365_graph_beta_device_and_app_management_mobile_app_assignment.seed.id) > 0 ? "available" : "uninstall"
+  intent = length(microsoft365_graph_beta_device_and_app_management_mobile_app_assignment.seed_008.id) > 0 ? "available" : "uninstall"
   source = "direct"
 
   target = {

@@ -59,6 +59,20 @@ var (
 	intentsRejectingAppleAppSettings = []string{"uninstall"}
 
 	isRemovableIntentMessage = "`is_removable` can only be set when `intent` is `required`. The Intune service rejects this setting for every other intent. Remove the attribute, or change the intent."
+
+	// intentsSupportingAutoUpdateSettings are the intents for which the Win32 settings blocks
+	// accept auto_update_settings. Verified against the service:
+	//
+	//	required / uninstall -> "The request contains an invalid Win32LobApp assignment
+	//	                         setting: auto-update superseded apps setting is only valid
+	//	                         for available intents."
+	//	available            -> 201
+	//
+	// availableWithoutEnrollment is not a supported intent for Win32 app types at all, so it
+	// is deliberately not listed.
+	intentsSupportingAutoUpdateSettings = []string{"available"}
+
+	autoUpdateSettingsIntentMessage = "`auto_update_settings` can only be set when `intent` is `available`. The Intune service rejects the auto-update superseded apps setting for every other intent. Remove the block, or change the intent."
 )
 
 // unsupportedForIntentMessage builds the diagnostic for an Apple app assignment setting that
@@ -487,8 +501,11 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 						Optional: true,
 						Attributes: map[string]schema.Attribute{
 							"auto_update_settings": schema.SingleNestedAttribute{
-								MarkdownDescription: "The auto-update settings to apply for this app assignment.",
+								MarkdownDescription: "The auto-update settings to apply for this app assignment. Only supported when `intent` is `available`; the Intune service rejects it for every other intent.",
 								Optional:            true,
+								Validators: []validator.Object{
+									validate.ObjectSupportedOnlyWhenStringIn(path.Root("intent"), intentsSupportingAutoUpdateSettings, autoUpdateSettingsIntentMessage),
+								},
 								Attributes: map[string]schema.Attribute{
 									"auto_update_superseded_apps_state": schema.StringAttribute{
 										Optional: true,
@@ -576,8 +593,11 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 						Optional: true,
 						Attributes: map[string]schema.Attribute{
 							"auto_update_settings": schema.SingleNestedAttribute{
-								MarkdownDescription: "The auto-update settings to apply for this app assignment.",
+								MarkdownDescription: "The auto-update settings to apply for this app assignment. Only supported when `intent` is `available`; the Intune service rejects it for every other intent.",
 								Optional:            true,
+								Validators: []validator.Object{
+									validate.ObjectSupportedOnlyWhenStringIn(path.Root("intent"), intentsSupportingAutoUpdateSettings, autoUpdateSettingsIntentMessage),
+								},
 								Attributes: map[string]schema.Attribute{
 									"auto_update_superseded_apps_state": schema.StringAttribute{
 										Optional: true,

@@ -78,6 +78,10 @@ func loadAcceptanceTestTerraform(filename string) string {
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
+// resourceType matches the convention in the other acceptance suites: the unit suite spells
+// the package qualified name out in full instead.
+const resourceType = graphBetaMobileAppAssignment.ResourceName
+
 var (
 	testResource = graphBetaMobileAppAssignment.MobileAppAssignmentTestResource{}
 
@@ -270,6 +274,115 @@ func TestAccResourceMobileAppAssignment_07_Ios_Validation_UninstallUnsupportedSe
 			{
 				Config:      loadAcceptanceTestTerraform("007_ios_validation_uninstall_unsupported_settings.tf"),
 				ExpectError: regexp.MustCompile(`(?s)uninstall_on_device_removal.{0,4}\s+cannot\s+be\s+set\s+when`),
+			},
+		},
+	})
+}
+
+// Test 008: win_get settings against a WinGet app
+func TestAccResourceMobileAppAssignment_08_WinGet_Required(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders:        externalProviders,
+		CheckDestroy:             checkDestroyAllTypes(),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("008_win_get_required.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_008").ExistsInGraph(testResource),
+					check.That(resourceType+".test_008").Key("intent").HasValue("required"),
+					check.That(resourceType+".test_008").Key("settings.win_get.notifications").HasValue("showAll"),
+					check.That(resourceType+".test_008").Key("settings.win_get.restart_settings.grace_period_in_minutes").HasValue("90"),
+				),
+			},
+		},
+	})
+}
+
+// Test 009: win32_lob settings against a Win32 LOB app, available intent
+//
+// auto_update_settings is only valid for the available intent.
+func TestAccResourceMobileAppAssignment_09_Win32Lob_Available(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders:        externalProviders,
+		CheckDestroy:             checkDestroyAllTypes(),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("009_win32_lob_available.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_009").ExistsInGraph(testResource),
+					check.That(resourceType+".test_009").Key("settings.win32_lob.notifications").HasValue("showReboot"),
+					check.That(resourceType+".test_009").Key("settings.win32_lob.delivery_optimization_priority").HasValue("foreground"),
+					// Silently dropped on read before the mapper was fixed.
+					check.That(resourceType+".test_009").Key("settings.win32_lob.auto_update_settings.auto_update_superseded_apps_state").HasValue("enabled"),
+					check.That(resourceType+".test_009").Key("settings.win32_lob.restart_settings.grace_period_in_minutes").HasValue("120"),
+				),
+			},
+		},
+	})
+}
+
+// Test 010: win32_catalog settings against a Win32 catalog app, available intent
+//
+// Read had no case for this settings type at all, so a refresh nulled the whole
+// block in state.
+func TestAccResourceMobileAppAssignment_10_Win32Catalog_Available(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders:        externalProviders,
+		CheckDestroy:             checkDestroyAllTypes(),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("010_win32_catalog_available.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_010").ExistsInGraph(testResource),
+					check.That(resourceType+".test_010").Key("settings.win32_catalog.notifications").HasValue("showAll"),
+					check.That(resourceType+".test_010").Key("settings.win32_catalog.delivery_optimization_priority").HasValue("foreground"),
+					check.That(resourceType+".test_010").Key("settings.win32_catalog.auto_update_settings.auto_update_superseded_apps_state").HasValue("enabled"),
+					check.That(resourceType+".test_010").Key("settings.win32_catalog.restart_settings.grace_period_in_minutes").HasValue("60"),
+				),
+			},
+		},
+	})
+}
+
+// Test 011: windows_universal_app_x settings against a Universal AppX app
+func TestAccResourceMobileAppAssignment_11_WindowsUniversalAppX_Required(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders:        externalProviders,
+		CheckDestroy:             checkDestroyAllTypes(),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("011_windows_universal_app_x_required.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_011").ExistsInGraph(testResource),
+					check.That(resourceType+".test_011").Key("settings.windows_universal_app_x.use_device_context").HasValue("true"),
+				),
+			},
+		},
+	})
+}
+
+// Test 012: android_managed_store settings against a Managed Google Play app
+func TestAccResourceMobileAppAssignment_12_AndroidManagedStore_Required(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders:        externalProviders,
+		CheckDestroy:             checkDestroyAllTypes(),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("012_android_managed_store_required.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_012").ExistsInGraph(testResource),
+					check.That(resourceType+".test_012").Key("settings.android_managed_store.auto_update_mode").HasValue("default"),
+				),
 			},
 		},
 	})

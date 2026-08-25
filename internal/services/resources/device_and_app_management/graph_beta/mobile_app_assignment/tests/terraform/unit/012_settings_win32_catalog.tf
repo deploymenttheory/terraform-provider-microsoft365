@@ -1,6 +1,6 @@
-resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "required_win32_catalog" {
+resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_012" {
   mobile_app_id = "00000000-0000-0000-0000-000000000001"
-  intent        = "required"
+  intent        = "available"
   source        = "direct"
 
   target = {
@@ -15,6 +15,12 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
 
       auto_update_settings = {
         auto_update_superseded_apps_state = "enabled"
+      }
+
+      install_time_settings = {
+        use_local_time     = true
+        deadline_date_time = "2027-01-01T12:00:00Z"
+        start_date_time    = "2026-12-01T12:00:00Z"
       }
 
       restart_settings = {

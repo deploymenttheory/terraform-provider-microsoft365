@@ -1,4 +1,4 @@
-resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "required_ios_vpp" {
+resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_009" {
   mobile_app_id = "00000000-0000-0000-0000-000000000001"
   intent        = "required"
   source        = "direct"
@@ -10,7 +10,7 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
 
   settings = {
     ios_vpp = {
-      is_removable         = false
+      is_removable         = true
       use_device_licensing = true
     }
   }

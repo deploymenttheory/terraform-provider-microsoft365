@@ -1,6 +1,6 @@
-resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "required_omitted" {
+resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_011" {
   mobile_app_id = "00000000-0000-0000-0000-000000000001"
-  intent        = "required"
+  intent        = "uninstall"
   source        = "direct"
 
   target = {
@@ -10,7 +10,7 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
 
   settings = {
     ios_vpp = {
-      use_device_licensing = true
+      uninstall_on_device_removal = true
     }
   }
 }
