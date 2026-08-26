@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "The Windows BIOS configuration template was not found",
+    "details": [
+      { "code": "NotFound", "message": "The requested hardware configuration does not exist" }
+    ]
+  }
+}

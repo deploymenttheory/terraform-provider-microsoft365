@@ -1,0 +1,2 @@
+# {resource_id}
+terraform import microsoft365_graph_beta_device_management_windows_bios_configurations_and_other_settings_template.example 00000000-0000-0000-0000-000000000000

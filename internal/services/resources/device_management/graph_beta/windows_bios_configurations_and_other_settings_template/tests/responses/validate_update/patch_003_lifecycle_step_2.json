@@ -1,0 +1,18 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/hardwareConfigurations/$entity",
+  "@odata.type": "#microsoft.graph.hardwareConfiguration",
+  "id": "00000000-0000-0000-0000-000000000003",
+  "displayName": "unit-test-windows-bios-configuration-003-lifecycle",
+  "fileName": "test-bios-003.cctk",
+  "configurationFileContent": "W2NjdGtdCjtEZWxsIENvbW1hbmQgfCBDb25maWd1cmUgLSBtYXhpbWFsIHVuaXQgdGVzdCBwYWNrYWdlCk51bUxvY2s9RW5hYmxlZApTZWN1cmVCb290PUVuYWJsZWQKVHBtPU9uClRwbUFjdGl2YXRpb249QWN0aXZhdGUKVXNiQm9vdD1EaXNhYmxlZApWaXJ0dWFsaXphdGlvbj1FbmFibGVkCldha2VPbkxhbj1MYW5Pbmx5Cg==",
+  "hardwareConfigurationFormat": "dell",
+  "perDevicePasswordDisabled": true,
+  "roleScopeTagIds": [
+    "0",
+    "1"
+  ],
+  "version": 2,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "description": "Promoted to a maximal BIOS configuration template"
+}
