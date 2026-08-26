@@ -1,0 +1,57 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [hardwareConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-hardwareconfiguration?view=graph-rest-beta)
+- [Create hardwareConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-hardwareconfiguration-create?view=graph-rest-beta)
+- [Use BIOS configuration and other settings profiles on Windows devices in Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/configuration/bios-configuration)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v0.58.0-alpha | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_windows_bios_configurations_and_other_settings_template/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Dell Only**: Microsoft Intune currently supports this template for Dell devices only. The `hardware_configuration_format` attribute accepts `surface` and `surfaceDock`, but the service does not process those formats today.
+- **Device Requirements**: Targeted devices must be Windows 10/11, Microsoft Entra joined (not hybrid joined or workplace joined), and have Dell Command | Monitor installed.
+- **Configuration File**: The file is produced with the OEM's tooling — for Dell, an exported Dell Command | Configure "multiplatform package" (`.cctk`). It is uploaded base64 encoded, so use Terraform's `filebase64()` function rather than `file()`.
+- **BIOS Passwords**: Do not set `SetupPwd` or `SysPwd` inside the configuration file. Leave `per_device_password_disabled` set to `false` and let Intune generate and manage a unique BIOS password for each device; those passwords are then retrievable from the Intune portal.
+- **Sensitive Content**: `configuration_file_content` is marked sensitive because an OEM package can carry BIOS setup credentials. Its value is still stored in Terraform state, so protect your state backend accordingly.
+- **Assignment Targets**: Only `groupAssignmentTarget` and `exclusionGroupAssignmentTarget` are supported, matching the Intune portal. There are no 'all devices' or 'all users' targets for this template.
+- **Assignment Filters**: Included group assignments may be narrowed with an assignment filter. Set `filter_type` to `include` or `exclude` together with a `filter_id`; leave both at their defaults (`none` and the all-zero GUID) when no filter applies.
+- **Reporting**: Per-device and per-user application status is reported by Intune but is not surfaced by this resource.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_windows_bios_configurations_and_other_settings_template/import.sh" }}

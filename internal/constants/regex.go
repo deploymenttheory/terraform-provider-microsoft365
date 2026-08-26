@@ -89,7 +89,7 @@ const (
 
 	// OSVersionRegex matches an operating system version string in the format "X.Y.Z(+.W)" with any number of digits.
 	// Example: "10.0.22631.9999" or "1.1.1.1"
-	OSVersionRegex = `^\d+(\.\d+)*$` 
+	OSVersionRegex = `^\d+(\.\d+)*$`
 
 	// SemVerRegex matches a Semantic Versioning string in the format "X.Y.Z" (Major.Minor.Patch).
 	// Examples: "1.0.0", "2.1.3", "10.20.30"
@@ -177,4 +177,8 @@ const (
 	// lowercase letters, numbers, dots, hyphens and underscores.
 	// Example: "xpfftq037jwmhs", "9NZVDKPMR9RD", "Microsoft.VisualStudioCode", "my-app_v1.2"
 	AlphanumericWithSeparatorsRegex = `^[A-Za-z0-9._-]+$`
+
+	// Base64Regex matches a standard (RFC 4648) base64 encoded string with optional padding.
+	// Example: "W2NjdGtdCk51bUxvY2s9RW5hYmxlZAo="
+	Base64Regex = `^[A-Za-z0-9+/]*={0,2}$`
 )

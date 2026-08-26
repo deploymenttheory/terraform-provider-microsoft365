@@ -79,7 +79,7 @@
 - GroupPolicyMigrationReports
 - GroupPolicyObjectFiles
 - GroupPolicyUploadedDefinitionFiles
-- HardwareConfigurations
+- HardwareConfigurations [Done] - as windows_bios_configurations_and_other_settings_template
 - HardwarePasswordDetails
 - HardwarePasswordInfo
 - ImportedDeviceIdentities

@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/hardwareConfigurations/$entity",
+  "@odata.type": "#microsoft.graph.hardwareConfiguration",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "displayName": "unit-test-windows-bios-configuration-001-minimal",
+  "fileName": "test-bios-001.cctk",
+  "configurationFileContent": "W2NjdGtdCjtEZWxsIENvbW1hbmQgfCBDb25maWd1cmUgLSBtaW5pbWFsIHVuaXQgdGVzdCBwYWNrYWdlClNlY3VyZUJvb3Q9RW5hYmxlZApUcG09T24K",
+  "hardwareConfigurationFormat": "dell",
+  "perDevicePasswordDisabled": false,
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "version": 1,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z"
+}
