@@ -139,7 +139,7 @@ func TestAccResourceIosManagedAppProtection_03_Lifecycle_MinimalToMaximal(t *tes
 			{
 				Config: loadAcceptanceTestTerraform(t, "003_lifecycle_minimal_to_maximal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^T_[0-9a-fA-F-]+$`)),
 					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_003").Key("display_name").Exists(),
 					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_003").Key("description").Exists(),
 					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_003").Key("print_blocked").HasValue("true"),
@@ -191,7 +191,7 @@ func TestAccResourceIosManagedAppProtection_04_Lifecycle_MaximalToMinimal(t *tes
 			{
 				Config: loadAcceptanceTestTerraform(t, "004_lifecycle_maximal_to_minimal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^T_[0-9a-fA-F-]+$`)),
 					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_004").Key("display_name").Exists(),
 					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_004").Key("print_blocked").HasValue("false"),
 					check.That(graphBetaIosManagedAppProtection.ResourceName+".test_004").Key("allowed_inbound_data_transfer_sources").HasValue("allApps"),
