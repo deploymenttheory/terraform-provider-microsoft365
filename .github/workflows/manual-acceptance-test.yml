@@ -1,0 +1,48 @@
+name: Manual Acceptance Test Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to check out and test (your PR branch name)'
+        required: true
+        type: string
+      test_path:
+        description: 'Package path to test'
+        required: false
+        type: string
+        default: './internal/services/resources/device_and_app_management/graph_beta/ios_managed_app_protection/...'
+
+jobs:
+  acceptance-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Run acceptance tests
+        env:
+          TF_ACC: "1"
+          M365_CLIENT_ID: ${{ secrets.M365_CLIENT_ID }}
+          M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}
+          M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
+          M365_AUTH_METHOD: "client_secret"
+          M365_CLOUD: "public"
+        run: |
+          go test ${{ inputs.test_path }} -run TestAcc -v -timeout 30m -vet=off | tee acceptance_test_results.txt
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-test-results
+          path: acceptance_test_results.txt
