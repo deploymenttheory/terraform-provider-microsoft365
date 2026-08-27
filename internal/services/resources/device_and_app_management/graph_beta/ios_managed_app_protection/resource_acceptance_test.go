@@ -31,6 +31,11 @@ func TestAccResourceIosManagedAppProtection_01_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+    		"random": {
+        		Source: "hashicorp/random",
+    		},
+		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaIosManagedAppProtection.ResourceName,
@@ -64,6 +69,11 @@ func TestAccResourceIosManagedAppProtection_02_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+    		"random": {
+        		Source: "hashicorp/random",
+    		},
+		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaIosManagedAppProtection.ResourceName,
@@ -106,6 +116,11 @@ func TestAccResourceIosManagedAppProtection_03_Lifecycle_MinimalToMaximal(t *tes
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+    		"random": {
+        		Source: "hashicorp/random",
+    		},
+		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaIosManagedAppProtection.ResourceName,
@@ -151,6 +166,11 @@ func TestAccResourceIosManagedAppProtection_04_Lifecycle_MaximalToMinimal(t *tes
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+    		"random": {
+        		Source: "hashicorp/random",
+    		},
+		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaIosManagedAppProtection.ResourceName,
