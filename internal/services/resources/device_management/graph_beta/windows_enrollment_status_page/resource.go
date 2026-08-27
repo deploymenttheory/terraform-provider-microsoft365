@@ -4,12 +4,6 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
-	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -23,6 +17,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 )
 
 const (
@@ -72,20 +73,36 @@ type WindowsEnrollmentStatusPageResource struct {
 	ResourcePath     string
 }
 
-func (r *WindowsEnrollmentStatusPageResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *WindowsEnrollmentStatusPageResource) Metadata(
+	ctx context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = ResourceName
 }
 
-func (r *WindowsEnrollmentStatusPageResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *WindowsEnrollmentStatusPageResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-func (r *WindowsEnrollmentStatusPageResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *WindowsEnrollmentStatusPageResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
-func (r *WindowsEnrollmentStatusPageResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (r *WindowsEnrollmentStatusPageResource) IdentitySchema(
+	ctx context.Context,
+	req resource.IdentitySchemaRequest,
+	resp *resource.IdentitySchemaResponse,
+) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -95,7 +112,11 @@ func (r *WindowsEnrollmentStatusPageResource) IdentitySchema(ctx context.Context
 	}
 }
 
-func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *WindowsEnrollmentStatusPageResource) Schema(
+	ctx context.Context,
+	req resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a Windows 10 Enrollment Status Page configuration in Microsoft Intune." +
 			" Using the `/deviceManagement/deviceEnrollmentConfigurations/{deviceEnrollmentConfigurationId}` endpoint." +
@@ -109,6 +130,11 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
+			},
+			"priority": schema.Int32Attribute{
+				MarkdownDescription: "Priority is used to break ties when a user or device is targeted by multiple profiles. Lower priority values take precedence.",
+				Optional:            true,
+				Computed:            true,
 			},
 			"display_name": schema.StringAttribute{
 				MarkdownDescription: "The display name of the enrollment status page configuration.",
@@ -223,7 +249,7 @@ func (r *WindowsEnrollmentStatusPageResource) Schema(ctx context.Context, req re
 					),
 				},
 			},
-			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllLicensedUsersAllDevicesInclusionGroupAssignmentsSchema(),
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllLicensedUsersAllDevicesInclusionGroupAssignmentsAndFilterSchema(),
 			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}

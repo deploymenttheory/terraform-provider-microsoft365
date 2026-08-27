@@ -115,6 +115,7 @@ func TestUnitResourceWindowsEnrollmentStatusPage_02_Maximal(t *testing.T) {
 				Config: loadUnitTestTerraform("resource_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("priority").HasValue("10"),
 					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("display_name").HasValue("unit-test-windows-enrollment-status-page-maximal"),
 					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("description").HasValue("Test description for maximal enrollment status page"),
 					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("show_installation_progress").HasValue("true"),
@@ -129,6 +130,11 @@ func TestUnitResourceWindowsEnrollmentStatusPage_02_Maximal(t *testing.T) {
 					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("custom_error_message").HasValue("Contact IT support for assistance"),
 					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("selected_mobile_app_ids.#").HasValue("3"),
 					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("role_scope_tag_ids.#").HasValue("2"),
+					check.That(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal").Key("assignments.#").HasValue("4"),
+					resource.TestCheckTypeSetElemNestedAttrs(graphBetaWindowsEnrollmentStatusPage.ResourceName+".maximal", "assignments.*", map[string]string{
+						"filter_id":   "33333333-3333-3333-3333-333333333333",
+						"filter_type": "include",
+					}),
 				),
 			},
 		},

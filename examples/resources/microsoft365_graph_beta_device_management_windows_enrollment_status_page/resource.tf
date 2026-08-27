@@ -1,4 +1,5 @@
 resource "microsoft365_graph_beta_device_management_windows_enrollment_status_page" "with_assignments" {
+  priority                                                            = 10
   display_name                                                        = "example-windows-enrollment-status-page-with-assignments"
   description                                                         = "Test description for enrollment status page with assignments"
   show_installation_progress                                          = true
@@ -38,8 +39,10 @@ resource "microsoft365_graph_beta_device_management_windows_enrollment_status_pa
       group_id = microsoft365_graph_beta_groups_group.acc_test_group_1.id
     },
     {
-      type     = "groupAssignmentTarget"
-      group_id = microsoft365_graph_beta_groups_group.acc_test_group_2.id
+      type        = "groupAssignmentTarget"
+      group_id    = microsoft365_graph_beta_groups_group.acc_test_group_2.id
+      filter_id   = "00000000-0000-0000-0000-000000000001"
+      filter_type = "include"
     }
   ]
   timeouts = {

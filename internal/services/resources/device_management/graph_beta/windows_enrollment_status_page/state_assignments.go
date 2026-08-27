@@ -3,25 +3,32 @@ package graphBetaWindowsEnrollmentStatusPage
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // WindowsEnrollmentStatusPageAssignmentType returns the object type for WindowsQualityUpdateProfileAssignmentModel
 func WindowsEnrollmentStatusPageAssignmentType() attr.Type {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
-			"type":     types.StringType,
-			"group_id": types.StringType,
+			"type":        types.StringType,
+			"group_id":    types.StringType,
+			"filter_id":   types.StringType,
+			"filter_type": types.StringType,
 		},
 	}
 }
 
 // MapAssignmentsToTerraform maps the remote Windows Quality Update Policy assignments to Terraform state
-func MapAssignmentsToTerraform(ctx context.Context, data *WindowsEnrollmentStatusPageResourceModel, assignments []graphmodels.EnrollmentConfigurationAssignmentable) {
+func MapAssignmentsToTerraform(
+	ctx context.Context,
+	data *WindowsEnrollmentStatusPageResourceModel,
+	assignments []graphmodels.EnrollmentConfigurationAssignmentable,
+) {
 	if len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments to process")
 		data.Assignments = types.SetNull(WindowsEnrollmentStatusPageAssignmentType())
@@ -54,11 +61,15 @@ func MapAssignmentsToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 
 		odataType := target.GetOdataType()
 		if odataType == nil {
-			tflog.Warn(ctx, "Assignment target OData type is nil, skipping assignment", map[string]any{
-				"assignmentIndex": i,
-				"assignmentId":    assignment.GetId(),
-				"resourceId":      data.ID.ValueString(),
-			})
+			tflog.Warn(
+				ctx,
+				"Assignment target OData type is nil, skipping assignment",
+				map[string]any{
+					"assignmentIndex": i,
+					"assignmentId":    assignment.GetId(),
+					"resourceId":      data.ID.ValueString(),
+				},
+			)
 			continue
 		}
 
@@ -70,8 +81,10 @@ func MapAssignmentsToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 		})
 
 		assignmentObj := map[string]attr.Value{
-			"type":     types.StringNull(),
-			"group_id": types.StringNull(),
+			"type":        types.StringNull(),
+			"group_id":    types.StringNull(),
+			"filter_id":   types.StringNull(),
+			"filter_type": types.StringValue("none"),
 		}
 
 		switch *odataType {
@@ -94,19 +107,27 @@ func MapAssignmentsToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 					})
 					assignmentObj["group_id"] = convert.GraphToFrameworkString(groupId)
 				} else {
-					tflog.Warn(ctx, "Group ID is nil/empty for group assignment target", map[string]any{
-						"assignmentIndex": i,
-						"assignmentId":    assignment.GetId(),
-						"resourceId":      data.ID.ValueString(),
-					})
+					tflog.Warn(
+						ctx,
+						"Group ID is nil/empty for group assignment target",
+						map[string]any{
+							"assignmentIndex": i,
+							"assignmentId":    assignment.GetId(),
+							"resourceId":      data.ID.ValueString(),
+						},
+					)
 					assignmentObj["group_id"] = types.StringNull()
 				}
 			} else {
-				tflog.Error(ctx, "Failed to cast target to GroupAssignmentTargetable", map[string]any{
-					"assignmentIndex": i,
-					"assignmentId":    assignment.GetId(),
-					"resourceId":      data.ID.ValueString(),
-				})
+				tflog.Error(
+					ctx,
+					"Failed to cast target to GroupAssignmentTargetable",
+					map[string]any{
+						"assignmentIndex": i,
+						"assignmentId":    assignment.GetId(),
+						"resourceId":      data.ID.ValueString(),
+					},
+				)
 				assignmentObj["group_id"] = types.StringNull()
 			}
 
@@ -139,13 +160,33 @@ func MapAssignmentsToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 			continue
 		}
 
+		filterID := target.GetDeviceAndAppManagementAssignmentFilterId()
+		if filterID != nil && *filterID != "" {
+			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
+		}
+
+		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()
+		if filterType != nil {
+			switch *filterType {
+			case graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				assignmentObj["filter_type"] = types.StringValue("include")
+			case graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				assignmentObj["filter_type"] = types.StringValue("exclude")
+			case graphmodels.NONE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE:
+				assignmentObj["filter_type"] = types.StringValue("none")
+			}
+		}
+
 		tflog.Debug(ctx, "Creating assignment object value", map[string]any{
 			"assignmentIndex": i,
 			"assignmentId":    assignment.GetId(),
 			"resourceId":      data.ID.ValueString(),
 		})
 
-		objValue, diags := types.ObjectValue(WindowsEnrollmentStatusPageAssignmentType().(types.ObjectType).AttrTypes, assignmentObj)
+		objValue, diags := types.ObjectValue(
+			WindowsEnrollmentStatusPageAssignmentType().(types.ObjectType).AttrTypes,
+			assignmentObj,
+		)
 		if !diags.HasError() {
 			tflog.Debug(ctx, "Successfully created assignment object", map[string]any{
 				"assignmentIndex": i,
@@ -170,7 +211,10 @@ func MapAssignmentsToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 	})
 
 	if len(assignmentValues) > 0 {
-		setVal, diags := types.SetValue(WindowsEnrollmentStatusPageAssignmentType(), assignmentValues)
+		setVal, diags := types.SetValue(
+			WindowsEnrollmentStatusPageAssignmentType(),
+			assignmentValues,
+		)
 		if diags.HasError() {
 			tflog.Error(ctx, "Failed to create assignments set", map[string]any{
 				"errors":     diags.Errors(),
@@ -185,9 +229,13 @@ func MapAssignmentsToTerraform(ctx context.Context, data *WindowsEnrollmentStatu
 			data.Assignments = setVal
 		}
 	} else {
-		tflog.Debug(ctx, "No valid assignments processed, setting assignments to null", map[string]any{
-			"resourceId": data.ID.ValueString(),
-		})
+		tflog.Debug(
+			ctx,
+			"No valid assignments processed, setting assignments to null",
+			map[string]any{
+				"resourceId": data.ID.ValueString(),
+			},
+		)
 		data.Assignments = types.SetNull(WindowsEnrollmentStatusPageAssignmentType())
 	}
 
