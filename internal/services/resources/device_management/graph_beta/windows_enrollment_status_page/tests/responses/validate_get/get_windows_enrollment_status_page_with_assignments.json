@@ -26,7 +26,9 @@
       "id": "assignment1",
       "target": {
         "@odata.type": "#microsoft.graph.groupAssignmentTarget",
-        "groupId": "12345678-1234-1234-1234-123456789012"
+        "groupId": "12345678-1234-1234-1234-123456789012",
+        "deviceAndAppManagementAssignmentFilterId": "33333333-3333-3333-3333-333333333333",
+        "deviceAndAppManagementAssignmentFilterType": "include"
       }
     },
     {

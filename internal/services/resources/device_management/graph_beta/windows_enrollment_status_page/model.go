@@ -9,6 +9,7 @@ import (
 
 type WindowsEnrollmentStatusPageResourceModel struct {
 	ID                                                       types.String `tfsdk:"id"`
+	Priority                                                 types.Int32  `tfsdk:"priority"`
 	DisplayName                                              types.String `tfsdk:"display_name"`
 	Description                                              types.String `tfsdk:"description"`
 	ShowInstallationProgress                                 types.Bool   `tfsdk:"show_installation_progress"`
@@ -20,7 +21,7 @@ type WindowsEnrollmentStatusPageResourceModel struct {
 	AllowDeviceUseOnInstallFailure                           types.Bool   `tfsdk:"allow_device_use_on_install_failure"`
 	BlockDeviceUseUntilAllAppsAndProfilesAreInstalled        types.Bool   `tfsdk:"block_device_use_until_all_apps_and_profiles_are_installed"`
 	SelectedMobileAppIds                                     types.Set    `tfsdk:"selected_mobile_app_ids"`
-	//TrackInstallProgressForAutopilotOnly                     types.Bool     `tfsdk:"track_install_progress_for_autopilot_only"`
+	// TrackInstallProgressForAutopilotOnly                     types.Bool     `tfsdk:"track_install_progress_for_autopilot_only"`
 	OnlyFailSelectedBlockingAppsInTechnicianPhase types.Bool     `tfsdk:"only_fail_selected_blocking_apps_in_technician_phase"`
 	InstallQualityUpdates                         types.Bool     `tfsdk:"install_quality_updates"`
 	RoleScopeTagIds                               types.Set      `tfsdk:"role_scope_tag_ids"`

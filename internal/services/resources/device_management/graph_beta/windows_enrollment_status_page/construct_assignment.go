@@ -4,16 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 )
 
 // constructAssignment constructs and returns a DeviceEnrollmentConfigurationsItemAssignPostRequestBodyable
-func constructAssignment(ctx context.Context, data *WindowsEnrollmentStatusPageResourceModel) (devicemanagement.DeviceEnrollmentConfigurationsItemAssignPostRequestBodyable, error) {
+func constructAssignment(
+	ctx context.Context,
+	data *WindowsEnrollmentStatusPageResourceModel,
+) (devicemanagement.DeviceEnrollmentConfigurationsItemAssignPostRequestBodyable, error) {
 	tflog.Debug(ctx, "Starting Windows Enrollment Status Page assignment construction")
 
 	requestBody := devicemanagement.NewDeviceEnrollmentConfigurationsItemAssignPostRequestBody()
@@ -25,7 +29,7 @@ func constructAssignment(ctx context.Context, data *WindowsEnrollmentStatusPageR
 		return requestBody, nil
 	}
 
-	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithoutGroupFilterModel
+	var terraformAssignments []sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel
 	diags := data.Assignments.ElementsAs(ctx, &terraformAssignments, false)
 	if diags.HasError() {
 		return nil, fmt.Errorf("failed to extract assignments: %v", diags.Errors())
@@ -66,7 +70,11 @@ func constructAssignment(ctx context.Context, data *WindowsEnrollmentStatusPageR
 
 	requestBody.SetEnrollmentConfigurationAssignments(enrollmentAssignments)
 
-	if err := constructors.DebugLogGraphObject(ctx, "Constructed assignment request body", requestBody); err != nil {
+	if err := constructors.DebugLogGraphObject(
+		ctx,
+		"Constructed assignment request body",
+		requestBody,
+	); err != nil {
 		tflog.Error(ctx, "Failed to debug log assignment request body", map[string]any{
 			"error": err.Error(),
 		})
@@ -76,7 +84,11 @@ func constructAssignment(ctx context.Context, data *WindowsEnrollmentStatusPageR
 }
 
 // constructTarget creates the appropriate target based on the target type
-func constructTarget(ctx context.Context, targetType string, assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithoutGroupFilterModel) graphmodels.DeviceAndAppManagementAssignmentTargetable {
+func constructTarget(
+	ctx context.Context,
+	targetType string,
+	assignment sharedmodels.DeviceManagementDeviceConfigurationAssignmentWithGroupFilterModel,
+) graphmodels.DeviceAndAppManagementAssignmentTargetable {
 	var target graphmodels.DeviceAndAppManagementAssignmentTargetable
 
 	switch targetType {
@@ -86,7 +98,8 @@ func constructTarget(ctx context.Context, targetType string, assignment sharedmo
 		target = graphmodels.NewAllLicensedUsersAssignmentTarget()
 	case "groupAssignmentTarget":
 		groupTarget := graphmodels.NewGroupAssignmentTarget()
-		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() && assignment.GroupId.ValueString() != "" {
+		if !assignment.GroupId.IsNull() && !assignment.GroupId.IsUnknown() &&
+			assignment.GroupId.ValueString() != "" {
 			convert.FrameworkToGraphString(assignment.GroupId, groupTarget.SetGroupId)
 		} else {
 			tflog.Error(ctx, "Group assignment target missing required group_id", map[string]any{
@@ -100,6 +113,30 @@ func constructTarget(ctx context.Context, targetType string, assignment sharedmo
 			"targetType": targetType,
 		})
 		return nil
+	}
+
+	if !assignment.FilterId.IsNull() && !assignment.FilterId.IsUnknown() &&
+		assignment.FilterId.ValueString() != "" {
+		convert.FrameworkToGraphString(
+			assignment.FilterId,
+			target.SetDeviceAndAppManagementAssignmentFilterId,
+		)
+	}
+
+	if !assignment.FilterType.IsNull() && !assignment.FilterType.IsUnknown() {
+		filterType := assignment.FilterType.ValueString()
+		var filterTypeEnum graphmodels.DeviceAndAppManagementAssignmentFilterType
+		switch filterType {
+		case "include":
+			filterTypeEnum = graphmodels.INCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+		case "exclude":
+			filterTypeEnum = graphmodels.EXCLUDE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+		case "none":
+			filterTypeEnum = graphmodels.NONE_DEVICEANDAPPMANAGEMENTASSIGNMENTFILTERTYPE
+		default:
+			return target
+		}
+		target.SetDeviceAndAppManagementAssignmentFilterType(&filterTypeEnum)
 	}
 
 	return target
