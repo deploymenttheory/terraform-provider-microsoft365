@@ -14,7 +14,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func (r *Win32LobAppResource) publishContentVersion(ctx context.Context, appID string, installer *intuneWinPackage, response any, operation string) bool {
+func (r *Win32LobAppResource) publishContentVersion(ctx context.Context, appID string, installer *preparedWin32Content, response any, operation string) bool {
 	deadline, hasDeadline := ctx.Deadline()
 	if !hasDeadline {
 		addContentDiagnostic(response, "Error publishing application content", fmt.Errorf("the content upload context does not have a deadline"))
@@ -85,7 +85,7 @@ func (r *Win32LobAppResource) publishContentVersion(ctx context.Context, appID s
 		return false
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Uploading the original encrypted package content: %s", installer.fileName))
+	tflog.Debug(ctx, fmt.Sprintf("Uploading prepared encrypted package content: %s", installer.fileName))
 	if err := construct.UploadToAzureStorage(ctx, *fileStatus.GetAzureStorageUri(), installer.encryptedFilePath); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, response, operation, r.WritePermissions)
 		return false

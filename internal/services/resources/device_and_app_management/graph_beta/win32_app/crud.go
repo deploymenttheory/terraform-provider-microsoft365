@@ -3,21 +3,16 @@ package graphBetaWin32App
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	identitymodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_and_app_management"
 	sharedstater "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/state/graph_beta/device_and_app_management"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -52,27 +47,15 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 	}
 	defer cancel()
 
-	// Step 1: Determine installer source path (local or download via URL)
-	installerSourcePath, tempFileInfo, err := helpers.SetInstallerSourcePath(ctx, object.AppInstaller)
+	installerPackage, err := prepareInstaller(ctx, &object)
 	if err != nil {
-		resp.Diagnostics.AddError("Error determining installer file path", err.Error())
+		resp.Diagnostics.AddError("Error preparing Win32 application content", err.Error())
 		return
 	}
-
-	// Ensure cleanup of temporary file occurs post state read
-	if tempFileInfo.ShouldCleanup {
-		defer helpers.CleanupTempFile(ctx, tempFileInfo)
-	}
-
-	installerPackage, err := extractIntuneWinPackage(installerSourcePath)
-	if err != nil {
-		resp.Diagnostics.AddError("Error reading Win32 application package", err.Error())
-		return
-	}
-	defer cleanupIntuneWinPackage(ctx, installerPackage)
+	defer cleanupWin32Content(ctx, installerPackage)
 
 	// Step 3: Construct the base resource from the Terraform model
-	requestBody, err := constructResource(ctx, &object, installerSourcePath, installerPackage.fileName)
+	requestBody, err := constructResource(ctx, &object, installerPackage.fileName)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -234,40 +217,13 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 		var installerFileName string
 		if win32LobApp.GetFileName() != nil {
 			installerFileName = *win32LobApp.GetFileName()
-		} else {
-			var metadataObj sharedmodels.MobileAppMetaDataResourceModel
-			if !object.AppInstaller.IsNull() {
-				diags := object.AppInstaller.As(ctx, &metadataObj, basetypes.ObjectAsOptions{})
-				if !diags.HasError() && !metadataObj.InstallerFilePathSource.IsNull() {
-					filePath := metadataObj.InstallerFilePathSource.ValueString()
-					if filePath != "" {
-						installerFileName = filepath.Base(filePath)
-					}
-				}
-			}
 		}
 
 		object.ContentVersion = sharedstater.MapCommittedContentVersionStateToTerraform(ctx, committedVersionId, respFiles, err, installerFileName)
 	}
 
-	// 3. Get app metadata by processing app installer file
-	if !req.State.Raw.IsNull() {
-		var appInstallerObj types.Object
-		diags := req.State.GetAttribute(ctx, path.Root("app_installer"), &appInstallerObj)
-		if diags.HasError() {
-			resp.Diagnostics.Append(diags...)
-			return
-		}
-		if !appInstallerObj.IsNull() && !appInstallerObj.IsUnknown() {
-			var existingMetadata sharedmodels.MobileAppMetaDataResourceModel
-			diags = appInstallerObj.As(ctx, &existingMetadata, basetypes.ObjectAsOptions{})
-			if diags.HasError() {
-				resp.Diagnostics.Append(diags...)
-				return
-			}
-			object.AppInstaller = sharedstater.MapAppMetadataStateToTerraform(ctx, &existingMetadata)
-		}
-	}
+	// Installer sources are configuration-only values. Preserve both blocks from
+	// the existing state; Graph cannot reconstruct local paths or download URLs.
 
 	// 6. set final state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -287,9 +243,6 @@ func (r *Win32LobAppResource) Read(ctx context.Context, req resource.ReadRequest
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-win32lobapp-update?view=graph-rest-beta
 func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state Win32LobAppResourceModel
-	var installerSourcePath string
-	var tempFileInfo helpers.TempFileInfo
-	var err error
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
@@ -305,28 +258,21 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	defer cancel()
 
-	installerSourcePath, tempFileInfo, err = helpers.SetInstallerSourcePath(ctx, plan.AppInstaller)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error determining installer file path",
-			err.Error(),
-		)
-		return
+	var installerPackage *preparedWin32Content
+	installerFileName := ""
+	if installerSourceChanged(&plan, &state) && hasInstallerSource(&plan) {
+		var err error
+		installerPackage, err = prepareInstaller(ctx, &plan)
+		if err != nil {
+			resp.Diagnostics.AddError("Error preparing Win32 application content", err.Error())
+			return
+		}
+		defer cleanupWin32Content(ctx, installerPackage)
+		installerFileName = installerPackage.fileName
 	}
-
-	if tempFileInfo.ShouldCleanup {
-		defer helpers.CleanupTempFile(ctx, tempFileInfo)
-	}
-
-	installerPackage, err := extractIntuneWinPackage(installerSourcePath)
-	if err != nil {
-		resp.Diagnostics.AddError("Error reading Win32 application package", err.Error())
-		return
-	}
-	defer cleanupIntuneWinPackage(ctx, installerPackage)
 
 	// Step 1: Update the base mobile app resource
-	requestBody, err := constructResource(ctx, &plan, installerSourcePath, installerPackage.fileName)
+	requestBody, err := constructResource(ctx, &plan, installerFileName)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
@@ -364,7 +310,7 @@ func (r *Win32LobAppResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 	}
 
-	if !plan.AppInstaller.Equal(state.AppInstaller) {
+	if installerPackage != nil {
 		tflog.Debug(ctx, "Installer source changed; publishing a new content version on the existing application")
 		if !r.publishContentVersion(ctx, state.ID.ValueString(), installerPackage, resp, constants.TfOperationUpdate) {
 			return

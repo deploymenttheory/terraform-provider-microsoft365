@@ -41,13 +41,14 @@ type Win32LobAppResourceModel struct {
 	DetectionRules                 []Win32LobAppRegistryDetectionRulesResourceModel `tfsdk:"detection_rules"`
 	RequirementRules               []Win32LobAppRegistryRequirementResourceModel    `tfsdk:"requirement_rules"`
 	Rules                          []Win32LobAppRuleResourceModel                   `tfsdk:"rules"`
-	InstallExperience              *Win32LobAppInstallExperienceResourceModel        `tfsdk:"install_experience"`
+	InstallExperience              *Win32LobAppInstallExperienceResourceModel       `tfsdk:"install_experience"`
 	ReturnCodes                    []Win32LobAppReturnCodeResourceModel             `tfsdk:"return_codes"`
 	MsiInformation                 *Win32LobAppMsiInformationResourceModel          `tfsdk:"msi_information"`
 	SetupFilePath                  types.String                                     `tfsdk:"setup_file_path"`
 	MinimumSupportedWindowsRelease types.String                                     `tfsdk:"minimum_supported_windows_release"`
 	DisplayVersion                 types.String                                     `tfsdk:"display_version"`
 	AllowAvailableUninstall        types.Bool                                       `tfsdk:"allow_available_uninstall"`
+	AppInstallerZip                types.Object                                     `tfsdk:"app_installer_zip"`
 	AppInstaller                   types.Object                                     `tfsdk:"app_installer"`
 	ContentVersion                 types.List                                       `tfsdk:"content_version"`
 	Categories                     types.Set                                        `tfsdk:"categories"`
