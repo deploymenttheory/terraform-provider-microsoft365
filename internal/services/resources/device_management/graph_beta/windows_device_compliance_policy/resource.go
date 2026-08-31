@@ -514,9 +514,9 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req 
 									},
 									"grace_period_hours": schema.Int32Attribute{
 										Required:            true,
-										MarkdownDescription: "Number of hours to wait till the action will be enforced. Value must be between 0 and 365",
+										MarkdownDescription: "Number of hours to wait till the action will be enforced. Value must be between 0 and 8760 (365 days).",
 										Validators: []validator.Int32{
-											int32validator.Between(0, 365),
+											int32validator.Between(0, 8760),
 										},
 									},
 									"notification_template_id": schema.StringAttribute{

@@ -447,7 +447,7 @@ Required:
 Required:
 
 - `action_type` (String) What action to take. Possible values are: 'noAction', 'notification', 'block', 'retire', 'wipe', 'removeResourceAccessProfiles', 'pushNotification', 'remoteLock'.
-- `grace_period_hours` (Number) Number of hours to wait till the action will be enforced. Value must be between 0 and 365
+- `grace_period_hours` (Number) Number of hours to wait till the action will be enforced. Value must be between 0 and 8760 (365 days).
 
 Optional:
 
