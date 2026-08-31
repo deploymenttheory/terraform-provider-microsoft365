@@ -1,78 +1,157 @@
 package graphBetaWin32App_test
 
 import (
-	"archive/zip"
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
-	"strconv"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/exists"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	win32 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/win32_app"
+	group "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
-	"github.com/stretchr/testify/require"
 )
 
-type win32TestResource struct{}
+const resourceType = win32.ResourceName
 
-func (win32TestResource) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
-	return exists.CheckResourceExists(ctx, state, func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, state *terraform.InstanceState) error {
-		_, err := client.DeviceAppManagement().MobileApps().ByMobileAppId(state.ID).Get(ctx, nil)
-		return err
+var testResource = win32.Win32AppTestResource{}
+
+func loadAcceptanceTestTerraform(filename string, packagesURL string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
+	}
+	config = strings.ReplaceAll(config, "http://win32-packages.test", packagesURL)
+	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+func TestAccResourceWin32App_01_Scenario_Minimal(t *testing.T) {
+	packages := newAcceptancePackages(t)
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			mocks.TestAccPreCheck(t)
+			packages.prepare(t, "140.0.2")
+		},
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("001_scenario_minimal.tf", packages.URL),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_001").Key("display_name").Exists(),
+					check.That(resourceType+".test_001").Key("publisher").HasValue("Mozilla"),
+					check.That(resourceType+".test_001").Key("content_version.#").HasValue("1"),
+					check.That(resourceType+".test_001").Key("committed_content_version").Exists(),
+				),
+			},
+			{Config: loadAcceptanceTestTerraform("001_scenario_minimal.tf", packages.URL), PlanOnly: true, ExpectNonEmptyPlan: false},
+			importStep(resourceType + ".test_001"),
+		},
 	})
 }
 
-func TestAccResourceWin32App_ZipContentLifecycle(t *testing.T)       { testContentLifecycle(t, true) }
-func TestAccResourceWin32App_IntuneWinContentLifecycle(t *testing.T) { testContentLifecycle(t, false) }
+func TestAccResourceWin32App_02_Scenario_Maximal(t *testing.T) {
+	packages := newAcceptancePackages(t)
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			mocks.TestAccPreCheck(t)
+			packages.prepare(t, "140.0.4")
+		},
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
+		Steps: []resource.TestStep{
+			{
+				Config: loadAcceptanceTestTerraform("002_scenario_maximal.tf", packages.URL),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_002").Key("display_version").HasValue("140.0.4"),
+					check.That(resourceType+".test_002").Key("is_featured").HasValue("true"),
+					check.That(resourceType+".test_002").Key("minimum_memory_in_mb").HasValue("2048"),
+					check.That(resourceType+".test_002").Key("install_experience.run_as_account").HasValue("system"),
+					check.That(resourceType+".test_002").Key("return_codes.#").HasValue("5"),
+					check.That(resourceType+".test_002").Key("content_version.#").HasValue("1"),
+				),
+			},
+			{Config: loadAcceptanceTestTerraform("002_scenario_maximal.tf", packages.URL), PlanOnly: true, ExpectNonEmptyPlan: false},
+			importStep(resourceType + ".test_002"),
+		},
+	})
+}
 
-// Both tests create an app, publish a second version, switch formats, and
-// publish another version. Each step is followed by an explicit empty plan.
-func testContentLifecycle(t *testing.T, startWithZip bool) {
-	if os.Getenv("TF_ACC") != "1" {
-		t.Skip("set TF_ACC=1 and the test-tenant/fixture variables described in tests/README.md")
+// Exercise two versions in each format and a format switch on the same app
+// and group assignment. Minimal/maximal configurations are tested separately.
+func TestAccResourceWin32App_03_Lifecycle_ContentUpdate(t *testing.T) {
+	packages := newAcceptancePackages(t)
+	appAddress := resourceType + ".test_003"
+	checkContent := checkContentLifecycle(appAddress)
+	var steps []resource.TestStep
+	for _, filename := range []string{
+		"003_lifecycle_content_update_step_1.tf",
+		"003_lifecycle_content_update_step_2.tf",
+		"003_lifecycle_content_update_step_3.tf",
+		"003_lifecycle_content_update_step_4.tf",
+	} {
+		config := loadAcceptanceTestTerraform(filename, packages.URL)
+		steps = append(steps,
+			resource.TestStep{Config: config, Check: checkContent},
+			resource.TestStep{Config: config, PlanOnly: true, ExpectNonEmptyPlan: false},
+		)
 	}
-	mocks.TestAccPreCheck(t)
-	groupID := os.Getenv("WIN32_APP_TEST_GROUP_ID")
-	require.NotEmpty(t, groupID, "WIN32_APP_TEST_GROUP_ID must identify an empty, dedicated test group")
-	packaged := []string{os.Getenv("WIN32_APP_INTUNEWIN_V1"), os.Getenv("WIN32_APP_INTUNEWIN_V2")}
-	for i, p := range packaged {
-		require.NotEmpty(t, p, "WIN32_APP_INTUNEWIN_V%d is required", i+1)
-		absolute, err := filepath.Abs(p)
-		require.NoError(t, err)
-		packaged[i] = absolute
-		_, err = os.Stat(absolute)
-		require.NoError(t, err)
+	steps = append(steps, importStep(appAddress))
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			mocks.TestAccPreCheck(t)
+			packages.prepare(t, "140.0.2", "140.0.4")
+		},
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: group.ResourceName, TestResource: group.GroupTestResource{}},
+		),
+		Steps: steps,
+	})
+}
+
+func importStep(address string) resource.TestStep {
+	return resource.TestStep{
+		ResourceName: address, ImportState: true, ImportStateVerify: true,
+		// Graph cannot return the configured source or outer package filename.
+		ImportStateVerifyIgnore: []string{"app_installer", "app_installer_zip", "file_name"},
 	}
-	require.NotEqual(t, packaged[0], packaged[1], "use distinct artifact paths for each version")
-	plain := []string{acceptanceZip(t, "v1"), acceptanceZip(t, "v2")}
-	template, err := os.ReadFile("tests/terraform/acceptance/content_lifecycle.tf")
-	require.NoError(t, err)
-	name := fmt.Sprintf("acc-test-win32-content-%d", time.Now().UnixNano())
-	appAddress := win32.ResourceName + ".test"
-	assignmentAddress := "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment.test"
+}
+
+func checkContentLifecycle(appAddress string) resource.TestCheckFunc {
 	var appID, assignmentID, lastVersion string
-	check := func(state *terraform.State) error {
+	return func(state *terraform.State) error {
 		app, ok := state.RootModule().Resources[appAddress]
-		if !ok {
+		if !ok || app.Primary == nil || app.Primary.ID == "" {
 			return fmt.Errorf("app missing from state")
 		}
-		assignment, ok := state.RootModule().Resources[assignmentAddress]
-		if !ok {
+		assignment, ok := state.RootModule().Resources["microsoft365_graph_beta_device_and_app_management_mobile_app_assignment.test"]
+		if !ok || assignment.Primary == nil || assignment.Primary.ID == "" {
 			return fmt.Errorf("assignment missing from state")
 		}
 		if appID == "" {
-			appID = app.Primary.ID
-			assignmentID = assignment.Primary.ID
+			appID, assignmentID = app.Primary.ID, assignment.Primary.ID
 		} else if appID != app.Primary.ID || assignmentID != assignment.Primary.ID {
 			return fmt.Errorf("content update replaced application or assignment")
 		}
@@ -89,55 +168,28 @@ func testContentLifecycle(t *testing.T, startWithZip bool) {
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
+		remote, err := client.DeviceAppManagement().MobileApps().ByMobileAppId(appID).Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+		remoteApp, ok := remote.(graphmodels.Win32LobAppable)
+		if !ok || remoteApp.GetCommittedContentVersion() == nil || *remoteApp.GetCommittedContentVersion() != version {
+			return fmt.Errorf("Graph committed content version does not match state")
+		}
 		assignments, err := client.DeviceAppManagement().MobileApps().ByMobileAppId(appID).Assignments().Get(ctx, nil)
 		if err != nil {
 			return err
 		}
-		found := false
+		groupID := assignment.Primary.Attributes["target.group_id"]
 		for _, a := range assignments.GetValue() {
 			if a.GetId() != nil && *a.GetId() == assignmentID {
 				target, ok := a.GetTarget().(graphmodels.GroupAssignmentTargetable)
-				found = ok && target.GetGroupId() != nil && *target.GetGroupId() == groupID
+				if ok && target.GetGroupId() != nil && *target.GetGroupId() == groupID {
+					lastVersion = version
+					return nil
+				}
 			}
 		}
-		if !found {
-			return fmt.Errorf("original group assignment is missing from Graph")
-		}
-		lastVersion = version
-		return nil
+		return fmt.Errorf("original group assignment is missing from Graph")
 	}
-	var steps []resource.TestStep
-	for _, zipMode := range []bool{startWithZip, !startWithZip} {
-		block, paths := "app_installer", packaged
-		if zipMode {
-			block, paths = "app_installer_zip", plain
-		}
-		for _, source := range paths {
-			config := strings.NewReplacer("{{NAME}}", strconv.Quote(name), "{{GROUP_ID}}", strconv.Quote(groupID), "{{SOURCE_BLOCK}}", block, "{{SOURCE_PATH}}", strconv.Quote(source)).Replace(string(template))
-			config = acceptance.ConfiguredM365ProviderBlock(config)
-			steps = append(steps, resource.TestStep{Config: config, Check: check}, resource.TestStep{Config: config, PlanOnly: true, ExpectNonEmptyPlan: false})
-		}
-	}
-	steps = append(steps, resource.TestStep{ResourceName: appAddress, ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"app_installer", "app_installer_zip", "file_name"}})
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { mocks.TestAccPreCheck(t) }, ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy: destroy.CheckDestroyedAllFunc(win32TestResource{}, win32.ResourceName, 30*time.Second), Steps: steps,
-	})
-}
-
-func acceptanceZip(t *testing.T, version string) string {
-	t.Helper()
-	script, err := os.ReadFile(filepath.Join("tests", "fixtures", version, "setup.cmd"))
-	require.NoError(t, err)
-	target := filepath.Join(t.TempDir(), version+".zip")
-	file, err := os.Create(target)
-	require.NoError(t, err)
-	archive := zip.NewWriter(file)
-	entry, err := archive.Create("setup.cmd")
-	require.NoError(t, err)
-	_, err = entry.Write(script)
-	require.NoError(t, err)
-	require.NoError(t, archive.Close())
-	require.NoError(t, file.Close())
-	return target
 }
