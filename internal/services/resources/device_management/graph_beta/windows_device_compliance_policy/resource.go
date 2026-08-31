@@ -4,6 +4,12 @@ import (
 	"context"
 	"regexp"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int32validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -17,13 +23,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
-
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
-	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 )
 
 const (
@@ -76,38 +75,22 @@ type WindowsDeviceCompliancePolicyResource struct {
 }
 
 // Metadata returns the resource type name.
-func (r *WindowsDeviceCompliancePolicyResource) Metadata(
-	ctx context.Context,
-	req resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
+func (r *WindowsDeviceCompliancePolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
 // Configure sets the client for the resource.
-func (r *WindowsDeviceCompliancePolicyResource) Configure(
-	ctx context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
+func (r *WindowsDeviceCompliancePolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
 // ImportState imports the resource state.
-func (r *WindowsDeviceCompliancePolicyResource) ImportState(
-	ctx context.Context,
-	req resource.ImportStateRequest,
-	resp *resource.ImportStateResponse,
-) {
+func (r *WindowsDeviceCompliancePolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
-func (r *WindowsDeviceCompliancePolicyResource) IdentitySchema(
-	ctx context.Context,
-	req resource.IdentitySchemaRequest,
-	resp *resource.IdentitySchemaResponse,
-) {
+func (r *WindowsDeviceCompliancePolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -118,11 +101,7 @@ func (r *WindowsDeviceCompliancePolicyResource) IdentitySchema(
 }
 
 // Schema returns the schema for the resource.
-func (r *WindowsDeviceCompliancePolicyResource) Schema(
-	ctx context.Context,
-	req resource.SchemaRequest,
-	resp *resource.SchemaResponse,
-) {
+func (r *WindowsDeviceCompliancePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Windows device compliance policies using the `/deviceManagement/deviceCompliancePolicies` endpoint. This resource is used to device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements. you can find out more here: 'https://learn.microsoft.com/en-us/intune/intune-service/protect/compliance-policy-create-windows'..",
 		Attributes: map[string]schema.Attribute{
@@ -413,14 +392,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(
 						Computed:            true,
 						MarkdownDescription: "Require Device Threat Protection minimum risk level to report noncompliance. Possible values are: unavailable, secured, low, medium, high, notSet",
 						Validators: []validator.String{
-							stringvalidator.OneOf(
-								"unavailable",
-								"secured",
-								"low",
-								"medium",
-								"high",
-								"notSet",
-							),
+							stringvalidator.OneOf("unavailable", "secured", "low", "medium", "high", "notSet"),
 						},
 						PlanModifiers: []planmodifier.String{
 							planmodifiers.DefaultValueString("unavailable"),
@@ -503,30 +475,21 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(
 							Required:            true,
 							MarkdownDescription: "The name of the WSL distribution",
 							Validators: []validator.String{
-								validate.MutuallyExclusiveObjectAndSet(
-									"device_compliance_policy_script",
-									"wsl_distributions",
-								),
+								validate.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
 							},
 						},
 						"minimum_os_version": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "The minimum OS version for the WSL distribution",
 							Validators: []validator.String{
-								validate.MutuallyExclusiveObjectAndSet(
-									"device_compliance_policy_script",
-									"wsl_distributions",
-								),
+								validate.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
 							},
 						},
 						"maximum_os_version": schema.StringAttribute{
 							Required:            true,
 							MarkdownDescription: "The maximum OS version for the WSL distribution",
 							Validators: []validator.String{
-								validate.MutuallyExclusiveObjectAndSet(
-									"device_compliance_policy_script",
-									"wsl_distributions",
-								),
+								validate.MutuallyExclusiveObjectAndSet("device_compliance_policy_script", "wsl_distributions"),
 							},
 						},
 					},
@@ -546,16 +509,7 @@ func (r *WindowsDeviceCompliancePolicyResource) Schema(
 										Required:            true,
 										MarkdownDescription: "What action to take. Possible values are: 'noAction', 'notification', 'block', 'retire', 'wipe', 'removeResourceAccessProfiles', 'pushNotification', 'remoteLock'.",
 										Validators: []validator.String{
-											stringvalidator.OneOf(
-												"noAction",
-												"notification",
-												"block",
-												"retire",
-												"wipe",
-												"removeResourceAccessProfiles",
-												"pushNotification",
-												"remoteLock",
-											),
+											stringvalidator.OneOf("noAction", "notification", "block", "retire", "wipe", "removeResourceAccessProfiles", "pushNotification", "remoteLock"),
 										},
 									},
 									"grace_period_hours": schema.Int32Attribute{
