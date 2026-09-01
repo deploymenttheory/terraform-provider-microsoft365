@@ -3,8 +3,6 @@ package graphBetaWin32App
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	helpers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
@@ -16,7 +14,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-func constructResource(ctx context.Context, data *Win32LobAppResourceModel, installerSourcePath string) (graphmodels.Win32LobAppable, error) {
+func constructResource(ctx context.Context, data *Win32LobAppResourceModel, installerFileName string) (graphmodels.Win32LobAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewWin32LobApp()
@@ -24,11 +22,9 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 	convert.FrameworkToGraphString(data.Publisher, requestBody.SetPublisher)
-	convert.FrameworkToGraphString(data.FileName, requestBody.SetFileName)
 	convert.FrameworkToGraphString(data.InstallCommandLine, requestBody.SetInstallCommandLine)
 	convert.FrameworkToGraphString(data.UninstallCommandLine, requestBody.SetUninstallCommandLine)
 	convert.FrameworkToGraphString(data.SetupFilePath, requestBody.SetSetupFilePath)
-	convert.FrameworkToGraphString(data.CommittedContentVersion, requestBody.SetCommittedContentVersion)
 	convert.FrameworkToGraphString(data.DisplayVersion, requestBody.SetDisplayVersion)
 	convert.FrameworkToGraphString(data.Developer, requestBody.SetDeveloper)
 	convert.FrameworkToGraphString(data.InformationUrl, requestBody.SetInformationUrl)
@@ -71,19 +67,11 @@ func constructResource(ctx context.Context, data *Win32LobAppResourceModel, inst
 		requestBody.SetLargeIcon(largeIcon)
 	}
 
-	// For creating resources, we need the installer file to extract metadata
-	// Verify the installer path is provided and the file exists
-	if installerSourcePath == "" {
-		return nil, fmt.Errorf("installer source path is empty; a valid file path is required")
+	// Only content preparation can supply the Graph filename. Metadata-only
+	// updates must not overwrite it with the configured outer package name.
+	if installerFileName != "" {
+		convert.FrameworkToGraphString(types.StringValue(installerFileName), requestBody.SetFileName)
 	}
-
-	if _, err := os.Stat(installerSourcePath); err != nil {
-		return nil, fmt.Errorf("installer file not found at path %s: %w", installerSourcePath, err)
-	}
-
-	filename := filepath.Base(installerSourcePath)
-	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
-	convert.FrameworkToGraphString(types.StringValue(filename), requestBody.SetFileName)
 
 	if len(data.DetectionRules) > 0 {
 		detectionRules := make([]graphmodels.Win32LobAppDetectionable, len(data.DetectionRules))

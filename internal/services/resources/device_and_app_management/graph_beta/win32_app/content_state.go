@@ -8,7 +8,6 @@ import (
 
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -30,7 +29,7 @@ func WaitForFileCommitCompletion(
 	contentVersionID string,
 	fileID string,
 	encryptionInfo *construct.EncryptionInfo,
-	resp *resource.CreateResponse,
+	resp any,
 	permissions []string,
 ) error {
 	tflog.Debug(ctx, "Starting file commit completion check with exponential backoff")

@@ -59,7 +59,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *Win32LobAppRes
 	data.SupersedingAppCount = convert.GraphToFrameworkInt32(remoteResource.GetSupersedingAppCount())
 	data.SupersededAppCount = convert.GraphToFrameworkInt32(remoteResource.GetSupersededAppCount())
 	data.CommittedContentVersion = convert.GraphToFrameworkString(remoteResource.GetCommittedContentVersion())
-	data.FileName = convert.GraphToFrameworkString(remoteResource.GetFileName())
+	if data.FileName.IsNull() || data.FileName.IsUnknown() {
+		data.FileName = convert.GraphToFrameworkString(remoteResource.GetFileName())
+	}
 	data.Size = convert.GraphToFrameworkInt64(remoteResource.GetSize())
 	data.InstallCommandLine = convert.GraphToFrameworkString(remoteResource.GetInstallCommandLine())
 	data.UninstallCommandLine = convert.GraphToFrameworkString(remoteResource.GetUninstallCommandLine())

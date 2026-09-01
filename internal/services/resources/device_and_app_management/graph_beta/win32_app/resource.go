@@ -84,12 +84,15 @@ func (r *Win32LobAppResource) ImportState(ctx context.Context, req resource.Impo
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("app_installer"), types.ObjectNull(
-		map[string]attr.Type{
-			"installer_file_path_source": types.StringType,
-			"installer_url_source":       types.StringType,
-		},
-	))...)
+	for _, attribute := range []string{"app_installer", "app_installer_zip"} {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root(attribute), types.ObjectNull(
+			map[string]attr.Type{
+				"installer_file_path_source": types.StringType,
+				"installer_url_source":       types.StringType,
+			},
+		))...)
+	}
+
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
@@ -106,7 +109,7 @@ func (r *Win32LobAppResource) IdentitySchema(ctx context.Context, req resource.I
 // Function to create the full device management win32 lob app schema
 func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Win32 applications in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to deploy custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management. Applications must be wrapped in the .intunewin file format.",
+		MarkdownDescription: "Manages Win32 applications in Microsoft Intune using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to deploy custom Windows applications (.exe, .msi) with advanced installation logic, detection rules, and dependency management. Supply either a prepackaged .intunewin file or an unencrypted installer ZIP.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -235,7 +238,7 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"file_name": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The name of the main Lob application file.",
+				MarkdownDescription: "The configured name of the main LOB application file. For prepackaged content, Microsoft Graph receives the inner filename from `Detection.xml`; for ZIP sources it receives the ZIP filename with an `.intunewin` extension.",
 			},
 			"size": schema.Int64Attribute{
 				Computed:            true,
@@ -643,10 +646,11 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 				Required:            true,
 				MarkdownDescription: "When TRUE, indicates that uninstall is supported from the company portal for the Windows app (Win32) with an Available assignment. When FALSE, indicates that uninstall is not supported for the Windows app (Win32) with an Available assignment. Default value is FALSE.",
 			},
-			"content_version": commonschemagraphbeta.MobileAppContentVersionSchema(),
-			"app_installer":   commonschemagraphbeta.MobileAppWin32LobInstallerMetadataSchema(),
-			"app_icon":        commonschemagraphbeta.MobileAppIconSchema(),
-			"timeouts":        commonschema.ResourceTimeouts(ctx),
+			"content_version":   commonschemagraphbeta.MobileAppContentVersionSchema(),
+			"app_installer":     commonschemagraphbeta.MobileAppWin32LobInstallerMetadataSchema(),
+			"app_installer_zip": commonschemagraphbeta.MobileAppWin32ZipInstallerMetadataSchema(),
+			"app_icon":          commonschemagraphbeta.MobileAppIconSchema(),
+			"timeouts":          commonschema.ResourceTimeouts(ctx),
 		},
 	}
 }
