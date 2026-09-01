@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.1-alpha...v1.0.0-alpha) (2026-09-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* display_name, homepage, logout_url, service_principal_names and sign_in_audience are removed from microsoft365_graph_beta_applications_service_principal. Read them from the backing application resource or the service principal data source instead.
+
+### Features
+
+* add role_scope_tag_ids to beta device management role assignment ([#3607](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3607)) ([ba465b3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ba465b35bb89ce0c3897c2d239d2a1ce02585852))
+* android managed app protection ([#3369](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3369)) ([cf01a71](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cf01a71262ef3b80684be675d818d792d4f5ee2e))
+* model the service principal's own properties and drop application-derived ones ([#3492](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3492)) ([2456909](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2456909274b4201a15150440152f6de01527b063))
+* support automatic mode device group assignments ([#3624](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3624)) ([56a6eaf](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/56a6eafe8386b4f623b51eea117b35e419ca145b))
+* support Entra ID SAML SSO token signing certificate lifecycle for service principals ([#3491](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3491)) ([1a450c7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1a450c7a3af8eed6ad4943b6998e0640924f8b65))
+* support ipRange destination type for on-premises IP application segments ([#3490](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3490)) ([16eb2c0](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/16eb2c0222bcddbe1a9fd30c56630010302a5de8))
+* support priority and assignment filters on windows enrollment status page ([4f46495](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4f464957bb61c8f4bc22abe380c179c9a5deb44d))
+* support priority and assignment filters on windows enrollment status page ([#3702](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3702)) ([9aba9f4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9aba9f49d48c74c393f36ff66ab7b5f7b81f4fae))
+* **windows_bios_configurations_and_other_settings_template:** add BIOS configuration and other settings template resource ([#3701](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3701)) ([44a3d7c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/44a3d7ca66507fc286208b2079a10d2f4078f4b9))
+* **windows_bios_configurations_and_other_settings_template:** add resource ([734900f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/734900fa981a7dc9e77e040919b069ef0a035edb))
+
+
+### Bug Fixes
+
+* grace_period_hours to match windows_device_compliance_policy with the underlying API ([#3752](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3752)) ([a63b564](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a63b56460224cfc09aeeea6fec7f1b6694e31a9a))
+* iOS managed mobile app resource fails to target apps (wrong API call) ([91891db](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/91891dba7b4a16a63629d87c72adb62eac4008c2))
+* iOS managed mobile app resource fails to target apps (wrong API call) ([#3699](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3699)) ([8548c0a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8548c0a82fd3a28fbcdcc17e7a308daa33f5175e))
+* **ios_store_app:** update is_featured attribute to be computed ([a9d2caa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a9d2caaa29d66295e71bb59409d415dd95c454df))
+* **mobile_app_assignment:** map win32_catalog settings on read ([66b93bc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/66b93bcf076c1cf9b8dc8f986ea71b9e4e4abfc8))
+* **mobile_app_assignment:** omit intent-incompatible Apple settings ([182042a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/182042a62d576fe826fa09f5d726756227fb915b)), closes [#3692](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3692)
+* **mobile_app_assignment:** omit intent-incompatible Apple settings instead of defaulting them ([#3696](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3696)) ([9db2a05](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9db2a0580de650351116a141322a38daa1b66650))
+* **mobile_app_assignment:** repair read refresh, update and import ([1ad7dd4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1ad7dd43b335a9626e3d9354c3fe171f0e4a7399))
+* preserve Win32 app content and application identity ([d33f734](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d33f734376e12ee3b28aa27be58344d70315090e))
+* preserve Win32 app content and application identity ([#3667](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3667)) ([8ea2b4d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8ea2b4d26e55b158afed8618d5119d79901f048b))
+* **settings_catalog_template_json:** read assignments from /assignmen… ([#3623](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3623)) ([de8fc3b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/de8fc3b242c448efbd613dd59eff1efd8ee7faf1))
+* **settings_catalog_template_json:** read assignments from /assignments endpoint ([de8fc3b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/de8fc3b242c448efbd613dd59eff1efd8ee7faf1))
+* support multiple on-premises IP segment protocols ([#3449](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3449)) ([ab8220c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ab8220c5e95dbb66ca0618f7346eb3ff85c3ce70))
+* support plain ZIP sources for Win32 apps ([d0ef8b1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d0ef8b18c64aef317ce6d53bdce6b5206522fd0f))
+* **visionos_device_enrollment_policy:** match model field to schema attribute ([#3697](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3697)) ([1c9be30](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1c9be3037ca6cf6aa84d3d138ca4a6a3fb2ad7fb))
+* windows_device_compliance_policy grace_period_hours to match graph API. ([78c621e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/78c621ee3fdc1e7c22bfb255d4fc0838a3432909))
+* **winget_app:** allow dots, hyphens and underscores in package_identifier ([#3694](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3694)) ([2eae4c7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2eae4c7b2d8906a5a90d50a45441ecefffe481ea))
+
 ## [0.57.1-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.0-alpha...v0.57.1-alpha) (2026-07-15)
 
 
