@@ -4,18 +4,16 @@
 [![Installs](https://img.shields.io/badge/dynamic/json?logo=terraform&label=installs&query=$.data.attributes.downloads&url=https%3A%2F%2Fregistry.terraform.io%2Fv2%2Fproviders%2F5565)](https://registry.terraform.io/providers/deploymenttheory/microsoft365)
 [![Registry](https://img.shields.io/badge/registry-doc%40latest-lightgrey?logo=terraform)](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs)
 [![Lint Status](https://github.com/deploymenttheory/terraform-provider-microsoft365/workflows/go%20%7C%20Linter/badge.svg)](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/deploymenttheory/terraform-provider-microsoft365)](https://goreportcard.com/report/github.com/deploymenttheory/terraform-provider-microsoft365)
 [![codecov](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365/graph/badge.svg?token=STSFXO1NL6)](https://codecov.io/gh/deploymenttheory/terraform-provider-microsoft365)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/deploymenttheory/terraform-provider-microsoft365)](https://go.dev/)
 [![License](https://img.shields.io/github/license/deploymenttheory/terraform-provider-microsoft365)](LICENSE)
-![Status: Tech Preview](https://img.shields.io/badge/status-experimental-EAAA32)
+![Status: Public Preview](https://img.shields.io/badge/status-public%20preview-0078D4)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289da?logo=discord&logoColor=white)](https://discord.gg/Uq8zG6g7WE)
 
 The community Microsoft 365 Terraform Provider allows managing environments and other resources within [Microsoft Intune](https://www.microsoft.com/en-us/security/business/endpoint-management/microsoft-intune), [Microsoft 365](https://www.microsoft.com/en-us/microsoft-365), [Microsoft Teams](https://www.microsoft.com/en-us/microsoft-teams/group-chat-software), and [Microsoft Defender](https://www.microsoft.com/en-us/security/business/microsoft-defender).
 
 > [!WARNING]
-> This code is experimental and provided solely for evaluation purposes. It is **NOT** intended for production use and may contain bugs, incomplete features, or other issues. Use at your own risk, as it may undergo significant changes without notice until it reaches general availability, with no guarantees or support provided. By using this code, you acknowledge and agree to these conditions. Consult the tf registry documentation or contact the maintainer(s) if you have questions or concerns via github issues or join our community discord server.
-
+> This provider is in public preview. While it has been tested extensively, please thoroughly test in non-production environments before production use. Features may contain bugs or undergo changes based on community feedback. Use at your own risk. No guarantees or official support is provided. By using this provider, you acknowledge and agree to these conditions. For questions or issues, please consult the documentation or contact the maintainer.
 
 > [!TIP]
 > This is a community-driven project and is not officially supported by Microsoft.
