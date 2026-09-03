@@ -8,9 +8,11 @@ import (
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/jarcoal/httpmock"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -302,6 +304,23 @@ func TestHandleKiotaGraphError_WithSimpleErrors(t *testing.T) {
 
 			// Check if diagnostics were added
 			assert.Equal(t, tc.expectDiagnostics, resp.Diagnostics.HasError(), "Diagnostics error state should match expectation")
+		})
+	}
+}
+
+func TestHandleKiotaGraphError_DataSourceReadNotFoundAddsDiagnostic(t *testing.T) {
+	ctx := context.Background()
+
+	for _, statusCode := range []int{400, 404} {
+		t.Run(fmt.Sprintf("status_%d", statusCode), func(t *testing.T) {
+			resp := &datasource.ReadResponse{Diagnostics: diag.Diagnostics{}}
+			err := abstractions.NewApiError()
+			err.SetStatusCode(statusCode)
+			err.Message = "managed TLS certificate was not found"
+
+			HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, []string{"NetworkAccess.Read.All"})
+
+			assert.True(t, resp.Diagnostics.HasError(), "data source reads must report 400/404 responses instead of silently succeeding")
 		})
 	}
 }
