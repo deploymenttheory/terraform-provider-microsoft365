@@ -1,0 +1,6 @@
+{
+	"error": {
+		"code": "BadRequest",
+		"message": "Invalid iOS Managed App Protection data"
+	}
+}
