@@ -224,6 +224,33 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_08_AutomaticWithout
 	}
 }
 
+// Test 09: Automatic mode update preserves the enrollment-time device group in state.
+func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_09_AutomaticUpdatePreservesDeviceSecurityGroup(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("001_scenario_automatic_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".auto_minimal").Key("device_security_group").HasValue("00000000-0000-0000-0000-000000000001"),
+				),
+			},
+			{
+				Config: loadUnitTestTerraform("008_scenario_automatic_update.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".auto_minimal").Key("description").HasValue("Unit test for automatic mode update"),
+					check.That(resourceType+".auto_minimal").Key("device_security_group").HasValue("00000000-0000-0000-0000-000000000001"),
+				),
+			},
+		},
+	})
+}
+
 // Test 07: Error handling - API rejection
 func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_07_ErrorHandling(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
