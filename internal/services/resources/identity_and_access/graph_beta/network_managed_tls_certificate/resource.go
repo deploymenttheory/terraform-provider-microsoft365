@@ -90,7 +90,7 @@ func (r *NetworkManagedTLSCertificateResource) Schema(ctx context.Context, req r
 				},
 			},
 			"common_name": schema.StringAttribute{
-				MarkdownDescription: "The common name (CN) of the Microsoft-managed root certificate authority.",
+				MarkdownDescription: "The common name (CN) of the Microsoft-managed root certificate authority. Defaults to `Microsoft Entra TLS Inspection Root CA`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("Microsoft Entra TLS Inspection Root CA"),
@@ -98,7 +98,7 @@ func (r *NetworkManagedTLSCertificateResource) Schema(ctx context.Context, req r
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"organization_name": schema.StringAttribute{
-				MarkdownDescription: "The organization name (O) of the Microsoft-managed root certificate authority.",
+				MarkdownDescription: "The organization name (O) of the Microsoft-managed root certificate authority. Defaults to `Microsoft`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("Microsoft"),
@@ -106,7 +106,7 @@ func (r *NetworkManagedTLSCertificateResource) Schema(ctx context.Context, req r
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"validity_months": schema.Int32Attribute{
-				MarkdownDescription: "The root certificate validity period in months. The Entra portal uses `120` months.",
+				MarkdownDescription: "The root certificate validity period in months. Defaults to `120`, matching the Entra portal.",
 				Optional:            true,
 				Computed:            true,
 				Default:             int32default.StaticInt32(120),
@@ -114,7 +114,7 @@ func (r *NetworkManagedTLSCertificateResource) Schema(ctx context.Context, req r
 				PlanModifiers:       []planmodifier.Int32{int32planmodifier.RequiresReplace()},
 			},
 			"enabled": schema.BoolAttribute{
-				MarkdownDescription: "Whether the certificate authority should be enabled for TLS inspection. Enabling sends `status = \"enabled\"` to Microsoft Graph and waits for the observed lifecycle status to become `active`. Disabling waits for `disabled`.",
+				MarkdownDescription: "Whether the certificate authority should be enabled for TLS inspection. Defaults to `false`. Enabling sends `status = \"enabled\"` to Microsoft Graph and waits for the observed lifecycle status to become `active`. Disabling waits for `disabled`.",
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),

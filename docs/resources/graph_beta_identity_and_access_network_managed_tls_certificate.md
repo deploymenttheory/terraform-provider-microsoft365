@@ -50,12 +50,12 @@ resource "microsoft365_graph_beta_identity_and_access_network_managed_tls_certif
 
 ### Optional
 
-- `common_name` (String) The common name (CN) of the Microsoft-managed root certificate authority.
-- `enabled` (Boolean) Whether the certificate authority should be enabled for TLS inspection. Enabling sends `status = "enabled"` to Microsoft Graph and waits for the observed lifecycle status to become `active`. Disabling waits for `disabled`.
+- `common_name` (String) The common name (CN) of the Microsoft-managed root certificate authority. Defaults to `Microsoft Entra TLS Inspection Root CA`.
+- `enabled` (Boolean) Whether the certificate authority should be enabled for TLS inspection. Defaults to `false`. Enabling sends `status = "enabled"` to Microsoft Graph and waits for the observed lifecycle status to become `active`. Disabling waits for `disabled`.
 - `name` (String) The internal name of the certificate authority. When omitted, the provider generates a portal-compatible name in the form `M-TLSi-xxxxx`.
-- `organization_name` (String) The organization name (O) of the Microsoft-managed root certificate authority.
+- `organization_name` (String) The organization name (O) of the Microsoft-managed root certificate authority. Defaults to `Microsoft`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `validity_months` (Number) The root certificate validity period in months. The Entra portal uses `120` months.
+- `validity_months` (Number) The root certificate validity period in months. Defaults to `120`, matching the Entra portal.
 
 ### Read-Only
 
