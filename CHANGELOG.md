@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.0.0...v1.1.0) (2026-09-04)
+
+
+### Features
+
+* add windows_autopilot_device_preparation_policy data source ([dbf13fd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dbf13fd4d7a5403b9554493706de8a826a58427e))
+* add windows_autopilot_device_preparation_policy data source ([#3774](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3774)) ([b813d93](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b813d935bd6ed48f0a5a1f86a18ac505f8b5d564))
+* align device preparation policy data source with device data source pattern ([ee7ea15](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ee7ea15fec44dbe7e9d4a22c655768d7bcebed85))
+* ios managed app protection ([#3695](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3695)) ([9d27183](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9d27183ffd3dff99097d8a16133b2d273aeef24d))
+
 ## [1.0.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.1-alpha...v1.0.0-alpha) (2026-09-01)
 
 
