@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "Microsoft-managed TLS certificate authority was not found"
+  }
+}
