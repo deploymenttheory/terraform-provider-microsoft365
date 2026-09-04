@@ -23,7 +23,7 @@ func (d *NetworkManagedTLSCertificateDataSource) Read(ctx context.Context, req d
 	}
 	defer cancel()
 
-	certificate, err := d.getManagedTLSCertificate(ctx, object.CertificateAuthorityID.ValueString())
+	certificate, err := d.getManagedTLSCertificate(ctx, object.ID.ValueString())
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 		return

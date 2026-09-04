@@ -37,7 +37,6 @@ func TestUnitDatasourceNetworkManagedTLSCertificate_01_ByID(t *testing.T) {
 			Config: dataSourceTestConfig(t),
 			Check: resource.ComposeTestCheckFunc(
 				check.That("data."+dataSourceType+".test").Key("id").HasValue("00000000-0000-0000-0000-000000000301"),
-				check.That("data."+dataSourceType+".test").Key("certificate_authority_id").HasValue("00000000-0000-0000-0000-000000000301"),
 				check.That("data."+dataSourceType+".test").Key("status").HasValue("active"),
 				check.That("data."+dataSourceType+".test").Key("certificate").HasValue("-----BEGIN CERTIFICATE-----\nUNIT-TEST\n-----END CERTIFICATE-----"),
 				check.That("data."+dataSourceType+".test").Key("validity_end_date_time").HasValue("2036-09-03T12:44:24Z"),

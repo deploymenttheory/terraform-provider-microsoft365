@@ -1,3 +1,3 @@
 data "microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate" "test" {
-  certificate_authority_id = "00000000-0000-0000-0000-000000000301"
+  id = "00000000-0000-0000-0000-000000000301"
 }

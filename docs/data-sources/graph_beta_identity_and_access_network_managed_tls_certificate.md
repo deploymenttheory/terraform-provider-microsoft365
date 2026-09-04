@@ -31,7 +31,7 @@ The following client `application` permissions are needed in order to use this d
 
 ```terraform
 data "microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate" "example" {
-  certificate_authority_id = "00000000-0000-0000-0000-000000000000"
+  id = "00000000-0000-0000-0000-000000000000"
 }
 ```
 
@@ -40,7 +40,7 @@ data "microsoft365_graph_beta_identity_and_access_network_managed_tls_certificat
 
 ### Required
 
-- `certificate_authority_id` (String) The unique identifier of the Microsoft-managed TLS certificate authority to retrieve.
+- `id` (String) The unique identifier of the Microsoft-managed TLS certificate authority to retrieve.
 
 ### Optional
 
@@ -51,7 +51,6 @@ data "microsoft365_graph_beta_identity_and_access_network_managed_tls_certificat
 - `certificate` (String) The PEM-encoded Microsoft-managed root CA certificate returned only by the individual certificate endpoint.
 - `common_name` (String) The common name of the Microsoft-managed root certificate authority.
 - `created_date_time` (String) The date and time when the certificate authority was created.
-- `id` (String) The unique identifier returned by Microsoft Graph.
 - `name` (String) The internal certificate authority name.
 - `organization_name` (String) The organization name of the Microsoft-managed root certificate authority.
 - `status` (String) The lifecycle status reported by Microsoft Graph, such as `unknownFutureValue` immediately after a disabled create, `disabled`, `enrolling`, or `active`.

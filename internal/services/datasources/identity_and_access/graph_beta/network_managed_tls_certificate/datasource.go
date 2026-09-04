@@ -48,10 +48,6 @@ func (d *NetworkManagedTLSCertificateDataSource) Schema(ctx context.Context, _ d
 		MarkdownDescription: "Retrieves a Microsoft-managed certificate authority and its PEM-encoded root certificate for Microsoft Entra Global Secure Access TLS inspection using Microsoft Graph beta `/networkaccess/tls/managedCertificateAuthorityCertificates/{id}`. The collection endpoint does not return the certificate content.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
-				MarkdownDescription: "The unique identifier returned by Microsoft Graph.",
-			},
-			"certificate_authority_id": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The unique identifier of the Microsoft-managed TLS certificate authority to retrieve.",
 				Validators: []validator.String{
