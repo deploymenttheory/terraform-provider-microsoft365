@@ -7,7 +7,6 @@ func mapRemoteStateToDataSource(data *NetworkManagedTLSCertificateDataSourceMode
 		return
 	}
 
-	data.ID = convert.GraphToFrameworkString(remote.id)
 	data.Name = convert.GraphToFrameworkString(remote.name)
 	data.CommonName = convert.GraphToFrameworkString(remote.commonName)
 	data.OrganizationName = convert.GraphToFrameworkString(remote.organizationName)

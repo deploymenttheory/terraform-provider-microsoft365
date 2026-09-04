@@ -86,7 +86,7 @@ func TestAccResourceNetworkManagedTLSCertificate_01_Lifecycle(t *testing.T) {
 				},
 				Config: loadAcceptanceTestTerraform("resource_03_enabled_with_data_source.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That("data."+resourceType+".test").Key("certificate_authority_id").Exists(),
+					check.That("data."+resourceType+".test").Key("id").Exists(),
 					check.That("data."+resourceType+".test").Key("status").HasValue("active"),
 					check.That("data."+resourceType+".test").Key("certificate").IsNotEmpty(),
 				),

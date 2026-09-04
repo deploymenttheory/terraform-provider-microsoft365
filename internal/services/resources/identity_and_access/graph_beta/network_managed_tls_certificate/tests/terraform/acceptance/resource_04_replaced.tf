@@ -6,5 +6,5 @@ resource "microsoft365_graph_beta_identity_and_access_network_managed_tls_certif
 }
 
 data "microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate" "test" {
-  certificate_authority_id = microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate.test.id
+  id = microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate.test.id
 }
