@@ -1,0 +1,22 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "createdDateTime": "2024-11-01T09:15:22.0000000Z",
+  "creationSource": null,
+  "description": "User driven Autopilot device preparation policy",
+  "lastModifiedDateTime": "2024-11-14T11:02:44.0000000Z",
+  "name": "Autopilot Device Preparation - User Driven",
+  "platforms": "windows10",
+  "technologies": "enrollment",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "isAssigned": true,
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "settingCount": 8,
+  "templateReference": {
+    "templateId": "80d33118-b7b4-40d8-b15f-81be745e053f_1",
+    "templateFamily": "enrollmentConfiguration",
+    "templateDisplayName": "Windows Autopilot device preparation",
+    "templateDisplayVersion": "1"
+  }
+}
