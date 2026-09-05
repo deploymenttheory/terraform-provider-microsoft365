@@ -20,6 +20,13 @@ func MapRemoteStateToTerraform(
 	if err := validateRemoteRule(remote); err != nil {
 		return err
 	}
+	if *remote.priority < 100 || *remote.priority > math.MaxInt32 {
+		return fmt.Errorf(
+			"%w: priority %d outside supported range",
+			errInvalidResponse,
+			*remote.priority,
+		)
+	}
 	var prior []ConversationSchemeModel
 	if !data.ConversationSchemes.IsNull() && !data.ConversationSchemes.IsUnknown() {
 		if diags := data.ConversationSchemes.ElementsAs(ctx, &prior, false); diags.HasError() {
@@ -108,13 +115,6 @@ func validateRemoteRule(remote *promptPolicyRuleResponse) error {
 	}
 	if strings.TrimPrefix(*remote.odataType, "#") != "microsoft.graph.networkaccess.promptRule" {
 		return fmt.Errorf("%w: unsupported rule type %q", errInvalidResponse, *remote.odataType)
-	}
-	if *remote.priority < 100 || *remote.priority > math.MaxInt32 {
-		return fmt.Errorf(
-			"%w: priority %d outside supported range",
-			errInvalidResponse,
-			*remote.priority,
-		)
 	}
 	if *remote.status != "enabled" && *remote.status != "disabled" {
 		return fmt.Errorf(

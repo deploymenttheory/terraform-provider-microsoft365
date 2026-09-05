@@ -63,8 +63,12 @@ func (m *PromptPolicyMock) RegisterErrorMocks() {
 }
 
 func apiError(code int, message string) (*http.Response, error) {
-	return jsonResponse(code, map[string]any{"error": map[string]any{"code": fmt.Sprint(code), "message": message}})
+	return jsonResponse(
+		code,
+		map[string]any{"error": map[string]any{"code": fmt.Sprint(code), "message": message}},
+	)
 }
+
 func jsonResponse(code int, body any) (*http.Response, error) {
 	response, err := httpmock.NewJsonResponse(code, body)
 	if err != nil {
@@ -72,6 +76,7 @@ func jsonResponse(code int, body any) (*http.Response, error) {
 	}
 	return response, nil
 }
+
 func (m *PromptPolicyMock) respond(req *http.Request) (*http.Response, error) {
 	m.Lock()
 	defer m.Unlock()
@@ -126,7 +131,11 @@ func (m *PromptPolicyMock) respond(req *http.Request) (*http.Response, error) {
 	}
 	return apiError(405, "Unsupported request")
 }
-func (m *PromptPolicyMock) policyCollection(req *http.Request, body map[string]any) (*http.Response, error) {
+
+func (m *PromptPolicyMock) policyCollection(
+	req *http.Request,
+	body map[string]any,
+) (*http.Response, error) {
 	if req.Method == "POST" {
 		for _, key := range []string{"policyRules", "version"} {
 			if _, ok := body[key]; ok {
@@ -159,7 +168,12 @@ func (m *PromptPolicyMock) policyCollection(req *http.Request, body map[string]a
 	}
 	return apiError(405, "unsupported collection request")
 }
-func (m *PromptPolicyMock) policyItem(req *http.Request, policyID string, policy, body map[string]any) (*http.Response, error) {
+
+func (m *PromptPolicyMock) policyItem(
+	req *http.Request,
+	policyID string,
+	policy, body map[string]any,
+) (*http.Response, error) {
 	switch req.Method {
 	case "GET":
 		return jsonResponse(200, policy)
@@ -181,6 +195,7 @@ func (m *PromptPolicyMock) policyItem(req *http.Request, policyID string, policy
 	}
 	return apiError(405, "Unsupported request")
 }
+
 func validateRuleFields(body map[string]any) string {
 	if body["@odata.type"] != "#microsoft.graph.networkaccess.promptRule" {
 		return "Explicit prompt rule discriminator required"
@@ -199,6 +214,7 @@ func validateRuleFields(body map[string]any) string {
 
 	return ""
 }
+
 func validateConditions(conditions map[string]any) string {
 	schemes, ok := conditions["conversationSchemes"].([]any)
 	if !ok {
@@ -234,6 +250,7 @@ func validateConditions(conditions map[string]any) string {
 
 	return ""
 }
+
 func validatePriority(body map[string]any, rules map[string]map[string]any, ruleID string) string {
 	if priority, ok := body["priority"].(float64); ok {
 		if priority < 100 || priority > 2147483647 || math.Trunc(priority) != priority {
@@ -248,9 +265,15 @@ func validatePriority(body map[string]any, rules map[string]map[string]any, rule
 
 	return ""
 }
-func ruleCollection(req *http.Request, policy map[string]any, rules map[string]map[string]any, body map[string]any) (*http.Response, error) {
+
+func ruleCollection(
+	req *http.Request,
+	policy map[string]any,
+	rules map[string]map[string]any,
+	body map[string]any,
+) (*http.Response, error) {
 	if req.Method == "GET" {
-		values := []any{}
+		values := make([]any, 0, len(rules))
 		for _, v := range rules {
 			values = append(values, v)
 		}
@@ -287,7 +310,14 @@ func ruleCollection(req *http.Request, policy map[string]any, rules map[string]m
 	}
 	return apiError(405, "Unsupported request")
 }
-func ruleItem(req *http.Request, ruleID string, policy map[string]any, rules map[string]map[string]any, body map[string]any) (*http.Response, error) {
+
+func ruleItem(
+	req *http.Request,
+	ruleID string,
+	policy map[string]any,
+	rules map[string]map[string]any,
+	body map[string]any,
+) (*http.Response, error) {
 	if _, err := uuid.Parse(ruleID); err != nil {
 		return apiError(400, "Invalid request parameters")
 	}
