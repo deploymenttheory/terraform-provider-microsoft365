@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "Authorization_RequestDenied",
+    "message": "Synthetic insufficient permission test"
+  }
+}
