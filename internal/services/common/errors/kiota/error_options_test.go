@@ -14,7 +14,9 @@ import (
 func TestUnitGraphErrorOptions_ReadBadRequest(t *testing.T) {
 	for _, preserve := range []bool{false, true} {
 		state := tfsdk.State{Schema: schema.Schema{Attributes: map[string]schema.Attribute{"id": schema.StringAttribute{Computed: true}}}}
-		require.False(t, state.Set(context.Background(), map[string]string{"id": "existing"}).HasError())
+		require.False(t, state.Set(context.Background(), struct {
+			ID string `tfsdk:"id"`
+		}{ID: "existing"}).HasError())
 		resp := resource.ReadResponse{State: state}
 		err := abstractions.NewApiError()
 		err.SetStatusCode(400)
