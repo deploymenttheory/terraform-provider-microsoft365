@@ -74,8 +74,19 @@ const (
 	CategoryUnknown        ErrorCategory = "unknown"
 )
 
-// HandleKiotaGraphError processes Graph API errors and dispatches them appropriately
+// GraphErrorOptions selects endpoint-specific error semantics.
+type GraphErrorOptions struct {
+	// PreserveStateOnReadBadRequest keeps validation errors from removing existing resources.
+	PreserveStateOnReadBadRequest bool
+}
+
+// HandleKiotaGraphError processes Graph API errors using the existing default semantics.
 func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation string, requiredPermissions []string) {
+	HandleKiotaGraphErrorWithOptions(ctx, err, resp, operation, requiredPermissions, GraphErrorOptions{})
+}
+
+// HandleKiotaGraphErrorWithOptions keeps shared diagnostics while allowing strict Read semantics.
+func HandleKiotaGraphErrorWithOptions(ctx context.Context, err error, resp any, operation string, requiredPermissions []string, options GraphErrorOptions) {
 	errorInfo := GraphError(ctx, err)
 	errorDesc := getErrorDescription(errorInfo.StatusCode)
 
@@ -99,7 +110,7 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 	// Handle special cases first
 	switch errorInfo.StatusCode {
 	case 400:
-		if operation == constants.TfOperationRead {
+		if operation == constants.TfOperationRead && !options.PreserveStateOnReadBadRequest {
 			tflog.Warn(ctx, "Resource appears to no longer exist (400 Response), removing from state")
 			removeResourceFromState(ctx, resp)
 			return
