@@ -2,6 +2,11 @@ package graphBetaNetworkMCPPolicy_test
 
 import (
 	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
@@ -9,9 +14,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	target "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_mcp_policy"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"testing"
 )
 
 func TestAccResourceNetworkMCPPolicy_01_Lifecycle(t *testing.T) {
@@ -34,13 +36,40 @@ func TestAccResourceNetworkMCPPolicy_01_Lifecycle(t *testing.T) {
 		return nil
 	}
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { mocks.TestAccPreCheck(t) }, ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		ExternalProviders: map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
-		CheckDestroy:      destroy.CheckDestroyedAllFunc(testResource, resourceType, 0),
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(testResource, resourceType, 0),
 		Steps: []resource.TestStep{
-			{Config: config("resource.tf"), Check: resource.ComposeTestCheckFunc(sameID, check.That(resourceType+".test").ExistsInGraph(testResource))},
+			{
+				Config: config("resource.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					sameID,
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+				),
+			},
 			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true},
-			{Config: config("resource_updated.tf"), Check: resource.ComposeTestCheckFunc(sameID, check.That(resourceType+".test").Key("version").HasValue("1.0.0"), check.That(resourceType+".test").ExistsInGraph(testResource), check.That(resourceType+".test").Key("description").DoesNotExist())},
-			{Config: config("resource_empty_description.tf"), Check: resource.ComposeTestCheckFunc(sameID, check.That(resourceType+".test").Key("description").HasValue(""))},
-		}})
+			{
+				Config: config("resource_updated.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					sameID,
+					check.That(resourceType+".test").Key("version").HasValue("1.0.0"),
+					check.That(resourceType+".test").ExistsInGraph(testResource),
+					check.That(resourceType+".test").Key("description").DoesNotExist(),
+				),
+			},
+			{
+				Config: config("resource_empty_description.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					sameID,
+					check.That(resourceType+".test").Key("description").HasValue(""),
+				),
+			},
+		},
+	})
 }

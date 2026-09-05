@@ -44,10 +44,18 @@ func TestUnitResourceNetworkMCPPolicyRule_23_ConditionRemoval(t *testing.T) {
 	ctx := context.Background()
 	state := testModel()
 	var err error
-	state.MatchingConditions, err = conditionsToState(ctx, json.RawMessage(`{"destinations":{"toolMatching":{"names":{"values":["one"],"matchType":"exactMatch"},"methods":"call"}}}`))
+	state.MatchingConditions, err = conditionsToState(
+		ctx,
+		json.RawMessage(
+			`{"destinations":{"toolMatching":{"names":{"values":["one"],"matchType":"exactMatch"},"methods":"call"}}}`,
+		),
+	)
 	require.NoError(t, err)
 	plan := state
-	plan.MatchingConditions, err = conditionsToState(ctx, json.RawMessage(`{"destinations":{"toolMatching":{"methods":"list,call"}}}`))
+	plan.MatchingConditions, err = conditionsToState(
+		ctx,
+		json.RawMessage(`{"destinations":{"toolMatching":{"methods":"list,call"}}}`),
+	)
 	require.NoError(t, err)
 	body, err := constructUpdateResource(ctx, &plan, &state)
 	require.NoError(t, err)

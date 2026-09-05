@@ -11,9 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 )
 
 const BaseURL = "https://graph.microsoft.com/beta/networkaccess/mcpPolicies"
@@ -42,23 +43,54 @@ func (m *MCPPolicyMock) CleanupMockState() {
 	m.Rules = map[string]map[string]map[string]any{}
 	m.Requests = nil
 }
+
 func (m *MCPPolicyMock) RegisterMocks() {
 	m.CleanupMockState()
 	for _, method := range []string{"POST", "GET", "PATCH", "DELETE"} {
-		httpmock.RegisterResponder(method, `=~^https://graph\.microsoft\.com/beta/networkaccess/mcpPolicies(?:/.*)?$`, m.respond)
+		httpmock.RegisterResponder(
+			method,
+			`=~^https://graph\.microsoft\.com/beta/networkaccess/mcpPolicies(?:/.*)?$`,
+			m.respond,
+		)
 	}
 }
+
 func (m *MCPPolicyMock) RegisterErrorMocks() {
-	httpmock.RegisterResponder("POST", BaseURL, func(*http.Request) (*http.Response, error) { return apiError(400, "Invalid MCP policy") })
+	httpmock.RegisterResponder(
+		"POST",
+		BaseURL,
+		func(*http.Request) (*http.Response, error) { return apiError(400, "Invalid MCP policy") },
+	)
 }
+
 func apiError(code int, message string) (*http.Response, error) {
-	return httpmock.NewJsonResponse(code, map[string]any{"error": map[string]any{"code": fmt.Sprint(code), "message": message}})
+	return httpmock.NewJsonResponse(
+		code,
+		map[string]any{"error": map[string]any{"code": fmt.Sprint(code), "message": message}},
+	)
 }
+
 func fixture(rule bool) (map[string]any, error) {
 	_, file, _, _ := runtime.Caller(0)
-	dir := filepath.Join(filepath.Dir(file), "..", "tests", "responses", "validate_create", "post_mcp_policy_success.json")
+	dir := filepath.Join(
+		filepath.Dir(file),
+		"..",
+		"tests",
+		"responses",
+		"validate_create",
+		"post_mcp_policy_success.json",
+	)
 	if rule {
-		dir = filepath.Join(filepath.Dir(file), "..", "..", "network_mcp_policy_rule", "tests", "responses", "validate_create", "post_mcp_policy_rule_success.json")
+		dir = filepath.Join(
+			filepath.Dir(file),
+			"..",
+			"..",
+			"network_mcp_policy_rule",
+			"tests",
+			"responses",
+			"validate_create",
+			"post_mcp_policy_rule_success.json",
+		)
 	}
 	raw, err := os.ReadFile(dir)
 	if err != nil {
@@ -68,6 +100,7 @@ func fixture(rule bool) (map[string]any, error) {
 	err = json.Unmarshal(raw, &out)
 	return out, err
 }
+
 func merge(dst, src map[string]any) {
 	for k, v := range src {
 		if obj, ok := v.(map[string]any); ok {
@@ -81,6 +114,7 @@ func merge(dst, src map[string]any) {
 		}
 	}
 }
+
 func (m *MCPPolicyMock) respond(req *http.Request) (*http.Response, error) {
 	m.Lock()
 	defer m.Unlock()

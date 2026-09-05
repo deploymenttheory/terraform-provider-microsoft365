@@ -91,8 +91,16 @@ func (r *NetworkMCPPolicyRuleResource) Create(
 		resp.Diagnostics.AddError("Invalid MCP resource response", err.Error())
 		return
 	}
-	if diff, err := constructUpdateResource(ctx, &desired, &object); err != nil || diff.hasChanges() {
-		resp.Diagnostics.AddError("MCP readback does not match configuration", "The API returned success but did not persist all requested attributes. Check the resource before retrying.")
+	if diff, err := constructUpdateResource(
+		ctx,
+		&desired,
+		&object,
+	); err != nil ||
+		diff.hasChanges() {
+		resp.Diagnostics.AddError(
+			"MCP readback does not match configuration",
+			"The API returned success but did not persist all requested attributes. Check the resource before retrying.",
+		)
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
@@ -212,7 +220,10 @@ func (r *NetworkMCPPolicyRuleResource) Update(
 		return
 	}
 	if diff, err := constructUpdateResource(ctx, &plan, &object); err != nil || diff.hasChanges() {
-		resp.Diagnostics.AddError("MCP readback does not match configuration", "The API returned success but did not persist all requested attributes. Check the resource before retrying.")
+		resp.Diagnostics.AddError(
+			"MCP readback does not match configuration",
+			"The API returned success but did not persist all requested attributes. Check the resource before retrying.",
+		)
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Identity != nil {

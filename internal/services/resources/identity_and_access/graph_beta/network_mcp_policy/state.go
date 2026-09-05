@@ -19,7 +19,11 @@ func MapRemoteStateToTerraform(
 		return fmt.Errorf("%w: missing required fields", errInvalidResponse)
 	}
 	if *remote.Settings.DefaultAction != "allow" && *remote.Settings.DefaultAction != "block" {
-		return fmt.Errorf("%w: unsupported default action %q", errInvalidResponse, *remote.Settings.DefaultAction)
+		return fmt.Errorf(
+			"%w: unsupported default action %q",
+			errInvalidResponse,
+			*remote.Settings.DefaultAction,
+		)
 	}
 	data.ID = convert.GraphToFrameworkString(remote.ID)
 	data.Name = convert.GraphToFrameworkString(remote.Name)

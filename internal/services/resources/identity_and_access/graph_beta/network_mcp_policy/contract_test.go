@@ -5,6 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -15,18 +21,36 @@ import (
 	kiotahttp "github.com/microsoft/kiota-http-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/stretchr/testify/require"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 func testModel() NetworkMCPPolicyResourceModel {
-	return NetworkMCPPolicyResourceModel{ID: types.StringValue("11111111-1111-1111-1111-111111111111"), Name: types.StringValue("test"), Description: types.StringNull(), DefaultAction: types.StringValue("allow"), Version: types.StringValue("1.0.0"), LastModifiedDateTime: types.StringValue("2026-09-05T01:00:00Z"),
-		Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{"create": types.StringType, "read": types.StringType, "update": types.StringType, "delete": types.StringType})}}
+	return NetworkMCPPolicyResourceModel{
+		ID: types.StringValue(
+			"11111111-1111-1111-1111-111111111111",
+		),
+		Name:                 types.StringValue("test"),
+		Description:          types.StringNull(),
+		DefaultAction:        types.StringValue("allow"),
+		Version:              types.StringValue("1.0.0"),
+		LastModifiedDateTime: types.StringValue("2026-09-05T01:00:00Z"),
+		Timeouts: timeouts.Value{
+			Object: types.ObjectNull(
+				map[string]attr.Type{
+					"create": types.StringType,
+					"read":   types.StringType,
+					"update": types.StringType,
+					"delete": types.StringType,
+				},
+			),
+		},
+	}
 }
-func testState(t *testing.T, r *NetworkMCPPolicyResource, model NetworkMCPPolicyResourceModel) tfsdk.State {
+
+func testState(
+	t *testing.T,
+	r *NetworkMCPPolicyResource,
+	model NetworkMCPPolicyResourceModel,
+) tfsdk.State {
 	t.Helper()
 	var schema resource.SchemaResponse
 	r.Schema(context.Background(), resource.SchemaRequest{}, &schema)
@@ -34,23 +58,28 @@ func testState(t *testing.T, r *NetworkMCPPolicyResource, model NetworkMCPPolicy
 	require.False(t, state.Set(context.Background(), model).HasError())
 	return state
 }
+
 func testClient(t *testing.T, h http.HandlerFunc) *NetworkMCPPolicyResource {
 	t.Helper()
 	server := httptest.NewServer(h)
 	t.Cleanup(server.Close)
-	adapter, err := kiotahttp.NewNetHttpRequestAdapter(&authentication.AnonymousAuthenticationProvider{})
+	adapter, err := kiotahttp.NewNetHttpRequestAdapter(
+		&authentication.AnonymousAuthenticationProvider{},
+	)
 	require.NoError(t, err)
 	adapter.SetBaseUrl(server.URL)
 	r := NewNetworkMCPPolicyResource().(*NetworkMCPPolicyResource)
 	r.client = msgraphbetasdk.NewGraphServiceClient(adapter)
 	return r
 }
+
 func successFixture(t *testing.T) []byte {
 	t.Helper()
 	b, err := os.ReadFile("tests/responses/validate_get/get_mcp_policy_success.json")
 	require.NoError(t, err)
 	return b
 }
+
 func writeResponse(t *testing.T, w http.ResponseWriter, code int, body []byte) {
 	t.Helper()
 	w.Header().Set("Content-Type", "application/json")
@@ -60,11 +89,17 @@ func writeResponse(t *testing.T, w http.ResponseWriter, code int, body []byte) {
 		require.NoError(t, err)
 	}
 }
+
 func TestUnitResourceNetworkMCPPolicy_10_ReadErrors(t *testing.T) {
 	for _, code := range []int{400, 403, 404} {
 		t.Run(fmt.Sprint(code), func(t *testing.T) {
 			r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
-				writeResponse(t, w, code, []byte(`{"error":{"code":"TestError","message":"Synthetic read failure"}}`))
+				writeResponse(
+					t,
+					w,
+					code,
+					[]byte(`{"error":{"code":"TestError","message":"Synthetic read failure"}}`),
+				)
 			})
 			state := testState(t, r, testModel())
 			resp := resource.ReadResponse{State: state}
@@ -77,6 +112,7 @@ func TestUnitResourceNetworkMCPPolicy_10_ReadErrors(t *testing.T) {
 		})
 	}
 }
+
 func TestUnitResourceNetworkMCPPolicy_11_CreateReadbackFailureRetainsID(t *testing.T) {
 	for _, code := range []int{400, 403, 404} {
 		t.Run(fmt.Sprint(code), func(t *testing.T) {
@@ -87,19 +123,32 @@ func TestUnitResourceNetworkMCPPolicy_11_CreateReadbackFailureRetainsID(t *testi
 					writeResponse(t, w, 200, successFixture(t))
 					return
 				}
-				writeResponse(t, w, code, []byte(`{"error":{"code":"TestError","message":"Readback failed"}}`))
+				writeResponse(
+					t,
+					w,
+					code,
+					[]byte(`{"error":{"code":"TestError","message":"Readback failed"}}`),
+				)
 			})
 			state := testState(t, r, testModel())
 			resp := resource.CreateResponse{State: tfsdk.State{Schema: state.Schema}}
-			r.Create(context.Background(), resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &resp)
+			r.Create(
+				context.Background(),
+				resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}},
+				&resp,
+			)
 			require.True(t, resp.Diagnostics.HasError())
 			var id string
-			require.False(t, resp.State.GetAttribute(context.Background(), path.Root("id"), &id).HasError())
+			require.False(
+				t,
+				resp.State.GetAttribute(context.Background(), path.Root("id"), &id).HasError(),
+			)
 			require.Equal(t, testModel().ID.ValueString(), id)
 			require.Equal(t, 1, posts)
 		})
 	}
 }
+
 func TestUnitResourceNetworkMCPPolicy_12_DeleteErrors(t *testing.T) {
 	for _, code := range []int{204, 400, 403, 404} {
 		t.Run(fmt.Sprint(code), func(t *testing.T) {
@@ -108,7 +157,12 @@ func TestUnitResourceNetworkMCPPolicy_12_DeleteErrors(t *testing.T) {
 					writeResponse(t, w, code, nil)
 					return
 				}
-				writeResponse(t, w, code, []byte(`{"error":{"code":"TestError","message":"Synthetic delete failure"}}`))
+				writeResponse(
+					t,
+					w,
+					code,
+					[]byte(`{"error":{"code":"TestError","message":"Synthetic delete failure"}}`),
+				)
 			})
 			state := testState(t, r, testModel())
 			resp := resource.DeleteResponse{State: state}
@@ -118,6 +172,7 @@ func TestUnitResourceNetworkMCPPolicy_12_DeleteErrors(t *testing.T) {
 		})
 	}
 }
+
 func TestUnitResourceNetworkMCPPolicy_13_DiffPatchClearsDescription(t *testing.T) {
 	var patch map[string]any
 	r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
@@ -133,7 +188,14 @@ func TestUnitResourceNetworkMCPPolicy_13_DiffPatchClearsDescription(t *testing.T
 	state := testState(t, r, old)
 	planned := testState(t, r, testModel())
 	resp := resource.UpdateResponse{State: state}
-	r.Update(context.Background(), resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw}}, &resp)
+	r.Update(
+		context.Background(),
+		resource.UpdateRequest{
+			State: state,
+			Plan:  tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw},
+		},
+		&resp,
+	)
 	require.False(t, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
 	require.Contains(t, patch, "description")
 	require.Nil(t, patch["description"])
@@ -143,13 +205,21 @@ func TestUnitResourceNetworkMCPPolicy_13_DiffPatchClearsDescription(t *testing.T
 	require.NotContains(t, patch, "version")
 	require.Len(t, patch, 1)
 }
+
 func TestUnitResourceNetworkMCPPolicy_14_UpdateFailureRetainsState(t *testing.T) {
 	for _, method := range []string{"PATCH", "GET"} {
 		for _, code := range []int{400, 403, 404} {
 			t.Run(fmt.Sprintf("%s-%d", method, code), func(t *testing.T) {
 				r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
 					if q.Method == method {
-						writeResponse(t, w, code, []byte(`{"error":{"code":"TestError","message":"Synthetic update failure"}}`))
+						writeResponse(
+							t,
+							w,
+							code,
+							[]byte(
+								`{"error":{"code":"TestError","message":"Synthetic update failure"}}`,
+							),
+						)
 						return
 					}
 					writeResponse(t, w, 200, successFixture(t))
@@ -158,7 +228,17 @@ func TestUnitResourceNetworkMCPPolicy_14_UpdateFailureRetainsState(t *testing.T)
 				old.Description = types.StringValue("old")
 				state := testState(t, r, old)
 				resp := resource.UpdateResponse{State: state}
-				r.Update(context.Background(), resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: state.Schema, Raw: testState(t, r, testModel()).Raw}}, &resp)
+				r.Update(
+					context.Background(),
+					resource.UpdateRequest{
+						State: state,
+						Plan: tfsdk.Plan{
+							Schema: state.Schema,
+							Raw:    testState(t, r, testModel()).Raw,
+						},
+					},
+					&resp,
+				)
 				require.True(t, resp.Diagnostics.HasError())
 				require.True(t, state.Raw.Equal(resp.State.Raw))
 			})
@@ -172,16 +252,26 @@ func TestUnitResourceNetworkMCPPolicy_17_CreateErrors(t *testing.T) {
 			posts := 0
 			r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
 				posts++
-				writeResponse(t, w, code, []byte(`{"error":{"code":"TestError","message":"Synthetic create failure"}}`))
+				writeResponse(
+					t,
+					w,
+					code,
+					[]byte(`{"error":{"code":"TestError","message":"Synthetic create failure"}}`),
+				)
 			})
 			state := testState(t, r, testModel())
 			resp := resource.CreateResponse{State: tfsdk.State{Schema: state.Schema}}
-			r.Create(context.Background(), resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &resp)
+			r.Create(
+				context.Background(),
+				resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}},
+				&resp,
+			)
 			require.True(t, resp.Diagnostics.HasError())
 			require.Equal(t, 1, posts)
 		})
 	}
 }
+
 func TestUnitResourceNetworkMCPPolicy_18_InvalidImport(t *testing.T) {
 	r := NewNetworkMCPPolicyResource().(*NetworkMCPPolicyResource)
 	for _, id := range []string{"", "not-a-uuid", "/", "11111111-1111-1111-1111-111111111111/invalid"} {
@@ -201,10 +291,30 @@ func TestUnitResourceNetworkMCPPolicy_19_NoAPIPatchForUnchangedFields(t *testing
 	})
 	state := testState(t, r, testModel())
 	plan := testModel()
-	plan.Timeouts.Object = types.ObjectValueMust(map[string]attr.Type{"create": types.StringType, "read": types.StringType, "update": types.StringType, "delete": types.StringType}, map[string]attr.Value{"create": types.StringNull(), "read": types.StringNull(), "update": types.StringValue("4m"), "delete": types.StringNull()})
+	plan.Timeouts.Object = types.ObjectValueMust(
+		map[string]attr.Type{
+			"create": types.StringType,
+			"read":   types.StringType,
+			"update": types.StringType,
+			"delete": types.StringType,
+		},
+		map[string]attr.Value{
+			"create": types.StringNull(),
+			"read":   types.StringNull(),
+			"update": types.StringValue("4m"),
+			"delete": types.StringNull(),
+		},
+	)
 	planned := testState(t, r, plan)
 	resp := resource.UpdateResponse{State: state}
-	r.Update(context.Background(), resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw}}, &resp)
+	r.Update(
+		context.Background(),
+		resource.UpdateRequest{
+			State: state,
+			Plan:  tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw},
+		},
+		&resp,
+	)
 	require.False(t, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
 	require.Zero(t, patches)
 }
@@ -243,7 +353,10 @@ func TestUnitResourceNetworkMCPPolicy_21_InvalidReadResponsePreservesState(t *te
 		body string
 	}{{204, ""}, {200, "{}"}, {200, `{"id":123}`}} {
 		t.Run(fmt.Sprintf("%d-%s", tc.code, tc.body), func(t *testing.T) {
-			r := testClient(t, func(w http.ResponseWriter, q *http.Request) { writeResponse(t, w, tc.code, []byte(tc.body)) })
+			r := testClient(
+				t,
+				func(w http.ResponseWriter, q *http.Request) { writeResponse(t, w, tc.code, []byte(tc.body)) },
+			)
 			state := testState(t, r, testModel())
 			resp := resource.ReadResponse{State: state}
 			r.Read(context.Background(), resource.ReadRequest{State: state}, &resp)
@@ -254,16 +367,29 @@ func TestUnitResourceNetworkMCPPolicy_21_InvalidReadResponsePreservesState(t *te
 }
 
 func TestUnitResourceNetworkMCPPolicy_25_SilentPatchDiagnosed(t *testing.T) {
-	r := testClient(t, func(w http.ResponseWriter, q *http.Request) { writeResponse(t, w, 200, successFixture(t)) })
+	r := testClient(
+		t,
+		func(w http.ResponseWriter, q *http.Request) { writeResponse(t, w, 200, successFixture(t)) },
+	)
 	state := testState(t, r, testModel())
 	model := testModel()
 	model.Name = types.StringValue("changed-name")
 	planned := testState(t, r, model)
 	resp := resource.UpdateResponse{State: state}
-	r.Update(context.Background(), resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw}}, &resp)
+	r.Update(
+		context.Background(),
+		resource.UpdateRequest{
+			State: state,
+			Plan:  tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw},
+		},
+		&resp,
+	)
 	require.True(t, resp.Diagnostics.HasError())
 	require.Contains(t, resp.Diagnostics.Errors()[0].Summary(), "readback does not match")
 	var observed string
-	require.False(t, resp.State.GetAttribute(context.Background(), path.Root("name"), &observed).HasError())
+	require.False(
+		t,
+		resp.State.GetAttribute(context.Background(), path.Root("name"), &observed).HasError(),
+	)
 	require.Equal(t, "test", observed)
 }

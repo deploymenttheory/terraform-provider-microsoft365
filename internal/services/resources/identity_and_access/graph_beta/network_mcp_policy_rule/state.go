@@ -9,8 +9,17 @@ import (
 )
 
 // MapRemoteStateToTerraform validates the response before replacing the last known state.
-func MapRemoteStateToTerraform(ctx context.Context, data *NetworkMCPPolicyRuleResourceModel, remote *mcpPolicyRuleResponse) error {
-	if remote == nil || remote.ID == nil || *remote.ID == "" || remote.Name == nil || remote.Action == nil || remote.Priority == nil || remote.Settings == nil || remote.Settings.Status == nil || remote.ODataType == nil {
+func MapRemoteStateToTerraform(
+	ctx context.Context,
+	data *NetworkMCPPolicyRuleResourceModel,
+	remote *mcpPolicyRuleResponse,
+) error {
+	if remote == nil || remote.ID == nil || *remote.ID == "" || remote.Name == nil ||
+		remote.Action == nil ||
+		remote.Priority == nil ||
+		remote.Settings == nil ||
+		remote.Settings.Status == nil ||
+		remote.ODataType == nil {
 		return fmt.Errorf("%w: missing required fields", errInvalidResponse)
 	}
 	if *remote.ODataType != "#microsoft.graph.networkaccess.mcpPolicyRule" {
@@ -24,7 +33,11 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkMCPPolicyRuleRe
 	}
 	status := *remote.Settings.Status
 	if status != "enabled" && status != "disabled" {
-		return fmt.Errorf("%w: unsupported status %q; enabled cannot be determined", errInvalidResponse, status)
+		return fmt.Errorf(
+			"%w: unsupported status %q; enabled cannot be determined",
+			errInvalidResponse,
+			status,
+		)
 	}
 	if len(remote.Conditions) == 0 {
 		return fmt.Errorf("%w: missing matchingConditions", errInvalidResponse)
