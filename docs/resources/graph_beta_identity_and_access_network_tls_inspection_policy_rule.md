@@ -38,6 +38,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_tls_inspection_pol
   description    = "Initial description"
   default_action = "inspect"
 }
+
 resource "microsoft365_graph_beta_identity_and_access_network_tls_inspection_policy_rule" "example" {
   tls_inspection_policy_id = microsoft365_graph_beta_identity_and_access_network_tls_inspection_policy.example.id
   name                     = "Inspect selected destinations"
