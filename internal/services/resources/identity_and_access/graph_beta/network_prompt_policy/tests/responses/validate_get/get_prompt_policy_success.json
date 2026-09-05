@@ -1,0 +1,10 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "name": "test",
+  "description": null,
+  "version": "1.0.0",
+  "lastModifiedDateTime": "2026-09-05T01:00:00Z",
+  "settings": {
+    "defaultAction": "allow"
+  }
+}
