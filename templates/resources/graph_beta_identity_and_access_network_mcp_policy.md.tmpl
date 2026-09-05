@@ -1,0 +1,28 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## API Support
+
+This resource uses the portal-backed Microsoft Graph beta MCP policy API, which is not represented in the generated Graph SDK used by this provider. Endpoint availability depends on the tenant's Global Secure Access feature and licensing. API persistence was tested with disposable, unassigned policies; traffic evaluation was not tested.
+
+## Microsoft Graph API Permissions
+
+For application authentication, configure `NetworkAccess.ReadWrite.All` with administrator consent for CRUD operations. Read-only operations require `NetworkAccess.Read.All` or `NetworkAccess.ReadWrite.All`. Delegated authentication also depends on the signed-in user's role and the client application's granted scopes.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_mcp_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_mcp_policy/import.sh" }}
