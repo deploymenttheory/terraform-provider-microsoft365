@@ -50,7 +50,8 @@ func constructUpdateResource(
 	if !plan.PromptLogging.Equal(state.PromptLogging) {
 		b.promptLogging = plan.PromptLogging.ValueStringPointer()
 	}
-	if !plan.ConversationSchemes.Equal(state.ConversationSchemes) || !plan.ScanResult.Equal(state.ScanResult) {
+	if !plan.ConversationSchemes.Equal(state.ConversationSchemes) ||
+		!plan.ScanResult.Equal(state.ScanResult) {
 		conditions, err := ruleConditions(ctx, plan)
 		if err != nil {
 			return nil, err
@@ -76,7 +77,10 @@ func ruleConditions(
 	if diags := data.ConversationSchemes.ElementsAs(ctx, &schemes, false); diags.HasError() {
 		return nil, fmt.Errorf("%w: %v", errInvalidSchemes, diags)
 	}
-	b := &promptPolicyRuleConditions{scanResult: data.ScanResult.ValueStringPointer(), schemes: make([]s.Parsable, 0, len(schemes))}
+	b := &promptPolicyRuleConditions{
+		scanResult: data.ScanResult.ValueStringPointer(),
+		schemes:    make([]s.Parsable, 0, len(schemes)),
+	}
 	for _, scheme := range schemes {
 		item := &conversationSchemeRequest{}
 		switch scheme.Type.ValueString() {
@@ -89,7 +93,11 @@ func ruleConditions(
 			item.odataType = "#microsoft.graph.networkaccess.predefinedConversationScheme"
 			item.schemeName = scheme.SchemeName.ValueStringPointer()
 		default:
-			return nil, fmt.Errorf("%w: unsupported type %q", errInvalidSchemes, scheme.Type.ValueString())
+			return nil, fmt.Errorf(
+				"%w: unsupported type %q",
+				errInvalidSchemes,
+				scheme.Type.ValueString(),
+			)
 		}
 		b.schemes = append(b.schemes, item)
 	}
@@ -168,6 +176,7 @@ func (b *promptPolicyRuleConditions) Serialize(w s.SerializationWriter) error {
 	}
 	return wrapSerializationError(w.WriteCollectionOfObjectValues("conversationSchemes", b.schemes))
 }
+
 func (b *promptPolicyRuleConditions) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
@@ -185,6 +194,7 @@ func (b *conversationSchemeRequest) Serialize(w s.SerializationWriter) error {
 	}
 	return nil
 }
+
 func (b *conversationSchemeRequest) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }

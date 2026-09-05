@@ -136,7 +136,8 @@ func (r *NetworkPromptPolicyRuleResource) Read(
 	}
 	if err := MapRemoteStateToTerraform(ctx, &object, remote); err != nil {
 		if remote != nil && remote.status != nil {
-			resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("status"), *remote.status)...)
+			resp.Diagnostics.Append(
+				resp.State.SetAttribute(ctx, path.Root("status"), *remote.status)...)
 		}
 		resp.Diagnostics.AddError("Invalid prompt resource response", err.Error())
 		return

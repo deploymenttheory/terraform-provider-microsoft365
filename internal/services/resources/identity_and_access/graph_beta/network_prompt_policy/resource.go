@@ -120,8 +120,10 @@ func (r *NetworkPromptPolicyResource) Schema(
 			},
 			"default_action": schema.StringAttribute{
 				MarkdownDescription: "The action when no rule matches. Only `allow` is supported. Defaults to `allow`.",
-				Optional:            true, Computed: true, Default: stringdefault.StaticString("allow"),
-				Validators: []validator.String{stringvalidator.OneOf("allow")},
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("allow"),
+				Validators:          []validator.String{stringvalidator.OneOf("allow")},
 			},
 			"version": schema.StringAttribute{
 				MarkdownDescription: "The API-assigned policy version. Read-only.",

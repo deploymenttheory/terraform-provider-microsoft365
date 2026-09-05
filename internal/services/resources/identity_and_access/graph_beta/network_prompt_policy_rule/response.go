@@ -73,11 +73,14 @@ type promptPolicyRuleConditionsResponse struct {
 }
 
 func (r *promptPolicyRuleConditionsResponse) Serialize(w s.SerializationWriter) error { return nil }
+
 func (r *promptPolicyRuleConditionsResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"scanResult": func(n s.ParseNode) error { v, e := n.GetStringValue(); r.scanResult = v; return wrapResponseError(e) },
 		"conversationSchemes": func(n s.ParseNode) error {
-			values, e := n.GetCollectionOfObjectValues(func(s.ParseNode) (s.Parsable, error) { return &conversationSchemeResponse{}, nil })
+			values, e := n.GetCollectionOfObjectValues(
+				func(s.ParseNode) (s.Parsable, error) { return &conversationSchemeResponse{}, nil },
+			)
 			if e != nil {
 				return wrapResponseError(e)
 			}

@@ -171,22 +171,60 @@ func (r *NetworkPromptPolicyRuleResource) Schema(
 			},
 			"prompt_logging": schema.StringAttribute{
 				MarkdownDescription: "When to log prompts: `never`, `always`, or `onBlock`. Defaults to `never`.",
-				Optional:            true, Computed: true, Default: stringdefault.StaticString("never"),
-				Validators: []validator.String{stringvalidator.OneOf("never", "always", "onBlock")},
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("never"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("never", "always", "onBlock"),
+				},
 			},
 			"scan_result": schema.StringAttribute{
 				MarkdownDescription: "The scan result to match. Defaults to `maliciousPromptDetected`, the currently supported value.",
-				Optional:            true, Computed: true, Default: stringdefault.StaticString("maliciousPromptDetected"),
-				Validators: []validator.String{stringvalidator.OneOf("maliciousPromptDetected")},
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("maliciousPromptDetected"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("maliciousPromptDetected"),
+				},
 			},
 			"conversation_schemes": schema.ListNestedAttribute{
 				MarkdownDescription: "Conversation schemes matched by the rule. The entire list is managed together. An empty list is accepted by the API; its effect on traffic has not been verified.",
 				Required:            true,
 				NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
-					"type":        schema.StringAttribute{MarkdownDescription: "Scheme type: `custom` or `predefined`.", Required: true, Validators: []validator.String{stringvalidator.OneOf(schemeTypeCustom, schemeTypePredefined)}},
-					"url":         schema.StringAttribute{MarkdownDescription: "The HTTP or HTTPS endpoint URL for a custom scheme. Required for custom schemes and forbidden for predefined schemes. Include a path, such as `/chat` or `/`.", Optional: true, Validators: []validator.String{stringvalidator.LengthAtLeast(1)}},
-					"json_path":   schema.StringAttribute{MarkdownDescription: "JSONPath locating the prompt in a custom request. Only valid for custom schemes. When omitted the API uses an empty string; an explicitly configured empty string is preserved.", Optional: true},
-					"scheme_name": schema.StringAttribute{MarkdownDescription: "The predefined scheme name. Required for predefined schemes and forbidden for custom schemes.", Optional: true, Validators: []validator.String{stringvalidator.OneOf("chatGpt", "claude", "cohere", "deepseek", "gemini", "grok", "mistral", "perplexity", "pi", "qwen")}},
+					"type": schema.StringAttribute{
+						MarkdownDescription: "Scheme type: `custom` or `predefined`.",
+						Required:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf(schemeTypeCustom, schemeTypePredefined),
+						},
+					},
+					"url": schema.StringAttribute{
+						MarkdownDescription: "The HTTP or HTTPS endpoint URL for a custom scheme. Required for custom schemes and forbidden for predefined schemes. Include a path, such as `/chat` or `/`.",
+						Optional:            true,
+						Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
+					},
+					"json_path": schema.StringAttribute{
+						MarkdownDescription: "JSONPath locating the prompt in a custom request. Only valid for custom schemes. When omitted the API uses an empty string; an explicitly configured empty string is preserved.",
+						Optional:            true,
+					},
+					"scheme_name": schema.StringAttribute{
+						MarkdownDescription: "The predefined scheme name. Required for predefined schemes and forbidden for custom schemes.",
+						Optional:            true,
+						Validators: []validator.String{
+							stringvalidator.OneOf(
+								"chatGpt",
+								"claude",
+								"cohere",
+								"deepseek",
+								"gemini",
+								"grok",
+								"mistral",
+								"perplexity",
+								"pi",
+								"qwen",
+							),
+						},
+					},
 				}},
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),

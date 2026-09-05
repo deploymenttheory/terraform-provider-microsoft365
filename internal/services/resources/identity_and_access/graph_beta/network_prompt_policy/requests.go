@@ -92,7 +92,12 @@ func (r *NetworkPromptPolicyResource) updatePromptPolicy(
 	if err != nil {
 		return err
 	}
-	_, err = adapter.Send(ctx, requestInfo, createPromptPolicyResponseFromDiscriminatorValue, promptPolicyErrorMapping)
+	_, err = adapter.Send(
+		ctx,
+		requestInfo,
+		createPromptPolicyResponseFromDiscriminatorValue,
+		promptPolicyErrorMapping,
+	)
 	return err
 }
 

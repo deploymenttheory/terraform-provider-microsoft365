@@ -51,7 +51,12 @@ func (r *NetworkPromptPolicyRuleResource) updatePromptPolicyRule(
 	if err != nil {
 		return err
 	}
-	_, err = adapter.Send(ctx, requestInfo, createPromptPolicyRuleResponseFromDiscriminatorValue, promptPolicyRuleErrorMapping)
+	_, err = adapter.Send(
+		ctx,
+		requestInfo,
+		createPromptPolicyRuleResponseFromDiscriminatorValue,
+		promptPolicyRuleErrorMapping,
+	)
 	return err
 }
 
