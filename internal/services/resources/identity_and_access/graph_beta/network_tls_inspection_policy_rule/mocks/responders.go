@@ -19,5 +19,5 @@ func init() {
 
 // RegisterErrorMocks injects a synthetic rule-creation validation error while leaving policy setup intact.
 func (m *TLSInspectionPolicyRuleMock) RegisterErrorMocks() {
-	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/networkaccess/tlsInspectionPolicies/[^/]+/policyRules$`, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Synthetic TLS inspection rule validation error"}}`))
+	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/networkAccess/tlsInspectionPolicies/[^/]+/policyRules$`, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Synthetic TLS inspection rule validation error"}}`))
 }

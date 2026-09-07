@@ -48,7 +48,7 @@ func (r *NetworkTLSInspectionPolicyResource) Create(
 		)
 		return
 	}
-	if created == nil || created.id == nil || *created.id == "" {
+	if created == nil || created.GetId() == nil || *created.GetId() == "" {
 		resp.Diagnostics.AddError(
 			"Invalid create response",
 			"The API returned no resource id. Check Graph before retrying creation.",
@@ -56,7 +56,7 @@ func (r *NetworkTLSInspectionPolicyResource) Create(
 		return
 	}
 	// Persist the response body identity before readback. The API Location header may contain a placeholder.
-	object.ID = types.StringValue(*created.id)
+	object.ID = types.StringValue(*created.GetId())
 	object.Version = types.StringNull()
 	object.LastModifiedDateTime = types.StringNull()
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -151,7 +151,7 @@ func (r *NetworkTLSInspectionPolicyResource) Update(
 		resp.Diagnostics.AddError("Error constructing TLS inspection update", err.Error())
 		return
 	}
-	if body.hasChanges() {
+	if hasUpdateChanges(&plan, &state) {
 		if err := r.updateTLSInspectionPolicy(ctx, state.ID.ValueString(), body); err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,

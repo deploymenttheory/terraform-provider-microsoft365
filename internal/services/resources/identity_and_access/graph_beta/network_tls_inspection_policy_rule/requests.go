@@ -1,4 +1,4 @@
-//nolint:wrapcheck // Preserve Kiota API error types for the shared Graph HTTP status and permission handler.
+//nolint:wrapcheck // Preserve generated Kiota API errors for the shared Graph error handler.
 package graphBetaNetworkTLSInspectionPolicyRule
 
 import (
@@ -6,141 +6,100 @@ import (
 	"fmt"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
-const (
-	tlsInspectionPolicyRulesURLTemplate    = "{+baseurl}/networkaccess/tlsInspectionPolicies/{tlsInspectionPolicyId}/policyRules"
-	tlsInspectionPolicyRuleItemURLTemplate = tlsInspectionPolicyRulesURLTemplate + "/{policyRuleId}"
-)
-
-var tlsInspectionPolicyRuleErrorMapping = abstractions.ErrorMappings{
+var tlsInspectionRuleErrorMapping = abstractions.ErrorMappings{
 	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }
 
 func (r *NetworkTLSInspectionPolicyRuleResource) createTLSInspectionPolicyRule(
 	ctx context.Context,
 	policyID string,
-	body s.Parsable,
-) (*tlsInspectionPolicyRuleResponse, error) {
-	return r.sendTLSInspectionPolicyRule(ctx, abstractions.POST, policyID, "", body)
+	body models.TlsInspectionRuleable,
+) (models.TlsInspectionRuleable, error) {
+	builder := r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(policyID).
+		PolicyRules()
+	requestInfo, err := builder.ToPostRequestInformation(ctx, body, nil)
+	if err != nil {
+		return nil, err
+	}
+	result, err := r.client.GetAdapter().Send(
+		ctx,
+		requestInfo,
+		models.CreateTlsInspectionRuleFromDiscriminatorValue,
+		tlsInspectionRuleErrorMapping,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return tlsInspectionRule(result)
 }
 
 func (r *NetworkTLSInspectionPolicyRuleResource) getTLSInspectionPolicyRule(
 	ctx context.Context,
 	policyID, ruleID string,
-) (*tlsInspectionPolicyRuleResponse, error) {
-	return r.sendTLSInspectionPolicyRule(ctx, abstractions.GET, policyID, ruleID, nil)
+) (models.TlsInspectionRuleable, error) {
+	builder := r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(policyID).
+		PolicyRules().
+		ByPolicyRuleId(ruleID)
+	requestInfo, err := builder.ToGetRequestInformation(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	// Graph can omit @odata.type on rule responses. The generated builder then
+	// falls back to PolicyRule and drops TLS-specific fields, so force its
+	// generated concrete model factory while retaining generated request paths.
+	result, err := r.client.GetAdapter().Send(
+		ctx,
+		requestInfo,
+		models.CreateTlsInspectionRuleFromDiscriminatorValue,
+		tlsInspectionRuleErrorMapping,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return tlsInspectionRule(result)
 }
 
 func (r *NetworkTLSInspectionPolicyRuleResource) updateTLSInspectionPolicyRule(
 	ctx context.Context,
 	policyID, ruleID string,
-	body s.Parsable,
+	body models.TlsInspectionRuleable,
 ) error {
-	adapter := r.client.GetAdapter()
-	requestInfo, err := newTLSInspectionPolicyRuleRequestInformation(
-		ctx,
-		adapter,
-		abstractions.PATCH,
-		policyID,
-		ruleID,
-		body,
-	)
-	if err != nil {
-		return err
-	}
-	return adapter.SendNoContent(ctx, requestInfo, tlsInspectionPolicyRuleErrorMapping)
+	_, err := r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(policyID).
+		PolicyRules().
+		ByPolicyRuleId(ruleID).
+		Patch(ctx, body, nil)
+	return err
 }
 
 func (r *NetworkTLSInspectionPolicyRuleResource) deleteTLSInspectionPolicyRule(
 	ctx context.Context,
 	policyID, ruleID string,
 ) error {
-	adapter := r.client.GetAdapter()
-	requestInfo, err := newTLSInspectionPolicyRuleRequestInformation(
-		ctx,
-		adapter,
-		abstractions.DELETE,
-		policyID,
-		ruleID,
-		nil,
-	)
-	if err != nil {
-		return err
-	}
-	return adapter.SendNoContent(ctx, requestInfo, tlsInspectionPolicyRuleErrorMapping)
+	return r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(policyID).
+		PolicyRules().
+		ByPolicyRuleId(ruleID).
+		Delete(ctx, nil)
 }
 
-func (r *NetworkTLSInspectionPolicyRuleResource) sendTLSInspectionPolicyRule(
-	ctx context.Context,
-	method abstractions.HttpMethod,
-	policyID, ruleID string,
-	body s.Parsable,
-) (*tlsInspectionPolicyRuleResponse, error) {
-	adapter := r.client.GetAdapter()
-	requestInfo, err := newTLSInspectionPolicyRuleRequestInformation(
-		ctx,
-		adapter,
-		method,
-		policyID,
-		ruleID,
-		body,
-	)
-	if err != nil {
-		return nil, err
-	}
-	result, err := adapter.Send(
-		ctx,
-		requestInfo,
-		createTLSInspectionPolicyRuleResponseFromDiscriminatorValue,
-		tlsInspectionPolicyRuleErrorMapping,
-	)
-	if err != nil {
-		return nil, err
-	}
+func tlsInspectionRule(result any) (models.TlsInspectionRuleable, error) {
 	if result == nil {
 		return nil, errEmptyResponse
 	}
-	rule, ok := result.(*tlsInspectionPolicyRuleResponse)
+	rule, ok := result.(models.TlsInspectionRuleable)
 	if !ok {
 		return nil, fmt.Errorf("%w: received %T", errInvalidResponse, result)
 	}
 	return rule, nil
-}
-
-func newTLSInspectionPolicyRuleRequestInformation(
-	ctx context.Context,
-	adapter abstractions.RequestAdapter,
-	method abstractions.HttpMethod,
-	policyID, ruleID string,
-	body s.Parsable,
-) (*abstractions.RequestInformation, error) {
-	pathParameters := map[string]string{
-		"baseurl":               adapter.GetBaseUrl(),
-		"tlsInspectionPolicyId": policyID,
-	}
-	urlTemplate := tlsInspectionPolicyRulesURLTemplate
-	if ruleID != "" {
-		urlTemplate = tlsInspectionPolicyRuleItemURLTemplate
-		pathParameters["policyRuleId"] = ruleID
-	}
-	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(
-		method,
-		urlTemplate,
-		pathParameters,
-	)
-	requestInfo.Headers.TryAdd("Accept", "application/json")
-	if body != nil {
-		if err := requestInfo.SetContentFromParsable(
-			ctx,
-			adapter,
-			"application/json",
-			body,
-		); err != nil {
-			return nil, fmt.Errorf("set TLS inspection policy rule request content: %w", err)
-		}
-	}
-	return requestInfo, nil
 }

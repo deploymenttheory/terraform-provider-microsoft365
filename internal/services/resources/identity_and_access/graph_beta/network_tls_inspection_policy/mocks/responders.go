@@ -13,7 +13,7 @@ import (
 	"github.com/jarcoal/httpmock"
 )
 
-const BaseURL = "https://graph.microsoft.com/beta/networkaccess/tlsInspectionPolicies"
+const BaseURL = "https://graph.microsoft.com/beta/networkAccess/tlsInspectionPolicies"
 
 // TLSInspectionPolicyMock models independent policy and nested rule identities, including auto-created rules.
 type TLSInspectionPolicyMock struct {
@@ -42,7 +42,7 @@ func (m *TLSInspectionPolicyMock) CleanupMockState() {
 func (m *TLSInspectionPolicyMock) RegisterMocks() {
 	m.CleanupMockState()
 	for _, method := range []string{"POST", "GET", "PATCH", "DELETE"} {
-		httpmock.RegisterResponder(method, `=~^https://graph\.microsoft\.com/beta/networkaccess/tlsInspectionPolicies(?:/.*)?$`, m.respond)
+		httpmock.RegisterResponder(method, `=~^https://graph\.microsoft\.com/beta/networkAccess/tlsInspectionPolicies(?:/.*)?$`, m.respond)
 	}
 }
 func (m *TLSInspectionPolicyMock) RegisterErrorMocks() {
@@ -61,7 +61,7 @@ func (m *TLSInspectionPolicyMock) respond(req *http.Request) (*http.Response, er
 		}
 	}
 	m.Requests = append(m.Requests, RecordedRequest{req.Method, req.URL.Path, body})
-	path := strings.TrimPrefix(req.URL.Path, "/beta/networkaccess/tlsInspectionPolicies")
+	path := strings.TrimPrefix(req.URL.Path, "/beta/networkAccess/tlsInspectionPolicies")
 	parts := strings.Split(strings.Trim(path, "/"), "/")
 	if path == "" {
 		if req.Method == "POST" {

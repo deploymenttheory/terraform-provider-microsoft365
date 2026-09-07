@@ -5,124 +5,71 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 )
 
-// constructResource builds the policy container payload observed from the
-// Entra Global Secure Access TLS inspection policy blade.
+// constructResource uses the generated TLS inspection policy model. defaultAction
+// remains in additional data because it is currently missing from Graph metadata.
 func constructResource(
 	ctx context.Context,
 	data *NetworkTLSInspectionPolicyResourceModel,
-) (s.Parsable, error) {
-	requestBody := &tlsInspectionPolicyRequestBody{
-		settings: &tlsInspectionPolicySettingsRequestBody{
-			defaultAction: data.DefaultAction.ValueStringPointer(),
-		},
-	}
-
-	if !data.Name.IsNull() && !data.Name.IsUnknown() {
-		requestBody.name = data.Name.ValueStringPointer()
-	}
+) (models.TlsInspectionPolicyable, error) {
+	body := models.NewTlsInspectionPolicy()
+	body.SetName(data.Name.ValueStringPointer())
 	if !data.Description.IsNull() && !data.Description.IsUnknown() {
-		requestBody.description = data.Description.ValueStringPointer()
-		requestBody.descriptionSet = true
+		body.SetDescription(data.Description.ValueStringPointer())
 	}
+	settings := models.NewTlsInspectionPolicySettings()
+	settings.GetAdditionalData()["defaultAction"] = data.DefaultAction.ValueString()
+	body.SetSettings(settings)
 
 	if err := constructors.DebugLogGraphObject(
 		ctx,
 		fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName),
-		requestBody,
+		body,
 	); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{"error": err.Error()})
 	}
 
-	return requestBody, nil
+	return body, nil
 }
 
-// constructUpdateResource sends only changed fields, matching the observed
-// portal PATCH shape while still allowing default_action to be updated.
+// constructUpdateResource sends only changed fields. A nil description is placed
+// in additional data because generated string setters omit nil values.
 func constructUpdateResource(
 	ctx context.Context,
 	plan, state *NetworkTLSInspectionPolicyResourceModel,
-) (*tlsInspectionPolicyRequestBody, error) {
-	requestBody := &tlsInspectionPolicyRequestBody{}
+) (models.TlsInspectionPolicyable, error) {
+	body := models.NewTlsInspectionPolicy()
 	if !plan.Name.Equal(state.Name) {
-		requestBody.name = plan.Name.ValueStringPointer()
+		body.SetName(plan.Name.ValueStringPointer())
 	}
 	if !plan.Description.Equal(state.Description) {
-		requestBody.description = plan.Description.ValueStringPointer()
-		requestBody.descriptionSet = true
+		if plan.Description.IsNull() {
+			body.GetAdditionalData()["description"] = nil
+		} else {
+			body.SetDescription(plan.Description.ValueStringPointer())
+		}
 	}
 	if !plan.DefaultAction.Equal(state.DefaultAction) {
-		requestBody.settings = &tlsInspectionPolicySettingsRequestBody{
-			defaultAction: plan.DefaultAction.ValueStringPointer(),
-		}
+		settings := models.NewTlsInspectionPolicySettings()
+		settings.GetAdditionalData()["defaultAction"] = plan.DefaultAction.ValueString()
+		body.SetSettings(settings)
 	}
 
 	if err := constructors.DebugLogGraphObject(
 		ctx,
 		fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName),
-		requestBody,
+		body,
 	); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{"error": err.Error()})
 	}
-	return requestBody, nil
+	return body, nil
 }
 
-type tlsInspectionPolicyRequestBody struct {
-	name           *string
-	description    *string
-	descriptionSet bool
-	settings       *tlsInspectionPolicySettingsRequestBody
-}
-
-func (b *tlsInspectionPolicyRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteStringValue("name", b.name); err != nil {
-		return wrapSerializationError(err)
-	}
-	if b.descriptionSet {
-		if b.description == nil {
-			if err := writer.WriteNullValue("description"); err != nil {
-				return wrapSerializationError(err)
-			}
-		} else if err := writer.WriteStringValue("description", b.description); err != nil {
-			return wrapSerializationError(err)
-		}
-	}
-	if b.settings != nil {
-		if err := writer.WriteObjectValue("settings", b.settings); err != nil {
-			return wrapSerializationError(err)
-		}
-	}
-	return nil
-}
-
-func (b *tlsInspectionPolicyRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type tlsInspectionPolicySettingsRequestBody struct {
-	defaultAction *string
-}
-
-func (b *tlsInspectionPolicySettingsRequestBody) Serialize(writer s.SerializationWriter) error {
-	return wrapSerializationError(writer.WriteStringValue("defaultAction", b.defaultAction))
-}
-
-func (b *tlsInspectionPolicySettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-// hasChanges excludes Terraform-only changes such as timeouts from empty Graph PATCH requests.
-func (b *tlsInspectionPolicyRequestBody) hasChanges() bool {
-	return b.name != nil || b.descriptionSet || b.settings != nil
-}
-
-func wrapSerializationError(err error) error {
-	if err != nil {
-		return fmt.Errorf("serialize TLS inspection policy: %w", err)
-	}
-	return nil
+func hasUpdateChanges(plan, state *NetworkTLSInspectionPolicyResourceModel) bool {
+	return !plan.Name.Equal(state.Name) || !plan.Description.Equal(state.Description) ||
+		!plan.DefaultAction.Equal(state.DefaultAction)
 }

@@ -52,7 +52,7 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Create(
 		)
 		return
 	}
-	if created == nil || created.id == nil || *created.id == "" {
+	if created == nil || created.GetId() == nil || *created.GetId() == "" {
 		resp.Diagnostics.AddError(
 			"Invalid create response",
 			"The API returned no resource id. Check Graph before retrying creation.",
@@ -60,7 +60,7 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Create(
 		return
 	}
 	// Persist the response body identity before readback. The API Location header may contain a placeholder.
-	object.ID = types.StringValue(*created.id)
+	object.ID = types.StringValue(*created.GetId())
 	object.Status = types.StringNull()
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Identity != nil {
@@ -172,7 +172,7 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Update(
 		resp.Diagnostics.AddError("Error constructing TLS inspection update", err.Error())
 		return
 	}
-	if body.hasChanges() {
+	if hasUpdateChanges(&plan, &state) {
 		if err := r.updateTLSInspectionPolicyRule(
 			ctx,
 			state.TLSInspectionPolicyID.ValueString(),

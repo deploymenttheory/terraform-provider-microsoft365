@@ -141,7 +141,8 @@ func TestUnitResourceNetworkTLSInspectionPolicy_13_DiffPatchClearsDescription(t 
 	require.NotContains(t, patch, "settings")
 	require.NotContains(t, patch, "policyRules")
 	require.NotContains(t, patch, "version")
-	require.Len(t, patch, 1)
+	require.Equal(t, "#microsoft.graph.networkaccess.tlsInspectionPolicy", patch["@odata.type"])
+	require.Len(t, patch, 2)
 }
 func TestUnitResourceNetworkTLSInspectionPolicy_14_UpdateFailureRetainsState(t *testing.T) {
 	for _, method := range []string{"PATCH", "GET"} {
