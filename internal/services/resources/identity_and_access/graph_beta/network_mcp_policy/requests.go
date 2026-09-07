@@ -5,12 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
-	kiotahttp "github.com/microsoft/kiota-http-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
@@ -124,16 +121,6 @@ func newMCPPolicyRequestInformation(
 		urlTemplate,
 		pathParameters,
 	)
-	if method == abstractions.POST {
-		// Creation has no idempotency key. Do not replay it after an ambiguous service response.
-		requestInfo.AddRequestOptions(
-			[]abstractions.RequestOption{
-				&kiotahttp.RetryHandlerOptions{
-					ShouldRetry: func(time.Duration, int, *http.Request, *http.Response) bool { return false },
-				},
-			},
-		)
-	}
 	requestInfo.Headers.TryAdd("Accept", "application/json")
 	if requestBody != nil {
 		if err := requestInfo.SetContentFromParsable(

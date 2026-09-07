@@ -327,7 +327,7 @@ func TestUnitResourceNetworkMCPPolicyRule_16_EnabledOnlyPatch(t *testing.T) {
 }
 
 func TestUnitResourceNetworkMCPPolicyRule_17_CreateErrors(t *testing.T) {
-	for _, code := range []int{400, 403, 404, 429, 503, 200} {
+	for _, code := range []int{400, 403, 404, 200} {
 		t.Run(fmt.Sprint(code), func(t *testing.T) {
 			posts := 0
 			r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
@@ -350,6 +350,41 @@ func TestUnitResourceNetworkMCPPolicyRule_17_CreateErrors(t *testing.T) {
 			require.Equal(t, 1, posts)
 		})
 	}
+}
+
+func TestUnitResourceNetworkMCPPolicyRule_17_CreateRetries429(t *testing.T) {
+	posts := 0
+	r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
+		switch q.Method {
+		case http.MethodPost:
+			posts++
+			if posts == 1 {
+				w.Header().Set("Retry-After", "0")
+				writeResponse(
+					t,
+					w,
+					http.StatusTooManyRequests,
+					[]byte(`{"error":{"code":"TooManyRequests","message":"Synthetic throttle"}}`),
+				)
+				return
+			}
+			require.Equal(t, "1", q.Header.Get("Retry-Attempt"))
+			writeResponse(t, w, http.StatusOK, successFixture(t))
+		case http.MethodGet:
+			writeResponse(t, w, http.StatusOK, successFixture(t))
+		default:
+			t.Fatalf("unexpected method: %s", q.Method)
+		}
+	})
+	state := testState(t, r, testModel())
+	resp := resource.CreateResponse{State: tfsdk.State{Schema: state.Schema}}
+	r.Create(
+		context.Background(),
+		resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}},
+		&resp,
+	)
+	require.False(t, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
+	require.Equal(t, 2, posts)
 }
 
 func TestUnitResourceNetworkMCPPolicyRule_18_InvalidImport(t *testing.T) {
