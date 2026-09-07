@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"math"
 	"net/http"
 	"os"
 	"time"
@@ -13,14 +12,15 @@ import (
 	khttp "github.com/microsoft/kiota-http-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	msgraphgocore "github.com/microsoftgraph/msgraph-sdk-go-core"
-	"golang.org/x/exp/rand"
 )
 
 // ConfigureGraphClientOptions configures the Graph client options based on the provided configuration
 func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*http.Client, error) {
 
-	// In unit test mode (TF_ACC not set), use http.DefaultClient so httpmock can intercept
-	if os.Getenv("TF_ACC") == "" {
+	// The unit-test harness explicitly sets TF_ACC=0 so httpmock can intercept the
+	// default client. An unset TF_ACC is the normal provider runtime and must retain
+	// the Kiota middleware pipeline, including its Retry-After-aware 429 handling.
+	if os.Getenv("TF_ACC") == "0" {
 		tflog.Debug(ctx, "Unit test mode detected, using http.DefaultClient for httpmock interception")
 		return http.DefaultClient, nil
 	}
@@ -107,37 +107,31 @@ func addRetryHandler(ctx context.Context, middleware []khttp.Middleware, options
 		})
 
 		retryOptions := khttp.RetryHandlerOptions{
-			MaxRetries: int(options.MaxRetries),
+			MaxRetries:   int(options.MaxRetries),
+			DelaySeconds: int(options.RetryDelaySeconds),
 			ShouldRetry: func(delay time.Duration, executionCount int, req *http.Request, resp *http.Response) bool {
-				if executionCount >= int(options.MaxRetries) {
-					return false
-				}
-				if resp.StatusCode >= 500 && resp.StatusCode < 600 {
-					baseDelay := time.Duration(options.RetryDelaySeconds) * time.Second
-					exponentialBackoff := baseDelay * time.Duration(math.Pow(2, float64(executionCount)))
-					jitter := time.Duration(rand.Int63n(int64(baseDelay))) // Random jitter between 0 and base delay
-					delayWithJitter := exponentialBackoff + jitter
-
-					tflog.Debug(ctx, "Retrying request", map[string]any{
-						"attempt":    executionCount,
-						"statusCode": resp.StatusCode,
-						"delay":      delayWithJitter,
-						"baseDelay":  exponentialBackoff,
-						"jitter":     jitter,
-					})
-
-					time.Sleep(delayWithJitter)
-					return true
-				}
-				return false
+				tflog.Debug(ctx, "Kiota retry handler accepted a retryable response", map[string]any{
+					"attempt":          executionCount,
+					"statusCode":       resp.StatusCode,
+					"cumulative_delay": delay,
+					"method":           req.Method,
+				})
+				return true
 			},
 		}
 
 		retryHandler := khttp.NewRetryHandlerWithOptions(retryOptions)
+		for i, existing := range middleware {
+			if _, ok := existing.(*khttp.RetryHandler); ok {
+				middleware[i] = retryHandler
+				tflog.Debug(ctx, "Configured existing Kiota retry handler")
+				return middleware
+			}
+		}
 		middleware = append(middleware, retryHandler)
-		tflog.Debug(ctx, "Retry handler with jitter added to middleware")
+		tflog.Debug(ctx, "Kiota retry handler added to middleware")
 	} else {
-		tflog.Debug(ctx, "Retry handler not enabled")
+		tflog.Debug(ctx, "Custom retry settings not enabled; retaining the Kiota default retry handler")
 	}
 	return middleware
 }
