@@ -26,8 +26,8 @@ var conditionKeys = map[string]string{
 	"prompt_matching":     "promptMatching",
 }
 
-// Keep lists to round-trip the observed API order. Sets would discard order and
-// duplicates before sending the request; their equivalence is not yet established.
+// Live POST/PATCH followed by GET preserved both order and duplicates for all
+// five values arrays. Lists round-trip that configuration; sets would normalize it.
 func matchSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"values": schema.ListAttribute{
