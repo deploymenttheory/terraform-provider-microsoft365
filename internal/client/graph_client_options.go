@@ -16,12 +16,14 @@ import (
 
 // ConfigureGraphClientOptions configures the Graph client options based on the provided configuration
 func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*http.Client, error) {
-
 	// The unit-test harness explicitly sets TF_ACC=0 so httpmock can intercept the
 	// default client. An unset TF_ACC is the normal provider runtime and must retain
 	// the Kiota middleware pipeline, including its Retry-After-aware 429 handling.
 	if os.Getenv("TF_ACC") == "0" {
-		tflog.Debug(ctx, "Unit test mode detected, using http.DefaultClient for httpmock interception")
+		tflog.Debug(
+			ctx,
+			"Unit test mode detected, using http.DefaultClient for httpmock interception",
+		)
 		return http.DefaultClient, nil
 	}
 	tflog.Info(ctx, "Configuring Graph client options")
@@ -49,19 +51,31 @@ func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*ht
 
 	httpClient, err := configureHTTPClientWithProxyAndMiddleware(ctx, config, defaultMiddleware)
 	if err != nil {
-		tflog.Error(ctx, "Failed to configure HTTP client with proxy and middleware", map[string]any{"error": err})
+		tflog.Error(
+			ctx,
+			"Failed to configure HTTP client with proxy and middleware",
+			map[string]any{"error": err},
+		)
 		return nil, err
 	}
 
 	configureTimeout(ctx, httpClient, config.ClientOptions)
-	tflog.Info(ctx, "Configured HTTP client timeout", map[string]any{"timeoutSeconds": config.ClientOptions.TimeoutSeconds})
+	tflog.Info(
+		ctx,
+		"Configured HTTP client timeout",
+		map[string]any{"timeoutSeconds": config.ClientOptions.TimeoutSeconds},
+	)
 
 	tflog.Info(ctx, "Successfully configured Graph client options")
 	return httpClient, nil
 }
 
 // addChaosHandler adds a chaos handler to the middleware if enabled in the options
-func addChaosHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) ([]khttp.Middleware, error) {
+func addChaosHandler(
+	ctx context.Context,
+	middleware []khttp.Middleware,
+	options *ClientOptions,
+) ([]khttp.Middleware, error) {
 	if options.EnableChaos {
 		tflog.Debug(ctx, "Configuring chaos handler", map[string]any{
 			"chaosPercentage":    options.ChaosPercentage,
@@ -88,7 +102,7 @@ func addChaosHandler(ctx context.Context, middleware []khttp.Middleware, options
 		chaosHandler, err := khttp.NewChaosHandlerWithOptions(chaosOptions)
 		if err != nil {
 			tflog.Debug(ctx, "Failed to create chaos handler", map[string]any{"error": err})
-			return nil, fmt.Errorf("failed to create chaos handler: %v", err)
+			return nil, fmt.Errorf("failed to create chaos handler: %w", err)
 		}
 		middleware = append(middleware, chaosHandler)
 		tflog.Debug(ctx, "Chaos handler added to middleware")
@@ -99,7 +113,11 @@ func addChaosHandler(ctx context.Context, middleware []khttp.Middleware, options
 }
 
 // addRetryHandler adds a retry handler to the middleware if enabled in the options
-func addRetryHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) []khttp.Middleware {
+func addRetryHandler(
+	ctx context.Context,
+	middleware []khttp.Middleware,
+	options *ClientOptions,
+) []khttp.Middleware {
 	if options.EnableRetry {
 		tflog.Debug(ctx, "Configuring retry handler", map[string]any{
 			"maxRetries":        options.MaxRetries,
@@ -110,12 +128,16 @@ func addRetryHandler(ctx context.Context, middleware []khttp.Middleware, options
 			MaxRetries:   int(options.MaxRetries),
 			DelaySeconds: int(options.RetryDelaySeconds),
 			ShouldRetry: func(delay time.Duration, executionCount int, req *http.Request, resp *http.Response) bool {
-				tflog.Debug(ctx, "Kiota retry handler accepted a retryable response", map[string]any{
-					"attempt":          executionCount,
-					"statusCode":       resp.StatusCode,
-					"cumulative_delay": delay,
-					"method":           req.Method,
-				})
+				tflog.Debug(
+					ctx,
+					"Kiota retry handler accepted a retryable response",
+					map[string]any{
+						"attempt":          executionCount,
+						"statusCode":       resp.StatusCode,
+						"cumulative_delay": delay,
+						"method":           req.Method,
+					},
+				)
 				return true
 			},
 		}
@@ -131,15 +153,26 @@ func addRetryHandler(ctx context.Context, middleware []khttp.Middleware, options
 		middleware = append(middleware, retryHandler)
 		tflog.Debug(ctx, "Kiota retry handler added to middleware")
 	} else {
-		tflog.Debug(ctx, "Custom retry settings not enabled; retaining the Kiota default retry handler")
+		tflog.Debug(
+			ctx,
+			"Custom retry settings not enabled; retaining the Kiota default retry handler",
+		)
 	}
 	return middleware
 }
 
 // addRedirectHandler adds a redirect handler to the middleware if enabled in the options
-func addRedirectHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) []khttp.Middleware {
+func addRedirectHandler(
+	ctx context.Context,
+	middleware []khttp.Middleware,
+	options *ClientOptions,
+) []khttp.Middleware {
 	if options.EnableRedirect {
-		tflog.Debug(ctx, "Configuring redirect handler", map[string]any{"maxRedirects": options.MaxRedirects})
+		tflog.Debug(
+			ctx,
+			"Configuring redirect handler",
+			map[string]any{"maxRedirects": options.MaxRedirects},
+		)
 		redirectOptions := khttp.RedirectHandlerOptions{
 			MaxRedirects: int(options.MaxRedirects),
 			ShouldRedirect: func(req *http.Request, resp *http.Response) bool {
@@ -156,7 +189,11 @@ func addRedirectHandler(ctx context.Context, middleware []khttp.Middleware, opti
 }
 
 // addCompressionHandler adds a compression handler to the middleware if enabled in the options
-func addCompressionHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) []khttp.Middleware {
+func addCompressionHandler(
+	ctx context.Context,
+	middleware []khttp.Middleware,
+	options *ClientOptions,
+) []khttp.Middleware {
 	if options.EnableCompression {
 		tflog.Debug(ctx, "Configuring compression handler")
 		compressionOptions := khttp.NewCompressionOptionsReference(true)
@@ -170,9 +207,17 @@ func addCompressionHandler(ctx context.Context, middleware []khttp.Middleware, o
 }
 
 // addUserAgentHandler adds a user agent handler to the middleware if a custom user agent is specified
-func addUserAgentHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) []khttp.Middleware {
+func addUserAgentHandler(
+	ctx context.Context,
+	middleware []khttp.Middleware,
+	options *ClientOptions,
+) []khttp.Middleware {
 	if options.CustomUserAgent != "" {
-		tflog.Debug(ctx, "Configuring user agent handler", map[string]any{"customUserAgent": options.CustomUserAgent})
+		tflog.Debug(
+			ctx,
+			"Configuring user agent handler",
+			map[string]any{"customUserAgent": options.CustomUserAgent},
+		)
 		userAgentOptions := khttp.NewUserAgentHandlerOptions()
 		userAgentOptions.ProductName = options.CustomUserAgent
 		userAgentHandler := khttp.NewUserAgentHandlerWithOptions(userAgentOptions)
@@ -185,7 +230,11 @@ func addUserAgentHandler(ctx context.Context, middleware []khttp.Middleware, opt
 }
 
 // addHeadersInspectionHandler adds a headers inspection handler to the middleware if enabled in the options
-func addHeadersInspectionHandler(ctx context.Context, middleware []khttp.Middleware, options *ClientOptions) []khttp.Middleware {
+func addHeadersInspectionHandler(
+	ctx context.Context,
+	middleware []khttp.Middleware,
+	options *ClientOptions,
+) []khttp.Middleware {
 	if options.EnableHeadersInspection {
 		tflog.Debug(ctx, "Configuring headers inspection handler")
 		headersInspectionOptions := khttp.NewHeadersInspectionOptions()
@@ -193,7 +242,9 @@ func addHeadersInspectionHandler(ctx context.Context, middleware []khttp.Middlew
 		headersInspectionOptions.InspectResponseHeaders = true
 		headersInspectionOptions.RequestHeaders = &abstractions.RequestHeaders{}
 		headersInspectionOptions.ResponseHeaders = &abstractions.ResponseHeaders{}
-		headersInspectionHandler := khttp.NewHeadersInspectionHandlerWithOptions(*headersInspectionOptions)
+		headersInspectionHandler := khttp.NewHeadersInspectionHandlerWithOptions(
+			*headersInspectionOptions,
+		)
 		middleware = append(middleware, headersInspectionHandler)
 		tflog.Debug(ctx, "Headers inspection handler added to middleware")
 	}
@@ -201,7 +252,11 @@ func addHeadersInspectionHandler(ctx context.Context, middleware []khttp.Middlew
 }
 
 // configureHTTPClientWithProxyAndMiddleware creates and configures an HTTP client with proxy settings and middleware
-func configureHTTPClientWithProxyAndMiddleware(ctx context.Context, config *ProviderData, middleware []khttp.Middleware) (*http.Client, error) {
+func configureHTTPClientWithProxyAndMiddleware(
+	ctx context.Context,
+	config *ProviderData,
+	middleware []khttp.Middleware,
+) (*http.Client, error) {
 	tflog.Debug(ctx, "Configuring HTTP client with proxy and middleware")
 	var httpClient *http.Client
 	var err error
@@ -223,7 +278,11 @@ func configureHTTPClientWithProxyAndMiddleware(ctx context.Context, config *Prov
 			)
 		}
 		if err != nil {
-			tflog.Debug(ctx, "Failed to create HTTP client with proxy settings", map[string]any{"error": err})
+			tflog.Debug(
+				ctx,
+				"Failed to create HTTP client with proxy settings",
+				map[string]any{"error": err},
+			)
 			return nil, fmt.Errorf("unable to create HTTP client with proxy settings: %w", err)
 		}
 	} else {
@@ -239,7 +298,11 @@ func configureHTTPClientWithProxyAndMiddleware(ctx context.Context, config *Prov
 func configureTimeout(ctx context.Context, client *http.Client, options *ClientOptions) {
 	if options.TimeoutSeconds > 0 {
 		client.Timeout = time.Duration(options.TimeoutSeconds) * time.Second
-		tflog.Debug(ctx, "Set HTTP client timeout", map[string]any{"timeoutSeconds": options.TimeoutSeconds})
+		tflog.Debug(
+			ctx,
+			"Set HTTP client timeout",
+			map[string]any{"timeoutSeconds": options.TimeoutSeconds},
+		)
 	} else {
 		tflog.Debug(ctx, "No custom timeout set for HTTP client")
 	}
