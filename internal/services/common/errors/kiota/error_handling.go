@@ -268,24 +268,24 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 	})
 
 	{
-		var typedErr *url.Error
-		var typedErr1 *odataerrors.ODataError
-		var typedErr2 interface {
+		var urlError *url.Error
+		var odataError *odataerrors.ODataError
+		var graphResponseError interface {
 			GetStatusCode() int
 			GetErrorEscaped() odataerrors.MainErrorable
 		}
-		var typedErr3 abstractions.ApiErrorable
+		var apiError abstractions.ApiErrorable
 		switch {
-		case errors.As(err, &typedErr):
-			extractURLError(ctx, typedErr, &errorInfo)
-		case errors.As(err, &typedErr1):
-			extractAPIError(ctx, typedErr1, &errorInfo)
-		case errors.As(err, &typedErr2):
-			errorInfo.StatusCode = typedErr2.GetStatusCode()
-			mainError := typedErr2.GetErrorEscaped()
+		case errors.As(err, &urlError):
+			extractURLError(ctx, urlError, &errorInfo)
+		case errors.As(err, &odataError):
+			extractAPIError(ctx, odataError, &errorInfo)
+		case errors.As(err, &graphResponseError):
+			errorInfo.StatusCode = graphResponseError.GetStatusCode()
+			mainError := graphResponseError.GetErrorEscaped()
 			extractMainError(ctx, mainError, &errorInfo)
-		case errors.As(err, &typedErr3):
-			extractAPIError(ctx, typedErr3, &errorInfo)
+		case errors.As(err, &apiError):
+			extractAPIError(ctx, apiError, &errorInfo)
 		default:
 			errorInfo.StatusCode = 500
 			errorInfo.ErrorCode = "UnknownError"
