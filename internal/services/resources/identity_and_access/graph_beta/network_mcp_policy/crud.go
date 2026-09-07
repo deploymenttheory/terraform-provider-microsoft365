@@ -10,6 +10,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 func (r *NetworkMCPPolicyResource) Create(
@@ -61,9 +62,9 @@ func (r *NetworkMCPPolicyResource) Create(
 	object.LastModifiedDateTime = types.StringNull()
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, struct {
-			ID string `tfsdk:"id"`
-		}{ID: object.ID.ValueString()})...)
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{
+			ID: object.ID.ValueString(),
+		})...)
 	}
 	if resp.Diagnostics.HasError() {
 		return
@@ -131,9 +132,9 @@ func (r *NetworkMCPPolicyResource) Read(
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, struct {
-			ID string `tfsdk:"id"`
-		}{ID: object.ID.ValueString()})...)
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{
+			ID: object.ID.ValueString(),
+		})...)
 	}
 }
 
@@ -197,9 +198,9 @@ func (r *NetworkMCPPolicyResource) Update(
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, struct {
-			ID string `tfsdk:"id"`
-		}{ID: object.ID.ValueString()})...)
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{
+			ID: object.ID.ValueString(),
+		})...)
 	}
 }
 

@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -324,9 +325,9 @@ func TestUnitResourceNetworkMCPPolicy_20_IdentityImport(t *testing.T) {
 	var schema resource.IdentitySchemaResponse
 	r.IdentitySchema(context.Background(), resource.IdentitySchemaRequest{}, &schema)
 	identity := tfsdk.ResourceIdentity{Schema: schema.IdentitySchema}
-	require.False(t, identity.Set(context.Background(), struct {
-		ID string `tfsdk:"id"`
-	}{ID: testModel().ID.ValueString()}).HasError())
+	require.False(t, identity.Set(context.Background(), sharedmodels.ResourceIdentity{
+		ID: testModel().ID.ValueString(),
+	}).HasError())
 	resp := resource.ImportStateResponse{State: testState(t, r, testModel())}
 	r.ImportState(context.Background(), resource.ImportStateRequest{Identity: &identity}, &resp)
 	require.False(t, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
