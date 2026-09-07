@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsRetryableDeleteError(t *testing.T) {
+func TestUnitIsRetryableDeleteError(t *testing.T) {
 	tests := []struct {
 		name           string
 		errorInfo      *GraphErrorInfo
@@ -141,12 +141,20 @@ func TestIsRetryableDeleteError(t *testing.T) {
 			},
 			expectedResult: true,
 		},
-		// Test unknown errors
 		{
-			name: "Unknown status code and error code - should not retry",
+			name: "UnknownError error code - should retry",
 			errorInfo: &GraphErrorInfo{
 				StatusCode: 999,
 				ErrorCode:  "UnknownError",
+			},
+			expectedResult: true,
+		},
+		// Test unrecognized errors
+		{
+			name: "Unrecognized status code and error code - should not retry",
+			errorInfo: &GraphErrorInfo{
+				StatusCode: 999,
+				ErrorCode:  "UnrecognizedErrorCode",
 			},
 			expectedResult: false,
 		},
