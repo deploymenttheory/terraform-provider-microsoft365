@@ -1,6 +1,6 @@
 # MCP policy API contract
 
-Observed through the Entra Global Secure Access MCP policy blade and authenticated Graph requests on 2026-09-05/06. All probes used disposable, unassigned `tf-api-probe-` policies and rules. This documents configuration persistence, not traffic evaluation. These types are absent from the provider's generated Graph beta SDK, so requests use the configured Kiota adapter with local models.
+Observed through the Entra Global Secure Access MCP policy blade and authenticated Graph requests on 2026-09-05/06/07. All probes used disposable, unassigned `tf-api-probe-` policies and rules. This documents configuration persistence, not traffic evaluation. These types are absent from the provider's generated Graph beta SDK, so requests use the configured Kiota adapter with local models.
 
 Base: `https://graph.microsoft.com/beta/networkaccess/mcpPolicies`
 
@@ -43,8 +43,8 @@ API path: `matchingConditions.destinations`. The Terraform `matching_conditions`
 | --- | --- | --- |
 | server_urls | serverUrls | values list + matchType |
 | protocol_versions | protocolVersions | values list + matchType; custom strings accepted |
-| insecure_connection | insecureConnection | `excluded` stored by HTTPS selection; inverse `required` shown by the UI |
-| missing_prm | missingPrm | `required` stored by missing-PRM selection; inverse `excluded` shown by the UI |
+| insecure_connection | insecureConnection | `excluded` and `required` persisted and checked with GET |
+| missing_prm | missingPrm | `required` and `excluded` persisted and checked with GET |
 | tool_matching | toolMatching | names match object, methods `call` or `list,call` |
 | resource_matching | resourceMatching | names match object, methods `read` |
 | prompt_matching | promptMatching | names match object, methods `get` |
@@ -61,4 +61,4 @@ AND/OR semantics, wildcard/regex evaluation, method combinations beyond measured
 
 Normal Read removes state only on 404; 400 and 403 keep prior state with diagnostics. Create persists a returned identity before readback, including when readback fails with 404. Update/readback errors keep previous known state. Delete accepts already-absent 404. No asynchronous transitions were observed, so no speculative waiter is used. ETag/concurrency behavior and service quotas remain unverified.
 
-Portal delegated requests succeeded with a Global Administrator in the feature-enabled development tenant. Existing Azure CLI authentication received 403 on this endpoint; a logged-in CLI alone does not establish sufficient Graph scopes. Application authentication and the exact permission/role requirements must be distinguished from portal observations and recorded with Terraform validation results. The candidate application permission is `NetworkAccess.ReadWrite.All`; it is not inferred to work solely from the portal's success.
+Portal delegated requests succeeded with a Global Administrator in the feature-enabled development tenant. Existing Azure CLI authentication received 403 on this endpoint; a logged-in CLI alone does not establish sufficient Graph scopes. On 2026-09-07, Terraform manual lifecycle and both Go acceptance tests succeeded with a temporary application using only the Graph application permission `NetworkAccess.ReadWrite.All` (verified in the issued token). This establishes that permission as sufficient in this feature-enabled tenant; it does not establish minimum licensing or delegated-role requirements. See [live Terraform validation](live_validation.md) for executed HCL, plans, results and cleanup.

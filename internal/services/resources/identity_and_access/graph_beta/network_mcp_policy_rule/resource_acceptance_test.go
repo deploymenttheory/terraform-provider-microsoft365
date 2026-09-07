@@ -30,6 +30,7 @@ func TestAccResourceNetworkMCPPolicyRule_01_Lifecycle(t *testing.T) {
 		id := s.RootModule().Resources[resourceType+".test"].Primary.ID
 		if savedID == "" {
 			savedID = id
+			t.Logf("Created MCP rule %s/%s", s.RootModule().Resources[resourceType+".test"].Primary.Attributes["mcp_policy_id"], id)
 		} else if id != savedID {
 			return fmt.Errorf("in-place update replaced resource: %s -> %s", savedID, id)
 		}
