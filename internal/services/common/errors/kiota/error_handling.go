@@ -132,7 +132,10 @@ func HandleKiotaGraphErrorWithOptions(
 	// Handle special cases first
 	switch errorInfo.StatusCode {
 	case 400:
-		if operation == constants.TfOperationRead && !options.PreserveStateOnReadBadRequest {
+		// URL errors use a synthetic 400; they are not evidence that a resource was deleted.
+		var urlError *url.Error
+		if operation == constants.TfOperationRead && !options.PreserveStateOnReadBadRequest &&
+			!errors.As(err, &urlError) {
 			tflog.Warn(
 				ctx,
 				"Resource appears to no longer exist (400 Response), removing from state",
