@@ -10,8 +10,13 @@ resource "microsoft365_graph_beta_identity_and_access_network_mcp_policy_rule" "
   description   = ""
   name          = "tf-api-probe-rule-updated"
 
-  action              = "block"
-  priority            = 65001
-  enabled             = false
-  matching_conditions = { server_urls = { values = ["https://example.invalid/mcp"], match_type = "contains" } }
+  action   = "block"
+  priority = 65001
+  enabled  = false
+  matching_conditions = {
+    server_urls = {
+      values     = ["https://example.invalid/mcp"]
+      match_type = "contains"
+    }
+  }
 }
