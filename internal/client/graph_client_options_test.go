@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
@@ -12,10 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestUnit_ConfigureGraphClientOptions_UnitTestMode validates that in unit test mode
-// (TF_ACC not set), the function returns http.DefaultClient.
+// TestUnit_ConfigureGraphClientOptions_UnitTestMode validates that the unit-test
+// harness can explicitly select http.DefaultClient for httpmock interception.
 func TestUnit_ConfigureGraphClientOptions_UnitTestMode(t *testing.T) {
-	os.Unsetenv("TF_ACC")
+	os.Setenv("TF_ACC", "0")
 	defer os.Unsetenv("TF_ACC")
 
 	ctx := context.Background()
@@ -26,6 +27,35 @@ func TestUnit_ConfigureGraphClientOptions_UnitTestMode(t *testing.T) {
 	client, err := ConfigureGraphClientOptions(ctx, config)
 	require.NoError(t, err)
 	assert.Equal(t, http.DefaultClient, client)
+}
+
+func TestUnit_ConfigureGraphClientOptions_UnsetUsesKiotaMiddleware(t *testing.T) {
+	os.Unsetenv("TF_ACC")
+	defer os.Unsetenv("TF_ACC")
+
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		attempts++
+		if attempts == 1 {
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	client, err := ConfigureGraphClientOptions(context.Background(), &ProviderData{
+		ClientOptions: &ClientOptions{},
+	})
+	require.NoError(t, err)
+	require.NotEqual(t, http.DefaultClient, client)
+
+	resp, err := client.Get(server.URL)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+	assert.Equal(t, 2, attempts, "the Kiota default handler should retry HTTP 429")
 }
 
 // TestUnit_AddChaosHandler_Configuration validates chaos handler configuration.
@@ -107,6 +137,51 @@ func TestUnit_AddRetryHandler_Configuration(t *testing.T) {
 		result := addRetryHandler(ctx, middleware, options)
 		assert.Len(t, result, 2, "Should append retry handler to existing middleware")
 	})
+
+	t.Run("Retry replaces existing SDK handler", func(t *testing.T) {
+		middleware := []khttp.Middleware{khttp.NewRetryHandler(), khttp.NewRedirectHandler()}
+		options := &ClientOptions{
+			EnableRetry:       true,
+			MaxRetries:        3,
+			RetryDelaySeconds: 5,
+		}
+
+		result := addRetryHandler(ctx, middleware, options)
+		assert.Len(t, result, 2, "Should replace rather than duplicate the SDK retry handler")
+		assert.IsType(t, &khttp.RetryHandler{}, result[0])
+	})
+}
+
+func TestUnit_AddRetryHandler_RetriesTooManyRequests(t *testing.T) {
+	attempts := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		attempts++
+		if attempts == 1 {
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	middleware := addRetryHandler(
+		context.Background(),
+		[]khttp.Middleware{khttp.NewRetryHandler()},
+		&ClientOptions{EnableRetry: true, MaxRetries: 1, RetryDelaySeconds: 1},
+	)
+	client := &http.Client{
+		Transport: khttp.NewCustomTransportWithParentTransport(
+			http.DefaultTransport,
+			middleware...,
+		),
+	}
+
+	resp, err := client.Get(server.URL)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+	assert.Equal(t, 2, attempts, "the configured Kiota handler should retry HTTP 429")
 }
 
 // TestUnit_AddRedirectHandler_Configuration validates redirect handler configuration.
