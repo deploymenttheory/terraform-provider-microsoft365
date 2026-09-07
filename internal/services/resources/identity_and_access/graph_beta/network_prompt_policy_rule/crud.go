@@ -2,6 +2,7 @@ package graphBetaNetworkPromptPolicyRule
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -77,24 +78,23 @@ func (r *NetworkPromptPolicyRuleResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	remote, err := r.getPromptPolicyRule(
+
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationCreate
+	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = promptPolicyRuleConsistencyPredicate(&object)
+	if err := crud.ReadWithRetry(
 		ctx,
-		object.PromptPolicyID.ValueString(),
-		object.ID.ValueString(),
-	)
-	// This is a create readback, not a refresh: even a 404 must retain the created id.
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
-		return
-	}
-	desired := object
-	if err := MapRemoteStateToTerraform(ctx, &object, remote); err != nil {
-		resp.Diagnostics.AddError("Invalid prompt resource response", err.Error())
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if err := verifyObserved(desired, object); err != nil {
-		resp.Diagnostics.AddError("Prompt resource readback mismatch", err.Error())
+		r.Read,
+		readReq,
+		&crud.CreateResponseContainer{CreateResponse: resp},
+		opts,
+	); err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 	}
 }
 
@@ -104,6 +104,10 @@ func (r *NetworkPromptPolicyRuleResource) Read(
 	resp *resource.ReadResponse,
 ) {
 	var object NetworkPromptPolicyRuleResourceModel
+	operation := constants.TfOperationRead
+	if ctxOperation, ok := ctx.Value("retry_operation").(string); ok {
+		operation = ctxOperation
+	}
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -128,7 +132,7 @@ func (r *NetworkPromptPolicyRuleResource) Read(
 			ctx,
 			err,
 			resp,
-			constants.TfOperationRead,
+			operation,
 			r.ReadPermissions,
 			errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true},
 		)
@@ -198,37 +202,31 @@ func (r *NetworkPromptPolicyRuleResource) Update(
 			return
 		}
 	}
-	// Keep the previous known state if readback fails after a successful PATCH.
+	// ReadWithRetry starts from the previous known state and only replaces it after a
+	// successful readback that matches the planned values.
 	resp.State = req.State
-	object := plan
-	object.ID = state.ID
-	remote, err := r.getPromptPolicyRule(
+	plan.ID = state.ID
+	readState := req.State
+	resp.Diagnostics.Append(readState.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	readReq := resource.ReadRequest{State: readState, ProviderMeta: req.ProviderMeta}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationUpdate
+	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = promptPolicyRuleConsistencyPredicate(&plan)
+	if err := crud.ReadWithRetry(
 		ctx,
-		object.PromptPolicyID.ValueString(),
-		object.ID.ValueString(),
-	)
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
-		return
-	}
-	desired := object
-	if err := MapRemoteStateToTerraform(ctx, &object, remote); err != nil {
-		resp.Diagnostics.AddError("Invalid prompt resource response", err.Error())
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if err := verifyObserved(desired, object); err != nil {
-		resp.Diagnostics.AddError("Prompt resource readback mismatch", err.Error())
-	}
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(
-			resp.Identity.Set(
-				ctx,
-				PromptPolicyRuleIdentity{
-					ID:             object.ID.ValueString(),
-					PromptPolicyID: object.PromptPolicyID.ValueString(),
-				},
-			)...)
+		r.Read,
+		readReq,
+		&crud.UpdateResponseContainer{UpdateResponse: resp},
+		opts,
+	); err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 	}
 }
 

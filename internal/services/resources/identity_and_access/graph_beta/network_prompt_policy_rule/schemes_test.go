@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"testing"
+	"time"
 )
 
 func TestUnitResourceNetworkPromptPolicyRule_22_EmptySchemesPatch(t *testing.T) {
@@ -41,9 +42,11 @@ func TestUnitResourceNetworkPromptPolicyRule_23_IgnoredUpdate(t *testing.T) {
 	plan := testModel()
 	plan.Enabled = types.BoolValue(false)
 	resp := resource.UpdateResponse{State: state}
-	r.Update(context.Background(), resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: state.Schema, Raw: testState(t, r, plan).Raw}}, &resp)
+	ctx, cancel := context.WithTimeout(context.Background(), 2500*time.Millisecond)
+	defer cancel()
+	r.Update(ctx, resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: state.Schema, Raw: testState(t, r, plan).Raw}}, &resp)
 	require.True(t, resp.Diagnostics.HasError())
-	require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), "Enabled")
+	require.Contains(t, resp.Diagnostics.Errors()[0].Detail(), "consistency predicate not yet satisfied")
 	var got NetworkPromptPolicyRuleResourceModel
 	require.False(t, resp.State.Get(context.Background(), &got).HasError())
 	require.True(t, got.Enabled.ValueBool())

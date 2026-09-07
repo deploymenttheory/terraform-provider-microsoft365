@@ -5,6 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -15,11 +22,8 @@ import (
 	kiotahttp "github.com/microsoft/kiota-http-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/stretchr/testify/require"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
+
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 func testModel() NetworkPromptPolicyResourceModel {
@@ -80,6 +84,12 @@ func TestUnitResourceNetworkPromptPolicy_10_ReadErrors(t *testing.T) {
 func TestUnitResourceNetworkPromptPolicy_11_CreateReadbackFailureRetainsID(t *testing.T) {
 	for _, code := range []int{400, 403, 404} {
 		t.Run(fmt.Sprint(code), func(t *testing.T) {
+			var ctx context.Context = context.Background()
+			if code == http.StatusNotFound {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, 2500*time.Millisecond)
+				defer cancel()
+			}
 			posts := 0
 			r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
 				if q.Method == "POST" {
@@ -91,7 +101,7 @@ func TestUnitResourceNetworkPromptPolicy_11_CreateReadbackFailureRetainsID(t *te
 			})
 			state := testState(t, r, testModel())
 			resp := resource.CreateResponse{State: tfsdk.State{Schema: state.Schema}}
-			r.Create(context.Background(), resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &resp)
+			r.Create(ctx, resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &resp)
 			require.True(t, resp.Diagnostics.HasError())
 			var id string
 			require.False(t, resp.State.GetAttribute(context.Background(), path.Root("id"), &id).HasError())
@@ -147,6 +157,12 @@ func TestUnitResourceNetworkPromptPolicy_14_UpdateFailureRetainsState(t *testing
 	for _, method := range []string{"PATCH", "GET"} {
 		for _, code := range []int{400, 403, 404} {
 			t.Run(fmt.Sprintf("%s-%d", method, code), func(t *testing.T) {
+				var ctx context.Context = context.Background()
+				if method == http.MethodGet && code == http.StatusNotFound {
+					var cancel context.CancelFunc
+					ctx, cancel = context.WithTimeout(ctx, 2500*time.Millisecond)
+					defer cancel()
+				}
 				r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
 					if q.Method == method {
 						writeResponse(t, w, code, []byte(`{"error":{"code":"TestError","message":"Synthetic update failure"}}`))
@@ -158,7 +174,7 @@ func TestUnitResourceNetworkPromptPolicy_14_UpdateFailureRetainsState(t *testing
 				old.Description = types.StringValue("old")
 				state := testState(t, r, old)
 				resp := resource.UpdateResponse{State: state}
-				r.Update(context.Background(), resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: state.Schema, Raw: testState(t, r, testModel()).Raw}}, &resp)
+				r.Update(ctx, resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: state.Schema, Raw: testState(t, r, testModel()).Raw}}, &resp)
 				require.True(t, resp.Diagnostics.HasError())
 				require.True(t, state.Raw.Equal(resp.State.Raw))
 			})
@@ -208,9 +224,9 @@ func TestUnitResourceNetworkPromptPolicy_20_IdentityImport(t *testing.T) {
 	var schema resource.IdentitySchemaResponse
 	r.IdentitySchema(context.Background(), resource.IdentitySchemaRequest{}, &schema)
 	identity := tfsdk.ResourceIdentity{Schema: schema.IdentitySchema}
-	require.False(t, identity.Set(context.Background(), struct {
-		ID string `tfsdk:"id"`
-	}{ID: testModel().ID.ValueString()}).HasError())
+	require.False(t, identity.Set(context.Background(), sharedmodels.ResourceIdentity{
+		ID: testModel().ID.ValueString(),
+	}).HasError())
 	resp := resource.ImportStateResponse{State: testState(t, r, testModel())}
 	r.ImportState(context.Background(), resource.ImportStateRequest{Identity: &identity}, &resp)
 	require.False(t, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)

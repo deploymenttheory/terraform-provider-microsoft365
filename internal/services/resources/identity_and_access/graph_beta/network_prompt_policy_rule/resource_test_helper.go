@@ -17,15 +17,16 @@ func (r NetworkPromptPolicyRuleTestResource) Exists(
 	state *terraform.InstanceState,
 ) (*bool, error) {
 	//nolint:wrapcheck // The generic existence helper already adds operation context.
-	return exists.CheckResourceExists(
+	return exists.CheckResourceExistsByCompositeID(
 		ctx,
 		state,
-		func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, state *terraform.InstanceState) error {
+		"prompt_policy_id",
+		func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, promptPolicyID, ruleID string) error {
 			resource := &NetworkPromptPolicyRuleResource{client: client}
 			_, err := resource.getPromptPolicyRule(
 				ctx,
-				state.Attributes["prompt_policy_id"],
-				state.ID,
+				promptPolicyID,
+				ruleID,
 			)
 			return err
 		},

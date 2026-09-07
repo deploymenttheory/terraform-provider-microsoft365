@@ -2,6 +2,7 @@ package graphBetaNetworkPromptPolicy
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -10,6 +11,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 func (r *NetworkPromptPolicyResource) Create(
@@ -61,27 +63,30 @@ func (r *NetworkPromptPolicyResource) Create(
 	object.LastModifiedDateTime = types.StringNull()
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, struct {
-			ID string `tfsdk:"id"`
-		}{ID: object.ID.ValueString()})...)
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{
+			ID: object.ID.ValueString(),
+		})...)
 	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	remote, err := r.getPromptPolicy(ctx, object.ID.ValueString())
-	// This is a create readback, not a refresh: even a 404 must retain the created id.
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
-		return
-	}
-	desired := object
-	if err := MapRemoteStateToTerraform(ctx, &object, remote); err != nil {
-		resp.Diagnostics.AddError("Invalid prompt resource response", err.Error())
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if err := verifyObserved(desired, object); err != nil {
-		resp.Diagnostics.AddError("Prompt resource readback mismatch", err.Error())
+
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationCreate
+	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = promptPolicyConsistencyPredicate(&object)
+	if err := crud.ReadWithRetry(
+		ctx,
+		r.Read,
+		readReq,
+		&crud.CreateResponseContainer{CreateResponse: resp},
+		opts,
+	); err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 	}
 }
 
@@ -91,6 +96,10 @@ func (r *NetworkPromptPolicyResource) Read(
 	resp *resource.ReadResponse,
 ) {
 	var object NetworkPromptPolicyResourceModel
+	operation := constants.TfOperationRead
+	if ctxOperation, ok := ctx.Value("retry_operation").(string); ok {
+		operation = ctxOperation
+	}
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -111,7 +120,7 @@ func (r *NetworkPromptPolicyResource) Read(
 			ctx,
 			err,
 			resp,
-			constants.TfOperationRead,
+			operation,
 			r.ReadPermissions,
 			errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true},
 		)
@@ -123,9 +132,9 @@ func (r *NetworkPromptPolicyResource) Read(
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, struct {
-			ID string `tfsdk:"id"`
-		}{ID: object.ID.ValueString()})...)
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{
+			ID: object.ID.ValueString(),
+		})...)
 	}
 }
 
@@ -167,28 +176,31 @@ func (r *NetworkPromptPolicyResource) Update(
 			return
 		}
 	}
-	// Keep the previous known state if readback fails after a successful PATCH.
+	// ReadWithRetry starts from the previous known state and only replaces it after a
+	// successful readback that matches the planned values.
 	resp.State = req.State
-	object := plan
-	object.ID = state.ID
-	remote, err := r.getPromptPolicy(ctx, object.ID.ValueString())
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
+	plan.ID = state.ID
+	readState := req.State
+	resp.Diagnostics.Append(readState.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-	desired := object
-	if err := MapRemoteStateToTerraform(ctx, &object, remote); err != nil {
-		resp.Diagnostics.AddError("Invalid prompt resource response", err.Error())
-		return
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if err := verifyObserved(desired, object); err != nil {
-		resp.Diagnostics.AddError("Prompt resource readback mismatch", err.Error())
-	}
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, struct {
-			ID string `tfsdk:"id"`
-		}{ID: object.ID.ValueString()})...)
+	readReq := resource.ReadRequest{State: readState, ProviderMeta: req.ProviderMeta}
+	opts := crud.DefaultReadWithRetryOptions()
+	opts.Operation = constants.TfOperationUpdate
+	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = promptPolicyConsistencyPredicate(&plan)
+	if err := crud.ReadWithRetry(
+		ctx,
+		r.Read,
+		readReq,
+		&crud.UpdateResponseContainer{UpdateResponse: resp},
+		opts,
+	); err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 	}
 }
 
