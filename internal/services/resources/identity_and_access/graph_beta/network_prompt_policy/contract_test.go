@@ -23,6 +23,7 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/stretchr/testify/require"
 
+	providerclient "github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
@@ -43,6 +44,27 @@ func testClient(t *testing.T, h http.HandlerFunc) *NetworkPromptPolicyResource {
 	server := httptest.NewServer(h)
 	t.Cleanup(server.Close)
 	adapter, err := kiotahttp.NewNetHttpRequestAdapter(&authentication.AnonymousAuthenticationProvider{})
+	require.NoError(t, err)
+	adapter.SetBaseUrl(server.URL)
+	r := NewNetworkPromptPolicyResource().(*NetworkPromptPolicyResource)
+	r.client = msgraphbetasdk.NewGraphServiceClient(adapter)
+	return r
+}
+func testClientWithConfiguredMiddleware(t *testing.T, h http.HandlerFunc) *NetworkPromptPolicyResource {
+	t.Helper()
+	t.Setenv("TF_ACC", "")
+	server := httptest.NewServer(h)
+	t.Cleanup(server.Close)
+	httpClient, err := providerclient.ConfigureGraphClientOptions(context.Background(), &providerclient.ProviderData{
+		ClientOptions: &providerclient.ClientOptions{EnableCompression: true},
+	})
+	require.NoError(t, err)
+	adapter, err := msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(
+		&authentication.AnonymousAuthenticationProvider{},
+		nil,
+		nil,
+		httpClient,
+	)
 	require.NoError(t, err)
 	adapter.SetBaseUrl(server.URL)
 	r := NewNetworkPromptPolicyResource().(*NetworkPromptPolicyResource)
@@ -261,4 +283,55 @@ func TestUnitResourceNetworkPromptPolicy_21_InvalidReadResponsePreservesState(t 
 			require.True(t, state.Raw.Equal(resp.State.Raw))
 		})
 	}
+}
+
+func TestPromptPolicyRequestsRetryThrottledResponses(t *testing.T) {
+	attempts := make(map[string]int)
+	requestBodies := make(map[string][][]byte)
+	r := testClientWithConfiguredMiddleware(t, func(w http.ResponseWriter, q *http.Request) {
+		attempts[q.Method]++
+		if q.Method == http.MethodPost || q.Method == http.MethodPatch {
+			body, err := io.ReadAll(q.Body)
+			require.NoError(t, err)
+			requestBodies[q.Method] = append(requestBodies[q.Method], body)
+		}
+		if attempts[q.Method] == 1 {
+			w.Header().Set("Retry-After", "0")
+			writeResponse(t, w, http.StatusTooManyRequests, nil)
+			return
+		}
+		if q.Method == http.MethodDelete {
+			writeResponse(t, w, http.StatusNoContent, nil)
+			return
+		}
+		writeResponse(t, w, http.StatusOK, successFixture(t))
+	})
+
+	ctx := context.Background()
+	model := testModel()
+	createBody, err := constructResource(ctx, &model)
+	require.NoError(t, err)
+	_, err = r.createPromptPolicy(ctx, createBody)
+	require.NoError(t, err)
+
+	_, err = r.getPromptPolicy(ctx, model.ID.ValueString())
+	require.NoError(t, err)
+
+	previous := model
+	previous.Name = types.StringValue("previous")
+	updateBody, err := constructUpdateResource(ctx, &model, &previous)
+	require.NoError(t, err)
+	require.NoError(t, r.updatePromptPolicy(ctx, model.ID.ValueString(), updateBody))
+	require.NoError(t, r.deletePromptPolicy(ctx, model.ID.ValueString()))
+
+	for _, method := range []string{
+		http.MethodPost,
+		http.MethodGet,
+		http.MethodPatch,
+		http.MethodDelete,
+	} {
+		require.Equal(t, 2, attempts[method], "%s should be retried by Kiota", method)
+	}
+	require.Equal(t, requestBodies[http.MethodPost][0], requestBodies[http.MethodPost][1])
+	require.Equal(t, requestBodies[http.MethodPatch][0], requestBodies[http.MethodPatch][1])
 }

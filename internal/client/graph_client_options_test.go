@@ -1,10 +1,13 @@
 package client
 
 import (
+	"compress/gzip"
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -56,6 +59,49 @@ func TestUnit_ConfigureGraphClientOptions_UnsetUsesKiotaMiddleware(t *testing.T)
 	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 	assert.Equal(t, 2, attempts, "the Kiota default handler should retry HTTP 429")
+}
+
+func TestUnit_ConfigureGraphClientOptions_RetriesCompressedPostAfterTooManyRequests(t *testing.T) {
+	os.Unsetenv("TF_ACC")
+	defer os.Unsetenv("TF_ACC")
+
+	attempts := 0
+	var payloads []string
+	var contentEncodings []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		attempts++
+		contentEncodings = append(contentEncodings, req.Header.Get("Content-Encoding"))
+		body := io.Reader(req.Body)
+		if req.Header.Get("Content-Encoding") == "gzip" {
+			reader, err := gzip.NewReader(req.Body)
+			require.NoError(t, err)
+			defer reader.Close()
+			body = reader
+		}
+		payload, err := io.ReadAll(body)
+		require.NoError(t, err)
+		payloads = append(payloads, string(payload))
+		if attempts == 1 {
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	client, err := ConfigureGraphClientOptions(context.Background(), &ProviderData{
+		ClientOptions: &ClientOptions{EnableCompression: true},
+	})
+	require.NoError(t, err)
+
+	resp, err := client.Post(server.URL, "application/json", strings.NewReader(`{"name":"test"}`))
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+	assert.Equal(t, 2, attempts)
+	assert.Equal(t, []string{"gzip", "gzip"}, contentEncodings)
+	assert.Equal(t, []string{`{"name":"test"}`, `{"name":"test"}`}, payloads)
 }
 
 // TestUnit_AddChaosHandler_Configuration validates chaos handler configuration.
@@ -152,6 +198,20 @@ func TestUnit_AddRetryHandler_Configuration(t *testing.T) {
 	})
 }
 
+func TestUnit_EnsureCompressionPrecedesRetry(t *testing.T) {
+	middleware := []khttp.Middleware{
+		khttp.NewRetryHandler(),
+		khttp.NewRedirectHandler(),
+		khttp.NewCompressionHandler(),
+	}
+
+	result := ensureCompressionPrecedesRetry(middleware)
+
+	assert.IsType(t, &khttp.CompressionHandler{}, result[0])
+	assert.IsType(t, &khttp.RetryHandler{}, result[1])
+	assert.IsType(t, &khttp.RedirectHandler{}, result[2])
+}
+
 func TestUnit_AddRetryHandler_RetriesTooManyRequests(t *testing.T) {
 	attempts := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -232,6 +292,16 @@ func TestUnit_AddCompressionHandler_Configuration(t *testing.T) {
 
 		result := addCompressionHandler(ctx, middleware, options)
 		assert.Len(t, result, 0, "Should not add compression handler")
+	})
+
+	t.Run("Compression replaces existing SDK handler", func(t *testing.T) {
+		middleware := []khttp.Middleware{khttp.NewCompressionHandler(), khttp.NewRedirectHandler()}
+		options := &ClientOptions{EnableCompression: true}
+
+		result := addCompressionHandler(ctx, middleware, options)
+
+		assert.Len(t, result, 2, "Should replace rather than duplicate the SDK compression handler")
+		assert.IsType(t, &khttp.CompressionHandler{}, result[0])
 	})
 }
 

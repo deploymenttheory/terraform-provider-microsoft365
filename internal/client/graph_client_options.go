@@ -48,6 +48,7 @@ func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*ht
 	defaultMiddleware = addCompressionHandler(ctx, defaultMiddleware, config.ClientOptions)
 	defaultMiddleware = addUserAgentHandler(ctx, defaultMiddleware, config.ClientOptions)
 	defaultMiddleware = addHeadersInspectionHandler(ctx, defaultMiddleware, config.ClientOptions)
+	defaultMiddleware = ensureCompressionPrecedesRetry(defaultMiddleware)
 
 	httpClient, err := configureHTTPClientWithProxyAndMiddleware(ctx, config, defaultMiddleware)
 	if err != nil {
@@ -198,11 +199,41 @@ func addCompressionHandler(
 		tflog.Debug(ctx, "Configuring compression handler")
 		compressionOptions := khttp.NewCompressionOptionsReference(true)
 		compressionHandler := khttp.NewCompressionHandlerWithOptions(*compressionOptions)
+		for i, existing := range middleware {
+			if _, ok := existing.(*khttp.CompressionHandler); ok {
+				middleware[i] = compressionHandler
+				tflog.Debug(ctx, "Configured existing Kiota compression handler")
+				return middleware
+			}
+		}
 		middleware = append(middleware, compressionHandler)
 		tflog.Debug(ctx, "Compression handler added to middleware")
 	} else {
 		tflog.Debug(ctx, "Compression handler not enabled")
 	}
+	return middleware
+}
+
+// ensureCompressionPrecedesRetry keeps Kiota's compression handler in the retry scope.
+// This lets Kiota resend the compressed request body after a throttled response.
+func ensureCompressionPrecedesRetry(middleware []khttp.Middleware) []khttp.Middleware {
+	compressionIndex := -1
+	retryIndex := -1
+	for i, handler := range middleware {
+		switch handler.(type) {
+		case *khttp.CompressionHandler:
+			compressionIndex = i
+		case *khttp.RetryHandler:
+			retryIndex = i
+		}
+	}
+	if compressionIndex < 0 || retryIndex < 0 || compressionIndex < retryIndex {
+		return middleware
+	}
+
+	compressionHandler := middleware[compressionIndex]
+	copy(middleware[retryIndex+1:compressionIndex+1], middleware[retryIndex:compressionIndex])
+	middleware[retryIndex] = compressionHandler
 	return middleware
 }
 
