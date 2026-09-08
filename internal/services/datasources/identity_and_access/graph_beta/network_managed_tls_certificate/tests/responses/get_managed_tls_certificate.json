@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/tls/managedCertificateAuthorityCertificates/$entity",
+  "id": "00000000-0000-0000-0000-000000000301",
+  "name": "M-TLSi-unit1",
+  "commonName": "Microsoft Entra TLS Inspection Root CA",
+  "organizationName": "Microsoft",
+  "validityMonths": 120,
+  "status": "active",
+  "createdDateTime": "2026-09-03T12:44:29.7071424Z",
+  "certificate": "-----BEGIN CERTIFICATE-----\nUNIT-TEST\n-----END CERTIFICATE-----",
+  "chain": null,
+  "validity": {
+    "startDateTime": "2026-09-03T12:44:24Z",
+    "endDateTime": "2036-09-03T12:44:24Z"
+  }
+}
