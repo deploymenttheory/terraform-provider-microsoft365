@@ -333,10 +333,10 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	// on the 'settings' navigation property of deviceManagementConfigurationPolicy.
 	httpmock.RegisterResponder(
 		"PUT",
-		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F-]+$`,
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies\('[0-9a-fA-F-]+'\)$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
-			id := parts[len(parts)-1]
+			id := strings.TrimSuffix(strings.TrimPrefix(parts[len(parts)-1], "configurationPolicies('"), "')")
 
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
