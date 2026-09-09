@@ -1,0 +1,34 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+Use this data source to retrieve the PEM-encoded Microsoft-managed root CA certificate for Microsoft Entra Global Secure Access TLS inspection.
+
+## Microsoft Graph API
+
+This data source uses the portal-backed Microsoft Graph beta `/networkaccess/tls/managedCertificateAuthorityCertificates/{id}` endpoint. Microsoft Graph beta metadata does not currently expose this endpoint.
+
+The collection endpoint returns certificate authority metadata but does not return the certificate content. This data source therefore uses the individual certificate endpoint.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

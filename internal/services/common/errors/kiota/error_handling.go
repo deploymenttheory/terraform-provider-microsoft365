@@ -136,12 +136,14 @@ func HandleKiotaGraphErrorWithOptions(
 		var urlError *url.Error
 		if operation == constants.TfOperationRead && !options.PreserveStateOnReadBadRequest &&
 			!errors.As(err, &urlError) {
-			tflog.Warn(
-				ctx,
-				"Resource appears to no longer exist (400 Response), removing from state",
-			)
-			removeResourceFromState(ctx, resp)
-			return
+			if _, ok := resp.(*resource.ReadResponse); ok {
+				tflog.Warn(
+					ctx,
+					"Resource appears to no longer exist (400 Response), removing from state",
+				)
+				removeResourceFromState(ctx, resp)
+				return
+			}
 		}
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
@@ -159,9 +161,11 @@ func HandleKiotaGraphErrorWithOptions(
 
 	case 404:
 		if operation == constants.TfOperationRead {
-			tflog.Warn(ctx, "Resource not found (404 Response), removing from state")
-			removeResourceFromState(ctx, resp)
-			return
+			if _, ok := resp.(*resource.ReadResponse); ok {
+				tflog.Warn(ctx, "Resource not found (404 Response), removing from state")
+				removeResourceFromState(ctx, resp)
+				return
+			}
 		}
 		if operation == constants.TfOperationDelete {
 			tflog.Info(

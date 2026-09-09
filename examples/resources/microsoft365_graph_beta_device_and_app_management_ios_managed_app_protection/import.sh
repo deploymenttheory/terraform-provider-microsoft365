@@ -1,0 +1,2 @@
+# {resource_id}
+terraform import microsoft365_graph_beta_device_and_app_management_ios_managed_app_protection.example ios-managed-app-protection-policy-id
