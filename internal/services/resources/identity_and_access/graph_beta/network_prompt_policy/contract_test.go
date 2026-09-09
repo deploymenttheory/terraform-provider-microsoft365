@@ -56,7 +56,11 @@ func testClientWithConfiguredMiddleware(t *testing.T, h http.HandlerFunc) *Netwo
 	server := httptest.NewServer(h)
 	t.Cleanup(server.Close)
 	httpClient, err := providerclient.ConfigureGraphClientOptions(context.Background(), &providerclient.ProviderData{
-		ClientOptions: &providerclient.ClientOptions{EnableCompression: true},
+		ClientOptions: &providerclient.ClientOptions{
+			EnableRetry:       true,
+			MaxRetries:        1,
+			EnableCompression: true,
+		},
 	})
 	require.NoError(t, err)
 	adapter, err := msgraphbetasdk.NewGraphRequestAdapterWithParseNodeFactoryAndSerializationWriterFactoryAndHttpClient(

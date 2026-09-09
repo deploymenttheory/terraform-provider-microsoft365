@@ -76,7 +76,10 @@ func TestUnitResourceNetworkPromptPolicyRule_24_JSONPathDefault(t *testing.T) {
 		require.False(t, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
 		var got NetworkPromptPolicyRuleResourceModel
 		require.False(t, resp.State.Get(context.Background(), &got).HasError())
-		require.True(t, model.ConversationSchemes.Equal(got.ConversationSchemes))
+		var schemes []ConversationSchemeModel
+		require.False(t, got.ConversationSchemes.ElementsAs(context.Background(), &schemes, false).HasError())
+		require.Len(t, schemes, 1)
+		require.Equal(t, "", schemes[0].JSONPath.ValueString())
 	}
 }
 
@@ -89,8 +92,11 @@ func TestUnitResourceNetworkPromptPolicyRule_25_ConditionalValidation(t *testing
 		{"custom", types.StringNull(), types.StringNull(), types.StringNull(), true},
 		{"custom", types.StringValue("ftp://example.com/chat"), types.StringNull(), types.StringNull(), true},
 		{"custom", types.StringUnknown(), types.StringNull(), types.StringNull(), false},
+		{"custom", types.StringValue("https://example.com/chat"), types.StringNull(), types.StringUnknown(), false},
 		{"custom", types.StringValue("https://example.com/chat"), types.StringNull(), types.StringValue("chatGpt"), true},
 		{"predefined", types.StringNull(), types.StringNull(), types.StringNull(), true},
+		{"predefined", types.StringUnknown(), types.StringNull(), types.StringValue("chatGpt"), false},
+		{"predefined", types.StringNull(), types.StringUnknown(), types.StringValue("chatGpt"), false},
 		{"predefined", types.StringNull(), types.StringValue(""), types.StringValue("chatGpt"), true},
 		{"predefined", types.StringNull(), types.StringNull(), types.StringValue("chatGpt"), false},
 	} {

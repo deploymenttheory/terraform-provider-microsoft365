@@ -32,7 +32,7 @@ func TestUnit_ConfigureGraphClientOptions_UnitTestMode(t *testing.T) {
 	assert.Equal(t, http.DefaultClient, client)
 }
 
-func TestUnit_ConfigureGraphClientOptions_UnsetUsesKiotaMiddleware(t *testing.T) {
+func TestUnit_ConfigureGraphClientOptions_DisabledRetryDoesNotRetry(t *testing.T) {
 	os.Unsetenv("TF_ACC")
 	defer os.Unsetenv("TF_ACC")
 
@@ -57,8 +57,39 @@ func TestUnit_ConfigureGraphClientOptions_UnsetUsesKiotaMiddleware(t *testing.T)
 	resp, err := client.Get(server.URL)
 	require.NoError(t, err)
 	defer resp.Body.Close()
+	assert.Equal(t, http.StatusTooManyRequests, resp.StatusCode)
+	assert.Equal(t, 1, attempts, "disabled retry must remove the Kiota default retry handler")
+}
+
+func TestUnit_ConfigureGraphClientOptions_ConfiguredRetryDoesNotEnableCompression(t *testing.T) {
+	os.Unsetenv("TF_ACC")
+	defer os.Unsetenv("TF_ACC")
+
+	attempts := 0
+	var contentEncodings []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		attempts++
+		contentEncodings = append(contentEncodings, req.Header.Get("Content-Encoding"))
+		if attempts == 1 {
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	client, err := ConfigureGraphClientOptions(context.Background(), &ProviderData{
+		ClientOptions: &ClientOptions{EnableRetry: true, MaxRetries: 1},
+	})
+	require.NoError(t, err)
+
+	resp, err := client.Post(server.URL, "application/json", strings.NewReader(`{"name":"test"}`))
+	require.NoError(t, err)
+	defer resp.Body.Close()
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-	assert.Equal(t, 2, attempts, "the Kiota default handler should retry HTTP 429")
+	assert.Equal(t, 2, attempts, "the configured Kiota handler should retry HTTP 429")
+	assert.Equal(t, []string{"", ""}, contentEncodings, "disabled compression must not encode requests")
 }
 
 func TestUnit_ConfigureGraphClientOptions_RetriesCompressedPostAfterTooManyRequests(t *testing.T) {
@@ -91,7 +122,11 @@ func TestUnit_ConfigureGraphClientOptions_RetriesCompressedPostAfterTooManyReque
 	defer server.Close()
 
 	client, err := ConfigureGraphClientOptions(context.Background(), &ProviderData{
-		ClientOptions: &ClientOptions{EnableCompression: true},
+		ClientOptions: &ClientOptions{
+			EnableRetry:       true,
+			MaxRetries:        1,
+			EnableCompression: true,
+		},
 	})
 	require.NoError(t, err)
 
@@ -109,7 +144,7 @@ func TestUnit_AddChaosHandler_Configuration(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("Chaos enabled with all options", func(t *testing.T) {
-		middleware := []khttp.Middleware{}
+		middleware := []khttp.Middleware{khttp.NewRetryHandler(), khttp.NewRedirectHandler()}
 		options := &ClientOptions{
 			EnableChaos:        true,
 			ChaosPercentage:    50,
@@ -119,7 +154,8 @@ func TestUnit_AddChaosHandler_Configuration(t *testing.T) {
 
 		result, err := addChaosHandler(ctx, middleware, options)
 		require.NoError(t, err)
-		assert.Len(t, result, 1, "Should add chaos handler")
+		assert.Len(t, result, 3, "Should preserve existing middleware and add chaos handler")
+		assert.IsType(t, &khttp.ChaosHandler{}, result[2])
 	})
 
 	t.Run("Chaos enabled with minimal options", func(t *testing.T) {
@@ -163,13 +199,14 @@ func TestUnit_AddRetryHandler_Configuration(t *testing.T) {
 	})
 
 	t.Run("Retry disabled", func(t *testing.T) {
-		middleware := []khttp.Middleware{}
+		middleware := []khttp.Middleware{khttp.NewRetryHandler(), khttp.NewRedirectHandler()}
 		options := &ClientOptions{
 			EnableRetry: false,
 		}
 
 		result := addRetryHandler(ctx, middleware, options)
-		assert.Len(t, result, 0, "Should not add retry handler")
+		assert.Len(t, result, 1, "Should remove the SDK retry handler")
+		assert.IsType(t, &khttp.RedirectHandler{}, result[0])
 	})
 
 	t.Run("Retry with existing middleware", func(t *testing.T) {
@@ -260,13 +297,24 @@ func TestUnit_AddRedirectHandler_Configuration(t *testing.T) {
 	})
 
 	t.Run("Redirect disabled", func(t *testing.T) {
-		middleware := []khttp.Middleware{}
+		middleware := []khttp.Middleware{khttp.NewRedirectHandler(), khttp.NewRetryHandler()}
 		options := &ClientOptions{
 			EnableRedirect: false,
 		}
 
 		result := addRedirectHandler(ctx, middleware, options)
-		assert.Len(t, result, 0, "Should not add redirect handler")
+		assert.Len(t, result, 1, "Should remove the SDK redirect handler")
+		assert.IsType(t, &khttp.RetryHandler{}, result[0])
+	})
+
+	t.Run("Redirect replaces existing SDK handler", func(t *testing.T) {
+		middleware := []khttp.Middleware{khttp.NewRedirectHandler(), khttp.NewRetryHandler()}
+		options := &ClientOptions{EnableRedirect: true, MaxRedirects: 10}
+
+		result := addRedirectHandler(ctx, middleware, options)
+
+		assert.Len(t, result, 2, "Should replace rather than duplicate the SDK redirect handler")
+		assert.IsType(t, &khttp.RedirectHandler{}, result[0])
 	})
 }
 
@@ -285,13 +333,14 @@ func TestUnit_AddCompressionHandler_Configuration(t *testing.T) {
 	})
 
 	t.Run("Compression disabled", func(t *testing.T) {
-		middleware := []khttp.Middleware{}
+		middleware := []khttp.Middleware{khttp.NewCompressionHandler(), khttp.NewRetryHandler()}
 		options := &ClientOptions{
 			EnableCompression: false,
 		}
 
 		result := addCompressionHandler(ctx, middleware, options)
-		assert.Len(t, result, 0, "Should not add compression handler")
+		assert.Len(t, result, 1, "Should remove the SDK compression handler")
+		assert.IsType(t, &khttp.RetryHandler{}, result[0])
 	})
 
 	t.Run("Compression replaces existing SDK handler", func(t *testing.T) {

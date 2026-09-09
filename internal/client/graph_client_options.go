@@ -17,8 +17,8 @@ import (
 // ConfigureGraphClientOptions configures the Graph client options based on the provided configuration
 func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*http.Client, error) {
 	// The unit-test harness explicitly sets TF_ACC=0 so httpmock can intercept the
-	// default client. An unset TF_ACC is the normal provider runtime and must retain
-	// the Kiota middleware pipeline, including its Retry-After-aware 429 handling.
+	// default client. An unset TF_ACC is the normal provider runtime and must use
+	// the configured Kiota middleware pipeline.
 	if os.Getenv("TF_ACC") == "0" {
 		tflog.Debug(
 			ctx,
@@ -119,46 +119,47 @@ func addRetryHandler(
 	middleware []khttp.Middleware,
 	options *ClientOptions,
 ) []khttp.Middleware {
-	if options.EnableRetry {
-		tflog.Debug(ctx, "Configuring retry handler", map[string]any{
-			"maxRetries":        options.MaxRetries,
-			"retryDelaySeconds": options.RetryDelaySeconds,
+	if !options.EnableRetry {
+		tflog.Debug(ctx, "Retry handler not enabled")
+		return removeMiddleware(middleware, func(existing khttp.Middleware) bool {
+			_, ok := existing.(*khttp.RetryHandler)
+			return ok
 		})
-
-		retryOptions := khttp.RetryHandlerOptions{
-			MaxRetries:   int(options.MaxRetries),
-			DelaySeconds: int(options.RetryDelaySeconds),
-			ShouldRetry: func(delay time.Duration, executionCount int, req *http.Request, resp *http.Response) bool {
-				tflog.Debug(
-					ctx,
-					"Kiota retry handler accepted a retryable response",
-					map[string]any{
-						"attempt":          executionCount,
-						"statusCode":       resp.StatusCode,
-						"cumulative_delay": delay,
-						"method":           req.Method,
-					},
-				)
-				return true
-			},
-		}
-
-		retryHandler := khttp.NewRetryHandlerWithOptions(retryOptions)
-		for i, existing := range middleware {
-			if _, ok := existing.(*khttp.RetryHandler); ok {
-				middleware[i] = retryHandler
-				tflog.Debug(ctx, "Configured existing Kiota retry handler")
-				return middleware
-			}
-		}
-		middleware = append(middleware, retryHandler)
-		tflog.Debug(ctx, "Kiota retry handler added to middleware")
-	} else {
-		tflog.Debug(
-			ctx,
-			"Custom retry settings not enabled; retaining the Kiota default retry handler",
-		)
 	}
+
+	tflog.Debug(ctx, "Configuring retry handler", map[string]any{
+		"maxRetries":        options.MaxRetries,
+		"retryDelaySeconds": options.RetryDelaySeconds,
+	})
+
+	retryOptions := khttp.RetryHandlerOptions{
+		MaxRetries:   int(options.MaxRetries),
+		DelaySeconds: int(options.RetryDelaySeconds),
+		ShouldRetry: func(delay time.Duration, executionCount int, req *http.Request, resp *http.Response) bool {
+			tflog.Debug(
+				ctx,
+				"Kiota retry handler accepted a retryable response",
+				map[string]any{
+					"attempt":          executionCount,
+					"statusCode":       resp.StatusCode,
+					"cumulative_delay": delay,
+					"method":           req.Method,
+				},
+			)
+			return true
+		},
+	}
+
+	retryHandler := khttp.NewRetryHandlerWithOptions(retryOptions)
+	for i, existing := range middleware {
+		if _, ok := existing.(*khttp.RetryHandler); ok {
+			middleware[i] = retryHandler
+			tflog.Debug(ctx, "Configured existing Kiota retry handler")
+			return middleware
+		}
+	}
+	middleware = append(middleware, retryHandler)
+	tflog.Debug(ctx, "Kiota retry handler added to middleware")
 	return middleware
 }
 
@@ -168,24 +169,35 @@ func addRedirectHandler(
 	middleware []khttp.Middleware,
 	options *ClientOptions,
 ) []khttp.Middleware {
-	if options.EnableRedirect {
-		tflog.Debug(
-			ctx,
-			"Configuring redirect handler",
-			map[string]any{"maxRedirects": options.MaxRedirects},
-		)
-		redirectOptions := khttp.RedirectHandlerOptions{
-			MaxRedirects: int(options.MaxRedirects),
-			ShouldRedirect: func(req *http.Request, resp *http.Response) bool {
-				return resp.StatusCode >= 300 && resp.StatusCode < 400
-			},
-		}
-		redirectHandler := khttp.NewRedirectHandlerWithOptions(redirectOptions)
-		middleware = append(middleware, redirectHandler)
-		tflog.Debug(ctx, "Redirect handler added to middleware")
-	} else {
+	if !options.EnableRedirect {
 		tflog.Debug(ctx, "Redirect handler not enabled")
+		return removeMiddleware(middleware, func(existing khttp.Middleware) bool {
+			_, ok := existing.(*khttp.RedirectHandler)
+			return ok
+		})
 	}
+
+	tflog.Debug(
+		ctx,
+		"Configuring redirect handler",
+		map[string]any{"maxRedirects": options.MaxRedirects},
+	)
+	redirectOptions := khttp.RedirectHandlerOptions{
+		MaxRedirects: int(options.MaxRedirects),
+		ShouldRedirect: func(req *http.Request, resp *http.Response) bool {
+			return resp.StatusCode >= 300 && resp.StatusCode < 400
+		},
+	}
+	redirectHandler := khttp.NewRedirectHandlerWithOptions(redirectOptions)
+	for i, existing := range middleware {
+		if _, ok := existing.(*khttp.RedirectHandler); ok {
+			middleware[i] = redirectHandler
+			tflog.Debug(ctx, "Configured existing Kiota redirect handler")
+			return middleware
+		}
+	}
+	middleware = append(middleware, redirectHandler)
+	tflog.Debug(ctx, "Redirect handler added to middleware")
 	return middleware
 }
 
@@ -195,23 +207,40 @@ func addCompressionHandler(
 	middleware []khttp.Middleware,
 	options *ClientOptions,
 ) []khttp.Middleware {
-	if options.EnableCompression {
-		tflog.Debug(ctx, "Configuring compression handler")
-		compressionOptions := khttp.NewCompressionOptionsReference(true)
-		compressionHandler := khttp.NewCompressionHandlerWithOptions(*compressionOptions)
-		for i, existing := range middleware {
-			if _, ok := existing.(*khttp.CompressionHandler); ok {
-				middleware[i] = compressionHandler
-				tflog.Debug(ctx, "Configured existing Kiota compression handler")
-				return middleware
-			}
-		}
-		middleware = append(middleware, compressionHandler)
-		tflog.Debug(ctx, "Compression handler added to middleware")
-	} else {
+	if !options.EnableCompression {
 		tflog.Debug(ctx, "Compression handler not enabled")
+		return removeMiddleware(middleware, func(existing khttp.Middleware) bool {
+			_, ok := existing.(*khttp.CompressionHandler)
+			return ok
+		})
 	}
+
+	tflog.Debug(ctx, "Configuring compression handler")
+	compressionOptions := khttp.NewCompressionOptionsReference(true)
+	compressionHandler := khttp.NewCompressionHandlerWithOptions(*compressionOptions)
+	for i, existing := range middleware {
+		if _, ok := existing.(*khttp.CompressionHandler); ok {
+			middleware[i] = compressionHandler
+			tflog.Debug(ctx, "Configured existing Kiota compression handler")
+			return middleware
+		}
+	}
+	middleware = append(middleware, compressionHandler)
+	tflog.Debug(ctx, "Compression handler added to middleware")
 	return middleware
+}
+
+func removeMiddleware(
+	middleware []khttp.Middleware,
+	shouldRemove func(khttp.Middleware) bool,
+) []khttp.Middleware {
+	result := make([]khttp.Middleware, 0, len(middleware))
+	for _, existing := range middleware {
+		if !shouldRemove(existing) {
+			result = append(result, existing)
+		}
+	}
+	return result
 }
 
 // ensureCompressionPrecedesRetry keeps Kiota's compression handler in the retry scope.

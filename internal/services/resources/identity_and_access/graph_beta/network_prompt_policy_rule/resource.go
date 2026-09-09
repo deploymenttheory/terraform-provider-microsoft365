@@ -206,6 +206,7 @@ func (r *NetworkPromptPolicyRuleResource) Schema(
 					"json_path": schema.StringAttribute{
 						MarkdownDescription: "JSONPath locating the prompt in a custom request. Only valid for custom schemes. When omitted the API uses an empty string; an explicitly configured empty string is preserved.",
 						Optional:            true,
+						Computed:            true,
 					},
 					"scheme_name": schema.StringAttribute{
 						MarkdownDescription: "The predefined scheme name. Required for predefined schemes and forbidden for custom schemes.",

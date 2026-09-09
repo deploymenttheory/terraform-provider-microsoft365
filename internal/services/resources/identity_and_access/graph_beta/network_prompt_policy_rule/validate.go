@@ -68,7 +68,7 @@ func (r *NetworkPromptPolicyRuleResource) ValidateConfig(
 					)
 				}
 			}
-			if !scheme.SchemeName.IsNull() {
+			if !scheme.SchemeName.IsNull() && !scheme.SchemeName.IsUnknown() {
 				resp.Diagnostics.AddAttributeError(
 					p.AtName("scheme_name"),
 					"Conflicting scheme attribute",
@@ -83,7 +83,8 @@ func (r *NetworkPromptPolicyRuleResource) ValidateConfig(
 					"Predefined schemes require scheme_name.",
 				)
 			}
-			if !scheme.URL.IsNull() || !scheme.JSONPath.IsNull() {
+			if (!scheme.URL.IsNull() && !scheme.URL.IsUnknown()) ||
+				(!scheme.JSONPath.IsNull() && !scheme.JSONPath.IsUnknown()) {
 				resp.Diagnostics.AddAttributeError(
 					p,
 					"Conflicting scheme attributes",

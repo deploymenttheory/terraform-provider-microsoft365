@@ -27,14 +27,8 @@ func MapRemoteStateToTerraform(
 			*remote.priority,
 		)
 	}
-	var prior []ConversationSchemeModel
-	if !data.ConversationSchemes.IsNull() && !data.ConversationSchemes.IsUnknown() {
-		if diags := data.ConversationSchemes.ElementsAs(ctx, &prior, false); diags.HasError() {
-			return fmt.Errorf("%w: previous schemes: %v", errInvalidResponse, diags)
-		}
-	}
 	schemes := make([]attr.Value, 0, len(remote.conditions.schemes))
-	for i, scheme := range remote.conditions.schemes {
+	for _, scheme := range remote.conditions.schemes {
 		if scheme.odataType == nil {
 			return fmt.Errorf("%w: scheme missing @odata.type", errInvalidResponse)
 		}
@@ -52,13 +46,6 @@ func MapRemoteStateToTerraform(
 			fields["type"] = types.StringValue(schemeTypeCustom)
 			fields["url"] = types.StringValue(*scheme.url)
 			fields["json_path"] = types.StringValue(*scheme.jsonPath)
-			// Only normalize the observed empty API default for an omitted value on the same scheme.
-			if *scheme.jsonPath == "" && i < len(prior) &&
-				prior[i].Type.ValueString() == schemeTypeCustom &&
-				prior[i].URL.ValueString() == *scheme.url &&
-				prior[i].JSONPath.IsNull() {
-				fields["json_path"] = types.StringNull()
-			}
 		case "microsoft.graph.networkaccess.predefinedConversationScheme":
 			if scheme.schemeName == nil {
 				return fmt.Errorf("%w: predefined scheme missing name", errInvalidResponse)
