@@ -1,0 +1,48 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+This resource manages the Microsoft-managed root certificate authority used by Microsoft Entra Global Secure Access TLS inspection.
+
+## Microsoft Graph API
+
+This resource uses the portal-backed Microsoft Graph beta `/networkaccess/tls/managedCertificateAuthorityCertificates` endpoint. Microsoft Graph beta metadata does not currently expose this endpoint.
+
+Creation uses `POST /beta/networkaccess/tls/managedCertificateAuthorityCertificates`. When `enabled` is `true`, the provider subsequently sends `PATCH /beta/networkaccess/tls/managedCertificateAuthorityCertificates/{id}` with `status = "enabled"` and waits for the observed lifecycle status to become `active`.
+
+## Behavior Notes
+
+- The create request follows the Entra portal and does not include `status` in the POST payload.
+- A newly created certificate is disabled by default. The provider does not send an immediate `status = "disabled"` PATCH because Microsoft Graph rejects that command while the certificate is provisioning.
+- `enabled` represents the desired Terraform state, while `status` exposes the lifecycle state reported by Microsoft Graph.
+- The provider uses the individual certificate GET endpoint to populate the root CA certificate.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate/import.sh" }}
