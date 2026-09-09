@@ -1,0 +1,22 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "name": "test",
+  "description": null,
+  "action": "allow",
+  "priority": 1000,
+  "settings": {
+    "status": "enabled"
+  },
+  "matchingConditions": {
+    "scanResult": "maliciousPromptDetected",
+    "conversationSchemes": [
+      {
+        "@odata.type": "#microsoft.graph.networkaccess.customConversationScheme",
+        "url": "https://example.com/chat",
+        "jsonPath": "$.prompt"
+      }
+    ]
+  },
+  "@odata.type": "#microsoft.graph.networkaccess.promptRule",
+  "promptLogging": "never"
+}

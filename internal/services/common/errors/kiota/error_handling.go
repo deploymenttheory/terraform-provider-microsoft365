@@ -2,17 +2,19 @@ package errors
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 )
 
 // ErrorDescription contains standardized error messages and summaries
@@ -74,8 +76,39 @@ const (
 	CategoryUnknown        ErrorCategory = "unknown"
 )
 
-// HandleKiotaGraphError processes Graph API errors and dispatches them appropriately
-func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation string, requiredPermissions []string) {
+// GraphErrorOptions enables endpoint-specific handling without changing existing callers.
+type GraphErrorOptions struct {
+	// PreserveStateOnReadBadRequest keeps validation errors from removing existing state.
+	PreserveStateOnReadBadRequest bool
+}
+
+// HandleKiotaGraphError processes Graph API errors with the existing default semantics.
+func HandleKiotaGraphError(
+	ctx context.Context,
+	err error,
+	resp any,
+	operation string,
+	requiredPermissions []string,
+) {
+	HandleKiotaGraphErrorWithOptions(
+		ctx,
+		err,
+		resp,
+		operation,
+		requiredPermissions,
+		GraphErrorOptions{},
+	)
+}
+
+// HandleKiotaGraphErrorWithOptions applies endpoint-specific semantics to shared diagnostics.
+func HandleKiotaGraphErrorWithOptions(
+	ctx context.Context,
+	err error,
+	resp any,
+	operation string,
+	requiredPermissions []string,
+	options GraphErrorOptions,
+) {
 	errorInfo := GraphError(ctx, err)
 	errorDesc := getErrorDescription(errorInfo.StatusCode)
 
@@ -99,9 +132,15 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 	// Handle special cases first
 	switch errorInfo.StatusCode {
 	case 400:
-		if operation == constants.TfOperationRead {
+		// URL errors use a synthetic 400; they are not evidence that a resource was deleted.
+		var urlError *url.Error
+		if operation == constants.TfOperationRead && !options.PreserveStateOnReadBadRequest &&
+			!errors.As(err, &urlError) {
 			if _, ok := resp.(*resource.ReadResponse); ok {
-				tflog.Warn(ctx, "Resource appears to no longer exist (400 Response), removing from state")
+				tflog.Warn(
+					ctx,
+					"Resource appears to no longer exist (400 Response), removing from state",
+				)
 				removeResourceFromState(ctx, resp)
 				return
 			}
@@ -110,7 +149,13 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 			constructDetailedErrorMessage(errorDesc.Detail, &errorInfo))
 
 	case 401, 403:
-		tflog.Warn(ctx, fmt.Sprintf("Permission error on %s operation, check required Graph permissions", operation))
+		tflog.Warn(
+			ctx,
+			fmt.Sprintf(
+				"Permission error on %s operation, check required Graph permissions",
+				operation,
+			),
+		)
 		handlePermissionError(ctx, errorInfo, resp, operation, requiredPermissions)
 		return
 
@@ -123,7 +168,10 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 			}
 		}
 		if operation == constants.TfOperationDelete {
-			tflog.Info(ctx, "Resource already deleted or does not exist (404 Response), treating as successful deletion")
+			tflog.Info(
+				ctx,
+				"Resource already deleted or does not exist (404 Response), treating as successful deletion",
+			)
 			return
 		}
 		addErrorToDiagnostics(ctx, resp, errorDesc.Summary,
@@ -140,7 +188,10 @@ func HandleKiotaGraphError(ctx context.Context, err error, resp any, operation s
 
 	case 503:
 		if operation == constants.TfOperationRead {
-			tflog.Warn(ctx, "Service Unavailable (503 Response), service is temporarily unavailable")
+			tflog.Warn(
+				ctx,
+				"Service Unavailable (503 Response), service is temporarily unavailable",
+			)
 			handleServiceUnavailableError(ctx, errorInfo, resp)
 			return
 		}
@@ -223,26 +274,30 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 		"error":      err.Error(),
 	})
 
-	switch typedErr := err.(type) {
-	case *url.Error:
-		extractURLError(ctx, typedErr, &errorInfo)
-	case *odataerrors.ODataError:
-		extractAPIError(ctx, typedErr, &errorInfo)
-	case interface {
-		GetStatusCode() int
-		GetErrorEscaped() odataerrors.MainErrorable
-	}:
-		// This is likely a MockODataError from a test
-		errorInfo.StatusCode = typedErr.GetStatusCode()
-		mainError := typedErr.GetErrorEscaped()
-		extractMainError(ctx, mainError, &errorInfo)
-	case abstractions.ApiErrorable:
-		extractAPIError(ctx, typedErr, &errorInfo)
-	default:
-		// For unknown error types, set a sensible default
-		errorInfo.StatusCode = 500 // Internal Server Error
-		errorInfo.ErrorCode = "UnknownError"
-		errorInfo.Category = CategoryUnknown
+	{
+		var urlError *url.Error
+		var odataError *odataerrors.ODataError
+		var graphResponseError interface {
+			GetStatusCode() int
+			GetErrorEscaped() odataerrors.MainErrorable
+		}
+		var apiError abstractions.ApiErrorable
+		switch {
+		case errors.As(err, &urlError):
+			extractURLError(ctx, urlError, &errorInfo)
+		case errors.As(err, &odataError):
+			extractAPIError(ctx, odataError, &errorInfo)
+		case errors.As(err, &graphResponseError):
+			errorInfo.StatusCode = graphResponseError.GetStatusCode()
+			mainError := graphResponseError.GetErrorEscaped()
+			extractMainError(ctx, mainError, &errorInfo)
+		case errors.As(err, &apiError):
+			extractAPIError(ctx, apiError, &errorInfo)
+		default:
+			errorInfo.StatusCode = 500
+			errorInfo.ErrorCode = "UnknownError"
+			errorInfo.Category = CategoryUnknown
+		}
 	}
 
 	errorInfo.Category = categorizeError(&errorInfo)
@@ -294,7 +349,11 @@ func extractURLError(ctx context.Context, urlErr *url.Error, errorInfo *GraphErr
 }
 
 // extractAPIError handles Microsoft Graph API specific errors with enhanced extraction
-func extractAPIError(ctx context.Context, apiErr abstractions.ApiErrorable, errorInfo *GraphErrorInfo) {
+func extractAPIError(
+	ctx context.Context,
+	apiErr abstractions.ApiErrorable,
+	errorInfo *GraphErrorInfo,
+) {
 	errorInfo.StatusCode = apiErr.GetStatusCode()
 	errorInfo.Headers = apiErr.GetResponseHeaders()
 
@@ -339,7 +398,11 @@ func extractHeaders(apiErr abstractions.ApiErrorable, errorInfo *GraphErrorInfo)
 }
 
 // extractODataError handles OData specific errors with complete extraction
-func extractODataError(ctx context.Context, odataErr *odataerrors.ODataError, errorInfo *GraphErrorInfo) {
+func extractODataError(
+	ctx context.Context,
+	odataErr *odataerrors.ODataError,
+	errorInfo *GraphErrorInfo,
+) {
 	errorInfo.IsODataError = true
 
 	if mainError := odataErr.GetErrorEscaped(); mainError != nil {
@@ -354,7 +417,11 @@ func extractODataError(ctx context.Context, odataErr *odataerrors.ODataError, er
 }
 
 // extractMainError extracts comprehensive information from the main error object
-func extractMainError(ctx context.Context, mainError odataerrors.MainErrorable, errorInfo *GraphErrorInfo) {
+func extractMainError(
+	ctx context.Context,
+	mainError odataerrors.MainErrorable,
+	errorInfo *GraphErrorInfo,
+) {
 	if code := mainError.GetCode(); code != nil && *code != "" {
 		errorInfo.ErrorCode = *code
 		tflog.Debug(ctx, "Found main error code", map[string]any{
@@ -382,7 +449,11 @@ func extractMainError(ctx context.Context, mainError odataerrors.MainErrorable, 
 }
 
 // extractErrorDetails extracts the details array from the main error
-func extractErrorDetails(ctx context.Context, mainError odataerrors.MainErrorable, errorInfo *GraphErrorInfo) {
+func extractErrorDetails(
+	ctx context.Context,
+	mainError odataerrors.MainErrorable,
+	errorInfo *GraphErrorInfo,
+) {
 	details := mainError.GetDetails()
 	if len(details) == 0 {
 		return
@@ -418,7 +489,11 @@ func extractErrorDetails(ctx context.Context, mainError odataerrors.MainErrorabl
 }
 
 // extractInnerError extracts the inner error (only one level in current SDK)
-func extractInnerError(ctx context.Context, innerError odataerrors.InnerErrorable, errorInfo *GraphErrorInfo) {
+func extractInnerError(
+	ctx context.Context,
+	innerError odataerrors.InnerErrorable,
+	errorInfo *GraphErrorInfo,
+) {
 	if innerError == nil {
 		return
 	}
@@ -511,7 +586,7 @@ func constructDetailedErrorMessage(standardDetail string, errorInfo *GraphErrorI
 	}
 
 	if len(errorInfo.InnerErrors) > 0 {
-		var innerParts []string
+		innerParts := make([]string, 0, len(errorInfo.InnerErrors))
 		for i, inner := range errorInfo.InnerErrors {
 			innerStr := fmt.Sprintf("Level %d", i+1)
 			if inner.ODataType != "" {
@@ -535,10 +610,16 @@ func constructDetailedErrorMessage(standardDetail string, errorInfo *GraphErrorI
 		trackingParts = append(trackingParts, fmt.Sprintf("Request ID: %s", errorInfo.RequestID))
 	}
 	if errorInfo.ClientRequestID != "" {
-		trackingParts = append(trackingParts, fmt.Sprintf("Client Request ID: %s", errorInfo.ClientRequestID))
+		trackingParts = append(
+			trackingParts,
+			fmt.Sprintf("Client Request ID: %s", errorInfo.ClientRequestID),
+		)
 	}
 	if errorInfo.CorrelationID != "" {
-		trackingParts = append(trackingParts, fmt.Sprintf("Correlation ID: %s", errorInfo.CorrelationID))
+		trackingParts = append(
+			trackingParts,
+			fmt.Sprintf("Correlation ID: %s", errorInfo.CorrelationID),
+		)
 	}
 	if errorInfo.ErrorDate != "" {
 		trackingParts = append(trackingParts, fmt.Sprintf("Date: %s", errorInfo.ErrorDate))
@@ -605,15 +686,33 @@ func recordErrorMetrics(ctx context.Context, errorInfo *GraphErrorInfo, operatio
 }
 
 // handlePermissionError processes permission-related errors with enhanced details
-func handlePermissionError(ctx context.Context, errorInfo GraphErrorInfo, resp any, operation string, requiredPermissions []string) {
+func handlePermissionError(
+	ctx context.Context,
+	errorInfo GraphErrorInfo,
+	resp any,
+	operation string,
+	requiredPermissions []string,
+) {
 	var permissionMsg string
 
-	if len(requiredPermissions) == 1 {
-		permissionMsg = fmt.Sprintf("%s operation requires permission: %s", operation, requiredPermissions[0])
-	} else if len(requiredPermissions) > 1 {
-		permissionMsg = fmt.Sprintf("%s operation requires one or more of the following permissions: %s", operation, strings.Join(requiredPermissions, ", "))
-	} else {
-		permissionMsg = fmt.Sprintf("%s operation: No specific permissions defined. Please check Microsoft documentation.", operation)
+	switch {
+	case len(requiredPermissions) == 1:
+		permissionMsg = fmt.Sprintf(
+			"%s operation requires permission: %s",
+			operation,
+			requiredPermissions[0],
+		)
+	case len(requiredPermissions) > 1:
+		permissionMsg = fmt.Sprintf(
+			"%s operation requires one or more of the following permissions: %s",
+			operation,
+			strings.Join(requiredPermissions, ", "),
+		)
+	default:
+		permissionMsg = fmt.Sprintf(
+			"%s operation: No specific permissions defined. Please check Microsoft documentation.",
+			operation,
+		)
 	}
 
 	errorDesc := getErrorDescription(errorInfo.StatusCode)
