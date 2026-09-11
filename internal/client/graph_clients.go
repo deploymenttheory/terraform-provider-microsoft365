@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	khttp "github.com/microsoft/kiota-http-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 )
@@ -83,6 +84,7 @@ type GraphClientInterface interface {
 }
 
 type GraphClients struct {
+	RetryOptions         khttp.RetryHandlerOptions
 	KiotaGraphV1Client   *msgraphsdk.GraphServiceClient
 	KiotaGraphBetaClient *msgraphbetasdk.GraphServiceClient
 	GraphV1Client        *AuthenticatedHTTPClient
@@ -249,4 +251,13 @@ func (m *MockGraphClients) GetGraphV1Client() *AuthenticatedHTTPClient {
 // GetGraphBetaClient returns the mock Beta HTTP client
 func (m *MockGraphClients) GetGraphBetaClient() *AuthenticatedHTTPClient {
 	return m.MockBetaHTTPClient
+}
+
+// GraphRetryOptionsForResource returns a copy of the configured Graph retry limits.
+// Resources may replace the callback without changing the shared client settings.
+func GraphRetryOptionsForResource(providerData any) khttp.RetryHandlerOptions {
+	if clients, ok := providerData.(*GraphClients); ok && clients != nil {
+		return clients.RetryOptions
+	}
+	return khttp.RetryHandlerOptions{}
 }
