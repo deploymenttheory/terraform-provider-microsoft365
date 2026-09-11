@@ -287,3 +287,39 @@ func TestUnitResourceWindowsEnrollmentStatusPage_06_Lifecycle_MaximalToMinimal(t
 		},
 	})
 }
+
+// Test 007: Selected mobile app of an unsupported platform is rejected
+func TestUnitResourceWindowsEnrollmentStatusPage_07_SelectedMobileAppInvalidType(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, espMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer espMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("resource_invalid_app_type.tf"),
+				ExpectError: regexp.MustCompile(`(?s)not\s+a\s+valid\s+Windows\s+app\s+type`),
+			},
+		},
+	})
+}
+
+// Test 008: Selected mobile app that does not exist is rejected
+func TestUnitResourceWindowsEnrollmentStatusPage_08_SelectedMobileAppNotFound(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, espMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer espMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("resource_unknown_app_id.tf"),
+				ExpectError: regexp.MustCompile(`(?s)not\s+found\s+in\s+Intune`),
+			},
+		},
+	})
+}
