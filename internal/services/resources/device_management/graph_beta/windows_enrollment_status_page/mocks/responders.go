@@ -17,6 +17,67 @@ var mockState struct {
 	enrollmentStatusPages map[string]map[string]any
 }
 
+// Apps referenced by selected_mobile_app_ids in the unit test configurations.
+var mockMobileApps = map[string]map[string]any{
+	"12345678-1234-1234-1234-123456789012": {
+		"@odata.type":     "#microsoft.graph.win32LobApp",
+		"id":              "12345678-1234-1234-1234-123456789012",
+		"displayName":     "Test App 1",
+		"description":     "Test application 1 for unit testing",
+		"publisher":       "Test Publisher",
+		"publishingState": "published",
+	},
+	"87654321-4321-4321-4321-210987654321": {
+		"@odata.type":     "#microsoft.graph.winGetApp",
+		"id":              "87654321-4321-4321-4321-210987654321",
+		"displayName":     "Test App 2",
+		"description":     "Test application 2 for unit testing",
+		"publisher":       "Test Publisher",
+		"publishingState": "published",
+	},
+	"e4938228-aab3-493b-a9d5-8250aa8e9d55": {
+		"@odata.type":     "#microsoft.graph.win32LobApp",
+		"id":              "e4938228-aab3-493b-a9d5-8250aa8e9d55",
+		"displayName":     "Test App 3",
+		"description":     "Test application 3 for unit testing",
+		"publisher":       "Test Publisher",
+		"publishingState": "published",
+	},
+	"e83d36e1-3ff2-4567-90d9-940919184ad5": {
+		"@odata.type":     "#microsoft.graph.win32LobApp",
+		"id":              "e83d36e1-3ff2-4567-90d9-940919184ad5",
+		"displayName":     "Test App 4",
+		"description":     "Test application 4 for unit testing",
+		"publisher":       "Test Publisher",
+		"publishingState": "published",
+	},
+	"cd4486df-05cc-42bd-8c34-67ac20e10166": {
+		"@odata.type":     "#microsoft.graph.win32LobApp",
+		"id":              "cd4486df-05cc-42bd-8c34-67ac20e10166",
+		"displayName":     "Test App 5",
+		"description":     "Test application 5 for unit testing",
+		"publisher":       "Test Publisher",
+		"publishingState": "published",
+	},
+	"a1b2c3d4-0000-0000-0000-000000000001": {
+		"@odata.type":     "#microsoft.graph.iosStoreApp",
+		"id":              "a1b2c3d4-0000-0000-0000-000000000001",
+		"displayName":     "Test iOS App",
+		"description":     "Non-Windows application for unit testing",
+		"publisher":       "Test Publisher",
+		"publishingState": "published",
+	},
+}
+
+// Deliberately truncated: the list endpoint must never be sufficient to validate
+// selected_mobile_app_ids, so list-based validation regressions fail the tests.
+func mockMobileAppList() []any {
+	return []any{
+		mockMobileApps["12345678-1234-1234-1234-123456789012"],
+		mockMobileApps["87654321-4321-4321-4321-210987654321"],
+	}
+}
+
 func init() {
 	mockState.enrollmentStatusPages = make(map[string]map[string]any)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
@@ -33,55 +94,27 @@ func (m *WindowsEnrollmentStatusPageMock) RegisterMocks() {
 	mockState.Unlock()
 
 	// Mock the mobile apps endpoint for validation
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps.*`, func(req *http.Request) (*http.Response, error) {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps(\?.*)?$`, func(req *http.Request) (*http.Response, error) {
 		// Return mock mobile apps that include the test app IDs used in unit tests
 		mockApps := map[string]any{
-			"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
-			"@odata.count":   5,
-			"value": []any{
-				map[string]any{
-					"@odata.type":     "#microsoft.graph.win32LobApp",
-					"id":              "12345678-1234-1234-1234-123456789012",
-					"displayName":     "Test App 1",
-					"description":     "Test application 1 for unit testing",
-					"publisher":       "Test Publisher",
-					"publishingState": "published",
-				},
-				map[string]any{
-					"@odata.type":     "#microsoft.graph.winGetApp",
-					"id":              "87654321-4321-4321-4321-210987654321",
-					"displayName":     "Test App 2",
-					"description":     "Test application 2 for unit testing",
-					"publisher":       "Test Publisher",
-					"publishingState": "published",
-				},
-				map[string]any{
-					"@odata.type":     "#microsoft.graph.win32LobApp",
-					"id":              "e4938228-aab3-493b-a9d5-8250aa8e9d55",
-					"displayName":     "Test App 3",
-					"description":     "Test application 3 for unit testing",
-					"publisher":       "Test Publisher",
-					"publishingState": "published",
-				},
-				map[string]any{
-					"@odata.type":     "#microsoft.graph.win32LobApp",
-					"id":              "e83d36e1-3ff2-4567-90d9-940919184ad5",
-					"displayName":     "Test App 4",
-					"description":     "Test application 4 for unit testing",
-					"publisher":       "Test Publisher",
-					"publishingState": "published",
-				},
-				map[string]any{
-					"@odata.type":     "#microsoft.graph.win32LobApp",
-					"id":              "cd4486df-05cc-42bd-8c34-67ac20e10166",
-					"displayName":     "Test App 5",
-					"description":     "Test application 5 for unit testing",
-					"publisher":       "Test Publisher",
-					"publishingState": "published",
-				},
-			},
+			"@odata.context":  "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/mobileApps",
+			"@odata.count":    len(mockMobileApps),
+			"@odata.nextLink": "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps?$skiptoken=page2",
+			"value":           mockMobileAppList(),
 		}
 		return httpmock.NewJsonResponse(200, mockApps)
+	})
+
+	// Mock the single mobile app endpoint used to validate selected_mobile_app_ids
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/([^/?]+)(\?.*)?$`, func(req *http.Request) (*http.Response, error) {
+		appId := httpmock.MustGetSubmatch(req, 1)
+		app, ok := mockMobileApps[appId]
+		if !ok {
+			return httpmock.NewJsonResponse(404, map[string]any{
+				"error": map[string]any{"code": "ResourceNotFound", "message": "Mobile app not found"},
+			})
+		}
+		return httpmock.NewJsonResponse(200, app)
 	})
 
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceEnrollmentConfigurations", func(req *http.Request) (*http.Response, error) {
