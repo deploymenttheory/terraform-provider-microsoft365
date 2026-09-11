@@ -630,3 +630,26 @@ func TestUnit_ConfigureGraphClientOptions_RetryBounds(t *testing.T) {
 		})
 	}
 }
+
+func TestUnit_GraphRetryOptionsForResource(t *testing.T) {
+	for _, tc := range []struct {
+		name           string
+		options        *ClientOptions
+		retries, delay int
+	}{
+		{"nil defaults", nil, 0, 0},
+		{"SDK defaults", &ClientOptions{}, 0, 0},
+		{"configured", &ClientOptions{EnableRetry: true, MaxRetries: 1, RetryDelaySeconds: 5}, 1, 5},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			clients := &GraphClients{RetryOptions: graphRetryOptions(tc.options)}
+			got := GraphRetryOptionsForResource(clients)
+			require.Equal(t, tc.retries, got.MaxRetries)
+			require.Equal(t, tc.delay, got.DelaySeconds)
+			got.MaxRetries = 9
+			require.Equal(t, tc.retries, clients.RetryOptions.MaxRetries)
+		})
+	}
+	require.Zero(t, GraphRetryOptionsForResource(nil).MaxRetries)
+	require.Zero(t, GraphRetryOptionsForResource(&MockGraphClients{}).MaxRetries)
+}
