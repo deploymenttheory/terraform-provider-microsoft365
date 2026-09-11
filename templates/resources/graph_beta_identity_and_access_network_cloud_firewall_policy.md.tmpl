@@ -1,0 +1,55 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Microsoft Graph resource reference](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-cloudfirewallpolicy?view=graph-rest-beta)
+
+## Microsoft Graph API
+
+```http
+POST   /beta/networkAccess/cloudFirewallPolicies
+GET    /beta/networkAccess/cloudFirewallPolicies/{id}
+PATCH  /beta/networkAccess/cloudFirewallPolicies/{id}
+DELETE /beta/networkAccess/cloudFirewallPolicies/{id}
+```
+
+## Behavior Notes
+
+- This resource manages the policy container. Manage child rules using the separate cloud firewall policy rule resource.
+- `default_action` supports `allow`. Terraform explicitly sends this setting; it is required by the API.
+- Destroy deletes the policy. The API cascades deletion to its rules, so manage child rules and reference this resource's ID to preserve dependency ordering.
+- Creating or importing a policy does not link it to traffic. Policy names need not be unique.
+
+## Microsoft Graph API Permissions
+
+Application authentication requires `NetworkAccess.ReadWrite.All` for management. Read-only API calls also support `NetworkAccess.Read.All`. The tenant must have the Global Secure Access cloud firewall feature available.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_cloud_firewall_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_cloud_firewall_policy/import.sh" }}
+
+Terraform resource identity import is also supported:
+
+```terraform
+import {
+  to = microsoft365_graph_beta_identity_and_access_network_cloud_firewall_policy.example
+  identity = {
+    id = "00000000-0000-0000-0000-000000000002"
+  }
+}
+```
