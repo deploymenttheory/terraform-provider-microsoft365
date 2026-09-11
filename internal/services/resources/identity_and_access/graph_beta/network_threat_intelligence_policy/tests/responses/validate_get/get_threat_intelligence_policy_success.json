@@ -1,0 +1,11 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "name": "test",
+  "description": null,
+  "@odata.type": "#microsoft.graph.networkaccess.threatIntelligencePolicy",
+  "version": "1.0.0",
+  "lastModifiedDateTime": "2026-09-07T01:00:00Z",
+  "settings": {
+    "defaultAction": "allow"
+  }
+}

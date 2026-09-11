@@ -49,6 +49,11 @@ func ConfigureGraphClientOptions(ctx context.Context, config *ProviderData) (*ht
 	defaultMiddleware = addUserAgentHandler(ctx, defaultMiddleware, config.ClientOptions)
 	defaultMiddleware = addHeadersInspectionHandler(ctx, defaultMiddleware, config.ClientOptions)
 	defaultMiddleware = ensureCompressionPrecedesRetry(defaultMiddleware)
+	for i, handler := range defaultMiddleware {
+		if compression, ok := handler.(*khttp.CompressionHandler); ok {
+			defaultMiddleware[i] = &replayableCompressionHandler{compression}
+		}
+	}
 
 	httpClient, err := configureHTTPClientWithProxyAndMiddleware(ctx, config, defaultMiddleware)
 	if err != nil {
