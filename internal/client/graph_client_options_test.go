@@ -598,3 +598,35 @@ func TestConfigureGraphClientOptions_Integration(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to create chaos handler")
 	})
 }
+
+// TestUnit_ConfigureGraphClientOptions_RetryBounds checks the production pipeline,
+// including the retry limit when custom options replace the SDK defaults.
+func TestUnit_ConfigureGraphClientOptions_RetryBounds(t *testing.T) {
+	t.Setenv("TF_ACC", "")
+	for _, status := range []int{429, 503, 504, 400, 403, 404} {
+		t.Run(http.StatusText(status), func(t *testing.T) {
+			attempts := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				attempts++
+				w.Header().Set("Retry-After", "0")
+				w.WriteHeader(status)
+			}))
+			defer server.Close()
+			client, err := ConfigureGraphClientOptions(context.Background(), &ProviderData{
+				ClientOptions: &ClientOptions{EnableRetry: true, MaxRetries: 1, RetryDelaySeconds: 1},
+			})
+			require.NoError(t, err)
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL, nil)
+			require.NoError(t, err)
+			resp, err := client.Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			require.Equal(t, status, resp.StatusCode)
+			want := 1
+			if status == 429 || status == 503 || status == 504 {
+				want = 2
+			}
+			require.Equal(t, want, attempts)
+		})
+	}
+}
