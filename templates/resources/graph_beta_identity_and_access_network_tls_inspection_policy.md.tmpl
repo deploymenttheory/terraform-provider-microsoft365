@@ -1,0 +1,40 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [TLS inspection](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-transport-layer-security)
+- [Graph API resource](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-tlsinspectionpolicy?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+Reading requires `NetworkAccess.Read.All`; writing requires `NetworkAccess.ReadWrite.All`. Microsoft Graph documents both application and delegated permissions. Delegated callers also require an appropriate administrator role such as Global Secure Access Administrator or Security Administrator.
+
+## Behavior Notes
+
+- `default_action` is required; Terraform does not choose a default for traffic inspection.
+- Policy creation automatically adds system and recommended bypass rules. This resource does not take ownership of them or send inline `policyRules`.
+- Deleting the parent policy cascades to its rules in Microsoft Graph. Use references from rule resources so Terraform can order destruction.
+- `version` is assigned by the API and cannot be updated. The last modification timestamp can also change when a rule changes.
+- There is no policy-level `enabled` field. A certificate authority and filtering profile link are configured separately to apply TLS inspection to traffic.
+- Omitting `description` clears it to null; an explicit empty string remains an empty string.
+
+All CRUD operations default to a timeout of **3 minutes**. Configure `timeouts` to override them.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_tls_inspection_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_tls_inspection_policy/import.sh" }}
