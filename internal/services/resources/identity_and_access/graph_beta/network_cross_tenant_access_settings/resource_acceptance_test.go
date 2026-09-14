@@ -34,7 +34,8 @@ func TestAccResourceNetworkCrossTenantAccessSettings_01_AdoptCurrentValue(t *tes
 	require.Contains(t, []string{"enabled", "disabled"}, status)
 	hcl, err := os.ReadFile("tests/terraform/acceptance/resource.tf")
 	require.NoError(t, err)
-	config := acceptance.ConfiguredM365ProviderBlock(strings.ReplaceAll(string(hcl), "{{STATUS}}", status))
+	// Keep credentials in environment variables; the test framework can log the HCL.
+	config := "provider \"microsoft365\" {}\n" + strings.ReplaceAll(string(hcl), "{{STATUS}}", status)
 	address := resourceType + ".test"
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
