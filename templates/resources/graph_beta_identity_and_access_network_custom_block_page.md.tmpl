@@ -1,0 +1,51 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+Manages the Microsoft Entra Global Secure Access custom block page using `/networkAccess/settings/customBlockPage`.
+
+This is a tenant-wide singleton. Initial apply and updates use PATCH to configure the existing settings. Destroy removes the resource from Terraform state only and leaves the remote settings unchanged. Manage only one instance per tenant, across all Terraform configurations and states.
+
+## Lifecycle
+
+| Terraform operation | Microsoft Graph operation |
+| --- | --- |
+| Create (initial apply) | PATCH existing settings, then GET |
+| Read / refresh / import | GET existing settings |
+| Update | PATCH existing settings, then GET |
+| Delete / destroy | No API call; remove Terraform state only |
+
+The API documents Get and Update only. The generated SDK exposes a Delete method, but this resource does not call it. Destroy neither disables the page nor resets its body. To disable the custom message, apply `state = "disabled"` before removing the resource.
+
+The ID is the fixed Terraform identifier `customBlockPage`; the observed portal GET response did not contain an ID. Import with this exact identifier to inspect existing settings before applying changes.
+
+Omitting `configuration` preserves the existing message. When configured, `configuration.body` must contain non-whitespace text and be 1–1024 UTF-16 code units long. Most characters count as one unit; supplementary characters such as emoji count as two. The body supports plain text and Markdown links. Empty and whitespace-only bodies are rejected by the API, even when disabled. Disabling the page preserves its body.
+
+The portal notification category is currently fixed to access blocked or restricted. No corresponding writable API property has been verified, so the resource does not expose a notification type. The Markdown configuration discriminator is supplied internally.
+
+## Microsoft Documentation
+
+- [customBlockPage resource](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-customblockpage?view=graph-rest-beta)
+- [Get customBlockPage](https://learn.microsoft.com/en-us/graph/api/networkaccess-customblockpage-get?view=graph-rest-beta)
+- [Update customBlockPage](https://learn.microsoft.com/en-us/graph/api/networkaccess-customblockpage-update?view=graph-rest-beta)
+- [Markdown configuration](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-markdownblockmessageconfiguration?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+- Read: `NetworkAccess.Read.All` (or `NetworkAccess.ReadWrite.All`).
+- Write: `NetworkAccess.ReadWrite.All`.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_custom_block_page/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_custom_block_page/import.sh" }}
