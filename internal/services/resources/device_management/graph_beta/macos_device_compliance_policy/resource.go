@@ -263,9 +263,8 @@ func (r *MacosDeviceCompliancePolicyResource) Schema(ctx context.Context, req re
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"rule_name": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: "Name of the scheduled action rule. When omitted, resolves to PasswordRequired. Microsoft Graph applies actions policy-wide and does not return the rule name; configured names are retained in state for compatibility.",
+    						Optional:            true,
+    						MarkdownDescription: "Name of the scheduled action rule",
 						},
 						"scheduled_action_configurations": schema.SetNestedAttribute{
 							Required:            true,
