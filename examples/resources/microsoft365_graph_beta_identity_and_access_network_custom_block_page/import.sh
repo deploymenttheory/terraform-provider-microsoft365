@@ -1,0 +1,1 @@
+terraform import microsoft365_graph_beta_identity_and_access_network_custom_block_page.example customBlockPage
