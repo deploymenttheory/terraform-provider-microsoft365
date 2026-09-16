@@ -1,0 +1,38 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Related Resources
+
+Enable `internet_access.is_enabled` before creating [hosted custom PAC files](graph_beta_identity_and_access_network_proxy_auto_configuration.md). That resource's example includes the required `depends_on`. [DNS forwarding options](graph_beta_identity_and_access_network_forwarding_options.md) are managed independently.
+
+Restore the desired proxy settings before destroy if necessary; destroying this singleton resource leaves the remote configuration unchanged.
+
+## Microsoft Documentation
+
+- [Explicit Forward Proxy](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-explicit-forward-proxy)
+
+## Microsoft Graph API Permissions
+
+- Read / Write (application): `NetworkAccess.ReadWrite.All`, verified in live testing.
+
+A minimum read-only permission has not been verified.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_explicit_forward_proxy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_explicit_forward_proxy/import.sh" }}

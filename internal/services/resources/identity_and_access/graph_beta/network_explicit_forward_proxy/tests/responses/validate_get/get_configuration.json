@@ -1,0 +1,13 @@
+{
+  "proxyAutoConfigurationFileUrl": "https://example.invalid/generated",
+  "privateAccess": {
+    "isEnabled": false
+  },
+  "internetAccess": {
+    "isEnabled": false,
+    "isSourceIpSessionAffinityEnabled": true,
+    "sourceIpSessionAffinityOptions": "useSessionId",
+    "isMtlsRequired": true,
+    "futureSetting": "preserve"
+  }
+}

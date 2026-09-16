@@ -1,0 +1,2 @@
+# Import the tenant singleton
+terraform import microsoft365_graph_beta_identity_and_access_network_explicit_forward_proxy.example explicitForwardProxyConfig
