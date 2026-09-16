@@ -1,0 +1,46 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Prerequisites
+
+[Explicit Forward Proxy must be enabled and configured](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-custom-proxy-file-hosting#prerequisites), including licensing, TLS inspection and access policies. The example declares `depends_on` on [network_explicit_forward_proxy](graph_beta_identity_and_access_network_explicit_forward_proxy.md). If that singleton is already managed in Terraform, reference the existing resource or module instead of declaring a duplicate. If managed externally, configure it before applying this resource.
+
+The PAC's `is_enabled` controls its availability to clients independently of EFP enablement. Destroy deletes the PAC, but destroying the EFP resource leaves the proxy configuration unchanged.
+
+## PAC File Considerations
+
+Public PAC URLs are service-generated and are not exposed by this resource. Changes to a file can affect clients using it; cached copies can delay their effect.
+
+`${GSAEFP}` remains literal in stored content and is substituted when served. Use `$${GSAEFP}` in an HCL string or heredoc; a file loaded with `file()` needs no escaping. A tenant can host up to 20 files.
+
+Reusing a deleted PAC name can return HTTP 409. Use a fresh unique name when recreating a file; the service's name-retention period is unknown.
+
+## Microsoft Documentation
+
+- [Custom PAC file hosting](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-custom-proxy-file-hosting)
+
+## Microsoft Graph API Permissions
+
+- Read / Write (application): `NetworkAccess.ReadWrite.All`, verified in live testing.
+
+A minimum read-only permission has not been verified.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_proxy_auto_configuration/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_proxy_auto_configuration/import.sh" }}
