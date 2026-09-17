@@ -1,0 +1,20 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "creationSource": "DepTokenId_30000000-0000-0000-0000-000000000003",
+  "description": "iOS/iPadOS ADE enrollment policy exercising the full settings tree",
+  "id": "10000000-0000-0000-0000-000000000001",
+  "isAssigned": false,
+  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "name": "unit-test-ios-ade-maximal",
+  "platforms": "iOS",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "settingCount": 38,
+  "technologies": "enrollment",
+  "templateReference": {
+    "templateFamily": "enrollmentConfiguration",
+    "templateId": "27d20e9c-50c1-48f8-a44c-f37de4510051_1"
+  }
+}

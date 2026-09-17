@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "Software update configuration not found"
+  }
+}

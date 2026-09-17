@@ -1,25 +1,32 @@
 package graphBetaMacOSDepEnrollmentProfile_test
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaMacOSDepEnrollmentProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_dep_enrollment_profile"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+const resourceType = graphBetaMacOSDepEnrollmentProfile.ResourceName
+
+var testResource = graphBetaMacOSDepEnrollmentProfile.MacOSDepEnrollmentProfileTestResource{}
 
 func TestAccResourceMacOSDepEnrollmentProfile_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckMacOSDepEnrollmentProfileDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -68,48 +75,4 @@ func testAccMacOSDepEnrollmentProfileConfig_skipSetup() string {
 		log.Fatalf("Failed to load skip setup test config: %v", err)
 	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccCheckMacOSDepEnrollmentProfileDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile" {
-			continue
-		}
-
-		// The ID format is: depOnboardingSettingsId_enrollmentProfileId
-		resourceId := rs.Primary.ID
-		depOnboardingSettingsId := rs.Primary.Attributes["dep_onboarding_settings_id"]
-
-		if depOnboardingSettingsId == "" {
-			dm, err := graphClient.DeviceManagement().Get(ctx, nil)
-			if err != nil {
-				return fmt.Errorf("error resolving dep onboarding settings id: %v", err)
-			}
-			depOnboardingSettingsId = dm.GetIntuneAccountId().String()
-		}
-
-		_, err := graphClient.
-			DeviceManagement().
-			DepOnboardingSettings().
-			ByDepOnboardingSettingId(depOnboardingSettingsId).
-			EnrollmentProfiles().
-			ByEnrollmentProfileId(resourceId).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", resourceId)
-				continue
-			}
-			return fmt.Errorf("error checking if macos dep enrollment profile %s was destroyed: %v", resourceId, err)
-		}
-		return fmt.Errorf("macos dep enrollment profile %s still exists", resourceId)
-	}
-	return nil
 }

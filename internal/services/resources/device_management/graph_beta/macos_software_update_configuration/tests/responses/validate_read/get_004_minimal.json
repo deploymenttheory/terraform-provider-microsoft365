@@ -1,0 +1,16 @@
+{
+  "@odata.type": "#microsoft.graph.macOSSoftwareUpdateConfiguration",
+  "allOtherUpdateBehavior": "installASAP",
+  "assignments": [],
+  "configDataUpdateBehavior": "installASAP",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "criticalUpdateBehavior": "installASAP",
+  "displayName": "Test 04: Regression macOS Software Update Configuration",
+  "firmwareUpdateBehavior": "installASAP",
+  "id": "10000000-0000-0000-0000-000000000001",
+  "lastModifiedDateTime": "2024-01-01T01:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "updateScheduleType": "alwaysUpdate"
+}
