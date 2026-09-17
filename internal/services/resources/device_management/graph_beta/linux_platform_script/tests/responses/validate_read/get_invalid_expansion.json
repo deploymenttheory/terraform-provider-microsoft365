@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "BadRequest",
+    "message": "Parsing OData Select and Expand failed: Could not find a property named 'children' on type 'microsoft.graph.deviceManagementConfigurationSetting'."
+  }
+}

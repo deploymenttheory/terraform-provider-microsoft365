@@ -1,0 +1,21 @@
+{
+  "createdDateTime": "2026-09-17T04:48:06.0622976Z",
+  "creationSource": null,
+  "description": null,
+  "lastModifiedDateTime": "2026-09-17T04:48:06.0622976Z",
+  "name": "Linux platform script fixture",
+  "platforms": "linux",
+  "priorityMetaData": null,
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "settingCount": 4,
+  "technologies": "linuxMdm",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "templateReference": {
+    "templateId": "92439f26-2b30-4503-8429-6d40f7e172dd_1",
+    "templateFamily": "deviceConfigurationScripts",
+    "templateDisplayName": "Custom Configuration",
+    "templateDisplayVersion": "Version 1"
+  }
+}
