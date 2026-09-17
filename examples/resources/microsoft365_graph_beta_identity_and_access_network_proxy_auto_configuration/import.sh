@@ -1,0 +1,2 @@
+# Import the Graph custom PAC object UUID
+terraform import microsoft365_graph_beta_identity_and_access_network_proxy_auto_configuration.example 11111111-2222-3333-4444-555555555555
