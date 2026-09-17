@@ -5,6 +5,63 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.0.0...v1.1.0) (2026-09-17)
+
+
+### Features
+
+* add Global Secure Access cloud firewall policy and rule resources ([38e6139](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/38e613945cf15d6477f356268071a0d638a6ae92))
+* add Global Secure Access cloud firewall policy and rule resources ([#3801](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3801)) ([f1fe560](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f1fe560ce7686eda3fa462222b98913895da0f6a))
+* add Global Secure Access conditional access settings resource ([825da8b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/825da8beca0379ae2ad150935621dc895e3a82db))
+* add Global Secure Access conditional access settings resource ([#3856](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3856)) ([084bfde](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/084bfde4767cc6400d0f057d8743c089f7c9ca79))
+* add Global Secure Access cross-tenant access settings resource ([#3857](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3857)) ([dbe010f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dbe010fc22f8bcc8ff5cf0cc70cf7960d916d474))
+* add Global Secure Access custom block page resource ([9461105](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/946110522d02db186f0266820341bf43b70b19af))
+* add Global Secure Access custom block page resource ([#3855](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3855)) ([4660d2b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4660d2baff27aba56b5d53e961ebae4510b5c19f))
+* add Global Secure Access managed TLS certificate ([0914d34](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0914d34b116a0b3a8589555e4b8895edcf4a6db9))
+* add Global Secure Access managed TLS certificate ([#3773](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3773)) ([076e8df](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/076e8df05024eef5c727563f6ab98e0077220d0d))
+* add Global Secure Access MCP policy and rule resources ([142628d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/142628d1c846f1e1ba4c9b148e6ac472c0f87518))
+* add Global Secure Access MCP policy and rule resources ([#3779](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3779)) ([3456fa5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3456fa5b24015b19e329d5b086aa249bbb2dcfe4))
+* add Global Secure Access prompt policy and rule resources ([#3778](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3778)) ([2f196e7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2f196e7f2dc03bbaca086fa23de79743d616b757))
+* add Global Secure Access threat intelligence policy and rule resources ([10dfd80](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/10dfd801a5f6494222662a33d1b112bbde68ec8b))
+* add Global Secure Access threat intelligence policy and rule resources ([#3800](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3800)) ([dd27dd5](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dd27dd5e1749e2c346df92e62797cb2ddfdf8155))
+* add independent Global Secure Access prompt policies and rules ([dc25504](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dc2550448ca18a3a897aa2e1eb9147f0acbe7315))
+* add independent TLS inspection policy and rule resources ([aa44d3e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/aa44d3ec08e81533a0991a803be2063b97bc29b4))
+* add independent TLS inspection policy and rule resources ([#3777](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3777)) ([2cc6309](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/2cc6309627fa657cf60318de1bb0979b73a6d84c))
+* add network cross-tenant access settings resource ([3bff51e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3bff51e3b046ad54380bf9d2a3f322a9fa279e5a))
+* add network explicit forward proxy resource ([f4900a4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f4900a42144b3ca531874ea8aaf0047acea56cfc))
+* add network forwarding options resource ([fb1ff59](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fb1ff591f045b20e563f9a1aaf15b3641de0e281))
+* add network proxy auto configuration resource ([4d1adde](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4d1adde697ad8e66c7b4c98b92c815fc1ada3f1e))
+* add windows_autopilot_device_preparation_policy data source ([dbf13fd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dbf13fd4d7a5403b9554493706de8a826a58427e))
+* add windows_autopilot_device_preparation_policy data source ([#3774](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3774)) ([b813d93](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b813d935bd6ed48f0a5a1f86a18ac505f8b5d564))
+* align device preparation policy data source with device data source pattern ([ee7ea15](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ee7ea15fec44dbe7e9d4a22c655768d7bcebed85))
+* ios managed app protection ([#3695](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3695)) ([9d27183](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9d27183ffd3dff99097d8a16133b2d273aeef24d))
+* manage GSA forwarding options, explicit proxy and custom PAC files ([#3913](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3913)) ([d80d66f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d80d66f1fd2848b22348ef94981998f60c994ad4))
+
+
+### Bug Fixes
+
+* added full test harness to resource device_management_linux_device_compliance_policy ([58fa03a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/58fa03aff0e141b5380ef6f895423a228b14cdf0))
+* added full test harness to resource device_management_linux_device_compliance_policy ([#3915](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3915)) ([3775d4a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3775d4a8263fad787e5f0167450c970abd5d7a72))
+* align managed TLS certificate data source id handling ([f69d200](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f69d2007b2ec8f8781ec347ade64f64c1ff94d5b))
+* categorize prompt policy docs and clarify error variable names ([efc8515](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/efc8515d0c232c9c48f01abcb5d6f31075182803))
+* honor Graph middleware options ([3a867a4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3a867a4991a096a4b9bd9533999eadf08da15e58))
+* keep prompt priority bounds visible to static analysis ([6cbbc62](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6cbbc62a6b6f096df68adb17cf72e51ece206676))
+* preserve Graph request bodies when retrying compression fallback ([4fd8583](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4fd8583a52a1a1ac2eced4a7aed2dcdce4ed18dc))
+* preserve Kiota retry handling for throttling ([b960ca8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b960ca88075226f3cd737599c4bc846752abf3d1))
+* preserve Kiota retry handling for throttling ([0ce062e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0ce062e690b558a40dba92ebb02c4259192798be))
+* preserve Kiota retry middleware in provider runtime ([486fa1b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/486fa1b8d039eebe6b79ada74db1daae1a85f19a))
+* preserve request bodies on throttled retries ([34d6030](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/34d6030b0a7b7c58413d903a3de1dd1d31401877))
+* read Linux compliance assignments from dedicated endpoint ([83b8150](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/83b8150afef7c271ea11e9829d252c3831c2fb96))
+* read Linux compliance assignments from dedicated endpoint ([#3914](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3914)) ([cabec95](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cabec952d28088f1fe3e1205d47b03f0881b3fa7))
+* retain device security group on autopilot device preparation policy update ([#3775](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3775)) ([a30944b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a30944b0814887eb8c055551efdaad18f4fdd06a))
+* retain device security group on autopilot policy update ([81a6f69](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/81a6f6960e12312b6da42121fa40470332fe2a77))
+* retain resource state on wrapped transport errors ([4f25fdc](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4f25fdcb3f6e0d97d48694f9299a22fa16b41761))
+* stabilize prompt rule scheme readback ([90b933e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/90b933e20ff4d7ecc8cdc597bbe0edf207260bcf))
+* use Kiota retry handling for MCP creates ([e03577d](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e03577df381704c4cbce63c214b8e38b61506c1f))
+* windows_enrollment_status_page validate selected_mobile_app_ids by direct lookup instead of paginated list ([d816b73](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d816b73cb5d5ad4936a646aa100b9166458f181c))
+* windows_enrollment_status_page validate selected_mobile_app_ids by direct lookup instead of paginated list ([#3830](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3830)) ([8da0b58](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8da0b5845240c51e51ac707b2d5ce135fd0a196f))
+* wrap Graph client configuration errors ([fbe01db](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fbe01db2381e576b215537a48ec0a02acfa21998))
+
 ## [1.0.0-alpha](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v0.57.1-alpha...v1.0.0-alpha) (2026-09-01)
 
 
