@@ -1,0 +1,5 @@
+{
+ "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/settings/crossTenantAccess/$entity",
+ "networkPacketTaggingStatus": "disabled",
+ "dataPlaneTaggingOptions": "none"
+}

@@ -1,0 +1,2 @@
+# Import the tenant-wide singleton using the fixed ID crossTenantAccess.
+terraform import microsoft365_graph_beta_identity_and_access_network_cross_tenant_access_settings.example crossTenantAccess
