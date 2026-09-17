@@ -1,20 +1,26 @@
 package graphBetaSettingsCatalogConfigurationPolicy_test
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_scope_tag"
+	graphBetaSettingsCatalogConfigurationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+const resourceType = graphBetaSettingsCatalogConfigurationPolicy.ResourceName
+
+var testResource = graphBetaSettingsCatalogConfigurationPolicy.SettingsCatalogTestResource{}
 
 func TestAccResourceSettingsCatalogConfigurationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -26,7 +32,11 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_01_Lifecycle(t *testing.T
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
 			{
@@ -63,7 +73,17 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_02_Maximal(t *testing.T) 
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaSettingsCatalogConfigurationPolicy.ResourceName,
+				TestResource: graphBetaSettingsCatalogConfigurationPolicy.SettingsCatalogTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaRoleScopeTag.ResourceName,
+				TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{},
+			},
+		),
 		Steps: []resource.TestStep{
 			// Create with maximal configuration
 			{
@@ -101,18 +121,21 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_03_Assignments(t *testing
 				VersionConstraint: constants.ExternalProviderTimeVersion,
 			},
 		},
-		CheckDestroy: func(s *terraform.State) error {
-			t.Log("=== DESTROY CHECK TRIGGERED ===")
-			t.Log("Starting comprehensive destroy verification")
-			err := testAccCheckSettingsCatalogConfigurationPolicyDestroy(s)
-			if err != nil {
-				t.Logf("ERROR: Destroy check failed: %v", err)
-			} else {
-				t.Log("SUCCESS: Destroy check completed successfully")
-			}
-			t.Log("=== DESTROY CHECK COMPLETE ===")
-			return err
-		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaSettingsCatalogConfigurationPolicy.ResourceName,
+				TestResource: graphBetaSettingsCatalogConfigurationPolicy.SettingsCatalogTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaRoleScopeTag.ResourceName,
+				TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{},
+			},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaGroup.ResourceName,
+				TestResource: graphBetaGroup.GroupTestResource{},
+			},
+		),
 		Steps: []resource.TestStep{
 			// Create with all assignment types
 			{
@@ -188,7 +211,11 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_03_RequiredFields(t *test
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccSettingsCatalogConfigurationPolicyConfig_missingName(),
@@ -212,7 +239,11 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_05_InvalidValues(t *testi
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: testAccCheckSettingsCatalogConfigurationPolicyDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccSettingsCatalogConfigurationPolicyConfig_invalidPlatform(),
@@ -220,102 +251,6 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_05_InvalidValues(t *testi
 			},
 		},
 	})
-}
-
-// testAccCheckSettingsCatalogConfigurationPolicyDestroy verifies that settings catalog configuration policies have been destroyed
-func testAccCheckSettingsCatalogConfigurationPolicyDestroy(s *terraform.State) error {
-	fmt.Printf("=== DESTROY CHECK START ===\n")
-
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		fmt.Printf("ERROR: Failed to create Graph client for CheckDestroy: %v\n", err)
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-	resourceCount := 0
-	destroyedCount := 0
-	orphanedResources := []string{}
-
-	// Count total resources to check
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type == "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" {
-			resourceCount++
-		}
-	}
-	fmt.Printf("INFO: Found %d settings catalog configuration policy resources to verify destruction\n", resourceCount)
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy" {
-			continue
-		}
-
-		fmt.Printf("--- Checking resource destruction: %s ---\n", rs.Primary.ID)
-
-		// Build the API URL for logging
-		apiUrl := fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/configurationPolicies/%s", rs.Primary.ID)
-		fmt.Printf("INFO: API URL: %s\n", apiUrl)
-
-		// Attempt to get the settings catalog configuration policy by ID
-		resource, err := graphClient.
-			DeviceManagement().
-			ConfigurationPolicies().
-			ByDeviceManagementConfigurationPolicyId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-
-			// Accept multiple error conditions that indicate successful deletion
-			if errorInfo.StatusCode == 404 ||
-				errorInfo.StatusCode == 400 || // Bad Request - often indicates resource no longer exists
-				errorInfo.ErrorCode == "ResourceNotFound" ||
-				errorInfo.ErrorCode == "ItemNotFound" ||
-				errorInfo.ErrorCode == "Request_ResourceNotFound" ||
-				errorInfo.StatusCode == 0 { // Handle cases where status code is not set
-				fmt.Printf("SUCCESS: Resource %s successfully destroyed (verified by API error)\n", rs.Primary.ID)
-				destroyedCount++
-				continue // Resource successfully destroyed
-			}
-
-			// For other errors, this might indicate an orphaned resource or API issue
-			fmt.Printf("WARNING: Unexpected error checking resource %s destruction: %v\n", rs.Primary.ID, err)
-			fmt.Printf("WARNING: This could indicate an orphaned resource or API connectivity issue\n")
-			orphanedResources = append(orphanedResources, rs.Primary.ID)
-
-			// Still continue but mark as potentially problematic
-			continue
-		}
-
-		// If we can still get the resource, it wasn't destroyed - this is a real problem
-		if resource != nil {
-			fmt.Printf("ERROR: Resource %s still exists and was not properly destroyed!\n", rs.Primary.ID)
-			if resource.GetName() != nil {
-				fmt.Printf("ERROR: Resource name: %s\n", *resource.GetName())
-			}
-			if resource.GetId() != nil {
-				fmt.Printf("ERROR: Resource ID: %s\n", *resource.GetId())
-			}
-			orphanedResources = append(orphanedResources, rs.Primary.ID)
-			return fmt.Errorf("settings catalog configuration policy %s still exists and was not destroyed", rs.Primary.ID)
-		}
-	}
-
-	fmt.Printf("=== DESTROY CHECK SUMMARY ===\n")
-	fmt.Printf("Total resources checked: %d\n", resourceCount)
-	fmt.Printf("Successfully destroyed: %d\n", destroyedCount)
-	fmt.Printf("Potentially orphaned: %d\n", len(orphanedResources))
-
-	if len(orphanedResources) > 0 {
-		fmt.Printf("WARNING: Potentially orphaned resource IDs:\n")
-		for _, id := range orphanedResources {
-			fmt.Printf("  - %s\n", id)
-		}
-		fmt.Printf("WARNING: Please manually verify these resources in the Microsoft Graph API\n")
-	}
-
-	fmt.Printf("=== DESTROY CHECK COMPLETE ===\n")
-	return nil
 }
 
 func testAccSettingsCatalogConfigurationPolicyConfig_minimal() string {

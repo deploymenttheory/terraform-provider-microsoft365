@@ -2,6 +2,7 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   display_name                 = "acc-test-macos-dep-enrollment-profile-skip-setup"
   description                  = "macOS DEP enrollment profile with setup assistant skip and admin account"
   requires_user_authentication = true
+  is_mandatory                 = true
   supervised_mode_enabled      = true
 
   await_device_configured = true
@@ -27,7 +28,7 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   }
 
   timeouts = {
-    create = "10s"
+    create = "5m"
     read   = "5m"
     update = "5m"
     delete = "5m"

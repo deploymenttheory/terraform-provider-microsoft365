@@ -1,17 +1,14 @@
-// Package mocks provides HTTP mock responders for the macos_device_enrollment_policy unit tests.
-//
-// Unlike a fixed-fixture mock (one canned JSON file per scenario), this mock echoes back whatever
-// top-level fields and settings tree were sent on POST/PUT, keyed by the generated policy ID. This
-// keeps the mock in lock-step with construct.go/state.go without hand-maintaining a JSON fixture
-// per settings combination, since the settings catalog tree here has ~30 independent toggles.
 package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"sync"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
@@ -21,27 +18,24 @@ import (
 // auto-resolution (resolve_id.go) when a test config omits it.
 const DepOnboardingSettingsTestID = "30000000-0000-0000-0000-000000000003"
 
-// intuneProvisioningClientAppID mirrors the constant in validate.go.
-const intuneProvisioningClientAppID = "f1346770-5b25-470b-88bd-d5744ab7952c"
-
 var mockState struct {
 	sync.Mutex
-	policies             map[string]map[string]any // policy ID -> top-level fields echoed from POST/PUT
-	policySettings       map[string][]any          // policy ID -> settings array echoed from POST/PUT
+	policies             map[string]map[string]any // policy ID -> fixture response
 	membershipTargets    map[string]string         // policy ID -> current device_security_group target, if set
 	defaultMacOSProfiles map[string]string         // dep_onboarding_settings_id -> default policy ID, if set
 }
 
 func init() {
 	resetMockState()
-	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+	httpmock.RegisterNoResponder(func(_ *http.Request) (*http.Response, error) {
+		return fixtureResponse(404, "validate_delete/get_resource_not_found.json")
+	})
 }
 
 func resetMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
 	mockState.policies = make(map[string]map[string]any)
-	mockState.policySettings = make(map[string][]any)
 	mockState.membershipTargets = make(map[string]string)
 	mockState.defaultMacOSProfiles = make(map[string]string)
 }
@@ -59,16 +53,7 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 	// dep_onboarding_settings_id is omitted from config.
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/depOnboardingSettings",
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(200, map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/depOnboardingSettings",
-				"value": []map[string]any{
-					{
-						"id":        DepOnboardingSettingsTestID,
-						"tokenName": "Unit Test Apple ADE Token",
-						"tokenType": "dep",
-					},
-				},
-			})
+			return fixtureResponse(200, "validate_read/get_dep_onboarding_settings.json")
 		})
 
 	// Read a single DEP token, expanding its default macOS enrollment profile - GET
@@ -83,14 +68,17 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 			defaultPolicyID, hasDefault := mockState.defaultMacOSProfiles[id]
 			mockState.Unlock()
 
-			response := map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/depOnboardingSettings/$entity",
-				"id":             id,
-			}
+			file := "validate_read/get_dep_onboarding_setting.json"
 			if hasDefault {
-				response["defaultMacOsEnrollmentProfile"] = map[string]any{
-					"id": "ECV2_" + id + "_" + defaultPolicyID,
-				}
+				file = "validate_read/get_default_enrollment_profile.json"
+			}
+			response, err := fixture(file)
+			if err != nil {
+				return nil, err
+			}
+			response["id"] = id
+			if hasDefault {
+				response["defaultMacOsEnrollmentProfile"].(map[string]any)["id"] = "ECV2_" + id + "_" + defaultPolicyID
 			}
 
 			return httpmock.NewJsonResponse(200, response)
@@ -117,18 +105,7 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 	// owned by the Intune Provisioning Client.
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/groups/[0-9a-fA-F-]+/owners$`,
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewJsonResponse(200, map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
-				"value": []map[string]any{
-					{
-						"@odata.type":          "#microsoft.graph.servicePrincipal",
-						"id":                   "50000000-0000-0000-0000-000000000005",
-						"appId":                intuneProvisioningClientAppID,
-						"displayName":          "Intune Provisioning Client",
-						"servicePrincipalType": "Application",
-					},
-				},
-			})
+			return fixtureResponse(200, "validate_read/get_group_owners.json")
 		})
 
 	// Create policy - POST /deviceManagement/configurationPolicies
@@ -136,28 +113,24 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 		func(req *http.Request) (*http.Response, error) {
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				return fixtureResponse(400, "validate_create/post_invalid_request.json")
 			}
 
+			scenario, err := policyScenario(body)
+			if err != nil {
+				return nil, err
+			}
+			response, err := fixture("validate_create/post_" + scenario + ".json")
+			if err != nil {
+				return nil, err
+			}
+			if err := validatePolicyRequest(body, response, scenario); err != nil {
+				return nil, err
+			}
 			id := uuid.New().String()
-			settings, _ := body["settings"].([]any)
-			delete(body, "settings")
-
-			response := map[string]any{
-				"@odata.context":       "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
-				"id":                   id,
-				"createdDateTime":      "2024-01-01T00:00:00Z",
-				"lastModifiedDateTime": "2024-01-01T00:00:00Z",
-				"settingCount":         len(settings),
-				"isAssigned":           false,
-			}
-			for k, v := range body {
-				response[k] = v
-			}
-
+			response["id"] = id
 			mockState.Lock()
 			mockState.policies[id] = response
-			mockState.policySettings[id] = settings
 			mockState.Unlock()
 
 			return httpmock.NewJsonResponse(201, response)
@@ -175,12 +148,21 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 
 			if !exists {
 				// Configuration policies return 400 (not 404) for a missing resource.
-				return httpmock.NewJsonResponse(400, map[string]any{
-					"error": map[string]any{"code": "BadRequest", "message": "Resource not found"},
-				})
+				return fixtureResponse(400, "validate_delete/get_policy_not_found.json")
 			}
 
-			return httpmock.NewJsonResponse(200, policy)
+			scenario, err := policyScenario(policy)
+			if err != nil {
+				return nil, err
+			}
+			response, err := fixture("validate_read/get_" + scenario + ".json")
+			if err != nil {
+				return nil, err
+			}
+			response["id"] = id
+			response["createdDateTime"] = policy["createdDateTime"]
+			response["lastModifiedDateTime"] = policy["lastModifiedDateTime"]
+			return httpmock.NewJsonResponse(200, response)
 		})
 
 	// Read policy settings - GET /deviceManagement/configurationPolicies/{id}/settings
@@ -190,17 +172,27 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 			id := parts[len(parts)-2]
 
 			mockState.Lock()
-			settings := mockState.policySettings[id]
+			policy, exists := mockState.policies[id]
 			mockState.Unlock()
-
-			if settings == nil {
-				settings = []any{}
+			file := "validate_read/get_settings_empty.json"
+			if exists {
+				scenario, err := policyScenario(policy)
+				if err != nil {
+					return nil, err
+				}
+				switch scenario {
+				case "002_maximal", "004_lifecycle_maximal", "005_lifecycle_maximal":
+					file = "validate_read/get_" + scenario + "_settings.json"
+				default:
+					file = "validate_read/get_001_minimal_settings.json"
+				}
 			}
-
-			return httpmock.NewJsonResponse(200, map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/settings",
-				"value":          settings,
-			})
+			response, err := fixture(file)
+			if err != nil {
+				return nil, err
+			}
+			response["@odata.context"] = "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies('" + id + "')/settings"
+			return httpmock.NewJsonResponse(200, response)
 		})
 
 	// Update policy - PUT /deviceManagement/configurationPolicies('{id}') (raw request: the Graph
@@ -211,35 +203,32 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				return fixtureResponse(400, "validate_create/post_invalid_request.json")
 			}
 
 			mockState.Lock()
 			existing, exists := mockState.policies[id]
 			if !exists {
 				mockState.Unlock()
-				return httpmock.NewJsonResponse(400, map[string]any{
-					"error": map[string]any{"code": "BadRequest", "message": "Resource not found"},
-				})
+				return fixtureResponse(400, "validate_delete/get_policy_not_found.json")
 			}
 
-			settings, _ := body["settings"].([]any)
-			delete(body, "settings")
-
-			// PUT is a full replacement, but id/createdDateTime are server-owned.
-			updated := map[string]any{
-				"id":                   id,
-				"createdDateTime":      existing["createdDateTime"],
-				"lastModifiedDateTime": "2024-01-02T00:00:00Z",
-				"settingCount":         len(settings),
-				"isAssigned":           existing["isAssigned"],
+			mockState.Unlock()
+			scenario, err := policyScenario(body)
+			if err != nil {
+				return nil, err
 			}
-			for k, v := range body {
-				updated[k] = v
+			updated, err := fixture("validate_update/put_" + scenario + ".json")
+			if err != nil {
+				return nil, err
 			}
-
+			if err := validatePolicyRequest(body, updated, scenario); err != nil {
+				return nil, err
+			}
+			updated["id"] = id
+			updated["createdDateTime"] = existing["createdDateTime"]
+			mockState.Lock()
 			mockState.policies[id] = updated
-			mockState.policySettings[id] = settings
 			mockState.Unlock()
 
 			return httpmock.NewStringResponse(204, ""), nil
@@ -257,7 +246,7 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 				} `json:"enrollmentTimeDeviceMembershipTargets"`
 			}
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				return fixtureResponse(400, "validate_create/post_invalid_request.json")
 			}
 
 			mockState.Lock()
@@ -294,19 +283,19 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 			targetId, hasTarget := mockState.membershipTargets[id]
 			mockState.Unlock()
 
-			statuses := []map[string]any{}
+			file := "validate_read/get_membership_target_empty.json"
 			if hasTarget {
-				statuses = append(statuses, map[string]any{
-					"targetId":                  targetId,
-					"targetValidationErrorCode": "unknown",
-					"validationSucceeded":       true,
-				})
+				file = "validate_read/get_membership_target.json"
 			}
-
-			return httpmock.NewJsonResponse(200, map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#microsoft.graph.enrollmentTimeDeviceMembershipTargetResult",
-				"enrollmentTimeDeviceMembershipTargetValidationStatuses": statuses,
-			})
+			response, err := fixture(file)
+			if err != nil {
+				return nil, err
+			}
+			if hasTarget {
+				statuses := response["enrollmentTimeDeviceMembershipTargetValidationStatuses"].([]any)
+				statuses[0].(map[string]any)["targetId"] = targetId
+			}
+			return httpmock.NewJsonResponse(200, response)
 		})
 
 	// Delete policy - DELETE /deviceManagement/configurationPolicies/{id}
@@ -317,7 +306,6 @@ func (m *MacOSDeviceEnrollmentPolicyMock) RegisterMocks() {
 
 			mockState.Lock()
 			delete(mockState.policies, id)
-			delete(mockState.policySettings, id)
 			delete(mockState.membershipTargets, id)
 			mockState.Unlock()
 
@@ -338,4 +326,83 @@ func extractParenID(urlPath string) string {
 // CleanupMockState resets the in-memory mock state after a test.
 func (m *MacOSDeviceEnrollmentPolicyMock) CleanupMockState() {
 	resetMockState()
+}
+
+func fixture(name string) (map[string]any, error) {
+	raw, err := helpers.ParseJSONFile("../tests/responses/" + name)
+	if err != nil {
+		return nil, err
+	}
+	var response map[string]any
+	if err := json.Unmarshal([]byte(raw), &response); err != nil {
+		return nil, fmt.Errorf("parse mock response %s: %w", name, err)
+	}
+	return response, nil
+}
+
+func fixtureResponse(status int, name string) (*http.Response, error) {
+	response, err := fixture(name)
+	if err != nil {
+		return nil, err
+	}
+	return httpmock.NewJsonResponse(status, response)
+}
+
+func policyScenario(policy map[string]any) (string, error) {
+	name, _ := policy["name"].(string)
+	switch strings.TrimPrefix(name, "unit-test-macos-ade-") {
+	case "minimal":
+		return "001_minimal", nil
+	case "maximal":
+		return "002_maximal", nil
+	case "update":
+		return "003_lifecycle_minimal", nil
+	case "update-updated":
+		return "004_lifecycle_maximal", nil
+	case "downgrade":
+		return "005_lifecycle_maximal", nil
+	case "downgrade-minimal":
+		return "006_lifecycle_minimal", nil
+	case "device-group":
+		return "007_device_security_group", nil
+	case "device-group-update":
+		return "008_device_security_group_update", nil
+	case "default-assignment":
+		return "011_default_assignment", nil
+	case "default-switch-a":
+		return "012_default_switch_a", nil
+	case "default-switch-b":
+		return "012_default_switch_b", nil
+	}
+	return "", fmt.Errorf("unknown enrollment policy mock scenario %q", name)
+}
+
+// validatePolicyRequest checks the settings sent by the provider against the response fixture.
+func validatePolicyRequest(body, policy map[string]any, scenario string) error {
+	settingsScenario := "001_minimal"
+	switch scenario {
+	case "002_maximal", "004_lifecycle_maximal", "005_lifecycle_maximal":
+		settingsScenario = scenario
+	}
+	settings, err := fixture("validate_read/get_" + settingsScenario + "_settings.json")
+	if err != nil {
+		return err
+	}
+	expected := make(map[string]any, len(policy))
+	for key, value := range policy {
+		switch key {
+		case "@odata.context", "id", "createdDateTime", "lastModifiedDateTime", "settingCount", "isAssigned":
+			continue
+		}
+		expected[key] = value
+	}
+	// GET adds setting IDs; POST and PUT submit only the setting instances.
+	for _, setting := range settings["value"].([]any) {
+		delete(setting.(map[string]any), "id")
+	}
+	expected["settings"] = settings["value"]
+	if !reflect.DeepEqual(body, expected) {
+		return fmt.Errorf("policy request does not match JSON fixture for %s", scenario)
+	}
+	return nil
 }

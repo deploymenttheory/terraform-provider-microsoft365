@@ -1,20 +1,23 @@
 package graphBetaMacOSCustomAttributeScript_test
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"regexp"
-	"strings"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaMacOSCustomAttributeScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_custom_attribute_script"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+const resourceType = graphBetaMacOSCustomAttributeScript.ResourceName
+
+var testResource = graphBetaMacOSCustomAttributeScript.DeviceCustomAttributeShellScriptTestResource{}
 
 func TestAccResourceMacOSCustomAttributeScript_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
@@ -26,7 +29,11 @@ func TestAccResourceMacOSCustomAttributeScript_01_Lifecycle(t *testing.T) {
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: testAccCheckMacOSCustomAttributeScriptDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
 			{
@@ -73,7 +80,11 @@ func TestAccResourceMacOSCustomAttributeScript_02_WithAssignments(t *testing.T) 
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: testAccCheckMacOSCustomAttributeScriptDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccMacOSCustomAttributeScriptConfig_withAssignments(),
@@ -144,45 +155,6 @@ func TestAccResourceMacOSCustomAttributeScript_04_InvalidValues(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testAccCheckMacOSCustomAttributeScriptDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_macos_custom_attribute_script" {
-			continue
-		}
-
-		// Attempt to get the macOS Custom Attribute Script by ID
-		_, err := graphClient.
-			DeviceManagement().
-			DeviceCustomAttributeShellScripts().
-			ByDeviceCustomAttributeShellScriptId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			// Check for various forms of "not found" errors
-			errStr := err.Error()
-			if strings.Contains(errStr, "404") ||
-				strings.Contains(strings.ToLower(errStr), "not found") ||
-				strings.Contains(strings.ToLower(errStr), "does not exist") {
-				continue
-			}
-			// For other errors, we assume the resource was properly destroyed
-			// This handles cases where the API returns unexpected error formats
-			continue
-		}
-
-		// If no error, the resource still exists
-		return fmt.Errorf("macOS Custom Attribute Script %s still exists", rs.Primary.ID)
-	}
-
-	return nil
 }
 
 func testAccMacOSCustomAttributeScriptConfig_minimal() string {

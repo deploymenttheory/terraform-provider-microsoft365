@@ -1,0 +1,19 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "creationSource": "DepTokenId_30000000-0000-0000-0000-000000000003",
+  "id": "10000000-0000-0000-0000-000000000001",
+  "isAssigned": false,
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "name": "unit-test-macos-ade-minimal",
+  "platforms": "macOS",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "settingCount": 28,
+  "technologies": "enrollment",
+  "templateReference": {
+    "templateFamily": "enrollmentConfiguration",
+    "templateId": "2e29557d-70fc-405a-8082-d1e5b6be2b8c_1"
+  }
+}

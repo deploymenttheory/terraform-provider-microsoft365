@@ -1,0 +1,20 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "creationSource": "DepTokenId_30000000-0000-0000-0000-000000000003",
+  "description": "visionOS ADE enrollment policy exercising the full settings tree",
+  "id": "10000000-0000-0000-0000-000000000001",
+  "isAssigned": false,
+  "lastModifiedDateTime": "2024-01-02T00:00:00Z",
+  "name": "unit-test-visionos-ade-maximal",
+  "platforms": "visionOS",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "settingCount": 19,
+  "technologies": "enrollment",
+  "templateReference": {
+    "templateFamily": "enrollmentConfiguration",
+    "templateId": "b974d292-62c4-4853-bdab-166cf42df51c_1"
+  }
+}

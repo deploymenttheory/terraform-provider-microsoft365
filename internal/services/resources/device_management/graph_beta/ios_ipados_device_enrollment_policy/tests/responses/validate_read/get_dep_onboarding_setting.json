@@ -1,0 +1,4 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/depOnboardingSettings/$entity",
+  "id": "30000000-0000-0000-0000-000000000003"
+}

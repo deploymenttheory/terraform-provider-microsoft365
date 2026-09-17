@@ -6,7 +6,7 @@ resource "microsoft365_graph_beta_device_management_apple_configurator_enrollmen
   require_company_portal_on_setup_assistant_enrolled_devices = false
 
   timeouts = {
-    create = "10s"
+    create = "5m"
     read   = "5m"
     update = "5m"
     delete = "5m"

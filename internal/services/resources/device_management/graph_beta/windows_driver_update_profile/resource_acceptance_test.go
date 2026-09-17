@@ -1,25 +1,32 @@
 package graphBetaWindowsDriverUpdateProfile_test
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	graphBetaWindowsDriverUpdateProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_driver_update_profile"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+const resourceType = graphBetaWindowsDriverUpdateProfile.ResourceName
+
+var testResource = graphBetaWindowsDriverUpdateProfile.WindowsDriverUpdateProfileTestResource{}
 
 func TestAccResourceWindowsDriverUpdateProfile_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsDriverUpdateProfileDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -53,7 +60,11 @@ func TestAccResourceWindowsDriverUpdateProfile_02_Assignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckWindowsDriverUpdateProfileDestroy,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -109,33 +120,4 @@ func testAccWindowsDriverUpdateProfileConfig_automatic() string {
 		log.Fatalf("Failed to load automatic approval test config: %v", err)
 	}
 	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
-}
-
-func testAccCheckWindowsDriverUpdateProfileDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_windows_driver_update_profile" {
-			continue
-		}
-		_, err := graphClient.
-			DeviceManagement().
-			WindowsDriverUpdateProfiles().
-			ByWindowsDriverUpdateProfileId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errorInfo := errors.GraphError(ctx, err)
-			if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "ItemNotFound" {
-				fmt.Printf("DEBUG: Resource %s successfully destroyed (404/NotFound)\n", rs.Primary.ID)
-				continue
-			}
-			return fmt.Errorf("error checking if windows driver update profile %s was destroyed: %v", rs.Primary.ID, err)
-		}
-		return fmt.Errorf("windows driver update profile %s still exists", rs.Primary.ID)
-	}
-	return nil
 }
