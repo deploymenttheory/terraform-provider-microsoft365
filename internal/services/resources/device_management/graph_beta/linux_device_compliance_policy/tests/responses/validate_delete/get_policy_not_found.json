@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "ResourceNotFound",
+    "message": "Linux device compliance policy does not exist"
+  }
+}

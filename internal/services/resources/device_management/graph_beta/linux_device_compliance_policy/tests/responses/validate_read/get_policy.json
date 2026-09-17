@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/compliancePolicies(assignments(),scheduledActionsForRule())/$entity",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "name": "Linux compliance test policy",
+  "description": "",
+  "platforms": "linux",
+  "technologies": "linuxMdm",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "settingCount": 1,
+  "createdDateTime": "2026-09-17T00:00:00Z",
+  "lastModifiedDateTime": "2026-09-17T00:00:00Z",
+  "assignments": [],
+  "scheduledActionsForRule": []
+}

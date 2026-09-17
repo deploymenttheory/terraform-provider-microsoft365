@@ -1,0 +1,13 @@
+{
+  "scheduledActions": [
+    {
+      "ruleName": "PasswordRequired",
+      "scheduledActionConfigurations": [
+        {
+          "actionType": "block",
+          "gracePeriodHours": 24
+        }
+      ]
+    }
+  ]
+}
