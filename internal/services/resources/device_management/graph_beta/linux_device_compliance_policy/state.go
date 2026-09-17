@@ -26,6 +26,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *LinuxDeviceComplianceP
 	data.CreatedDateTime = convert.GraphToFrameworkTime(remoteResource.GetCreatedDateTime())
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remoteResource.GetLastModifiedDateTime())
 	data.IsAssigned = convert.GraphToFrameworkBool(remoteResource.GetIsAssigned())
+	data.SettingsCount = convert.GraphToFrameworkInt32(remoteResource.GetSettingCount())
 	data.RoleScopeTagIds = convert.GraphToFrameworkStringSet(ctx, remoteResource.GetRoleScopeTagIds())
 
 	// Map platforms (should always be linux)
