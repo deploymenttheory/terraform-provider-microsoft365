@@ -125,9 +125,7 @@ func (r *IosDeviceConfigurationTemplatesJsonResource) Schema(
 		MarkdownDescription: "Manages iOS/iPadOS device restriction and device features configuration templates in " +
 			"Microsoft Intune using a raw JSON settings body. Use this resource for `iosGeneralDeviceConfiguration` " +
 			"(device restrictions) and `iosDeviceFeaturesConfiguration` (home screen layout, single sign-on, web " +
-			"content filters), whose property surfaces are too large to expose as typed attributes. For certificate, " +
-			"Wi-Fi, VPN, email and custom profiles use " +
-			"`microsoft365_graph_beta_device_management_ios_device_configuration_templates` instead.",
+			"content filters), whose property surfaces are too large to expose as typed attributes.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
