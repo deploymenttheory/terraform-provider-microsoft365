@@ -2,11 +2,13 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
@@ -22,7 +24,9 @@ func init() {
 	mockState.softwareUpdateConfigurations = make(map[string]map[string]any)
 
 	// Register a default 404 responder for any unmatched requests
-	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+	httpmock.RegisterNoResponder(func(_ *http.Request) (*http.Response, error) {
+		return fixtureResponse(404, "validate_delete/get_configuration_not_found.json")
+	})
 }
 
 // MacOSSoftwareUpdateConfigurationMock provides mock responses for macOS software update configuration operations
@@ -45,10 +49,11 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			}
 			mockState.Unlock()
 
-			response := map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations",
-				"value":          configs,
+			response, err := fixture("validate_read/get_configurations.json")
+			if err != nil {
+				return nil, err
 			}
+			response["value"] = configs
 
 			return httpmock.NewJsonResponse(200, response)
 		})
@@ -64,30 +69,22 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Software update configuration not found"}}`), nil
+				return fixtureResponse(404, "validate_delete/get_configuration_not_found.json")
 			}
 
-			// Create response copy
-			responseCopy := make(map[string]any)
-			for k, v := range configData {
-				responseCopy[k] = v
+			scenario, err := configurationScenario(configData)
+			if err != nil {
+				return nil, err
 			}
-
-			// Check if expand=assignments is requested
-			expandParam := req.URL.Query().Get("$expand")
-			if strings.Contains(expandParam, "assignments") {
-				// Include assignments if they exist in the config data
-				if assignments, hasAssignments := configData["assignments"]; hasAssignments && assignments != nil {
-					if assignmentList, ok := assignments.([]any); ok && len(assignmentList) > 0 {
-						responseCopy["assignments"] = assignments
-					} else {
-						// If assignments array is empty, return empty array (not null)
-						responseCopy["assignments"] = []any{}
-					}
-				} else {
-					// If no assignments stored, return empty array (not null)
-					responseCopy["assignments"] = []any{}
-				}
+			responseCopy, err := fixture("validate_read/get_" + scenario + ".json")
+			if err != nil {
+				return nil, err
+			}
+			responseCopy["id"] = configId
+			responseCopy["createdDateTime"] = configData["createdDateTime"]
+			responseCopy["lastModifiedDateTime"] = configData["lastModifiedDateTime"]
+			if strings.Contains(req.URL.Query().Get("$expand"), "assignments") {
+				responseCopy["assignments"] = configData["assignments"]
 			}
 
 			return httpmock.NewJsonResponse(200, responseCopy)
@@ -100,54 +97,22 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				return fixtureResponse(400, "validate_create/post_invalid_request.json")
 			}
 
-			// Generate new configuration ID
+			scenario, err := configurationScenario(requestBody)
+			if err != nil {
+				return nil, err
+			}
+			configData, err := fixture("validate_create/post_" + scenario + ".json")
+			if err != nil {
+				return nil, err
+			}
+			if err := validateConfigurationRequest(requestBody, configData); err != nil {
+				return nil, err
+			}
 			configId := uuid.New().String()
-
-			// Create configuration data - only include fields that were provided or have defaults
-			configData := map[string]any{
-				"@odata.type":              "#microsoft.graph.macOSSoftwareUpdateConfiguration",
-				"id":                       configId,
-				"displayName":              requestBody["displayName"],
-				"updateScheduleType":       requestBody["updateScheduleType"],
-				"criticalUpdateBehavior":   requestBody["criticalUpdateBehavior"],
-				"configDataUpdateBehavior": requestBody["configDataUpdateBehavior"],
-				"firmwareUpdateBehavior":   requestBody["firmwareUpdateBehavior"],
-				"allOtherUpdateBehavior":   requestBody["allOtherUpdateBehavior"],
-			}
-
-			// Add optional fields only if provided in request
-			if description, exists := requestBody["description"]; exists {
-				configData["description"] = description
-			}
-			if roleScopeTagIds, exists := requestBody["roleScopeTagIds"]; exists {
-				configData["roleScopeTagIds"] = roleScopeTagIds
-			} else {
-				configData["roleScopeTagIds"] = []string{"0"} // Default value
-			}
-			if updateTimeWindowUtcOffsetInMinutes, exists := requestBody["updateTimeWindowUtcOffsetInMinutes"]; exists {
-				configData["updateTimeWindowUtcOffsetInMinutes"] = updateTimeWindowUtcOffsetInMinutes
-			}
-			if customUpdateTimeWindows, exists := requestBody["customUpdateTimeWindows"]; exists {
-				configData["customUpdateTimeWindows"] = customUpdateTimeWindows
-			}
-			if maxUserDeferralsCount, exists := requestBody["maxUserDeferralsCount"]; exists {
-				configData["maxUserDeferralsCount"] = maxUserDeferralsCount
-			}
-			if priority, exists := requestBody["priority"]; exists {
-				configData["priority"] = priority
-			}
-
-			// Add computed fields that are always returned by the API
-			configData["createdDateTime"] = "2024-01-01T00:00:00Z"
-			configData["lastModifiedDateTime"] = "2024-01-01T00:00:00Z"
-
-			// Initialize assignments as empty array
-			configData["assignments"] = []any{}
-
-			// Store in mock state
+			configData["id"] = configId
 			mockState.Lock()
 			mockState.softwareUpdateConfigurations[configId] = configData
 			mockState.Unlock()
@@ -166,46 +131,35 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Software update configuration not found"}}`), nil
+				return fixtureResponse(404, "validate_delete/get_configuration_not_found.json")
 			}
 
 			// Parse request body
 			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				return fixtureResponse(400, "validate_create/post_invalid_request.json")
 			}
 
-			// Update configuration data
+			scenario, err := configurationScenario(requestBody)
+			if err != nil {
+				return nil, err
+			}
+			updated, err := fixture("validate_update/patch_" + scenario + ".json")
+			if err != nil {
+				return nil, err
+			}
+			if err := validateConfigurationRequest(requestBody, updated); err != nil {
+				return nil, err
+			}
+			updated["id"] = configId
+			updated["createdDateTime"] = configData["createdDateTime"]
+			updated["assignments"] = configData["assignments"]
 			mockState.Lock()
-
-			// Handle optional fields that might be removed (like going from maximal to minimal)
-			// Check for specific field patterns to simulate real API behavior
-
-			// For optional fields, if they're not in the request, remove them
-			optionalFields := []string{"description", "updateTimeWindowUtcOffsetInMinutes", "customUpdateTimeWindows", "maxUserDeferralsCount", "priority"}
-			for _, field := range optionalFields {
-				if _, hasField := requestBody[field]; !hasField {
-					delete(configData, field)
-				}
-			}
-
-			for key, value := range requestBody {
-				if value == nil {
-					// If value is explicitly null, remove the field from the stored state
-					delete(configData, key)
-				} else {
-					configData[key] = value
-				}
-			}
-			// Ensure the ID and @odata.type are preserved and update timestamp
-			configData["id"] = configId
-			configData["@odata.type"] = "#microsoft.graph.macOSSoftwareUpdateConfiguration"
-			configData["lastModifiedDateTime"] = "2024-01-01T01:00:00Z"
-			mockState.softwareUpdateConfigurations[configId] = configData
+			mockState.softwareUpdateConfigurations[configId] = updated
 			mockState.Unlock()
 
-			return httpmock.NewJsonResponse(200, configData)
+			return httpmock.NewJsonResponse(200, updated)
 		})
 
 	// Register DELETE for removing software update configuration
@@ -222,7 +176,7 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Software update configuration not found"}}`), nil
+				return fixtureResponse(404, "validate_delete/get_configuration_not_found.json")
 			}
 
 			return httpmock.NewStringResponse(204, ""), nil
@@ -238,49 +192,33 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				return fixtureResponse(400, "validate_create/post_invalid_request.json")
 			}
 
-			// Store assignments in the configuration
 			mockState.Lock()
-			if configData, exists := mockState.softwareUpdateConfigurations[configId]; exists {
-				if assignments, hasAssignments := requestBody["assignments"]; hasAssignments && assignments != nil {
-					assignmentList := assignments.([]any)
-					if len(assignmentList) > 0 {
-						// Extract the actual assignment data from the request
-						graphAssignments := []any{}
-						for _, assignment := range assignmentList {
-							if assignmentMap, ok := assignment.(map[string]any); ok {
-								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
-									// Generate a unique assignment ID
-									assignmentId := uuid.New().String()
-
-									// Create assignment in the format the API returns
-									// The API returns the target exactly as submitted but with additional metadata
-									targetCopy := make(map[string]any)
-									for k, v := range target {
-										targetCopy[k] = v
-									}
-
-									graphAssignment := map[string]any{
-										"id":     assignmentId,
-										"target": targetCopy,
-									}
-									graphAssignments = append(graphAssignments, graphAssignment)
-								}
-							}
-						}
-						configData["assignments"] = graphAssignments
-					} else {
-						// Set empty assignments array instead of deleting
-						configData["assignments"] = []any{}
-					}
-				} else {
-					// Set empty assignments array instead of deleting
-					configData["assignments"] = []any{}
-				}
-				mockState.softwareUpdateConfigurations[configId] = configData
+			configData, exists := mockState.softwareUpdateConfigurations[configId]
+			mockState.Unlock()
+			if !exists {
+				return fixtureResponse(404, "validate_delete/get_configuration_not_found.json")
 			}
+			assignments, _ := requestBody["assignments"].([]any)
+			file := "validate_read/get_assignments_empty.json"
+			if len(assignments) > 0 {
+				scenario, err := configurationScenario(configData)
+				if err != nil {
+					return nil, err
+				}
+				file = fmt.Sprintf("validate_read/get_%s_assignments_%d.json", scenario, len(assignments))
+			}
+			response, err := fixture(file)
+			if err != nil {
+				return nil, err
+			}
+			for _, assignment := range response["value"].([]any) {
+				assignment.(map[string]any)["id"] = uuid.New().String()
+			}
+			mockState.Lock()
+			configData["assignments"] = response["value"]
 			mockState.Unlock()
 
 			return httpmock.NewStringResponse(204, ""), nil
@@ -289,14 +227,21 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 	// Register GET for assignments
 	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/[^/]+/assignments$`,
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations/assignments",
-				"value":          []map[string]any{}, // Empty assignments by default
+			parts := strings.Split(req.URL.Path, "/")
+			configID := parts[len(parts)-2]
+			response, err := fixture("validate_read/get_assignments_empty.json")
+			if err != nil {
+				return nil, err
 			}
+			mockState.Lock()
+			if config, exists := mockState.softwareUpdateConfigurations[configID]; exists {
+				response["value"] = config["assignments"]
+			}
+			mockState.Unlock()
+
 			return httpmock.NewJsonResponse(200, response)
 		})
 
-	// Dynamic mocks will handle all test cases
 }
 
 // CleanupMockState resets the mock state
@@ -311,18 +256,92 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterErrorMocks() {
 	// Register GET for listing software update configurations (needed for uniqueness check)
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
 		func(req *http.Request) (*http.Response, error) {
-			response := map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations",
-				"value":          []map[string]any{}, // Empty list for error scenarios
-			}
-			return httpmock.NewJsonResponse(200, response)
+			return fixtureResponse(200, "validate_read/get_configurations.json")
 		})
 
 	// Register error response for creating software update configuration with invalid data
 	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations",
-		factories.ErrorResponse(400, "BadRequest", "Validation error: Invalid display name"))
+		func(_ *http.Request) (*http.Response, error) {
+			return fixtureResponse(400, "validate_create/post_error.json")
+		})
 
 	// Register error response for software update configuration not found
 	httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/not-found-config",
-		factories.ErrorResponse(404, "ResourceNotFound", "Software update configuration not found"))
+		func(_ *http.Request) (*http.Response, error) {
+			return fixtureResponse(404, "validate_delete/get_configuration_not_found.json")
+		})
+}
+
+func fixture(name string) (map[string]any, error) {
+	raw, err := helpers.ParseJSONFile("../tests/responses/" + name)
+	if err != nil {
+		return nil, err
+	}
+	var response map[string]any
+	if err := json.Unmarshal([]byte(raw), &response); err != nil {
+		return nil, fmt.Errorf("parse mock response %s: %w", name, err)
+	}
+	return response, nil
+}
+
+func fixtureResponse(status int, name string) (*http.Response, error) {
+	response, err := fixture(name)
+	if err != nil {
+		return nil, err
+	}
+	return httpmock.NewJsonResponse(status, response)
+}
+
+func configurationScenario(config map[string]any) (string, error) {
+	name, _ := config["displayName"].(string)
+	switch {
+	case strings.HasPrefix(name, "Test 01:"):
+		return "001_minimal", nil
+	case strings.HasPrefix(name, "Test 02:"):
+		return "002_maximal", nil
+	case strings.HasPrefix(name, "Test 03:"), strings.HasPrefix(name, "Test 04:"):
+		scenario := "003_"
+		if strings.HasPrefix(name, "Test 04:") {
+			scenario = "004_"
+		}
+		description, _ := config["description"].(string)
+		switch {
+		case description == "":
+			return scenario + "minimal", nil
+		case strings.HasPrefix(description, "Intermediate"):
+			return scenario + "intermediate", nil
+		default:
+			return scenario + "maximal", nil
+		}
+	case strings.HasPrefix(name, "Test 05:"):
+		return "005_assignments_minimal", nil
+	case strings.HasPrefix(name, "Test 06:"):
+		return "006_assignments_maximal", nil
+	case strings.HasPrefix(name, "Test 07:"):
+		return "007_assignments_progression", nil
+	case strings.HasPrefix(name, "Test 08:"):
+		return "008_assignments_regression", nil
+	}
+	return "", fmt.Errorf("unknown software update configuration mock scenario %q", name)
+}
+
+func validateConfigurationRequest(body, response map[string]any) error {
+	expected := make(map[string]any, len(response))
+	for key, value := range response {
+		switch key {
+		case "@odata.context", "@odata.type", "id", "createdDateTime", "lastModifiedDateTime", "assignments":
+			continue
+		}
+		expected[key] = value
+	}
+	actual := make(map[string]any, len(body))
+	for key, value := range body {
+		if key != "@odata.type" && value != nil {
+			actual[key] = value
+		}
+	}
+	if !reflect.DeepEqual(actual, expected) {
+		return fmt.Errorf("software update request does not match JSON fixture for %v", response["displayName"])
+	}
+	return nil
 }

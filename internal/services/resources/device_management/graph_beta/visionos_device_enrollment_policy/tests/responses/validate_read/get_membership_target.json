@@ -1,0 +1,10 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#microsoft.graph.enrollmentTimeDeviceMembershipTargetResult",
+  "enrollmentTimeDeviceMembershipTargetValidationStatuses": [
+    {
+      "targetId": "40000000-0000-0000-0000-000000000004",
+      "targetValidationErrorCode": "unknown",
+      "validationSucceeded": true
+    }
+  ]
+}

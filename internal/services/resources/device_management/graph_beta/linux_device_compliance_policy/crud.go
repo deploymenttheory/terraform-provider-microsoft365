@@ -220,6 +220,22 @@ func (r *LinuxDeviceCompliancePolicyResource) Read(ctx context.Context, req reso
 		return
 	}
 
+	if respResource == nil {
+		resp.Diagnostics.AddError("Empty policy response", "Cannot refresh Linux compliance policy from an empty response")
+		return
+	}
+
+	// The single-policy endpoint can return an empty assignments expansion even
+	// when the policy is assigned. Read the navigation collection directly and
+	// follow pagination so an import or refresh cannot silently drop scope.
+	assignments, err := r.getAllPolicyAssignmentsWithPageIterator(ctx, object.ID.ValueString())
+	if err != nil {
+		// An assignment endpoint failure does not mean the policy was deleted.
+		resp.Diagnostics.AddError("Error reading policy assignments", err.Error())
+		return
+	}
+	respResource.SetAssignments(assignments)
+
 	MapRemoteStateToTerraform(ctx, &object, respResource)
 
 	// Use PageIterator from graph core as default response returns only the first 25 settings.
@@ -249,6 +265,38 @@ func (r *LinuxDeviceCompliancePolicyResource) Read(ctx context.Context, req reso
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
+}
+
+// getAllPolicyAssignmentsWithPageIterator reads assignments from their own endpoint.
+func (r *LinuxDeviceCompliancePolicyResource) getAllPolicyAssignmentsWithPageIterator(ctx context.Context, policyID string) ([]models.DeviceManagementConfigurationPolicyAssignmentable, error) {
+	response, err := r.client.DeviceManagement().CompliancePolicies().
+		ByDeviceManagementCompliancePolicyId(policyID).Assignments().Get(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get assignments for policy %s: %w", policyID, err)
+	}
+	if response == nil {
+		return nil, fmt.Errorf("empty assignment response for policy %s", policyID)
+	}
+
+	iterator, err := graphcore.NewPageIterator[models.DeviceManagementConfigurationPolicyAssignmentable](
+		response, r.client.GetAdapter(),
+		models.CreateDeviceManagementConfigurationPolicyAssignmentCollectionResponseFromDiscriminatorValue,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create assignment iterator for policy %s: %w", policyID, err)
+	}
+
+	assignments := make([]models.DeviceManagementConfigurationPolicyAssignmentable, 0)
+	err = iterator.Iterate(ctx, func(item models.DeviceManagementConfigurationPolicyAssignmentable) bool {
+		if item != nil {
+			assignments = append(assignments, item)
+		}
+		return true
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to read assignment pages for policy %s: %w", policyID, err)
+	}
+	return assignments, nil
 }
 
 // getAllPolicySettingsWithPageIterator retrieves all settings for a given policy using a page iterator util
@@ -413,6 +461,11 @@ func (r *LinuxDeviceCompliancePolicyResource) Update(ctx context.Context, req re
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

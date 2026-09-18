@@ -1,0 +1,58 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Microsoft Graph resource reference](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-cloudfirewallrule?view=graph-rest-beta)
+
+## Microsoft Graph API
+
+```http
+POST   /beta/networkAccess/cloudFirewallPolicies/{policy_id}/policyRules
+GET    /beta/networkAccess/cloudFirewallPolicies/{policy_id}/policyRules/{id}
+PATCH  /beta/networkAccess/cloudFirewallPolicies/{policy_id}/policyRules/{id}
+DELETE /beta/networkAccess/cloudFirewallPolicies/{policy_id}/policyRules/{id}
+```
+
+## Behavior Notes
+
+- Rules are independent resources. Reference the policy resource's ID to establish Terraform creation and deletion ordering.
+- Address values, ports, address groups, and protocols use sets. API order and duplicate entries do not create Terraform differences. FQDN case and CIDR host bits are preserved.
+- Omitting `description` clears it; an empty string is distinct. Omitting a matching side clears that side. Destination protocols are required when the destination object is present.
+- Names and priorities must be unique within a policy. To exchange priorities, move one rule to an unused priority in a separate apply first.
+- Rules with nonempty branch conditions cannot currently be imported or managed; Read returns a diagnostic to avoid dropping existing conditions.
+- Saving `enabled` and reading `status` does not confirm traffic enforcement. This resource does not create policy links or assignments.
+
+## Microsoft Graph API Permissions
+
+Application authentication requires `NetworkAccess.ReadWrite.All` for management. Read-only API calls also support `NetworkAccess.Read.All`. The tenant must have the Global Secure Access cloud firewall feature available.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_cloud_firewall_policy_rule/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_cloud_firewall_policy_rule/import.sh" }}
+
+Terraform resource identity import is also supported:
+
+```terraform
+import {
+  to = microsoft365_graph_beta_identity_and_access_network_cloud_firewall_policy_rule.example
+  identity = {
+    policy_id = "00000000-0000-0000-0000-000000000001"
+    id = "00000000-0000-0000-0000-000000000002"
+  }
+}
+```

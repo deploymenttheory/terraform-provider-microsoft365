@@ -114,6 +114,7 @@ func NewGraphClients(ctx context.Context, data *ProviderData, diags *diag.Diagno
 	graphBetaClient := NewAuthenticatedHTTPClient(httpClient, cred, apiScope, graphBetaServiceRoot)
 
 	clients := &GraphClients{
+		RetryOptions:         graphRetryOptions(data.ClientOptions),
 		KiotaGraphV1Client:   msgraphsdk.NewGraphServiceClient(graphV1Adapter),
 		KiotaGraphBetaClient: msgraphbetasdk.NewGraphServiceClient(graphBetaAdapter),
 		GraphV1Client:        graphV1Client,

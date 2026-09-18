@@ -1,0 +1,25 @@
+{
+  "@odata.type": "#microsoft.graph.macOSSoftwareUpdateConfiguration",
+  "allOtherUpdateBehavior": "installASAP",
+  "assignments": [],
+  "configDataUpdateBehavior": "installASAP",
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "criticalUpdateBehavior": "installASAP",
+  "customUpdateTimeWindows": [
+    {
+      "endDay": "friday",
+      "endTime": "06:00:00",
+      "startDay": "monday",
+      "startTime": "02:00:00"
+    }
+  ],
+  "description": "Intermediate configuration removing some features",
+  "displayName": "Test 04: Regression macOS Software Update Configuration",
+  "firmwareUpdateBehavior": "installASAP",
+  "id": "10000000-0000-0000-0000-000000000001",
+  "lastModifiedDateTime": "2024-01-01T01:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "updateScheduleType": "updateDuringTimeWindows"
+}

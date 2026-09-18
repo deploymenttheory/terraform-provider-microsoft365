@@ -5,7 +5,7 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   is_mandatory                 = true
 
   timeouts = {
-    create = "10s"
+    create = "5m"
     read   = "5m"
     update = "5m"
     delete = "5m"

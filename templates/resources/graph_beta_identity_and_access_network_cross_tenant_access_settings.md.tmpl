@@ -1,0 +1,45 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [crossTenantAccessSettings resource type](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-crosstenantaccesssettings?view=graph-rest-beta)
+- [Get crossTenantAccessSettings](https://learn.microsoft.com/en-us/graph/api/networkaccess-crosstenantaccesssettings-get?view=graph-rest-beta)
+- [Update crossTenantAccessSettings](https://learn.microsoft.com/en-us/graph/api/networkaccess-crosstenantaccesssettings-update?view=graph-rest-beta)
+- [Universal tenant restrictions](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-universal-tenant-restrictions)
+
+## Microsoft Graph API Permissions
+
+For application authentication:
+
+- Read: `NetworkAccess.Read.All` or `NetworkAccess.ReadWrite.All`.
+- Write: `NetworkAccess.ReadWrite.All`.
+
+This beta API is documented for the Global service only. A tenant with Global Secure Access available is required.
+
+## Lifecycle
+
+- Initial apply and status updates PATCH the existing singleton.
+- Read and import retrieve the singleton with GET.
+- Destroy removes Terraform state only and leaves all remote settings unchanged, including enabled tagging. Apply `network_packet_tagging_status = "disabled"` first if you intend to disable tagging.
+- Manage only one instance per tenant, including across workspaces and state files.
+- This resource does not configure the separate `/policies/crossTenantAccessPolicy` policy. Review that policy before enabling tagging, because external-tenant access can be blocked.
+- Only `networkPacketTaggingStatus` is sent in updates (plus the SDK type discriminator). Other service properties are not managed.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_cross_tenant_access_settings/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_cross_tenant_access_settings/import.sh" }}

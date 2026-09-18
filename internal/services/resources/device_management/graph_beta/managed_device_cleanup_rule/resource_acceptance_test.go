@@ -1,20 +1,23 @@
 package graphBetaManagedDeviceCleanupRule_test
 
 import (
-	"context"
-	"fmt"
 	"log"
 	"regexp"
-	"strings"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaManagedDeviceCleanupRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/managed_device_cleanup_rule"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
+
+const resourceType = graphBetaManagedDeviceCleanupRule.ResourceName
+
+var testResource = graphBetaManagedDeviceCleanupRule.ManagedDeviceCleanupRuleTestResource{}
 
 func TestAccResourceManagedDeviceCleanupRule_01_Platforms(t *testing.T) {
 	platforms := []struct {
@@ -45,7 +48,11 @@ func TestAccResourceManagedDeviceCleanupRule_01_Platforms(t *testing.T) {
 						VersionConstraint: ">= 3.7.2",
 					},
 				},
-				CheckDestroy: testAccCheckManagedDeviceCleanupRuleDestroy,
+				CheckDestroy: destroy.CheckDestroyedAllFunc(
+					testResource,
+					resourceType,
+					30*time.Second,
+				),
 				Steps: []resource.TestStep{
 					{
 						Config: testAccConfigFromFile(tc.path),
@@ -85,34 +92,6 @@ func TestAccResourceManagedDeviceCleanupRule_02_RequiredAndInvalid(t *testing.T)
 			},
 		},
 	})
-}
-
-func testAccCheckManagedDeviceCleanupRuleDestroy(s *terraform.State) error {
-	graphClient, err := acceptance.TestGraphClient()
-	if err != nil {
-		return fmt.Errorf("error creating Graph client for CheckDestroy: %v", err)
-	}
-	ctx := context.Background()
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "microsoft365_graph_beta_device_management_managed_device_cleanup_rule" {
-			continue
-		}
-		_, err := graphClient.
-			DeviceManagement().
-			ManagedDeviceCleanupRules().
-			ByManagedDeviceCleanupRuleId(rs.Primary.ID).
-			Get(ctx, nil)
-
-		if err != nil {
-			errStr := err.Error()
-			if strings.Contains(errStr, "404") || strings.Contains(strings.ToLower(errStr), "not found") || strings.Contains(strings.ToLower(errStr), "does not exist") {
-				continue
-			}
-			continue
-		}
-		return fmt.Errorf("Managed Device Cleanup Rule %s still exists", rs.Primary.ID)
-	}
-	return nil
 }
 
 func testAccConfigFromFile(path string) string {

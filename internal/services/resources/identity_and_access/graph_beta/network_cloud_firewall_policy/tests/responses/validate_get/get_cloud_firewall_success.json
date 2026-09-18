@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/cloudFirewallPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "name": "test-cloud-firewall",
+  "description": "Disposable API contract probe",
+  "version": "1.0.0",
+  "lastModifiedDateTime": "2026-09-07T13:08:00.4510907Z",
+  "settings": {
+    "defaultAction": "allow"
+  }
+}

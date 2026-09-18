@@ -1,0 +1,31 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/deviceConfigurations/assignments",
+  "value": [
+    {
+      "id": "20000000-0000-0000-0000-000000000001",
+      "target": {
+        "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+        "groupId": "44444444-4444-4444-4444-444444444444"
+      }
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000002",
+      "target": {
+        "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+        "groupId": "55555555-5555-5555-5555-555555555555"
+      }
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000003",
+      "target": {
+        "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget"
+      }
+    },
+    {
+      "id": "20000000-0000-0000-0000-000000000004",
+      "target": {
+        "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget"
+      }
+    }
+  ]
+}

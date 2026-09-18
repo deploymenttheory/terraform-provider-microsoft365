@@ -1,0 +1,8 @@
+{
+  "id": "11111111-2222-3333-4444-555555555555",
+  "name": "test-pac",
+  "isEnabled": false,
+  "content": "function FindProxyForURL(url, host) { return \"DIRECT\"; }",
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z"
+}

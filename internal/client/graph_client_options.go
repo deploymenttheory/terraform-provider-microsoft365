@@ -137,22 +137,19 @@ func addRetryHandler(
 		"retryDelaySeconds": options.RetryDelaySeconds,
 	})
 
-	retryOptions := khttp.RetryHandlerOptions{
-		MaxRetries:   int(options.MaxRetries),
-		DelaySeconds: int(options.RetryDelaySeconds),
-		ShouldRetry: func(delay time.Duration, executionCount int, req *http.Request, resp *http.Response) bool {
-			tflog.Debug(
-				ctx,
-				"Kiota retry handler accepted a retryable response",
-				map[string]any{
-					"attempt":          executionCount,
-					"statusCode":       resp.StatusCode,
-					"cumulative_delay": delay,
-					"method":           req.Method,
-				},
-			)
-			return true
-		},
+	retryOptions := graphRetryOptions(options)
+	retryOptions.ShouldRetry = func(delay time.Duration, executionCount int, req *http.Request, resp *http.Response) bool {
+		tflog.Debug(
+			ctx,
+			"Kiota retry handler accepted a retryable response",
+			map[string]any{
+				"attempt":          executionCount,
+				"statusCode":       resp.StatusCode,
+				"cumulative_delay": delay,
+				"method":           req.Method,
+			},
+		)
+		return true
 	}
 
 	retryHandler := khttp.NewRetryHandlerWithOptions(retryOptions)
@@ -371,4 +368,12 @@ func configureTimeout(ctx context.Context, client *http.Client, options *ClientO
 	} else {
 		tflog.Debug(ctx, "No custom timeout set for HTTP client")
 	}
+}
+
+// graphRetryOptions applies the same limits to middleware and individual requests.
+func graphRetryOptions(options *ClientOptions) khttp.RetryHandlerOptions {
+	if options != nil && options.EnableRetry {
+		return khttp.RetryHandlerOptions{MaxRetries: int(options.MaxRetries), DelaySeconds: int(options.RetryDelaySeconds)}
+	}
+	return khttp.RetryHandlerOptions{}
 }

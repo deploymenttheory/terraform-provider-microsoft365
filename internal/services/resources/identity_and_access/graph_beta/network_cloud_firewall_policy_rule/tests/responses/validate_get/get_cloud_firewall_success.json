@@ -1,0 +1,32 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#networkAccess/cloudFirewallPolicies('00000000-0000-0000-0000-000000000002')/policyRules/$entity",
+  "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallRule",
+  "id": "00000000-0000-0000-0000-000000000001",
+  "name": "test-cloud-firewall_rule",
+  "priority": 100,
+  "description": "",
+  "action": "allow",
+  "settings": {
+    "status": "disabled"
+  },
+  "matchingConditions": {
+    "sources": {
+      "ports": [],
+      "branchIds": [],
+      "addresses": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallSourceIpAddress",
+          "values": [
+            "192.0.2.1",
+            "198.51.100.0/24"
+          ]
+        }
+      ]
+    },
+    "destinations": {
+      "ports": [],
+      "protocols": "tcp,udp",
+      "addresses": []
+    }
+  }
+}
