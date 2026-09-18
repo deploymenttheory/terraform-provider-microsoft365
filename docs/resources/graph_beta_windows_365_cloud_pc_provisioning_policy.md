@@ -233,7 +233,7 @@ Optional:
 
 - `domain_join_type` (String) Specifies the method by which the provisioned Cloud PC joins Microsoft Entra ID.
 - `on_premises_connection_id` (String) The Azure network connection ID that matches the virtual network IT admins want the provisioning policy to use when they create Cloud PCs.
-- `region_name` (String) The supported Azure region where the IT admin wants the provisioning policy to create Cloud PCs. It is recommended using the Automatic option.The option allows Windows 365 to make the best selection which decreases the chance of provisioning failure.Must be one of: automatic, japaneast, eastasia.
+- `region_name` (String) The supported Azure region where the IT admin wants the provisioning policy to create Cloud PCs. It is recommended using the Automatic option. The option allows Windows 365 to make the best selection which decreases the chance of provisioning failure.
 
 
 <a id="nestedatt--timeouts"></a>
