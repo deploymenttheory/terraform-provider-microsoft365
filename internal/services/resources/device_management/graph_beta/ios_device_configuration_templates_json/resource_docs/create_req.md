@@ -1,8 +1,7 @@
 # iOS/iPadOS device configuration templates (JSON) — wire traces
 
 Reference request/response bodies for the two `@odata.type` variants handled by this resource. The
-GET section is the source of truth for `serverOwnedRootKeys` in `strip.go` — it was derived from an
-observed response, not from the SDK surface.
+GET section is the source of truth for `serverOwnedRootKeys` in `strip.go`
 
 ## Create — iosGeneralDeviceConfiguration
 
@@ -102,7 +101,7 @@ Graph also expects an explicit `@odata.type` on the page objects themselves, not
 | `#microsoft.graph.iosWebContentFilterSpecificWebsitesAccess` | `websiteList`, `specificWebsitesOnly` — both `[]iosBookmark` |
 
 An `iosBookmark` is `{ url, displayName, bookmarkFolder }`. Note it is **not** `{ name,
-bookmarkFolderName }` — an earlier draft of the examples invented those names.
+bookmarkFolderName }` 
 
 Validated AutoFilter body:
 
@@ -130,8 +129,6 @@ sibling ever grows a wallpaper attribute.
 
 ### iosGeneralDeviceConfiguration nested shapes
 
-A live restrictions profile confirms several properties are objects or object arrays rather than the
-scalars they resemble:
 
 | Property | Shape |
 |---|---|
@@ -232,10 +229,7 @@ only the derived metadata about them.
 | `wallpaperImage` | `mimeContent` `{type, value}` — note Graph echoes a `@odata.type` here even though the property is singular and concrete |
 
 Enum values: `alertType` is one of `deviceDefault`, `banner`, `modal`, `none`; `previewVisibility` one
-of `notConfigured`, `alwaysShow`, `hideWhenLocked`, `neverShow`.
-
-Also accepted and echoed, though absent from earlier drafts of these docs: `homeScreenGridWidth`,
-`homeScreenGridHeight`, `lockScreenFootnote`, `assetTagTemplate`.
+of `notConfigured`, `alwaysShow`, `hideWhenLocked`, `neverShow`, `homeScreenGridWidth`, `homeScreenGridHeight`, `lockScreenFootnote`, `assetTagTemplate`.
 
 ### Confirmed server-owned root key set
 
@@ -280,8 +274,7 @@ Request Method: PATCH
 ```
 
 **PATCH confirmed working against a live tenant.** A profile created with `cameraBlocked` only was
-updated to also set `airDropBlocked`, and Graph accepted the PATCH. The open question of whether to
-fall back to `PutRequestByResourceId` is settled: PATCH is correct and no change is needed.
+updated to also set `airDropBlocked`, and Graph accepted the PATCH. 
 
 PATCH rather than PUT, deliberately: PUT would clear properties absent from `settings_json`, which
 would contradict the projection semantics on read ("only declared properties are managed").
@@ -289,18 +282,6 @@ would contradict the projection semantics on read ("only declared properties are
 Note the Intune UI sends its **entire form state** on PATCH — roughly 170 properties, most of them
 `false` — rather than only what changed. This provider sends only the declared properties, which is
 both smaller and consistent with the projection model. Both are valid PATCH bodies.
-
-## Endpoint path gotcha
-
-The `custom_requests` helpers are inconsistent about the separator between base URL and endpoint:
-
-| Helper | URL template | Endpoint form |
-|---|---|---|
-| `PostRequest` | `"{+baseurl}/" + Endpoint` | **no** leading slash |
-| `GetRequestByResourceId`, `PatchRequestByResourceId` (via `ByIDRequestUrlTemplate`) | `"{+baseurl}" + Endpoint` | leading slash **required** |
-
-Hence the two constants `CollectionEndpointPath` and `ItemEndpointPath`. Using one for both silently
-produces `https://graph.microsoft.com/betadeviceManagement/...`.
 
 ## Assignments
 

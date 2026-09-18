@@ -32,9 +32,6 @@ func loadAcceptanceTestTerraform(t *testing.T, filename string) string {
 	return config
 }
 
-// The live-tenant test that settles the two open risks for this resource: whether Graph accepts
-// PATCH for these types, and whether projection really is needed (it is, if the second plan is empty
-// despite the response carrying the full property surface).
 func TestAccResourceIosDeviceConfigurationTemplatesJson_01_GeneralConfiguration(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
@@ -65,12 +62,8 @@ func TestAccResourceIosDeviceConfigurationTemplatesJson_01_GeneralConfiguration(
 					check.That(resourceType+".general_minimal").ExistsInGraph(testResource),
 					check.That(resourceType+".general_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".general_minimal").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-iOS-json-general-[a-z0-9]{8}$`)),
-					// Against a real tenant this is the projection proof: Graph returns ~190 keys and
-					// state must still hold only the declared one.
 					check.That(resourceType+".general_minimal").Key("settings_json").HasValue(`{"cameraBlocked":true}`),
-					// Assignment assertion disabled: the group dependencies it relied on are commented
-					// out in the .tf while group hard-delete is failing on the test tenant. See the
-					// note at the top of the corresponding tests/terraform/acceptance file.
+					// hard-delete test disabled
 					// check.That(resourceType+".general_minimal").Key("assignments.#").HasValue("1"),
 				),
 			},
@@ -100,7 +93,6 @@ func TestAccResourceIosDeviceConfigurationTemplatesJson_01_GeneralConfiguration(
 				ResourceName:      resourceType + ".general_minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
-				// With no prior shape to project against, import keeps the full property surface.
 				ImportStateVerifyIgnore: []string{"settings_json"},
 			},
 		},
@@ -136,8 +128,6 @@ func TestAccResourceIosDeviceConfigurationTemplatesJson_02_DeviceFeaturesConfigu
 					},
 					check.That(resourceType+".device_features").ExistsInGraph(testResource),
 					check.That(resourceType+".device_features").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					// Confirms Graph accepted and returned the nested discriminators intact — the
-					// assumption the root-only strip boundary rests on.
 					check.That(resourceType+".device_features").Key("settings_json").MatchesRegex(
 						regexp.MustCompile(`#microsoft\.graph\.iosHomeScreenApp`),
 					),
