@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.1.0...v1.2.0) (2026-09-18)
+
+
+### Features
+
+* Add additionally supported datacenters ([712b7f9](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/712b7f9d0c4ed205dd2c705944bc7d95c524139e))
+* add additionally supported datacenters ([#3919](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3919)) ([68d1753](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/68d1753529a71e21c8018a9c4cc563ac89c08294))
+
+
+### Bug Fixes
+
+* added test fixtures for numerous resources ([6b4528a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6b4528a74d75c2044d94894baf85e9c28e0ca8f3))
+* resolved state mapping issues and added acc tests for resource Linux Platform Script ([5a75201](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5a75201a13be5db3b3f63a63ad7e69869e123a1c))
+* resolved state mapping issues and added acc tests for resource Linux platform scripts ([#3916](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/3916)) ([f6c0e83](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f6c0e835f1902664dbde74800990d60491b2010d))
+
 ## [1.1.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.0.0...v1.1.0) (2026-09-17)
 
 
