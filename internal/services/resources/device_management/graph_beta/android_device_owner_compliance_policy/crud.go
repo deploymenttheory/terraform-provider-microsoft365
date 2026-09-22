@@ -139,7 +139,7 @@ func (r *AndroidDeviceOwnerCompliancePolicyResource) Read(ctx context.Context, r
 		ByDeviceCompliancePolicyId(object.ID.ValueString()).
 		Get(ctx, &devicemanagement.DeviceCompliancePoliciesDeviceCompliancePolicyItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &devicemanagement.DeviceCompliancePoliciesDeviceCompliancePolicyItemRequestBuilderGetQueryParameters{
-				Expand: []string{"assignments"},
+				Expand: []string{"assignments", "scheduledActionsForRule($expand=scheduledActionConfigurations)"},
 			},
 		})
 
