@@ -166,6 +166,33 @@ func TestUnitResourceB2bManagementPolicy_06_CreateError(t *testing.T) {
 	})
 }
 
+// TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh reproduces the stale-replica 404
+// observed live on the first refresh after create. Removing the policy from state on that 404
+// would make the plan create a duplicate and orphan the existing policy; the refresh must keep
+// re-reading until the policy is visible and produce an empty plan.
+func TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
+			},
+			{
+				PreConfig: func() {
+					policyMock.RegisterStaleNotFoundMocks(2)
+				},
+				Config:   testConfig("tests/terraform/unit/resource_minimal.tf"),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
 func testConfig(path string) string {
 	unitTestConfig, err := helpers.ParseHCLFile(path)
 	if err != nil {

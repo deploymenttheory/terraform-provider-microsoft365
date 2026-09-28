@@ -2,7 +2,9 @@ package graphBetaIdentityAndAccessB2bManagementPolicyAssignment
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
 // Create handles the Create operation for B2B Management Policy Assignment resources.
@@ -43,8 +46,9 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 	directoryObjectID := object.DirectoryObjectID.ValueString()
 
 	// A policy, application or service principal created moments earlier may not have propagated
-	// across Microsoft Entra replicas yet. The $ref POST is not idempotent, so it is never retried;
-	// instead, wait until both ends of the reference are readable (idempotent GETs) first.
+	// across Microsoft Entra replicas yet. Wait until both ends of the reference are readable
+	// (idempotent GETs) first; addPolicyReferenceWithRetry covers the replica serving the POST
+	// still lagging behind the one that served these reads.
 	if err := r.waitForPolicyPropagation(ctx, policyID); err != nil {
 		resp.Diagnostics.AddError(
 			"Error verifying B2B management policy before assignment",
@@ -64,7 +68,7 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 
 	tflog.Debug(ctx, fmt.Sprintf("Applying B2B management policy %s to %s %s", policyID, directoryObjectType, directoryObjectID))
 
-	if err := r.addPolicyReference(ctx, directoryObjectType, directoryObjectID, policyID); err != nil {
+	if err := r.addPolicyReferenceWithRetry(ctx, directoryObjectType, directoryObjectID, policyID); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
@@ -144,6 +148,51 @@ func (r *B2bManagementPolicyAssignmentResource) waitForDirectoryObjectType(ctx c
 	return directoryObjectType, err
 }
 
+// addPolicyReferenceWithRetry sends the $ref POST, retrying while Microsoft Graph answers 404.
+//
+// Even after the policy is readable, the replica serving the POST can still lag behind and reject
+// it with 404 Directory_ObjectNotFound ("Unable to read the company information from the
+// directory."), observed live immediately after creating the policy. A 404 means nothing was
+// written, so the POST is repeated. Should an earlier attempt have succeeded after all, the retry
+// is rejected with 400 "One or more added object references already exist", which is then treated
+// as success; on the first attempt that response is returned as an error instead, so an
+// assignment that already existed before this Create is imported rather than silently adopted.
+func (r *B2bManagementPolicyAssignmentResource) addPolicyReferenceWithRetry(ctx context.Context, directoryObjectType, directoryObjectID, policyID string) error {
+	attempt := 0
+
+	return crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
+		attempt++
+
+		err := r.addPolicyReference(ctx, directoryObjectType, directoryObjectID, policyID)
+		if err == nil {
+			return true, nil
+		}
+
+		errorInfo := errors.GraphError(ctx, err)
+		switch {
+		case errorInfo.StatusCode == 404:
+			tflog.Debug(ctx, fmt.Sprintf("Assigning B2B management policy %s returned 404 (attempt %d), awaiting Entra propagation", policyID, attempt))
+			return false, err
+		case attempt > 1 && isReferenceAlreadyExistsError(err):
+			tflog.Debug(ctx, fmt.Sprintf("B2B management policy %s is already applied to %s after a retried assignment", policyID, directoryObjectID))
+			return true, nil
+		default:
+			return false, &crud.FatalPollError{Err: err}
+		}
+	})
+}
+
+// isReferenceAlreadyExistsError reports whether err is the 400 Graph returns when the reference
+// being added is already present.
+func isReferenceAlreadyExistsError(err error) bool {
+	var odataError *odataerrors.ODataError
+	if !stderrors.As(err, &odataError) || odataError.GetStatusCode() != 400 || odataError.GetErrorEscaped() == nil {
+		return false
+	}
+	message := odataError.GetErrorEscaped().GetMessage()
+	return message != nil && strings.Contains(*message, "added object references already exist")
+}
+
 // Read handles the Read operation for B2B Management Policy Assignment resources.
 //
 // Operation: Verifies the B2B management policy applies to the directory object
@@ -187,17 +236,22 @@ func (r *B2bManagementPolicyAssignmentResource) Read(ctx context.Context, req re
 	policyID := object.B2bManagementPolicyID.ValueString()
 	directoryObjectID := object.DirectoryObjectID.ValueString()
 
-	directoryObjects, err := r.listAppliesTo(ctx, policyID)
+	directoryObject, err := r.findAppliesTo(ctx, policyID, directoryObjectID, operation == constants.TfOperationRead)
+	if stderrors.Is(err, errAppliesToUnreadable) {
+		resp.Diagnostics.AddError(
+			"Error reading B2B management policy appliesTo",
+			fmt.Sprintf("Microsoft Graph returned an unparseable appliesTo response for B2B management policy %s (%s). "+
+				"This happens when the policy applies to an application the caller cannot read: grant Application.Read.All "+
+				"(or Application.ReadWrite.All) in addition to Policy.Read.B2BManagementPolicy.", policyID, err.Error()),
+		)
+		return
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	for _, directoryObject := range directoryObjects {
-		if directoryObject.GetId() == nil || *directoryObject.GetId() != directoryObjectID {
-			continue
-		}
-
+	if directoryObject != nil {
 		if directoryObjectType, ok := directoryObjectTypeFromODataType(directoryObject.GetOdataType()); ok {
 			object.DirectoryObjectType = types.StringValue(directoryObjectType)
 		}

@@ -20,7 +20,9 @@ The documented [Add appliesTo](https://learn.microsoft.com/en-us/graph/api/b2bma
 ## Behavior Notes
 
 - B2B management policies can only be applied to applications and service principals. The provider reads `GET /beta/directoryObjects/{id}` to detect which one `directory_object_id` refers to, and exposes the result as `directory_object_type`.
-- Before the `$ref` POST, the provider waits until both the policy and the directory object are readable, because objects created moments earlier may not have propagated across Microsoft Entra replicas. The POST itself is sent exactly once.
+- Before the `$ref` POST, the provider waits until both the policy and the directory object are readable, because objects created moments earlier may not have propagated across Microsoft Entra replicas. The replica serving the POST can still lag and reject it with `404 Directory_ObjectNotFound`; nothing is written in that case, so the POST is retried. If a retry is rejected with `400 One or more added object references already exist`, an earlier attempt succeeded and the assignment is accepted. On the first attempt, that response is returned as an error so a pre-existing assignment is imported rather than silently adopted.
+- During refresh, an assignment missing from `appliesTo` (or a 404 for the policy) is only treated as removed once it has persisted for 60 seconds, because stale replicas briefly return an empty `appliesTo`.
+- When the caller cannot read an application in the policy's `appliesTo`, Microsoft Graph returns HTTP 200 with a truncated body followed by an `InternalServerError` (`signInAudienceRestrictions ... has a null value`). The provider reports this as an error that names the missing `Application.Read.All` permission, rather than dropping the assignment from state.
 - Changing `b2b_management_policy_id` or `directory_object_id` replaces the assignment.
 
 ## Microsoft Graph API Permissions
@@ -30,10 +32,21 @@ The following client `application` permissions are needed in order to use this {
 **Required:**
 - `Policy.Read.B2BManagementPolicy`
 - `Policy.ReadWrite.B2BManagementPolicy`
-- `Application.ReadWrite.All`
+- `Application.Read.All`
+- `Application.ReadWrite.OwnedBy`: sufficient when the calling service principal owns the target application or service principal. Otherwise use `Application.ReadWrite.All`, which also covers `Application.Read.All`.
 
 **Optional:**
 - `None` `[N/A]`
+
+These permissions were verified against a live tenant with application (app-only) tokens:
+
+| Permissions | `GET /directoryObjects/{id}` | `POST`/`DELETE .../policies/$ref` | `GET .../appliesTo` with an application assigned |
+| --- | --- | --- | --- |
+| `Policy.ReadWrite.B2BManagementPolicy` | 403 | 403 | truncated response |
+| `Policy.ReadWrite.B2BManagementPolicy` + `Policy.ReadWrite.ApplicationConfiguration` | 403 | 403 | truncated response |
+| `Policy.Read.B2BManagementPolicy` + `Application.Read.All` | 200 | not tested (read-only) | 200 |
+| `Policy.ReadWrite.B2BManagementPolicy` + `Application.ReadWrite.OwnedBy` (caller owns the targets) | 200 | 204 | 200 |
+| `Policy.ReadWrite.B2BManagementPolicy` + `Application.ReadWrite.All` | 200 | 204 | 200 |
 
 ## Example Usage
 

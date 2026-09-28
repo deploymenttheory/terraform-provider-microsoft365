@@ -127,11 +127,7 @@ func (r *B2bManagementPolicyResource) Read(ctx context.Context, req resource.Rea
 		}
 	}
 
-	policy, err := r.client.
-		Policies().
-		B2bManagementPolicies().
-		ByB2bManagementPolicyId(object.ID.ValueString()).
-		Get(ctx, nil)
+	policy, err := r.getPolicy(ctx, object.ID.ValueString(), operation == constants.TfOperationRead)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)

@@ -2,7 +2,9 @@ package graphBetaIdentityAndAccessB2bManagementPolicyAssignment
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -21,6 +23,15 @@ const (
 	directoryObjectTypeApplication      = "application"
 	directoryObjectTypeServicePrincipal = "servicePrincipal"
 )
+
+// errAppliesToUnreadable marks an appliesTo response that could not be parsed. When the caller
+// lacks Application.Read.All and the policy applies to an application, Microsoft Graph answers
+// GET .../appliesTo with HTTP 200 and a body that is cut off mid-object and followed by an
+// InternalServerError ("The property 'signInAudienceRestrictions[Nullable=False]' ... has a null
+// value"). With $select=id the same caller instead gets an empty collection, which would silently
+// drop the assignment from state, so the full representation is requested and the failure is
+// surfaced.
+var errAppliesToUnreadable = errors.New("the appliesTo response could not be parsed")
 
 var policyReferenceErrorMapping = abstractions.ErrorMappings{
 	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
@@ -136,7 +147,7 @@ func (r *B2bManagementPolicyAssignmentResource) listAppliesTo(ctx context.Contex
 
 	page, err := builder.Get(ctx, nil)
 	if err != nil {
-		return nil, err
+		return nil, wrapAppliesToError(err)
 	}
 
 	var directoryObjects []graphmodels.DirectoryObjectable
@@ -150,9 +161,21 @@ func (r *B2bManagementPolicyAssignmentResource) listAppliesTo(ctx context.Contex
 
 		page, err = builder.WithUrl(*nextLink).Get(ctx, nil)
 		if err != nil {
-			return nil, err
+			return nil, wrapAppliesToError(err)
 		}
 	}
 
 	return directoryObjects, nil
+}
+
+// wrapAppliesToError tags errors that are not Graph API, transport or context errors, i.e. a
+// successful response whose body failed to parse, with errAppliesToUnreadable.
+func wrapAppliesToError(err error) error {
+	var apiError abstractions.ApiErrorable
+	var urlError *url.Error
+	if errors.As(err, &apiError) || errors.As(err, &urlError) ||
+		errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return err
+	}
+	return fmt.Errorf("%w: %w", errAppliesToUnreadable, err)
 }

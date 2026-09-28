@@ -24,6 +24,7 @@ This resource uses the Microsoft Graph beta `/policies/b2bManagementPolicies` en
 - `definition` is stored and returned exactly as supplied. Use `jsonencode()` to build it.
 - Setting `is_organization_default = true` activates the policy for the whole tenant and changes its external collaboration settings. Only one B2B management policy can be the organization default.
 - Reads that follow a create or update are retried until they reflect the written values, because Microsoft Entra replicas briefly return the previous values.
+- Shortly after a write, a stale replica can also answer `GET` with `404 Directory_ObjectNotFound` for a policy that exists. During refresh, a 404 is only treated as deletion once it has persisted for 60 seconds; otherwise the next plan would create a duplicate policy and orphan the existing one.
 
 ## Microsoft Graph API Permissions
 

@@ -209,6 +209,27 @@ func (m *B2bManagementPolicyMock) RegisterEventualConsistencyMocks(staleReadCoun
 		})
 }
 
+// RegisterStaleNotFoundMocks overrides the GET responder so that the next notFoundCount reads
+// return the 404 Directory_ObjectNotFound served by a stale Microsoft Entra replica, then delegate
+// to the normal responder. Call after RegisterMocks, e.g. from a test step's PreConfig.
+func (m *B2bManagementPolicyMock) RegisterStaleNotFoundMocks(notFoundCount int) {
+	var mu sync.Mutex
+	remaining := notFoundCount
+	get := m.getB2bManagementPolicyResponder()
+
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/policies/b2bManagementPolicies/[0-9a-fA-F-]+$`,
+		func(req *http.Request) (*http.Response, error) {
+			mu.Lock()
+			if remaining > 0 {
+				remaining--
+				mu.Unlock()
+				return httpmock.NewStringResponse(404, `{"error":{"code":"Directory_ObjectNotFound","message":"Unable to read the company information from the directory."}}`), nil
+			}
+			mu.Unlock()
+			return get(req)
+		})
+}
+
 // CleanupMockState clears the mock state for clean test runs
 func (m *B2bManagementPolicyMock) CleanupMockState() {
 	mockState.Lock()

@@ -3,6 +3,8 @@ package mocks
 import (
 	"encoding/json"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -36,6 +38,8 @@ var mockState struct {
 	appliesTo map[string]map[string]bool
 	// calls counts policy reference writes keyed by "METHOD collection", e.g. "POST servicePrincipals"
 	calls map[string]int
+	// postNotFoundRemaining is the number of upcoming $ref POSTs rejected with the replica-lag 404
+	postNotFoundRemaining int
 }
 
 func init() {
@@ -127,6 +131,15 @@ func (m *B2bManagementPolicyAssignmentMock) addPolicyReferenceResponder() httpmo
 		policyID := odataID[strings.LastIndex(odataID, "/")+1:]
 
 		mockState.Lock()
+		if mockState.postNotFoundRemaining > 0 {
+			mockState.postNotFoundRemaining--
+			mockState.Unlock()
+			return factories.ErrorResponse(404, "Directory_ObjectNotFound", "Unable to read the company information from the directory.")(req)
+		}
+		if mockState.appliesTo[policyID][directoryObjectID] {
+			mockState.Unlock()
+			return factories.ErrorResponse(400, "Request_BadRequest", "One or more added object references already exist for the following modified properties: 'policies'.")(req)
+		}
 		if mockState.appliesTo[policyID] == nil {
 			mockState.appliesTo[policyID] = make(map[string]bool)
 		}
@@ -188,6 +201,25 @@ func (m *B2bManagementPolicyAssignmentMock) CleanupMockState() {
 	defer mockState.Unlock()
 	clear(mockState.appliesTo)
 	clear(mockState.calls)
+	mockState.postNotFoundRemaining = 0
+}
+
+// RegisterPostNotFound makes the next notFoundCount $ref POSTs fail with the 404 returned while
+// the referenced policy has not reached the replica serving the write. Nothing is written.
+func (m *B2bManagementPolicyAssignmentMock) RegisterPostNotFound(notFoundCount int) {
+	mockState.Lock()
+	defer mockState.Unlock()
+	mockState.postNotFoundRemaining = notFoundCount
+}
+
+// SeedAssignment records an assignment that exists before Terraform creates it.
+func (m *B2bManagementPolicyAssignmentMock) SeedAssignment(policyID, directoryObjectID string) {
+	mockState.Lock()
+	defer mockState.Unlock()
+	if mockState.appliesTo[policyID] == nil {
+		mockState.appliesTo[policyID] = make(map[string]bool)
+	}
+	mockState.appliesTo[policyID][directoryObjectID] = true
 }
 
 // CallCount returns how many policy reference requests with the given method were sent to the
@@ -244,6 +276,47 @@ func (m *B2bManagementPolicyAssignmentMock) RegisterEventualConsistencyMocks(pol
 			}
 			mu.Unlock()
 			return list(req)
+		})
+}
+
+// RegisterStaleAppliesToMocks overrides the appliesTo responder so that the next staleCount reads
+// return an empty collection, as served by a stale Microsoft Entra replica, then delegate to the
+// normal responder. Call after RegisterMocks, e.g. from a test step's PreConfig.
+func (m *B2bManagementPolicyAssignmentMock) RegisterStaleAppliesToMocks(staleCount int) {
+	var mu sync.Mutex
+	remaining := staleCount
+	list := m.listAppliesToResponder()
+
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/policies/b2bManagementPolicies/[0-9a-fA-F-]+/appliesTo$`,
+		func(req *http.Request) (*http.Response, error) {
+			mu.Lock()
+			if remaining > 0 {
+				remaining--
+				mu.Unlock()
+				response := map[string]any{
+					"@odata.context": "https://graph.microsoft.com/beta/$metadata#directoryObjects",
+					"value":          []any{},
+				}
+				return factories.SuccessResponse(200, response)(req)
+			}
+			mu.Unlock()
+			return list(req)
+		})
+}
+
+// RegisterTruncatedAppliesToMocks overrides the appliesTo responder with the response Microsoft
+// Graph returns when the caller lacks Application.Read.All and the policy applies to an
+// application: HTTP 200 whose JSON body is cut off mid-object and followed by an error object.
+func (m *B2bManagementPolicyAssignmentMock) RegisterTruncatedAppliesToMocks() {
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/policies/b2bManagementPolicies/[0-9a-fA-F-]+/appliesTo$`,
+		func(req *http.Request) (*http.Response, error) {
+			body, err := os.ReadFile(filepath.Join("tests", "responses", "validate_read", "get_applies_to_truncated_without_application_read.txt"))
+			if err != nil {
+				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
+			}
+			resp := httpmock.NewBytesResponse(200, body)
+			resp.Header.Set("Content-Type", "application/json")
+			return resp, nil
 		})
 }
 
