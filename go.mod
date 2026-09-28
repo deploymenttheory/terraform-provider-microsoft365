@@ -17,11 +17,11 @@ require (
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/lithammer/fuzzysearch v1.1.8
-	github.com/microsoft/kiota-abstractions-go v1.10.1
+	github.com/microsoft/kiota-abstractions-go v1.11.1
 	github.com/microsoft/kiota-http-go v1.5.6
 	github.com/microsoft/kiota-serialization-json-go v1.1.4
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.166.0
-	github.com/microsoftgraph/msgraph-sdk-go v1.102.0
+	github.com/microsoftgraph/msgraph-sdk-go v1.103.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.4.1
 	github.com/sassoftware/relic/v8 v8.2.0
 	github.com/stretchr/testify v1.12.1
@@ -103,9 +103,9 @@ require (
 	github.com/zclconf/go-cty v1.18.1 // indirect
 	go.abhg.dev/goldmark/frontmatter v0.2.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/otel v1.45.0 // indirect
-	go.opentelemetry.io/otel/metric v1.45.0 // indirect
-	go.opentelemetry.io/otel/trace v1.45.0 // indirect
+	go.opentelemetry.io/otel v1.46.0 // indirect
+	go.opentelemetry.io/otel/metric v1.46.0 // indirect
+	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/mod v0.41.0 // indirect
