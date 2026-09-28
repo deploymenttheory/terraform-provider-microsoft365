@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -168,13 +168,16 @@ func (r *B2bManagementPolicyAssignmentResource) listAppliesTo(ctx context.Contex
 	return directoryObjects, nil
 }
 
-// wrapAppliesToError tags errors that are not Graph API, transport or context errors, i.e. a
-// successful response whose body failed to parse, with errAppliesToUnreadable.
+// kiotaInvalidJSONMessage is the message of the (unexported) error kiota-serialization-json
+// returns when a response body fails json.Valid, which a truncated appliesTo body always does.
+const kiotaInvalidJSONMessage = "invalid json type"
+
+// wrapAppliesToError tags a successful response whose body failed JSON validation with
+// errAppliesToUnreadable. Other failures (Graph API errors, authentication, transport, context)
+// are returned unchanged so they are not misreported as a missing Application.Read.All.
 func wrapAppliesToError(err error) error {
 	var apiError abstractions.ApiErrorable
-	var urlError *url.Error
-	if errors.As(err, &apiError) || errors.As(err, &urlError) ||
-		errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+	if errors.As(err, &apiError) || !strings.Contains(err.Error(), kiotaInvalidJSONMessage) {
 		return err
 	}
 	return fmt.Errorf("%w: %w", errAppliesToUnreadable, err)

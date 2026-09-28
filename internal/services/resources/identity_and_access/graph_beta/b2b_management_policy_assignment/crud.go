@@ -69,6 +69,10 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 	tflog.Debug(ctx, fmt.Sprintf("Applying B2B management policy %s to %s %s", policyID, directoryObjectType, directoryObjectID))
 
 	if err := r.addPolicyReferenceWithRetry(ctx, directoryObjectType, directoryObjectID, policyID); err != nil {
+		if isReferenceAlreadyExistsError(err) {
+			resp.Diagnostics.AddError("B2B management policy assignment already exists", err.Error())
+			return
+		}
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
@@ -87,6 +91,8 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.MaxRetries = 60
+	opts.RetryInterval = 5 * time.Second
 	opts.ConsistencyPredicate = b2bManagementPolicyAssignmentConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -153,10 +159,13 @@ func (r *B2bManagementPolicyAssignmentResource) waitForDirectoryObjectType(ctx c
 // Even after the policy is readable, the replica serving the POST can still lag behind and reject
 // it with 404 Directory_ObjectNotFound ("Unable to read the company information from the
 // directory."), observed live immediately after creating the policy. A 404 means nothing was
-// written, so the POST is repeated. Should an earlier attempt have succeeded after all, the retry
-// is rejected with 400 "One or more added object references already exist", which is then treated
-// as success; on the first attempt that response is returned as an error instead, so an
-// assignment that already existed before this Create is imported rather than silently adopted.
+// written, so the POST is repeated.
+//
+// 400 "One or more added object references already exist" is never treated as success: since only
+// 404s (which write nothing) are retried, it means the assignment existed before this Create, and
+// adopting it would let a later destroy remove an assignment Terraform did not create. The error
+// asks for an import instead. The same applies if the SDK retry middleware re-sent a POST that had
+// been committed but answered with 503/504; failing with an import hint is the safe outcome.
 func (r *B2bManagementPolicyAssignmentResource) addPolicyReferenceWithRetry(ctx context.Context, directoryObjectType, directoryObjectID, policyID string) error {
 	attempt := 0
 
@@ -168,17 +177,18 @@ func (r *B2bManagementPolicyAssignmentResource) addPolicyReferenceWithRetry(ctx 
 			return true, nil
 		}
 
-		errorInfo := errors.GraphError(ctx, err)
-		switch {
-		case errorInfo.StatusCode == 404:
+		if isReferenceAlreadyExistsError(err) {
+			return false, &crud.FatalPollError{Err: fmt.Errorf(
+				"B2B management policy %s is already applied to %s %s; import it with ID %q instead of creating it: %w",
+				policyID, directoryObjectType, directoryObjectID, policyID+"/"+directoryObjectID, err)}
+		}
+
+		if errors.GraphError(ctx, err).StatusCode == 404 {
 			tflog.Debug(ctx, fmt.Sprintf("Assigning B2B management policy %s returned 404 (attempt %d), awaiting Entra propagation", policyID, attempt))
 			return false, err
-		case attempt > 1 && isReferenceAlreadyExistsError(err):
-			tflog.Debug(ctx, fmt.Sprintf("B2B management policy %s is already applied to %s after a retried assignment", policyID, directoryObjectID))
-			return true, nil
-		default:
-			return false, &crud.FatalPollError{Err: err}
 		}
+
+		return false, &crud.FatalPollError{Err: err}
 	})
 }
 

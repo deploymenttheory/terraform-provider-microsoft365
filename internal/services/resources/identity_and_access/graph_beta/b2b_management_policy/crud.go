@@ -56,6 +56,14 @@ func (r *B2bManagementPolicyResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
+	if createdPolicy == nil || createdPolicy.GetId() == nil {
+		resp.Diagnostics.AddError(
+			"Error creating resource",
+			fmt.Sprintf("Microsoft Graph did not return an ID for the created %s", ResourceName),
+		)
+		return
+	}
+
 	object.ID = types.StringValue(*createdPolicy.GetId())
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully created %s with ID: %s", ResourceName, object.ID.ValueString()))
@@ -71,6 +79,8 @@ func (r *B2bManagementPolicyResource) Create(ctx context.Context, req resource.C
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.MaxRetries = 60
+	opts.RetryInterval = 5 * time.Second
 	opts.ConsistencyPredicate = b2bManagementPolicyConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
@@ -201,6 +211,8 @@ func (r *B2bManagementPolicyResource) Update(ctx context.Context, req resource.U
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.MaxRetries = 60
+	opts.RetryInterval = 5 * time.Second
 	opts.ConsistencyPredicate = b2bManagementPolicyConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)

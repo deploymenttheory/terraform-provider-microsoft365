@@ -22,15 +22,22 @@ func (r B2bManagementPolicyAssignmentTestResource) Exists(ctx context.Context, _
 			return fmt.Errorf("missing b2b_management_policy_id or directory_object_id in state")
 		}
 
-		directoryObjects, err := client.Policies().B2bManagementPolicies().ByB2bManagementPolicyId(policyID).AppliesTo().Get(ctx, nil)
+		builder := client.Policies().B2bManagementPolicies().ByB2bManagementPolicyId(policyID).AppliesTo()
+		page, err := builder.Get(ctx, nil)
+		for err == nil && page != nil {
+			for _, directoryObject := range page.GetValue() {
+				if directoryObject.GetId() != nil && *directoryObject.GetId() == directoryObjectID {
+					return nil
+				}
+			}
+			nextLink := page.GetOdataNextLink()
+			if nextLink == nil || *nextLink == "" {
+				break
+			}
+			page, err = builder.WithUrl(*nextLink).Get(ctx, nil)
+		}
 		if err != nil {
 			return err
-		}
-
-		for _, directoryObject := range directoryObjects.GetValue() {
-			if directoryObject.GetId() != nil && *directoryObject.GetId() == directoryObjectID {
-				return nil
-			}
 		}
 
 		return fmt.Errorf("B2B management policy %s does not apply to directory object %s", policyID, directoryObjectID)

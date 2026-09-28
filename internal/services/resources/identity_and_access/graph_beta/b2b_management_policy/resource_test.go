@@ -3,9 +3,11 @@ package graphBetaIdentityAndAccessB2bManagementPolicy_test
 import (
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaB2bManagementPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/b2b_management_policy"
 	b2bManagementPolicyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/b2b_management_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
@@ -188,6 +190,33 @@ func TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh(t *testing.T)
 				},
 				Config:   testConfig("tests/terraform/unit/resource_minimal.tf"),
 				PlanOnly: true,
+			},
+		},
+	})
+}
+
+// TestUnitResourceB2bManagementPolicy_08_DeletedOutOfBand ensures a policy that is genuinely gone
+// is still dropped from state once the confirmation window elapses.
+func TestUnitResourceB2bManagementPolicy_08_DeletedOutOfBand(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+	defer graphBetaB2bManagementPolicy.SetNotFoundConfirmationForTesting(2*time.Second, 500*time.Millisecond)()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
+			},
+			{
+				PreConfig: func() {
+					policyMock.CleanupMockState()
+				},
+				Config:             testConfig("tests/terraform/unit/resource_minimal.tf"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

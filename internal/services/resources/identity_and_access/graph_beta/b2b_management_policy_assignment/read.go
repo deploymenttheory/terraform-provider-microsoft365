@@ -14,8 +14,8 @@ import (
 
 // notFoundConfirmationWindow bounds how long a refresh keeps re-reading an assignment that is
 // missing before accepting that it was removed; notFoundConfirmationInterval is the delay between
-// those reads.
-const (
+// those reads. They are variables only so unit tests can shorten them (see export_test.go).
+var (
 	notFoundConfirmationWindow   = 60 * time.Second
 	notFoundConfirmationInterval = 3 * time.Second
 )
@@ -58,6 +58,14 @@ func (r *B2bManagementPolicyAssignmentResource) findAppliesTo(ctx context.Contex
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Directory object %s not in appliesTo of B2B management policy %s, confirming it is not a stale Entra replica", directoryObjectID, policyID))
+
+	// Re-reading immediately would most likely hit the same stale replica, so wait one interval
+	// before the first confirmation read.
+	select {
+	case <-time.After(notFoundConfirmationInterval):
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 
 	pollCtx, cancel := context.WithTimeout(ctx, notFoundConfirmationWindow)
 	defer cancel()

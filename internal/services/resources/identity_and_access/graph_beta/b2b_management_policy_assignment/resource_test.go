@@ -3,9 +3,11 @@ package graphBetaIdentityAndAccessB2bManagementPolicyAssignment_test
 import (
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaB2bManagementPolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/b2b_management_policy_assignment"
 	assignmentMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/b2b_management_policy_assignment/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
@@ -222,12 +224,64 @@ func TestUnitResourceB2bManagementPolicyAssignment_08_AlreadyAssigned(t *testing
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfig("tests/terraform/unit/resource_service_principal.tf"),
-				ExpectError: regexp.MustCompile(`already\s+exist`),
+				ExpectError: regexp.MustCompile(`import\s+it\s+with\s+ID`),
 			},
 		},
 	})
 
 	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 1)
+}
+
+// TestUnitResourceB2bManagementPolicyAssignment_09_AlreadyAssignedAfterNotFound covers an
+// assignment that exists outside Terraform when the first $ref POST is rejected with a replica-lag
+// 404: the retry's "already exist" must not be adopted, since the 404 wrote nothing.
+func TestUnitResourceB2bManagementPolicyAssignment_09_AlreadyAssignedAfterNotFound(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, assignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+
+	assignmentMock.SeedAssignment(policyID, assignmentMocks.ServicePrincipalID)
+	assignmentMock.RegisterPostNotFound(1)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testConfig("tests/terraform/unit/resource_service_principal.tf"),
+				ExpectError: regexp.MustCompile(`import\s+it\s+with\s+ID`),
+			},
+		},
+	})
+
+	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 2)
+}
+
+// TestUnitResourceB2bManagementPolicyAssignment_10_RemovedOutOfBand ensures an assignment that is
+// genuinely gone is still dropped from state once the confirmation window elapses.
+func TestUnitResourceB2bManagementPolicyAssignment_10_RemovedOutOfBand(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, assignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+	defer graphBetaB2bManagementPolicyAssignment.SetNotFoundConfirmationForTesting(2*time.Second, 500*time.Millisecond)()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig("tests/terraform/unit/resource_service_principal.tf"),
+			},
+			{
+				PreConfig: func() {
+					assignmentMock.CleanupMockState()
+				},
+				Config:             testConfig("tests/terraform/unit/resource_service_principal.tf"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
 
 // assertCallCount checks how many policy reference requests the mock received.

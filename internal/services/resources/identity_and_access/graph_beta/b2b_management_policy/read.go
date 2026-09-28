@@ -13,8 +13,8 @@ import (
 
 // notFoundConfirmationWindow bounds how long a refresh keeps re-reading a policy that returned
 // 404 before accepting that it was deleted; notFoundConfirmationInterval is the delay between
-// those reads.
-const (
+// those reads. They are variables only so unit tests can shorten them (see export_test.go).
+var (
 	notFoundConfirmationWindow   = 60 * time.Second
 	notFoundConfirmationInterval = 3 * time.Second
 )
@@ -44,6 +44,14 @@ func (r *B2bManagementPolicyResource) getPolicy(ctx context.Context, id string, 
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("B2B management policy %s returned 404, confirming it is not a stale Entra replica", id))
+
+	// Re-reading immediately would most likely hit the same stale replica, so wait one interval
+	// before the first confirmation read.
+	select {
+	case <-time.After(notFoundConfirmationInterval):
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 
 	pollCtx, cancel := context.WithTimeout(ctx, notFoundConfirmationWindow)
 	defer cancel()
