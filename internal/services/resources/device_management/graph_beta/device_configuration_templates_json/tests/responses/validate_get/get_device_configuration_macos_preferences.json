@@ -1,0 +1,19 @@
+{
+  "@odata.type": "#microsoft.graph.macOSCustomAppConfiguration",
+  "id": "b229baf1-edd3-5938-90f7-d6509f31cb21",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-macos-preferences",
+  "version": 1,
+  "bundleId": "com.example.provider-wire-study",
+  "fileName": "preferences.plist",
+  "configurationXml": "PD94bWwgdmVyc2lvbj0iMS4wIj8+PHBsaXN0IHZlcnNpb249IjEuMCI+PGRpY3Q+PGtleT5FeGFtcGxlRW5hYmxlZDwva2V5Pjx0cnVlLz48L2RpY3Q+PC9wbGlzdD4="
+}

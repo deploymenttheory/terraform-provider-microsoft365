@@ -1,0 +1,28 @@
+{
+  "@odata.type": "#microsoft.graph.macOSWiFiConfiguration",
+  "id": "c9bdf202-51b0-5ca4-a271-8bd5911569a5",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-macos-wifi",
+  "version": 1,
+  "networkName": "Provider WiFi Study",
+  "ssid": "Provider-Unassigned-Test",
+  "connectAutomatically": false,
+  "connectWhenNetworkNameIsHidden": false,
+  "wiFiSecurityType": "wpaPersonal",
+  "proxySettings": "none",
+  "proxyManualAddress": null,
+  "proxyManualPort": null,
+  "proxyAutomaticConfigurationUrl": null,
+  "deploymentChannel": null,
+  "wifiRequirePhysicalMacAddressEnabled": null,
+  "preSharedKey": null
+}

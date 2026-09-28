@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.aospDeviceOwnerWiFiConfiguration",
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "networkName": "Provider WiFi Study",
+  "ssid": "Provider-Unassigned-Test",
+  "connectAutomatically": false,
+  "connectWhenNetworkNameIsHidden": null,
+  "wiFiSecurityType": "wpaPersonal",
+  "preSharedKey": null,
+  "proxySetting": "none",
+  "proxyManualAddress": null,
+  "proxyManualPort": null,
+  "proxyAutomaticConfigurationUrl": null,
+  "proxyExclusionList": []
+}

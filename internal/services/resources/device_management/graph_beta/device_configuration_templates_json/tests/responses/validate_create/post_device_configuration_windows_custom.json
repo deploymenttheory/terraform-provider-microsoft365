@@ -1,0 +1,28 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CustomConfiguration",
+  "id": "2993d204-e31c-5538-91aa-940da79817c7",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-windows-custom",
+  "version": 1,
+  "omaSettings": [
+    {
+      "@odata.type": "#microsoft.graph.omaSettingInteger",
+      "displayName": "Allow Camera",
+      "description": "Wire Study",
+      "omaUri": "./Device/Vendor/MSFT/Policy/Config/Camera/AllowCamera",
+      "secretReferenceValueId": null,
+      "isEncrypted": false,
+      "value": 1,
+      "isReadOnly": false
+    }
+  ]
+}

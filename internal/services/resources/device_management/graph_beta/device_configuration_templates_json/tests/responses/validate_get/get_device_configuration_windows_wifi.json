@@ -1,0 +1,29 @@
+{
+  "@odata.type": "#microsoft.graph.windowsWifiConfiguration",
+  "id": "322854c2-fae6-5759-bbf2-d3170e4a3ad8",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-windows-wifi",
+  "version": 1,
+  "wifiSecurityType": "wpaPersonal",
+  "meteredConnectionLimit": null,
+  "ssid": "Provider-Unassigned-Test",
+  "networkName": "Provider WiFi Study",
+  "connectAutomatically": false,
+  "connectToPreferredNetwork": null,
+  "connectWhenNetworkNameIsHidden": null,
+  "proxySetting": null,
+  "proxyManualAddress": null,
+  "proxyManualPort": null,
+  "proxyAutomaticConfigurationUrl": null,
+  "forceFIPSCompliance": null,
+  "preSharedKey": null
+}

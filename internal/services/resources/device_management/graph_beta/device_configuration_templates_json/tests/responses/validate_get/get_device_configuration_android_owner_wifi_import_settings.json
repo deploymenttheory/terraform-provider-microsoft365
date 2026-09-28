@@ -1,0 +1,18 @@
+{
+  "@odata.type": "#microsoft.graph.androidDeviceOwnerWiFiConfiguration",
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "networkName": "Provider WiFi Study",
+  "ssid": "Provider-Unassigned-Test",
+  "connectAutomatically": false,
+  "connectWhenNetworkNameIsHidden": null,
+  "wiFiSecurityType": "wpaPersonal",
+  "preSharedKey": null,
+  "proxySettings": "none",
+  "proxyManualAddress": null,
+  "proxyManualPort": null,
+  "proxyAutomaticConfigurationUrl": null,
+  "proxyExclusionList": null,
+  "macAddressRandomizationMode": null
+}

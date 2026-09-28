@@ -1,0 +1,52 @@
+{
+  "@odata.type": "#microsoft.graph.iosDeviceFeaturesConfiguration",
+  "id": "9ca74b45-5c2d-5a33-a6ff-a2802fea25f2",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-ios-nested-folder",
+  "version": 1,
+  "assetTagTemplate": null,
+  "contentFilterSettings": null,
+  "lockScreenFootnote": null,
+  "homeScreenGridWidth": null,
+  "homeScreenGridHeight": null,
+  "singleSignOnSettings": null,
+  "wallpaperDisplayLocation": "notConfigured",
+  "wallpaperImage": null,
+  "singleSignOnExtension": null,
+  "iosSingleSignOnExtension": null,
+  "airPrintDestinations": [],
+  "homeScreenDockIcons": [],
+  "homeScreenPages": [
+    {
+      "displayName": "Page 1",
+      "icons": [
+        {
+          "@odata.type": "#microsoft.graph.iosHomeScreenFolder",
+          "displayName": "Apps",
+          "pages": [
+            {
+              "displayName": "Folder page",
+              "apps": [
+                {
+                  "displayName": "Safari",
+                  "bundleID": "com.apple.mobilesafari",
+                  "isWebClip": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notificationSettings": []
+}

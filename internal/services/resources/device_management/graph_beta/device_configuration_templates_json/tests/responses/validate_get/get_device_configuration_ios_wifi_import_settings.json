@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.iosWiFiConfiguration",
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "networkName": "Provider WiFi Study",
+  "ssid": "Provider-Unassigned-Test",
+  "connectAutomatically": false,
+  "connectWhenNetworkNameIsHidden": false,
+  "wiFiSecurityType": "wpaPersonal",
+  "proxySettings": "none",
+  "proxyManualAddress": null,
+  "proxyManualPort": null,
+  "proxyAutomaticConfigurationUrl": null,
+  "disableMacAddressRandomization": null,
+  "preSharedKey": null
+}

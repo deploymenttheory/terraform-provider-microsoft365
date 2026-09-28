@@ -1,0 +1,27 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CustomConfiguration",
+  "id": "c434b871-2888-5af6-852d-261cc0077bd6",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-plaintext-string",
+  "version": 1,
+  "omaSettings": [
+    {
+      "@odata.type": "#microsoft.graph.omaSettingString",
+      "displayName": "Provider String",
+      "description": "Disposable encoding test",
+      "omaUri": "./Device/Vendor/MSFT/Test/String",
+      "secretReferenceValueId": "synthetic-omaSettingString",
+      "isEncrypted": true,
+      "value": "****"
+    }
+  ]
+}
