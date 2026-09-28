@@ -1,0 +1,48 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Graph API
+
+The documented [Add appliesTo](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-post-appliesto?view=graph-rest-beta) and [Remove appliesTo](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-delete-appliesto?view=graph-rest-beta) endpoints (`/policies/b2bManagementPolicies/{id}/appliesTo/$ref`) currently reject every request with `400 Property 'appliesTo' is read-only and cannot be set.`. This resource therefore writes the assignment from the application or service principal side:
+
+- Create: `POST /beta/{applications|servicePrincipals}/{directoryObjectId}/policies/$ref` with `@odata.id` set to the policy URL.
+- Read: `GET /beta/policies/b2bManagementPolicies/{id}/appliesTo` ([List appliesTo](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-list-appliesto?view=graph-rest-beta)).
+- Delete: `DELETE /beta/{applications|servicePrincipals}/{directoryObjectId}/policies/{policyId}/$ref`.
+
+## Behavior Notes
+
+- B2B management policies can only be applied to applications and service principals. The provider reads `GET /beta/directoryObjects/{id}` to detect which one `directory_object_id` refers to, and exposes the result as `directory_object_type`.
+- Before the `$ref` POST, the provider waits until both the policy and the directory object are readable, because objects created moments earlier may not have propagated across Microsoft Entra replicas. The POST itself is sent exactly once.
+- Changing `b2b_management_policy_id` or `directory_object_id` replaces the assignment.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.Read.B2BManagementPolicy`
+- `Policy.ReadWrite.B2BManagementPolicy`
+- `Application.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment/import.sh" }}

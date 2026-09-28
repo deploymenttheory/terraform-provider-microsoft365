@@ -1,0 +1,49 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Graph API
+
+This resource uses the Microsoft Graph beta `/policies/b2bManagementPolicies` endpoint:
+
+- [Create b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/policyroot-post-b2bmanagementpolicies?view=graph-rest-beta)
+- [Get b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-get?view=graph-rest-beta)
+- [Update b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-update?view=graph-rest-beta)
+- [Delete b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/policyroot-delete-b2bmanagementpolicies?view=graph-rest-beta)
+
+## Behavior Notes
+
+- The documented `description` property is not supported. Microsoft Graph rejects any create or update request that includes `description` (even `null`) with `404 Request_ResourceNotFound`, and never returns it on reads, so the provider does not expose or send it.
+- `definition` is stored and returned exactly as supplied. Use `jsonencode()` to build it.
+- Setting `is_organization_default = true` activates the policy for the whole tenant and changes its external collaboration settings. Only one B2B management policy can be the organization default.
+- Reads that follow a create or update are retried until they reflect the written values, because Microsoft Entra replicas briefly return the previous values.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.Read.B2BManagementPolicy`
+- `Policy.ReadWrite.B2BManagementPolicy`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/import.sh" }}
