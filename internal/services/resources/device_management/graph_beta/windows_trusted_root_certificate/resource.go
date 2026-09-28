@@ -45,8 +45,12 @@ type WindowsTrustedRootCertificateResource struct {
 
 func NewWindowsTrustedRootCertificateResource() resource.Resource {
 	return &WindowsTrustedRootCertificateResource{
-		ReadPermissions:  []string{"DeviceManagementConfiguration.Read.All"},
-		WritePermissions: []string{"DeviceManagementConfiguration.ReadWrite.All"},
+		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
+		},
+		WritePermissions: []string{
+			"DeviceManagementConfiguration.ReadWrite.All",
+		},
 		ResourcePath:     "/deviceManagement/deviceConfigurations",
 	}
 }
