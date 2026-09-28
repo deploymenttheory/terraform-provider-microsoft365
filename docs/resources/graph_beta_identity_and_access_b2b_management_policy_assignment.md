@@ -21,6 +21,7 @@ The documented `appliesTo/$ref` endpoints ([Add](https://learn.microsoft.com/en-
 
 - The target must be an application or a service principal; the type is detected and exposed as `directory_object_type`.
 - An assignment that already exists outside Terraform is not adopted: create fails with the ID to import.
+- Replacing the policy (for example, changing its `is_organization_default`) replaces the assignment too, because the policy ID changes.
 - A refresh treats a missing assignment as removed only after it stays missing for 60 seconds, because Microsoft Entra replicas briefly return stale results after writes.
 
 ## Microsoft Graph API Permissions

@@ -14,9 +14,11 @@ Manages Microsoft Entra B2B management policies using the `/policies/b2bManageme
 Only the policy with `is_organization_default = true` takes effect tenant-wide (for example, invitations to a blocked domain fail). A policy that is not the default has no tenant-wide effect.
 
 - Only one policy can be the default. Creating a second one fails with `400 Another object with the same value for property isOrganizationDefault already exists`.
-- Microsoft Graph cannot change `isOrganizationDefault` on an existing policy (it returns `500`), so changing `is_organization_default` replaces the policy.
-- When moving the default from one policy to another in a single apply, the new default can be created before the old one is deleted and fail with the `400` above. Apply again to finish.
-- Deleting the default policy restores the tenant to having no B2B domain restrictions.
+- Microsoft Graph cannot change `isOrganizationDefault` on an existing policy (it returns `500`), so changing `is_organization_default` replaces the policy. The policy gets a new ID, and assignments that reference it are replaced as well.
+- Moving the default to another policy in one apply works. Enforcement lags the API by roughly 10–20 seconds: in a live run, the old restriction was still enforced about 20 seconds after it was deleted, and the new one took effect after about 10 seconds.
+- If the new default happens to be created before the old one is deleted, the apply fails with the `400` above. Apply again to finish.
+- Do not use `create_before_destroy` on these policies. When the default moves, the new default is created while the old one still exists, so its creation fails. The old default's own replacement can still complete, which leaves the tenant without a default policy until a later apply succeeds (observed live).
+- Deleting the default policy removes the tenant's B2B domain restrictions.
 
 ## Behavior Notes
 
