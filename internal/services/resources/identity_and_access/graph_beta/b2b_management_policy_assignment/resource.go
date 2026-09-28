@@ -97,15 +97,12 @@ func (r *B2bManagementPolicyAssignmentResource) IdentitySchema(ctx context.Conte
 
 func (r *B2bManagementPolicyAssignmentResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages the assignment of a Microsoft Entra B2B management policy to an application or service principal. " +
-			"The assignment is read from the policy's `appliesTo` relationship. " +
-			"To import this resource, use the format: `b2b_management_policy_id/directory_object_id`.",
+		MarkdownDescription: "Applies a Microsoft Entra B2B management policy to an application or service principal. " +
+			"Import ID format: `b2b_management_policy_id/directory_object_id`.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				MarkdownDescription: "A locally generated composite identifier for this assignment in the format `b2b_management_policy_id/directory_object_id`. " +
-					"The Microsoft Graph API does not return an assignment-specific ID for this resource; this value is constructed by the provider " +
-					"to uniquely identify the assignment within Terraform state. Use this format when importing the resource.",
-				Computed: true,
+				MarkdownDescription: "Composite ID `b2b_management_policy_id/directory_object_id`; Microsoft Graph has no assignment ID.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
@@ -121,9 +118,8 @@ func (r *B2bManagementPolicyAssignmentResource) Schema(ctx context.Context, req 
 				},
 			},
 			"directory_object_id": schema.StringAttribute{
-				MarkdownDescription: "The object ID of the application or service principal to apply the B2B management policy to. " +
-					"B2B management policies can only be applied to applications and service principals.",
-				Required: true,
+				MarkdownDescription: "The object ID of the application or service principal to apply the policy to.",
+				Required:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
@@ -132,9 +128,8 @@ func (r *B2bManagementPolicyAssignmentResource) Schema(ctx context.Context, req 
 				},
 			},
 			"directory_object_type": schema.StringAttribute{
-				MarkdownDescription: "The type of the directory object the policy is applied to, as detected from Microsoft Graph. " +
-					"One of `application` or `servicePrincipal`.",
-				Computed: true,
+				MarkdownDescription: "The detected type of `directory_object_id`: `application` or `servicePrincipal`.",
+				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},

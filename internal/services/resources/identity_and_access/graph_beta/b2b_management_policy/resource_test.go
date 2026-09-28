@@ -10,6 +10,7 @@ import (
 	graphBetaB2bManagementPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/b2b_management_policy"
 	b2bManagementPolicyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/b2b_management_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -24,8 +25,7 @@ func setupMockEnvironment() (*mocks.Mocks, *b2bManagementPolicyMocks.B2bManageme
 	return mockClient, policyMock
 }
 
-// TestUnitResourceB2bManagementPolicy_01_Minimal also guards against sending description: the
-// mock rejects it with the same 404 Microsoft Graph returns.
+// The mock rejects description with Graph's 404, so this also guards against sending it.
 func TestUnitResourceB2bManagementPolicy_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -105,9 +105,7 @@ func TestUnitResourceB2bManagementPolicy_03_Update(t *testing.T) {
 	})
 }
 
-// TestUnitResourceB2bManagementPolicy_04_EventualConsistency reproduces the replica flapping seen
-// live after PATCH: without the consistency predicate the stale read would be stored and the
-// post-apply plan would not be empty.
+// Replicas return the pre-PATCH values for a few reads; the consistency predicate must wait them out.
 func TestUnitResourceB2bManagementPolicy_04_EventualConsistency(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -168,10 +166,7 @@ func TestUnitResourceB2bManagementPolicy_06_CreateError(t *testing.T) {
 	})
 }
 
-// TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh reproduces the stale-replica 404
-// observed live on the first refresh after create. Removing the policy from state on that 404
-// would make the plan create a duplicate and orphan the existing policy; the refresh must keep
-// re-reading until the policy is visible and produce an empty plan.
+// A stale-replica 404 on refresh must not drop the policy from state (seen live: duplicate create).
 func TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -195,8 +190,7 @@ func TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh(t *testing.T)
 	})
 }
 
-// TestUnitResourceB2bManagementPolicy_08_DeletedOutOfBand ensures a policy that is genuinely gone
-// is still dropped from state once the confirmation window elapses.
+// A policy that is really gone is dropped once the confirmation window elapses.
 func TestUnitResourceB2bManagementPolicy_08_DeletedOutOfBand(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, policyMock := setupMockEnvironment()
@@ -217,6 +211,34 @@ func TestUnitResourceB2bManagementPolicy_08_DeletedOutOfBand(t *testing.T) {
 				Config:             testConfig("tests/terraform/unit/resource_minimal.tf"),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+// Graph returns 500 for any change to isOrganizationDefault, so it must force replacement.
+func TestUnitResourceB2bManagementPolicy_09_OrganizationDefaultRequiresReplace(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
+			},
+			{
+				Config: testConfig("tests/terraform/unit/resource_minimal_organization_default.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceType+".minimal", plancheck.ResourceActionReplace),
+					},
+				},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceType+".minimal", "is_organization_default", "true"),
+				),
 			},
 		},
 	})

@@ -21,9 +21,7 @@ var (
 	testResource = graphBetaB2bManagementPolicy.B2bManagementPolicyTestResource{}
 )
 
-// TestAccResourceB2bManagementPolicy_01_Lifecycle creates, imports and updates a non-default
-// policy. is_organization_default is left false so the test never changes the tenant's
-// effective B2B collaboration settings.
+// is_organization_default stays false so the test does not change tenant-wide B2B settings.
 func TestAccResourceB2bManagementPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },

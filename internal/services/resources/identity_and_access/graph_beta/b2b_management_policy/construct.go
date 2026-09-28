@@ -10,8 +10,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource builds a B2bManagementPolicy SDK object from the Terraform model.
-// description is never set: Microsoft Graph fails any POST or PATCH that carries it.
+// constructResource builds the request body. description must never be set (see the model).
 func constructResource(ctx context.Context, data *B2bManagementPolicyResourceModel) (graphmodels.B2bManagementPolicyable, error) {
 	tflog.Debug(ctx, "Constructing B2B management policy resource")
 

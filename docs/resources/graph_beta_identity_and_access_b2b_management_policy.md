@@ -2,29 +2,26 @@
 page_title: "microsoft365_graph_beta_identity_and_access_b2b_management_policy Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
-  Manages Microsoft Entra B2B management policies using the /policies/b2bManagementPolicies endpoint. A B2B management policy controls Microsoft Entra B2B collaboration features for workforce tenants, such as which domains can be invited (allow or block list), automatic redemption of invitations, and opt-in to preview features. Only one B2B management policy can be the organization default.
+  Manages Microsoft Entra B2B management policies using the /policies/b2bManagementPolicies endpoint. A B2B management policy controls B2B collaboration settings such as the domains that can be invited.
 ---
 
 # microsoft365_graph_beta_identity_and_access_b2b_management_policy (Resource)
 
-Manages Microsoft Entra B2B management policies using the `/policies/b2bManagementPolicies` endpoint. A B2B management policy controls Microsoft Entra B2B collaboration features for workforce tenants, such as which domains can be invited (allow or block list), automatic redemption of invitations, and opt-in to preview features. Only one B2B management policy can be the organization default.
+Manages Microsoft Entra B2B management policies using the `/policies/b2bManagementPolicies` endpoint. A B2B management policy controls B2B collaboration settings such as the domains that can be invited.
 
-## Microsoft Graph API
+## Organization default
 
-This resource uses the Microsoft Graph beta `/policies/b2bManagementPolicies` endpoint:
+Only the policy with `is_organization_default = true` takes effect tenant-wide (for example, invitations to a blocked domain fail). A policy that is not the default has no tenant-wide effect.
 
-- [Create b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/policyroot-post-b2bmanagementpolicies?view=graph-rest-beta)
-- [Get b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-get?view=graph-rest-beta)
-- [Update b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-update?view=graph-rest-beta)
-- [Delete b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/policyroot-delete-b2bmanagementpolicies?view=graph-rest-beta)
+- Only one policy can be the default. Creating a second one fails with `400 Another object with the same value for property isOrganizationDefault already exists`.
+- Microsoft Graph cannot change `isOrganizationDefault` on an existing policy (it returns `500`), so changing `is_organization_default` replaces the policy.
+- When moving the default from one policy to another in a single apply, the new default can be created before the old one is deleted and fail with the `400` above. Apply again to finish.
+- Deleting the default policy restores the tenant to having no B2B domain restrictions.
 
 ## Behavior Notes
 
-- The documented `description` property is not supported. Microsoft Graph rejects any create or update request that includes `description` (even `null`) with `404 Request_ResourceNotFound`, and never returns it on reads, so the provider does not expose or send it.
-- `definition` is stored and returned exactly as supplied. Use `jsonencode()` to build it.
-- Setting `is_organization_default = true` activates the policy for the whole tenant and changes its external collaboration settings. Only one B2B management policy can be the organization default.
-- Reads that follow a create or update are retried until they reflect the written values, because Microsoft Entra replicas briefly return the previous values.
-- Shortly after a write, a stale replica can also answer `GET` with `404 Directory_ObjectNotFound` for a policy that exists. During refresh, a 404 is only treated as deletion once it has persisted for 60 seconds; otherwise the next plan would create a duplicate policy and orphan the existing one.
+- The documented `description` property is not supported: Microsoft Graph rejects any write that contains it with `404 Request_ResourceNotFound`.
+- A refresh treats a `404` as deletion only after it persists for 60 seconds, because Microsoft Entra replicas briefly return `404` after writes.
 
 ## Microsoft Graph API Permissions
 
@@ -40,36 +37,17 @@ The following client `application` permissions are needed in order to use this r
 ## Example Usage
 
 ```terraform
-# Example: Block B2B invitations to specific domains
-# The definition is a single JSON string stored by Microsoft Graph exactly as supplied.
-
-resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "blocked_domains" {
-  display_name = "example-b2b-blocked-domains"
+# Block B2B invitations to specific domains tenant-wide.
+# Only the organization default policy takes effect, and only one can exist.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "example" {
+  display_name            = "b2b-management-policy"
+  is_organization_default = true
 
   definition = [
     jsonencode({
       B2BManagementPolicy = {
         InvitationsAllowedAndBlockedDomainsPolicy = {
           BlockedDomains = ["example.com", "example.net"]
-        }
-      }
-    })
-  ]
-}
-
-# Example: Only allow B2B invitations to specific domains
-# Only one B2B management policy can be the organization default. Setting
-# is_organization_default = true changes the tenant's external collaboration settings.
-
-resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "allowed_domains" {
-  display_name            = "example-b2b-allowed-domains"
-  is_organization_default = false
-
-  definition = [
-    jsonencode({
-      B2BManagementPolicy = {
-        InvitationsAllowedAndBlockedDomainsPolicy = {
-          AllowedDomains = ["contoso.com", "fabrikam.com"]
         }
       }
     })
@@ -82,12 +60,12 @@ resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "al
 
 ### Required
 
-- `definition` (List of String) A string collection containing a JSON string that defines the rules and settings for the policy. The JSON is stored and returned by Microsoft Graph exactly as supplied. For example, `{"B2BManagementPolicy":{"InvitationsAllowedAndBlockedDomainsPolicy":{"BlockedDomains":["example.com"]}}}` blocks invitations to users from `example.com`.
+- `definition` (List of String) A collection containing the policy definition as a JSON string, for example `{"B2BManagementPolicy":{"InvitationsAllowedAndBlockedDomainsPolicy":{"BlockedDomains":["example.com"]}}}`.
 - `display_name` (String) The display name of the B2B management policy.
 
 ### Optional
 
-- `is_organization_default` (Boolean) If `true`, activates this policy as the organization default. There can be many B2B management policies, but only one can be the organization default. Defaults to `false`.
+- `is_organization_default` (Boolean) If `true`, the policy applies tenant-wide as the organization default. Only one policy can be the organization default. Microsoft Graph cannot change this on an existing policy, so changing it replaces the policy. Defaults to `false`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

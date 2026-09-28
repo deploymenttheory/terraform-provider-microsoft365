@@ -100,10 +100,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_03_UnsupportedDirectoryObject
 	})
 }
 
-// TestUnitResourceB2bManagementPolicyAssignment_04_EventualConsistency simulates Microsoft Entra
-// replication lag during create: the referenced policy is briefly not visible, the first $ref
-// POST is rejected with 404 by a replica the policy has not reached yet, and the first appliesTo
-// read after the POST comes from a stale replica. The rejected POST is retried once.
+// Replication lag during create: policy GET 404, $ref POST 404 (retried once), stale appliesTo.
 func TestUnitResourceB2bManagementPolicyAssignment_04_EventualConsistency(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
@@ -147,10 +144,8 @@ func TestUnitResourceB2bManagementPolicyAssignment_05_CreateError(t *testing.T) 
 	})
 }
 
-// TestUnitResourceB2bManagementPolicyAssignment_06_TruncatedAppliesTo replays the response
-// Microsoft Graph returns to callers without Application.Read.All once an application is in
-// appliesTo: HTTP 200 with a truncated body. Read must fail with an actionable error instead of
-// a bare JSON parse error, and must not drop the assignment from state.
+// Replays Graph's truncated appliesTo body (no Application.Read.All): Read must fail with a
+// permission hint and keep the state.
 func TestUnitResourceB2bManagementPolicyAssignment_06_TruncatedAppliesTo(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
@@ -181,9 +176,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_06_TruncatedAppliesTo(t *test
 	})
 }
 
-// TestUnitResourceB2bManagementPolicyAssignment_07_StaleAppliesToOnRefresh reproduces a stale
-// replica returning an empty appliesTo on refresh. Removing the assignment from state on that read
-// would make the plan re-create it; the refresh must keep re-reading and produce an empty plan.
+// A stale empty appliesTo on refresh must not drop the assignment from state.
 func TestUnitResourceB2bManagementPolicyAssignment_07_StaleAppliesToOnRefresh(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
@@ -209,8 +202,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_07_StaleAppliesToOnRefresh(t 
 	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 1)
 }
 
-// TestUnitResourceB2bManagementPolicyAssignment_08_AlreadyAssigned ensures an assignment that
-// already exists before Create is reported (so it can be imported) instead of being adopted.
+// A pre-existing assignment must be reported for import, not adopted.
 func TestUnitResourceB2bManagementPolicyAssignment_08_AlreadyAssigned(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
@@ -232,9 +224,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_08_AlreadyAssigned(t *testing
 	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 1)
 }
 
-// TestUnitResourceB2bManagementPolicyAssignment_09_AlreadyAssignedAfterNotFound covers an
-// assignment that exists outside Terraform when the first $ref POST is rejected with a replica-lag
-// 404: the retry's "already exist" must not be adopted, since the 404 wrote nothing.
+// Same after a retried 404: the 404 wrote nothing, so "already exist" still means pre-existing.
 func TestUnitResourceB2bManagementPolicyAssignment_09_AlreadyAssignedAfterNotFound(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
@@ -257,8 +247,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_09_AlreadyAssignedAfterNotFou
 	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 2)
 }
 
-// TestUnitResourceB2bManagementPolicyAssignment_10_RemovedOutOfBand ensures an assignment that is
-// genuinely gone is still dropped from state once the confirmation window elapses.
+// An assignment that is really gone is dropped once the confirmation window elapses.
 func TestUnitResourceB2bManagementPolicyAssignment_10_RemovedOutOfBand(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()

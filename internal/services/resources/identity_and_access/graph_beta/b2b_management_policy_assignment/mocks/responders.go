@@ -204,8 +204,7 @@ func (m *B2bManagementPolicyAssignmentMock) CleanupMockState() {
 	mockState.postNotFoundRemaining = 0
 }
 
-// RegisterPostNotFound makes the next notFoundCount $ref POSTs fail with the 404 returned while
-// the referenced policy has not reached the replica serving the write. Nothing is written.
+// RegisterPostNotFound makes the next notFoundCount $ref POSTs return a replica-lag 404 without writing.
 func (m *B2bManagementPolicyAssignmentMock) RegisterPostNotFound(notFoundCount int) {
 	mockState.Lock()
 	defer mockState.Unlock()
@@ -222,22 +221,15 @@ func (m *B2bManagementPolicyAssignmentMock) SeedAssignment(policyID, directoryOb
 	mockState.appliesTo[policyID][directoryObjectID] = true
 }
 
-// CallCount returns how many policy reference requests with the given method were sent to the
-// given collection ("applications" or "servicePrincipals").
+// CallCount returns the number of $ref requests with method sent to collection.
 func (m *B2bManagementPolicyAssignmentMock) CallCount(method, collection string) int {
 	mockState.Lock()
 	defer mockState.Unlock()
 	return mockState.calls[method+" "+collection]
 }
 
-// RegisterEventualConsistencyMocks overrides the referenced-policy and appliesTo responders to
-// simulate Microsoft Entra replication lag around resource creation:
-//   - the first policyGet404Count GETs of the referenced policy return 404, then delegate to the
-//     normal responder (exercises Create's pre-assignment propagation wait)
-//   - after a successful POST, the first staleListCount appliesTo GETs return an empty
-//     collection, then delegate to the normal responder (exercises the ConsistencyPredicate)
-//
-// Call after RegisterMocks.
+// RegisterEventualConsistencyMocks makes the first policyGet404Count policy GETs return 404 and,
+// once an assignment exists, the first staleListCount appliesTo GETs return an empty list.
 func (m *B2bManagementPolicyAssignmentMock) RegisterEventualConsistencyMocks(policyGet404Count, staleListCount int) {
 	var mu sync.Mutex
 	policyGetFailuresRemaining := policyGet404Count
@@ -279,9 +271,7 @@ func (m *B2bManagementPolicyAssignmentMock) RegisterEventualConsistencyMocks(pol
 		})
 }
 
-// RegisterStaleAppliesToMocks overrides the appliesTo responder so that the next staleCount reads
-// return an empty collection, as served by a stale Microsoft Entra replica, then delegate to the
-// normal responder. Call after RegisterMocks, e.g. from a test step's PreConfig.
+// RegisterStaleAppliesToMocks makes the next staleCount appliesTo GETs return an empty list.
 func (m *B2bManagementPolicyAssignmentMock) RegisterStaleAppliesToMocks(staleCount int) {
 	var mu sync.Mutex
 	remaining := staleCount
@@ -304,9 +294,8 @@ func (m *B2bManagementPolicyAssignmentMock) RegisterStaleAppliesToMocks(staleCou
 		})
 }
 
-// RegisterTruncatedAppliesToMocks overrides the appliesTo responder with the response Microsoft
-// Graph returns when the caller lacks Application.Read.All and the policy applies to an
-// application: HTTP 200 whose JSON body is cut off mid-object and followed by an error object.
+// RegisterTruncatedAppliesToMocks serves the truncated appliesTo body captured from Graph for a
+// caller without Application.Read.All.
 func (m *B2bManagementPolicyAssignmentMock) RegisterTruncatedAppliesToMocks() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/policies/b2bManagementPolicies/[0-9a-fA-F-]+/appliesTo$`,
 		func(req *http.Request) (*http.Response, error) {

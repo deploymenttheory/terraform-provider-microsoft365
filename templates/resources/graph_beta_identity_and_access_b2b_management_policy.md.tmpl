@@ -9,22 +9,19 @@ description: |-
 
 {{ .Description | trimspace }}
 
-## Microsoft Graph API
+## Organization default
 
-This resource uses the Microsoft Graph beta `/policies/b2bManagementPolicies` endpoint:
+Only the policy with `is_organization_default = true` takes effect tenant-wide (for example, invitations to a blocked domain fail). A policy that is not the default has no tenant-wide effect.
 
-- [Create b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/policyroot-post-b2bmanagementpolicies?view=graph-rest-beta)
-- [Get b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-get?view=graph-rest-beta)
-- [Update b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/b2bmanagementpolicy-update?view=graph-rest-beta)
-- [Delete b2bManagementPolicy](https://learn.microsoft.com/en-us/graph/api/policyroot-delete-b2bmanagementpolicies?view=graph-rest-beta)
+- Only one policy can be the default. Creating a second one fails with `400 Another object with the same value for property isOrganizationDefault already exists`.
+- Microsoft Graph cannot change `isOrganizationDefault` on an existing policy (it returns `500`), so changing `is_organization_default` replaces the policy.
+- When moving the default from one policy to another in a single apply, the new default can be created before the old one is deleted and fail with the `400` above. Apply again to finish.
+- Deleting the default policy restores the tenant to having no B2B domain restrictions.
 
 ## Behavior Notes
 
-- The documented `description` property is not supported. Microsoft Graph rejects any create or update request that includes `description` (even `null`) with `404 Request_ResourceNotFound`, and never returns it on reads, so the provider does not expose or send it.
-- `definition` is stored and returned exactly as supplied. Use `jsonencode()` to build it.
-- Setting `is_organization_default = true` activates the policy for the whole tenant and changes its external collaboration settings. Only one B2B management policy can be the organization default.
-- Reads that follow a create or update are retried until they reflect the written values, because Microsoft Entra replicas briefly return the previous values.
-- Shortly after a write, a stale replica can also answer `GET` with `404 Directory_ObjectNotFound` for a policy that exists. During refresh, a 404 is only treated as deletion once it has persisted for 60 seconds; otherwise the next plan would create a duplicate policy and orphan the existing one.
+- The documented `description` property is not supported: Microsoft Graph rejects any write that contains it with `404 Request_ResourceNotFound`.
+- A refresh treats a `404` as deletion only after it persists for 60 seconds, because Microsoft Entra replicas briefly return `404` after writes.
 
 ## Microsoft Graph API Permissions
 

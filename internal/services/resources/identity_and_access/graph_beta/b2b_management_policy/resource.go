@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -83,9 +84,7 @@ func (r *B2bManagementPolicyResource) IdentitySchema(ctx context.Context, req re
 func (r *B2bManagementPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Microsoft Entra B2B management policies using the `/policies/b2bManagementPolicies` endpoint. " +
-			"A B2B management policy controls Microsoft Entra B2B collaboration features for workforce tenants, such as which domains " +
-			"can be invited (allow or block list), automatic redemption of invitations, and opt-in to preview features. " +
-			"Only one B2B management policy can be the organization default.",
+			"A B2B management policy controls B2B collaboration settings such as the domains that can be invited.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The unique identifier of the B2B management policy.",
@@ -99,10 +98,8 @@ func (r *B2bManagementPolicyResource) Schema(ctx context.Context, req resource.S
 				Required:            true,
 			},
 			"definition": schema.ListAttribute{
-				MarkdownDescription: "A string collection containing a JSON string that defines the rules and settings for the policy. " +
-					"The JSON is stored and returned by Microsoft Graph exactly as supplied. For example, " +
-					"`{\"B2BManagementPolicy\":{\"InvitationsAllowedAndBlockedDomainsPolicy\":{\"BlockedDomains\":[\"example.com\"]}}}` " +
-					"blocks invitations to users from `example.com`.",
+				MarkdownDescription: "A collection containing the policy definition as a JSON string, for example " +
+					"`{\"B2BManagementPolicy\":{\"InvitationsAllowedAndBlockedDomainsPolicy\":{\"BlockedDomains\":[\"example.com\"]}}}`.",
 				ElementType: types.StringType,
 				Required:    true,
 				Validators: []validator.List{
@@ -111,11 +108,15 @@ func (r *B2bManagementPolicyResource) Schema(ctx context.Context, req resource.S
 				},
 			},
 			"is_organization_default": schema.BoolAttribute{
-				MarkdownDescription: "If `true`, activates this policy as the organization default. There can be many B2B management policies, " +
-					"but only one can be the organization default. Defaults to `false`.",
+				MarkdownDescription: "If `true`, the policy applies tenant-wide as the organization default. Only one policy can be the " +
+					"organization default. Microsoft Graph cannot change this on an existing policy, so changing it replaces the policy. " +
+					"Defaults to `false`.",
 				Optional: true,
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},

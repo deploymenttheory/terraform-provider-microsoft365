@@ -12,10 +12,9 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
-// The documented POST/DELETE /policies/b2bManagementPolicies/{id}/appliesTo/$ref endpoints reject
-// every request with 400 "Property 'appliesTo' is read-only and cannot be set.". The assignment is
-// instead written from the application or service principal side through the policies navigation
-// property, which the SDK does not generate. GET .../appliesTo reflects assignments made this way.
+// The documented appliesTo/$ref endpoints reject writes with 400 "Property 'appliesTo' is
+// read-only", so assignments are written through the application or service principal policies
+// navigation, which the SDK does not generate. GET .../appliesTo reflects them.
 const (
 	policyReferenceCollectionURLTemplate = "{+baseurl}/{directoryObjectCollection}/{directoryObjectId}/policies/$ref"
 	policyReferenceItemURLTemplate       = "{+baseurl}/{directoryObjectCollection}/{directoryObjectId}/policies/{policyId}/$ref"
@@ -24,13 +23,9 @@ const (
 	directoryObjectTypeServicePrincipal = "servicePrincipal"
 )
 
-// errAppliesToUnreadable marks an appliesTo response that could not be parsed. When the caller
-// lacks Application.Read.All and the policy applies to an application, Microsoft Graph answers
-// GET .../appliesTo with HTTP 200 and a body that is cut off mid-object and followed by an
-// InternalServerError ("The property 'signInAudienceRestrictions[Nullable=False]' ... has a null
-// value"). With $select=id the same caller instead gets an empty collection, which would silently
-// drop the assignment from state, so the full representation is requested and the failure is
-// surfaced.
+// errAppliesToUnreadable marks an unparseable appliesTo response. Without Application.Read.All,
+// Graph returns HTTP 200 with the body cut off at an application it cannot serialize. $select=id
+// is not a way around it: it returns an empty list, which would drop the assignment from state.
 var errAppliesToUnreadable = errors.New("the appliesTo response could not be parsed")
 
 var policyReferenceErrorMapping = abstractions.ErrorMappings{
@@ -68,8 +63,7 @@ func directoryObjectCollection(directoryObjectType string) (string, error) {
 	}
 }
 
-// resolveDirectoryObjectType reads the directory object to determine whether it is an application
-// or a service principal.
+// resolveDirectoryObjectType reports whether the object is an application or a service principal.
 func (r *B2bManagementPolicyAssignmentResource) resolveDirectoryObjectType(ctx context.Context, directoryObjectID string) (string, error) {
 	directoryObject, err := r.client.DirectoryObjects().ByDirectoryObjectId(directoryObjectID).Get(ctx, nil)
 	if err != nil {
@@ -168,13 +162,11 @@ func (r *B2bManagementPolicyAssignmentResource) listAppliesTo(ctx context.Contex
 	return directoryObjects, nil
 }
 
-// kiotaInvalidJSONMessage is the message of the (unexported) error kiota-serialization-json
-// returns when a response body fails json.Valid, which a truncated appliesTo body always does.
+// kiotaInvalidJSONMessage is kiota-serialization-json's (unexported) error for a body failing json.Valid.
 const kiotaInvalidJSONMessage = "invalid json type"
 
-// wrapAppliesToError tags a successful response whose body failed JSON validation with
-// errAppliesToUnreadable. Other failures (Graph API errors, authentication, transport, context)
-// are returned unchanged so they are not misreported as a missing Application.Read.All.
+// wrapAppliesToError tags only JSON parse failures, so auth or transport errors are not blamed on
+// a missing Application.Read.All.
 func wrapAppliesToError(err error) error {
 	var apiError abstractions.ApiErrorable
 	if errors.As(err, &apiError) || !strings.Contains(err.Error(), kiotaInvalidJSONMessage) {

@@ -6,9 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// B2bManagementPolicyResourceModel represents the schema for the B2B Management Policy resource.
-// The documented description property is intentionally not modelled: Microsoft Graph rejects any
-// write that includes it with 404 Request_ResourceNotFound and never returns it on reads.
+// B2bManagementPolicyResourceModel omits the documented description: Graph rejects any write that
+// includes it with 404 Request_ResourceNotFound.
 type B2bManagementPolicyResourceModel struct {
 	ID                    types.String   `tfsdk:"id"`
 	DisplayName           types.String   `tfsdk:"display_name"`

@@ -45,10 +45,7 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 	policyID := object.B2bManagementPolicyID.ValueString()
 	directoryObjectID := object.DirectoryObjectID.ValueString()
 
-	// A policy, application or service principal created moments earlier may not have propagated
-	// across Microsoft Entra replicas yet. Wait until both ends of the reference are readable
-	// (idempotent GETs) first; addPolicyReferenceWithRetry covers the replica serving the POST
-	// still lagging behind the one that served these reads.
+	// Objects created moments earlier may not have reached every Entra replica yet.
 	if err := r.waitForPolicyPropagation(ctx, policyID); err != nil {
 		resp.Diagnostics.AddError(
 			"Error verifying B2B management policy before assignment",
@@ -107,8 +104,7 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// waitForPolicyPropagation polls GET /policies/b2bManagementPolicies/{id} until the policy is
-// visible, treating 404 as Microsoft Entra replication lag.
+// waitForPolicyPropagation polls until the policy is readable, treating 404 as replication lag.
 func (r *B2bManagementPolicyAssignmentResource) waitForPolicyPropagation(ctx context.Context, policyID string) error {
 	return crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
 		_, err := r.client.
@@ -130,9 +126,8 @@ func (r *B2bManagementPolicyAssignmentResource) waitForPolicyPropagation(ctx con
 	})
 }
 
-// waitForDirectoryObjectType polls GET /directoryObjects/{id} until the object is visible and
-// returns whether it is an application or a service principal. 404 is treated as replication lag;
-// any other type of directory object is a fatal error.
+// waitForDirectoryObjectType polls until the directory object is readable (404 = replication lag)
+// and returns whether it is an application or a service principal.
 func (r *B2bManagementPolicyAssignmentResource) waitForDirectoryObjectType(ctx context.Context, directoryObjectID string) (string, error) {
 	var directoryObjectType string
 
@@ -154,18 +149,10 @@ func (r *B2bManagementPolicyAssignmentResource) waitForDirectoryObjectType(ctx c
 	return directoryObjectType, err
 }
 
-// addPolicyReferenceWithRetry sends the $ref POST, retrying while Microsoft Graph answers 404.
-//
-// Even after the policy is readable, the replica serving the POST can still lag behind and reject
-// it with 404 Directory_ObjectNotFound ("Unable to read the company information from the
-// directory."), observed live immediately after creating the policy. A 404 means nothing was
-// written, so the POST is repeated.
-//
-// 400 "One or more added object references already exist" is never treated as success: since only
-// 404s (which write nothing) are retried, it means the assignment existed before this Create, and
-// adopting it would let a later destroy remove an assignment Terraform did not create. The error
-// asks for an import instead. The same applies if the SDK retry middleware re-sent a POST that had
-// been committed but answered with 503/504; failing with an import hint is the safe outcome.
+// addPolicyReferenceWithRetry retries the $ref POST on 404: a replica the policy has not reached
+// yet rejects it even after a GET succeeded, and nothing is written. Because only 404s are retried,
+// 400 "already exist" means the assignment predates this Create; it is reported with an import
+// hint rather than adopted, since a later destroy would otherwise remove it.
 func (r *B2bManagementPolicyAssignmentResource) addPolicyReferenceWithRetry(ctx context.Context, directoryObjectType, directoryObjectID, policyID string) error {
 	attempt := 0
 
@@ -192,8 +179,7 @@ func (r *B2bManagementPolicyAssignmentResource) addPolicyReferenceWithRetry(ctx 
 	})
 }
 
-// isReferenceAlreadyExistsError reports whether err is the 400 Graph returns when the reference
-// being added is already present.
+// isReferenceAlreadyExistsError matches Graph's 400 for a reference that is already present.
 func isReferenceAlreadyExistsError(err error) bool {
 	var odataError *odataerrors.ODataError
 	if !stderrors.As(err, &odataError) || odataError.GetStatusCode() != 400 || odataError.GetErrorEscaped() == nil {

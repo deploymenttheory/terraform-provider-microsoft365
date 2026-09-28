@@ -31,8 +31,7 @@ type B2bManagementPolicyMock struct{}
 
 var _ mocks.MockRegistrar = (*B2bManagementPolicyMock)(nil)
 
-// descriptionNotFoundResponse reproduces the live Microsoft Graph response to any write that
-// carries the description property.
+// descriptionNotFoundResponse is Graph's response to any write that carries description.
 func descriptionNotFoundResponse() *http.Response {
 	return httpmock.NewStringResponse(404, `{"error":{"code":"Request_ResourceNotFound","message":"Resource '' does not exist or one of its queried reference-property objects are not present."}}`)
 }
@@ -161,9 +160,8 @@ func (m *B2bManagementPolicyMock) deleteB2bManagementPolicyResponder() httpmock.
 	}
 }
 
-// RegisterEventualConsistencyMocks overrides the GET responder so that the first staleReadCount
-// reads after each write return the previous representation of the policy, reproducing the
-// replica flapping observed live after POST and PATCH. Call after RegisterMocks.
+// RegisterEventualConsistencyMocks makes the first staleReadCount GETs after each PATCH return the
+// previous values. Call after RegisterMocks.
 func (m *B2bManagementPolicyMock) RegisterEventualConsistencyMocks(staleReadCount int) {
 	var mu sync.Mutex
 	previous := map[string]map[string]any{}
@@ -209,9 +207,7 @@ func (m *B2bManagementPolicyMock) RegisterEventualConsistencyMocks(staleReadCoun
 		})
 }
 
-// RegisterStaleNotFoundMocks overrides the GET responder so that the next notFoundCount reads
-// return the 404 Directory_ObjectNotFound served by a stale Microsoft Entra replica, then delegate
-// to the normal responder. Call after RegisterMocks, e.g. from a test step's PreConfig.
+// RegisterStaleNotFoundMocks makes the next notFoundCount GETs return a stale-replica 404.
 func (m *B2bManagementPolicyMock) RegisterStaleNotFoundMocks(notFoundCount int) {
 	var mu sync.Mutex
 	remaining := notFoundCount

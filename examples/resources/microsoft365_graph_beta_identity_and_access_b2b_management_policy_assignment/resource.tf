@@ -1,6 +1,4 @@
-# Example: Apply a B2B management policy to a service principal and an application
-# B2B management policies can only be applied to applications and service principals.
-# The provider detects which of the two the directory object is.
+# Apply a B2B management policy to a service principal and an application.
 
 resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "example" {
   display_name = "example-b2b-management-policy"
