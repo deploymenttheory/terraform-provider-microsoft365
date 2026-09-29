@@ -71,7 +71,8 @@ func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, 
 	entraIDSchema := schemaToAttrTypes(EntraIDOptionsSchema())
 
 	envVarsToCheck := []string{
-		"M365_CLIENT_ID", "M365_CLIENT_SECRET", "M365_CLIENT_CERTIFICATE_FILE_PATH", "M365_CLIENT_CERTIFICATE",
+		"M365_CLIENT_ID", "M365_CLIENT_SECRET", "M365_CLIENT_CERTIFICATE_FILE_PATH",
+		"M365_CLIENT_CERTIFICATE",
 		"M365_CLIENT_CERTIFICATE_PASSWORD", "M365_USERNAME", "M365_PASSWORD", "M365_SEND_CERTIFICATE_CHAIN",
 		"M365_DISABLE_INSTANCE_DISCOVERY", "M365_ADDITIONALLY_ALLOWED_TENANTS",
 		"M365_REDIRECT_URI", "AZURE_FEDERATED_TOKEN_FILE", "M365_MANAGED_IDENTITY_ID",
@@ -120,10 +121,24 @@ func setEntraIDOptions(ctx context.Context, config types.Object) (types.Object, 
 	})
 
 	return types.ObjectValueMust(entraIDSchema, map[string]attr.Value{
-		"client_id":                    types.StringValue(helpers.GetEnvString("M365_CLIENT_ID", entraIDOptions.ClientID.ValueString())),
-		"client_secret":                types.StringValue(helpers.GetEnvString("M365_CLIENT_SECRET", entraIDOptions.ClientSecret.ValueString())),
-		"client_certificate":           types.StringValue(helpers.GetEnvString("M365_CLIENT_CERTIFICATE_FILE_PATH", entraIDOptions.ClientCertificate.ValueString())),
-		"client_certificate_base64":    types.StringValue(helpers.GetEnvString("M365_CLIENT_CERTIFICATE", entraIDOptions.ClientCertificateBase64.ValueString())),
+		"client_id": types.StringValue(
+			helpers.GetEnvString("M365_CLIENT_ID", entraIDOptions.ClientID.ValueString()),
+		),
+		"client_secret": types.StringValue(
+			helpers.GetEnvString("M365_CLIENT_SECRET", entraIDOptions.ClientSecret.ValueString()),
+		),
+		"client_certificate": types.StringValue(
+			helpers.GetEnvString(
+				"M365_CLIENT_CERTIFICATE_FILE_PATH",
+				entraIDOptions.ClientCertificate.ValueString(),
+			),
+		),
+		"client_certificate_base64": types.StringValue(
+			helpers.GetEnvString(
+				"M365_CLIENT_CERTIFICATE",
+				entraIDOptions.ClientCertificateBase64.ValueString(),
+			),
+		),
 		"client_certificate_password":  types.StringValue(helpers.GetEnvString("M365_CLIENT_CERTIFICATE_PASSWORD", entraIDOptions.ClientCertificatePassword.ValueString())),
 		"username":                     types.StringValue(helpers.GetEnvString("M365_USERNAME", entraIDOptions.Username.ValueString())),
 		"password":                     types.StringValue(helpers.GetEnvString("M365_PASSWORD", entraIDOptions.Password.ValueString())),

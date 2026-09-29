@@ -137,8 +137,12 @@ func (s *ClientSecretStrategy) GetCredential(ctx context.Context, config *Provid
 }
 
 var (
-	errConflictingClientCertificateSources = errors.New("client certificate authentication requires only one of client_certificate (M365_CLIENT_CERTIFICATE_FILE_PATH) or client_certificate_base64 (M365_CLIENT_CERTIFICATE)")
-	errMissingClientCertificateSource      = errors.New("client certificate authentication requires client_certificate (M365_CLIENT_CERTIFICATE_FILE_PATH) or client_certificate_base64 (M365_CLIENT_CERTIFICATE)")
+	errConflictingClientCertificateSources = errors.New(
+		"client certificate authentication requires only one of client_certificate (M365_CLIENT_CERTIFICATE_FILE_PATH) or client_certificate_base64 (M365_CLIENT_CERTIFICATE)",
+	)
+	errMissingClientCertificateSource = errors.New(
+		"client certificate authentication requires client_certificate (M365_CLIENT_CERTIFICATE_FILE_PATH) or client_certificate_base64 (M365_CLIENT_CERTIFICATE)",
+	)
 )
 
 // ClientCertificateStrategy implements the credential strategy for client certificate authentication
