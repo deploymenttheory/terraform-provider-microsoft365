@@ -1,0 +1,27 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CustomConfiguration",
+  "id": "c989328a-fd33-5bdd-b226-7fbe2d0592b2",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-windows-oma-floatingpoint",
+  "version": 1,
+  "omaSettings": [
+    {
+      "@odata.type": "#microsoft.graph.omaSettingFloatingPoint",
+      "displayName": "Provider FloatingPoint",
+      "description": "Disposable value test",
+      "omaUri": "./Device/Vendor/MSFT/Test/FloatingPoint",
+      "secretReferenceValueId": null,
+      "isEncrypted": false,
+      "value": 1.5
+    }
+  ]
+}

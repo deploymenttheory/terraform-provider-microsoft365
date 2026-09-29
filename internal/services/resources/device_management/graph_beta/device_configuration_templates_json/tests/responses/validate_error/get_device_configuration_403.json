@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "Forbidden",
+    "message": "Insufficient permissions"
+  }
+}

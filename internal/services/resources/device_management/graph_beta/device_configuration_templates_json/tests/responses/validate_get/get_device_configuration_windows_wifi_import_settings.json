@@ -1,0 +1,19 @@
+{
+  "@odata.type": "#microsoft.graph.windowsWifiConfiguration",
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "wifiSecurityType": "wpaPersonal",
+  "meteredConnectionLimit": null,
+  "ssid": "Provider-Unassigned-Test",
+  "networkName": "Provider WiFi Study",
+  "connectAutomatically": false,
+  "connectToPreferredNetwork": null,
+  "connectWhenNetworkNameIsHidden": null,
+  "proxySetting": null,
+  "proxyManualAddress": null,
+  "proxyManualPort": null,
+  "proxyAutomaticConfigurationUrl": null,
+  "forceFIPSCompliance": null,
+  "preSharedKey": null
+}

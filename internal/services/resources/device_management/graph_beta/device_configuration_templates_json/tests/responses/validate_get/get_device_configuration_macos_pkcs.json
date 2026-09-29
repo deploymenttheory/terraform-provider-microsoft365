@@ -1,0 +1,30 @@
+{
+  "@odata.type": "#microsoft.graph.macOSPkcsCertificateProfile",
+  "id": "839d73ac-2766-526d-bee8-b9ec2acd27c3",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-macos-pkcs",
+  "version": 1,
+  "renewalThresholdPercentage": 20,
+  "subjectNameFormat": "custom",
+  "subjectAlternativeNameType": "none",
+  "certificateValidityPeriodValue": 1,
+  "certificateValidityPeriodScale": "years",
+  "certificationAuthority": "ca.example.invalid",
+  "certificationAuthorityName": "Provider Test CA",
+  "certificateTemplateName": "ProviderTest",
+  "subjectAlternativeNameFormatString": null,
+  "subjectNameFormatString": "CN={{DeviceId}}",
+  "certificateStore": "user",
+  "allowAllAppsAccess": null,
+  "deploymentChannel": null,
+  "customSubjectAlternativeNames": []
+}

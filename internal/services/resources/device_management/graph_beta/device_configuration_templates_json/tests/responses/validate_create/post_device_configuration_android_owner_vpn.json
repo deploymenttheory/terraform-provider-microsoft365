@@ -1,0 +1,38 @@
+{
+  "@odata.type": "#microsoft.graph.androidDeviceOwnerVpnConfiguration",
+  "id": "58c178b9-0227-560b-a4e8-2e86389191b1",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-android-owner-vpn",
+  "version": 1,
+  "authenticationMethod": "certificate",
+  "connectionName": "Provider VPN Test",
+  "role": null,
+  "realm": null,
+  "connectionType": "ciscoAnyConnect",
+  "proxyServer": null,
+  "targetedPackageIds": [],
+  "alwaysOn": null,
+  "alwaysOnLockdown": null,
+  "lockdownExclusionList": [],
+  "microsoftTunnelSiteId": null,
+  "proxyExclusionList": [],
+  "servers": [
+    {
+      "description": "Provider unassigned test",
+      "address": "vpn.example.invalid",
+      "isDefaultServer": true
+    }
+  ],
+  "targetedMobileApps": [],
+  "customData": [],
+  "customKeyValueData": []
+}

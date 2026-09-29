@@ -36,19 +36,44 @@ class TestRunnerTests(RepositoryTest):
         def failed(command, **kwargs):
             profile = next(arg.split('=', 1)[1] for arg in command if arg.startswith('-coverprofile='))
             Path(profile).write_text('mode: atomic\nexample.com/selected/value.go:1.1,1.5 1 1\n')
-            return subprocess.CompletedProcess(command, 1)
+            raise subprocess.CalledProcessError(1, command)
         with patch('lib.go_tests.subprocess.run', side_effect=failed):
             with self.assertRaises(subprocess.CalledProcessError):
                 run_unit_tests(['selected'])
-        self.assertIn('example.com/selected', Path('coverage/unit-coverage.txt').read_text())
+        self.assertIn('example.com/selected', Path('coverage/selected.out').read_text())
+        self.assertFalse(Path('coverage/unit-coverage.txt').exists())
 
     def test_stale_coverage_is_removed_before_failed_build(self):
         self.write('coverage/selected.out', 'mode: atomic\nstale.go:1.1,1.5 1 1\n')
-        with patch('lib.go_tests.subprocess.run', return_value=subprocess.CompletedProcess([], 1)):
+        self.write('coverage/unit-coverage.txt', 'mode: atomic\nstale.go:1.1,1.5 1 1\n')
+        with patch('lib.go_tests.subprocess.run', side_effect=subprocess.CalledProcessError(1, ['go', 'test'])):
             with self.assertRaises(subprocess.CalledProcessError):
                 run_unit_tests(['selected'])
         self.assertFalse(Path('coverage/selected.out').exists())
-        self.assertNotIn('stale.go', Path('coverage/unit-coverage.txt').read_text())
+        self.assertFalse(Path('coverage/unit-coverage.txt').exists())
+
+    def test_success_merges_coverage_from_multiple_packages(self):
+        def successful(command, *, env, check):
+            self.assertTrue(check)
+            profile = next(arg.split('=', 1)[1] for arg in command if arg.startswith('-coverprofile='))
+            Path(profile).write_text('mode: atomic\nexample.go:1.1,2.1 1 1\n')
+            return subprocess.CompletedProcess(command, 0)
+        with patch('lib.go_tests.subprocess.run', side_effect=successful) as run:
+            coverage = run_unit_tests(['first', 'second'])
+        self.assertEqual(run.call_count, 2)
+        self.assertEqual(coverage.read_text().count('mode: atomic'), 1)
+        self.assertEqual(coverage.read_text().count('example.go:'), 2)
+
+    def test_failed_or_terminated_test_stops_execution_and_preserves_exit_code(self):
+        for returncode in [1, -15]:
+            with self.subTest(returncode=returncode):
+                failure = subprocess.CalledProcessError(returncode, ['go', 'test'])
+                with patch('lib.go_tests.subprocess.run', side_effect=failure) as run:
+                    with self.assertRaises(subprocess.CalledProcessError) as error:
+                        run_unit_tests(['first', 'must-not-run'])
+                self.assertEqual(error.exception.returncode, returncode)
+                self.assertEqual(run.call_count, 1)
+                self.assertFalse(Path('coverage/unit-coverage.txt').exists())
 
     def test_race_failure_propagates(self):
         with patch('lib.go_tests.subprocess.run', return_value=subprocess.CompletedProcess([], 1)):

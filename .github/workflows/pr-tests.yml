@@ -65,6 +65,10 @@ jobs:
           cache-dependency-path: 'go.sum'
           cache: true
 
+      - name: Verify test runner
+        if: steps.detect-changes.outputs.has-changes == 'true'
+        run: python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_go_tests.py -v
+
       - name: Check if PR is draft
         id: pr-state
         if: steps.detect-changes.outputs.has-changes == 'true'

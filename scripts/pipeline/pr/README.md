@@ -12,7 +12,9 @@ configured linters/formatters, and does not rewrite source. It runs one package
 per process using the pinned golangci-lint release. Unit tests run all tests in
 the selected packages with `TF_ACC=0` for the project's mocks and explicitly skip
 `TestAcc*` (HashiCorp treats any nonempty `TF_ACC` as enabled). Failures are
-independent of coverage.
+independent of coverage. Unit execution stops at the first failed or terminated
+package and preserves its exit status. Per-package coverage remains available
+for diagnostics; merged coverage is produced only after all selected packages pass.
 Package/test parallelism and `GOMAXPROCS` are one. Resource tests can still compile
 much of the provider through the shared mock provider factory.
 

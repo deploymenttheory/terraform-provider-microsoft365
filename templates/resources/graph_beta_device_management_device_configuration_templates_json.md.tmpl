@@ -1,0 +1,464 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [deviceConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-deviceconfiguration?view=graph-rest-beta)
+- [Get deviceConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-deviceconfiguration-get?view=graph-rest-beta)
+- [Assign deviceConfiguration](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-deviceconfiguration-assign?view=graph-rest-beta)
+- [Get an OMA setting plaintext value](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-deviceconfiguration-getomasettingplaintextvalue?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+
+**Optional:**
+
+- `Group.ReadWrite.All` (when creating the security groups included in the assignment examples)
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| Unreleased | Experimental | Initial release |
+
+## Important Notes
+
+- **Complete settings:** Include the complete writable settings JSON, including defaults, nulls, empty values, and the root `@odata.type`. Configure `display_name`, `description`, `role_scope_tag_ids`, and `assignments` as separate resource attributes.
+- **Updates:** Supply explicit reset values for ordinary settings. Omit a certificate binding to remove its relationship. Changing the root profile type requires Terraform's `-replace` option.
+- **XML and binary values:** Configure `omaSettingStringXml.value` as cleartext XML. Binary OMA values, certificate content, and custom Apple payloads retain their Base64 representation.
+- **Example values:** Replace the sample certificates, service URLs, network names, application identifiers, and OMA-URIs with values for your environment. The certificate examples include their related profile resources in the same file.
+- **Assignments:** The group examples create their security groups before the profile and wait for directory consistency. The all-targets example uses an empty custom payload. Profiles without assignments are not deployed to users or devices.
+- **Import:** Wi-Fi pre-shared keys cannot be recovered on import and must be supplied again. Secret settings are stored in Terraform state.
+
+## Template API Boundaries
+
+This resource manages profiles stored in `/deviceManagement/deviceConfigurations`. Intune's template chooser also contains profiles stored in other API collections:
+
+| UI template | Provider resource |
+| --- | --- |
+| BIOS configurations and other settings | [windows_bios_configurations_and_other_settings_template](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/resources/graph_beta_device_management_windows_bios_configurations_and_other_settings_template) |
+| Delivery Optimization (current UI) | [settings_catalog_configuration_policy](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/resources/graph_beta_device_management_settings_catalog_configuration_policy), using template `132f1027-0325-45e0-854a-6955cd3c68c0_1` |
+| Properties catalog | [settings_catalog_inventory_policy](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/resources/graph_beta_device_management_settings_catalog_inventory_policy) |
+| Imported Administrative templates | [group_policy_configuration](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/resources/graph_beta_device_management_group_policy_configuration) |
+
+OEMConfig uses `/deviceAppManagement/mobileAppConfigurations` and needs separate resource support. The existing Android managed-device app configuration resource excludes apps with `supportsOemConfig=true`. The examples below demonstrate API profile lifecycles; they do not verify device-side application or external certificate, VPN, and email services.
+
+The iOS chooser currently labels its `IosUpdate` wizard "Edition upgrade and mode switch" and its `IosEducation` wizard "Secure assessment (Education)". The corresponding examples below are named **iOS Update Schedule** and **Classroom Education** to reflect the profiles they create.
+
+## Example Usage
+
+Each example below is a separate configuration derived from the acceptance scenarios. Select the file for the platform and profile you want to manage.
+
+### Android
+
+#### General Device Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_general_configuration.tf" }}
+
+#### Android Enterprise Wi-Fi
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_enterprise_wifi.tf" }}
+
+#### Work Profile Wi-Fi
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_profile_wifi.tf" }}
+
+#### AOSP Wi-Fi
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_aosp_wifi.tf" }}
+
+#### Android Enterprise Wi-Fi with Certificates
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_enterprise_certificate_wifi.tf" }}
+
+#### Work Profile Wi-Fi with Certificates
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_profile_certificate_wifi.tf" }}
+
+#### AOSP Wi-Fi with Certificates
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_aosp_certificate_wifi.tf" }}
+
+#### Android Enterprise VPN
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_enterprise_vpn.tf" }}
+
+#### Work Profile PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_profile_pkcs.tf" }}
+
+#### AOSP Device Restrictions
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_aosp_restrictions.tf" }}
+
+#### Clear a Wi-Fi Pre-shared Key
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_wifi_clear_pre_shared_key.tf" }}
+
+#### AOSP PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_aosp_pkcs.tf" }}
+
+#### Android Enterprise PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_owner_pkcs.tf" }}
+
+#### Android Enterprise Imported PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_owner_imported_pkcs.tf" }}
+
+#### Android Enterprise Derived Credential
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_owner_derived_credential.tf" }}
+
+#### Work Profile Device Restrictions
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_device_restrictions.tf" }}
+
+#### Work Profile Gmail Email
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_gmail.tf" }}
+
+#### Work Profile Nine Email
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_nine_email.tf" }}
+
+#### Work Profile VPN
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_vpn.tf" }}
+
+#### Work Profile Imported PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_imported_pkcs.tf" }}
+
+#### Work Migration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_migration.tf" }}
+
+#### AOSP Trusted Root Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_aosp_root.tf" }}
+
+#### AOSP SCEP Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_aosp_scep.tf" }}
+
+#### Android Enterprise Trusted Root Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_owner_root.tf" }}
+
+#### Android Enterprise SCEP Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_owner_scep.tf" }}
+
+#### Work Profile Trusted Root Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_root.tf" }}
+
+#### Work Profile SCEP Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_android_work_scep.tf" }}
+
+### iOS / iPadOS
+
+#### General Device Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_general_configuration.tf" }}
+
+#### Device Features
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_device_features.tf" }}
+
+#### Custom Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_custom_configuration.tf" }}
+
+#### Trusted Root Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_trusted_root_certificate.tf" }}
+
+#### SCEP Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_scep_certificate.tf" }}
+
+#### Home Screen with Nested Folders
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_home_screen_folders.tf" }}
+
+#### Wi-Fi
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_wifi.tf" }}
+
+#### Enterprise Wi-Fi with Certificates
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_enterprise_wifi.tf" }}
+
+#### VPN
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_vpn.tf" }}
+
+#### Email
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_email.tf" }}
+
+#### PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_pkcs_certificate.tf" }}
+
+#### Reset General Restrictions
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_reset_restrictions.tf" }}
+
+#### Custom Configuration Using a JSON Heredoc
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_custom_json_heredoc.tf" }}
+
+#### Minimal Group Assignment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_minimal_assignments.tf" }}
+
+#### All Assignment Target Types
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_maximal_assignments.tf" }}
+
+#### Filtered Group and Exclusion Assignments
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_filtered_assignments.tf" }}
+
+#### Clear Assignments
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_clear_assignments.tf" }}
+
+#### Replace an SCEP Root Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_replace_root_certificate.tf" }}
+
+#### Enterprise Wi-Fi with Multiple Root Certificates
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_multiple_root_certificates.tf" }}
+
+#### Derived Credential
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_derived_credential.tf" }}
+
+#### Imported PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_imported_pkcs.tf" }}
+
+#### Classroom Education
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_education.tf" }}
+
+#### Wired Network
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_wired_network.tf" }}
+
+#### iOS Update Schedule
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_ios_updates.tf" }}
+
+### macOS
+
+#### Custom Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_custom_configuration.tf" }}
+
+#### Trusted Root Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_trusted_root_certificate.tf" }}
+
+#### SCEP Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_scep_certificate.tf" }}
+
+#### Wi-Fi
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_wifi.tf" }}
+
+#### Enterprise Wi-Fi with Certificates
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_enterprise_wifi.tf" }}
+
+#### VPN
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_vpn.tf" }}
+
+#### PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_pkcs_certificate.tf" }}
+
+#### Application Preferences
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_preferences.tf" }}
+
+#### Software Updates
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_software_updates.tf" }}
+
+#### Device Features
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_device_features.tf" }}
+
+#### Device Restrictions
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_device_restrictions.tf" }}
+
+#### Endpoint Protection (Deprecated UI Template)
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_endpoint_protection.tf" }}
+
+#### Extensions (Deprecated UI Template)
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_extensions.tf" }}
+
+#### Imported PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_imported_pkcs.tf" }}
+
+#### Wired Network
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_macos_wired_network.tf" }}
+
+### Windows
+
+#### Custom Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_custom_configuration.tf" }}
+
+#### Trusted Root Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_trusted_root_certificate.tf" }}
+
+#### Encrypted OMA Setting
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_encrypted_oma_setting.tf" }}
+
+#### Integer OMA Setting
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_oma_integer.tf" }}
+
+#### Boolean OMA Setting
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_oma_boolean.tf" }}
+
+#### Floating-point OMA Setting
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_oma_floating_point.tf" }}
+
+#### Date/Time OMA Setting
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_oma_date_time.tf" }}
+
+#### String OMA Setting
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_oma_string.tf" }}
+
+#### Binary Base64 OMA Setting
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_oma_base64.tf" }}
+
+#### Cleartext XML OMA Setting
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_oma_xml.tf" }}
+
+#### Mixed OMA Value Types
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_oma_mixed_values.tf" }}
+
+#### Windows Update for Business
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_update_for_business.tf" }}
+
+#### Wi-Fi
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_wifi.tf" }}
+
+#### Enterprise Wi-Fi with Certificates
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_enterprise_wifi.tf" }}
+
+#### VPN
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_vpn.tf" }}
+
+#### PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_pkcs_certificate.tf" }}
+
+#### Delivery Optimization (Legacy API)
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_delivery_optimization.tf" }}
+
+#### Device Firmware Configuration Interface
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_dfci.tf" }}
+
+#### Device Restrictions
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_device_restrictions.tf" }}
+
+#### Domain Join
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_domain_join.tf" }}
+
+#### Edition Upgrade and S Mode
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_edition_upgrade.tf" }}
+
+#### Email
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_email.tf" }}
+
+#### Endpoint Protection
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_endpoint_protection.tf" }}
+
+#### Kiosk
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_kiosk.tf" }}
+
+#### Imported PKCS Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_imported_pkcs.tf" }}
+
+#### SCEP Certificate
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_scep.tf" }}
+
+#### Secure Assessment
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_secure_assessment.tf" }}
+
+#### Shared Multi-user Device
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_shared_device.tf" }}
+
+#### Health Monitoring
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_health_monitoring.tf" }}
+
+#### Wired Network
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/resource_windows_wired_network.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax. Match the resource label to the example you are using.
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_device_configuration_templates_json/import.sh" }}

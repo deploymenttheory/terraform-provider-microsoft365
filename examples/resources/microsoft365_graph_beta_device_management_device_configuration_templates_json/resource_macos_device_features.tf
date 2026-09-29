@@ -1,0 +1,55 @@
+# macOS Device Features.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "macos_device_features" {
+  display_name       = "macOS Device Features"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.macOSDeviceFeaturesConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "adminShowHostInfo"                           = true
+    "loginWindowText"                             = null
+    "authorizedUsersListHidden"                   = false
+    "authorizedUsersListHideLocalUsers"           = false
+    "authorizedUsersListHideMobileAccounts"       = false
+    "authorizedUsersListIncludeNetworkUsers"      = false
+    "authorizedUsersListHideAdminUsers"           = false
+    "authorizedUsersListShowOtherManagedUsers"    = false
+    "shutDownDisabled"                            = false
+    "restartDisabled"                             = false
+    "sleepDisabled"                               = false
+    "consoleAccessDisabled"                       = false
+    "shutDownDisabledWhileLoggedIn"               = false
+    "restartDisabledWhileLoggedIn"                = false
+    "powerOffDisabledWhileLoggedIn"               = false
+    "logOutDisabledWhileLoggedIn"                 = false
+    "screenLockDisableImmediate"                  = false
+    "singleSignOnExtension"                       = null
+    "macOSSingleSignOnExtension"                  = null
+    "contentCachingEnabled"                       = false
+    "contentCachingType"                          = "notConfigured"
+    "contentCachingMaxSizeBytes"                  = null
+    "contentCachingDataPath"                      = null
+    "contentCachingDisableConnectionSharing"      = false
+    "contentCachingForceConnectionSharing"        = false
+    "contentCachingClientPolicy"                  = "notConfigured"
+    "contentCachingPeerPolicy"                    = "notConfigured"
+    "contentCachingParentSelectionPolicy"         = "notConfigured"
+    "contentCachingParents"                       = []
+    "contentCachingLogClientIdentities"           = false
+    "contentCachingBlockDeletion"                 = false
+    "contentCachingShowAlerts"                    = false
+    "contentCachingKeepAwake"                     = false
+    "contentCachingPort"                          = null
+    "airPrintDestinations"                        = []
+    "autoLaunchItems"                             = []
+    "associatedDomains"                           = []
+    "appAssociatedDomains"                        = []
+    "contentCachingClientListenRanges"            = []
+    "contentCachingPeerListenRanges"              = []
+    "contentCachingPeerFilterRanges"              = []
+    "contentCachingPublicRanges"                  = []
+  })
+}

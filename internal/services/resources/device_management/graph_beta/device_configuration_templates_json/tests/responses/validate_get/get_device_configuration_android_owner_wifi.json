@@ -1,0 +1,29 @@
+{
+  "@odata.type": "#microsoft.graph.androidDeviceOwnerWiFiConfiguration",
+  "id": "46b63ba0-04ab-5c1e-893a-fdf55a43de85",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-android-owner-wifi",
+  "version": 1,
+  "networkName": "Provider WiFi Study",
+  "ssid": "Provider-Unassigned-Test",
+  "connectAutomatically": false,
+  "connectWhenNetworkNameIsHidden": null,
+  "wiFiSecurityType": "wpaPersonal",
+  "preSharedKey": null,
+  "preSharedKeyIsSet": true,
+  "proxySettings": "none",
+  "proxyManualAddress": null,
+  "proxyManualPort": null,
+  "proxyAutomaticConfigurationUrl": null,
+  "proxyExclusionList": null,
+  "macAddressRandomizationMode": null
+}

@@ -1,0 +1,25 @@
+# Android Enterprise Wi-Fi.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_enterprise_wifi" {
+  display_name       = "Android Enterprise Wi-Fi"
+  description        = "Android android enterprise wi-fi example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidDeviceOwnerWiFiConfiguration",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "networkName"                                 = "Provider WiFi Study",
+    "ssid"                                        = "Provider-Unassigned-Test",
+    "connectAutomatically"                        = false,
+    "connectWhenNetworkNameIsHidden"              = null,
+    "wiFiSecurityType"                            = "wpaPersonal",
+    "preSharedKey"                                = "Synthetic-Wire-Study-Only-2026",
+    "proxySettings"                               = "none",
+    "proxyManualAddress"                          = null,
+    "proxyManualPort"                             = null,
+    "proxyAutomaticConfigurationUrl"              = null,
+    "proxyExclusionList"                          = null,
+    "macAddressRandomizationMode"                 = null
+  })
+}
