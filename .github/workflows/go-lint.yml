@@ -2,22 +2,32 @@ name: go | Linter
 
 on:
   workflow_dispatch:
+    inputs:
+      base_ref:
+        description: 'Git ref to compare against (changed Go packages only)'
+        required: true
+        default: origin/main
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
-      - '.github/workflows/go-lint.yml'
-      - '.golangci.yml'
       - '**/*.go'
 
 permissions:
   contents: read
-  pull-requests: write  # Needed for "only-new-issues" and commenting on PR
-  issues: write  # Needed for commenting on PR
+
+concurrency:
+  group: go-lint-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   golint:
     name: '✨ Run golangci-lint'
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    env:
+      GOMAXPROCS: '1'
+      GOFLAGS: '-p=1'
+      PYTHONUNBUFFERED: '1'
 
     steps:
       - name: Harden Runner
@@ -25,61 +35,53 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Check Out  
+      - name: Check Out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0  # Get full history for full merge-base detection
-      
+          fetch-depth: 0
+
+      - name: Detect changed Go packages
+        id: changes
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref }}
+        run: python3 scripts/pipeline/pr/steps/detect_changes.py --base-ref "$BASE_REF"
+
       - name: Set up Go
+        if: steps.changes.outputs.has-changes == 'true'
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
-          go-version-file: 'go.mod'
-          cache-dependency-path: 'go.sum'
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
           cache: true
-          go-version: stable
 
-      - name: Run golangci-lint
+      - name: Install golangci-lint
+        if: steps.changes.outputs.has-changes == 'true'
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: latest
-          args: --timeout=30m --verbose --config=./.golangci.yml --issues-exit-code=0
-          only-new-issues: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          skip-cache: false              # restore and save cache
-          skip-save-cache: false         # allow saving any new cache
-          cache-invalidation-interval: 7 # auto-invalidate (refresh) once per week
-      
-      # Save artifacts on failure
-      - name: Save artifacts
-        if: failure()
+          version: v2.14.0
+          install-only: true
+
+      - name: Validate lint configuration
+        if: steps.changes.outputs.has-changes == 'true'
+        run: golangci-lint config verify
+
+      - name: Lint changed Go packages
+        if: steps.changes.outputs.has-changes == 'true'
+        env:
+          BASE_SHA: ${{ steps.changes.outputs.base-sha }}
         run: |
-          mkdir -p wr_actions
-          echo ${{ github.repository_owner }} > wr_actions/ghowner.txt
-          echo ${{ github.event.repository.name }} > wr_actions/ghrepo.txt
-          echo ${{ github.event.pull_request.number }} > wr_actions/prnumber.txt
-      
-      - name: Upload artifacts
-        if: failure()
+          bash scripts/pipeline/pr/steps/monitor_resources.sh lint-results \
+            python3 scripts/pipeline/pr/steps/run_lint.py --base-ref "$BASE_SHA"
+
+      - name: Upload lint reports and diagnostics
+        if: always() && steps.changes.outputs.has-changes == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: artifact
-          path: wr_actions
-      
-      # Comment on failure
-      - name: Get run url
+          name: lint-results
+          path: lint-results/
+          if-no-files-found: ignore
+
+      - name: Summarize lint failure
         if: failure()
         run: |
-          echo "gha_url=https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}" >> $GITHUB_ENV
-          
-      - name: Send build failure comment
-        if: failure()
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          result-encoding: string
-          script: |
-            github.rest.issues.createComment({
-              issue_number: ${{ github.event.pull_request.number }},
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '<b>Build failure</b> \n\n This pull request contains a build failure which needs addressed [here](${{ env.gha_url}}) .'
-            })
+          echo 'Lint failed. See the failing step and lint-results artifact: results.json distinguishes findings from execution failures; command.log contains compiler and linter diagnostics.' >> "$GITHUB_STEP_SUMMARY"

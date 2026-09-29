@@ -4,9 +4,9 @@ run:
   timeout: 30m
   # CI mode: Fails if go.mod needs updates, ensuring dependencies are properly declared
   modules-download-mode: readonly
-  allow-parallel-runners: true
+  allow-parallel-runners: false
   allow-serial-runners: false
-  concurrency: 2  # Set to 2 to avoid overwhelming the CI server
+  concurrency: 1  # Keep analysis serial in CI and local runs
 
 issues:
   # Don’t cap lint errors per linter—report everything in new code.
@@ -18,17 +18,12 @@ issues:
   # Don’t dedupe by line; every instance matters.
   uniq-by-line: false
 
-  # Only fail on new issues introduced by new PR's.
-  new: true
+  # CI supplies one explicit Git merge-base and reports changed lines only.
+  new: false
+  whole-files: false
 
-  # Define the “base” for “new” issues as the merge-base against main.
-  new-from-merge-base: main
-
-  # Also catch anything in new or modified files, even outside the diff hunk.
-  whole-files: true
-
-  # Automatically apply any fixable issues (like gofmt/goimports).
-  fix: true
+  # Check the submitted code; contributors apply fixes explicitly.
+  fix: false
 
 
 linters:
@@ -130,7 +125,7 @@ linters:
       - "internal/.*\\.go$"       # Core provider logic
 
 formatters:
-  # Only run the formatters you actually want to auto‐fix in CI
+  # Report formatting issues without modifying the checkout
   enable:
     - gofumpt     # strict Go formatting (superset of gofmt)
     - goimports   # fixes imports (add/remove/sort)
@@ -148,7 +143,7 @@ formatters:
 
   # Exclude generated or special‐case files from formatting checks
   exclusions:
-    warn-unused: true   # error if any of the below rules never match
+    warn-unused: true   # Warn when an exclusion matches no findings
     generated: strict   # only skip files with exact “// Code generated … DO NOT EDIT.”
     paths:
       - ".*\\.gen\\.go$"       # ignore any *.gen.go files

@@ -14,7 +14,7 @@ from pathlib import Path
 # Add parent directory to path for lib imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib.git_operations import get_changed_packages  # noqa: E402
+from lib.git_operations import get_changed_packages, get_merge_base  # noqa: E402
 from lib.github import write_output  # noqa: E402
 
 
@@ -29,13 +29,16 @@ def main():
     args = parser.parse_args()
     
     print("📦 Detecting changed Go packages...")
-    packages = get_changed_packages(args.base_ref)
+    base_sha = get_merge_base(args.base_ref)
+    packages = get_changed_packages(base_sha)
+    print(f"Comparison baseline: {base_sha}")
     
     if not packages:
         print("✅ No Go files changed")
         write_output({
             "packages": "",
-            "has-changes": "false"
+            "has-changes": "false",
+            "base-sha": base_sha
         }, args.github_output)
         return 0
     
@@ -45,7 +48,8 @@ def main():
     
     write_output({
         "packages": ' '.join(packages),
-        "has-changes": "true"
+        "has-changes": "true",
+        "base-sha": base_sha
     }, args.github_output)
     
     return 0

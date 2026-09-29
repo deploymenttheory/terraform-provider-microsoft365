@@ -29,25 +29,31 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
     
     merged_file = coverage_dir / "unit-coverage.txt"
     coverage_files = []
+    has_failures = False
     
     for idx, package in enumerate(packages, 1):
-        safe_name = package.replace('/', '_').replace('.', '_').strip('_')
+        safe_name = package.replace('/', '_').replace('.', '_').strip('_') or 'root'
         coverage_file = coverage_dir / f"{safe_name}.out"
+        coverage_file.unlink(missing_ok=True)
         
         print(f"\n[{idx}/{len(packages)}] Testing: {package}")
         
         cmd = [
-            "go", "test", "-v",
+            "go", "test", "-v", "-p=1", "-parallel=1", "-timeout=30m",
             f"-coverprofile={coverage_file}",
             "-covermode=atomic",
             f"./{package}"
         ]
         
-        subprocess.run(
+        result = subprocess.run(
             cmd,
-            env={"TF_ACC": "0", **os.environ},
+            env={**os.environ, "TF_ACC": "0", "GOMAXPROCS": "1", "GOFLAGS": "-p=1"},
             check=False
         )
+
+        if result.returncode != 0:
+            has_failures = True
+            print(f"❌ Unit tests failed in {package}")
         
         if coverage_file.exists():
             coverage_files.append(coverage_file)
@@ -58,6 +64,9 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
     # Merge coverage files
     print(f"\n📊 Merging {len(coverage_files)} coverage file(s)...")
     _merge_coverage_files(coverage_files, merged_file)
+
+    if has_failures:
+        raise subprocess.CalledProcessError(1, ["go", "test", *packages])
     
     print(f"✅ Merged coverage file: {merged_file}")
     return merged_file
@@ -81,11 +90,12 @@ def run_race_detection(packages: List[str]) -> int:
     for idx, package in enumerate(packages, 1):
         print(f"\n[{idx}/{len(packages)}] Testing: {package}")
         
-        cmd = ["go", "test", "-v", "-race", f"./{package}"]
+        cmd = ["go", "test", "-v", "-race", "-p=1", "-parallel=1",
+               "-timeout=30m", f"./{package}"]
         
         result = subprocess.run(
             cmd,
-            env={"TF_ACC": "0", **os.environ},
+            env={**os.environ, "TF_ACC": "0", "GOMAXPROCS": "1", "GOFLAGS": "-p=1"},
             check=False
         )
         
