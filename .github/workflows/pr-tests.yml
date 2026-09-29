@@ -18,6 +18,10 @@ jobs:
     name: '🧪 Go Unit Tests & Coverage'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
+    env:
+      GOMAXPROCS: '1'
+      GOFLAGS: '-p=1'
+      PYTHONUNBUFFERED: '1'
     outputs:
       has-changes: ${{ steps.detect-changes.outputs.has-changes }}
       has-goroutines: ${{ steps.analyze-code.outputs.has-goroutines }}
@@ -46,6 +50,9 @@ jobs:
 
       - name: Install dependencies
         run: go mod download
+
+      - name: Verify test runner
+        run: python3 -m unittest discover -s scripts/pipeline/pr/tests -v
 
       - name: Check if PR is draft
         id: pr-state
