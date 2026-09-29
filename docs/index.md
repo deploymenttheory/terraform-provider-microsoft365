@@ -65,6 +65,7 @@ Using environment variables is recommended for sensitive information like client
 | `M365_AUTH_METHOD` | The authentication method to use | All authentication methods |
 | `M365_CLIENT_ID` | The application (client) ID | Most authentication methods |
 | `M365_CLIENT_SECRET` | The client secret value | Client Secret authentication |
+| `M365_CLIENT_CERTIFICATE` | Base64-encoded PKCS#12 certificate and private key; alternative to a certificate file path | Client Certificate authentication |
 | `M365_CLIENT_CERTIFICATE_FILE_PATH` | Path to the certificate file (.pfx) | Client Certificate authentication |
 | `M365_CLIENT_CERTIFICATE_PASSWORD` | Password for the certificate | Client Certificate authentication |
 | `M365_SEND_CERTIFICATE_CHAIN` | Whether to send the certificate chain (true/false) | Client Certificate authentication |
@@ -132,6 +133,7 @@ provider "microsoft365" {
     client_id                    = var.client_id
     client_secret                = var.client_secret
     client_certificate           = var.client_certificate
+    client_certificate_base64    = var.client_certificate_base64
     client_certificate_password  = var.client_certificate_password
     send_certificate_chain       = var.send_certificate_chain
     username                     = var.username
@@ -216,7 +218,14 @@ variable "client_certificate" {
   description = "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate. Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable."
   type        = string
   sensitive   = true
-  default     = ""
+  default     = null
+}
+
+variable "client_certificate_base64" {
+  description = "Base64-encoded PKCS#12 client certificate including the RSA private key. Use either this value or client_certificate, not both. Can also be set using M365_CLIENT_CERTIFICATE."
+  type        = string
+  sensitive   = true
+  default     = null
 }
 
 variable "client_certificate_password" {
@@ -637,7 +646,8 @@ provider "microsoft365" {
 }
 ```
 
-Can be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable.
+Can be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable. Use either this file path or `client_certificate_base64`, not both.
+- `client_certificate_base64` (String, Sensitive) Base64-encoded PKCS#12 (.pfx or .p12) certificate containing the certificate and RSA private key for the 'client_certificate' authentication method. The certificate is decoded in memory and is not written to disk. Use `client_certificate_password` if the PKCS#12 data is password-protected. Use either this value or `client_certificate`, not both. Can be set using the `M365_CLIENT_CERTIFICATE` environment variable, which takes precedence over this attribute.
 - `client_certificate_password` (String, Sensitive) Used for the 'client_certificate' authentication method.
 
 The password to decrypt the PKCS#12 (.pfx or .p12) client certificate file. Required only if the certificate file is password-protected.

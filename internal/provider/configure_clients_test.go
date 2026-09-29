@@ -5,6 +5,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -80,6 +82,7 @@ func TestConvertToClientProviderData_ExplicitProviderBlockWithEnvVars(t *testing
 		"client_id":                    types.StringValue("explicit-client-id"),
 		"client_secret":                types.StringNull(),
 		"client_certificate":           types.StringNull(),
+		"client_certificate_base64":    types.StringNull(),
 		"client_certificate_password":  types.StringNull(),
 		"send_certificate_chain":       types.BoolNull(),
 		"username":                     types.StringNull(),
@@ -136,7 +139,7 @@ func clearM365EnvVarsWithRestore(t *testing.T) {
 		"M365_CLOUD", "M365_TENANT_ID", "M365_CLIENT_ID", "M365_CLIENT_SECRET",
 		"M365_AUTH_METHOD", "M365_REDIRECT_URL", "M365_USE_PROXY", "M365_PROXY_URL",
 		"M365_ENABLE_CHAOS", "M365_TELEMETRY_OPTOUT", "M365_DEBUG_MODE",
-		"M365_CLIENT_CERTIFICATE_FILE_PATH", "M365_CLIENT_CERTIFICATE_PASSWORD",
+		"M365_CLIENT_CERTIFICATE_FILE_PATH", "M365_CLIENT_CERTIFICATE_PASSWORD", "M365_CLIENT_CERTIFICATE",
 		"M365_USERNAME", "M365_SEND_CERTIFICATE_CHAIN", "M365_DISABLE_INSTANCE_DISCOVERY",
 		"M365_ADDITIONALLY_ALLOWED_TENANTS", "M365_MANAGED_IDENTITY_ID",
 		"M365_OIDC_TOKEN_FILE_PATH", "M365_OIDC_REQUEST_URL", "M365_OIDC_REQUEST_TOKEN",
@@ -164,4 +167,44 @@ func clearM365EnvVarsWithRestore(t *testing.T) {
 			os.Setenv(k, v)
 		}
 	})
+}
+
+// TestUnit_ClientCertificateSources_EnvironmentConflicts checks conflicts after environment resolution,
+// including mixed HCL/environment inputs that Terraform schema validators cannot inspect.
+func TestUnit_ClientCertificateSources_EnvironmentConflicts(t *testing.T) {
+	for _, tc := range []struct {
+		name         string
+		configFile   string
+		configBase64 string
+		envFile      string
+		envBase64    string
+	}{
+		{name: "both_environment", envFile: "/env/certificate.pfx", envBase64: "env-certificate"},
+		{name: "hcl_file_environment_base64", configFile: "/config/certificate.pfx", envBase64: "env-certificate"},
+		{name: "hcl_base64_environment_file", configBase64: "config-certificate", envFile: "/env/certificate.pfx"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			clearM365EnvVarsWithRestore(t)
+			t.Setenv("M365_CLIENT_CERTIFICATE_FILE_PATH", tc.envFile)
+			t.Setenv("M365_CLIENT_CERTIFICATE", tc.envBase64)
+			ctx := context.Background()
+			options, diags := types.ObjectValueFrom(ctx, schemaToAttrTypes(EntraIDOptionsSchema()), EntraIDOptionsModel{
+				ClientCertificate:          types.StringValue(tc.configFile),
+				ClientCertificateBase64:    types.StringValue(tc.configBase64),
+				AdditionallyAllowedTenants: types.ListNull(types.StringType),
+			})
+			require.False(t, diags.HasError(), "%v", diags)
+			processed, diags := setProviderConfiguration(ctx, M365ProviderModel{
+				AuthMethod:     types.StringValue("client_certificate"),
+				EntraIDOptions: options,
+				ClientOptions:  types.ObjectNull(schemaToAttrTypes(ClientOptionsSchema())),
+			})
+			require.False(t, diags.HasError(), "%v", diags)
+			credential, err := client.ObtainCredential(ctx, convertToClientProviderData(ctx, &processed), policy.ClientOptions{})
+			require.ErrorContains(t, err, "requires only one")
+			assert.Nil(t, credential)
+			assert.NotContains(t, err.Error(), "env-certificate")
+			assert.NotContains(t, err.Error(), "config-certificate")
+		})
+	}
 }

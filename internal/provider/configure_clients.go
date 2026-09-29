@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
@@ -83,7 +82,7 @@ func (p *M365Provider) Configure(ctx context.Context, req provider.ConfigureRequ
 	tflog.Debug(ctx, "Provider configuration completed", map[string]any{
 		"graph_client_set":      p.clients.GetKiotaGraphV1Client() != nil,
 		"graph_beta_client_set": p.clients.GetKiotaGraphBetaClient() != nil,
-		"config":                fmt.Sprintf("%+v", config),
+		"config":                redactedProviderConfiguration(ctx, data),
 	})
 }
 
@@ -112,6 +111,7 @@ func convertToClientProviderData(ctx context.Context, data *M365ProviderModel) *
 		ClientID:                   entraIDOptions.ClientID.ValueString(),
 		ClientSecret:               entraIDOptions.ClientSecret.ValueString(),
 		ClientCertificate:          entraIDOptions.ClientCertificate.ValueString(),
+		ClientCertificateBase64:    entraIDOptions.ClientCertificateBase64.ValueString(),
 		ClientCertificatePassword:  entraIDOptions.ClientCertificatePassword.ValueString(),
 		Username:                   entraIDOptions.Username.ValueString(),
 		Password:                   entraIDOptions.Password.ValueString(),

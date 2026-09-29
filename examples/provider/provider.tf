@@ -20,6 +20,7 @@ provider "microsoft365" {
     client_id                    = var.client_id
     client_secret                = var.client_secret
     client_certificate           = var.client_certificate
+    client_certificate_base64    = var.client_certificate_base64
     client_certificate_password  = var.client_certificate_password
     send_certificate_chain       = var.send_certificate_chain
     username                     = var.username
@@ -104,7 +105,14 @@ variable "client_certificate" {
   description = "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate. Can also be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable."
   type        = string
   sensitive   = true
-  default     = ""
+  default     = null
+}
+
+variable "client_certificate_base64" {
+  description = "Base64-encoded PKCS#12 client certificate including the RSA private key. Use either this value or client_certificate, not both. Can also be set using M365_CLIENT_CERTIFICATE."
+  type        = string
+  sensitive   = true
+  default     = null
 }
 
 variable "client_certificate_password" {
