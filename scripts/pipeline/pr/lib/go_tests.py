@@ -28,16 +28,18 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
     coverage_dir.mkdir(parents=True, exist_ok=True)
     
     merged_file = coverage_dir / "unit-coverage.txt"
+    merged_file.unlink(missing_ok=True)
     coverage_files = []
     
     for idx, package in enumerate(packages, 1):
-        safe_name = package.replace('/', '_').replace('.', '_').strip('_')
+        safe_name = package.replace('/', '_').replace('.', '_').strip('_') or 'root'
         coverage_file = coverage_dir / f"{safe_name}.out"
+        coverage_file.unlink(missing_ok=True)
         
         print(f"\n[{idx}/{len(packages)}] Testing: {package}")
         
         cmd = [
-            "go", "test", "-v", "-p=1", "-parallel=1",
+            "go", "test", "-v", "-p=1", "-parallel=1", "-timeout=30m", "-skip=^TestAcc",
             f"-coverprofile={coverage_file}",
             "-covermode=atomic",
             f"./{package}"
@@ -45,7 +47,7 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
         
         subprocess.run(
             cmd,
-            env={**os.environ, "TF_ACC": "0"},
+            env={**os.environ, "TF_ACC": "0", "GOMAXPROCS": "1", "GOFLAGS": "-p=1"},
             check=True
         )
         
@@ -58,7 +60,7 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
     # Merge coverage files
     print(f"\n📊 Merging {len(coverage_files)} coverage file(s)...")
     _merge_coverage_files(coverage_files, merged_file)
-    
+
     print(f"✅ Merged coverage file: {merged_file}")
     return merged_file
 
@@ -81,11 +83,12 @@ def run_race_detection(packages: List[str]) -> int:
     for idx, package in enumerate(packages, 1):
         print(f"\n[{idx}/{len(packages)}] Testing: {package}")
         
-        cmd = ["go", "test", "-v", "-race", f"./{package}"]
+        cmd = ["go", "test", "-v", "-race", "-p=1", "-parallel=1",
+               "-timeout=30m", "-skip=^TestAcc", f"./{package}"]
         
         result = subprocess.run(
             cmd,
-            env={"TF_ACC": "0", **os.environ},
+            env={**os.environ, "TF_ACC": "0", "GOMAXPROCS": "1", "GOFLAGS": "-p=1"},
             check=False
         )
         

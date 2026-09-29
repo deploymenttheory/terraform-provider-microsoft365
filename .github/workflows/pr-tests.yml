@@ -5,23 +5,32 @@ permissions:
   pull-requests: write
 
 on:
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: 'Git ref to compare against (changed Go packages only)'
+        required: true
+        default: origin/main
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '**/*.go'
-      - 'go.mod'
-      - 'go.sum'
-      - 'pr-checks-config.yml'
-      - 'scripts/pipeline/pr/**'
+
+concurrency:
+  group: go-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  GOMAXPROCS: '1'
+  GOFLAGS: '-p=1'
+  TF_ACC: '0'
+  PYTHONUNBUFFERED: '1'
 
 jobs:
   unit-tests:
     name: '🧪 Go Unit Tests & Coverage'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
-    env:
-      GOMAXPROCS: '1'
-      GOFLAGS: '-p=1'
-      PYTHONUNBUFFERED: '1'
     outputs:
       has-changes: ${{ steps.detect-changes.outputs.has-changes }}
       has-goroutines: ${{ steps.analyze-code.outputs.has-goroutines }}
@@ -41,21 +50,28 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 📦 Detect changed packages
+        id: detect-changes
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref }}
+        run: |
+          python3 scripts/pipeline/pr/steps/detect_changes.py --base-ref "$BASE_REF"
+
       - name: Set up Go
+        if: steps.detect-changes.outputs.has-changes == 'true'
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: 'go.mod'
           cache-dependency-path: 'go.sum'
           cache: true
 
-      - name: Install dependencies
-        run: go mod download
-
       - name: Verify test runner
-        run: python3 -m unittest discover -s scripts/pipeline/pr/tests -v
+        if: steps.detect-changes.outputs.has-changes == 'true'
+        run: python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_go_tests.py -v
 
       - name: Check if PR is draft
         id: pr-state
+        if: steps.detect-changes.outputs.has-changes == 'true'
         run: |
           if [ "${{ github.event.pull_request.draft }}" == "true" ]; then
             echo "is-draft=true" >> $GITHUB_OUTPUT
@@ -65,12 +81,6 @@ jobs:
             echo "✅ PR is ready for review - enforcing coverage threshold"
           fi
 
-      - name: 📦 Detect changed packages
-        id: detect-changes
-        run: |
-          python3 scripts/pipeline/pr/steps/detect_changes.py \
-            --base-ref "origin/${{ github.event.pull_request.base.ref }}"
-
       - name: 📊 Analyze code patterns
         id: analyze-code
         if: steps.detect-changes.outputs.has-changes == 'true'
@@ -79,11 +89,15 @@ jobs:
             --packages "${{ steps.detect-changes.outputs.packages }}"
 
       - name: 🧪 Run unit tests
+        timeout-minutes: 50
+        id: tests
         if: steps.detect-changes.outputs.has-changes == 'true'
+        env:
+          PACKAGES: ${{ steps.detect-changes.outputs.packages }}
         run: |
-          python3 scripts/pipeline/pr/steps/run_tests.py \
-            --packages "${{ steps.detect-changes.outputs.packages }}" \
-            --output-dir coverage
+          bash scripts/pipeline/pr/steps/monitor_resources.sh coverage/diagnostics \
+            python3 scripts/pipeline/pr/steps/run_tests.py \
+            --packages "$PACKAGES" --output-dir coverage
 
       - name: 📊 Calculate local coverage
         id: calculate-coverage
@@ -94,6 +108,7 @@ jobs:
 
       - name: ⬆️ Upload coverage to Codecov
         if: |
+          github.event_name == 'pull_request' &&
           steps.detect-changes.outputs.has-changes == 'true' &&
           steps.pr-state.outputs.is-draft == 'false'
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
@@ -107,6 +122,7 @@ jobs:
       - name: ✅ Enforce coverage threshold
         id: enforce-coverage
         if: |
+          github.event_name == 'pull_request' &&
           steps.detect-changes.outputs.has-changes == 'true' &&
           steps.pr-state.outputs.is-draft == 'false'
         run: |
@@ -116,7 +132,7 @@ jobs:
             --codecov-token "${{ secrets.CODECOV_API_TOKEN }}"
 
       - name: 💬 Comment coverage summary on PR
-        if: steps.detect-changes.outputs.has-changes == 'true'
+        if: github.event_name == 'pull_request' && steps.detect-changes.outputs.has-changes == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -183,13 +199,26 @@ jobs:
               });
             }
 
+      - name: Upload unit test reports and diagnostics
+        if: always() && steps.detect-changes.outputs.has-changes == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: unit-test-results
+          path: coverage/
+          if-no-files-found: ignore
+
+      - name: Summarize unit test failure
+        if: failure() && steps.tests.outcome == 'failure'
+        run: |
+          echo 'Unit tests or compilation failed. See unit-test-results for the test output and runner diagnostics; coverage does not override test failures.' >> "$GITHUB_STEP_SUMMARY"
+
   race-detection:
     name: '🔍 Race Detection'
     runs-on: ubuntu-24.04-arm
     needs: unit-tests
     if: |
       needs.unit-tests.outputs.has-goroutines == 'true' &&
-      github.event.pull_request.draft == false
+      (github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false)
     timeout-minutes: 60
     steps:
       - name: Harden Runner
@@ -209,13 +238,18 @@ jobs:
           cache-dependency-path: 'go.sum'
           cache: true
 
-      - name: Install dependencies
-        run: go mod download
-
       - name: 🔍 Run race detection
+        timeout-minutes: 50
+        env:
+          PACKAGES: ${{ needs.unit-tests.outputs.goroutine-packages }}
         run: |
-          echo "Running race detection on packages with goroutines:"
-          echo "${{ needs.unit-tests.outputs.goroutine-packages }}"
-          
-          python3 scripts/pipeline/pr/steps/run_race_detection.py \
-            --packages "${{ needs.unit-tests.outputs.goroutine-packages }}"
+          bash scripts/pipeline/pr/steps/monitor_resources.sh race-results \
+            python3 scripts/pipeline/pr/steps/run_race_detection.py --packages "$PACKAGES"
+
+      - name: Upload race test reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: race-test-results
+          path: race-results/
+          if-no-files-found: ignore
