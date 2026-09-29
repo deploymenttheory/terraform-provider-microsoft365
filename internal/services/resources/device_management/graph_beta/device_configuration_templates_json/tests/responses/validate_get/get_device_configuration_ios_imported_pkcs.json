@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.iosImportedPFXCertificateProfile",
+  "id": "00000000-0000-4000-8000-000000000001",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-ios-imported-pkcs",
+  "version": 1,
+  "intendedPurpose": "smimeEncryption"
+}

@@ -1,0 +1,33 @@
+{
+  "@odata.type": "#microsoft.graph.windowsDeliveryOptimizationConfiguration",
+  "id": "00000000-0000-4000-8000-000000000001",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-windows-delivery-optimization",
+  "version": 1,
+  "deliveryOptimizationMode": "userDefined",
+  "restrictPeerSelectionBy": "notConfigured",
+  "groupIdSource": null,
+  "bandwidthMode": null,
+  "backgroundDownloadFromHttpDelayInSeconds": 0,
+  "foregroundDownloadFromHttpDelayInSeconds": null,
+  "minimumRamAllowedToPeerInGigabytes": null,
+  "minimumDiskSizeAllowedToPeerInGigabytes": null,
+  "minimumFileSizeToCacheInMegabytes": null,
+  "minimumBatteryPercentageAllowedToUpload": null,
+  "modifyCacheLocation": null,
+  "maximumCacheAgeInDays": null,
+  "maximumCacheSize": null,
+  "vpnPeerCaching": "notConfigured",
+  "cacheServerHostNames": [],
+  "cacheServerForegroundDownloadFallbackToHttpDelayInSeconds": 0,
+  "cacheServerBackgroundDownloadFallbackToHttpDelayInSeconds": 0
+}

@@ -1,0 +1,30 @@
+{
+  "@odata.type": "#microsoft.graph.aospDeviceOwnerDeviceConfiguration",
+  "id": "68b835cd-37cf-5919-b36f-d2328c229502",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-aosp-restrictions",
+  "version": 1,
+  "appsBlockInstallFromUnknownSources": null,
+  "bluetoothBlocked": null,
+  "bluetoothBlockConfiguration": null,
+  "cameraBlocked": true,
+  "factoryResetBlocked": null,
+  "passwordMinimumLength": null,
+  "passwordMinutesOfInactivityBeforeScreenTimeout": null,
+  "passwordRequiredType": null,
+  "passwordSignInFailureCountBeforeFactoryReset": null,
+  "screenCaptureBlocked": null,
+  "securityAllowDebuggingFeatures": null,
+  "storageBlockExternalMedia": null,
+  "storageBlockUsbFileTransfer": null,
+  "wifiBlockEditConfigurations": null
+}

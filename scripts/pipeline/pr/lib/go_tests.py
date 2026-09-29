@@ -37,7 +37,7 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
         print(f"\n[{idx}/{len(packages)}] Testing: {package}")
         
         cmd = [
-            "go", "test", "-v",
+            "go", "test", "-v", "-p=1", "-parallel=1",
             f"-coverprofile={coverage_file}",
             "-covermode=atomic",
             f"./{package}"
@@ -45,8 +45,8 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
         
         subprocess.run(
             cmd,
-            env={"TF_ACC": "0", **os.environ},
-            check=False
+            env={**os.environ, "TF_ACC": "0"},
+            check=True
         )
         
         if coverage_file.exists():

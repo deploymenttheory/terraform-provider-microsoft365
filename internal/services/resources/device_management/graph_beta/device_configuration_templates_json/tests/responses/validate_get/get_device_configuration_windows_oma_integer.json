@@ -1,0 +1,28 @@
+{
+  "@odata.type": "#microsoft.graph.windows10CustomConfiguration",
+  "id": "ab8702f6-951c-519e-8da3-3354629509a7",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-windows-oma-integer",
+  "version": 1,
+  "omaSettings": [
+    {
+      "@odata.type": "#microsoft.graph.omaSettingInteger",
+      "displayName": "Provider Integer",
+      "description": "Disposable value test",
+      "omaUri": "./Device/Vendor/MSFT/Test/Integer",
+      "secretReferenceValueId": null,
+      "isEncrypted": false,
+      "value": 42,
+      "isReadOnly": false
+    }
+  ]
+}

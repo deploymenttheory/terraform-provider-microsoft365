@@ -1,0 +1,49 @@
+{
+  "@odata.type": "#microsoft.graph.windows10VpnConfiguration",
+  "id": "83c61b55-818d-5fc5-9b87-0fde58185891",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-windows-vpn",
+  "version": 1,
+  "connectionName": "Provider VPN Test",
+  "customXml": null,
+  "profileTarget": null,
+  "connectionType": "ciscoAnyConnect",
+  "enableSplitTunneling": false,
+  "enableAlwaysOn": null,
+  "enableDeviceTunnel": null,
+  "enableDnsRegistration": null,
+  "dnsSuffixes": [],
+  "microsoftTunnelSiteId": null,
+  "authenticationMethod": "certificate",
+  "rememberUserCredentials": false,
+  "enableConditionalAccess": false,
+  "enableSingleSignOnWithAlternateCertificate": false,
+  "singleSignOnEku": null,
+  "singleSignOnIssuerHash": null,
+  "eapXml": null,
+  "proxyServer": null,
+  "onlyAssociatedAppsCanUseConnection": null,
+  "windowsInformationProtectionDomain": null,
+  "trustedNetworkDomains": [],
+  "cryptographySuite": null,
+  "servers": [
+    {
+      "description": "Provider unassigned test",
+      "address": "vpn.example.invalid",
+      "isDefaultServer": true
+    }
+  ],
+  "associatedApps": [],
+  "trafficRules": [],
+  "routes": [],
+  "dnsRules": []
+}

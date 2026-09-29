@@ -1,0 +1,27 @@
+{
+  "@odata.type": "#microsoft.graph.iosWiFiConfiguration",
+  "id": "c9524436-7b70-59b4-a6a2-66c6e27b8037",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-ios-wifi",
+  "version": 1,
+  "networkName": "Provider WiFi Study",
+  "ssid": "Provider-Unassigned-Test",
+  "connectAutomatically": false,
+  "connectWhenNetworkNameIsHidden": false,
+  "wiFiSecurityType": "wpaPersonal",
+  "proxySettings": "none",
+  "proxyManualAddress": null,
+  "proxyManualPort": null,
+  "proxyAutomaticConfigurationUrl": null,
+  "disableMacAddressRandomization": null,
+  "preSharedKey": null
+}

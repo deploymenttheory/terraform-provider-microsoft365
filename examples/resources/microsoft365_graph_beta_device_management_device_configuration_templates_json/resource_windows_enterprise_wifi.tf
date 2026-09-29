@@ -1,0 +1,105 @@
+# Windows Enterprise Wi-Fi with Certificates.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_enterprise_wifi_root_certificate" {
+  display_name       = "example-windows-root"
+  description        = "Windows enterprise wi-fi with certificates example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windows81TrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer",
+    "destinationStore"                            = "computerCertStoreRoot"
+  })
+}
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_enterprise_wifi_scep_certificate" {
+  display_name       = "example-windows-scep"
+  description        = "Windows enterprise wi-fi with certificates example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windows81SCEPCertificateProfile",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "renewalThresholdPercentage"                  = 20,
+    "keyStorageProvider"                          = "useSoftwareKsp",
+    "subjectNameFormat"                           = "custom",
+    "subjectAlternativeNameType"                  = "none",
+    "certificateValidityPeriodValue"              = 1,
+    "certificateValidityPeriodScale"              = "years",
+    "scepServerUrls" = [
+      "https://scep.example.invalid/certsrv/mscep/mscep.dll"
+    ],
+    "subjectNameFormatString"            = "CN={{DeviceId}}",
+    "keyUsage"                           = "keyEncipherment,digitalSignature",
+    "keySize"                            = "size2048",
+    "hashAlgorithm"                      = "sha2",
+    "subjectAlternativeNameFormatString" = null,
+    "certificateStore"                   = "user",
+    "extendedKeyUsages" = [
+      {
+        "name"             = "Client Authentication",
+        "objectIdentifier" = "1.3.6.1.5.5.7.3.2"
+      }
+    ],
+    "customSubjectAlternativeNames" = [],
+    "rootCertificate@odata.bind"    = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.windows_enterprise_wifi_root_certificate.id}')"
+  })
+}
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_enterprise_wifi" {
+  display_name       = "Windows Enterprise Wi-Fi with Certificates"
+  description        = "Windows enterprise wi-fi with certificates example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                  = "#microsoft.graph.windowsWifiEnterpriseEAPConfiguration",
+    "deviceManagementApplicabilityRuleOsEdition"   = null,
+    "deviceManagementApplicabilityRuleOsVersion"   = null,
+    "deviceManagementApplicabilityRuleDeviceMode"  = null,
+    "wifiSecurityType"                             = "wpaEnterprise",
+    "meteredConnectionLimit"                       = null,
+    "ssid"                                         = "Provider-Unassigned-EAP",
+    "networkName"                                  = "Provider Enterprise WiFi",
+    "connectAutomatically"                         = false,
+    "connectToPreferredNetwork"                    = null,
+    "connectWhenNetworkNameIsHidden"               = null,
+    "proxySetting"                                 = null,
+    "proxyManualAddress"                           = null,
+    "proxyManualPort"                              = null,
+    "proxyAutomaticConfigurationUrl"               = null,
+    "forceFIPSCompliance"                          = null,
+    "preSharedKey"                                 = null,
+    "networkSingleSignOn"                          = null,
+    "maximumAuthenticationTimeoutInSeconds"        = null,
+    "userBasedVirtualLan"                          = null,
+    "promptForAdditionalAuthenticationCredentials" = null,
+    "enablePairwiseMasterKeyCaching"               = null,
+    "maximumPairwiseMasterKeyCacheTimeInMinutes"   = null,
+    "maximumNumberOfPairwiseMasterKeysInCache"     = null,
+    "enablePreAuthentication"                      = null,
+    "maximumPreAuthenticationAttempts"             = null,
+    "eapType"                                      = "eapTls",
+    "trustedServerCertificateNames"                = [],
+    "authenticationMethod"                         = "certificate",
+    "innerAuthenticationProtocolForEAPTTLS"        = null,
+    "outerIdentityPrivacyTemporaryValue"           = null,
+    "requireCryptographicBinding"                  = null,
+    "performServerValidation"                      = null,
+    "disableUserPromptForServerValidation"         = null,
+    "authenticationPeriodInSeconds"                = null,
+    "authenticationRetryDelayPeriodInSeconds"      = null,
+    "eapolStartPeriodInSeconds"                    = null,
+    "maximumEAPOLStartMessages"                    = null,
+    "maximumAuthenticationFailures"                = null,
+    "cacheCredentials"                             = null,
+    "authenticationType"                           = null,
+    "rootCertificatesForServerValidation@odata.bind" = [
+      "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.windows_enterprise_wifi_root_certificate.id}')"
+    ],
+    "identityCertificateForClientAuthentication@odata.bind" = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.windows_enterprise_wifi_scep_certificate.id}')"
+  })
+}

@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "InternalServerError",
+    "message": "Service failure"
+  }
+}

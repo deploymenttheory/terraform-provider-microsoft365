@@ -1,0 +1,28 @@
+{
+  "@odata.type": "#microsoft.graph.iosPkcsCertificateProfile",
+  "id": "d20526b5-1c69-54c2-8ef0-75b2c8ee4ea4",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-ios-pkcs",
+  "version": 1,
+  "renewalThresholdPercentage": 20,
+  "subjectNameFormat": "custom",
+  "subjectAlternativeNameType": "none",
+  "certificateValidityPeriodValue": 1,
+  "certificateValidityPeriodScale": "years",
+  "certificationAuthority": "ca.example.invalid",
+  "certificationAuthorityName": "Provider Test CA",
+  "certificateTemplateName": "ProviderTest",
+  "subjectAlternativeNameFormatString": null,
+  "subjectNameFormatString": "CN={{DeviceId}}",
+  "certificateStore": "user",
+  "customSubjectAlternativeNames": []
+}

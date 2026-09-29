@@ -1,0 +1,31 @@
+{
+  "@odata.type": "#microsoft.graph.androidWorkProfileEnterpriseWiFiConfiguration",
+  "id": "ba4b8a78-ca8c-527a-8f6f-625437a7f925",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-android-work-enterprise-wifi",
+  "version": 1,
+  "networkName": "Provider Enterprise WiFi",
+  "ssid": "Provider-Unassigned-EAP",
+  "connectAutomatically": false,
+  "connectWhenNetworkNameIsHidden": false,
+  "wiFiSecurityType": "wpaEnterprise",
+  "preSharedKey": null,
+  "preSharedKeyIsSet": false,
+  "proxySettings": "none",
+  "proxyAutomaticConfigurationUrl": null,
+  "eapType": "eapTls",
+  "trustedServerCertificateNames": [],
+  "authenticationMethod": "certificate",
+  "innerAuthenticationProtocolForEapTtls": null,
+  "innerAuthenticationProtocolForPeap": null,
+  "outerIdentityPrivacyTemporaryValue": null
+}
