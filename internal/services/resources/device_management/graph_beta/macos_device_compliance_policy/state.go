@@ -2,20 +2,30 @@ package graphBetaMacosDeviceCompliancePolicy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
+var errScheduledActionState = errors.New("invalid scheduled action state")
+
 // MapRemoteStateToTerraform maps the remote GraphServiceClient object to a Terraform state.
-func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicyResourceModel, remoteResource graphmodels.DeviceCompliancePolicyable) {
+func MapRemoteStateToTerraform(
+	ctx context.Context,
+	data *DeviceCompliancePolicyResourceModel,
+	remoteResource graphmodels.DeviceCompliancePolicyable,
+) diag.Diagnostics {
+	var diags diag.Diagnostics
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
-		return
+		return diags
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
@@ -32,25 +42,22 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicy
 		mapMacOSCompliancePolicyToState(ctx, data, macosPolicy)
 	} else {
 		tflog.Error(ctx, "Remote resource is not a macOS compliance policy")
-		return
+		return diags
 	}
 
 	// Map scheduled actions using SDK getters
 	if scheduledActions := remoteResource.GetScheduledActionsForRule(); scheduledActions != nil {
-		mappedScheduledActions, err := mapScheduledActionsForRuleToState(ctx, scheduledActions)
+		mappedScheduledActions, err := mapScheduledActionsForRuleToState(
+			ctx,
+			scheduledActions,
+			data.ScheduledActionsForRule,
+		)
 		if err != nil {
-			tflog.Error(ctx, "Failed to map scheduled actions for rule", map[string]any{
-				"error": err.Error(),
-			})
+			diags.AddError("Error mapping scheduled actions for rule", err.Error())
+			return diags
 		} else {
 			data.ScheduledActionsForRule = mappedScheduledActions
 		}
-	}
-
-	// Map local actions from additionalData only if no SDK getter exists
-	if additionalData := remoteResource.GetAdditionalData(); additionalData != nil {
-		// We no longer have LocalActions in the model, so we don't need to map them
-		// This comment is kept for reference
 	}
 
 	assignments := remoteResource.GetAssignments()
@@ -76,6 +83,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *DeviceCompliancePolicy
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
+	return diags
 }
 
 // MacOSDeviceCompliancePolicyAssignmentType returns the object type for MacOSDeviceCompliancePolicyAssignmentModel
@@ -123,7 +131,11 @@ func mapMacOSCompliancePolicyToState(ctx context.Context, data *DeviceCompliance
 }
 
 // mapScheduledActionsForRuleToState maps scheduled actions for rule from SDK to state.
-func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []graphmodels.DeviceComplianceScheduledActionForRuleable) (types.List, error) {
+func mapScheduledActionsForRuleToState(
+	ctx context.Context,
+	scheduledActions []graphmodels.DeviceComplianceScheduledActionForRuleable,
+	priorActions types.List,
+) (types.List, error) {
 	scheduledActionType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"rule_name": types.StringType,
@@ -144,11 +156,42 @@ func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []g
 
 	actionValues := make([]attr.Value, 0, len(scheduledActions))
 
-	for _, action := range scheduledActions {
+	var priorModels []ScheduledActionForRuleModel
+	if !priorActions.IsNull() && !priorActions.IsUnknown() {
+		if diags := priorActions.ElementsAs(ctx, &priorModels, true); diags.HasError() {
+			err := fmt.Errorf(
+				"%w: failed to read prior scheduled actions: %v",
+				errScheduledActionState,
+				diags.Errors(),
+			)
+			return types.ListNull(scheduledActionType), err
+		}
+	}
+
+	for i, action := range scheduledActions {
+		var priorConfigurations []ScheduledActionConfigurationModel
+		if i < len(priorModels) {
+			priorSet := priorModels[i].ScheduledActionConfigurations
+			if !priorSet.IsNull() && !priorSet.IsUnknown() {
+				diags := priorSet.ElementsAs(ctx, &priorConfigurations, true)
+				if diags.HasError() {
+					return types.ListNull(scheduledActionType), fmt.Errorf(
+						"%w: failed to read prior action configurations: %v",
+						errScheduledActionState,
+						diags.Errors(),
+					)
+				}
+			}
+		}
+
 		var mappedConfigs types.Set
 		if configs := action.GetScheduledActionConfigurations(); configs != nil {
 			var err error
-			mappedConfigs, err = mapScheduledActionConfigurationsToState(ctx, configs)
+			mappedConfigs, err = mapScheduledActionConfigurationsToState(
+				ctx,
+				configs,
+				priorConfigurations,
+			)
 			if err != nil {
 				return types.ListNull(scheduledActionType), err
 			}
@@ -163,12 +206,31 @@ func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []g
 			})
 		}
 
+		// Graph does not return ruleName. Retain a known configured name, or
+		// resolve an omitted name (including imports) to the API's fixed rule.
+		ruleName := defaultScheduledActionRuleName
+		if i < len(priorModels) && !priorModels[i].RuleName.IsNull() &&
+			!priorModels[i].RuleName.IsUnknown() {
+			ruleName = priorModels[i].RuleName.ValueString()
+		}
+
 		actionAttrs := map[string]attr.Value{
-			"rule_name":                       convert.GraphToFrameworkString(action.GetRuleName()),
+			"rule_name": convert.GraphToFrameworkStringWithDefault(
+				action.GetRuleName(),
+				ruleName,
+			),
 			"scheduled_action_configurations": mappedConfigs,
 		}
 
-		actionValue, _ := types.ObjectValue(scheduledActionType.AttrTypes, actionAttrs)
+		actionValue, diags := types.ObjectValue(scheduledActionType.AttrTypes, actionAttrs)
+		if diags.HasError() {
+			err := fmt.Errorf(
+				"%w: failed to create scheduled action: %v",
+				errScheduledActionState,
+				diags.Errors(),
+			)
+			return types.ListNull(scheduledActionType), err
+		}
 		actionValues = append(actionValues, actionValue)
 	}
 
@@ -180,27 +242,63 @@ func mapScheduledActionsForRuleToState(ctx context.Context, scheduledActions []g
 }
 
 // mapScheduledActionConfigurationsToState maps scheduled action configurations from SDK to state.
-func mapScheduledActionConfigurationsToState(ctx context.Context, configurations []graphmodels.DeviceComplianceActionItemable) (types.Set, error) {
+func mapScheduledActionConfigurationsToState(
+	ctx context.Context,
+	configurations []graphmodels.DeviceComplianceActionItemable,
+	priorConfigurations []ScheduledActionConfigurationModel,
+) (types.Set, error) {
 	configurationType := types.ObjectType{
 		AttrTypes: map[string]attr.Type{
 			"action_type":                  types.StringType,
 			"grace_period_hours":           types.Int32Type,
 			"notification_template_id":     types.StringType,
-			"notification_message_cc_list": types.SetType{ElemType: types.StringType},
+			"notification_message_cc_list": types.ListType{ElemType: types.StringType},
 		},
 	}
 
 	configValues := make([]attr.Value, 0, len(configurations))
 
 	for _, config := range configurations {
-		configAttrs := map[string]attr.Value{
-			"action_type":                  convert.GraphToFrameworkEnum(config.GetActionType()),
-			"grace_period_hours":           convert.GraphToFrameworkInt32(config.GetGracePeriodHours()),
-			"notification_template_id":     convert.GraphToFrameworkString(config.GetNotificationTemplateId()),
-			"notification_message_cc_list": convert.GraphToFrameworkStringList(config.GetNotificationMessageCCList()),
+		actionType := convert.GraphToFrameworkEnum(config.GetActionType())
+		gracePeriod := convert.GraphToFrameworkInt32(config.GetGracePeriodHours())
+		notificationTemplate := convert.GraphToFrameworkString(config.GetNotificationTemplateId())
+		recipients := convert.GraphToFrameworkStringList(config.GetNotificationMessageCCList())
+
+		// Graph normalizes an explicitly empty template ID to the zero GUID.
+		// Preserve that equivalent configured value, matching actions by their
+		// values because scheduled_action_configurations is an unordered set.
+		if notificationTemplate.ValueString() == "00000000-0000-0000-0000-000000000000" {
+			for _, prior := range priorConfigurations {
+				graceMatches := prior.GracePeriodHours.IsNull() ||
+					prior.GracePeriodHours.IsUnknown() ||
+					prior.GracePeriodHours.Equal(gracePeriod)
+				recipientsMatch := prior.NotificationMessageCcList.IsNull() ||
+					prior.NotificationMessageCcList.IsUnknown() ||
+					prior.NotificationMessageCcList.Equal(recipients)
+				if prior.ActionType.Equal(actionType) && graceMatches && recipientsMatch &&
+					prior.NotificationTemplateId.Equal(types.StringValue("")) {
+					notificationTemplate = prior.NotificationTemplateId
+					break
+				}
+			}
 		}
 
-		configValue, _ := types.ObjectValue(configurationType.AttrTypes, configAttrs)
+		configAttrs := map[string]attr.Value{
+			"action_type":                  actionType,
+			"grace_period_hours":           gracePeriod,
+			"notification_template_id":     notificationTemplate,
+			"notification_message_cc_list": recipients,
+		}
+
+		configValue, diags := types.ObjectValue(configurationType.AttrTypes, configAttrs)
+		if diags.HasError() {
+			err := fmt.Errorf(
+				"%w: failed to create scheduled action configuration: %v",
+				errScheduledActionState,
+				diags.Errors(),
+			)
+			return types.SetNull(configurationType), err
+		}
 		configValues = append(configValues, configValue)
 	}
 

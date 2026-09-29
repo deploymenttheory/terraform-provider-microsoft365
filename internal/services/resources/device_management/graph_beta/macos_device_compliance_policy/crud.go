@@ -5,18 +5,23 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 // Create handles the Create operation for Device Compliance Policy resources.
-func (r *MacosDeviceCompliancePolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *MacosDeviceCompliancePolicyResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var object DeviceCompliancePolicyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
@@ -139,7 +144,10 @@ func (r *MacosDeviceCompliancePolicyResource) Read(ctx context.Context, req reso
 		ByDeviceCompliancePolicyId(object.ID.ValueString()).
 		Get(ctx, &devicemanagement.DeviceCompliancePoliciesDeviceCompliancePolicyItemRequestBuilderGetRequestConfiguration{
 			QueryParameters: &devicemanagement.DeviceCompliancePoliciesDeviceCompliancePolicyItemRequestBuilderGetQueryParameters{
-				Expand: []string{"assignments"},
+				Expand: []string{
+					"assignments",
+					"scheduledActionsForRule($expand=scheduledActionConfigurations)",
+				},
 			},
 		})
 
@@ -148,7 +156,10 @@ func (r *MacosDeviceCompliancePolicyResource) Read(ctx context.Context, req reso
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, respResource)
+	resp.Diagnostics.Append(MapRemoteStateToTerraform(ctx, &object, respResource)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -255,6 +266,12 @@ func (r *MacosDeviceCompliancePolicyResource) Update(ctx context.Context, req re
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+
+	// Preserve configured write-only values when refreshing the updated policy.
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
