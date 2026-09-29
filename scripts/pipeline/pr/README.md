@@ -44,6 +44,8 @@ and memory/disk/process-name samples are emitted every 15 seconds. Reports do no
 include environment dumps or process arguments. Lint also writes per-package
 SARIF and `results.json` with findings versus execution exit statuses. A runner
 shutdown may prevent artifact upload; periodic samples remain in the live log.
+Lint has a 30-minute step budget; test steps have a 50-minute budget within
+60-minute jobs, leaving time for failure reports and cache post-steps.
 No speculative memory cap, GC override, or disabled linter is used to conceal a
 failed execution. A resource failure must be investigated from the measurements.
 

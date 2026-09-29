@@ -85,6 +85,7 @@ jobs:
             --packages "${{ steps.detect-changes.outputs.packages }}"
 
       - name: 🧪 Run unit tests
+        timeout-minutes: 50
         id: tests
         if: steps.detect-changes.outputs.has-changes == 'true'
         env:
@@ -234,6 +235,7 @@ jobs:
           cache: true
 
       - name: 🔍 Run race detection
+        timeout-minutes: 50
         env:
           PACKAGES: ${{ needs.unit-tests.outputs.goroutine-packages }}
         run: |

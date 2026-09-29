@@ -66,6 +66,7 @@ jobs:
         run: golangci-lint config verify
 
       - name: Lint changed Go packages
+        timeout-minutes: 30
         if: steps.changes.outputs.has-changes == 'true'
         env:
           BASE_SHA: ${{ steps.changes.outputs.base-sha }}
