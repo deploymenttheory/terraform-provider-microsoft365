@@ -1,0 +1,73 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Organization default
+
+Only the policy with `is_organization_default = true` takes effect tenant-wide (for example, invitations to a blocked domain fail). A policy that is not the default has no tenant-wide effect.
+
+- Only one policy can be the default. Creating a second one fails with `400 Another object with the same value for property isOrganizationDefault already exists`.
+- Microsoft Graph cannot change `isOrganizationDefault` on an existing policy (it returns `500`), so changing `is_organization_default` replaces the policy. The policy gets a new ID, and assignments that reference it are replaced as well.
+- Moving the default to another policy in one apply works. Enforcement lags the API by roughly 10–20 seconds: in a live run, the old restriction was still enforced about 20 seconds after it was deleted, and the new one took effect after about 10 seconds.
+- If the new default happens to be created before the old one is deleted, the apply fails with the `400` above. Apply again to finish.
+- Do not use `create_before_destroy` on these policies. When the default moves, the new default is created while the old one still exists, so its creation fails. The old default's own replacement can still complete, which leaves the tenant without a default policy until a later apply succeeds (observed live).
+- Deleting the default policy removes the tenant's B2B domain restrictions.
+
+## Behavior Notes
+
+- The documented `description` property is not supported: Microsoft Graph rejects any write that contains it with `404 Request_ResourceNotFound`.
+- A refresh treats a `404` as deletion only after it persists for 60 seconds, because Microsoft Entra replicas briefly return `404` after writes.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.Read.B2BManagementPolicy`
+- `Policy.ReadWrite.B2BManagementPolicy`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Example Usage
+
+Each example is a separate scenario. Non-default policies do not change tenant-wide invitation restrictions; use the organization-default example to enforce a policy.
+
+### Allow Invitations from Selected Domains
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_allow_domains.tf" }}
+
+### Block Invitations from Selected Domains
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_block_domains.tf" }}
+
+### Allow Invitations from Any Domain
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_any_domain.tf" }}
+
+### Enforce a Policy Organization-Wide
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_organization_default.tf" }}
+
+### Supply Empty Additional Settings
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_other_settings.tf" }}
+
+### Supply a Definition as JSON Text
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_heredoc.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/import.sh" }}

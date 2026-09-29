@@ -1,0 +1,8 @@
+{
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/b2bManagementPolicies/$entity",
+    "id": "00000000-0000-0000-0000-000000000000",
+    "deletedDateTime": null,
+    "definition": [],
+    "displayName": "",
+    "isOrganizationDefault": false
+}
