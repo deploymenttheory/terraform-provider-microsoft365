@@ -579,7 +579,8 @@ func TestUnit_SetEntraIDOptions_ClientCertificateBase64(t *testing.T) {
 			config := types.ObjectNull(attributeTypes)
 			if !tc.emptyBlock {
 				model := EntraIDOptionsModel{
-					ClientCertificateBase64: types.StringValue(tc.configValue),
+					ClientCertificateBase64:    types.StringValue(tc.configValue),
+					AdditionallyAllowedTenants: types.ListNull(types.StringType),
 				}
 				var diags diag.Diagnostics
 				config, diags = types.ObjectValueFrom(ctx, attributeTypes, model)

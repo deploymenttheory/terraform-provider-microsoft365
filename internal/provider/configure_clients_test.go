@@ -189,8 +189,9 @@ func TestUnit_ClientCertificateSources_EnvironmentConflicts(t *testing.T) {
 			t.Setenv("M365_CLIENT_CERTIFICATE", tc.envBase64)
 			ctx := context.Background()
 			options, diags := types.ObjectValueFrom(ctx, schemaToAttrTypes(EntraIDOptionsSchema()), EntraIDOptionsModel{
-				ClientCertificate:       types.StringValue(tc.configFile),
-				ClientCertificateBase64: types.StringValue(tc.configBase64),
+				ClientCertificate:          types.StringValue(tc.configFile),
+				ClientCertificateBase64:    types.StringValue(tc.configBase64),
+				AdditionallyAllowedTenants: types.ListNull(types.StringType),
 			})
 			require.False(t, diags.HasError(), "%v", diags)
 			processed, diags := setProviderConfiguration(ctx, M365ProviderModel{
