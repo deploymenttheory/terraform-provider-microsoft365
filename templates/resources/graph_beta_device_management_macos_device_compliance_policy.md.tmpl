@@ -12,10 +12,10 @@ description: |-
 
 ## Microsoft Documentation
 
-- [windowsDeviceCompliancePolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macoscompliancepolicy?view=graph-rest-beta)
+- [macOSCompliancePolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macoscompliancepolicy?view=graph-rest-beta)
 - [Create macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macoscompliancepolicy-create?view=graph-rest-beta&tabs=http)
 - [Update macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macoscompliancepolicy-update?view=graph-rest-beta&tabs=http)
-- [Delete macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-devicecon fig-macoscompliancepolicy-delete?view=graph-rest-beta&tabs=http)
+- [Delete macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macoscompliancepolicy-delete?view=graph-rest-beta&tabs=http)
 
 ## Microsoft Graph API Permissions
 
@@ -27,6 +27,12 @@ The following client `application` permissions are needed in order to use this {
 
 **Optional:**
 - `None` `[N/A]`
+
+## Scheduled actions
+
+Scheduled actions apply to the entire policy. Omit `rule_name` to use `PasswordRequired`.
+Microsoft Graph does not return the rule name, so the provider retains an explicitly
+configured value in state. Import resolves the name to `PasswordRequired`.
 
 ## Example Usage
 

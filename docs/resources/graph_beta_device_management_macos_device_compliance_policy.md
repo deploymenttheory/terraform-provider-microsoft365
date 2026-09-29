@@ -12,10 +12,10 @@ Manages macOS device compliance policies using the `/deviceManagement/deviceComp
 
 ## Microsoft Documentation
 
-- [windowsDeviceCompliancePolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macoscompliancepolicy?view=graph-rest-beta)
+- [macOSCompliancePolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macoscompliancepolicy?view=graph-rest-beta)
 - [Create macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macoscompliancepolicy-create?view=graph-rest-beta&tabs=http)
 - [Update macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macoscompliancepolicy-update?view=graph-rest-beta&tabs=http)
-- [Delete macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-devicecon fig-macoscompliancepolicy-delete?view=graph-rest-beta&tabs=http)
+- [Delete macosDeviceCompliancePolicy](https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-macoscompliancepolicy-delete?view=graph-rest-beta&tabs=http)
 
 ## Microsoft Graph API Permissions
 
@@ -27,6 +27,12 @@ The following client `application` permissions are needed in order to use this r
 
 **Optional:**
 - `None` `[N/A]`
+
+## Scheduled actions
+
+Scheduled actions apply to the entire policy. Omit `rule_name` to use `PasswordRequired`.
+Microsoft Graph does not return the rule name, so the provider retains an explicitly
+configured value in state. Import resolves the name to `PasswordRequired`.
 
 ## Example Usage
 
@@ -44,7 +50,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_compliance_poli
   # Scheduled actions for rules (required)
   scheduled_actions_for_rule = [
     {
-      rule_name = "PasswordRequired"
+      # rule_name is optional; the provider uses PasswordRequired.
       scheduled_action_configurations = [
         {
           action_type        = "block"
@@ -300,7 +306,7 @@ Required:
 
 Optional:
 
-- `rule_name` (String) Name of the scheduled action rule
+- `rule_name` (String) Name of the scheduled action rule. When omitted, resolves to PasswordRequired. Microsoft Graph applies actions policy-wide and does not return the rule name; configured names are retained in state for compatibility.
 
 <a id="nestedatt--scheduled_actions_for_rule--scheduled_action_configurations"></a>
 ### Nested Schema for `scheduled_actions_for_rule.scheduled_action_configurations`

@@ -11,7 +11,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_compliance_poli
   # Scheduled actions for rules (required)
   scheduled_actions_for_rule = [
     {
-      rule_name = "PasswordRequired"
+      # rule_name is optional; the provider uses PasswordRequired.
       scheduled_action_configurations = [
         {
           action_type        = "block"

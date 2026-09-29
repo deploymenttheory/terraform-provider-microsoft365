@@ -1,0 +1,13 @@
+resource "microsoft365_graph_beta_device_management_macos_device_compliance_policy" "test" {
+  display_name               = "unit-test-macos-3974"
+  storage_require_encryption = true
+  os_minimum_version         = "26.0"
+
+  scheduled_actions_for_rule = [{
+    rule_name = "unavailable"
+    scheduled_action_configurations = [{
+      action_type        = "block"
+      grace_period_hours = 72
+    }]
+  }]
+}
