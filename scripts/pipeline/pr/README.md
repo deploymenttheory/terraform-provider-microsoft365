@@ -46,10 +46,26 @@ and memory/disk/process-name samples are emitted every 15 seconds. Reports do no
 include environment dumps or process arguments. Lint also writes per-package
 SARIF and `results.json` with findings versus execution exit statuses. A runner
 shutdown may prevent artifact upload; periodic samples remain in the live log.
-Lint has a 30-minute step budget; test steps have a 50-minute budget within
-60-minute jobs, leaving time for failure reports and cache post-steps.
+Lint has a 45-minute per-package timeout. Lint and test steps have a 50-minute
+budget within 60-minute jobs, leaving time for failure reports and cache post-steps.
 No speculative memory cap, GC override, or disabled linter is used to conceal a
 failed execution. A resource failure must be investigated from the measurements.
+
+### Initial validation evidence
+
+The [no-Go manual run](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions/runs/36590453502)
+passed and skipped Go setup, unit tests and race detection. The
+[scoped core lint run](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions/runs/36590157722)
+selected only `internal/client` and `internal/provider`. Client lint passed in
+15m33s. During provider lint, sampled linter RSS reached 14.45 GiB on the runner
+with 15,947 MiB RAM; its 3,071 MiB swap was almost completely consumed. Disk usage
+was 37%. Execution ended with exit 143 before final reports could upload.
+
+These measurements establish memory pressure, not the sender of the termination
+signal. They also show that selecting fewer packages alone does not guarantee
+that provider analysis fits on this runner. Capacity or GC changes require a
+separate measured validation; do not interpret package-selection correctness as
+proof that the large provider lint workload succeeds.
 
 ## Pipeline regression checks
 

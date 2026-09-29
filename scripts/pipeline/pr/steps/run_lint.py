@@ -28,7 +28,7 @@ def run_lint(base_ref: str, output_dir: str = 'lint-results') -> int:
         print(f'[{index}/{len(packages)}] Linting {package} against {base_sha}', flush=True)
         cmd = [
             'golangci-lint', 'run', '--config=.golangci.yml', '--verbose',
-            '--concurrency=1', '--timeout=30m', '--issues-exit-code=1',
+            '--concurrency=1', '--timeout=45m', '--issues-exit-code=1',
             '--fix=false', '--new=false', '--new-from-merge-base=',
             f'--new-from-rev={base_sha}', '--whole-files=false',
             f'--output.sarif.path={reports / f"package-{index}.sarif"}',
