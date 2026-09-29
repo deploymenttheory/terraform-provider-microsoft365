@@ -19,7 +19,8 @@ The Microsoft 365 provider can use a Service Principal with a Client Certificate
   - [Setup Using PowerShell](#setup-using-powershell)
 - [Configuration](#configuration)
   - [Using Terraform Configuration](#using-terraform-configuration)
-  - [Using Environment Variables](#using-environment-variables-recommended)
+  - [Using Environment Variables](#using-environment-variables)
+  - [Using a Base64-Encoded Certificate](#using-a-base64-encoded-certificate)
 - [Certificate Management](#certificate-management)
   - [Certificate Rotation](#certificate-rotation)
   - [Certificate Storage](#certificate-storage)
@@ -379,7 +380,57 @@ provider "microsoft365" {
 }
 ```
 
-**Note:** The provider automatically reads values from environment variables if they're not specified in the provider configuration. When you set the environment variables, the provider will use those values even if they're not explicitly mapped in your Terraform configuration.
+**Note:** Non-empty environment variables take precedence over their corresponding provider attributes. They do not need to be explicitly mapped in Terraform configuration.
+
+### Using a Base64-Encoded Certificate
+
+For CI/CD secret storage, set `M365_CLIENT_CERTIFICATE` to the standard base64 encoding of the complete PKCS#12 (.pfx or .p12) file, including its RSA private key. The provider decodes the value in memory and passes it to the same certificate parser used for file authentication; it does not write a temporary certificate file.
+
+```bash
+export M365_TENANT_ID="00000000-0000-0000-0000-000000000000"
+export M365_AUTH_METHOD="client_certificate"
+export M365_CLIENT_ID="00000000-0000-0000-0000-000000000000"
+# Encode an existing PFX when preparing the secret. In CI, inject the saved value
+# as M365_CLIENT_CERTIFICATE directly from the pipeline's secret store.
+export M365_CLIENT_CERTIFICATE="$(openssl base64 -A -in /path/to/certificate.pfx)"
+export M365_CLIENT_CERTIFICATE_PASSWORD="YourSecurePassword"
+unset M365_CLIENT_CERTIFICATE_FILE_PATH
+```
+
+```terraform
+provider "microsoft365" {}
+```
+
+Alternatively, supply the value through a sensitive Terraform variable:
+
+```terraform
+variable "client_certificate_base64" {
+  description = "Base64-encoded PKCS#12 certificate including its RSA private key"
+  type        = string
+  sensitive   = true
+}
+
+variable "client_certificate_password" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+provider "microsoft365" {
+  auth_method = "client_certificate"
+  tenant_id   = "00000000-0000-0000-0000-000000000000"
+
+  entra_id_options = {
+    client_id                   = "00000000-0000-0000-0000-000000000000"
+    client_certificate_base64    = var.client_certificate_base64
+    client_certificate_password = var.client_certificate_password
+  }
+}
+```
+
+Choose one certificate source: `client_certificate` / `M365_CLIENT_CERTIFICATE_FILE_PATH` for a file, or `client_certificate_base64` / `M365_CLIENT_CERTIFICATE` for encoded contents. Terraform rejects configurations containing both attributes; omit the unused attribute or set it to `null`. The provider also rejects conflicts introduced through environment variables. A non-empty `M365_CLIENT_CERTIFICATE` overrides `client_certificate_base64`.
+
+Use `M365_CLIENT_CERTIFICATE_PASSWORD` or `client_certificate_password` for a password-protected PFX. Leave the password unset for an unprotected PFX. `send_certificate_chain` works with either source. Base64 encoding is not encryption: store the encoded value as a secret, and upload only the public certificate to the Entra application registration.
 
 ## Certificate Management
 
