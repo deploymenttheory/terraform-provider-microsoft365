@@ -26,6 +26,7 @@ class TestRunnerTests(RepositoryTest):
             self.assertEqual(command[-1], './selected')
             self.assertIn('-p=1', command)
             self.assertIn('-parallel=1', command)
+            self.assertIn('-skip=^TestAcc', command)
             self.assertNotIn('./...', command)
             self.assertEqual(call.kwargs['env']['TF_ACC'], '0')
             self.assertEqual(call.kwargs['env']['GOMAXPROCS'], '1')
@@ -59,6 +60,9 @@ import ("os"; "testing")
 func TestUnitSelected(t *testing.T) {
  if os.Getenv("TF_ACC") != "0" { t.Fatal("acceptance environment leaked") }
  if Value() != 1 { t.Fatal("wrong value") }
+}
+func TestAccSelected(t *testing.T) {
+ if os.Getenv("TF_ACC") != "" { t.Fatal("acceptance test must not execute") }
 }
 ''')
         self.write('unrelated/value_test.go', '''package unrelated

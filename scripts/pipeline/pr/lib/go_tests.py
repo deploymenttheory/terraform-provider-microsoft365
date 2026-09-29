@@ -39,7 +39,7 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
         print(f"\n[{idx}/{len(packages)}] Testing: {package}")
         
         cmd = [
-            "go", "test", "-v", "-p=1", "-parallel=1", "-timeout=30m",
+            "go", "test", "-v", "-p=1", "-parallel=1", "-timeout=30m", "-skip=^TestAcc",
             f"-coverprofile={coverage_file}",
             "-covermode=atomic",
             f"./{package}"
@@ -91,7 +91,7 @@ def run_race_detection(packages: List[str]) -> int:
         print(f"\n[{idx}/{len(packages)}] Testing: {package}")
         
         cmd = ["go", "test", "-v", "-race", "-p=1", "-parallel=1",
-               "-timeout=30m", f"./{package}"]
+               "-timeout=30m", "-skip=^TestAcc", f"./{package}"]
         
         result = subprocess.run(
             cmd,
