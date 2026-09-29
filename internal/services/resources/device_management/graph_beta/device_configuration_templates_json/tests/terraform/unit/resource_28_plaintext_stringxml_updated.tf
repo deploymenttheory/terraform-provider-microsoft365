@@ -1,11 +1,5 @@
-resource "random_string" "suffix" {
-  length  = 8
-  special = false
-  upper   = false
-}
-
 resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "test" {
-  display_name       = "acc-test-plaintext-stringxml-${random_string.suffix.result}"
+  display_name       = "unit-test-plaintext-stringxml"
   description        = "Device configuration template test"
   role_scope_tag_ids = ["0"]
   settings = jsonencode({
@@ -20,7 +14,7 @@ resource "microsoft365_graph_beta_device_management_device_configuration_templat
         "description" = "Disposable encoding test",
         "omaUri"      = "./Device/Vendor/MSFT/Test/StringXml",
         "fileName"    = null,
-        "value"       = "<test enabled=\"true\"/>"
+        "value"       = "<test>\n  <name>é 日本語</name>\n</test>\n"
       }
     ]
   })

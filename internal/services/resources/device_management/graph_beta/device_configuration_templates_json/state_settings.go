@@ -73,10 +73,15 @@ func (r *DeviceConfigurationTemplatesJsonResource) readOmaSettingValues(
 					errInvalidProfileResponse,
 				)
 			}
-			if setting["@odata.type"] == "#microsoft.graph.omaSettingStringXml" {
-				setting["value"] = base64.StdEncoding.EncodeToString([]byte(*plainText.GetValue()))
-			} else {
-				setting["value"] = *plainText.GetValue()
+			setting["value"] = *plainText.GetValue()
+		} else if setting["@odata.type"] == "#microsoft.graph.omaSettingStringXml" {
+			// Unencrypted profile responses retain the Edm.Binary wire encoding.
+			if value, ok := setting["value"].(string); ok {
+				decoded, err := base64.StdEncoding.DecodeString(value)
+				if err != nil {
+					return fmt.Errorf("decode XML OMA setting: %w", err)
+				}
+				setting["value"] = string(decoded)
 			}
 		}
 		for _, field := range []string{"isEncrypted", "secretReferenceValueId", "isReadOnly"} {

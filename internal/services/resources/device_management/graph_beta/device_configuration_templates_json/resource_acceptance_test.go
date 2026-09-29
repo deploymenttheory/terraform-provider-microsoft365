@@ -425,7 +425,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_27_PlaintextBase64(t *testi
 
 func TestAccResourceDeviceConfigurationTemplatesJson_28_PlaintextStringxml(t *testing.T) {
 	config := loadAcceptanceTestTerraform("resource_28_plaintext_stringxml.tf")
-	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
+	updated := loadAcceptanceTestTerraform("resource_28_plaintext_stringxml_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -435,9 +435,9 @@ func TestAccResourceDeviceConfigurationTemplatesJson_28_PlaintextStringxml(t *te
 		},
 		Steps: []resource.TestStep{
 			{PreConfig: func() { testlog.StepAction(resourceType, "Creating plaintext_stringxml profile") },
-				Config: config, Check: check.That(resourceType + ".test").ExistsInGraph(testResource)},
+				Config: config, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").ExistsInGraph(testResource), checkOMASettingValue("#microsoft.graph.omaSettingStringXml", `<test enabled="true"/>`))},
 			importStep(),
-			{Config: updated, Check: check.That(resourceType + ".test").Key("description").HasValue("Updated template description")},
+			{Config: updated, Check: checkOMASettingValue("#microsoft.graph.omaSettingStringXml", "<test>\n  <name>é 日本語</name>\n</test>\n")},
 			importStep(),
 			{Config: updated, PlanOnly: true},
 		},
@@ -1122,6 +1122,75 @@ func TestAccResourceDeviceConfigurationTemplatesJson_57_WifiKeyClear(t *testing.
 			importStep(),
 			{Config: config},
 			{Config: config, PlanOnly: true},
+		},
+	})
+}
+
+func TestAccResourceDeviceConfigurationTemplatesJson_61_AssignmentsMinimalToMaximal(t *testing.T) {
+	var profileID string
+	initial := loadAcceptanceTestTerraform("resource_61_assignments_minimal_to_maximal.tf")
+	updated := loadAcceptanceTestTerraform("resource_61_assignments_minimal_to_maximal_updated.tf")
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+			"time":   {Source: "hashicorp/time", VersionConstraint: constants.ExternalProviderTimeVersion},
+		},
+		Steps: []resource.TestStep{
+			{Config: loadAcceptanceTestTerraform("resource_61_assignment_dependencies.tf"), Check: resource.ComposeTestCheckFunc(check.That("microsoft365_graph_beta_groups_group.include").Key("id").Exists(), check.That("microsoft365_graph_beta_groups_group.exclude").Key("id").Exists())},
+			{Config: initial, Check: checkTemplateAssignments(&profileID, false, true)},
+			importStep(),
+			{Config: initial, PlanOnly: true},
+			{Config: updated, Check: checkTemplateAssignments(&profileID, true, true)},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestAccResourceDeviceConfigurationTemplatesJson_62_AssignmentsMaximalToMinimal(t *testing.T) {
+	var profileID string
+	initial := loadAcceptanceTestTerraform("resource_62_assignments_maximal_to_minimal.tf")
+	updated := loadAcceptanceTestTerraform("resource_62_assignments_maximal_to_minimal_updated.tf")
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+			"time":   {Source: "hashicorp/time", VersionConstraint: constants.ExternalProviderTimeVersion},
+		},
+		Steps: []resource.TestStep{
+			{Config: loadAcceptanceTestTerraform("resource_61_assignment_dependencies.tf"), Check: resource.ComposeTestCheckFunc(check.That("microsoft365_graph_beta_groups_group.include").Key("id").Exists(), check.That("microsoft365_graph_beta_groups_group.exclude").Key("id").Exists())},
+			{Config: initial, Check: checkTemplateAssignments(&profileID, true, true)},
+			importStep(),
+			{Config: initial, PlanOnly: true},
+			{Config: updated, Check: checkTemplateAssignments(&profileID, false, true)},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestAccResourceDeviceConfigurationTemplatesJson_63_MixedOmaValues(t *testing.T) {
+	config := loadAcceptanceTestTerraform("resource_63_mixed_oma.tf")
+	updated := loadAcceptanceTestTerraform("resource_63_mixed_oma_updated.tf")
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
+		Steps: []resource.TestStep{
+			{PreConfig: func() { testlog.StepAction(resourceType, "Creating plaintext_stringxml profile") },
+				Config: config, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").ExistsInGraph(testResource), resource.ComposeTestCheckFunc(checkOMASettingValue("#microsoft.graph.omaSettingStringXml", `<test enabled="true"/>`), checkOMASettingValue("#microsoft.graph.omaSettingString", "dGVzdA=="), checkOMASettingValue("#microsoft.graph.omaSettingBase64", "AAECA//+/Q==")))},
+			importStep(),
+			{Config: updated, Check: resource.ComposeTestCheckFunc(checkOMASettingValue("#microsoft.graph.omaSettingStringXml", "<test>\n  <name>é 日本語</name>\n</test>\n"), checkOMASettingValue("#microsoft.graph.omaSettingString", "test"), checkOMASettingValue("#microsoft.graph.omaSettingBase64", "AAECA//+/Q=="))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
 		},
 	})
 }

@@ -14,7 +14,7 @@ resource "microsoft365_graph_beta_device_management_device_configuration_templat
         "description" = "Disposable encoding test",
         "omaUri"      = "./Device/Vendor/MSFT/Test/StringXml",
         "fileName"    = null,
-        "value"       = "PHRlc3QgZW5hYmxlZD0idHJ1ZSIvPg=="
+        "value"       = "<test enabled=\"true\"/>"
       }
     ]
   })

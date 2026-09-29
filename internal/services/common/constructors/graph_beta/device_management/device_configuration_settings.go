@@ -8,6 +8,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 )
 
 var errInvalidDeviceConfigurationSettings = errors.New("invalid device configuration settings")
@@ -43,6 +45,21 @@ func ConstructDeviceConfigurationSettings(
 				errInvalidDeviceConfigurationSettings,
 				field,
 			)
+		}
+	}
+	// Graph's XML OMA field is Edm.Binary on write, but its plaintext endpoint
+	// returns XML text. Keep configuration in cleartext and encode only this typed
+	// field at the request boundary; ordinary strings and binary values are unchanged.
+	if odataType == "#microsoft.graph.windows10CustomConfiguration" {
+		entries, _ := content["omaSettings"].([]any)
+		for _, entry := range entries {
+			setting, ok := entry.(map[string]any)
+			if !ok || setting["@odata.type"] != "#microsoft.graph.omaSettingStringXml" {
+				continue
+			}
+			if value, ok := setting["value"].(string); ok {
+				setting["value"] = helpers.ByteStringToBase64([]byte(value))
+			}
 		}
 	}
 	requestBody := graphmodels.NewDeviceConfiguration()

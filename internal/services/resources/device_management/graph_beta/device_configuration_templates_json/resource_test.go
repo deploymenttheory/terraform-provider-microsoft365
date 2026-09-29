@@ -665,13 +665,13 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_28_PlaintextStringxml(t *t
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
 	config := loadUnitTestTerraform("resource_28_plaintext_stringxml.tf")
-	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
+	updated := loadUnitTestTerraform("resource_28_plaintext_stringxml_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
+			{Config: config, Check: checkOMASettingValue("#microsoft.graph.omaSettingStringXml", `<test enabled="true"/>`)},
 			importStep(),
-			{Config: updated, Check: check.That(resourceType + ".test").Key("description").HasValue("Updated template description")},
+			{Config: updated, Check: checkOMASettingValue("#microsoft.graph.omaSettingStringXml", "<test>\n  <name>é 日本語</name>\n</test>\n")},
 			importStep(),
 			{Config: updated, PlanOnly: true},
 		},
@@ -1400,6 +1400,149 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_60_PaginatedRelationships(
 				httpmock.RegisterResponder("GET", endpoint, httpmock.NewStringResponder(200, first))
 				httpmock.RegisterResponder("GET", endpoint+"?$skiptoken=next", httpmock.NewStringResponder(200, second))
 			}, Config: config, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_61_AssignmentsMinimalToMaximal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	var profileID string
+	initial := loadUnitTestTerraform("resource_61_assignments_minimal_to_maximal.tf")
+	updated := loadUnitTestTerraform("resource_61_assignments_minimal_to_maximal_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: initial, Check: checkTemplateAssignments(&profileID, false, false)},
+			importStep(),
+			{Config: initial, PlanOnly: true},
+			{Config: updated, Check: checkTemplateAssignments(&profileID, true, false)},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_62_AssignmentsMaximalToMinimal(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	var profileID string
+	initial := loadUnitTestTerraform("resource_62_assignments_maximal_to_minimal.tf")
+	updated := loadUnitTestTerraform("resource_62_assignments_maximal_to_minimal_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: initial, Check: checkTemplateAssignments(&profileID, true, false)},
+			importStep(),
+			{Config: initial, PlanOnly: true},
+			{Config: updated, Check: checkTemplateAssignments(&profileID, false, false)},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+// checkTemplateAssignments checks set membership rather than depending on target order.
+func checkTemplateAssignments(profileID *string, maximal, live bool) resource.TestCheckFunc {
+	return func(state *terraform.State) error {
+		objects := state.RootModule().Resources
+		id := objects[resourceType+".test"].Primary.ID
+		if *profileID == "" {
+			*profileID = id
+		}
+		if id != *profileID {
+			return fmt.Errorf("assignment update replaced profile %s with %s", *profileID, id)
+		}
+		includeID, excludeID := "11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222"
+		if live {
+			includeID = objects["microsoft365_graph_beta_groups_group.include"].Primary.ID
+			excludeID = objects["microsoft365_graph_beta_groups_group.exclude"].Primary.ID
+		}
+		targets := []map[string]string{{"type": "groupAssignmentTarget", "group_id": includeID, "filter_type": "none"}}
+		if maximal {
+			targets = append(targets,
+				map[string]string{"type": "allDevicesAssignmentTarget", "filter_type": "none"},
+				map[string]string{"type": "allLicensedUsersAssignmentTarget", "filter_type": "none"},
+				map[string]string{"type": "exclusionGroupAssignmentTarget", "group_id": excludeID, "filter_type": "none"})
+		}
+		checks := []resource.TestCheckFunc{check.That(resourceType + ".test").Key("assignments.#").HasValue(fmt.Sprint(len(targets)))}
+		for _, target := range targets {
+			checks = append(checks, resource.TestCheckTypeSetElemNestedAttrs(resourceType+".test", "assignments.*", target))
+		}
+		return resource.ComposeTestCheckFunc(checks...)(state)
+	}
+}
+
+func checkOMASettingValue(odataType, expected string) resource.TestCheckFunc {
+	return resource.TestCheckResourceAttrWith(resourceType+".test", "settings", func(value string) error {
+		var settings struct {
+			Entries []struct {
+				Type  string `json:"@odata.type"`
+				Value any    `json:"value"`
+			} `json:"omaSettings"`
+		}
+		if err := json.Unmarshal([]byte(value), &settings); err != nil {
+			return err
+		}
+		for _, entry := range settings.Entries {
+			if entry.Type == odataType && entry.Value == expected {
+				return nil
+			}
+		}
+		return fmt.Errorf("OMA setting %s did not retain its configured value", odataType)
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_63_MixedOmaValues(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_63_mixed_oma.tf")
+	updated := loadUnitTestTerraform("resource_63_mixed_oma_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: resource.ComposeTestCheckFunc(checkOMASettingValue("#microsoft.graph.omaSettingStringXml", `<test enabled="true"/>`), checkOMASettingValue("#microsoft.graph.omaSettingString", "dGVzdA=="), checkOMASettingValue("#microsoft.graph.omaSettingBase64", "AAECA//+/Q=="))},
+			importStep(),
+			{Config: updated, Check: resource.ComposeTestCheckFunc(checkOMASettingValue("#microsoft.graph.omaSettingStringXml", "<test>\n  <name>é 日本語</name>\n</test>\n"), checkOMASettingValue("#microsoft.graph.omaSettingString", "test"), checkOMASettingValue("#microsoft.graph.omaSettingBase64", "AAECA//+/Q=="))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_64_UnencryptedXML(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_28_plaintext_stringxml.tf")
+	var profileID string
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: func(state *terraform.State) error {
+				profileID = state.RootModule().Resources[resourceType+".test"].Primary.ID
+				return nil
+			}},
+			{PreConfig: func() {
+				content, err := helpers.ParseJSONFile("tests/responses/validate_get/get_device_configuration_unencrypted_xml.json")
+				if err != nil {
+					t.Fatal(err)
+				}
+				var response map[string]any
+				if err := json.Unmarshal([]byte(content), &response); err != nil {
+					t.Fatal(err)
+				}
+				response["id"] = profileID
+				httpmock.RegisterResponder("GET", "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/"+profileID, httpmock.NewJsonResponderOrPanic(200, response))
+			}, Config: config, PlanOnly: true},
+			importStep(),
 		},
 	})
 }
