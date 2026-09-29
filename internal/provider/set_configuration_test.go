@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/assert"
@@ -45,7 +46,7 @@ func TestSetProviderConfiguration_ZZZ_ComprehensiveEnvVarsOverrideConfig(t *test
 	envVarsToTest := []string{
 		"M365_CLOUD", "AZURE_CLOUD", "M365_TENANT_ID", "M365_AUTH_METHOD",
 		"M365_TELEMETRY_OPTOUT", "M365_DEBUG_MODE", "M365_CLIENT_ID", "M365_CLIENT_SECRET",
-		"M365_CLIENT_CERTIFICATE_FILE_PATH", "M365_CLIENT_CERTIFICATE_PASSWORD",
+		"M365_CLIENT_CERTIFICATE_FILE_PATH", "M365_CLIENT_CERTIFICATE_PASSWORD", "M365_CLIENT_CERTIFICATE",
 		"M365_USERNAME", "M365_SEND_CERTIFICATE_CHAIN", "M365_DISABLE_INSTANCE_DISCOVERY",
 		"M365_ADDITIONALLY_ALLOWED_TENANTS", "M365_REDIRECT_URI", "AZURE_FEDERATED_TOKEN_FILE",
 		"M365_MANAGED_IDENTITY_ID", "AZURE_CLIENT_ID", "M365_OIDC_TOKEN_FILE_PATH",
@@ -134,6 +135,7 @@ func TestSetProviderConfiguration_ZZZ_ComprehensiveEnvVarsOverrideConfig(t *test
 		"client_id":                    types.StringValue("config-client-id"),
 		"client_secret":                types.StringValue("config-client-secret"),
 		"client_certificate":           types.StringValue("/config/path/to/cert.pfx"),
+		"client_certificate_base64":    types.StringNull(),
 		"client_certificate_password":  types.StringValue("config-cert-password"),
 		"send_certificate_chain":       types.BoolValue(false),
 		"username":                     types.StringValue("config-user@example.com"),
@@ -303,6 +305,7 @@ func TestSetEntraIDOptions_EnvVarsAndConfig(t *testing.T) {
 		"client_id":                    types.StringValue("config-client-id"),
 		"client_secret":                types.StringValue("config-secret"),
 		"client_certificate":           types.StringValue("/path/to/cert.pfx"),
+		"client_certificate_base64":    types.StringNull(),
 		"client_certificate_password":  types.StringValue("certpass"),
 		"send_certificate_chain":       types.BoolValue(true),
 		"username":                     types.StringValue("user@example.com"),
@@ -465,6 +468,7 @@ func TestSetEntraIDOptions_BooleanEnvVars(t *testing.T) {
 		"client_id":                    types.StringValue("config-client-id"),
 		"client_secret":                types.StringValue("config-secret"),
 		"client_certificate":           types.StringNull(),
+		"client_certificate_base64":    types.StringNull(),
 		"client_certificate_password":  types.StringNull(),
 		"send_certificate_chain":       types.BoolValue(false), // Should be overridden by env var
 		"username":                     types.StringNull(),
@@ -550,4 +554,56 @@ func TestGetEnvBool_Variants(t *testing.T) {
 			assert.Equal(t, tc.expected, result, "GetEnvBool should correctly parse %q as %v", tc.envValue, tc.expected)
 		})
 	}
+}
+
+// TestUnit_SetEntraIDOptions_ClientCertificateBase64 verifies configuration and environment precedence through client conversion.
+func TestUnit_SetEntraIDOptions_ClientCertificateBase64(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		configValue string
+		envValue    string
+		emptyBlock  bool
+		want        string
+	}{
+		{name: "configuration", configValue: "config-certificate", want: "config-certificate"},
+		{name: "environment_only", envValue: "env-certificate", emptyBlock: true, want: "env-certificate"},
+		{name: "environment_overrides_configuration", configValue: "config-certificate", envValue: "env-certificate", want: "env-certificate"},
+		{name: "empty_environment_uses_configuration", configValue: "config-certificate", envValue: "", want: "config-certificate"},
+		{name: "unset", want: ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			clearM365EnvVarsWithRestore(t)
+			t.Setenv("M365_CLIENT_CERTIFICATE", tc.envValue)
+			ctx := context.Background()
+			attributeTypes := schemaToAttrTypes(EntraIDOptionsSchema())
+			config := types.ObjectNull(attributeTypes)
+			if !tc.emptyBlock {
+				model := EntraIDOptionsModel{
+					ClientCertificateBase64: types.StringValue(tc.configValue),
+				}
+				var diags diag.Diagnostics
+				config, diags = types.ObjectValueFrom(ctx, attributeTypes, model)
+				require.False(t, diags.HasError(), "%v", diags)
+			}
+			result, diags := setEntraIDOptions(ctx, config)
+			require.False(t, diags.HasError(), "%v", diags)
+			var model EntraIDOptionsModel
+			diags = result.As(ctx, &model, basetypes.ObjectAsOptions{})
+			require.False(t, diags.HasError(), "%v", diags)
+			assert.Equal(t, tc.want, model.ClientCertificateBase64.ValueString())
+			data := convertToClientProviderData(ctx, &M365ProviderModel{
+				EntraIDOptions: result,
+				ClientOptions:  types.ObjectNull(schemaToAttrTypes(ClientOptionsSchema())),
+			})
+			assert.Equal(t, tc.want, data.EntraIDOptions.ClientCertificateBase64)
+			assert.Empty(t, data.EntraIDOptions.ClientCertificate)
+		})
+	}
+}
+
+func TestUnit_EntraIDOptionsSchema_ClientCertificateBase64(t *testing.T) {
+	attribute := EntraIDOptionsSchema()["client_certificate_base64"]
+	require.NotNil(t, attribute)
+	assert.True(t, attribute.IsOptional())
+	assert.True(t, attribute.IsSensitive())
 }

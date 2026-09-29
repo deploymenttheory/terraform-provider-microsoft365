@@ -38,6 +38,7 @@ type ClientOptionsModel struct {
 type EntraIDOptionsModel struct {
 	ClientID                   types.String `tfsdk:"client_id"`
 	ClientSecret               types.String `tfsdk:"client_secret"`
+	ClientCertificateBase64    types.String `tfsdk:"client_certificate_base64"`
 	ClientCertificate          types.String `tfsdk:"client_certificate"`
 	ClientCertificatePassword  types.String `tfsdk:"client_certificate_password"`
 	SendCertificateChain       types.Bool   `tfsdk:"send_certificate_chain"`

@@ -2,7 +2,9 @@ package client
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,8 +14,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 )
 
 // ObtainCredential performs the necessary steps to obtain a TokenCredential based on the provider configuration.
@@ -133,22 +136,48 @@ func (s *ClientSecretStrategy) GetCredential(ctx context.Context, config *Provid
 		})
 }
 
+var (
+	errConflictingClientCertificateSources = errors.New("client certificate authentication requires only one of client_certificate (M365_CLIENT_CERTIFICATE_FILE_PATH) or client_certificate_base64 (M365_CLIENT_CERTIFICATE)")
+	errMissingClientCertificateSource      = errors.New("client certificate authentication requires client_certificate (M365_CLIENT_CERTIFICATE_FILE_PATH) or client_certificate_base64 (M365_CLIENT_CERTIFICATE)")
+)
+
 // ClientCertificateStrategy implements the credential strategy for client certificate authentication
 type ClientCertificateStrategy struct{}
 
-func (s *ClientCertificateStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
+func (s *ClientCertificateStrategy) GetCredential(
+	ctx context.Context,
+	config *ProviderData,
+	clientOptions policy.ClientOptions,
+) (azcore.TokenCredential, error) {
 	tflog.Info(ctx, "Creating client certificate credential", map[string]any{
-		"tenant_id":   config.TenantID,
-		"client_id":   config.EntraIDOptions.ClientID,
-		"certificate": config.EntraIDOptions.ClientCertificate,
+		"tenant_id": config.TenantID,
+		"client_id": config.EntraIDOptions.ClientID,
 	})
 
-	certData, err := os.ReadFile(config.EntraIDOptions.ClientCertificate)
-	if err != nil {
-		tflog.Error(ctx, "Failed to read certificate file", map[string]any{
-			"error": err,
-		})
-		return nil, fmt.Errorf("failed to read certificate file: %w", err)
+	certificatePath := config.EntraIDOptions.ClientCertificate
+	certificateBase64 := config.EntraIDOptions.ClientCertificateBase64
+	if certificatePath != "" && certificateBase64 != "" {
+		return nil, errConflictingClientCertificateSources
+	}
+	if certificatePath == "" && certificateBase64 == "" {
+		return nil, errMissingClientCertificateSource
+	}
+
+	var certData []byte
+	var err error
+	if certificateBase64 != "" {
+		certData, err = base64.StdEncoding.DecodeString(certificateBase64)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"failed to decode client_certificate_base64 (M365_CLIENT_CERTIFICATE): %w",
+				err,
+			)
+		}
+	} else {
+		certData, err = os.ReadFile(certificatePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read certificate file: %w", err)
+		}
 	}
 
 	password := []byte(config.EntraIDOptions.ClientCertificatePassword)

@@ -32,6 +32,8 @@ type EntraIDOptions struct {
 	ClientSecret string
 	// ClientCertificate is the path to the client certificate file
 	ClientCertificate string
+	// ClientCertificateBase64 is the base64-encoded PKCS#12 client certificate
+	ClientCertificateBase64 string
 	// ClientCertificatePassword is the password for the client certificate
 	ClientCertificatePassword string
 	// Username is the username for username/password or interactive authentication

@@ -4,13 +4,15 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces
@@ -227,6 +229,11 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 		"client_certificate": schema.StringAttribute{
 			Optional:  true,
 			Sensitive: true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(
+					path.MatchRelative().AtParent().AtName("client_certificate_base64"),
+				),
+			},
 			MarkdownDescription: "Used for the 'client_certificate' authentication method.\n\n" +
 				"The path to the Client Certificate file associated with the Service " +
 				"Principal for use when authenticating as a Service Principal using a Client Certificate. " +
@@ -256,7 +263,22 @@ func EntraIDOptionsSchema() map[string]schema.Attribute {
 				"  client_certificate        = \"/path/to/cert.pfx\"\n" +
 				"}\n" +
 				"```\n\n" +
-				"Can be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable.",
+				"Can be set using the `M365_CLIENT_CERTIFICATE_FILE_PATH` environment variable. " +
+				"Use either this file path or `client_certificate_base64`, not both.",
+		},
+		"client_certificate_base64": schema.StringAttribute{
+			Optional:  true,
+			Sensitive: true,
+			Validators: []validator.String{
+				stringvalidator.ConflictsWith(
+					path.MatchRelative().AtParent().AtName("client_certificate"),
+				),
+			},
+			MarkdownDescription: "Base64-encoded PKCS#12 (.pfx or .p12) certificate containing the certificate and RSA private key for the 'client_certificate' authentication method. " +
+				"The certificate is decoded in memory and is not written to disk. " +
+				"Use `client_certificate_password` if the PKCS#12 data is password-protected. " +
+				"Use either this value or `client_certificate`, not both. " +
+				"Can be set using the `M365_CLIENT_CERTIFICATE` environment variable, which takes precedence over this attribute.",
 		},
 		"client_certificate_password": schema.StringAttribute{
 			Optional:  true,

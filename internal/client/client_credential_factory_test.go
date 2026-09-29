@@ -1,21 +1,31 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/hashicorp/terraform-plugin-log/tflogtest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	pkcs12 "software.sslmate.com/src/go-pkcs12"
 )
 
 // MockTokenCredential is a mock implementation of azcore.TokenCredential
@@ -1544,4 +1554,86 @@ func TestUnit_ExchangeOIDCToken_TokenExchange(t *testing.T) {
 		assert.Empty(t, token)
 		assert.Contains(t, err.Error(), "failed to parse OIDC token exchange response")
 	})
+}
+
+// TestUnit_ClientCertificateStrategy_CertificateSources exercises both input paths with real PKCS#12 data.
+func TestUnit_ClientCertificateStrategy_CertificateSources(t *testing.T) {
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	template := &x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		NotBefore:    time.Now().Add(-time.Minute),
+		NotAfter:     time.Now().Add(time.Hour),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+	}
+	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	require.NoError(t, err)
+	cert, err := x509.ParseCertificate(der)
+	require.NoError(t, err)
+	protected, err := pkcs12.Modern.Encode(key, cert, nil, "test-password")
+	require.NoError(t, err)
+	unprotected, err := pkcs12.Modern.Encode(key, cert, nil, "")
+	require.NoError(t, err)
+	encoded := base64.StdEncoding.EncodeToString(protected)
+	filePath := filepath.Join(t.TempDir(), "certificate.pfx")
+	require.NoError(t, os.WriteFile(filePath, protected, 0o600))
+
+	for _, tc := range []struct {
+		name      string
+		path      string
+		base64    string
+		password  string
+		chain     bool
+		wantError string
+	}{
+		{name: "base64_password_protected", base64: encoded, password: "test-password"},
+		{name: "base64_without_password", base64: base64.StdEncoding.EncodeToString(unprotected)},
+		{name: "base64_send_certificate_chain", base64: encoded, password: "test-password", chain: true},
+		{name: "base64_line_breaks", base64: encoded[:64] + "\r\n" + encoded[64:], password: "test-password"},
+		{name: "file_password_protected", path: filePath, password: "test-password"},
+		{name: "missing_source", wantError: "requires client_certificate"},
+		{name: "conflicting_sources", path: filePath, base64: encoded, wantError: "requires only one"},
+		{name: "malformed_base64", base64: "not-a-base64-certificate!", wantError: "failed to decode client_certificate_base64"},
+		{name: "invalid_pkcs12", base64: base64.StdEncoding.EncodeToString([]byte("not a PFX")), wantError: "failed to parse certificate data"},
+		{name: "empty_decoded_data", base64: "\n", wantError: "failed to parse certificate data"},
+		{name: "wrong_password", base64: encoded, password: "wrong-password", wantError: "failed to parse certificate data"},
+		{name: "missing_password", base64: encoded, wantError: "failed to parse certificate data"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			config := &ProviderData{
+				TenantID: "00000000-0000-0000-0000-000000000001",
+				EntraIDOptions: &EntraIDOptions{
+					ClientID:                   "00000000-0000-0000-0000-000000000002",
+					ClientCertificate:          tc.path,
+					ClientCertificateBase64:    tc.base64,
+					ClientCertificatePassword:  tc.password,
+					SendCertificateChain:       tc.chain,
+					DisableInstanceDiscovery:   true,
+					AdditionallyAllowedTenants: []string{"00000000-0000-0000-0000-000000000003"},
+				},
+			}
+			var logOutput bytes.Buffer
+			ctx := tflogtest.RootLogger(context.Background(), &logOutput)
+			credential, err := (&ClientCertificateStrategy{}).GetCredential(ctx, config, policy.ClientOptions{})
+			if len(tc.base64) > 1 {
+				assert.NotContains(t, logOutput.String(), tc.base64)
+			}
+			if tc.password != "" {
+				assert.NotContains(t, logOutput.String(), tc.password)
+			}
+			if tc.wantError != "" {
+				require.ErrorContains(t, err, tc.wantError)
+				assert.Nil(t, credential)
+				if len(tc.base64) > 1 {
+					assert.NotContains(t, err.Error(), tc.base64)
+				}
+				if tc.password != "" {
+					assert.NotContains(t, err.Error(), tc.password)
+				}
+				return
+			}
+			require.NoError(t, err)
+			assert.NotNil(t, credential)
+		})
+	}
 }
