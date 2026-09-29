@@ -67,6 +67,23 @@ that provider analysis fits on this runner. Capacity or GC changes require a
 separate measured validation; do not interpret package-selection correctness as
 proof that the large provider lint workload succeeds.
 
+The [single-resource unit run](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions/runs/36597296286)
+passed all 23 B2B management policy unit cases with 79.7% statement coverage and
+executed no `TestAcc*` cases. Tests took 76 seconds, while the complete command
+including the cold build took 45m33s. Go's build cache was saved successfully.
+The [first GC experiment](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions/runs/36596573217)
+used `GOGC=50` on a temporary branch but hit its earlier 30-minute timeout during
+package loading. Analysis had not started, so that result does not establish
+whether the setting resolves analysis memory pressure. Its diagnostic artifact
+correctly records linter exit 4 as an execution failure.
+
+The [retry with a restored build cache and corrected timeout](https://github.com/deploymenttheory/terraform-provider-microsoft365/actions/runs/36603104015)
+loaded packages in 1m03s, but analysis again filled RAM and swap and ended with
+exit 143. `GOGC=50` therefore did not resolve this workload, and is not included
+in the implementation. These provider/resource lint workloads still fail on the
+16 GiB runner. Further work should measure a runner with more memory or reduce
+the shared analysis dependency graph while retaining the required checks.
+
 ## Pipeline regression checks
 
 Requires Python 3, Git, Go compatible with `go.mod`, golangci-lint v2.14.0 and
