@@ -98,7 +98,7 @@ func TestUnitResourceB2bManagementPolicy_03_Update(t *testing.T) {
 				Config: testConfig("tests/terraform/unit/resource_minimal_updated.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceType+".minimal", "display_name", "unit-test-b2b-management-policy-min-updated"),
-					resource.TestCheckResourceAttr(resourceType+".minimal", "definition.0", `{"B2BManagementPolicy":{"InvitationsAllowedAndBlockedDomainsPolicy":{"AllowedDomains":["contoso.com"]}}}`),
+					resource.TestCheckResourceAttr(resourceType+".minimal", "definition.0", `{"B2BManagementPolicy":{"InvitationsAllowedAndBlockedDomainsPolicy":{"AllowedDomains":["example.net"]}}}`),
 				),
 			},
 		},
