@@ -38,7 +38,31 @@ The following client `application` permissions are needed in order to use this {
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource.tf" }}
+Each example is a separate scenario. Non-default policies do not change tenant-wide invitation restrictions; use the organization-default example to enforce a policy.
+
+### Allow Invitations from Selected Domains
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_allow_domains.tf" }}
+
+### Block Invitations from Selected Domains
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_block_domains.tf" }}
+
+### Allow Invitations from Any Domain
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_any_domain.tf" }}
+
+### Enforce a Policy Organization-Wide
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_organization_default.tf" }}
+
+### Supply Empty Additional Settings
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_other_settings.tf" }}
+
+### Supply a Definition as JSON Text
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy/resource_heredoc.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

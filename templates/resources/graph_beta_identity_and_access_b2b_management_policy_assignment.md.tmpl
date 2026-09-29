@@ -41,7 +41,21 @@ Without `Application.Read.All`, Microsoft Graph returns a truncated `appliesTo` 
 
 ## Example Usage
 
-{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment/resource.tf" }}
+Each example includes its policy and target resources. Use the target object ID for assignments, rather than the application (client) ID.
+
+The service-principal examples also use the HashiCorp `time` provider to allow the new application registration to replicate.
+
+### Assign to an Application
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment/resource_application.tf" }}
+
+### Assign to a Service Principal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment/resource_service_principal.tf" }}
+
+### Assign to an Application and Its Service Principal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment/resource_both_targets.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

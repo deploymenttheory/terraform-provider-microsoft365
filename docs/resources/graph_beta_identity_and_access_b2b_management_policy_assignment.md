@@ -41,31 +41,130 @@ Without `Application.Read.All`, Microsoft Graph returns a truncated `appliesTo` 
 
 ## Example Usage
 
-```terraform
-# Apply a B2B management policy to a service principal and an application.
+Each example includes its policy and target resources. Use the target object ID for assignments, rather than the application (client) ID.
 
-resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "example" {
-  display_name = "example-b2b-management-policy"
+The service-principal examples also use the HashiCorp `time` provider to allow the new application registration to replicate.
+
+### Assign to an Application
+
+```terraform
+# Create the application registration used by this example.
+resource "microsoft365_graph_beta_applications_application" "application" {
+  display_name = "B2B policy target - application"
+}
+
+# This non-default policy does not change tenant-wide invitation restrictions.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "application" {
+  display_name            = "B2B policy - application"
+  is_organization_default = false
 
   definition = [
     jsonencode({
       B2BManagementPolicy = {
         InvitationsAllowedAndBlockedDomainsPolicy = {
-          BlockedDomains = ["example.com"]
+          BlockedDomains = ["example.net"]
         }
       }
     })
   ]
 }
 
-resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment" "service_principal" {
-  b2b_management_policy_id = microsoft365_graph_beta_identity_and_access_b2b_management_policy.example.id
-  directory_object_id      = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" # Object ID of the service principal
+# Use the application object ID, not its app_id (client ID).
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment" "application" {
+  b2b_management_policy_id = microsoft365_graph_beta_identity_and_access_b2b_management_policy.application.id
+  directory_object_id      = microsoft365_graph_beta_applications_application.application.id
+}
+```
+
+### Assign to a Service Principal
+
+```terraform
+# Create the application registration used by this example.
+resource "microsoft365_graph_beta_applications_application" "service_principal" {
+  display_name = "B2B policy target - service principal"
 }
 
-resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment" "application" {
-  b2b_management_policy_id = microsoft365_graph_beta_identity_and_access_b2b_management_policy.example.id
-  directory_object_id      = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy" # Object ID of the application
+# Allow the application registration to replicate before creating its service principal.
+resource "time_sleep" "service_principal_application_replication" {
+  depends_on      = [microsoft365_graph_beta_applications_application.service_principal]
+  create_duration = "15s"
+}
+
+resource "microsoft365_graph_beta_applications_service_principal" "service_principal" {
+  app_id = microsoft365_graph_beta_applications_application.service_principal.app_id
+
+  depends_on = [time_sleep.service_principal_application_replication]
+}
+
+# This non-default policy does not change tenant-wide invitation restrictions.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "service_principal" {
+  display_name            = "B2B policy - service principal"
+  is_organization_default = false
+
+  definition = [
+    jsonencode({
+      B2BManagementPolicy = {
+        InvitationsAllowedAndBlockedDomainsPolicy = {
+          BlockedDomains = ["example.net"]
+        }
+      }
+    })
+  ]
+}
+
+# Use the service principal object ID, not its app_id (client ID).
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment" "service_principal" {
+  b2b_management_policy_id = microsoft365_graph_beta_identity_and_access_b2b_management_policy.service_principal.id
+  directory_object_id      = microsoft365_graph_beta_applications_service_principal.service_principal.id
+}
+```
+
+### Assign to an Application and Its Service Principal
+
+```terraform
+# Create the application registration used by this example.
+resource "microsoft365_graph_beta_applications_application" "both_targets" {
+  display_name = "B2B policy target - both targets"
+}
+
+# Allow the application registration to replicate before creating its service principal.
+resource "time_sleep" "both_application_replication" {
+  depends_on      = [microsoft365_graph_beta_applications_application.both_targets]
+  create_duration = "15s"
+}
+
+resource "microsoft365_graph_beta_applications_service_principal" "both_targets" {
+  app_id = microsoft365_graph_beta_applications_application.both_targets.app_id
+
+  depends_on = [time_sleep.both_application_replication]
+}
+
+# This non-default policy does not change tenant-wide invitation restrictions.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "both_targets" {
+  display_name            = "B2B policy - both targets"
+  is_organization_default = false
+
+  definition = [
+    jsonencode({
+      B2BManagementPolicy = {
+        InvitationsAllowedAndBlockedDomainsPolicy = {
+          BlockedDomains = ["example.net"]
+        }
+      }
+    })
+  ]
+}
+
+# Use the application object ID, not its app_id (client ID).
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment" "both_application" {
+  b2b_management_policy_id = microsoft365_graph_beta_identity_and_access_b2b_management_policy.both_targets.id
+  directory_object_id      = microsoft365_graph_beta_applications_application.both_targets.id
+}
+
+# Use the service principal object ID, not its app_id (client ID).
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment" "both_service_principal" {
+  b2b_management_policy_id = microsoft365_graph_beta_identity_and_access_b2b_management_policy.both_targets.id
+  directory_object_id      = microsoft365_graph_beta_applications_service_principal.both_targets.id
 }
 ```
 
@@ -107,5 +206,5 @@ Import is supported using the following syntax:
 
 # {b2b_management_policy_id} - GUID of the B2B management policy
 # {directory_object_id} - Object ID of the application or service principal
-terraform import microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment.example 00000000-0000-0000-0000-000000000001/00000000-0000-0000-0000-000000000002
+terraform import microsoft365_graph_beta_identity_and_access_b2b_management_policy_assignment.application 00000000-0000-0000-0000-000000000001/00000000-0000-0000-0000-000000000002
 ```

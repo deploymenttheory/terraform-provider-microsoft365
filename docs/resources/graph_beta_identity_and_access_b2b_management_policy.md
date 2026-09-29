@@ -38,21 +38,140 @@ The following client `application` permissions are needed in order to use this r
 
 ## Example Usage
 
+Each example is a separate scenario. Non-default policies do not change tenant-wide invitation restrictions; use the organization-default example to enforce a policy.
+
+### Allow Invitations from Selected Domains
+
 ```terraform
-# Block B2B invitations to specific domains tenant-wide.
-# Only the organization default policy takes effect, and only one can exist.
-resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "example" {
-  display_name            = "b2b-management-policy"
+# Stage an allow-list policy for selected partner domains.
+# Set is_organization_default to true to enforce it tenant-wide.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "allow_domains" {
+  display_name            = "B2B invitations - allowed partner domains"
+  is_organization_default = false
+
+  definition = [
+    jsonencode({
+      B2BManagementPolicy = {
+        InvitationsAllowedAndBlockedDomainsPolicy = {
+          AllowedDomains = ["example.com", "example.net"]
+        }
+      }
+    })
+  ]
+}
+```
+
+### Block Invitations from Selected Domains
+
+```terraform
+# Stage a block-list policy while allowing invitations to other domains.
+# AllowedDomains and BlockedDomains are alternative modes; configure only one.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "block_domains" {
+  display_name            = "B2B invitations - blocked domains"
+  is_organization_default = false
+
+  definition = [
+    jsonencode({
+      B2BManagementPolicy = {
+        InvitationsAllowedAndBlockedDomainsPolicy = {
+          BlockedDomains = ["example.net", "example.org"]
+        }
+      }
+    })
+  ]
+}
+```
+
+### Allow Invitations from Any Domain
+
+```terraform
+# An empty domain policy specifies no domain restrictions.
+# This non-default example does not change the active organization policy.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "any_domain" {
+  display_name            = "B2B invitations - any domain"
+  is_organization_default = false
+
+  definition = [
+    jsonencode({
+      B2BManagementPolicy = {
+        InvitationsAllowedAndBlockedDomainsPolicy = {}
+      }
+    })
+  ]
+}
+```
+
+### Enforce a Policy Organization-Wide
+
+```terraform
+# Only one organization-default B2B management policy can exist.
+# If one already exists, import it instead of creating a second default.
+# Changing is_organization_default replaces the policy; do not use create_before_destroy.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "organization_default" {
+  display_name            = "B2B invitations - organization default"
   is_organization_default = true
 
   definition = [
     jsonencode({
       B2BManagementPolicy = {
         InvitationsAllowedAndBlockedDomainsPolicy = {
-          BlockedDomains = ["example.com", "example.net"]
+          AllowedDomains = ["example.com", "example.net"]
         }
       }
     })
+  ]
+}
+```
+
+### Supply Empty Additional Settings
+
+```terraform
+# Keep an allow list and explicitly supply empty preview and auto-redemption lists.
+# The resource accepts these additional settings in the same JSON definition.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "other_settings" {
+  display_name            = "B2B invitations - explicit empty additional settings"
+  is_organization_default = false
+
+  definition = [
+    jsonencode({
+      B2BManagementPolicy = {
+        InvitationsAllowedAndBlockedDomainsPolicy = {
+          AllowedDomains = ["example.com", "example.net"]
+        }
+        PreviewPolicy = {
+          Features = []
+        }
+        AutoRedeemPolicy = {
+          AdminConsentedForUsersIntoTenantIds = []
+          NoAADConsentForUsersFromTenantsIds  = []
+        }
+      }
+    })
+  ]
+}
+```
+
+### Supply a Definition as JSON Text
+
+```terraform
+# Use a heredoc when maintaining the definition as JSON rather than HCL.
+# JSON formatting and whitespace do not cause a recurring Terraform diff.
+resource "microsoft365_graph_beta_identity_and_access_b2b_management_policy" "heredoc" {
+  display_name            = "B2B invitations - JSON definition"
+  is_organization_default = false
+
+  definition = [<<-JSON
+    {
+      "B2BManagementPolicy": {
+        "InvitationsAllowedAndBlockedDomainsPolicy": {
+          "AllowedDomains": [
+            "example.com",
+            "example.net"
+          ]
+        }
+      }
+    }
+  JSON
   ]
 }
 ```
@@ -93,5 +212,5 @@ Import is supported using the following syntax:
 # Import using the B2B management policy ID (GUID) from Microsoft Graph
 
 # {id} - The unique identifier (GUID) of the B2B management policy
-terraform import microsoft365_graph_beta_identity_and_access_b2b_management_policy.example 00000000-0000-0000-0000-000000000000
+terraform import microsoft365_graph_beta_identity_and_access_b2b_management_policy.organization_default 00000000-0000-0000-0000-000000000000
 ```
