@@ -36,6 +36,8 @@ configured value in state. Import resolves the name to `PasswordRequired`.
 
 ## Example Usage
 
+### Minimal Configuration
+
 ```terraform
 # Example with minimal configuration
 resource "microsoft365_graph_beta_device_management_macos_device_compliance_policy" "minimal" {
@@ -60,7 +62,11 @@ resource "microsoft365_graph_beta_device_management_macos_device_compliance_poli
     }
   ]
 }
+```
 
+### Advanced Security Settings
+
+```terraform
 # Example with advanced security settings
 resource "microsoft365_graph_beta_device_management_macos_device_compliance_policy" "advanced" {
   display_name = "macOS Advanced Compliance Policy"
@@ -123,7 +129,11 @@ resource "microsoft365_graph_beta_device_management_macos_device_compliance_poli
     }
   ]
 }
+```
 
+### Comprehensive Configuration
+
+```terraform
 resource "microsoft365_graph_beta_device_management_macos_device_compliance_policy" "comprehensive" {
   display_name = "macOS Comprehensive Compliance Policy"
   description  = "Comprehensive macOS device compliance policy with all available security settings"
