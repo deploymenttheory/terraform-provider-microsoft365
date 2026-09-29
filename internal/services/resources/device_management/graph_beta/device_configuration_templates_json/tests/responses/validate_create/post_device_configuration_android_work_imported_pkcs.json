@@ -1,0 +1,32 @@
+{
+  "@odata.type": "#microsoft.graph.androidForWorkImportedPFXCertificateProfile",
+  "id": "00000000-0000-4000-8000-000000000001",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-android-work-imported-pkcs",
+  "version": 1,
+  "renewalThresholdPercentage": 50,
+  "subjectNameFormat": "commonName",
+  "subjectAlternativeNameType": "emailAddress",
+  "certificateValidityPeriodValue": 1,
+  "certificateValidityPeriodScale": "years",
+  "intendedPurpose": "smimeEncryption",
+  "extendedKeyUsages": [
+    {
+      "name": "Any Purpose",
+      "objectIdentifier": "2.5.29.37.0"
+    },
+    {
+      "name": "Any Purpose",
+      "objectIdentifier": "2.5.29.37.0"
+    }
+  ]
+}

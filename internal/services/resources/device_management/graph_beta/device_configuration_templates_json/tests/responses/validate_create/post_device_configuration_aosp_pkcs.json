@@ -1,0 +1,35 @@
+{
+  "@odata.type": "#microsoft.graph.aospDeviceOwnerPkcsCertificateProfile",
+  "id": "00000000-0000-4000-8000-000000000001",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-aosp-pkcs",
+  "version": 1,
+  "renewalThresholdPercentage": 20,
+  "subjectNameFormat": "custom",
+  "certificateValidityPeriodValue": 1,
+  "certificateValidityPeriodScale": "years",
+  "subjectAlternativeNameType": null,
+  "certificationAuthority": "ca.example.invalid",
+  "certificationAuthorityName": "Provider Test CA",
+  "certificationAuthorityType": "microsoft",
+  "certificateTemplateName": "ProviderTest",
+  "subjectAlternativeNameFormatString": null,
+  "subjectNameFormatString": "CN={{DeviceId}}",
+  "certificateStore": "user",
+  "extendedKeyUsages": [
+    {
+      "name": "Client Authentication",
+      "objectIdentifier": "1.3.6.1.5.5.7.3.2"
+    }
+  ],
+  "customSubjectAlternativeNames": []
+}

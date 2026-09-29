@@ -1,0 +1,48 @@
+{
+  "@odata.type": "#microsoft.graph.windowsKioskConfiguration",
+  "id": "00000000-0000-4000-8000-000000000001",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-windows-kiosk",
+  "version": 1,
+  "kioskBrowserDefaultUrl": null,
+  "kioskBrowserEnableHomeButton": false,
+  "kioskBrowserEnableNavigationButtons": false,
+  "kioskBrowserEnableEndSessionButton": false,
+  "kioskBrowserRestartOnIdleTimeInMinutes": null,
+  "kioskBrowserBlockedURLs": [],
+  "kioskBrowserBlockedUrlExceptions": [],
+  "edgeKioskEnablePublicBrowsing": false,
+  "windowsKioskForceUpdateSchedule": null,
+  "kioskProfiles": [
+    {
+      "profileId": "71bf2c1e-90d3-4714-b9b0-325c26f433f1",
+      "profileName": "Example kiosk",
+      "appConfiguration": {
+        "@odata.type": "#microsoft.graph.windowsKioskSingleUWPApp",
+        "uwpApp": {
+          "startLayoutTileSize": "hidden",
+          "name": "Calculator",
+          "appType": "unknown",
+          "autoLaunch": false,
+          "appUserModelId": "Microsoft.WindowsCalculator_8wekyb3d8bbwe!App",
+          "appId": null,
+          "containedAppId": null
+        }
+      },
+      "userAccountsConfiguration": [
+        {
+          "@odata.type": "#microsoft.graph.windowsKioskAutologon"
+        }
+      ]
+    }
+  ]
+}

@@ -71,6 +71,15 @@ func (m *DeviceConfigurationTemplatesJsonMock) create(req *http.Request) (*http.
 		return nil, fmt.Errorf("decode profile request: %w", err)
 	}
 	typ, _ := body["@odata.type"].(string)
+	// Graph rejects embedded certificate bindings for iOS wired profiles;
+	// the provider must establish them through the typed $ref endpoints.
+	if typ == "#microsoft.graph.iosWiredNetworkConfiguration" {
+		for _, name := range []string{"rootCertificateForServerValidation", "identityCertificateForClientAuthentication"} {
+			if _, exists := body[name+"@odata.bind"]; exists {
+				return errorResponse(http.StatusBadRequest)
+			}
+		}
+	}
 	fixture, err := loadProfileFixture(typ)
 	if err != nil {
 		return nil, err
@@ -172,6 +181,11 @@ func (m *DeviceConfigurationTemplatesJsonMock) relatedRequest(
 		return jsonResponse(http.StatusOK, map[string]any{"value": m.assignments[id]})
 	case strings.HasPrefix(suffix, "microsoft.graph."):
 		name := strings.Split(suffix, "/")[1]
+		if name == "rootCertificate" &&
+			(profile["@odata.type"] == "#microsoft.graph.androidDeviceOwnerImportedPFXCertificateProfile" ||
+				profile["@odata.type"] == "#microsoft.graph.androidForWorkImportedPFXCertificateProfile") {
+			return errorResponse(http.StatusBadRequest)
+		}
 		binding := profile[name+"@odata.bind"]
 		if strings.HasSuffix(suffix, "/$ref") {
 			if req.Method == "DELETE" {
@@ -253,6 +267,13 @@ func (m *DeviceConfigurationTemplatesJsonMock) profileResponse(
 	var response map[string]any
 	if err := json.Unmarshal(content, &response); err != nil {
 		return nil, fmt.Errorf("copy mock profile: %w", err)
+	}
+	if response["@odata.type"] == "#microsoft.graph.androidDeviceOwnerImportedPFXCertificateProfile" ||
+		response["@odata.type"] == "#microsoft.graph.androidForWorkImportedPFXCertificateProfile" {
+		usages, _ := response["extendedKeyUsages"].([]any)
+		response["extendedKeyUsages"] = append(usages, map[string]any{
+			"name": "Any Purpose", "objectIdentifier": "2.5.29.37.0",
+		})
 	}
 	for key := range response {
 		if strings.HasSuffix(key, "@odata.bind") {

@@ -1546,3 +1546,883 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_64_UnencryptedXML(t *testi
 		},
 	})
 }
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_65_WindowsDeliveryOptimization(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_65_windows_delivery_optimization.tf")
+	updated := loadUnitTestTerraform("resource_65_windows_delivery_optimization_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsDeliveryOptimizationConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"backgroundDownloadFromHttpDelayInSeconds":30`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_66_WindowsDfci(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_66_windows_dfci.tf")
+	updated := loadUnitTestTerraform("resource_66_windows_dfci_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10DeviceFirmwareConfigurationInterface"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"cameras":"disabled"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_67_WindowsDeviceRestrictions(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_67_windows_device_restrictions.tf")
+	updated := loadUnitTestTerraform("resource_67_windows_device_restrictions_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10GeneralConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"cameraBlocked":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_68_WindowsDomainJoin(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_68_windows_domain_join.tf")
+	updated := loadUnitTestTerraform("resource_68_windows_domain_join_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsDomainJoinConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"computerNameStaticPrefix":"LAB"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_69_WindowsEditionUpgrade(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_69_windows_edition_upgrade.tf")
+	updated := loadUnitTestTerraform("resource_69_windows_edition_upgrade_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.editionUpgradeConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"windowsSMode":"unlock"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_70_WindowsEmail(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_70_windows_email.tf")
+	updated := loadUnitTestTerraform("resource_70_windows_email_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10EasEmailProfileConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"syncCalendar":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_71_WindowsEndpointProtection(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_71_windows_endpoint_protection.tf")
+	updated := loadUnitTestTerraform("resource_71_windows_endpoint_protection_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10EndpointProtectionConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"firewallBlockStatefulFTP":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_72_WindowsKiosk(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_72_windows_kiosk.tf")
+	updated := loadUnitTestTerraform("resource_72_windows_kiosk_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsKioskConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType + ".test").Key("description").HasValue("Updated template description"))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_73_WindowsImportedPkcs(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_73_windows_imported_pkcs.tf")
+	updated := loadUnitTestTerraform("resource_73_windows_imported_pkcs_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10ImportedPFXCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"intendedPurpose":"smimeSigning"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_74_WindowsScep(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_74_windows_scep.tf")
+	updated := loadUnitTestTerraform("resource_74_windows_scep_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows81SCEPCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"renewalThresholdPercentage":30`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_75_WindowsSecureAssessment(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_75_windows_secure_assessment.tf")
+	updated := loadUnitTestTerraform("resource_75_windows_secure_assessment_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10SecureAssessmentConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"allowScreenCapture":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_76_WindowsSharedDevice(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_76_windows_shared_device.tf")
+	updated := loadUnitTestTerraform("resource_76_windows_shared_device_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.sharedPCConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"disableAccountManager":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_77_WindowsHealthMonitoring(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_77_windows_health_monitoring.tf")
+	updated := loadUnitTestTerraform("resource_77_windows_health_monitoring_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsHealthMonitoringConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"allowDeviceHealthMonitoring":"enabled"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_78_WindowsWiredNetwork(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_78_windows_wired_network.tf")
+	updated := loadUnitTestTerraform("resource_78_windows_wired_network_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsWiredNetworkConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"maximumAuthenticationFailures":2`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_79_IosDerivedCredential(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_79_ios_derived_credential.tf")
+	updated := loadUnitTestTerraform("resource_79_ios_derived_credential_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosDerivedCredentialAuthenticationConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType + ".test").Key("description").HasValue("Updated template description"))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_80_IosImportedPkcs(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_80_ios_imported_pkcs.tf")
+	updated := loadUnitTestTerraform("resource_80_ios_imported_pkcs_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosImportedPFXCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"intendedPurpose":"smimeSigning"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_81_IosEducation(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_81_ios_education.tf")
+	updated := loadUnitTestTerraform("resource_81_ios_education_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosEduDeviceConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType + ".test").Key("description").HasValue("Updated template description"))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_82_IosWiredNetwork(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_82_ios_wired_network.tf")
+	updated := loadUnitTestTerraform("resource_82_ios_wired_network_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosWiredNetworkConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"networkName":"Updated wired network"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_83_MacosDeviceFeatures(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_83_macos_device_features.tf")
+	updated := loadUnitTestTerraform("resource_83_macos_device_features_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSDeviceFeaturesConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"adminShowHostInfo":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_84_MacosDeviceRestrictions(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_84_macos_device_restrictions.tf")
+	updated := loadUnitTestTerraform("resource_84_macos_device_restrictions_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSGeneralDeviceConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"cameraBlocked":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_85_MacosEndpointProtection(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_85_macos_endpoint_protection.tf")
+	updated := loadUnitTestTerraform("resource_85_macos_endpoint_protection_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSEndpointProtectionConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"firewallEnabled":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_86_MacosExtensions(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_86_macos_extensions.tf")
+	updated := loadUnitTestTerraform("resource_86_macos_extensions_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSExtensionsConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"kernelExtensionOverridesAllowed":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_87_MacosImportedPkcs(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_87_macos_imported_pkcs.tf")
+	updated := loadUnitTestTerraform("resource_87_macos_imported_pkcs_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSImportedPFXCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"intendedPurpose":"smimeSigning"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_88_MacosWiredNetwork(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_88_macos_wired_network.tf")
+	updated := loadUnitTestTerraform("resource_88_macos_wired_network_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSWiredNetworkConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"networkName":"Updated wired network"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_89_AospPkcs(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_89_aosp_pkcs.tf")
+	updated := loadUnitTestTerraform("resource_89_aosp_pkcs_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.aospDeviceOwnerPkcsCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"renewalThresholdPercentage":30`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_90_AndroidOwnerPkcs(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_90_android_owner_pkcs.tf")
+	updated := loadUnitTestTerraform("resource_90_android_owner_pkcs_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerPkcsCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"renewalThresholdPercentage":30`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_91_AndroidOwnerImportedPkcs(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_91_android_owner_imported_pkcs.tf")
+	updated := loadUnitTestTerraform("resource_91_android_owner_imported_pkcs_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerImportedPFXCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"intendedPurpose":"smimeSigning"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_92_AndroidOwnerDerivedCredential(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_92_android_owner_derived_credential.tf")
+	updated := loadUnitTestTerraform("resource_92_android_owner_derived_credential_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerDerivedCredentialAuthenticationConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType + ".test").Key("description").HasValue("Updated template description"))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_93_AndroidWorkDeviceRestrictions(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_93_android_work_device_restrictions.tf")
+	updated := loadUnitTestTerraform("resource_93_android_work_device_restrictions_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileGeneralDeviceConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"workProfileBlockCamera":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_94_AndroidWorkGmail(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_94_android_work_gmail.tf")
+	updated := loadUnitTestTerraform("resource_94_android_work_gmail_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileGmailEasConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"hostName":"updated-mail.example.invalid"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_95_AndroidWorkNineEmail(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_95_android_work_nine_email.tf")
+	updated := loadUnitTestTerraform("resource_95_android_work_nine_email_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileNineWorkEasConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"syncCalendar":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_96_AndroidWorkVpn(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_96_android_work_vpn.tf")
+	updated := loadUnitTestTerraform("resource_96_android_work_vpn_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileVpnConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"connectionName":"Updated VPN"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_97_AndroidWorkImportedPkcs(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_97_android_work_imported_pkcs.tf")
+	updated := loadUnitTestTerraform("resource_97_android_work_imported_pkcs_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidForWorkImportedPFXCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"intendedPurpose":"smimeSigning"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_98_AospRoot(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_98_aosp_root.tf")
+	updated := loadUnitTestTerraform("resource_98_aosp_root_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.aospDeviceOwnerTrustedRootCertificate"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"certFileName":"updated-root.cer"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_99_AospScep(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_99_aosp_scep.tf")
+	updated := loadUnitTestTerraform("resource_99_aosp_scep_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.aospDeviceOwnerScepCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"renewalThresholdPercentage":30`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_100_AndroidOwnerRoot(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_100_android_owner_root.tf")
+	updated := loadUnitTestTerraform("resource_100_android_owner_root_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerTrustedRootCertificate"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"certFileName":"updated-root.cer"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_101_AndroidOwnerScep(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_101_android_owner_scep.tf")
+	updated := loadUnitTestTerraform("resource_101_android_owner_scep_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerScepCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"renewalThresholdPercentage":30`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_102_AndroidWorkRoot(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_102_android_work_root.tf")
+	updated := loadUnitTestTerraform("resource_102_android_work_root_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileTrustedRootCertificate"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"certFileName":"updated-root.cer"`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_103_AndroidWorkScep(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_103_android_work_scep.tf")
+	updated := loadUnitTestTerraform("resource_103_android_work_scep_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileScepCertificateProfile"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"renewalThresholdPercentage":30`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_104_AndroidWorkMigration(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_104_android_work_migration.tf")
+	updated := loadUnitTestTerraform("resource_104_android_work_migration_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileMigrationConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"disableMigration":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_105_IosUpdates(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_105_ios_updates.tf")
+	updated := loadUnitTestTerraform("resource_105_ios_updates_updated.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosUpdateConfiguration"`))},
+			importStep(),
+			{Config: config, PlanOnly: true},
+			{Config: updated, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("description").HasValue("Updated template description"),
+				check.That(resourceType+".test").Key("settings").MatchesRegex(regexp.MustCompile(`"isEnabled":true`)))},
+			importStep(),
+			{Config: updated, PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceDeviceConfigurationTemplatesJson_106_ImportedCertificateKeyUsageDrift(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, profileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer profileMock.CleanupMockState()
+	config := loadUnitTestTerraform("resource_91_android_owner_imported_pkcs.tf")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config},
+			{Config: config, PlanOnly: true},
+			{PreConfig: func() {
+				profileMock.SetRemoteProperty("extendedKeyUsages", []any{
+					map[string]any{"name": "Client Authentication", "objectIdentifier": "1.3.6.1.5.5.7.3.2"},
+				})
+			}, Config: config, PlanOnly: true, ExpectNonEmptyPlan: true},
+			{Config: config},
+			{Config: config, PlanOnly: true},
+			importStep(),
+		},
+	})
+}

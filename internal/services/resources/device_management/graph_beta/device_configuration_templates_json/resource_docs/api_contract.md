@@ -8,7 +8,7 @@ Baseline fixtures in `../tests/responses` and `../tests/terraform` were derived 
 
 A follow-up curl check on 2026-09-29 verified that Base64-encoded XML writes return exactly the original multiline Unicode text through the OMA plaintext endpoint. The disposable profile was deleted and a subsequent GET returned 404. The XML unit and acceptance fixtures now configure cleartext values.
 
-The Graph beta metadata inventory contained 140 device-configuration entity types, including base and abstract types. The relationship map covers 46 types with profile-to-profile certificate navigation properties, including inherited relationships. This inventory establishes API shape, not successful live testing of every type. The resource does not maintain an allowlist of root profile types. Graph validates their writable properties.
+The Graph beta metadata inventory contained 140 device-configuration entity types, including base and abstract types. The relationship map includes profile-to-profile certificate navigation properties, including inherited relationships. Live tests exclude the inherited rootCertificate routes on Android owner/work imported-PFX types because Graph rejects those routes. This inventory establishes API shape, not successful live testing of every type. The resource does not maintain an allowlist of root profile types. Graph validates their writable properties.
 
 ## Verified request behavior
 
@@ -87,3 +87,7 @@ Source inventory before this resource was added (excluding tests and mocks):
 - `internal/services/resources/device_management/graph_v1.0/device_configuration_assignment/crud.go`
 - `internal/services/resources/device_management/graph_v1.0/device_configuration_assignment/resource.go`
 - `scripts/powershell/device_management/Test-ConfigurationPolicyForTFImport.ps1`
+
+## UI template coverage
+
+See [the per-platform checklist](template_coverage.md) for the 72 requested UI entries, lifecycle evidence, and separate API families. The current Delivery Optimization wizard uses a versioned configuration-policy template; its older device-configuration type remains available separately.

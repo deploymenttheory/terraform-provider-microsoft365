@@ -1,0 +1,61 @@
+# Android Work Profile Device Restrictions.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_device_restrictions" {
+  display_name       = "Android Work Profile Device Restrictions"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                               = "#microsoft.graph.androidWorkProfileGeneralDeviceConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"                = null
+    "deviceManagementApplicabilityRuleOsVersion"                = null
+    "deviceManagementApplicabilityRuleDeviceMode"               = null
+    "passwordBlockFaceUnlock"                                   = false
+    "passwordBlockFingerprintUnlock"                            = false
+    "passwordBlockIrisUnlock"                                   = false
+    "passwordBlockTrustAgents"                                  = false
+    "passwordExpirationDays"                                    = null
+    "passwordMinimumLength"                                     = null
+    "passwordMinutesOfInactivityBeforeScreenTimeout"            = null
+    "passwordPreviousPasswordBlockCount"                        = null
+    "passwordSignInFailureCountBeforeFactoryReset"              = null
+    "passwordRequiredType"                                      = "deviceDefault"
+    "requiredPasswordComplexity"                                = "none"
+    "workProfileAllowAppInstallsFromUnknownSources"             = false
+    "workProfileDataSharingType"                                = "deviceDefault"
+    "workProfileBlockNotificationsWhileDeviceLocked"            = false
+    "workProfileBlockAddingAccounts"                            = false
+    "workProfileBluetoothEnableContactSharing"                  = false
+    "workProfileBlockScreenCapture"                             = false
+    "workProfileBlockCrossProfileCallerId"                      = false
+    "workProfileBlockCamera"                                    = true
+    "workProfileBlockCrossProfileContactsSearch"                = false
+    "workProfileBlockCrossProfileCopyPaste"                     = false
+    "workProfileDefaultAppPermissionPolicy"                     = "deviceDefault"
+    "workProfilePasswordBlockFaceUnlock"                        = false
+    "workProfilePasswordBlockFingerprintUnlock"                 = false
+    "workProfilePasswordBlockIrisUnlock"                        = false
+    "workProfilePasswordBlockTrustAgents"                       = false
+    "workProfilePasswordExpirationDays"                         = null
+    "workProfilePasswordMinimumLength"                          = null
+    "workProfilePasswordMinNumericCharacters"                   = null
+    "workProfilePasswordMinNonLetterCharacters"                 = null
+    "workProfilePasswordMinLetterCharacters"                    = null
+    "workProfilePasswordMinLowerCaseCharacters"                 = null
+    "workProfilePasswordMinUpperCaseCharacters"                 = null
+    "workProfilePasswordMinSymbolCharacters"                    = null
+    "workProfilePasswordMinutesOfInactivityBeforeScreenTimeout" = null
+    "workProfilePasswordPreviousPasswordBlockCount"             = null
+    "workProfilePasswordSignInFailureCountBeforeFactoryReset"   = null
+    "workProfilePasswordRequiredType"                           = "deviceDefault"
+    "workProfileRequiredPasswordComplexity"                     = "none"
+    "workProfileRequirePassword"                                = false
+    "securityRequireVerifyApps"                                 = false
+    "vpnAlwaysOnPackageIdentifier"                              = null
+    "vpnEnableAlwaysOnLockdownMode"                             = false
+    "workProfileAllowWidgets"                                   = false
+    "workProfileBlockPersonalAppInstallsFromUnknownSources"     = false
+    "workProfileAccountUse"                                     = "allowAllExceptGoogleAccounts"
+    "allowedGoogleAccountDomains"                               = []
+    "blockUnifiedPasswordForWorkProfile"                        = false
+  })
+}

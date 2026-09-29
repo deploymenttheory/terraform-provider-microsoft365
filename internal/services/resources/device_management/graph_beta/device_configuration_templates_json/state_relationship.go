@@ -16,16 +16,14 @@ import (
 )
 
 // These navigation properties are omitted from profile GET responses. The mapping
-// includes inherited certificate relationships from the Graph beta metadata; it does
-// not restrict the profile types accepted by the resource.
+// includes inherited certificate relationships from the Graph beta metadata, except
+// imported Android owner/work PFX profiles whose rootCertificate routes Graph rejects.
+// It does not restrict the profile types accepted by the resource.
 var deviceConfigurationRelationships = map[string]map[string]bool{
 	"#microsoft.graph.androidDeviceOwnerEnterpriseWiFiConfiguration": {
 		"identityCertificateForClientAuthentication": false,
 		"rootCertificateForServerValidation":         false,
 		"rootCertificatesForServerValidation":        true,
-	},
-	"#microsoft.graph.androidDeviceOwnerImportedPFXCertificateProfile": {
-		"rootCertificate": false,
 	},
 	"#microsoft.graph.androidDeviceOwnerPkcsCertificateProfile": {
 		"rootCertificate": false,
@@ -50,9 +48,6 @@ var deviceConfigurationRelationships = map[string]map[string]bool{
 	},
 	"#microsoft.graph.androidForWorkGmailEasConfiguration": {
 		"identityCertificate": false,
-	},
-	"#microsoft.graph.androidForWorkImportedPFXCertificateProfile": {
-		"rootCertificate": false,
 	},
 	"#microsoft.graph.androidForWorkNineWorkEasConfiguration": {
 		"identityCertificate": false,

@@ -58,11 +58,23 @@ func (r *DeviceConfigurationTemplatesJsonResource) Create(ctx context.Context, r
 		return
 	}
 
+	// iOS wired profiles reject embedded certificate bindings. Establish these
+	// through the typed $ref endpoints after saving the created profile ID.
+	bindings := request.GetAdditionalData()
+	if *request.GetOdataType() == "#microsoft.graph.iosWiredNetworkConfiguration" {
+		settings := maps.Clone(bindings)
+		for name := range deviceConfigurationRelationships[*request.GetOdataType()] {
+			delete(settings, name+"@odata.bind")
+		}
+		request.SetAdditionalData(settings)
+	}
+
 	remote, err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
 		Post(ctx, request, nil)
 
+	request.SetAdditionalData(bindings)
 	if err != nil {
 		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return

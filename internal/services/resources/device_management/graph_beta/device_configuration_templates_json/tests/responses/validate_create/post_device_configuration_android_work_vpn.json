@@ -1,0 +1,39 @@
+{
+  "@odata.type": "#microsoft.graph.androidWorkProfileVpnConfiguration",
+  "id": "00000000-0000-4000-8000-000000000001",
+  "lastModifiedDateTime": "2026-01-01T00:00:00Z",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "supportsScopeTags": true,
+  "deviceManagementApplicabilityRuleOsEdition": null,
+  "deviceManagementApplicabilityRuleOsVersion": null,
+  "deviceManagementApplicabilityRuleDeviceMode": null,
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Device configuration template test",
+  "displayName": "unit-test-android-work-vpn",
+  "version": 1,
+  "connectionName": "Example VPN",
+  "connectionType": "ciscoAnyConnect",
+  "role": null,
+  "realm": null,
+  "fingerprint": null,
+  "authenticationMethod": "usernameAndPassword",
+  "proxyServer": null,
+  "targetedPackageIds": [],
+  "alwaysOn": null,
+  "alwaysOnLockdown": null,
+  "lockdownExclusionList": [],
+  "microsoftTunnelSiteId": null,
+  "proxyExclusionList": [],
+  "servers": [
+    {
+      "description": "Example VPN",
+      "address": "vpn.example.invalid",
+      "isDefaultServer": true
+    }
+  ],
+  "customData": [],
+  "customKeyValueData": [],
+  "targetedMobileApps": []
+}

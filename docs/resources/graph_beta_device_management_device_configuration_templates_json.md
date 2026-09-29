@@ -44,6 +44,21 @@ The following client `application` permissions are needed in order to use this r
 - **Assignments:** The group examples create their security groups before the profile and wait for directory consistency. The all-targets example uses an empty custom payload. Profiles without assignments are not deployed to users or devices.
 - **Import:** Wi-Fi pre-shared keys cannot be recovered on import and must be supplied again. Secret settings are stored in Terraform state.
 
+## Template API Boundaries
+
+This resource manages profiles stored in `/deviceManagement/deviceConfigurations`. Intune's template chooser also contains profiles stored in other API collections:
+
+| UI template | Provider resource |
+| --- | --- |
+| BIOS configurations and other settings | [windows_bios_configurations_and_other_settings_template](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/resources/graph_beta_device_management_windows_bios_configurations_and_other_settings_template) |
+| Delivery Optimization (current UI) | [settings_catalog_configuration_policy](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/resources/graph_beta_device_management_settings_catalog_configuration_policy), using template `132f1027-0325-45e0-854a-6955cd3c68c0_1` |
+| Properties catalog | [settings_catalog_inventory_policy](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/resources/graph_beta_device_management_settings_catalog_inventory_policy) |
+| Imported Administrative templates | [group_policy_configuration](https://registry.terraform.io/providers/deploymenttheory/microsoft365/latest/docs/resources/graph_beta_device_management_group_policy_configuration) |
+
+OEMConfig uses `/deviceAppManagement/mobileAppConfigurations` and needs separate resource support. The existing Android managed-device app configuration resource excludes apps with `supportsOemConfig=true`. The examples below demonstrate API profile lifecycles; they do not verify device-side application or external certificate, VPN, and email services.
+
+The iOS chooser currently labels its `IosUpdate` wizard "Edition upgrade and mode switch" and its `IosEducation` wizard "Secure assessment (Education)". The corresponding examples below are named **iOS Update Schedule** and **Classroom Education** to reflect the profiles they create.
+
 ## Example Usage
 
 Each example below is a separate configuration derived from the acceptance scenarios. Select the file for the platform and profile you want to manage.
@@ -738,6 +753,565 @@ resource "microsoft365_graph_beta_device_management_device_configuration_templat
     "proxyAutomaticConfigurationUrl"              = null,
     "proxyExclusionList"                          = null,
     "macAddressRandomizationMode"                 = null
+  })
+}
+```
+
+#### AOSP PKCS Certificate
+
+```terraform
+# Android AOSP PKCS Certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "aosp_pkcs" {
+  display_name       = "Android AOSP PKCS Certificate"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.aospDeviceOwnerPkcsCertificateProfile"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "renewalThresholdPercentage"                  = 30
+    "subjectNameFormat"                           = "custom"
+    "certificateValidityPeriodValue"              = 1
+    "certificateValidityPeriodScale"              = "years"
+    "subjectAlternativeNameType"                  = null
+    "certificationAuthority"                      = "ca.example.invalid"
+    "certificationAuthorityName"                  = "Provider Test CA"
+    "certificationAuthorityType"                  = "microsoft"
+    "certificateTemplateName"                     = "ProviderTest"
+    "subjectAlternativeNameFormatString"          = null
+    "subjectNameFormatString"                     = "CN={{DeviceId}}"
+    "certificateStore"                            = "user"
+    "extendedKeyUsages" = [{
+      "name"             = "Client Authentication"
+      "objectIdentifier" = "1.3.6.1.5.5.7.3.2"
+    }]
+    "customSubjectAlternativeNames" = []
+  })
+}
+```
+
+#### Android Enterprise PKCS Certificate
+
+```terraform
+# Android Enterprise PKCS Certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_owner_pkcs" {
+  display_name       = "Android Enterprise PKCS Certificate"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidDeviceOwnerPkcsCertificateProfile"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "renewalThresholdPercentage"                  = 30
+    "subjectNameFormat"                           = "custom"
+    "certificateValidityPeriodValue"              = 1
+    "certificateValidityPeriodScale"              = "years"
+    "subjectAlternativeNameType"                  = null
+    "certificationAuthority"                      = "ca.example.invalid"
+    "certificationAuthorityName"                  = "Provider Test CA"
+    "certificationAuthorityType"                  = "microsoft"
+    "certificateTemplateName"                     = "ProviderTest"
+    "subjectAlternativeNameFormatString"          = null
+    "subjectNameFormatString"                     = "CN={{DeviceId}}"
+    "certificateStore"                            = "user"
+    "certificateAccessType"                       = null
+    "extendedKeyUsages" = [{
+      "name"             = "Client Authentication"
+      "objectIdentifier" = "1.3.6.1.5.5.7.3.2"
+    }]
+    "customSubjectAlternativeNames"  = []
+    "silentCertificateAccessDetails" = []
+  })
+}
+```
+
+#### Android Enterprise Imported PKCS Certificate
+
+```terraform
+# Android Enterprise Imported PKCS Certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_owner_imported_pkcs" {
+  display_name       = "Android Enterprise Imported PKCS Certificate"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidDeviceOwnerImportedPFXCertificateProfile"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "renewalThresholdPercentage"                  = 50
+    "subjectNameFormat"                           = "commonName"
+    "certificateValidityPeriodValue"              = 1
+    "certificateValidityPeriodScale"              = "years"
+    "subjectAlternativeNameType"                  = "emailAddress"
+    "intendedPurpose"                             = "smimeSigning"
+    "certificateAccessType"                       = null
+    "extendedKeyUsages" = [{
+      "name"             = "Any Purpose"
+      "objectIdentifier" = "2.5.29.37.0"
+    }]
+    "silentCertificateAccessDetails" = []
+  })
+}
+```
+
+#### Android Enterprise Derived Credential
+
+```terraform
+# Configure your derived credential issuer in Intune before assigning this profile.
+# Android Enterprise Derived Credential.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_owner_derived_credential" {
+  display_name       = "Android Enterprise Derived Credential"
+  description        = "Android android enterprise derived credential example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidDeviceOwnerDerivedCredentialAuthenticationConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "certificateAccessType"                       = null
+    "silentCertificateAccessDetails"              = []
+  })
+}
+```
+
+#### Work Profile Device Restrictions
+
+```terraform
+# Android Work Profile Device Restrictions.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_device_restrictions" {
+  display_name       = "Android Work Profile Device Restrictions"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                               = "#microsoft.graph.androidWorkProfileGeneralDeviceConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"                = null
+    "deviceManagementApplicabilityRuleOsVersion"                = null
+    "deviceManagementApplicabilityRuleDeviceMode"               = null
+    "passwordBlockFaceUnlock"                                   = false
+    "passwordBlockFingerprintUnlock"                            = false
+    "passwordBlockIrisUnlock"                                   = false
+    "passwordBlockTrustAgents"                                  = false
+    "passwordExpirationDays"                                    = null
+    "passwordMinimumLength"                                     = null
+    "passwordMinutesOfInactivityBeforeScreenTimeout"            = null
+    "passwordPreviousPasswordBlockCount"                        = null
+    "passwordSignInFailureCountBeforeFactoryReset"              = null
+    "passwordRequiredType"                                      = "deviceDefault"
+    "requiredPasswordComplexity"                                = "none"
+    "workProfileAllowAppInstallsFromUnknownSources"             = false
+    "workProfileDataSharingType"                                = "deviceDefault"
+    "workProfileBlockNotificationsWhileDeviceLocked"            = false
+    "workProfileBlockAddingAccounts"                            = false
+    "workProfileBluetoothEnableContactSharing"                  = false
+    "workProfileBlockScreenCapture"                             = false
+    "workProfileBlockCrossProfileCallerId"                      = false
+    "workProfileBlockCamera"                                    = true
+    "workProfileBlockCrossProfileContactsSearch"                = false
+    "workProfileBlockCrossProfileCopyPaste"                     = false
+    "workProfileDefaultAppPermissionPolicy"                     = "deviceDefault"
+    "workProfilePasswordBlockFaceUnlock"                        = false
+    "workProfilePasswordBlockFingerprintUnlock"                 = false
+    "workProfilePasswordBlockIrisUnlock"                        = false
+    "workProfilePasswordBlockTrustAgents"                       = false
+    "workProfilePasswordExpirationDays"                         = null
+    "workProfilePasswordMinimumLength"                          = null
+    "workProfilePasswordMinNumericCharacters"                   = null
+    "workProfilePasswordMinNonLetterCharacters"                 = null
+    "workProfilePasswordMinLetterCharacters"                    = null
+    "workProfilePasswordMinLowerCaseCharacters"                 = null
+    "workProfilePasswordMinUpperCaseCharacters"                 = null
+    "workProfilePasswordMinSymbolCharacters"                    = null
+    "workProfilePasswordMinutesOfInactivityBeforeScreenTimeout" = null
+    "workProfilePasswordPreviousPasswordBlockCount"             = null
+    "workProfilePasswordSignInFailureCountBeforeFactoryReset"   = null
+    "workProfilePasswordRequiredType"                           = "deviceDefault"
+    "workProfileRequiredPasswordComplexity"                     = "none"
+    "workProfileRequirePassword"                                = false
+    "securityRequireVerifyApps"                                 = false
+    "vpnAlwaysOnPackageIdentifier"                              = null
+    "vpnEnableAlwaysOnLockdownMode"                             = false
+    "workProfileAllowWidgets"                                   = false
+    "workProfileBlockPersonalAppInstallsFromUnknownSources"     = false
+    "workProfileAccountUse"                                     = "allowAllExceptGoogleAccounts"
+    "allowedGoogleAccountDomains"                               = []
+    "blockUnifiedPasswordForWorkProfile"                        = false
+  })
+}
+```
+
+#### Work Profile Gmail Email
+
+```terraform
+# Android Work Profile Gmail Email.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_gmail" {
+  display_name       = "Android Work Profile Gmail Email"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidWorkProfileGmailEasConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "authenticationMethod"                        = "usernameAndPassword"
+    "durationOfEmailToSync"                       = "userDefined"
+    "emailAddressSource"                          = "userPrincipalName"
+    "hostName"                                    = "updated-mail.example.invalid"
+    "requireSsl"                                  = true
+    "usernameSource"                              = "username"
+  })
+}
+```
+
+#### Work Profile Nine Email
+
+```terraform
+# Android Work Profile Nine Email.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_nine_email" {
+  display_name       = "Android Work Profile Nine Email"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidWorkProfileNineWorkEasConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "authenticationMethod"                        = "usernameAndPassword"
+    "durationOfEmailToSync"                       = "userDefined"
+    "emailAddressSource"                          = "userPrincipalName"
+    "hostName"                                    = "mail.example.invalid"
+    "requireSsl"                                  = true
+    "usernameSource"                              = "username"
+    "syncCalendar"                                = true
+    "syncContacts"                                = false
+    "syncTasks"                                   = false
+  })
+}
+```
+
+#### Work Profile VPN
+
+```terraform
+# Android Work Profile VPN.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_vpn" {
+  display_name       = "Android Work Profile VPN"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidWorkProfileVpnConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "connectionName"                              = "Updated VPN"
+    "connectionType"                              = "ciscoAnyConnect"
+    "role"                                        = null
+    "realm"                                       = null
+    "fingerprint"                                 = null
+    "authenticationMethod"                        = "usernameAndPassword"
+    "proxyServer"                                 = null
+    "targetedPackageIds"                          = []
+    "alwaysOn"                                    = null
+    "alwaysOnLockdown"                            = null
+    "lockdownExclusionList"                       = []
+    "microsoftTunnelSiteId"                       = null
+    "proxyExclusionList"                          = []
+    "servers" = [{
+      "description"     = "Example VPN"
+      "address"         = "vpn.example.invalid"
+      "isDefaultServer" = true
+    }]
+    "customData"         = []
+    "customKeyValueData" = []
+    "targetedMobileApps" = []
+  })
+}
+```
+
+#### Work Profile Imported PKCS Certificate
+
+```terraform
+# Android Work Profile Imported PKCS Certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_imported_pkcs" {
+  display_name       = "Android Work Profile Imported PKCS Certificate"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidForWorkImportedPFXCertificateProfile"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "renewalThresholdPercentage"                  = 50
+    "subjectNameFormat"                           = "commonName"
+    "subjectAlternativeNameType"                  = "emailAddress"
+    "certificateValidityPeriodValue"              = 1
+    "certificateValidityPeriodScale"              = "years"
+    "intendedPurpose"                             = "smimeSigning"
+    "extendedKeyUsages" = [{
+      "name"             = "Any Purpose"
+      "objectIdentifier" = "2.5.29.37.0"
+    }]
+  })
+}
+```
+
+#### Work Migration
+
+```terraform
+# Android Enterprise — Move to Android Management API.
+# This example disables migration. Set disableMigration to false to enable it.
+# Keep the profile unassigned while evaluating it; assigning an enabled policy migrates devices.
+
+# Keep this profile unassigned. Assignment starts an irreversible device migration.
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_migration" {
+  display_name       = "Android Work Migration"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidWorkProfileMigrationConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "disableMigration"                            = true
+  })
+}
+```
+
+#### AOSP Trusted Root Certificate
+
+```terraform
+# Android AOSP Trusted Root Certificate.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "aosp_root" {
+  display_name       = "Android AOSP Trusted Root Certificate"
+  description        = "Android aosp trusted root certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.aospDeviceOwnerTrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer"
+  })
+}
+```
+
+#### AOSP SCEP Certificate
+
+```terraform
+# Android AOSP SCEP Certificate.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "aosp_scep_aosp_root" {
+  display_name       = "example-aosp-root"
+  description        = "Android aosp scep certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.aospDeviceOwnerTrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer"
+  })
+}
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "aosp_scep" {
+  display_name       = "Android AOSP SCEP Certificate"
+  description        = "Android aosp scep certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.aospDeviceOwnerScepCertificateProfile",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "renewalThresholdPercentage"                  = 20,
+    "subjectNameFormat"                           = "custom",
+    "certificateValidityPeriodValue"              = 1,
+    "certificateValidityPeriodScale"              = "years",
+    "subjectAlternativeNameType"                  = "none",
+    "scepServerUrls" = [
+      "https://scep.example.invalid/certsrv/mscep/mscep.dll"
+    ],
+    "subjectNameFormatString"            = "CN={{DeviceId}}",
+    "keyUsage"                           = "keyEncipherment,digitalSignature",
+    "keySize"                            = "size2048",
+    "hashAlgorithm"                      = "sha2",
+    "subjectAlternativeNameFormatString" = null,
+    "certificateStore"                   = "user",
+    "extendedKeyUsages" = [
+      {
+        "name"             = "Client Authentication",
+        "objectIdentifier" = "1.3.6.1.5.5.7.3.2"
+      }
+    ],
+    "customSubjectAlternativeNames" = [],
+    "rootCertificate@odata.bind"    = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.aosp_scep_aosp_root.id}')"
+  })
+}
+```
+
+#### Android Enterprise Trusted Root Certificate
+
+```terraform
+# Android Enterprise Trusted Root Certificate.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_owner_root" {
+  display_name       = "Android Enterprise Trusted Root Certificate"
+  description        = "Android android enterprise trusted root certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidDeviceOwnerTrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer"
+  })
+}
+```
+
+#### Android Enterprise SCEP Certificate
+
+```terraform
+# Android Enterprise SCEP Certificate.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_owner_scep_android_owner_root" {
+  display_name       = "example-android-owner-root"
+  description        = "Android android enterprise scep certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidDeviceOwnerTrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer"
+  })
+}
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_owner_scep" {
+  display_name       = "Android Enterprise SCEP Certificate"
+  description        = "Android android enterprise scep certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidDeviceOwnerScepCertificateProfile",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "renewalThresholdPercentage"                  = 20,
+    "subjectNameFormat"                           = "custom",
+    "certificateValidityPeriodValue"              = 1,
+    "certificateValidityPeriodScale"              = "years",
+    "subjectAlternativeNameType"                  = "none",
+    "scepServerUrls" = [
+      "https://scep.example.invalid/certsrv/mscep/mscep.dll"
+    ],
+    "subjectNameFormatString"            = "CN={{DeviceId}}",
+    "keyUsage"                           = "keyEncipherment,digitalSignature",
+    "keySize"                            = "size2048",
+    "hashAlgorithm"                      = "sha2",
+    "subjectAlternativeNameFormatString" = null,
+    "certificateStore"                   = "user",
+    "certificateAccessType"              = null,
+    "extendedKeyUsages" = [
+      {
+        "name"             = "Client Authentication",
+        "objectIdentifier" = "1.3.6.1.5.5.7.3.2"
+      }
+    ],
+    "customSubjectAlternativeNames"  = [],
+    "silentCertificateAccessDetails" = [],
+    "rootCertificate@odata.bind"     = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.android_owner_scep_android_owner_root.id}')"
+  })
+}
+```
+
+#### Work Profile Trusted Root Certificate
+
+```terraform
+# Android Work Profile Trusted Root Certificate.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_root" {
+  display_name       = "Android Work Profile Trusted Root Certificate"
+  description        = "Android work profile trusted root certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidWorkProfileTrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer"
+  })
+}
+```
+
+#### Work Profile SCEP Certificate
+
+```terraform
+# Android Work Profile SCEP Certificate.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_scep_android_work_root" {
+  display_name       = "example-android-work-root"
+  description        = "Android work profile scep certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidWorkProfileTrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer"
+  })
+}
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "android_work_scep" {
+  display_name       = "Android Work Profile SCEP Certificate"
+  description        = "Android work profile scep certificate example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.androidWorkProfileScepCertificateProfile",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "renewalThresholdPercentage"                  = 20,
+    "subjectNameFormat"                           = "custom",
+    "certificateValidityPeriodValue"              = 1,
+    "certificateValidityPeriodScale"              = "years",
+    "subjectAlternativeNameType"                  = "none",
+    "scepServerUrls" = [
+      "https://scep.example.invalid/certsrv/mscep/mscep.dll"
+    ],
+    "subjectNameFormatString"            = "CN={{DeviceId}}",
+    "keyUsage"                           = "keyEncipherment,digitalSignature",
+    "keySize"                            = "size2048",
+    "hashAlgorithm"                      = "sha2",
+    "subjectAlternativeNameFormatString" = null,
+    "certificateStore"                   = "user",
+    "extendedKeyUsages" = [
+      {
+        "name"             = "Client Authentication",
+        "objectIdentifier" = "1.3.6.1.5.5.7.3.2"
+      }
+    ],
+    "customSubjectAlternativeNames" = [],
+    "rootCertificate@odata.bind"    = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.android_work_scep_android_work_root.id}')"
   })
 }
 ```
@@ -2115,6 +2689,179 @@ resource "microsoft365_graph_beta_device_management_device_configuration_templat
 }
 ```
 
+#### Derived Credential
+
+```terraform
+# Configure your derived credential issuer in Intune before assigning this profile.
+# iOS / iPadOS Derived Credential.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "ios_derived_credential" {
+  display_name       = "iOS / iPadOS Derived Credential"
+  description        = "iOS / iPadOS derived credential example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.iosDerivedCredentialAuthenticationConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+  })
+}
+```
+
+#### Imported PKCS Certificate
+
+```terraform
+# iOS / iPadOS Imported PKCS Certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "ios_imported_pkcs" {
+  display_name       = "iOS / iPadOS Imported PKCS Certificate"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.iosImportedPFXCertificateProfile"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "intendedPurpose"                             = "smimeSigning"
+  })
+}
+```
+
+#### Classroom Education
+
+```terraform
+# iOS / iPadOS Classroom Education.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "ios_education" {
+  display_name       = "iOS / iPadOS Classroom Education"
+  description        = "iOS / iPadOS classroom education example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.iosEduDeviceConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "studentCertificateSettings"                  = null
+    "deviceCertificateSettings"                   = null
+    "teacherCertificateSettings" = {
+      "trustedRootCertificate"         = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM="
+      "certFileName"                   = "root.cer"
+      "certificationAuthority"         = "ca.example.invalid"
+      "certificationAuthorityName"     = "Provider Test CA"
+      "certificateTemplateName"        = "ProviderTest"
+      "renewalThresholdPercentage"     = 20
+      "certificateValidityPeriodValue" = 1
+      "certificateValidityPeriodScale" = "years"
+    }
+  })
+}
+```
+
+#### Wired Network
+
+```terraform
+# iOS / iPadOS Wired Network.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "ios_wired_network_root_certificate" {
+  display_name       = "example-ios-root"
+  description        = "iOS / iPadOS wired network example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.iosTrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer"
+  })
+}
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "ios_wired_network_scep_certificate" {
+  display_name       = "example-ios-scep"
+  description        = "iOS / iPadOS wired network example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.iosScepCertificateProfile",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "renewalThresholdPercentage"                  = 20,
+    "subjectNameFormat"                           = "custom",
+    "subjectAlternativeNameType"                  = "none",
+    "certificateValidityPeriodValue"              = 1,
+    "certificateValidityPeriodScale"              = "years",
+    "scepServerUrls" = [
+      "https://scep.example.invalid/certsrv/mscep/mscep.dll"
+    ],
+    "subjectNameFormatString"            = "CN={{DeviceId}}",
+    "keyUsage"                           = "keyEncipherment,digitalSignature",
+    "keySize"                            = "size2048",
+    "subjectAlternativeNameFormatString" = null,
+    "certificateStore"                   = "user",
+    "extendedKeyUsages" = [
+      {
+        "name"             = "Client Authentication",
+        "objectIdentifier" = "1.3.6.1.5.5.7.3.2"
+      }
+    ],
+    "customSubjectAlternativeNames" = [],
+    "rootCertificate@odata.bind"    = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.ios_wired_network_root_certificate.id}')"
+  })
+}
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "ios_wired_network" {
+  display_name       = "iOS / iPadOS Wired Network"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                           = "#microsoft.graph.iosWiredNetworkConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"            = null
+    "deviceManagementApplicabilityRuleOsVersion"            = null
+    "deviceManagementApplicabilityRuleDeviceMode"           = null
+    "networkName"                                           = "Updated wired network"
+    "networkInterface"                                      = "anyEthernet"
+    "eapType"                                               = "eapTls"
+    "eapFastConfiguration"                                  = null
+    "trustedServerCertificateNames"                         = []
+    "authenticationMethod"                                  = "certificate"
+    "nonEapAuthenticationMethodForEapTtls"                  = null
+    "outerIdentityPrivacyMaskValue"                         = null
+    "rootCertificateForServerValidation@odata.bind"         = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.ios_wired_network_root_certificate.id}')"
+    "identityCertificateForClientAuthentication@odata.bind" = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.ios_wired_network_scep_certificate.id}')"
+  })
+}
+```
+
+#### iOS Update Schedule
+
+```terraform
+# iOS / iPadOS iOS Update Schedule.
+
+# iOS update template lifecycle; no devices are assigned by this test.
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "ios_updates" {
+  display_name       = "iOS / iPadOS iOS Update Schedule"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.iosUpdateConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "isEnabled"                                   = true
+    "activeHoursStart"                            = "00:00:00.0000000"
+    "activeHoursEnd"                              = "00:00:00.0000000"
+    "desiredOsVersion"                            = null
+    "scheduledInstallDays"                        = []
+    "utcTimeOffsetInMinutes"                      = null
+    "enforcedSoftwareUpdateDelayInDays"           = null
+    "updateScheduleType"                          = "updateOutsideOfActiveHours"
+    "customUpdateTimeWindows"                     = []
+  })
+}
+```
+
 ### macOS
 
 #### Custom Configuration
@@ -2517,6 +3264,265 @@ resource "microsoft365_graph_beta_device_management_device_configuration_templat
     "maxUserDeferralsCount"                       = null,
     "priority"                                    = null,
     "customUpdateTimeWindows"                     = []
+  })
+}
+```
+
+#### Device Features
+
+```terraform
+# macOS Device Features.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "macos_device_features" {
+  display_name       = "macOS Device Features"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.macOSDeviceFeaturesConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "adminShowHostInfo"                           = true
+    "loginWindowText"                             = null
+    "authorizedUsersListHidden"                   = false
+    "authorizedUsersListHideLocalUsers"           = false
+    "authorizedUsersListHideMobileAccounts"       = false
+    "authorizedUsersListIncludeNetworkUsers"      = false
+    "authorizedUsersListHideAdminUsers"           = false
+    "authorizedUsersListShowOtherManagedUsers"    = false
+    "shutDownDisabled"                            = false
+    "restartDisabled"                             = false
+    "sleepDisabled"                               = false
+    "consoleAccessDisabled"                       = false
+    "shutDownDisabledWhileLoggedIn"               = false
+    "restartDisabledWhileLoggedIn"                = false
+    "powerOffDisabledWhileLoggedIn"               = false
+    "logOutDisabledWhileLoggedIn"                 = false
+    "screenLockDisableImmediate"                  = false
+    "singleSignOnExtension"                       = null
+    "macOSSingleSignOnExtension"                  = null
+    "contentCachingEnabled"                       = false
+    "contentCachingType"                          = "notConfigured"
+    "contentCachingMaxSizeBytes"                  = null
+    "contentCachingDataPath"                      = null
+    "contentCachingDisableConnectionSharing"      = false
+    "contentCachingForceConnectionSharing"        = false
+    "contentCachingClientPolicy"                  = "notConfigured"
+    "contentCachingPeerPolicy"                    = "notConfigured"
+    "contentCachingParentSelectionPolicy"         = "notConfigured"
+    "contentCachingParents"                       = []
+    "contentCachingLogClientIdentities"           = false
+    "contentCachingBlockDeletion"                 = false
+    "contentCachingShowAlerts"                    = false
+    "contentCachingKeepAwake"                     = false
+    "contentCachingPort"                          = null
+    "airPrintDestinations"                        = []
+    "autoLaunchItems"                             = []
+    "associatedDomains"                           = []
+    "appAssociatedDomains"                        = []
+    "contentCachingClientListenRanges"            = []
+    "contentCachingPeerListenRanges"              = []
+    "contentCachingPeerFilterRanges"              = []
+    "contentCachingPublicRanges"                  = []
+  })
+}
+```
+
+#### Device Restrictions
+
+```terraform
+# macOS Device Restrictions.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "macos_device_restrictions" {
+  display_name       = "macOS Device Restrictions"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                     = "#microsoft.graph.macOSGeneralDeviceConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"      = null
+    "deviceManagementApplicabilityRuleOsVersion"      = null
+    "deviceManagementApplicabilityRuleDeviceMode"     = null
+    "compliantAppListType"                            = "none"
+    "emailInDomainSuffixes"                           = []
+    "passwordBlockSimple"                             = false
+    "passwordExpirationDays"                          = null
+    "passwordMinimumCharacterSetCount"                = null
+    "passwordMinimumLength"                           = null
+    "passwordMinutesOfInactivityBeforeLock"           = null
+    "passwordMinutesOfInactivityBeforeScreenTimeout"  = null
+    "passwordPreviousPasswordBlockCount"              = null
+    "passwordRequiredType"                            = "deviceDefault"
+    "passwordRequired"                                = false
+    "passwordMaximumAttemptCount"                     = null
+    "passwordMinutesUntilFailedLoginReset"            = null
+    "keychainBlockCloudSync"                          = false
+    "safariBlockAutofill"                             = false
+    "cameraBlocked"                                   = true
+    "iTunesBlockMusicService"                         = false
+    "spotlightBlockInternetResults"                   = false
+    "keyboardBlockDictation"                          = false
+    "definitionLookupBlocked"                         = false
+    "appleWatchBlockAutoUnlock"                       = false
+    "iTunesBlockFileSharing"                          = false
+    "iCloudBlockDocumentSync"                         = false
+    "iCloudBlockMail"                                 = false
+    "iCloudBlockAddressBook"                          = false
+    "iCloudBlockCalendar"                             = false
+    "iCloudBlockReminders"                            = false
+    "iCloudBlockBookmarks"                            = false
+    "iCloudBlockNotes"                                = false
+    "airDropBlocked"                                  = false
+    "passwordBlockModification"                       = false
+    "passwordBlockFingerprintUnlock"                  = false
+    "passwordBlockAutoFill"                           = false
+    "passwordBlockProximityRequests"                  = false
+    "passwordBlockAirDropSharing"                     = false
+    "softwareUpdatesEnforcedDelayInDays"              = null
+    "updateDelayPolicy"                               = null
+    "contentCachingBlocked"                           = false
+    "iCloudBlockPhotoLibrary"                         = false
+    "screenCaptureBlocked"                            = false
+    "classroomAppBlockRemoteScreenObservation"        = false
+    "classroomAppForceUnpromptedScreenObservation"    = false
+    "classroomForceAutomaticallyJoinClasses"          = false
+    "classroomForceRequestPermissionToLeaveClasses"   = false
+    "classroomForceUnpromptedAppAndDeviceLock"        = false
+    "iCloudBlockActivityContinuation"                 = false
+    "addingGameCenterFriendsBlocked"                  = false
+    "gameCenterBlocked"                               = false
+    "multiplayerGamingBlocked"                        = false
+    "wallpaperModificationBlocked"                    = false
+    "eraseContentAndSettingsBlocked"                  = false
+    "softwareUpdateMajorOSDeferredInstallDelayInDays" = null
+    "softwareUpdateMinorOSDeferredInstallDelayInDays" = null
+    "softwareUpdateNonOSDeferredInstallDelayInDays"   = null
+    "touchIdTimeoutInHours"                           = null
+    "iCloudPrivateRelayBlocked"                       = false
+    "iCloudDesktopAndDocumentsBlocked"                = false
+    "activationLockWhenSupervisedAllowed"             = false
+    "compliantAppsList"                               = []
+    "privacyAccessControls"                           = []
+  })
+}
+```
+
+#### Endpoint Protection (Deprecated UI Template)
+
+```terraform
+# This legacy template is deprecated in the Intune UI. Use Settings Catalog for new deployments.
+# macOS Endpoint Protection (Deprecated UI Template).
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "macos_endpoint_protection" {
+  display_name       = "macOS Endpoint Protection (Deprecated UI Template)"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                          = "#microsoft.graph.macOSEndpointProtectionConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"           = null
+    "deviceManagementApplicabilityRuleOsVersion"           = null
+    "deviceManagementApplicabilityRuleDeviceMode"          = null
+    "gatekeeperAllowedAppSource"                           = "notConfigured"
+    "gatekeeperBlockOverride"                              = false
+    "firewallEnabled"                                      = true
+    "firewallBlockAllIncoming"                             = false
+    "firewallEnableStealthMode"                            = false
+    "fileVaultEnabled"                                     = false
+    "fileVaultSelectedRecoveryKeyTypes"                    = "notConfigured"
+    "fileVaultInstitutionalRecoveryKeyCertificate"         = null
+    "fileVaultInstitutionalRecoveryKeyCertificateFileName" = null
+    "fileVaultPersonalRecoveryKeyHelpMessage"              = null
+    "fileVaultAllowDeferralUntilSignOut"                   = false
+    "fileVaultNumberOfTimesUserCanIgnore"                  = null
+    "fileVaultDisablePromptAtSignOut"                      = false
+    "fileVaultPersonalRecoveryKeyRotationInMonths"         = null
+    "fileVaultHidePersonalRecoveryKey"                     = false
+    "advancedThreatProtectionRealTime"                     = "notConfigured"
+    "advancedThreatProtectionCloudDelivered"               = "notConfigured"
+    "advancedThreatProtectionAutomaticSampleSubmission"    = "notConfigured"
+    "advancedThreatProtectionDiagnosticDataCollection"     = "notConfigured"
+    "advancedThreatProtectionExcludedFolders"              = []
+    "advancedThreatProtectionExcludedFiles"                = []
+    "advancedThreatProtectionExcludedExtensions"           = []
+    "advancedThreatProtectionExcludedProcesses"            = []
+    "firewallApplications"                                 = []
+  })
+}
+```
+
+#### Extensions (Deprecated UI Template)
+
+```terraform
+# This legacy template is deprecated in the Intune UI. Use Settings Catalog for new deployments.
+# macOS Extensions (Deprecated UI Template).
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "macos_extensions" {
+  display_name       = "macOS Extensions (Deprecated UI Template)"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.macOSExtensionsConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "kernelExtensionOverridesAllowed"             = true
+    "kernelExtensionAllowedTeamIdentifiers"       = []
+    "systemExtensionsBlockOverride"               = false
+    "systemExtensionsAllowedTeamIdentifiers"      = []
+    "kernelExtensionsAllowed"                     = []
+    "systemExtensionsAllowed"                     = []
+    "systemExtensionsAllowedTypes"                = []
+  })
+}
+```
+
+#### Imported PKCS Certificate
+
+```terraform
+# macOS Imported PKCS Certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "macos_imported_pkcs" {
+  display_name       = "macOS Imported PKCS Certificate"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.macOSImportedPFXCertificateProfile"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "renewalThresholdPercentage"                  = 50
+    "subjectNameFormat"                           = "commonName"
+    "subjectAlternativeNameType"                  = "emailAddress"
+    "certificateValidityPeriodValue"              = 1
+    "certificateValidityPeriodScale"              = "years"
+    "intendedPurpose"                             = "smimeSigning"
+    "deploymentChannel"                           = null
+  })
+}
+```
+
+#### Wired Network
+
+```terraform
+# macOS Wired Network.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "macos_wired_network" {
+  display_name       = "macOS Wired Network"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.macOSWiredNetworkConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "networkName"                                 = "Updated wired network"
+    "networkInterface"                            = "anyEthernet"
+    "eapType"                                     = "peap"
+    "eapFastConfiguration"                        = null
+    "trustedServerCertificateNames"               = []
+    "authenticationMethod"                        = "usernameAndPassword"
+    "nonEapAuthenticationMethodForEapTtls"        = null
+    "enableOuterIdentityPrivacy"                  = null
+    "deploymentChannel"                           = null
   })
 }
 ```
@@ -3187,6 +4193,949 @@ resource "microsoft365_graph_beta_device_management_device_configuration_templat
       }
     ],
     "customSubjectAlternativeNames" = []
+  })
+}
+```
+
+#### Delivery Optimization (Legacy API)
+
+```terraform
+# Legacy deviceConfigurations API. The current UI uses a configurationPolicies template.
+# Windows Delivery Optimization.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_delivery_optimization" {
+  display_name       = "Windows Delivery Optimization"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                               = "#microsoft.graph.windowsDeliveryOptimizationConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"                = null
+    "deviceManagementApplicabilityRuleOsVersion"                = null
+    "deviceManagementApplicabilityRuleDeviceMode"               = null
+    "deliveryOptimizationMode"                                  = "userDefined"
+    "restrictPeerSelectionBy"                                   = "notConfigured"
+    "groupIdSource"                                             = null
+    "bandwidthMode"                                             = null
+    "backgroundDownloadFromHttpDelayInSeconds"                  = 30
+    "foregroundDownloadFromHttpDelayInSeconds"                  = null
+    "minimumRamAllowedToPeerInGigabytes"                        = null
+    "minimumDiskSizeAllowedToPeerInGigabytes"                   = null
+    "minimumFileSizeToCacheInMegabytes"                         = null
+    "minimumBatteryPercentageAllowedToUpload"                   = null
+    "modifyCacheLocation"                                       = null
+    "maximumCacheAgeInDays"                                     = null
+    "maximumCacheSize"                                          = null
+    "vpnPeerCaching"                                            = "notConfigured"
+    "cacheServerHostNames"                                      = []
+    "cacheServerForegroundDownloadFallbackToHttpDelayInSeconds" = 0
+    "cacheServerBackgroundDownloadFallbackToHttpDelayInSeconds" = 0
+  })
+}
+```
+
+#### Device Firmware Configuration Interface
+
+```terraform
+# Windows Device Firmware Configuration Interface.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_dfci" {
+  display_name       = "Windows Device Firmware Configuration Interface"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windows10DeviceFirmwareConfigurationInterface"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "changeUefiSettingsPermission"                = "notConfiguredOnly"
+    "virtualizationOfCpuAndIO"                    = "notConfigured"
+    "cameras"                                     = "disabled"
+    "microphonesAndSpeakers"                      = "notConfigured"
+    "radios"                                      = "notConfigured"
+    "bootFromExternalMedia"                       = "notConfigured"
+    "bootFromBuiltInNetworkAdapters"              = "notConfigured"
+    "windowsPlatformBinaryTable"                  = "notConfigured"
+    "simultaneousMultiThreading"                  = "notConfigured"
+    "frontCamera"                                 = "notConfigured"
+    "rearCamera"                                  = "notConfigured"
+    "infraredCamera"                              = "notConfigured"
+    "microphone"                                  = "notConfigured"
+    "bluetooth"                                   = "notConfigured"
+    "wirelessWideAreaNetwork"                     = "notConfigured"
+    "nearFieldCommunication"                      = "notConfigured"
+    "wiFi"                                        = "notConfigured"
+    "usbTypeAPort"                                = "notConfigured"
+    "sdCard"                                      = "notConfigured"
+    "wakeOnLAN"                                   = "notConfigured"
+    "wakeOnPower"                                 = "notConfigured"
+  })
+}
+```
+
+#### Device Restrictions
+
+```terraform
+# Windows Device Restrictions.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_device_restrictions" {
+  display_name       = "Windows Device Restrictions"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                           = "#microsoft.graph.windows10GeneralConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"            = null
+    "deviceManagementApplicabilityRuleOsVersion"            = null
+    "deviceManagementApplicabilityRuleDeviceMode"           = null
+    "networkProxyApplySettingsDeviceWide"                   = false
+    "networkProxyDisableAutoDetect"                         = false
+    "networkProxyAutomaticConfigurationUrl"                 = null
+    "networkProxyServer"                                    = null
+    "personalizationDesktopImageUrl"                        = null
+    "personalizationLockScreenImageUrl"                     = null
+    "microsoftAccountSignInAssistantSettings"               = "notConfigured"
+    "windows10AppsForceUpdateSchedule"                      = null
+    "authenticationAllowSecondaryDevice"                    = false
+    "authenticationWebSignIn"                               = "notConfigured"
+    "authenticationPreferredAzureADTenantDomainName"        = null
+    "bluetoothAllowedServices"                              = []
+    "bluetoothBlockAdvertising"                             = false
+    "bluetoothBlockPromptedProximalConnections"             = false
+    "bluetoothBlockDiscoverableMode"                        = false
+    "bluetoothBlockPrePairing"                              = false
+    "edgeBlockAutofill"                                     = false
+    "edgeBlocked"                                           = false
+    "edgeCookiePolicy"                                      = "userDefined"
+    "edgeBlockDeveloperTools"                               = false
+    "edgeBlockSendingDoNotTrackHeader"                      = false
+    "edgeBlockExtensions"                                   = false
+    "edgeBlockInPrivateBrowsing"                            = false
+    "edgeBlockJavaScript"                                   = false
+    "edgeBlockPasswordManager"                              = false
+    "edgeBlockAddressBarDropdown"                           = false
+    "edgeBlockCompatibilityList"                            = false
+    "edgeClearBrowsingDataOnExit"                           = false
+    "edgeAllowStartPagesModification"                       = false
+    "edgeDisableFirstRunPage"                               = false
+    "edgeBlockLiveTileDataCollection"                       = false
+    "edgeSyncFavoritesWithInternetExplorer"                 = false
+    "edgeFavoritesListLocation"                             = null
+    "edgeBlockEditFavorites"                                = false
+    "edgeNewTabPageURL"                                     = null
+    "edgeHomeButtonConfiguration"                           = null
+    "edgeHomeButtonConfigurationEnabled"                    = false
+    "edgeOpensWith"                                         = "notConfigured"
+    "edgeBlockSideloadingExtensions"                        = false
+    "edgeRequiredExtensionPackageFamilyNames"               = []
+    "edgeBlockPrinting"                                     = false
+    "edgeFavoritesBarVisibility"                            = "notConfigured"
+    "edgeBlockSavingHistory"                                = false
+    "edgeBlockFullScreenMode"                               = false
+    "edgeBlockWebContentOnNewTabPage"                       = false
+    "edgeBlockTabPreloading"                                = false
+    "edgeBlockPrelaunch"                                    = false
+    "edgeShowMessageWhenOpeningInternetExplorerSites"       = "notConfigured"
+    "edgePreventCertificateErrorOverride"                   = false
+    "edgeKioskModeRestriction"                              = "notConfigured"
+    "edgeKioskResetAfterIdleTimeInMinutes"                  = null
+    "cellularBlockDataWhenRoaming"                          = false
+    "cellularBlockVpn"                                      = false
+    "cellularBlockVpnWhenRoaming"                           = false
+    "cellularData"                                          = "notConfigured"
+    "enableAutomaticRedeployment"                           = false
+    "cryptographyAllowFipsAlgorithmPolicy"                  = false
+    "defenderRequireRealTimeMonitoring"                     = false
+    "defenderRequireBehaviorMonitoring"                     = false
+    "defenderRequireNetworkInspectionSystem"                = false
+    "defenderScanDownloads"                                 = false
+    "defenderScheduleScanEnableLowCpuPriority"              = false
+    "defenderDisableCatchupQuickScan"                       = false
+    "defenderDisableCatchupFullScan"                        = false
+    "defenderScanScriptsLoadedInInternetExplorer"           = false
+    "defenderBlockEndUserAccess"                            = false
+    "defenderSignatureUpdateIntervalInHours"                = null
+    "defenderMonitorFileActivity"                           = "userDefined"
+    "defenderDaysBeforeDeletingQuarantinedMalware"          = null
+    "defenderScanMaxCpu"                                    = null
+    "defenderScanArchiveFiles"                              = false
+    "defenderScanIncomingMail"                              = false
+    "defenderScanRemovableDrivesDuringFullScan"             = false
+    "defenderScanMappedNetworkDrivesDuringFullScan"         = false
+    "defenderScanNetworkFiles"                              = false
+    "defenderRequireCloudProtection"                        = false
+    "defenderCloudBlockLevel"                               = "notConfigured"
+    "defenderCloudExtendedTimeout"                          = null
+    "defenderCloudExtendedTimeoutInSeconds"                 = null
+    "defenderPromptForSampleSubmission"                     = "userDefined"
+    "defenderScheduledQuickScanTime"                        = null
+    "defenderScanType"                                      = "userDefined"
+    "defenderSystemScanSchedule"                            = "userDefined"
+    "defenderScheduledScanTime"                             = null
+    "defenderPotentiallyUnwantedAppAction"                  = null
+    "defenderPotentiallyUnwantedAppActionSetting"           = "userDefined"
+    "defenderSubmitSamplesConsentType"                      = null
+    "defenderBlockOnAccessProtection"                       = false
+    "defenderDetectedMalwareActions"                        = null
+    "defenderFileExtensionsToExclude"                       = []
+    "defenderFilesAndFoldersToExclude"                      = []
+    "defenderProcessesToExclude"                            = []
+    "displayAppListWithGdiDPIScalingTurnedOn"               = []
+    "displayAppListWithGdiDPIScalingTurnedOff"              = []
+    "enterpriseCloudPrintDiscoveryEndPoint"                 = null
+    "enterpriseCloudPrintOAuthAuthority"                    = null
+    "enterpriseCloudPrintOAuthClientIdentifier"             = null
+    "enterpriseCloudPrintResourceIdentifier"                = null
+    "enterpriseCloudPrintDiscoveryMaxLimit"                 = null
+    "enterpriseCloudPrintMopriaDiscoveryResourceIdentifier" = null
+    "experienceDoNotSyncBrowserSettings"                    = "notConfigured"
+    "lockScreenAllowTimeoutConfiguration"                   = false
+    "lockScreenBlockActionCenterNotifications"              = false
+    "lockScreenBlockCortana"                                = false
+    "lockScreenBlockToastNotifications"                     = false
+    "lockScreenTimeoutInSeconds"                            = null
+    "lockScreenActivateAppsWithVoice"                       = "notConfigured"
+    "messagingBlockSync"                                    = false
+    "messagingBlockMMS"                                     = false
+    "messagingBlockRichCommunicationServices"               = false
+    "passwordBlockSimple"                                   = false
+    "passwordExpirationDays"                                = null
+    "passwordMinimumLength"                                 = null
+    "passwordMinutesOfInactivityBeforeScreenTimeout"        = null
+    "passwordMinimumCharacterSetCount"                      = null
+    "passwordPreviousPasswordBlockCount"                    = null
+    "passwordRequired"                                      = false
+    "passwordRequireWhenResumeFromIdleState"                = false
+    "passwordRequiredType"                                  = "deviceDefault"
+    "passwordSignInFailureCountBeforeFactoryReset"          = null
+    "passwordMinimumAgeInDays"                              = null
+    "energySaverOnBatteryThresholdPercentage"               = null
+    "energySaverPluggedInThresholdPercentage"               = null
+    "powerLidCloseActionOnBattery"                          = "notConfigured"
+    "powerLidCloseActionPluggedIn"                          = "notConfigured"
+    "powerButtonActionOnBattery"                            = "notConfigured"
+    "powerButtonActionPluggedIn"                            = "notConfigured"
+    "powerSleepButtonActionOnBattery"                       = "notConfigured"
+    "powerSleepButtonActionPluggedIn"                       = "notConfigured"
+    "powerHybridSleepOnBattery"                             = "notConfigured"
+    "powerHybridSleepPluggedIn"                             = "notConfigured"
+    "printerNames"                                          = []
+    "printerDefaultName"                                    = null
+    "printerBlockAddition"                                  = false
+    "privacyAdvertisingId"                                  = "notConfigured"
+    "privacyAutoAcceptPairingAndConsentPrompts"             = false
+    "privacyDisableLaunchExperience"                        = false
+    "privacyBlockInputPersonalization"                      = false
+    "privacyBlockPublishUserActivities"                     = false
+    "privacyBlockActivityFeed"                              = false
+    "activateAppsWithVoice"                                 = "notConfigured"
+    "searchBlockDiacritics"                                 = false
+    "searchDisableAutoLanguageDetection"                    = false
+    "searchDisableIndexingEncryptedItems"                   = false
+    "searchEnableRemoteQueries"                             = false
+    "searchDisableUseLocation"                              = false
+    "searchDisableLocation"                                 = false
+    "searchDisableIndexerBackoff"                           = false
+    "searchDisableIndexingRemovableDrive"                   = false
+    "searchEnableAutomaticIndexSizeManangement"             = false
+    "searchBlockWebResults"                                 = false
+    "findMyFiles"                                           = "notConfigured"
+    "securityBlockAzureADJoinedDevicesAutoEncryption"       = false
+    "settingsBlockSettingsApp"                              = false
+    "settingsBlockSystemPage"                               = false
+    "settingsBlockDevicesPage"                              = false
+    "settingsBlockNetworkInternetPage"                      = false
+    "settingsBlockPersonalizationPage"                      = false
+    "settingsBlockAccountsPage"                             = false
+    "settingsBlockTimeLanguagePage"                         = false
+    "settingsBlockEaseOfAccessPage"                         = false
+    "settingsBlockPrivacyPage"                              = false
+    "settingsBlockUpdateSecurityPage"                       = false
+    "settingsBlockAppsPage"                                 = false
+    "settingsBlockGamingPage"                               = false
+    "smartScreenEnableAppInstallControl"                    = false
+    "smartScreenAppInstallControl"                          = "notConfigured"
+    "startBlockUnpinningAppsFromTaskbar"                    = false
+    "startMenuAppListVisibility"                            = "userDefined"
+    "startMenuHideChangeAccountSettings"                    = false
+    "startMenuHideFrequentlyUsedApps"                       = false
+    "startMenuHideHibernate"                                = false
+    "startMenuHideLock"                                     = false
+    "startMenuHidePowerButton"                              = false
+    "startMenuHideRecentJumpLists"                          = false
+    "startMenuHideRecentlyAddedApps"                        = false
+    "startMenuHideRestartOptions"                           = false
+    "startMenuHideShutDown"                                 = false
+    "startMenuHideSignOut"                                  = false
+    "startMenuHideSleep"                                    = false
+    "startMenuHideSwitchAccount"                            = false
+    "startMenuHideUserTile"                                 = false
+    "startMenuLayoutEdgeAssetsXml"                          = null
+    "startMenuLayoutXml"                                    = null
+    "startMenuMode"                                         = "userDefined"
+    "startMenuPinnedFolderDocuments"                        = "notConfigured"
+    "startMenuPinnedFolderDownloads"                        = "notConfigured"
+    "startMenuPinnedFolderFileExplorer"                     = "notConfigured"
+    "startMenuPinnedFolderHomeGroup"                        = "notConfigured"
+    "startMenuPinnedFolderMusic"                            = "notConfigured"
+    "startMenuPinnedFolderNetwork"                          = "notConfigured"
+    "startMenuPinnedFolderPersonalFolder"                   = "notConfigured"
+    "startMenuPinnedFolderPictures"                         = "notConfigured"
+    "startMenuPinnedFolderSettings"                         = "notConfigured"
+    "startMenuPinnedFolderVideos"                           = "notConfigured"
+    "diagnosticsDataSubmissionMode"                         = "userDefined"
+    "oneDriveDisableFileSync"                               = false
+    "systemTelemetryProxyServer"                            = null
+    "edgeTelemetryForMicrosoft365Analytics"                 = "notConfigured"
+    "taskManagerBlockEndTask"                               = false
+    "inkWorkspaceAccess"                                    = "notConfigured"
+    "inkWorkspaceAccessState"                               = "notConfigured"
+    "inkWorkspaceBlockSuggestedApps"                        = false
+    "windowsSpotlightBlockConsumerSpecificFeatures"         = false
+    "windowsSpotlightBlocked"                               = false
+    "windowsSpotlightBlockOnActionCenter"                   = false
+    "windowsSpotlightBlockTailoredExperiences"              = false
+    "windowsSpotlightBlockThirdPartyNotifications"          = false
+    "windowsSpotlightBlockWelcomeExperience"                = false
+    "windowsSpotlightBlockWindowsTips"                      = false
+    "windowsSpotlightConfigureOnLockScreen"                 = "notConfigured"
+    "accountsBlockAddingNonMicrosoftAccountEmail"           = false
+    "antiTheftModeBlocked"                                  = false
+    "bluetoothBlocked"                                      = false
+    "cameraBlocked"                                         = true
+    "connectedDevicesServiceBlocked"                        = false
+    "certificatesBlockManualRootCertificateInstallation"    = false
+    "copyPasteBlocked"                                      = false
+    "cortanaBlocked"                                        = false
+    "deviceManagementBlockFactoryResetOnMobile"             = false
+    "deviceManagementBlockManualUnenroll"                   = false
+    "safeSearchFilter"                                      = "userDefined"
+    "edgeBlockPopups"                                       = false
+    "edgeBlockSearchSuggestions"                            = false
+    "edgeBlockSearchEngineCustomization"                    = false
+    "edgeBlockSendingIntranetTrafficToInternetExplorer"     = false
+    "edgeSendIntranetTrafficToInternetExplorer"             = false
+    "edgeRequireSmartScreen"                                = false
+    "edgeEnterpriseModeSiteListLocation"                    = null
+    "edgeFirstRunUrl"                                       = null
+    "edgeSearchEngine"                                      = null
+    "edgeHomepageUrls"                                      = []
+    "edgeBlockAccessToAboutFlags"                           = false
+    "smartScreenBlockPromptOverride"                        = false
+    "smartScreenBlockPromptOverrideForFiles"                = false
+    "webRtcBlockLocalhostIpAddress"                         = false
+    "internetSharingBlocked"                                = false
+    "settingsBlockAddProvisioningPackage"                   = false
+    "settingsBlockRemoveProvisioningPackage"                = false
+    "settingsBlockChangeSystemTime"                         = false
+    "settingsBlockEditDeviceName"                           = false
+    "settingsBlockChangeRegion"                             = false
+    "settingsBlockChangeLanguage"                           = false
+    "settingsBlockChangePowerSleep"                         = false
+    "locationServicesBlocked"                               = false
+    "microsoftAccountBlocked"                               = false
+    "microsoftAccountBlockSettingsSync"                     = false
+    "nfcBlocked"                                            = false
+    "resetProtectionModeBlocked"                            = false
+    "screenCaptureBlocked"                                  = false
+    "storageBlockRemovableStorage"                          = false
+    "storageRequireMobileDeviceEncryption"                  = false
+    "usbBlocked"                                            = false
+    "voiceRecordingBlocked"                                 = false
+    "wiFiBlockAutomaticConnectHotspots"                     = false
+    "wiFiBlocked"                                           = false
+    "wiFiBlockManualConfiguration"                          = false
+    "wiFiScanInterval"                                      = null
+    "wirelessDisplayBlockProjectionToThisDevice"            = false
+    "wirelessDisplayBlockUserInputFromReceiver"             = false
+    "wirelessDisplayRequirePinForPairing"                   = false
+    "windowsStoreBlocked"                                   = false
+    "appsAllowTrustedAppsSideloading"                       = "notConfigured"
+    "windowsStoreBlockAutoUpdate"                           = false
+    "developerUnlockSetting"                                = "notConfigured"
+    "sharedUserAppDataAllowed"                              = false
+    "appsBlockWindowsStoreOriginatedApps"                   = false
+    "windowsStoreEnablePrivateStoreOnly"                    = false
+    "storageRestrictAppDataToSystemVolume"                  = false
+    "storageRestrictAppInstallToSystemVolume"               = false
+    "gameDvrBlocked"                                        = false
+    "experienceBlockDeviceDiscovery"                        = false
+    "experienceBlockErrorDialogWhenNoSIM"                   = false
+    "experienceBlockTaskSwitcher"                           = false
+    "logonBlockFastUserSwitching"                           = false
+    "tenantLockdownRequireNetworkDuringOutOfBoxExperience"  = false
+    "appManagementMSIAllowUserControlOverInstall"           = false
+    "appManagementMSIAlwaysInstallWithElevatedPrivileges"   = false
+    "dataProtectionBlockDirectMemoryAccess"                 = null
+    "appManagementPackageFamilyNamesToLaunchAfterLogOn"     = []
+    "uninstallBuiltInApps"                                  = false
+    "configureTimeZone"                                     = null
+  })
+}
+```
+
+#### Domain Join
+
+```terraform
+# Windows Domain Join.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_domain_join" {
+  display_name       = "Windows Domain Join"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windowsDomainJoinConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "computerNameStaticPrefix"                    = "LAB"
+    "computerNameSuffixRandomCharCount"           = 8
+    "activeDirectoryDomainName"                   = "example.invalid"
+    "organizationalUnit"                          = "OU=Testing,DC=example,DC=invalid"
+  })
+}
+```
+
+#### Edition Upgrade and S Mode
+
+```terraform
+# Windows Edition Upgrade and S Mode.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_edition_upgrade" {
+  display_name       = "Windows Edition Upgrade and S Mode"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.editionUpgradeConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "licenseType"                                 = "notConfigured"
+    "targetEdition"                               = "notConfigured"
+    "license"                                     = null
+    "productKey"                                  = null
+    "windowsSMode"                                = "unlock"
+  })
+}
+```
+
+#### Email
+
+```terraform
+# Windows Email.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_email" {
+  display_name       = "Windows Email"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windows10EasEmailProfileConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "usernameSource"                              = "userPrincipalName"
+    "usernameAADSource"                           = null
+    "userDomainNameSource"                        = null
+    "customDomainName"                            = null
+    "accountName"                                 = "Example email"
+    "syncCalendar"                                = true
+    "syncContacts"                                = false
+    "syncTasks"                                   = false
+    "durationOfEmailToSync"                       = "userDefined"
+    "emailAddressSource"                          = "userPrincipalName"
+    "emailSyncSchedule"                           = "userDefined"
+    "hostName"                                    = "mail.example.invalid"
+    "requireSsl"                                  = true
+  })
+}
+```
+
+#### Endpoint Protection
+
+```terraform
+# Windows Endpoint Protection.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_endpoint_protection" {
+  display_name       = "Windows Endpoint Protection"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                                                  = "#microsoft.graph.windows10EndpointProtectionConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"                                   = null
+    "deviceManagementApplicabilityRuleOsVersion"                                   = null
+    "deviceManagementApplicabilityRuleDeviceMode"                                  = null
+    "applicationGuardEnabled"                                                      = false
+    "applicationGuardEnabledOptions"                                               = "notConfigured"
+    "applicationGuardBlockFileTransfer"                                            = "notConfigured"
+    "applicationGuardBlockNonEnterpriseContent"                                    = false
+    "applicationGuardAllowPersistence"                                             = false
+    "applicationGuardForceAuditing"                                                = false
+    "applicationGuardBlockClipboardSharing"                                        = "notConfigured"
+    "applicationGuardAllowPrintToPDF"                                              = false
+    "applicationGuardAllowPrintToXPS"                                              = false
+    "applicationGuardAllowPrintToLocalPrinters"                                    = false
+    "applicationGuardAllowPrintToNetworkPrinters"                                  = false
+    "applicationGuardAllowVirtualGPU"                                              = false
+    "applicationGuardAllowFileSaveOnHost"                                          = false
+    "applicationGuardAllowCameraMicrophoneRedirection"                             = null
+    "applicationGuardCertificateThumbprints"                                       = []
+    "appLockerApplicationControl"                                                  = "notConfigured"
+    "bitLockerAllowStandardUserEncryption"                                         = false
+    "bitLockerDisableWarningForOtherDiskEncryption"                                = false
+    "bitLockerEnableStorageCardEncryptionOnMobile"                                 = false
+    "bitLockerEncryptDevice"                                                       = false
+    "bitLockerSystemDrivePolicy"                                                   = null
+    "bitLockerFixedDrivePolicy"                                                    = null
+    "bitLockerRemovableDrivePolicy"                                                = null
+    "bitLockerRecoveryPasswordRotation"                                            = "notConfigured"
+    "defenderSecurityCenterDisableAppBrowserUI"                                    = null
+    "defenderSecurityCenterDisableFamilyUI"                                        = null
+    "defenderSecurityCenterDisableHealthUI"                                        = null
+    "defenderSecurityCenterDisableNetworkUI"                                       = null
+    "defenderSecurityCenterDisableVirusUI"                                         = null
+    "defenderSecurityCenterDisableAccountUI"                                       = null
+    "defenderSecurityCenterDisableClearTpmUI"                                      = null
+    "defenderSecurityCenterDisableHardwareUI"                                      = null
+    "defenderSecurityCenterDisableNotificationAreaUI"                              = null
+    "defenderSecurityCenterDisableRansomwareUI"                                    = null
+    "defenderSecurityCenterDisableSecureBootUI"                                    = null
+    "defenderSecurityCenterDisableTroubleshootingUI"                               = null
+    "defenderSecurityCenterDisableVulnerableTpmFirmwareUpdateUI"                   = null
+    "defenderSecurityCenterOrganizationDisplayName"                                = null
+    "defenderSecurityCenterHelpEmail"                                              = null
+    "defenderSecurityCenterHelpPhone"                                              = null
+    "defenderSecurityCenterHelpURL"                                                = null
+    "defenderSecurityCenterNotificationsFromApp"                                   = "notConfigured"
+    "defenderSecurityCenterITContactDisplay"                                       = "notConfigured"
+    "windowsDefenderTamperProtection"                                              = "notConfigured"
+    "defenderAdobeReaderLaunchChildProcess"                                        = "notConfigured"
+    "defenderAttackSurfaceReductionExcludedPaths"                                  = []
+    "defenderOfficeAppsOtherProcessInjectionType"                                  = "userDefined"
+    "defenderOfficeAppsOtherProcessInjection"                                      = "userDefined"
+    "defenderOfficeCommunicationAppsLaunchChildProcess"                            = "notConfigured"
+    "defenderOfficeAppsExecutableContentCreationOrLaunchType"                      = "userDefined"
+    "defenderOfficeAppsExecutableContentCreationOrLaunch"                          = "userDefined"
+    "defenderOfficeAppsLaunchChildProcessType"                                     = "userDefined"
+    "defenderOfficeAppsLaunchChildProcess"                                         = "userDefined"
+    "defenderOfficeMacroCodeAllowWin32ImportsType"                                 = "userDefined"
+    "defenderOfficeMacroCodeAllowWin32Imports"                                     = "userDefined"
+    "defenderScriptObfuscatedMacroCodeType"                                        = "userDefined"
+    "defenderScriptObfuscatedMacroCode"                                            = "userDefined"
+    "defenderScriptDownloadedPayloadExecutionType"                                 = "userDefined"
+    "defenderScriptDownloadedPayloadExecution"                                     = "userDefined"
+    "defenderPreventCredentialStealingType"                                        = "notConfigured"
+    "defenderProcessCreationType"                                                  = "userDefined"
+    "defenderProcessCreation"                                                      = "userDefined"
+    "defenderUntrustedUSBProcessType"                                              = "userDefined"
+    "defenderUntrustedUSBProcess"                                                  = "userDefined"
+    "defenderUntrustedExecutableType"                                              = "userDefined"
+    "defenderUntrustedExecutable"                                                  = "userDefined"
+    "defenderEmailContentExecutionType"                                            = "userDefined"
+    "defenderEmailContentExecution"                                                = "userDefined"
+    "defenderAdvancedRansomewareProtectionType"                                    = "notConfigured"
+    "defenderGuardMyFoldersType"                                                   = "userDefined"
+    "defenderGuardedFoldersAllowedAppPaths"                                        = []
+    "defenderAdditionalGuardedFolders"                                             = []
+    "defenderNetworkProtectionType"                                                = "notConfigured"
+    "defenderExploitProtectionXml"                                                 = null
+    "defenderExploitProtectionXmlFileName"                                         = null
+    "defenderSecurityCenterBlockExploitProtectionOverride"                         = false
+    "defenderBlockPersistenceThroughWmiType"                                       = "userDefined"
+    "firewallBlockStatefulFTP"                                                     = true
+    "firewallIdleTimeoutForSecurityAssociationInSeconds"                           = null
+    "firewallPreSharedKeyEncodingMethod"                                           = "deviceDefault"
+    "firewallIPSecExemptionsNone"                                                  = false
+    "firewallIPSecExemptionsAllowNeighborDiscovery"                                = false
+    "firewallIPSecExemptionsAllowICMP"                                             = false
+    "firewallIPSecExemptionsAllowRouterDiscovery"                                  = false
+    "firewallIPSecExemptionsAllowDHCP"                                             = false
+    "firewallCertificateRevocationListCheckMethod"                                 = "deviceDefault"
+    "firewallMergeKeyingModuleSettings"                                            = null
+    "firewallPacketQueueingMethod"                                                 = "deviceDefault"
+    "firewallProfileDomain"                                                        = null
+    "firewallProfilePublic"                                                        = null
+    "firewallProfilePrivate"                                                       = null
+    "localSecurityOptionsBlockMicrosoftAccounts"                                   = false
+    "localSecurityOptionsBlockRemoteLogonWithBlankPassword"                        = false
+    "localSecurityOptionsDisableAdministratorAccount"                              = false
+    "localSecurityOptionsAdministratorAccountName"                                 = null
+    "localSecurityOptionsDisableGuestAccount"                                      = false
+    "localSecurityOptionsGuestAccountName"                                         = null
+    "localSecurityOptionsAllowUndockWithoutHavingToLogon"                          = false
+    "localSecurityOptionsBlockUsersInstallingPrinterDrivers"                       = false
+    "localSecurityOptionsBlockRemoteOpticalDriveAccess"                            = false
+    "localSecurityOptionsFormatAndEjectOfRemovableMediaAllowedUser"                = "notConfigured"
+    "localSecurityOptionsMachineInactivityLimit"                                   = null
+    "localSecurityOptionsMachineInactivityLimitInMinutes"                          = null
+    "localSecurityOptionsDoNotRequireCtrlAltDel"                                   = false
+    "localSecurityOptionsHideLastSignedInUser"                                     = false
+    "localSecurityOptionsHideUsernameAtSignIn"                                     = false
+    "localSecurityOptionsLogOnMessageTitle"                                        = null
+    "localSecurityOptionsLogOnMessageText"                                         = null
+    "localSecurityOptionsAllowPKU2UAuthenticationRequests"                         = false
+    "localSecurityOptionsAllowRemoteCallsToSecurityAccountsManagerHelperBool"      = false
+    "localSecurityOptionsAllowRemoteCallsToSecurityAccountsManager"                = null
+    "localSecurityOptionsMinimumSessionSecurityForNtlmSspBasedClients"             = "none"
+    "localSecurityOptionsMinimumSessionSecurityForNtlmSspBasedServers"             = "none"
+    "lanManagerAuthenticationLevel"                                                = "lmAndNltm"
+    "lanManagerWorkstationDisableInsecureGuestLogons"                              = false
+    "localSecurityOptionsClearVirtualMemoryPageFile"                               = false
+    "localSecurityOptionsAllowSystemToBeShutDownWithoutHavingToLogOn"              = false
+    "localSecurityOptionsAllowUIAccessApplicationElevation"                        = false
+    "localSecurityOptionsVirtualizeFileAndRegistryWriteFailuresToPerUserLocations" = false
+    "localSecurityOptionsOnlyElevateSignedExecutables"                             = false
+    "localSecurityOptionsAdministratorElevationPromptBehavior"                     = "notConfigured"
+    "localSecurityOptionsStandardUserElevationPromptBehavior"                      = "notConfigured"
+    "localSecurityOptionsSwitchToSecureDesktopWhenPromptingForElevation"           = false
+    "localSecurityOptionsDetectApplicationInstallationsAndPromptForElevation"      = false
+    "localSecurityOptionsAllowUIAccessApplicationsForSecureLocations"              = false
+    "localSecurityOptionsUseAdminApprovalMode"                                     = false
+    "localSecurityOptionsUseAdminApprovalModeForAdministrators"                    = false
+    "localSecurityOptionsInformationShownOnLockScreen"                             = "notConfigured"
+    "localSecurityOptionsInformationDisplayedOnLockScreen"                         = "notConfigured"
+    "localSecurityOptionsDisableClientDigitallySignCommunicationsIfServerAgrees"   = false
+    "localSecurityOptionsClientDigitallySignCommunicationsAlways"                  = false
+    "localSecurityOptionsClientSendUnencryptedPasswordToThirdPartySMBServers"      = false
+    "localSecurityOptionsDisableServerDigitallySignCommunicationsAlways"           = false
+    "localSecurityOptionsDisableServerDigitallySignCommunicationsIfClientAgrees"   = false
+    "localSecurityOptionsRestrictAnonymousAccessToNamedPipesAndShares"             = false
+    "localSecurityOptionsDoNotAllowAnonymousEnumerationOfSAMAccounts"              = false
+    "localSecurityOptionsAllowAnonymousEnumerationOfSAMAccountsAndShares"          = false
+    "localSecurityOptionsDoNotStoreLANManagerHashValueOnNextPasswordChange"        = false
+    "localSecurityOptionsSmartCardRemovalBehavior"                                 = "noAction"
+    "deviceGuardLocalSystemAuthorityCredentialGuardSettings"                       = "notConfigured"
+    "deviceGuardEnableVirtualizationBasedSecurity"                                 = false
+    "deviceGuardEnableSecureBootWithDMA"                                           = false
+    "deviceGuardSecureBootWithDMA"                                                 = "notConfigured"
+    "deviceGuardLaunchSystemGuard"                                                 = "notConfigured"
+    "defenderDisableScanArchiveFiles"                                              = null
+    "defenderAllowScanArchiveFiles"                                                = null
+    "defenderDisableBehaviorMonitoring"                                            = null
+    "defenderAllowBehaviorMonitoring"                                              = null
+    "defenderDisableCloudProtection"                                               = null
+    "defenderAllowCloudProtection"                                                 = null
+    "defenderEnableScanIncomingMail"                                               = null
+    "defenderEnableScanMappedNetworkDrivesDuringFullScan"                          = null
+    "defenderDisableScanRemovableDrivesDuringFullScan"                             = null
+    "defenderAllowScanRemovableDrivesDuringFullScan"                               = null
+    "defenderDisableScanDownloads"                                                 = null
+    "defenderAllowScanDownloads"                                                   = null
+    "defenderDisableIntrusionPreventionSystem"                                     = null
+    "defenderAllowIntrusionPreventionSystem"                                       = null
+    "defenderDisableOnAccessProtection"                                            = null
+    "defenderAllowOnAccessProtection"                                              = null
+    "defenderDisableRealTimeMonitoring"                                            = null
+    "defenderAllowRealTimeMonitoring"                                              = null
+    "defenderDisableScanNetworkFiles"                                              = null
+    "defenderAllowScanNetworkFiles"                                                = null
+    "defenderDisableScanScriptsLoadedInInternetExplorer"                           = null
+    "defenderAllowScanScriptsLoadedInInternetExplorer"                             = null
+    "defenderBlockEndUserAccess"                                                   = null
+    "defenderAllowEndUserAccess"                                                   = null
+    "defenderScanMaxCpuPercentage"                                                 = null
+    "defenderCheckForSignaturesBeforeRunningScan"                                  = null
+    "defenderCloudBlockLevel"                                                      = null
+    "defenderCloudExtendedTimeoutInSeconds"                                        = null
+    "defenderDaysBeforeDeletingQuarantinedMalware"                                 = null
+    "defenderDisableCatchupFullScan"                                               = null
+    "defenderDisableCatchupQuickScan"                                              = null
+    "defenderEnableLowCpuPriority"                                                 = null
+    "defenderFileExtensionsToExclude"                                              = []
+    "defenderFilesAndFoldersToExclude"                                             = []
+    "defenderProcessesToExclude"                                                   = []
+    "defenderPotentiallyUnwantedAppAction"                                         = null
+    "defenderScanDirection"                                                        = null
+    "defenderScanType"                                                             = null
+    "defenderScheduledQuickScanTime"                                               = null
+    "defenderScheduledScanDay"                                                     = null
+    "defenderScheduledScanTime"                                                    = null
+    "defenderSignatureUpdateIntervalInHours"                                       = null
+    "defenderSubmitSamplesConsentType"                                             = null
+    "defenderDetectedMalwareActions"                                               = null
+    "dmaGuardDeviceEnumerationPolicy"                                              = "deviceDefault"
+    "smartScreenEnableInShell"                                                     = false
+    "smartScreenBlockOverrideForFiles"                                             = false
+    "userRightsAccessCredentialManagerAsTrustedCaller"                             = null
+    "userRightsAllowAccessFromNetwork"                                             = null
+    "userRightsBlockAccessFromNetwork"                                             = null
+    "userRightsActAsPartOfTheOperatingSystem"                                      = null
+    "userRightsLocalLogOn"                                                         = null
+    "userRightsDenyLocalLogOn"                                                     = null
+    "userRightsBackupData"                                                         = null
+    "userRightsChangeSystemTime"                                                   = null
+    "userRightsCreateGlobalObjects"                                                = null
+    "userRightsCreatePageFile"                                                     = null
+    "userRightsCreatePermanentSharedObjects"                                       = null
+    "userRightsCreateSymbolicLinks"                                                = null
+    "userRightsCreateToken"                                                        = null
+    "userRightsDebugPrograms"                                                      = null
+    "userRightsRemoteDesktopServicesLogOn"                                         = null
+    "userRightsDelegation"                                                         = null
+    "userRightsGenerateSecurityAudits"                                             = null
+    "userRightsImpersonateClient"                                                  = null
+    "userRightsIncreaseSchedulingPriority"                                         = null
+    "userRightsLoadUnloadDrivers"                                                  = null
+    "userRightsLockMemory"                                                         = null
+    "userRightsManageAuditingAndSecurityLogs"                                      = null
+    "userRightsManageVolumes"                                                      = null
+    "userRightsModifyFirmwareEnvironment"                                          = null
+    "userRightsModifyObjectLabels"                                                 = null
+    "userRightsProfileSingleProcess"                                               = null
+    "userRightsRemoteShutdown"                                                     = null
+    "userRightsRestoreData"                                                        = null
+    "userRightsTakeOwnership"                                                      = null
+    "xboxServicesEnableXboxGameSaveTask"                                           = false
+    "xboxServicesAccessoryManagementServiceStartupMode"                            = "manual"
+    "xboxServicesLiveAuthManagerServiceStartupMode"                                = "manual"
+    "xboxServicesLiveGameSaveServiceStartupMode"                                   = "manual"
+    "xboxServicesLiveNetworkingServiceStartupMode"                                 = "manual"
+    "firewallRules"                                                                = []
+  })
+}
+```
+
+#### Kiosk
+
+```terraform
+# Windows Kiosk.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_kiosk" {
+  display_name       = "Windows Kiosk"
+  description        = "Windows kiosk example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windowsKioskConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "kioskBrowserDefaultUrl"                      = null
+    "kioskBrowserEnableHomeButton"                = false
+    "kioskBrowserEnableNavigationButtons"         = false
+    "kioskBrowserEnableEndSessionButton"          = false
+    "kioskBrowserRestartOnIdleTimeInMinutes"      = null
+    "kioskBrowserBlockedURLs"                     = []
+    "kioskBrowserBlockedUrlExceptions"            = []
+    "edgeKioskEnablePublicBrowsing"               = false
+    "windowsKioskForceUpdateSchedule"             = null
+    "kioskProfiles" = [{
+      "profileId"   = "71bf2c1e-90d3-4714-b9b0-325c26f433f1"
+      "profileName" = "Example kiosk"
+      "appConfiguration" = {
+        "@odata.type" = "#microsoft.graph.windowsKioskSingleUWPApp"
+        "uwpApp" = {
+          "startLayoutTileSize" = "hidden"
+          "name"                = "Calculator"
+          "appType"             = "unknown"
+          "autoLaunch"          = false
+          "appUserModelId"      = "Microsoft.WindowsCalculator_8wekyb3d8bbwe!App"
+          "appId"               = null
+          "containedAppId"      = null
+        }
+      }
+      "userAccountsConfiguration" = [{
+        "@odata.type" = "#microsoft.graph.windowsKioskAutologon"
+      }]
+    }]
+  })
+}
+```
+
+#### Imported PKCS Certificate
+
+```terraform
+# Windows Imported PKCS Certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_imported_pkcs" {
+  display_name       = "Windows Imported PKCS Certificate"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windows10ImportedPFXCertificateProfile"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "renewalThresholdPercentage"                  = 20
+    "keyStorageProvider"                          = "useSoftwareKsp"
+    "subjectNameFormat"                           = "commonName"
+    "subjectAlternativeNameType"                  = "userPrincipalName"
+    "certificateValidityPeriodValue"              = 1
+    "certificateValidityPeriodScale"              = "years"
+    "intendedPurpose"                             = "smimeSigning"
+  })
+}
+```
+
+#### SCEP Certificate
+
+```terraform
+# Windows SCEP Certificate.
+# Replace the sample public certificate with your own root certificate.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_scep_root_certificate" {
+  display_name       = "example-windows-root"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windows81TrustedRootCertificate",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "trustedRootCertificate"                      = "MIIDFjCCAf6gAwIBAgICAhgwDQYJKoZIhvcNAQELBQAwKzEpMCcGA1UEAxMgVGVycmFmb3JtIE1pY3Jvc29mdDM2NSBUZXN0IFJvb3QwIBcNMjAwMTAxMDAwMDAwWhgPMjA1MDAxMDEwMDAwMDBaMCsxKTAnBgNVBAMTIFRlcnJhZm9ybSBNaWNyb3NvZnQzNjUgVGVzdCBSb290MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt0FBlUiuQItKihIPdimOfiHkajmQgMvC/tztuj1Sis7rPeChIMVbexXSNHUKBHST6ti6ck91yLy2kUll9HLlM8Y/GczP7CRaIf2xv+8/In7YEuhZJ2E+yA/q8ZQZYRcUXYpYWtuutWBjKv/G1oh2l5IzGVePAn7gRpm79gVDsyw/cuhNtj2CQAGcScUCP2Yee+Dgc0MLrFLCvNtrVc0iosWARBLL2OataXzrSmoSQm29TyJDsZ+Qr8kanHbQICUp2mmyMVKr2uxd0JzkJKxNTrNB8dVhRUytKHz3BE0QkKOz+RFqsLjixx8InoyhQLj6FK4mhu5KPP3P2kdFDQin4QIDAQABo0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+orhr+LWDMSsmhI7Le0bRV984wEwDQYJKoZIhvcNAQELBQADggEBAImrXrkNyTG/UL9fe5jiLyYExt1CfZcz6T0SK6F7zAnvK2ggJfxK92d99u/v0x6OVj2rLNxYE8Uf3tO+2xjo9hwLsO5bXzD9pqc+UeVDGfNiSUWyt4bkvG7typSl0VUbSw1OgeVYI5Gr4byOGZ8ph9DOuc8beQSJ5VlwV+PROK6rtm+QJKiLNeQElZYbqrjgtQvw1P9lNocw0AFcoa19PKIjd8ARf9NHr3GRt1JE5EbCLsjZcwpIV3SKf3cDZ6YmyO4KHPwwDKu/4RMvG2cm+Omqa80/eIKdZYz2yg2kiABGT0B/t9ZcgOOyjNjVwIBB8Ed0nTu+CEc9SVPBZ6B2ITM=",
+    "certFileName"                                = "wire-study.cer",
+    "destinationStore"                            = "computerCertStoreRoot"
+  })
+}
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_scep" {
+  display_name       = "Windows SCEP Certificate"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windows81SCEPCertificateProfile",
+    "deviceManagementApplicabilityRuleOsEdition"  = null,
+    "deviceManagementApplicabilityRuleOsVersion"  = null,
+    "deviceManagementApplicabilityRuleDeviceMode" = null,
+    "renewalThresholdPercentage"                  = 30,
+    "keyStorageProvider"                          = "useSoftwareKsp",
+    "subjectNameFormat"                           = "custom",
+    "subjectAlternativeNameType"                  = "none",
+    "certificateValidityPeriodValue"              = 1,
+    "certificateValidityPeriodScale"              = "years",
+    "scepServerUrls" = [
+      "https://scep.example.invalid/certsrv/mscep/mscep.dll"
+    ],
+    "subjectNameFormatString"            = "CN={{DeviceId}}",
+    "keyUsage"                           = "keyEncipherment,digitalSignature",
+    "keySize"                            = "size2048",
+    "hashAlgorithm"                      = "sha2",
+    "subjectAlternativeNameFormatString" = null,
+    "certificateStore"                   = "user",
+    "extendedKeyUsages" = [
+      {
+        "name"             = "Client Authentication",
+        "objectIdentifier" = "1.3.6.1.5.5.7.3.2"
+      }
+    ],
+    "customSubjectAlternativeNames" = [],
+    "rootCertificate@odata.bind"    = "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations('${microsoft365_graph_beta_device_management_device_configuration_templates_json.windows_scep_root_certificate.id}')"
+  })
+}
+```
+
+#### Secure Assessment
+
+```terraform
+# Windows Secure Assessment.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_secure_assessment" {
+  display_name       = "Windows Secure Assessment"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windows10SecureAssessmentConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "launchUri"                                   = "https://assessment.example.invalid"
+    "configurationAccount"                        = null
+    "configurationAccountType"                    = "localGuestAccount"
+    "allowPrinting"                               = true
+    "allowScreenCapture"                          = true
+    "allowTextSuggestion"                         = true
+    "localGuestAccountName"                       = "Assessment"
+    "assessmentAppUserModelId"                    = null
+  })
+}
+```
+
+#### Shared Multi-user Device
+
+```terraform
+# Windows Shared Multi-user Device.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_shared_device" {
+  display_name       = "Windows Shared Multi-user Device"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.sharedPCConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "accountManagerPolicy"                        = null
+    "allowedAccounts"                             = "guest,domain"
+    "localStorage"                                = "notConfigured"
+    "allowLocalStorage"                           = false
+    "setAccountManager"                           = "disabled"
+    "disableAccountManager"                       = true
+    "setEduPolicies"                              = "notConfigured"
+    "disableEduPolicies"                          = false
+    "setPowerPolicies"                            = "notConfigured"
+    "disablePowerPolicies"                        = false
+    "signInOnResume"                              = "notConfigured"
+    "disableSignInOnResume"                       = false
+    "enabled"                                     = true
+    "idleTimeBeforeSleepInSeconds"                = null
+    "kioskAppDisplayName"                         = null
+    "kioskAppUserModelId"                         = null
+    "maintenanceStartTime"                        = null
+    "fastFirstSignIn"                             = "notConfigured"
+  })
+}
+```
+
+#### Health Monitoring
+
+```terraform
+# Windows Health Monitoring.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_health_monitoring" {
+  display_name       = "Windows Health Monitoring"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windowsHealthMonitoringConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "allowDeviceHealthMonitoring"                 = "enabled"
+    "configDeviceHealthMonitoringScope"           = "undefined"
+    "configDeviceHealthMonitoringCustomScope"     = null
+  })
+}
+```
+
+#### Wired Network
+
+```terraform
+# Windows Wired Network.
+
+resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "windows_wired_network" {
+  display_name       = "Windows Wired Network"
+  description        = "Template configuration example"
+  role_scope_tag_ids = ["0"]
+  settings = jsonencode({
+    "@odata.type"                                 = "#microsoft.graph.windowsWiredNetworkConfiguration"
+    "deviceManagementApplicabilityRuleOsEdition"  = null
+    "deviceManagementApplicabilityRuleOsVersion"  = null
+    "deviceManagementApplicabilityRuleDeviceMode" = null
+    "authenticationType"                          = "machineOrUser"
+    "cacheCredentials"                            = null
+    "authenticationPeriodInSeconds"               = 30
+    "authenticationRetryDelayPeriodInSeconds"     = 1
+    "eapolStartPeriodInSeconds"                   = 5
+    "maximumEAPOLStartMessages"                   = 3
+    "maximumAuthenticationFailures"               = 2
+    "enforce8021X"                                = true
+    "authenticationBlockPeriodInMinutes"          = null
+    "eapType"                                     = "peap"
+    "trustedServerCertificateNames"               = []
+    "authenticationMethod"                        = "usernameAndPassword"
+    "secondaryAuthenticationMethod"               = null
+    "innerAuthenticationProtocolForEAPTTLS"       = null
+    "outerIdentityPrivacyTemporaryValue"          = null
+    "performServerValidation"                     = null
+    "disableUserPromptForServerValidation"        = null
+    "requireCryptographicBinding"                 = null
+    "forceFIPSCompliance"                         = null
   })
 }
 ```
