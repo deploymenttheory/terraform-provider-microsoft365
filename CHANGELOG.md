@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.2.0...v1.3.0) (2026-09-29)
+
+
+### Features
+
+* add B2B management policy and assignment resources ([#4032](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4032)) ([d519873](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d5198731e98110db4921083c7a6300d48fc695a1))
+* add cross-platform device configuration template JSON resource ([#4033](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4033)) ([23a27f8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/23a27f8691b9e591180bfc946ab0f0c72fd31fff))
+* support base64 client certificates for provider authentication ([#4036](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4036)) ([7d1f048](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7d1f048ffa61dda802c3471a9b5ad266ebbd8c7e))
+
+
+### Bug Fixes
+
+* **ci:** scope Go checks to changed packages and preserve failures ([#4037](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4037)) ([ad1ee51](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ad1ee511524b991054d02184a1b6b1408a338ca3))
+* resolve macOS compliance scheduled-action drift ([#4038](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4038)) ([ea41d5a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/ea41d5a5c51fcf0d93970c5461a9f0604145edef))
+
 ## [1.2.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.1.0...v1.2.0) (2026-09-22)
 
 
