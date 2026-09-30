@@ -9,12 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	assignmentschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
 	customvalidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
@@ -29,12 +31,33 @@ const (
 )
 
 var (
-	_ resource.Resource                   = &DeviceConfigurationTemplatesJsonResource{}
-	_ resource.ResourceWithConfigure      = &DeviceConfigurationTemplatesJsonResource{}
-	_ resource.ResourceWithImportState    = &DeviceConfigurationTemplatesJsonResource{}
-	_ resource.ResourceWithIdentity       = &DeviceConfigurationTemplatesJsonResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &DeviceConfigurationTemplatesJsonResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &DeviceConfigurationTemplatesJsonResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &DeviceConfigurationTemplatesJsonResource{}
+
+	// Enables plan modification/diff suppression
+	_ resource.ResourceWithIdentity = &DeviceConfigurationTemplatesJsonResource{}
+
+	// Enables identity schema for list resource support
 	_ resource.ResourceWithValidateConfig = &DeviceConfigurationTemplatesJsonResource{}
 )
+
+func NewDeviceConfigurationTemplatesJsonResource() resource.Resource {
+	return &DeviceConfigurationTemplatesJsonResource{
+		ReadPermissions: []string{
+			"DeviceManagementConfiguration.Read.All",
+		},
+		WritePermissions: []string{
+			"DeviceManagementConfiguration.ReadWrite.All",
+		},
+		ResourcePath: "/deviceManagement/deviceConfigurations",
+	}
+}
 
 type DeviceConfigurationTemplatesJsonResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
@@ -43,46 +66,30 @@ type DeviceConfigurationTemplatesJsonResource struct {
 	ResourcePath     string
 }
 
-func NewDeviceConfigurationTemplatesJsonResource() resource.Resource {
-	return &DeviceConfigurationTemplatesJsonResource{
-		ReadPermissions:  []string{"DeviceManagementConfiguration.Read.All"},
-		WritePermissions: []string{"DeviceManagementConfiguration.ReadWrite.All"},
-		ResourcePath:     "/deviceManagement/deviceConfigurations",
-	}
-}
-
-func (r *DeviceConfigurationTemplatesJsonResource) Metadata(
-	_ context.Context,
-	_ resource.MetadataRequest,
-	resp *resource.MetadataResponse,
-) {
+// Metadata returns the resource type name.
+func (r *DeviceConfigurationTemplatesJsonResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
-func (r *DeviceConfigurationTemplatesJsonResource) Configure(
-	ctx context.Context,
-	req resource.ConfigureRequest,
-	resp *resource.ConfigureResponse,
-) {
+// Configure sets the client for the resource.
+func (r *DeviceConfigurationTemplatesJsonResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-func (r *DeviceConfigurationTemplatesJsonResource) ImportState(
-	ctx context.Context,
-	req resource.ImportStateRequest,
-	resp *resource.ImportStateResponse,
-) {
+// ImportState imports the resource state.
+func (r *DeviceConfigurationTemplatesJsonResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func (r *DeviceConfigurationTemplatesJsonResource) IdentitySchema(
-	_ context.Context,
-	_ resource.IdentitySchemaRequest,
-	resp *resource.IdentitySchemaResponse,
-) {
-	resp.IdentitySchema = identityschema.Schema{Attributes: map[string]identityschema.Attribute{
-		"id": identityschema.StringAttribute{RequiredForImport: true},
-	}}
+// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+func (r *DeviceConfigurationTemplatesJsonResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+	resp.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+			},
+		},
+	}
 }
 
 func (r *DeviceConfigurationTemplatesJsonResource) Schema(
@@ -99,7 +106,10 @@ func (r *DeviceConfigurationTemplatesJsonResource) Schema(
 			"See [device configurations](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-deviceconfiguration?view=graph-rest-beta).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "The Intune device configuration ID.",
 			},
 			"display_name": schema.StringAttribute{
@@ -111,7 +121,9 @@ func (r *DeviceConfigurationTemplatesJsonResource) Schema(
 				Optional:            true,
 				Computed:            true,
 				MarkdownDescription: "Description of the device configuration profile. Maximum length is 1500 characters.",
-				Validators:          []validator.String{stringvalidator.LengthAtMost(1500)},
+				Validators: []validator.String{
+					stringvalidator.LengthAtMost(1500),
+				},
 			},
 			"role_scope_tag_ids": schema.SetAttribute{
 				Optional:            true,
