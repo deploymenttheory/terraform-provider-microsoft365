@@ -3,6 +3,7 @@ package graphBetaDeviceConfigurationTemplatesJson
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"maps"
 	"reflect"
 	"time"
@@ -18,7 +19,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	identitymodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 // Create handles the Create operation for device configuration template JSON resources.
@@ -34,6 +35,8 @@ import (
 // destroy the created profile if a relationship or assignment operation fails.
 func (r *DeviceConfigurationTemplatesJsonResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data DeviceConfigurationTemplatesJsonResourceModel
+
+	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -122,17 +125,23 @@ func (r *DeviceConfigurationTemplatesJsonResource) Create(ctx context.Context, r
 		}
 	}
 
+	readReq := resource.ReadRequest{State: resp.State}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 
-	readReq := resource.ReadRequest{State: resp.State}
-	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
-
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
-		resp.Diagnostics.AddError("Cannot read created device configuration profile", err.Error())
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
 // Read handles the Read operation for device configuration template JSON resources.
@@ -142,46 +151,60 @@ func (r *DeviceConfigurationTemplatesJsonResource) Create(ctx context.Context, r
 //   - Reads certificate relationships and recovers encrypted OMA values
 //   - Maps complete writable settings while preserving equivalent configured JSON
 //   - Gets all assignment pages and maps the targets to Terraform state
-//   - Updates the resource identity and saves the refreshed state
+//   - Saves the refreshed state
 //
 // A missing base profile removes the resource from state. Errors reading settings
 // or assignments preserve the profile so a failed child request cannot orphan it.
 func (r *DeviceConfigurationTemplatesJsonResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data DeviceConfigurationTemplatesJsonResourceModel
+	var object DeviceConfigurationTemplatesJsonResourceModel
+	var identity sharedmodels.ResourceIdentity
+	var respResource json.RawMessage
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for: %s", ResourceName))
+
+	operation := constants.TfOperationRead
+	if ctxOp := ctx.Value("retry_operation"); ctxOp != nil {
+		if opStr, ok := ctxOp.(string); ok {
+			operation = opStr
+		}
+	}
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
+
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	tflog.Debug(ctx, "Reading device configuration profile", map[string]any{"id": data.ID.ValueString()})
-	operation := constants.TfOperationRead
-	if retryOperation, ok := ctx.Value("retry_operation").(string); ok {
-		operation = retryOperation
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
 	}
 
-	var response json.RawMessage
-
 	err := customrequests.JSONRequest(ctx, r.client.GetAdapter(), abstractions.GET,
-		r.ResourcePath+"/{id}", map[string]string{"id": data.ID.ValueString()}, nil, &response)
+		r.ResourcePath+"/{id}", map[string]string{"id": object.ID.ValueString()}, nil, &respResource)
 	if err != nil {
 		kiotaerrors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, operation, r.ReadPermissions,
 			kiotaerrors.GraphErrorOptions{PreserveStateOnReadBadRequest: true})
 		return
 	}
 
-	if err := MapRemoteResourceStateToTerraform(ctx, &data, response); err != nil {
+	if err := MapRemoteResourceStateToTerraform(ctx, &object, respResource); err != nil {
 		resp.Diagnostics.AddError("Cannot read profile metadata", err.Error())
 		return
 	}
 
-	if err := r.MapRemoteSettingsStateToTerraform(ctx, &data, response); err != nil {
+	if err := r.MapRemoteSettingsStateToTerraform(ctx, &object, respResource); err != nil {
 		kiotaerrors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, operation, r.ReadPermissions,
 			kiotaerrors.GraphErrorOptions{
 				PreserveStateOnReadBadRequest: true,
@@ -196,7 +219,7 @@ func (r *DeviceConfigurationTemplatesJsonResource) Read(ctx context.Context, req
 	builder := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
-		ByDeviceConfigurationId(data.ID.ValueString()).
+		ByDeviceConfigurationId(object.ID.ValueString()).
 		Assignments()
 	for {
 		page, err := builder.Get(ctx, nil)
@@ -227,16 +250,17 @@ func (r *DeviceConfigurationTemplatesJsonResource) Read(ctx context.Context, req
 		builder = builder.WithUrl(*next)
 	}
 
-	resp.Diagnostics.Append(MapAssignmentsToTerraform(ctx, &data, assignments)...)
+	resp.Diagnostics.Append(MapAssignmentsToTerraform(ctx, &object, assignments)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identitymodels.ResourceIdentity{ID: data.ID.ValueString()})...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
 // Update handles the Update operation for device configuration template JSON resources.
@@ -252,38 +276,47 @@ func (r *DeviceConfigurationTemplatesJsonResource) Read(ctx context.Context, req
 // Profile settings, relationships, and assignments use separate API operations.
 // Assignment-only changes retain the existing profile without rewriting its settings.
 func (r *DeviceConfigurationTemplatesJsonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data, prior DeviceConfigurationTemplatesJsonResourceModel
+	var plan DeviceConfigurationTemplatesJsonResourceModel
+	var state DeviceConfigurationTemplatesJsonResourceModel
 
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	resp.Diagnostics.Append(req.State.Get(ctx, &prior)...)
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	data.ID = prior.ID
-	if data.Description.IsUnknown() {
-		data.Description = prior.Description
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+
+	plan.ID = state.ID
+	if plan.Description.IsUnknown() {
+		plan.Description = state.Description
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	request, err := constructResource(ctx, &data)
+	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError("Invalid device configuration profile", err.Error())
+		resp.Diagnostics.AddError(
+			"Error constructing resource for update method",
+			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
-	previous, err := constructResource(ctx, &prior)
+	previousRequestBody, err := constructResource(ctx, &state)
 	if err != nil {
-		resp.Diagnostics.AddError("Invalid previous device configuration profile", err.Error())
+		resp.Diagnostics.AddError(
+			"Error constructing previous resource for update method",
+			fmt.Sprintf("Could not construct previous resource: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
-	if *request.GetOdataType() != *previous.GetOdataType() {
+	if *requestBody.GetOdataType() != *previousRequestBody.GetOdataType() {
 		resp.Diagnostics.AddError(
 			"Profile type cannot be changed",
 			"Recreate the profile with Terraform's -replace option to change the root @odata.type.",
@@ -291,51 +324,55 @@ func (r *DeviceConfigurationTemplatesJsonResource) Update(ctx context.Context, r
 		return
 	}
 
-	assignments, err := constructAssignment(ctx, &data)
+	requestAssignment, err := constructAssignment(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError("Invalid profile assignments", err.Error())
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
 	// Relationship bindings are updated through $ref: PATCH cannot remove them.
-	settings := maps.Clone(request.GetAdditionalData())
-	previousSettings := maps.Clone(previous.GetAdditionalData())
-	for name := range deviceConfigurationRelationships[*request.GetOdataType()] {
+	settings := maps.Clone(requestBody.GetAdditionalData())
+	previousSettings := maps.Clone(previousRequestBody.GetAdditionalData())
+	for name := range deviceConfigurationRelationships[*requestBody.GetOdataType()] {
 		delete(settings, name+"@odata.bind")
 		delete(previousSettings, name+"@odata.bind")
 	}
 
 	if !reflect.DeepEqual(settings, previousSettings) ||
-		!data.DisplayName.Equal(prior.DisplayName) ||
-		!data.Description.Equal(prior.Description) ||
-		!data.RoleScopeTagIds.Equal(prior.RoleScopeTagIds) {
-		bindings := request.GetAdditionalData()
-		request.SetAdditionalData(settings)
+		!plan.DisplayName.Equal(state.DisplayName) ||
+		!plan.Description.Equal(state.Description) ||
+		!plan.RoleScopeTagIds.Equal(state.RoleScopeTagIds) {
+		bindings := requestBody.GetAdditionalData()
+		requestBody.SetAdditionalData(settings)
 		_, err = r.client.
 			DeviceManagement().
 			DeviceConfigurations().
-			ByDeviceConfigurationId(data.ID.ValueString()).
-			Patch(ctx, request, nil)
+			ByDeviceConfigurationId(state.ID.ValueString()).
+			Patch(ctx, requestBody, nil)
 
-		request.SetAdditionalData(bindings)
+		requestBody.SetAdditionalData(bindings)
 		if err != nil {
 			kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	}
 
-	if err := r.updateRelationships(ctx, data.ID.ValueString(), previous, request); err != nil {
+	err = r.updateRelationships(ctx, state.ID.ValueString(), previousRequestBody, requestBody)
+	if err != nil {
 		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
-	if !data.Assignments.Equal(prior.Assignments) {
+	if !plan.Assignments.Equal(state.Assignments) {
 		_, err = r.client.
 			DeviceManagement().
 			DeviceConfigurations().
-			ByDeviceConfigurationId(data.ID.ValueString()).
+			ByDeviceConfigurationId(state.ID.ValueString()).
 			Assign().
-			Post(ctx, assignments, nil)
+			Post(ctx, requestAssignment, nil)
 
 		if err != nil {
 			kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
@@ -343,22 +380,28 @@ func (r *DeviceConfigurationTemplatesJsonResource) Update(ctx context.Context, r
 		}
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 
-	readReq := resource.ReadRequest{State: resp.State}
-	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
-
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
-		resp.Diagnostics.AddError("Cannot read updated device configuration profile", err.Error())
+		resp.Diagnostics.AddError(
+			"Error reading resource state after update",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
+		return
 	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
 // Delete handles the Delete operation for device configuration template JSON resources.
@@ -370,27 +413,35 @@ func (r *DeviceConfigurationTemplatesJsonResource) Update(ctx context.Context, r
 // Graph removes the profile's settings and assignments with the profile. Referenced
 // certificate profiles and assignment groups remain independently managed resources.
 func (r *DeviceConfigurationTemplatesJsonResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data DeviceConfigurationTemplatesJsonResourceModel
+	var object DeviceConfigurationTemplatesJsonResourceModel
 
-	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
+
+	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	if err := r.client.
+	err := r.client.
 		DeviceManagement().
 		DeviceConfigurations().
-		ByDeviceConfigurationId(data.ID.ValueString()).
-		Delete(ctx, nil); err != nil {
+		ByDeviceConfigurationId(object.ID.ValueString()).
+		Delete(ctx, nil)
+
+	if err != nil {
 		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+
 	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }
