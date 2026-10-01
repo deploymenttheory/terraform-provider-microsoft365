@@ -218,7 +218,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 						},
 						"region_group": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "The Cloud PC region group. Must be one of: default, australia, canada, usCentral, usEast, usWest, france, germany, europeUnion, unitedKingdom, japan, asia, india, southAmerica, euap, usGovernment, usGovernmentDOD, unknownFutureValue, norway, switzerland, southKorea, middleEast, mexico, australasia, europe.",
+							MarkdownDescription: "The Cloud PC region group. Must be one of: default, australia, canada, usCentral, usEast, usWest, france, germany, europeUnion, unitedKingdom, japan, asia, india, southAmerica, euap, usGovernment, usGovernmentDOD, unknownFutureValue, norway, switzerland, southKorea, middleEast, mexico, australasia, europe, ireland.",
 							Validators: []validator.String{
 								stringvalidator.OneOf(
 									"default",
@@ -246,6 +246,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 									"mexico",
 									"australasia",
 									"europe",
+									"ireland",
 								),
 							},
 						},
