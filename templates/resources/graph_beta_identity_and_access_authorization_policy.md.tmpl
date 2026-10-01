@@ -17,18 +17,22 @@ description: |-
 
 ## Microsoft Graph API Permissions
 
-The following client `application` permissions are needed to use this resource:
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
 
 - `Policy.Read.All`
 - `Policy.ReadWrite.Authorization`
 
-## Important Notes
+**Optional:**
 
-- **Singleton resource**: Manage one instance per tenant across all Terraform states. The ID is always `authorizationPolicy`.
-- **Create and update**: Both operations use PATCH to configure the existing policy, then GET to refresh state.
-- **Destroy**: Only removes Terraform state. The authorization policy and its settings remain in Microsoft Entra ID.
-- **Boolean settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`.
-- **Optional settings**: Omitted optional attributes retain their existing service values. Set a collection to `[]` to clear it explicitly.
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.4.0 | Preview| Initial release |
 
 ## Example Usage
 
@@ -46,6 +50,16 @@ The following client `application` permissions are needed to use this resource:
 
 {{ .SchemaMarkdown | trimspace }}
 
+## Important Notes
+
+- **Singleton Resource**: Manage one instance per tenant across all Terraform states. The ID is always `authorizationPolicy`.
+- **Create and Update Behavior**: Both operations use PATCH to configure the existing policy, then GET to refresh state.
+- **Destroy Behavior**: Only removes Terraform state. The authorization policy and its settings remain in Microsoft Entra ID.
+- **Boolean Settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`.
+- **Optional Settings**: Omitted optional attributes retain their existing service values. Set a collection to `[]` to clear it explicitly.
+
 ## Import
+
+Import is supported using the following syntax:
 
 {{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_authorization_policy/import.sh" }}

@@ -1,5 +1,5 @@
 ---
-page_title: "microsoft365_graph_beta_identity_and_access_authorization_policy Resource - microsoft365"
+page_title: "microsoft365_graph_beta_identity_and_access_authorization_policy Resource - terraform-provider-microsoft365"
 subcategory: "Identity and Access"
 description: |-
   Manages the tenant-wide Microsoft Entra authorization policy using the Microsoft Graph beta /policies/authorizationPolicy endpoint.
@@ -20,18 +20,22 @@ This is a **singleton resource** — one policy exists per tenant. The `create` 
 
 ## Microsoft Graph API Permissions
 
-The following client `application` permissions are needed to use this resource:
+The following client `application` permissions are needed in order to use this resource:
+
+**Required:**
 
 - `Policy.Read.All`
 - `Policy.ReadWrite.Authorization`
 
-## Important Notes
+**Optional:**
 
-- **Singleton resource**: Manage one instance per tenant across all Terraform states. The ID is always `authorizationPolicy`.
-- **Create and update**: Both operations use PATCH to configure the existing policy, then GET to refresh state.
-- **Destroy**: Only removes Terraform state. The authorization policy and its settings remain in Microsoft Entra ID.
-- **Boolean settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`.
-- **Optional settings**: Omitted optional attributes retain their existing service values. Set a collection to `[]` to clear it explicitly.
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| Unreleased | Experimental | Initial release |
 
 ## Example Usage
 
@@ -154,7 +158,17 @@ Optional:
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
 
+## Important Notes
+
+- **Singleton Resource**: Manage one instance per tenant across all Terraform states. The ID is always `authorizationPolicy`.
+- **Create and Update Behavior**: Both operations use PATCH to configure the existing policy, then GET to refresh state.
+- **Destroy Behavior**: Only removes Terraform state. The authorization policy and its settings remain in Microsoft Entra ID.
+- **Boolean Settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`.
+- **Optional Settings**: Omitted optional attributes retain their existing service values. Set a collection to `[]` to clear it explicitly.
+
 ## Import
+
+Import is supported using the following syntax:
 
 ```shell
 # Import the tenant-wide authorization policy using its fixed singleton ID.
