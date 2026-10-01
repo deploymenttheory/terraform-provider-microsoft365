@@ -8,8 +8,27 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// stableConsistencyPredicate requires consecutive matching reads because Graph can
+// briefly return an older replica even after the first read reflects a PATCH.
+func stableConsistencyPredicate(
+	expected *AuthorizationPolicyResourceModel,
+) func(context.Context, tfsdk.State) bool {
+	matches := consistencyPredicate(expected)
+	consecutive := 0
+	return func(ctx context.Context, state tfsdk.State) bool {
+		if !matches(ctx, state) {
+			consecutive = 0
+			return false
+		}
+		consecutive++
+		return consecutive >= 3
+	}
+}
+
 // consistencyPredicate waits until a read reflects every known planned policy setting.
-func consistencyPredicate(expected *AuthorizationPolicyResourceModel) func(context.Context, tfsdk.State) bool {
+func consistencyPredicate(
+	expected *AuthorizationPolicyResourceModel,
+) func(context.Context, tfsdk.State) bool {
 	return func(ctx context.Context, state tfsdk.State) bool {
 		var actual AuthorizationPolicyResourceModel
 		if diags := state.Get(ctx, &actual); diags.HasError() {

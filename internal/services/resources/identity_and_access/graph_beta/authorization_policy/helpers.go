@@ -4,14 +4,19 @@ import (
 	"context"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // mapPermissionGrantPolicyIDs preserves configured prefix casing when Graph returns
 // ManagePermissionGrants instead of managePermissionGrants. Policy IDs remain case-sensitive,
 // and remote additions or removals are retained so Terraform can detect drift.
-func mapPermissionGrantPolicyIDs(ctx context.Context, remote []string, configured types.Set) types.Set {
+func mapPermissionGrantPolicyIDs(
+	ctx context.Context,
+	remote []string,
+	configured types.Set,
+) types.Set {
 	configuredValues := make(map[string]string, len(configured.Elements()))
 	for _, element := range configured.Elements() {
 		if value, ok := element.(types.String); ok && !value.IsNull() && !value.IsUnknown() {

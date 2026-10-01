@@ -4,7 +4,7 @@ resource "microsoft365_graph_beta_identity_and_access_authorization_policy" "tes
   allow_email_verified_users_to_join_organization = false
   allow_user_consent_for_risky_apps               = false
   block_msol_powershell                           = true
-  allow_invites_from                              = "adminsAndGuestInviters"
+  allow_invites_from                              = "adminsGuestInvitersAndAllMembers"
   default_user_role_permissions = {
     allowed_to_create_agent_identity_blueprints     = false
     allowed_to_create_apps                          = false

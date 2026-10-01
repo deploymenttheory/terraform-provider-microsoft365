@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Create configures the authorization policy.
@@ -22,7 +23,11 @@ import (
 //   - PATCH /policies/authorizationPolicy/authorizationPolicy
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/authorizationpolicy-update?view=graph-rest-beta
-func (r *AuthorizationPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *AuthorizationPolicyResource) Create(
+	ctx context.Context,
+	req resource.CreateRequest,
+	resp *resource.CreateResponse,
+) {
 	var object AuthorizationPolicyResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
@@ -30,7 +35,12 @@ func (r *AuthorizationPolicyResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Create,
+		CreateTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -50,9 +60,14 @@ func (r *AuthorizationPolicyResource) Create(ctx context.Context, req resource.C
 		AuthorizationPolicy().
 		ByAuthorizationPolicyId(singletonID).
 		Patch(ctx, requestBody, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationCreate,
+			r.WritePermissions,
+		)
 		return
 	}
 
@@ -71,7 +86,10 @@ func (r *AuthorizationPolicyResource) Create(ctx context.Context, req resource.C
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = consistencyPredicate(&object)
+	opts.ConsistencyPredicate = stableConsistencyPredicate(&object)
+	if deadline, ok := ctx.Deadline(); ok {
+		opts.MaxRetries = int(time.Until(deadline) / opts.RetryInterval)
+	}
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -81,7 +99,6 @@ func (r *AuthorizationPolicyResource) Create(ctx context.Context, req resource.C
 		)
 		return
 	}
-
 }
 
 // Read retrieves the current state of the authorization policy from the Graph API.
@@ -90,7 +107,11 @@ func (r *AuthorizationPolicyResource) Create(ctx context.Context, req resource.C
 //   - GET /policies/authorizationPolicy
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/authorizationpolicy-get?view=graph-rest-beta
-func (r *AuthorizationPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *AuthorizationPolicyResource) Read(
+	ctx context.Context,
+	req resource.ReadRequest,
+	resp *resource.ReadResponse,
+) {
 	var object AuthorizationPolicyResourceModel
 
 	operation := constants.TfOperationRead
@@ -105,7 +126,12 @@ func (r *AuthorizationPolicyResource) Read(ctx context.Context, req resource.Rea
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Read,
+		ReadTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -115,7 +141,6 @@ func (r *AuthorizationPolicyResource) Read(ctx context.Context, req resource.Rea
 		Policies().
 		AuthorizationPolicy().
 		Get(ctx, nil)
-
 	if err != nil {
 		// A singleton cannot be deleted by this resource. Keep state on unavailable or malformed reads.
 		diagnosticResponse := &resource.UpdateResponse{}
@@ -133,7 +158,6 @@ func (r *AuthorizationPolicyResource) Read(ctx context.Context, req resource.Rea
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 }
 
 // Update applies changes to the authorization policy.
@@ -142,7 +166,11 @@ func (r *AuthorizationPolicyResource) Read(ctx context.Context, req resource.Rea
 //   - PATCH /policies/authorizationPolicy/authorizationPolicy
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/authorizationpolicy-update?view=graph-rest-beta
-func (r *AuthorizationPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *AuthorizationPolicyResource) Update(
+	ctx context.Context,
+	req resource.UpdateRequest,
+	resp *resource.UpdateResponse,
+) {
 	var plan AuthorizationPolicyResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -150,7 +178,12 @@ func (r *AuthorizationPolicyResource) Update(ctx context.Context, req resource.U
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		plan.Timeouts.Update,
+		UpdateTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -170,9 +203,14 @@ func (r *AuthorizationPolicyResource) Update(ctx context.Context, req resource.U
 		AuthorizationPolicy().
 		ByAuthorizationPolicyId(singletonID).
 		Patch(ctx, requestBody, nil)
-
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationUpdate,
+			r.WritePermissions,
+		)
 		return
 	}
 
@@ -188,7 +226,10 @@ func (r *AuthorizationPolicyResource) Update(ctx context.Context, req resource.U
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = consistencyPredicate(&plan)
+	opts.ConsistencyPredicate = stableConsistencyPredicate(&plan)
+	if deadline, ok := ctx.Deadline(); ok {
+		opts.MaxRetries = int(time.Until(deadline) / opts.RetryInterval)
+	}
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -198,10 +239,13 @@ func (r *AuthorizationPolicyResource) Update(ctx context.Context, req resource.U
 		)
 		return
 	}
-
 }
 
 // Delete releases Terraform management without changing the tenant-wide settings.
-func (r *AuthorizationPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+func (r *AuthorizationPolicyResource) Delete(
+	ctx context.Context,
+	req resource.DeleteRequest,
+	resp *resource.DeleteResponse,
+) {
 	resp.State.RemoveResource(ctx)
 }

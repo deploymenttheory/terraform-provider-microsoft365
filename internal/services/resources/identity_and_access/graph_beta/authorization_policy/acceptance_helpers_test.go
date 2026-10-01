@@ -7,10 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/stretchr/testify/require"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 )
 
 // authorizationPolicyPreCheck preserves the tenant settings for acceptance-test cleanup.
@@ -30,32 +31,85 @@ func authorizationPolicyPreCheck(t *testing.T) {
 	original := response.GetValue()[0]
 	require.NotNil(t, original)
 	if original.GetAllowUserConsentForRiskyApps() == nil {
-		t.Skip("Graph cannot restore allowUserConsentForRiskyApps to null; use a test tenant with an explicitly configured Boolean value")
+		t.Skip(
+			"Graph cannot restore allowUserConsentForRiskyApps to null; use a test tenant with an explicitly configured Boolean value",
+		)
 	}
 	expected := authorizationPolicySnapshot(original)
-	original.SetId(nil)
+	restore := authorizationPolicyRestoreBody(original)
 
 	t.Cleanup(func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cleanupCancel()
-		_, err := client.Policies().AuthorizationPolicy().ByAuthorizationPolicyId("authorizationPolicy").Patch(cleanupCtx, original, nil)
+		_, err := client.Policies().
+			AuthorizationPolicy().
+			ByAuthorizationPolicyId("authorizationPolicy").
+			Patch(cleanupCtx, restore, nil)
 		if err != nil {
 			t.Errorf("restore original authorization policy: %v", err)
 			return
 		}
+		consecutive := 0
 		for {
 			response, err := client.Policies().AuthorizationPolicy().Get(cleanupCtx, nil)
-			if err == nil && response != nil && len(response.GetValue()) == 1 && reflect.DeepEqual(expected, authorizationPolicySnapshot(response.GetValue()[0])) {
-				return
+			if err == nil && response != nil && len(response.GetValue()) == 1 &&
+				reflect.DeepEqual(expected, authorizationPolicySnapshot(response.GetValue()[0])) {
+				consecutive++
+				if consecutive >= 3 {
+					return
+				}
+			} else {
+				consecutive = 0
 			}
 			select {
 			case <-cleanupCtx.Done():
-				t.Error("authorization policy did not return to its original settings after acceptance testing")
+				t.Error(
+					"authorization policy did not return to its original settings after acceptance testing",
+				)
 				return
 			case <-time.After(2 * time.Second):
 			}
 		}
 	})
+}
+
+// authorizationPolicyRestoreBody marks every original value for serialization.
+// Hydrated SDK models track changed properties, so reusing a GET response can omit
+// the unchanged values that cleanup must explicitly send back to Graph.
+func authorizationPolicyRestoreBody(
+	original graphmodels.AuthorizationPolicyable,
+) graphmodels.AuthorizationPolicyable {
+	body := graphmodels.NewAuthorizationPolicy()
+	body.SetAllowInvitesFrom(original.GetAllowInvitesFrom())
+	body.SetAllowedToSignUpEmailBasedSubscriptions(
+		original.GetAllowedToSignUpEmailBasedSubscriptions(),
+	)
+	body.SetAllowedToUseSSPR(original.GetAllowedToUseSSPR())
+	body.SetAllowEmailVerifiedUsersToJoinOrganization(
+		original.GetAllowEmailVerifiedUsersToJoinOrganization(),
+	)
+	body.SetAllowUserConsentForRiskyApps(original.GetAllowUserConsentForRiskyApps())
+	body.SetBlockMsolPowerShell(original.GetBlockMsolPowerShell())
+	body.SetDescription(original.GetDescription())
+	body.SetDisplayName(original.GetDisplayName())
+	body.SetEnabledPreviewFeatures(original.GetEnabledPreviewFeatures())
+	body.SetGuestUserRoleId(original.GetGuestUserRoleId())
+	body.SetPermissionGrantPolicyIdsAssignedToDefaultUserRole(
+		original.GetPermissionGrantPolicyIdsAssignedToDefaultUserRole(),
+	)
+	if role := original.GetDefaultUserRolePermissions(); role != nil {
+		permissions := graphmodels.NewDefaultUserRolePermissions()
+		permissions.SetAllowedToCreateApps(role.GetAllowedToCreateApps())
+		permissions.SetAllowedToCreateSecurityGroups(role.GetAllowedToCreateSecurityGroups())
+		permissions.SetAllowedToCreateTenants(role.GetAllowedToCreateTenants())
+		permissions.SetAllowedToReadBitlockerKeysForOwnedDevice(
+			role.GetAllowedToReadBitlockerKeysForOwnedDevice(),
+		)
+		permissions.SetAllowedToReadOtherUsers(role.GetAllowedToReadOtherUsers())
+		permissions.SetAdditionalData(role.GetAdditionalData())
+		body.SetDefaultUserRolePermissions(permissions)
+	}
+	return body
 }
 
 // authorizationPolicySnapshot compares all managed values while ignoring set ordering.

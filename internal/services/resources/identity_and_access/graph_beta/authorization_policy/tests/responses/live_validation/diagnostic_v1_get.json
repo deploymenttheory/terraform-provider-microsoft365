@@ -1,0 +1,27 @@
+{
+  "status": 200,
+  "body": {
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#policies/authorizationPolicy/$entity",
+    "id": "authorizationPolicy",
+    "allowInvitesFrom": "adminsGuestInvitersAndAllMembers",
+    "allowedToSignUpEmailBasedSubscriptions": true,
+    "allowedToUseSSPR": true,
+    "allowEmailVerifiedUsersToJoinOrganization": false,
+    "allowUserConsentForRiskyApps": false,
+    "blockMsolPowerShell": false,
+    "displayName": "Authorization Policy",
+    "description": "Used to manage authorization related settings across the company.",
+    "guestUserRoleId": "10dae51f-b6af-4016-8d66-8c2a99b929b3",
+    "defaultUserRolePermissions": {
+      "allowedToCreateApps": true,
+      "allowedToCreateSecurityGroups": true,
+      "allowedToCreateTenants": true,
+      "allowedToReadBitlockerKeysForOwnedDevice": true,
+      "allowedToReadOtherUsers": true,
+      "permissionGrantPoliciesAssigned": [
+        "ManagePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-chat",
+        "ManagePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-team"
+      ]
+    }
+  }
+}

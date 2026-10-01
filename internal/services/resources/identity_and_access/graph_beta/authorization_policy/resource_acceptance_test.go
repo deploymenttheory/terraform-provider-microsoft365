@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAuthorizationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authorization_policy"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 var (
@@ -38,7 +40,13 @@ func TestAccResourceAuthorizationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { authorizationPolicyPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             nil,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() { testlog.StepAction(resourceType, "Adopting the singleton authorization policy") },
@@ -46,7 +54,9 @@ func TestAccResourceAuthorizationPolicy_01_Lifecycle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").HasValue("authorizationPolicy"),
-					check.That(resourceType+".test").Key("allow_invites_from").HasValue("adminsAndGuestInviters"),
+					check.That(resourceType+".test").
+						Key("allow_invites_from").
+						HasValue("adminsGuestInvitersAndAllMembers"),
 					check.That(resourceType+".test").Key("allowed_to_use_sspr").HasValue("true"),
 				),
 			},
@@ -56,8 +66,12 @@ func TestAccResourceAuthorizationPolicy_01_Lifecycle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("allow_invites_from").HasValue("none"),
-					check.That(resourceType+".test").Key("guest_user_role_id").HasValue("2af84b1e-32c8-42b7-82bc-daa82404023b"),
-					check.That(resourceType+".test").Key("default_user_role_permissions.allowed_to_create_apps").HasValue("false"),
+					check.That(resourceType+".test").
+						Key("guest_user_role_id").
+						HasValue("2af84b1e-32c8-42b7-82bc-daa82404023b"),
+					check.That(resourceType+".test").
+						Key("default_user_role_permissions.allowed_to_create_apps").
+						HasValue("false"),
 				),
 			},
 			{
@@ -78,15 +92,25 @@ func TestAccResourceAuthorizationPolicy_02_EmptySets(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { authorizationPolicyPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy:             nil,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		CheckDestroy: nil,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() { testlog.StepAction(resourceType, "Clearing authorization policy collections") },
 				Config:    loadAcceptanceTestTerraform("resource_empty_sets.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test").ExistsInGraph(testResource),
-					check.That(resourceType+".test").Key("enabled_preview_features.#").HasValue("0"),
-					check.That(resourceType+".test").Key("permission_grant_policy_ids_assigned_to_default_user_role.#").HasValue("0"),
+					check.That(resourceType+".test").
+						Key("enabled_preview_features.#").
+						HasValue("0"),
+					check.That(resourceType+".test").
+						Key("permission_grant_policy_ids_assigned_to_default_user_role.#").
+						HasValue("0"),
 				),
 			},
 			{Config: loadAcceptanceTestTerraform("resource_empty_sets.tf"), PlanOnly: true},

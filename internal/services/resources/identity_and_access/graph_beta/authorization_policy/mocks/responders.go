@@ -9,12 +9,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/jarcoal/httpmock"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 )
 
-const URL = "https://graph.microsoft.com/beta/policies/authorizationPolicy"
-const PatchURL = URL + "/authorizationPolicy"
+const (
+	URL      = "https://graph.microsoft.com/beta/policies/authorizationPolicy"
+	PatchURL = URL + "/authorizationPolicy"
+)
 
 // AuthorizationPolicyMock retains the singleton across Terraform create, update and destroy.
 type AuthorizationPolicyMock struct {
@@ -32,7 +35,14 @@ func init() {
 // RegisterMocks registers the GET and PATCH endpoints using the captured live response.
 func (m *AuthorizationPolicyMock) RegisterMocks() {
 	m.CleanupMockState()
-	data, err := os.ReadFile(filepath.Join("tests", "responses", "validate_get", "get_authorization_policy_success.json"))
+	data, err := os.ReadFile(
+		filepath.Join(
+			"tests",
+			"responses",
+			"validate_get",
+			"get_authorization_policy_success.json",
+		),
+	)
 	if err != nil {
 		panic(fmt.Sprintf("load authorization policy fixture: %v", err))
 	}
@@ -72,17 +82,23 @@ func (m *AuthorizationPolicyMock) RegisterMocks() {
 			if key == "@odata.type" || value == nil {
 				continue
 			}
-			if key == "defaultUserRolePermissions" {
+			switch key {
+			case "defaultUserRolePermissions":
 				for name, permission := range value.(map[string]any) {
 					m.policy[key].(map[string]any)[name] = permission
 				}
-			} else if key == "permissionGrantPolicyIdsAssignedToDefaultUserRole" {
+			case "permissionGrantPolicyIdsAssignedToDefaultUserRole":
 				policies := value.([]any)
 				for i, policy := range policies {
-					policies[i] = strings.Replace(policy.(string), "managePermissionGrants", "ManagePermissionGrants", 1)
+					policies[i] = strings.Replace(
+						policy.(string),
+						"managePermissionGrants",
+						"ManagePermissionGrants",
+						1,
+					)
 				}
 				m.policy[key] = policies
-			} else {
+			default:
 				m.policy[key] = value
 			}
 		}
@@ -93,10 +109,24 @@ func (m *AuthorizationPolicyMock) RegisterMocks() {
 
 // RegisterErrorMocks simulates missing authorization policy permissions.
 func (m *AuthorizationPolicyMock) RegisterErrorMocks() {
-	httpmock.RegisterResponder("GET", URL, httpmock.NewStringResponder(403, `{"error":{"code":"Forbidden","message":"Insufficient privileges"}}`))
+	httpmock.RegisterResponder(
+		"GET",
+		URL,
+		httpmock.NewStringResponder(
+			403,
+			`{"error":{"code":"Forbidden","message":"Insufficient privileges"}}`,
+		),
+	)
 
 	// Create and update both PATCH the existing singleton.
-	httpmock.RegisterResponder("PATCH", PatchURL, httpmock.NewStringResponder(403, `{"error":{"code":"Forbidden","message":"Insufficient privileges"}}`))
+	httpmock.RegisterResponder(
+		"PATCH",
+		PatchURL,
+		httpmock.NewStringResponder(
+			403,
+			`{"error":{"code":"Forbidden","message":"Insufficient privileges"}}`,
+		),
+	)
 }
 
 // CleanupMockState releases the singleton mock state between tests.
@@ -112,6 +142,7 @@ func (m *AuthorizationPolicyMock) Snapshot() (string, int) {
 	defer m.mu.Unlock()
 	return m.policy["allowInvitesFrom"].(string), m.patches
 }
+
 func (m *AuthorizationPolicyMock) SetInvites(value string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
