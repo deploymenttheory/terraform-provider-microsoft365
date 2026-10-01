@@ -1,0 +1,128 @@
+[
+  {
+    "case": "null_risky_apps",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "empty_preview_features",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "displayName",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "description",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowInvitesFrom",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "guestUserRoleId",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowedToSignUpEmailBasedSubscriptions",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowedToUseSSPR",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowEmailVerifiedUsersToJoinOrganization",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "blockMsolPowerShell",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowedToCreateApps",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowedToCreateAgentIdentityBlueprints",
+    "patch_status": 204,
+    "readback_matches": false,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowedToCreateSecurityGroups",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowedToCreateTenants",
+    "patch_status": 204,
+    "readback_matches": false,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowedToReadBitlockerKeysForOwnedDevice",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "allowedToReadOtherUsers",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "empty_consent_policies",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": true
+  },
+  {
+    "case": "risky_apps_false",
+    "patch_status": 204,
+    "readback_matches": true,
+    "restore_status": 204,
+    "original_restored": false
+  }
+]

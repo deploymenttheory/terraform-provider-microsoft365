@@ -1,0 +1,14 @@
+{
+  "status": 405,
+  "body": {
+    "error": {
+      "code": "Request_BadRequest",
+      "message": "Specified HTTP method is not allowed for the request target.",
+      "innerError": {
+        "date": "2026-10-01T12:11:20",
+        "request-id": "ada02977-f086-49f6-a6b7-77215b5585bb",
+        "client-request-id": "ada02977-f086-49f6-a6b7-77215b5585bb"
+      }
+    }
+  }
+}
