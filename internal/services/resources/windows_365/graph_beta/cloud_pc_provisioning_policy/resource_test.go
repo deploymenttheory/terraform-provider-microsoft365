@@ -174,6 +174,47 @@ func TestUnitResourceCloudPcProvisioningPolicy_02_CreateMaximal(t *testing.T) {
 	})
 }
 
+func TestUnitResourceCloudPcProvisioningPolicy_CreateNorthEurope(t *testing.T) {
+	_, _ = setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+
+	mock := &provisioningPolicyMocks.CloudPcProvisioningPolicyMock{}
+	mock.RegisterMocks()
+
+	config := `resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "north_europe" {
+	display_name = "Test North Europe Provisioning Policy"
+	image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc"
+
+	windows_setting = {
+		locale = "en-US"
+	}
+
+	microsoft_managed_desktop = {
+		managed_type = "notManaged"
+		profile      = "4aa9b805-9494-4eed-a04b-ed51ec9e631e"
+	}
+
+	domain_join_configurations = [{
+		domain_join_type = "azureADJoin"
+		region_group     = "ireland"
+		region_name      = "northeurope"
+	}]
+}`
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.north_europe", "domain_join_configurations.0.region_group", "ireland"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.north_europe", "domain_join_configurations.0.region_name", "northeurope"),
+				),
+			},
+		},
+	})
+}
+
 // TestUnitResourceCloudPcProvisioningPolicy_03_UpdateMinimalToMaximal tests updating from minimal to maximal configuration
 func TestUnitResourceCloudPcProvisioningPolicy_03_UpdateMinimalToMaximal(t *testing.T) {
 	// Set up mock environment
