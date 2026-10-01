@@ -1,0 +1,10 @@
+{
+  "all_original_values_restored": false,
+  "differences": {
+    "allowUserConsentForRiskyApps": {
+      "original": null,
+      "current": false
+    }
+  },
+  "note": "Collection ordering is ignored because these properties are sets."
+}

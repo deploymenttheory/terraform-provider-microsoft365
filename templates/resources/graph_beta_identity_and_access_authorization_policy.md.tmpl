@@ -1,0 +1,65 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [authorizationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/authorizationpolicy?view=graph-rest-beta)
+- [Get authorizationPolicy](https://learn.microsoft.com/en-us/graph/api/authorizationpolicy-get?view=graph-rest-beta&tabs=http)
+- [Update authorizationPolicy](https://learn.microsoft.com/en-us/graph/api/authorizationpolicy-update?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+
+- `Policy.Read.All`
+- `Policy.ReadWrite.Authorization`
+
+**Optional:**
+
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.4.0 | Preview| Initial release |
+
+## Example Usage
+
+### Basic Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_authorization_policy/resource.tf" }}
+
+### Complete Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_authorization_policy/resource_complete.tf" }}
+
+### Disable User Consent to Apps
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_authorization_policy/resource_disable_user_consent.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Singleton Resource**: Manage one instance per tenant across all Terraform states. The ID is always `authorizationPolicy`.
+- **Create and Update Behavior**: Both operations use PATCH to configure the existing policy, then GET to refresh state.
+- **Destroy Behavior**: Only removes Terraform state. The authorization policy and its settings remain in Microsoft Entra ID.
+- **Boolean Settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`.
+- **Optional Settings**: Omitted optional attributes retain their existing service values. Set a collection to `[]` to clear it explicitly.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_authorization_policy/import.sh" }}

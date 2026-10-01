@@ -1,0 +1,21 @@
+{
+  "status": 200,
+  "body": {
+    "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authorizationPolicy(id,allowInvitesFrom,blockMsolPowerShell,defaultUserRolePermissions)",
+    "value": [
+      {
+        "id": "authorizationPolicy",
+        "allowInvitesFrom": "adminsGuestInvitersAndAllMembers",
+        "blockMsolPowerShell": false,
+        "defaultUserRolePermissions": {
+          "allowedToCreateApps": true,
+          "allowedToCreateAgentIdentityBlueprints": true,
+          "allowedToCreateSecurityGroups": true,
+          "allowedToCreateTenants": true,
+          "allowedToReadBitlockerKeysForOwnedDevice": true,
+          "allowedToReadOtherUsers": true
+        }
+      }
+    ]
+  }
+}

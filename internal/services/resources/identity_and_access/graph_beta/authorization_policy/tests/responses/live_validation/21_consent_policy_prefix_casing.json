@@ -1,0 +1,88 @@
+{
+  "casing_request": {
+    "permissionGrantPolicyIdsAssignedToDefaultUserRole": [
+      "managePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-chat",
+      "managePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-team"
+    ]
+  },
+  "casing_response": {
+    "status": 204,
+    "body": null
+  },
+  "casing_readback_get": {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authorizationPolicy",
+      "value": [
+        {
+          "id": "authorizationPolicy",
+          "allowInvitesFrom": "adminsGuestInvitersAndAllMembers",
+          "allowedToSignUpEmailBasedSubscriptions": true,
+          "allowedToUseSSPR": true,
+          "allowEmailVerifiedUsersToJoinOrganization": false,
+          "allowUserConsentForRiskyApps": false,
+          "blockMsolPowerShell": false,
+          "description": "Used to manage authorization related settings across the company.",
+          "displayName": "Authorization Policy",
+          "enabledPreviewFeatures": [],
+          "guestUserRoleId": "10dae51f-b6af-4016-8d66-8c2a99b929b3",
+          "permissionGrantPolicyIdsAssignedToDefaultUserRole": [
+            "ManagePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-team",
+            "ManagePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-chat"
+          ],
+          "defaultUserRolePermissions": {
+            "allowedToCreateApps": true,
+            "allowedToCreateAgentIdentityBlueprints": true,
+            "allowedToCreateSecurityGroups": true,
+            "allowedToCreateTenants": true,
+            "allowedToReadBitlockerKeysForOwnedDevice": true,
+            "allowedToReadOtherUsers": true
+          }
+        }
+      ]
+    }
+  },
+  "casing_restore_request": {
+    "permissionGrantPolicyIdsAssignedToDefaultUserRole": [
+      "ManagePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-chat",
+      "ManagePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-team"
+    ]
+  },
+  "casing_restore_response": {
+    "status": 204,
+    "body": null
+  },
+  "casing_restored_get_0": {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authorizationPolicy",
+      "value": [
+        {
+          "id": "authorizationPolicy",
+          "allowInvitesFrom": "adminsGuestInvitersAndAllMembers",
+          "allowedToSignUpEmailBasedSubscriptions": true,
+          "allowedToUseSSPR": true,
+          "allowEmailVerifiedUsersToJoinOrganization": false,
+          "allowUserConsentForRiskyApps": false,
+          "blockMsolPowerShell": false,
+          "description": "Used to manage authorization related settings across the company.",
+          "displayName": "Authorization Policy",
+          "enabledPreviewFeatures": [],
+          "guestUserRoleId": "10dae51f-b6af-4016-8d66-8c2a99b929b3",
+          "permissionGrantPolicyIdsAssignedToDefaultUserRole": [
+            "ManagePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-team",
+            "ManagePermissionGrantsForOwnedResource.microsoft-dynamically-managed-permissions-for-chat"
+          ],
+          "defaultUserRolePermissions": {
+            "allowedToCreateApps": true,
+            "allowedToCreateAgentIdentityBlueprints": true,
+            "allowedToCreateSecurityGroups": true,
+            "allowedToCreateTenants": true,
+            "allowedToReadBitlockerKeysForOwnedDevice": true,
+            "allowedToReadOtherUsers": true
+          }
+        }
+      ]
+    }
+  }
+}
