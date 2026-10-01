@@ -1,0 +1,19 @@
+{
+  "request": {
+    "allowExternalIdentitiesToLeave": false
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": {
+        "code": "Request_BadRequest",
+        "message": "Cannot disable AllowExternalIdentitiesToLeave since PrivacyProfile on the organization resource has not been specified. Please update the PrivacyContact and PrivacyStatementUrl on your organization's PrivacyProfileusing the Update organization API.",
+        "innerError": {
+          "date": "2026-10-01T15:23:18",
+          "request-id": "3a3a00b0-a9ad-4cd2-bbdb-68f26a0762e6",
+          "client-request-id": "3a3a00b0-a9ad-4cd2-bbdb-68f26a0762e6"
+        }
+      }
+    }
+  }
+}

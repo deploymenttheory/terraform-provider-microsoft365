@@ -1,0 +1,9 @@
+{
+  "request": {
+    "allowDeletedIdentitiesDataRemoval": true
+  },
+  "response": {
+    "status": 204,
+    "body": null
+  }
+}

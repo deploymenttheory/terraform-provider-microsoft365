@@ -1,0 +1,18 @@
+{
+  "api": "https://graph.microsoft.com/beta/policies/externalIdentitiesPolicy",
+  "singleton_id": "externalIdentityPolicy",
+  "permission": "Policy.ReadWrite.ExternalIdentities",
+  "observations": {
+    "get": "200; direct singleton object",
+    "patch_both_original_values": "204; original values returned by subsequent GETs",
+    "allow_external_identities_to_leave_false": "400: organization privacyContact and privacyStatementUrl are required; this tenant has no privacy profile. Successful false mutation was not tested live.",
+    "allow_deleted_identities_data_removal": "204; true and false both round-tripped. Microsoft documents this setting as reserved for future use.",
+    "display_name": "400: updates rejected",
+    "description": "Absent from GET; not sent in PATCH"
+  },
+  "restoration": "Full original GET body matched three consecutive curl GETs after probes and after acceptance testing",
+  "terraform_parallelism": 1,
+  "acceptance": "Passed adoption, reserved-field update, import verification, no-drift plan and destroy, followed by original-policy restoration.",
+  "unit": "Passed adoption, both values for both Boolean settings, import verification, no-drift plan, and state-only destroy. Exactly two PATCH calls; no POST or DELETE calls.",
+  "lint": "Passed: 0 issues"
+}

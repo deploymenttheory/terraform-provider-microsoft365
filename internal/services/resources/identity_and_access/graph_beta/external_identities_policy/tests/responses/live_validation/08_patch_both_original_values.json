@@ -1,0 +1,10 @@
+{
+  "request": {
+    "allowExternalIdentitiesToLeave": true,
+    "allowDeletedIdentitiesDataRemoval": false
+  },
+  "response": {
+    "status": 204,
+    "body": null
+  }
+}

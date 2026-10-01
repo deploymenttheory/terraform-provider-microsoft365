@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/externalIdentitiesPolicy/$entity",
+  "id": "externalIdentityPolicy",
+  "deletedDateTime": null,
+  "allowExternalIdentitiesToLeave": true,
+  "allowDeletedIdentitiesDataRemoval": false,
+  "displayName": "External Identities Policy"
+}
