@@ -1,0 +1,32 @@
+{
+  "request": {
+    "description": "Terraform authentication flows probe"
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": {
+        "code": "AADB2C99041",
+        "message": "The authentication flows policy service request is invalid: id, description, and displayname are immutable.",
+        "innerError": {
+          "correlationId": "cb021374-79e9-4189-a18b-261f08ac3839",
+          "date": "2026-10-01T14:06:52",
+          "request-id": "f2838ec3-af0e-42e1-b67e-3a2f798053ac",
+          "client-request-id": "f2838ec3-af0e-42e1-b67e-3a2f798053ac"
+        }
+      }
+    }
+  },
+  "readback": {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authenticationFlowsPolicy/$entity",
+      "id": "authenticationFlowsPolicy",
+      "displayName": "Authentication flows policy",
+      "description": "Authentication flows policy allows modification of settings related to authentication flows in AAD tenant, such as self-service sign up configuration.",
+      "selfServiceSignUp": {
+        "isEnabled": false
+      }
+    }
+  }
+}

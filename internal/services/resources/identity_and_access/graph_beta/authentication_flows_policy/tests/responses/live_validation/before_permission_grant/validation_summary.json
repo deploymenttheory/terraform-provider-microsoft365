@@ -1,0 +1,25 @@
+{
+  "cases": [
+    {
+      "case": "02_enable",
+      "status": 403,
+      "readback_matches": null
+    },
+    {
+      "case": "03_disable",
+      "status": 403,
+      "readback_matches": null
+    },
+    {
+      "case": "04_display_name",
+      "status": 403,
+      "readback_matches": null
+    },
+    {
+      "case": "05_description",
+      "status": 403,
+      "readback_matches": null
+    }
+  ],
+  "all_original_values_restored": true
+}
