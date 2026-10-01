@@ -1,0 +1,57 @@
+[
+  {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/externalIdentitiesPolicy/$entity",
+      "id": "externalIdentityPolicy",
+      "deletedDateTime": null,
+      "allowExternalIdentitiesToLeave": true,
+      "allowDeletedIdentitiesDataRemoval": true,
+      "displayName": "External Identities Policy"
+    }
+  },
+  {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/externalIdentitiesPolicy/$entity",
+      "id": "externalIdentityPolicy",
+      "deletedDateTime": null,
+      "allowExternalIdentitiesToLeave": true,
+      "allowDeletedIdentitiesDataRemoval": true,
+      "displayName": "External Identities Policy"
+    }
+  },
+  {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/externalIdentitiesPolicy/$entity",
+      "id": "externalIdentityPolicy",
+      "deletedDateTime": null,
+      "allowExternalIdentitiesToLeave": true,
+      "allowDeletedIdentitiesDataRemoval": false,
+      "displayName": "External Identities Policy"
+    }
+  },
+  {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/externalIdentitiesPolicy/$entity",
+      "id": "externalIdentityPolicy",
+      "deletedDateTime": null,
+      "allowExternalIdentitiesToLeave": true,
+      "allowDeletedIdentitiesDataRemoval": false,
+      "displayName": "External Identities Policy"
+    }
+  },
+  {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/externalIdentitiesPolicy/$entity",
+      "id": "externalIdentityPolicy",
+      "deletedDateTime": null,
+      "allowExternalIdentitiesToLeave": true,
+      "allowDeletedIdentitiesDataRemoval": false,
+      "displayName": "External Identities Policy"
+    }
+  }
+]

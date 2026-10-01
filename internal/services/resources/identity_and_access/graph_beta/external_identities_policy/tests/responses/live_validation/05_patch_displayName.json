@@ -1,0 +1,29 @@
+{
+  "request": {
+    "displayName": "External Identities Policy API validation"
+  },
+  "response": {
+    "status": 400,
+    "body": {
+      "error": {
+        "code": "Request_BadRequest",
+        "message": "Invalid value specified for property 'displayName' of resource 'ExternalIdentitiesPolicy'.",
+        "details": [
+          {
+            "code": "InvalidValue",
+            "message": "Invalid value specified for property 'displayName' of resource 'ExternalIdentitiesPolicy'.",
+            "target": "displayName",
+            "blockedWord": "",
+            "prefix": "",
+            "suffix": ""
+          }
+        ],
+        "innerError": {
+          "date": "2026-10-01T15:23:44",
+          "request-id": "37f9a9a4-2e12-42e2-a5ed-7d806bdf6c18",
+          "client-request-id": "37f9a9a4-2e12-42e2-a5ed-7d806bdf6c18"
+        }
+      }
+    }
+  }
+}
