@@ -1,0 +1,32 @@
+{
+  "request": {
+    "description": "Terraform authentication flows probe"
+  },
+  "response": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AADB2C",
+        "message": "The application does not have any of the required application permissions (Policy.ReadWrite.AuthenticationFlows) to access the resource. ",
+        "innerError": {
+          "correlationId": "db38843d-f6fd-4617-a67d-2371a2df9ce5",
+          "date": "2026-10-01T14:02:05",
+          "request-id": "fa230681-267b-43ca-9675-1235782055fb",
+          "client-request-id": "fa230681-267b-43ca-9675-1235782055fb"
+        }
+      }
+    }
+  },
+  "readback": {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authenticationFlowsPolicy/$entity",
+      "id": "authenticationFlowsPolicy",
+      "displayName": "Authentication flows policy",
+      "description": "Authentication flows policy allows modification of settings related to authentication flows in AAD tenant, such as self-service sign up configuration.",
+      "selfServiceSignUp": {
+        "isEnabled": false
+      }
+    }
+  }
+}

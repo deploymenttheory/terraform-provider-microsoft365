@@ -1,0 +1,55 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [authenticationFlowsPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/authenticationflowspolicy?view=graph-rest-beta)
+- [Get authenticationFlowsPolicy](https://learn.microsoft.com/en-us/graph/api/authenticationflowspolicy-get?view=graph-rest-beta&tabs=http)
+- [Update authenticationFlowsPolicy](https://learn.microsoft.com/en-us/graph/api/authenticationflowspolicy-update?view=graph-rest-beta&tabs=http)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+
+- `Policy.Read.All`
+- `Policy.ReadWrite.AuthenticationFlows`
+
+**Optional:**
+
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.4.0 | Preview | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_authentication_flows_policy/resource_with_timeouts.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Singleton Resource**: Manage one instance per tenant across all Terraform states. The ID is always `authenticationFlowsPolicy`.
+- **Create and Update Behavior**: Both operations use PATCH on `/policies/authenticationFlowsPolicy` to configure the existing policy, then GET to refresh state.
+- **Destroy Behavior**: Only removes Terraform state. The policy and its settings remain in Microsoft Entra ID.
+- **Boolean Settings**: `self_service_sign_up` and its `is_enabled` Boolean are required. Specify `true` or `false` explicitly.
+- **Read-Only Metadata**: Microsoft Graph rejects changes to `displayName` and `description`. Their Terraform attributes are computed from GET responses.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_authentication_flows_policy/import.sh" }}

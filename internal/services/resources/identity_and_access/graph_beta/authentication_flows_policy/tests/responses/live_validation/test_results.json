@@ -1,0 +1,10 @@
+{
+  "unit_tests_passed": true,
+  "unit_test_count": 1,
+  "acceptance_tests_passed": true,
+  "acceptance_test_count": 1,
+  "lint_issues": 0,
+  "terraform_parallelism": 1,
+  "application_permission_granted": "Policy.ReadWrite.AuthenticationFlows",
+  "all_original_policy_values_restored": true
+}

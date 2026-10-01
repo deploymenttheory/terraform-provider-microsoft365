@@ -1,0 +1,2 @@
+# Import the tenant-wide authentication flows policy using its fixed singleton ID.
+terraform import microsoft365_graph_beta_identity_and_access_authentication_flows_policy.example authenticationFlowsPolicy

@@ -1,0 +1,34 @@
+{
+  "request": {
+    "selfServiceSignUp": {
+      "isEnabled": true
+    }
+  },
+  "response": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AADB2C",
+        "message": "The application does not have any of the required application permissions (Policy.ReadWrite.AuthenticationFlows) to access the resource. ",
+        "innerError": {
+          "correlationId": "529ba591-29f9-4738-97f3-b6b84ec9ead6",
+          "date": "2026-10-01T14:02:01",
+          "request-id": "6a5e2796-fc55-4416-9f70-f298212b2ab5",
+          "client-request-id": "6a5e2796-fc55-4416-9f70-f298212b2ab5"
+        }
+      }
+    }
+  },
+  "readback": {
+    "status": 200,
+    "body": {
+      "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authenticationFlowsPolicy/$entity",
+      "id": "authenticationFlowsPolicy",
+      "displayName": "Authentication flows policy",
+      "description": "Authentication flows policy allows modification of settings related to authentication flows in AAD tenant, such as self-service sign up configuration.",
+      "selfServiceSignUp": {
+        "isEnabled": false
+      }
+    }
+  }
+}

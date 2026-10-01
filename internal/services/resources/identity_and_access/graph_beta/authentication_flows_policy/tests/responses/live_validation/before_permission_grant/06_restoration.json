@@ -1,0 +1,61 @@
+{
+  "request": {
+    "selfServiceSignUp": {
+      "isEnabled": false
+    }
+  },
+  "response": {
+    "status": 403,
+    "body": {
+      "error": {
+        "code": "AADB2C",
+        "message": "The application does not have any of the required application permissions (Policy.ReadWrite.AuthenticationFlows) to access the resource. ",
+        "innerError": {
+          "correlationId": "b9488270-32c3-46ae-87ca-e39fa750ed19",
+          "date": "2026-10-01T14:02:06",
+          "request-id": "9d9cd28a-6121-40ef-a907-e67b9c9258ce",
+          "client-request-id": "9d9cd28a-6121-40ef-a907-e67b9c9258ce"
+        }
+      }
+    }
+  },
+  "all_original_values_restored": true,
+  "readbacks": [
+    {
+      "status": 200,
+      "body": {
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authenticationFlowsPolicy/$entity",
+        "id": "authenticationFlowsPolicy",
+        "displayName": "Authentication flows policy",
+        "description": "Authentication flows policy allows modification of settings related to authentication flows in AAD tenant, such as self-service sign up configuration.",
+        "selfServiceSignUp": {
+          "isEnabled": false
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authenticationFlowsPolicy/$entity",
+        "id": "authenticationFlowsPolicy",
+        "displayName": "Authentication flows policy",
+        "description": "Authentication flows policy allows modification of settings related to authentication flows in AAD tenant, such as self-service sign up configuration.",
+        "selfServiceSignUp": {
+          "isEnabled": false
+        }
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/authenticationFlowsPolicy/$entity",
+        "id": "authenticationFlowsPolicy",
+        "displayName": "Authentication flows policy",
+        "description": "Authentication flows policy allows modification of settings related to authentication flows in AAD tenant, such as self-service sign up configuration.",
+        "selfServiceSignUp": {
+          "isEnabled": false
+        }
+      }
+    }
+  ]
+}
