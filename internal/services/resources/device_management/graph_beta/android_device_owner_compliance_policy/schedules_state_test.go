@@ -123,3 +123,47 @@ func TestUnitAndroidComplianceScheduledActionDrift(t *testing.T) {
 		})
 	}
 }
+
+// A failed conversion must surface a diagnostic and preserve the saved
+// schedule, rather than silently replacing it with remote or default values.
+func TestUnitAndroidComplianceInvalidScheduledActionState(t *testing.T) {
+	ctx := context.Background()
+	invalidConfigurations := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("invalid action")})
+	ruleType := types.ObjectType{AttrTypes: map[string]attr.Type{
+		"rule_name":                       types.StringType,
+		"scheduled_action_configurations": invalidConfigurations.Type(ctx),
+	}}
+	invalidRule := types.ObjectValueMust(ruleType.AttrTypes, map[string]attr.Value{
+		"rule_name":                       types.StringValue("PasswordRequired"),
+		"scheduled_action_configurations": invalidConfigurations,
+	})
+	for _, tc := range []struct {
+		name   string
+		prior  types.List
+		detail string
+	}{
+		{
+			name:   "invalid_rule_state",
+			prior:  types.ListValueMust(types.StringType, []attr.Value{types.StringValue("invalid rule")}),
+			detail: "failed to read prior scheduled actions",
+		},
+		{
+			name:   "invalid_action_state",
+			prior:  types.ListValueMust(ruleType, []attr.Value{invalidRule}),
+			detail: "failed to read prior action configurations",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			policy := graphmodels.NewAndroidDeviceOwnerCompliancePolicy()
+			policy.SetScheduledActionsForRule([]graphmodels.DeviceComplianceScheduledActionForRuleable{
+				graphmodels.NewDeviceComplianceScheduledActionForRule(),
+			})
+			data := DeviceCompliancePolicyResourceModel{ScheduledActionsForRule: tc.prior}
+			diags := MapRemoteStateToTerraform(ctx, &data, policy)
+			require.Len(t, diags.Errors(), 1)
+			require.Equal(t, "Error mapping scheduled actions for rule", diags.Errors()[0].Summary())
+			require.Contains(t, diags.Errors()[0].Detail(), tc.detail)
+			require.True(t, tc.prior.Equal(data.ScheduledActionsForRule), "failed conversion must preserve saved schedules")
+		})
+	}
+}
