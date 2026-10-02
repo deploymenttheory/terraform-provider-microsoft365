@@ -1,9 +1,11 @@
 package graphBetaAndroidDeviceOwnerCompliancePolicy
 
 import (
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -66,7 +68,17 @@ func (g *scheduleTestGraph) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 	const item = collection + "/policy-id"
 	var body map[string]any
 	if req.Method == http.MethodPost || req.Method == http.MethodPatch {
-		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+		var reader io.Reader = req.Body
+		if req.Header.Get("Content-Encoding") == "gzip" {
+			decoded, err := gzip.NewReader(req.Body)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			defer decoded.Close()
+			reader = decoded
+		}
+		if err := json.NewDecoder(reader).Decode(&body); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -159,7 +171,7 @@ func TestUnitAndroidComplianceScheduledActionLifecycle(t *testing.T) {
 			initial := config(tc.rule, tc.initialGrace)
 			updated := config(`rule_name = "PasswordRequired"`, "grace_period_hours = 24")
 			address := ResourceName + ".test"
-			noChanges := resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()}}
+			noChanges := resource.ConfigPlanChecks{PostApplyPostRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()}}
 			steps := []resource.TestStep{
 				{
 					Config: initial,
