@@ -243,7 +243,11 @@ func mapScheduledActionsForRuleToState(
 
 	list, diags := types.ListValue(scheduledActionType, actionValues)
 	if diags.HasError() {
-		return types.ListNull(scheduledActionType), fmt.Errorf("%w: failed to create scheduled actions list: %v", errScheduledActionState, diags.Errors())
+		return types.ListNull(scheduledActionType), fmt.Errorf(
+			"%w: failed to create scheduled actions list: %v",
+			errScheduledActionState,
+			diags.Errors(),
+		)
 	}
 	return list, nil
 }
@@ -311,7 +315,11 @@ func mapScheduledActionConfigurationsToState(
 
 	set, diags := types.SetValue(configurationType, configValues)
 	if diags.HasError() {
-		return types.SetNull(configurationType), fmt.Errorf("%w: failed to create scheduled action configurations set: %v", errScheduledActionState, diags.Errors())
+		return types.SetNull(configurationType), fmt.Errorf(
+			"%w: failed to create scheduled action configurations set: %v",
+			errScheduledActionState,
+			diags.Errors(),
+		)
 	}
 	return set, nil
 }
