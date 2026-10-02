@@ -87,7 +87,7 @@ func TestUnitAndroidComplianceReadScheduledActions(t *testing.T) {
 			require.False(t, actual.ScheduledActionsForRule.IsNull(), "existing schedules must be read during import")
 			require.False(t, actual.ScheduledActionsForRule.ElementsAs(ctx, &rules, false).HasError())
 			require.Len(t, rules, 1)
-			require.True(t, rules[0].RuleName.IsNull())
+			require.Equal(t, "PasswordRequired", rules[0].RuleName.ValueString())
 			var actions []ScheduledActionConfigurationModel
 			require.False(t, rules[0].ScheduledActionConfigurations.ElementsAs(ctx, &actions, false).HasError())
 			require.Len(t, actions, 2)
