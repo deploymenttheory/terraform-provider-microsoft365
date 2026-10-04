@@ -111,10 +111,11 @@ func constructScheduledActionsForPolicyCreation(ctx context.Context, scheduledAc
 	scheduledActions := make([]graphmodels.DeviceComplianceScheduledActionForRuleable, 0, 1)
 	scheduledAction := graphmodels.NewDeviceComplianceScheduledActionForRule()
 
+	ruleName := defaultScheduledActionRuleName
 	if !scheduledActionData.RuleName.IsNull() && !scheduledActionData.RuleName.IsUnknown() {
-		ruleName := scheduledActionData.RuleName.ValueString()
-		scheduledAction.SetRuleName(&ruleName)
+		ruleName = scheduledActionData.RuleName.ValueString()
 	}
+	scheduledAction.SetRuleName(&ruleName)
 
 	if !scheduledActionData.ScheduledActionConfigurations.IsNull() && !scheduledActionData.ScheduledActionConfigurations.IsUnknown() {
 		configs, err := constructScheduledActionItem(ctx, scheduledActionData.ScheduledActionConfigurations)

@@ -35,7 +35,7 @@ def main():
     parser.add_argument('--pr-number', required=True,
                         help='Pull request number')
     parser.add_argument('--codecov-token', default=os.environ.get('CODECOV_API_TOKEN'),
-                        help='Codecov API access token (personal token, not upload token)')
+                        help='Optional API access token for private repositories (not an upload token)')
     parser.add_argument('--config', default=None,
                         help='Path to PR checks config file')
     parser.add_argument('--github-output', default=os.environ.get('GITHUB_OUTPUT'),
@@ -44,9 +44,7 @@ def main():
     args = parser.parse_args()
     
     if not args.codecov_token:
-        print("❌ ERROR: Codecov API token is required")
-        print("   Set CODECOV_API_TOKEN secret in repository settings")
-        return 1
+        print("No Codecov API token supplied; requesting public repository coverage")
     
     config = load_pr_checks_config(args.config)
     

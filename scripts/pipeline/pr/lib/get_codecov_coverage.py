@@ -57,18 +57,19 @@ def _parse_repo_slug(repo_slug: str) -> Tuple[str, str]:
 # HTTP Request Building & Execution
 # ============================================================================
 
-def _build_request(api_url: str, token: str) -> urllib.request.Request:
-    """Build authenticated HTTP request for Codecov API.
+def _build_request(api_url: str, token: Optional[str]) -> urllib.request.Request:
+    """Build a Codecov request, optionally authenticated for private repositories.
     
     Args:
         api_url: Complete API endpoint URL.
-        token: Codecov authentication token.
+        token: Optional Codecov authentication token.
     
     Returns:
-        Configured Request object with auth headers.
+        Configured Request object with auth headers only when a token is supplied.
     """
     req = urllib.request.Request(api_url)
-    req.add_header('Authorization', f'bearer {token}')
+    if token:
+        req.add_header('Authorization', f'bearer {token}')
     req.add_header('Accept', 'application/json')
     return req
 
@@ -183,12 +184,12 @@ def _handle_http_error(
               f"PR not found in Codecov (eventual consistency delay)")
         return True
     elif error.code == 401:
-        print("\n❌ Authentication Error: Invalid Codecov token")
-        print("   Verify CODECOV_TOKEN is correct")
+        print("\n❌ Authentication Error: Codecov requires a valid API token")
+        print("   Verify CODECOV_API_TOKEN for repositories that require authentication")
         return False
     elif error.code == 403:
-        print("\n❌ Authorization Error: Token lacks repository access")
-        print("   Token may be valid but lacks permissions for this repo")
+        print("\n❌ Authorization Error: Codecov denied repository access")
+        print("   Verify CODECOV_API_TOKEN has access to this repository")
         return False
     else:
         print(f"\n❌ HTTP {error.code}: {error.reason}")
@@ -243,7 +244,7 @@ def _build_backoff_schedule(max_wait_seconds: int) -> List[int]:
 
 def _retry_with_backoff(
     api_url: str,
-    token: str,
+    token: Optional[str],
     delays: List[int],
     start_time: float
 ) -> Optional[Dict[str, Any]]:
@@ -305,7 +306,7 @@ def _retry_with_backoff(
 def fetch_codecov_coverage(
     repo_slug: str,
     pr_number: str,
-    codecov_token: str,
+    codecov_token: Optional[str] = None,
     max_wait_seconds: int = 180,
     service: str = "github"
 ) -> Optional[Dict[str, Any]]:
@@ -320,7 +321,7 @@ def fetch_codecov_coverage(
     Args:
         repo_slug: Repository in format 'owner/repo'.
         pr_number: Pull request number.
-        codecov_token: Codecov API authentication token.
+        codecov_token: Optional API token; public repositories allow anonymous reads.
         max_wait_seconds: Maximum total wait time (default: 180s = 3 minutes).
         service: Git service provider (default: 'github').
     
@@ -402,8 +403,8 @@ Examples:
                         help='Repository slug (owner/repo)')
     parser.add_argument('--pr-number', required=True, 
                         help='Pull request number')
-    parser.add_argument('--codecov-token', required=True, 
-                        help='Codecov API authentication token')
+    parser.add_argument('--codecov-token', default=None,
+                        help='Codecov API authentication token (optional for public repositories)')
     parser.add_argument('--max-wait', type=int, default=180, 
                         help='Maximum wait time in seconds (default: 180)')
     parser.add_argument('--service', default='github', 

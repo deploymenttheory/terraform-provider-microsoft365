@@ -148,7 +148,10 @@ func (r *AndroidDeviceOwnerCompliancePolicyResource) Read(ctx context.Context, r
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, respResource)
+	resp.Diagnostics.Append(MapRemoteStateToTerraform(ctx, &object, respResource)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -255,6 +258,13 @@ func (r *AndroidDeviceOwnerCompliancePolicyResource) Update(ctx context.Context,
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+
+	// Refresh from the applied plan so configured rule names and equivalent
+	// empty values are not restored from the previous state.
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

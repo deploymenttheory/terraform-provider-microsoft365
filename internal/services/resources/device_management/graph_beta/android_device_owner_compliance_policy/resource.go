@@ -22,11 +22,12 @@ import (
 )
 
 const (
-	ResourceName  = "microsoft365_graph_beta_device_management_android_device_owner_compliance_policy"
-	CreateTimeout = 180
-	UpdateTimeout = 180
-	ReadTimeout   = 180
-	DeleteTimeout = 180
+	ResourceName                   = "microsoft365_graph_beta_device_management_android_device_owner_compliance_policy"
+	defaultScheduledActionRuleName = "PasswordRequired"
+	CreateTimeout                  = 180
+	UpdateTimeout                  = 180
+	ReadTimeout                    = 180
+	DeleteTimeout                  = 180
 )
 
 var (
@@ -267,10 +268,7 @@ func (r *AndroidDeviceOwnerCompliancePolicyResource) Schema(ctx context.Context,
 						"rule_name": schema.StringAttribute{
 							Optional:            true,
 							Computed:            true,
-							MarkdownDescription: "Name of the scheduled action rule",
-							PlanModifiers: []planmodifier.String{
-								planmodifiers.DefaultValueString("unavailable"),
-							},
+							MarkdownDescription: "Name of the scheduled action rule. When omitted, resolves to PasswordRequired. Microsoft Graph applies actions policy-wide and does not return the rule name; configured names are retained in state for compatibility.",
 						},
 						"scheduled_action_configurations": schema.SetNestedAttribute{
 							Required:            true,
@@ -286,15 +284,18 @@ func (r *AndroidDeviceOwnerCompliancePolicyResource) Schema(ctx context.Context,
 									},
 									"grace_period_hours": schema.Int32Attribute{
 										Optional:            true,
+										Computed:            true,
 										MarkdownDescription: "Number of hours to wait till the action will be enforced",
 									},
 									"notification_template_id": schema.StringAttribute{
 										Optional:            true,
+										Computed:            true,
 										MarkdownDescription: "What notification Message template to use",
 									},
 									"notification_message_cc_list": schema.ListAttribute{
 										ElementType:         types.StringType,
 										Optional:            true,
+										Computed:            true,
 										MarkdownDescription: "A list of group GUIDs to specify who to CC this notification message to",
 									},
 								},

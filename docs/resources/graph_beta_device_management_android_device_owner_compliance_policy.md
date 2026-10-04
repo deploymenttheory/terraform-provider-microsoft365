@@ -30,6 +30,8 @@ The following client `application` permissions are needed in order to use this r
 
 ## Example Usage
 
+Scheduled actions apply to the whole policy. When `rule_name` is omitted, the provider uses `PasswordRequired`; existing configured names are retained because Graph may return a null rule name. Omitted action settings are read from Graph's defaults. Explicit action settings, including grace periods and notification recipients, remain managed by Terraform.
+
 ```terraform
 # Example with minimal configuration
 resource "microsoft365_graph_beta_device_management_android_device_owner_compliance_policy" "minimal" {
@@ -271,7 +273,7 @@ Required:
 
 Optional:
 
-- `rule_name` (String) Name of the scheduled action rule
+- `rule_name` (String) Name of the scheduled action rule. When omitted, resolves to PasswordRequired. Microsoft Graph applies actions policy-wide and does not return the rule name; configured names are retained in state for compatibility.
 
 <a id="nestedatt--scheduled_actions_for_rule--scheduled_action_configurations"></a>
 ### Nested Schema for `scheduled_actions_for_rule.scheduled_action_configurations`

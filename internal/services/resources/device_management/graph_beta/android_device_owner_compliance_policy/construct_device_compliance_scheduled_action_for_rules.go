@@ -17,10 +17,11 @@ func constructDeviceComplianceScheduledActionForRulesWithPatchMethod(ctx context
 	scheduledActions := make([]graphmodels.DeviceComplianceScheduledActionForRuleable, 0, 1)
 	scheduledAction := graphmodels.NewDeviceComplianceScheduledActionForRule()
 
+	ruleName := defaultScheduledActionRuleName
 	if !scheduledActionsData.RuleName.IsNull() && !scheduledActionsData.RuleName.IsUnknown() {
-		ruleName := scheduledActionsData.RuleName.ValueString()
-		scheduledAction.SetRuleName(&ruleName)
+		ruleName = scheduledActionsData.RuleName.ValueString()
 	}
+	scheduledAction.SetRuleName(&ruleName)
 
 	if !scheduledActionsData.ScheduledActionConfigurations.IsNull() && !scheduledActionsData.ScheduledActionConfigurations.IsUnknown() {
 		configs, err := constructScheduledActionItem(ctx, scheduledActionsData.ScheduledActionConfigurations)
