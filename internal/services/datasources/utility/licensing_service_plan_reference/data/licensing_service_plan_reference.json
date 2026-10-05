@@ -23711,6 +23711,11 @@
         "id": "Viva_Glint",
         "name": "Viva Glint",
         "guid": "6b270342-093e-4015-8c5c-224561532fbf"
+      },
+      {
+        "id": "WORKPLACE_ANALYTICS_INSIGHTS_BACKEND",
+        "name": "Microsoft Workplace Analytics Insights Backend",
+        "guid": "ff7b261f-d98b-415b-827c-42a3fdf015af"
       }
     ]
   },
