@@ -45,8 +45,7 @@ var (
 func NewB2bManagementPolicyAssignmentResource() resource.Resource {
 	return &B2bManagementPolicyAssignmentResource{
 		ReadPermissions: []string{
-			"Policy.Read.B2BManagementPolicy",
-			"Application.Read.All",
+			"Directory.Read.All",
 		},
 		WritePermissions: []string{
 			"Policy.ReadWrite.B2BManagementPolicy",

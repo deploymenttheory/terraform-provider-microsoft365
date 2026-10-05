@@ -29,10 +29,9 @@ The documented `appliesTo/$ref` endpoints ([Add](https://learn.microsoft.com/en-
 The following client `application` permissions are needed in order to use this {{.Type | lower}}:
 
 **Required:**
-- `Policy.Read.B2BManagementPolicy`
+- `Application.ReadWrite.OwnedBy`
+- `Directory.Read.All`
 - `Policy.ReadWrite.B2BManagementPolicy`
-- `Application.Read.All`
-- `Application.ReadWrite.OwnedBy` if the caller owns the target, otherwise `Application.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`
