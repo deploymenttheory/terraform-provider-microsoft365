@@ -609,6 +609,9 @@ func determineCatalogScenario(filter string) string {
 	if strings.Contains(filter, "Test Policy With Read-Only Text") {
 		return "readonly"
 	}
+	if strings.Contains(filter, "Test Policy Without Presentations") {
+		return "no_presentations"
+	}
 	return ""
 }
 
@@ -628,6 +631,8 @@ func determinePresentationsScenario(defID string) string {
 		return "dropdown"
 	case "def-readonly":
 		return "readonly"
+	case "def-no-presentations":
+		return "no_presentations"
 	default:
 		return ""
 	}

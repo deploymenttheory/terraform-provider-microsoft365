@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "def-no-presentations",
+      "displayName": "Test Policy Without Presentations",
+      "classType": "machine",
+      "categoryPath": "\\Test\\NoPresentations",
+      "policyType": "admxIngested",
+      "version": "1.0",
+      "supportedOn": "Windows 10",
+      "explainText": "Test policy that only has an enabled/disabled state and no presentations"
+    }
+  ]
+}
