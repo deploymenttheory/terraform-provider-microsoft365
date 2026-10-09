@@ -406,3 +406,32 @@ func TestUnitResourceGroupPolicyDefinition_13_Validation_InvalidClassType(t *tes
 		},
 	})
 }
+
+// Test 014: Policy without presentations (enabled/disabled only)
+func TestUnitResourceGroupPolicyDefinition_14_NoPresentations(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, groupPolicyDefinitionMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer groupPolicyDefinitionMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("014_no_presentations.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaGroupPolicyDefinition.ResourceName+".test_014").Key("id").Exists(),
+					check.That(graphBetaGroupPolicyDefinition.ResourceName+".test_014").Key("group_policy_configuration_id").HasValue("config-014"),
+					check.That(graphBetaGroupPolicyDefinition.ResourceName+".test_014").Key("policy_name").HasValue("Test Policy Without Presentations"),
+					check.That(graphBetaGroupPolicyDefinition.ResourceName+".test_014").Key("enabled").HasValue("true"),
+					check.That(graphBetaGroupPolicyDefinition.ResourceName+".test_014").Key("values.#").HasValue("0"),
+				),
+			},
+			{
+				ResourceName:      graphBetaGroupPolicyDefinition.ResourceName + ".test_014",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

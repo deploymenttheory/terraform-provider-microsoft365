@@ -66,9 +66,11 @@ func GroupPolicyIDResolver(ctx context.Context, client *msgraphbetasdk.GraphServ
 		// Multiple presentations with specific OData type filter
 		presentationTemplateIDs, err = resolveFilteredPresentations(ctx, client, definitionTemplateID, presentationFilter)
 	} else {
-		// Single presentation (any OData type)
-		singleID, err := resolveFirstPresentation(ctx, client, definitionTemplateID)
-		if err == nil {
+		// Single presentation (any OData type). Definitions that only have an
+		// enabled/disabled state have no presentations, so a failed lookup here
+		// leaves presentationTemplateIDs empty instead of failing the resolution.
+		singleID, presentationErr := resolveFirstPresentation(ctx, client, definitionTemplateID)
+		if presentationErr == nil {
 			presentationTemplateIDs = []string{singleID}
 		}
 	}
@@ -444,6 +446,16 @@ func resolveTemplateIDsToInstanceIDs(ctx context.Context, configID, definitionTe
 			}
 
 			tflog.Debug(ctx, fmt.Sprintf("[RESOLVER] Found matching definition value with instance ID: %s", *defValueID))
+
+			// Definitions without presentations (enabled/disabled only) have no
+			// presentation values to resolve, so the definition value itself is the match.
+			if len(presentationTemplateIDs) == 0 {
+				tflog.Debug(
+					ctx,
+					"[RESOLVER] Definition has no presentations - returning definition value instance ID only",
+				)
+				return *defValueID, []ResolvedPresentation{}, nil
+			}
 
 			presentationValues, err := client.
 				DeviceManagement().
