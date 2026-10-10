@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.3.0...v1.4.0) (2026-10-09)
+
+
+### Features
+
+* add authentication flows policy resource ([#4095](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4095)) ([cff51a7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/cff51a7878007dc9f9c4473868f8097eaab9a237))
+* add external identities policy resource ([#4096](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4096)) ([544d960](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/544d960de7a7d5fa7e4f9abe6ca265cc09bbe191))
+* added resource identity_and_access_authorization_policy ([#4094](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4094)) ([3aeadc2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/3aeadc2d05c586814622d6ba4d44cc983bcdf2fa))
+
+
+### Bug Fixes
+
+* preserve Android compliance scheduled-action state after apply ([#4097](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4097)) ([af9ff6f](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/af9ff6f10584ac7fd32e6752807941ef7f958cae))
+* resolve group policy definitions without presentations ([#4124](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4124)) ([e6d8fd7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e6d8fd717850acb146b3b238a97c117a42ff9a7a))
+* support Ireland region group for Cloud PC policies ([#4092](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4092)) ([d322ffb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d322ffbdc1dde6153a159124adf77cf510c2c9bb))
+
 ## [1.3.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.2.0...v1.3.0) (2026-09-29)
 
 
