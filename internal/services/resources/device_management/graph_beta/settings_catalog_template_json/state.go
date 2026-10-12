@@ -42,6 +42,10 @@ func MapRemoteResourceStateToTerraform(
 		remoteResource.GetRoleScopeTagIds(),
 	)
 
+	if templateType, ok := settingsCatalogTemplateTypeForPolicy(remoteResource); ok {
+		data.SettingsCatalogTemplateType = types.StringValue(templateType)
+	}
+
 	if platforms := remoteResource.GetPlatforms(); platforms != nil {
 		data.Platforms = convert.GraphToFrameworkEnum(platforms)
 	}
@@ -56,6 +60,34 @@ func MapRemoteResourceStateToTerraform(
 		ctx,
 		fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()),
 	)
+}
+
+// settingsCatalogTemplateTypeForPolicy uses the same template context as construction.
+// Unrecognized or omitted metadata leaves the prior or planned type intact.
+func settingsCatalogTemplateTypeForPolicy(
+	remoteResource graphmodels.DeviceManagementConfigurationPolicyable,
+) (string, bool) {
+	if reference := remoteResource.GetTemplateReference(); reference != nil {
+		if templateID := reference.GetTemplateId(); templateID != nil && *templateID != "" {
+			for templateType, config := range policyConfigMap {
+				if config.TemplateID == *templateID {
+					return templateType, true
+				}
+			}
+			return "", false
+		}
+	}
+
+	// Some Configuration Manager policies use creationSource instead of a template ID.
+	if source := remoteResource.GetCreationSource(); source != nil && *source != "" {
+		for templateType, config := range policyConfigMap {
+			if config.TemplateID == "" && config.CreationSource == *source {
+				return templateType, true
+			}
+		}
+	}
+
+	return "", false
 }
 
 func DeviceManagementConfigurationTechnologiesEnumBitmaskToTypeList(
