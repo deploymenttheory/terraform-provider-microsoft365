@@ -1,0 +1,17 @@
+{
+  "@odata.type": "#microsoft.graph.mobileAppDependency",
+  "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "sourceId": "11111111-1111-1111-1111-111111111111",
+  "targetId": "22222222-2222-2222-2222-222222222222",
+  "targetType": "child",
+  "dependencyType": "autoInstall",
+  "sourceDisplayName": "Main app",
+  "sourceDisplayVersion": "1.0",
+  "sourcePublisherDisplayName": "Main publisher",
+  "targetDisplayName": "Prerequisite app",
+  "targetDisplayVersion": "2.0",
+  "targetPublisher": "Dependency publisher",
+  "targetPublisherDisplayName": "Dependency publisher",
+  "dependentAppCount": 0,
+  "dependsOnAppCount": 1
+}
