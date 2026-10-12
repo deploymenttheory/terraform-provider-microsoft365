@@ -2,6 +2,7 @@ package groupPolicyConfigurations
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"strings"
 
@@ -13,6 +14,10 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
+
+// errNoPresentations is returned by resolveFirstPresentation when a definition has no
+// presentations, which is the case for policies that only have an enabled/disabled state.
+var errNoPresentations = stderrors.New("definition has no presentations")
 
 // ResolvedPresentation represents a mapping between template and instance IDs
 type ResolvedPresentation struct {
@@ -67,11 +72,16 @@ func GroupPolicyIDResolver(ctx context.Context, client *msgraphbetasdk.GraphServ
 		presentationTemplateIDs, err = resolveFilteredPresentations(ctx, client, definitionTemplateID, presentationFilter)
 	} else {
 		// Single presentation (any OData type). Definitions that only have an
-		// enabled/disabled state have no presentations, so a failed lookup here
-		// leaves presentationTemplateIDs empty instead of failing the resolution.
+		// enabled/disabled state have no presentations and leave presentationTemplateIDs
+		// empty. Any other lookup failure is returned.
 		singleID, presentationErr := resolveFirstPresentation(ctx, client, definitionTemplateID)
-		if presentationErr == nil {
+		switch {
+		case presentationErr == nil:
 			presentationTemplateIDs = []string{singleID}
+		case stderrors.Is(presentationErr, errNoPresentations):
+			tflog.Debug(ctx, "[RESOLVER] Definition has no presentations")
+		default:
+			err = presentationErr
 		}
 	}
 
@@ -307,8 +317,8 @@ func resolveFirstPresentation(ctx context.Context, client *msgraphbetasdk.GraphS
 		return "", fmt.Errorf("failed to get presentations for definition %s: %w", definitionTemplateID, err)
 	}
 
-	if presentations == nil || presentations.GetValue() == nil || len(presentations.GetValue()) == 0 {
-		return "", fmt.Errorf("no presentations found for definition %s", definitionTemplateID)
+	if presentations == nil || len(presentations.GetValue()) == 0 {
+		return "", fmt.Errorf("%w: %s", errNoPresentations, definitionTemplateID)
 	}
 
 	presentationList := presentations.GetValue()
