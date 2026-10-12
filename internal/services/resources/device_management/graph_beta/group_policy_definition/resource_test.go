@@ -432,6 +432,31 @@ func TestUnitResourceGroupPolicyDefinition_14_NoPresentations(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config: loadUnitTestTerraform("014_no_presentations_disabled.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaGroupPolicyDefinition.ResourceName+".test_014").Key("enabled").HasValue("false"),
+					check.That(graphBetaGroupPolicyDefinition.ResourceName+".test_014").Key("values.#").HasValue("0"),
+				),
+			},
+		},
+	})
+}
+
+// Test 015: Presentations lookup fails - the error is returned instead of being treated as no presentations
+func TestUnitResourceGroupPolicyDefinition_15_PresentationsLookupError(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, groupPolicyDefinitionMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer groupPolicyDefinitionMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("015_presentations_error.tf"),
+				ExpectError: regexp.MustCompile(`failed to find presentation template`),
+			},
 		},
 	})
 }

@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyDefinitions",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.groupPolicyDefinition",
+      "id": "def-presentations-error",
+      "displayName": "Test Policy Presentations Error",
+      "classType": "machine",
+      "categoryPath": "\\Test\\PresentationsError",
+      "policyType": "admxIngested",
+      "version": "1.0",
+      "supportedOn": "Windows 10",
+      "explainText": "Test policy whose presentations lookup fails"
+    }
+  ]
+}
