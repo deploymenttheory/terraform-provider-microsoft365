@@ -144,11 +144,12 @@ func (r *GroupPolicyDefinitionResource) ImportState(ctx context.Context, req res
 	// 1. Just the configID (when manually importing)
 	// 2. Composite format configID/definitionValueID (when re-importing existing resource)
 	importID := req.ID
-	var configID string
+	var configID, importDefinitionValueID string
 
 	// Check if it's a composite ID
 	if parts := splitCompositeID(importID); len(parts) == 2 {
 		configID = parts[0]
+		importDefinitionValueID = parts[1]
 		tflog.Debug(ctx, fmt.Sprintf("Importing with composite ID: %s (using configID: %s)", importID, configID))
 	} else {
 		configID = importID
@@ -185,9 +186,32 @@ func (r *GroupPolicyDefinitionResource) ImportState(ctx context.Context, req res
 		return
 	}
 
-	// Get the first definition value (for this resource, there should typically be one per policy)
-	firstDefValue := definitionValues.GetValue()[0]
-	definition := firstDefValue.GetDefinition()
+	// Use the definition value from the composite ID. With the simple format, fall back to the
+	// first definition value (for this resource, there should typically be one per policy).
+	defValue := definitionValues.GetValue()[0]
+	if importDefinitionValueID != "" {
+		defValue = nil
+		for _, value := range definitionValues.GetValue() {
+			if value != nil && value.GetId() != nil && *value.GetId() == importDefinitionValueID {
+				defValue = value
+				break
+			}
+		}
+
+		if defValue == nil {
+			resp.Diagnostics.AddError(
+				"Error importing resource",
+				fmt.Sprintf(
+					"Definition value %s not found in configuration %s",
+					importDefinitionValueID,
+					configID,
+				),
+			)
+			return
+		}
+	}
+
+	definition := defValue.GetDefinition()
 
 	if definition == nil || definition.GetId() == nil {
 		resp.Diagnostics.AddError(
@@ -232,7 +256,7 @@ func (r *GroupPolicyDefinitionResource) ImportState(ctx context.Context, req res
 	// - Unique identification when multiple policies exist in one configuration
 	// - Test framework's CheckDestroy to query the specific definition value
 	// - Consistency with how the resource manages itself during CRUD operations
-	definitionValueID := firstDefValue.GetId()
+	definitionValueID := defValue.GetId()
 	if definitionValueID == nil {
 		resp.Diagnostics.AddError(
 			"Error importing resource",
@@ -248,7 +272,7 @@ func (r *GroupPolicyDefinitionResource) ImportState(ctx context.Context, req res
 	resp.State.SetAttribute(ctx, path.Root("policy_name"), *displayName)
 	resp.State.SetAttribute(ctx, path.Root("class_type"), classType.String())
 	resp.State.SetAttribute(ctx, path.Root("category_path"), *categoryPath)
-	resp.State.SetAttribute(ctx, path.Root("enabled"), firstDefValue.GetEnabled())
+	resp.State.SetAttribute(ctx, path.Root("enabled"), defValue.GetEnabled())
 
 	tflog.Debug(ctx, fmt.Sprintf("Successfully imported: policy_name=%s, class_type=%s, category_path=%s",
 		*displayName, classType.String(), *categoryPath))
