@@ -1,0 +1,55 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device and App Management"
+
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [mobileAppDependency resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappdependency?view=graph-rest-beta)
+- [updateRelationships action](https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-updaterelationships?view=graph-rest-beta)
+- [Win32 app dependencies](https://learn.microsoft.com/en-us/intune/intune-service/apps/apps-win32-add#step-5-dependencies)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `DeviceManagementApps.Read.All`
+- `DeviceManagementApps.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| Unreleased | Experimental | Initial release |
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_and_app_management_mobile_app_dependency/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Win32 Apps**: Both apps must be Intune Win32 apps. The `source_id` identifies the app that requires the prerequisite; the `target_id` identifies the prerequisite app.
+- **Dependency Behavior**: Use `autoInstall` to automatically install the prerequisite or `detect` to require an existing installation.
+- **Relationship Management**: Each resource manages one dependency. The provider uses `updateRelationships` and preserves other outgoing dependencies and supersedence relationships.
+- **Updates**: Changing `dependency_type` updates the dependency in place. Changing `source_id` or `target_id` replaces it.
+- **Concurrent Changes**: Dependency writes for the same source app are serialized within a provider process.
+- **Import**: Import the actual relationship ID returned by Microsoft Graph. Graph supplies the source and target app IDs during import.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_and_app_management_mobile_app_dependency/import.sh" }}
