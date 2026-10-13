@@ -25,10 +25,15 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 	convert.FrameworkToGraphString(data.CloudPcNamingTemplate, requestBody.SetCloudPcNamingTemplate)
 	convert.FrameworkToGraphString(data.ImageId, requestBody.SetImageId)
 
-	// Set imageDisplayName based on imageId
-	// these have been extracted from api calls. undocumented.
+	// Map supported gallery image IDs to their display names.
 	if !data.ImageId.IsNull() && !data.ImageId.IsUnknown() {
 		switch data.ImageId.ValueString() {
+		case "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc":
+			val := "Windows 11 Enterprise 26H2"
+			requestBody.SetImageDisplayName(&val)
+		case "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365":
+			val := "Windows 11 Enterprise + Microsoft 365 Apps 26H2"
+			requestBody.SetImageDisplayName(&val)
 		case "microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc":
 			val := "Windows 11 Enterprise 25H2"
 			requestBody.SetImageDisplayName(&val)

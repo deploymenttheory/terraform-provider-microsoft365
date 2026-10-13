@@ -632,9 +632,13 @@ func (r *Win32LobAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"minimum_supported_windows_release": schema.StringAttribute{
 				Required:            true,
-				MarkdownDescription: "The value for the minimum supported windows release.",
+				MarkdownDescription: "The value for the minimum supported Windows release. Supported values are: Windows11_26H2, Windows11_25H2, Windows11_24H2, Windows11_23H2, Windows11_22H2, Windows11_21H2, Windows10_22H2, Windows10_21H2, 21H1, 2H20, 2004, 1909, 1903, 1809, 1803, 1709, 1703, 1607.",
 				Validators: []validator.String{
-					stringvalidator.OneOf("Windows11_24H2", "Windows11_23H2", "Windows11_22H2", "Windows11_21H2", "Windows10_22H2", "Windows10_21H2", "21H1", "2H20", "2004", "1909", "1903", "1809", "1803", "1709", "1703", "1607"),
+					stringvalidator.OneOf(
+						"Windows11_26H2", "Windows11_25H2", "Windows11_24H2", "Windows11_23H2",
+						"Windows11_22H2", "Windows11_21H2", "Windows10_22H2", "Windows10_21H2",
+						"21H1", "2H20", "2004", "1909", "1903", "1809", "1803", "1709", "1703", "1607",
+					),
 				},
 			},
 			"display_version": schema.StringAttribute{

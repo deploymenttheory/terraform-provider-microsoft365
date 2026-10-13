@@ -2,7 +2,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "win
   display_name             = "test"
   description              = ""
   cloud_pc_naming_template = "CPC-%USERNAME:5%-%RAND:5%"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
   image_type               = "gallery"
   enable_single_sign_on    = true
   provisioning_type        = "dedicated"
@@ -50,7 +50,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
   display_name             = "test"
   description              = ""
   cloud_pc_naming_template = "CPC-%USERNAME:5%-%RAND:5%"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
   image_type               = "gallery"
   enable_single_sign_on    = false
   provisioning_type        = "sharedByUser"

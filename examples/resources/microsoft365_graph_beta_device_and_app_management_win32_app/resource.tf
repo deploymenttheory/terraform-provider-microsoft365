@@ -26,7 +26,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "example"
   information_url = "https://www.mozilla.org/firefox/"
 
   allowed_architectures             = ["x64", "arm64"]
-  minimum_supported_windows_release = "Windows11_23H2"
+  minimum_supported_windows_release = "Windows11_26H2"
 
   install_experience = {
     device_restart_behavior = "allow"

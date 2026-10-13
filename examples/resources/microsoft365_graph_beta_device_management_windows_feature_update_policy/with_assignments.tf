@@ -6,9 +6,9 @@
 
 # Windows Feature Update Policy with multiple assignments
 resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "with_assignments" {
-  display_name                                            = "Windows 11 25H2 - With Assignments"
+  display_name                                            = "Windows 11 26H2 - With Assignments"
   description                                             = "Feature update deployment with targeted assignments"
-  feature_update_version                                  = "Windows 11, version 25H2"
+  feature_update_version                                  = "Windows 11, version 26H2"
   install_feature_updates_optional                        = true
   install_latest_windows10_on_windows11_ineligible_device = true
 
