@@ -26,6 +26,7 @@ The following client `application` permissions are needed in order to use this r
 - `Directory.Read.All`
 - `Group.ManageProtection.All`
 - `Group.Read.All`
+- `Group.ReadBasic.All`
 - `Policy.Read.All`
 - `Policy.ReadWrite.CrossTenantAccess`
 - `User.Read.All`
@@ -45,6 +46,7 @@ Find out more about the permissions required for managing cross-tenant access po
 - **Partner-Specific Configuration**: This resource configures cross-tenant access settings for a specific partner tenant identified by `tenant_id`. Each partner can have unique B2B collaboration, B2B direct connect, inbound trust, tenant restrictions, and automatic user consent settings.
 - **Create Behavior**: The `create` operation uses a POST request (`/policies/crossTenantAccessPolicy/partners`) to create a new partner configuration.
 - **Update Behavior**: The `update` operation uses a PATCH request to modify the partner configuration.
+- **Inheritance**: With the default `enforce_default_inheritance = false`, omitted/null settings accept the remote configuration. Set `enforce_default_inheritance = true` to enforce tenant-default inheritance for every omitted/null top-level setting. A normal plan then proposes removing out-of-band partner overrides and apply restores inheritance without copying tenant-default values. Explicitly configured settings remain partner-specific. `terraform plan -refresh-only` reports remote state changes but never proposes changes to Entra.
 - **Delete Behavior**: The `delete` operation supports both soft delete (default) and hard delete:
   - **Soft Delete** (`hard_delete = false`, default): Moves the partner configuration to deleted items (can be restored within 30 days).
   - **Hard Delete** (`hard_delete = true`): Permanently removes the partner configuration from deleted items using `/directory/deletedItems/{tenantId}`.
@@ -83,6 +85,18 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partne
       ]
     }
   }
+}
+```
+
+### Enforce Tenant-Default Inheritance
+
+```terraform
+# Every omitted/null top-level setting must remain inherited from the tenant
+# defaults. Terraform removes partner overrides introduced outside Terraform.
+resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings" "inherited" {
+  tenant_id                   = "12345678-1234-1234-1234-123456789012"
+  enforce_default_inheritance = true
+  tenant_restrictions         = null
 }
 ```
 
@@ -472,6 +486,7 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_partne
 - `b2b_collaboration_outbound` (Attributes) B2B collaboration outbound access settings for the partner organization. (see [below for nested schema](#nestedatt--b2b_collaboration_outbound))
 - `b2b_direct_connect_inbound` (Attributes) B2B direct connect inbound access settings for the partner organization. (see [below for nested schema](#nestedatt--b2b_direct_connect_inbound))
 - `b2b_direct_connect_outbound` (Attributes) B2B direct connect outbound access settings for the partner organization. (see [below for nested schema](#nestedatt--b2b_direct_connect_outbound))
+- `enforce_default_inheritance` (Boolean) When `true`, omitted or null top-level partner settings must inherit the tenant-default policy. Terraform plans removal of partner-specific overrides introduced outside Terraform and sends explicit JSON null values to restore inheritance. Settings explicitly configured in this resource remain partner-specific. Applies to B2B collaboration inbound/outbound, B2B direct connect inbound/outbound, inbound trust, automatic user consent, and tenant restrictions. When `false` (the default), omitted settings accept the current remote configuration and are not enforced as inherited.
 - `hard_delete` (Boolean) When `true`, the partner configuration will be permanently deleted (hard delete) during destroy. When `false` (default), the partner configuration will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. **Note**: Hard delete permanently removes the configuration and cannot be undone.
 - `inbound_trust` (Attributes) Inbound trust settings for accepting claims from the partner organization. (see [below for nested schema](#nestedatt--inbound_trust))
 - `tenant_restrictions` (Attributes) Tenant restrictions settings for the partner organization. (see [below for nested schema](#nestedatt--tenant_restrictions))

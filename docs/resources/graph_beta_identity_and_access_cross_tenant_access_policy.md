@@ -82,8 +82,8 @@ resource "microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy
 
 ### Optional
 
-- `allowed_cloud_endpoints` (Set of String) Specifies which Microsoft clouds your organization would like to collaborate with. Omit or leave empty to disable all cross-cloud collaboration (the service default). Supported values: `microsoftonline.us` (Azure US Government), `partner.microsoftonline.cn` (Azure China operated by 21Vianet).
-- `restore_defaults_on_destroy` (Boolean) Controls behaviour when this resource is destroyed. When `true`, Terraform will issue a PATCH request to restore `allowed_cloud_endpoints` to the tenant defaults (`microsoftonline.us`, `partner.microsoftonline.cn`). When `false` (the default), Terraform removes the resource from state only — the existing policy configuration is left unchanged in Microsoft Entra ID.
+- `allowed_cloud_endpoints` (Set of String) Specifies which Microsoft clouds your organization would like to collaborate with. Omit or leave empty to disable all cross-cloud collaboration (the service default). Supported values: `microsoftonline.com` (Azure commercial), `microsoftonline.us` (Azure US Government), `partner.microsoftonline.cn` (Azure China operated by 21Vianet).
+- `restore_defaults_on_destroy` (Boolean) Controls behaviour when this resource is destroyed. When `true`, Terraform will issue a PATCH request to restore `allowed_cloud_endpoints` to the tenant defaults (`microsoftonline.us`, `partner.microsoftonline.cn`). When `false` (the default), Terraform removes the resource from state only — the existing policy configuration is left unchanged in Microsoft Entra ID. Import defaults to `false`; append `:restore_defaults_on_destroy=true` to the import ID to import with this flag enabled.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
@@ -106,4 +106,7 @@ Optional:
 ```shell
 # Cross-tenant access policy can be imported using any ID (it will be normalized to "crossTenantAccessPolicy")
 terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy.example crossTenantAccessPolicy
+
+# Set the Terraform-only destroy flag explicitly to avoid a subsequent state update.
+terraform import microsoft365_graph_beta_identity_and_access_cross_tenant_access_policy.example 'crossTenantAccessPolicy:restore_defaults_on_destroy=true'
 ```
