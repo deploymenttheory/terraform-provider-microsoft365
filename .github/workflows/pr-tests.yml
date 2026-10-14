@@ -16,7 +16,9 @@ on:
     paths:
       - '**/*.go'
       - 'scripts/pipeline/pr/**'
+      - 'scripts/pipeline/bi_weekly_tests/**'
       - '.github/workflows/pr-tests.yml'
+      - '.github/workflows/bi-weekly-tests.yml'
 
 concurrency:
   group: go-tests-${{ github.event.pull_request.number || github.ref }}
@@ -61,6 +63,11 @@ jobs:
 
       - name: Verify coverage reporting
         run: python3 -m unittest discover -s scripts/pipeline/pr/tests -p 'test_*coverage*.py' -v
+
+      - name: Verify pipeline resource diagnostics
+        run: |
+          python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_monitor_resources.py -v
+          python3 -m unittest discover -s scripts/pipeline/bi_weekly_tests/tests -v
 
       - name: Set up Go
         if: steps.detect-changes.outputs.has-changes == 'true'
