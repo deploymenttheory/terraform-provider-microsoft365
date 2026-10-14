@@ -2,6 +2,8 @@ package graphBetaCrossTenantAccessPolicy
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
@@ -70,10 +72,36 @@ func (r *CrossTenantAccessPolicyResource) Configure(ctx context.Context, req res
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-// ImportState imports the resource state. Since this is a singleton resource, any import ID is accepted
-// and normalised to the static identifier "crossTenantAccessPolicy".
+// ImportState normalises the singleton ID and initialises the Terraform-only
+// destroy flag. The optional suffix matches the default-settings resource.
 func (r *CrossTenantAccessPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	restoreDefaultsOnDestroy := false
+	for _, part := range strings.Split(req.ID, ":")[1:] {
+		if value, found := strings.CutPrefix(part, "restore_defaults_on_destroy="); found {
+			switch strings.ToLower(value) {
+			case "true":
+				restoreDefaultsOnDestroy = true
+			case "false":
+				restoreDefaultsOnDestroy = false
+			default:
+				resp.Diagnostics.AddError(
+					"Invalid Import ID",
+					fmt.Sprintf(
+						"Invalid restore_defaults_on_destroy value %q. Must be 'true' or 'false'.",
+						value,
+					),
+				)
+				return
+			}
+		}
+	}
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), singletonID)...)
+	resp.Diagnostics.Append(
+		resp.State.SetAttribute(
+			ctx,
+			path.Root("restore_defaults_on_destroy"),
+			restoreDefaultsOnDestroy,
+		)...)
 }
 
 // Schema defines the schema for the resource.
@@ -102,7 +130,7 @@ func (r *CrossTenantAccessPolicyResource) Schema(ctx context.Context, req resour
 			},
 			"allowed_cloud_endpoints": schema.SetAttribute{
 				MarkdownDescription: "Specifies which Microsoft clouds your organization would like to collaborate with. Omit or leave empty to disable all cross-cloud collaboration (the service default). " +
-					"Supported values: `microsoftonline.us` (Azure US Government), `partner.microsoftonline.cn` (Azure China operated by 21Vianet).",
+					"Supported values: `microsoftonline.com` (Azure commercial), `microsoftonline.us` (Azure US Government), `partner.microsoftonline.cn` (Azure China operated by 21Vianet).",
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
@@ -110,6 +138,7 @@ func (r *CrossTenantAccessPolicyResource) Schema(ctx context.Context, req resour
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(
 						stringvalidator.OneOf(
+							"microsoftonline.com",
 							"microsoftonline.us",
 							"partner.microsoftonline.cn",
 						),
@@ -119,7 +148,8 @@ func (r *CrossTenantAccessPolicyResource) Schema(ctx context.Context, req resour
 			"restore_defaults_on_destroy": schema.BoolAttribute{
 				MarkdownDescription: "Controls behaviour when this resource is destroyed. " +
 					"When `true`, Terraform will issue a PATCH request to restore `allowed_cloud_endpoints` to the tenant defaults (`microsoftonline.us`, `partner.microsoftonline.cn`). " +
-					"When `false` (the default), Terraform removes the resource from state only — the existing policy configuration is left unchanged in Microsoft Entra ID.",
+					"When `false` (the default), Terraform removes the resource from state only — the existing policy configuration is left unchanged in Microsoft Entra ID. " +
+					"Import defaults to `false`; append `:restore_defaults_on_destroy=true` to the import ID to import with this flag enabled.",
 				Optional: true,
 				Computed: true,
 				Default:  booldefault.StaticBool(false),

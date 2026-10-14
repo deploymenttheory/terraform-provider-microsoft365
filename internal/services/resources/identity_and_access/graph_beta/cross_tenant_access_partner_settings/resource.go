@@ -45,6 +45,8 @@ var (
 
 	// Enables config-level validation
 	_ resource.ResourceWithConfigValidators = &CrossTenantAccessPartnerSettingsResource{}
+
+	_ resource.ResourceWithModifyPlan = &CrossTenantAccessPartnerSettingsResource{}
 )
 
 func NewCrossTenantAccessPartnerSettingsResource() resource.Resource {
@@ -117,6 +119,8 @@ func (r *CrossTenantAccessPartnerSettingsResource) ImportState(ctx context.Conte
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("tenant_id"), resourceID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("hard_delete"), hardDelete)...)
+	resp.Diagnostics.Append(
+		resp.State.SetAttribute(ctx, path.Root("enforce_default_inheritance"), false)...)
 }
 
 // ConfigValidators returns resource-level validators applied before plan/apply.
@@ -210,6 +214,16 @@ func (r *CrossTenantAccessPartnerSettingsResource) Schema(ctx context.Context, r
 				MarkdownDescription: "When `true`, the partner configuration will be permanently deleted (hard delete) during destroy. " +
 					"When `false` (default), the partner configuration will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. " +
 					"**Note**: Hard delete permanently removes the configuration and cannot be undone.",
+			},
+			"enforce_default_inheritance": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+				MarkdownDescription: "When `true`, omitted or null top-level partner settings must inherit the tenant-default policy. " +
+					"Terraform plans removal of partner-specific overrides introduced outside Terraform and sends explicit JSON null values to restore inheritance. " +
+					"Settings explicitly configured in this resource remain partner-specific. " +
+					"Applies to B2B collaboration inbound/outbound, B2B direct connect inbound/outbound, inbound trust, automatic user consent, and tenant restrictions. " +
+					"When `false` (the default), omitted settings accept the current remote configuration and are not enforced as inherited.",
 			},
 			"b2b_collaboration_inbound": schema.SingleNestedAttribute{
 				MarkdownDescription: "B2B collaboration inbound access settings for the partner organization.",

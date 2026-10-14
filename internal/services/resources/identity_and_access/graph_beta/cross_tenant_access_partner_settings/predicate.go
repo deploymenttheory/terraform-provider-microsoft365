@@ -33,6 +33,14 @@ func crossTenantAccessPartnerSettingsConsistencyPredicate(expected *CrossTenantA
 			return false
 		}
 
+		if expected.EnforceDefaultInheritance.ValueBool() {
+			for _, setting := range inheritablePartnerSettings {
+				if setting.value(expected).IsNull() && !setting.value(&actual).IsNull() {
+					return false
+				}
+			}
+		}
+
 		// Compare all user-specified mutable fields. Optional+Computed object fields are only
 		// compared when explicitly set in the plan to avoid false failures from API defaults.
 		if !expected.B2bCollaborationInbound.IsNull() && !expected.B2bCollaborationInbound.IsUnknown() {

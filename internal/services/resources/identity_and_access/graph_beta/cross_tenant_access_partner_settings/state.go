@@ -17,6 +17,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *CrossTenantAcc
 	}
 
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state")
+	// Initialising the new Terraform-only option on refresh avoids a state-only
+	// update for users upgrading from a version without inheritance enforcement.
+	if data.EnforceDefaultInheritance.IsNull() || data.EnforceDefaultInheritance.IsUnknown() {
+		data.EnforceDefaultInheritance = types.BoolValue(false)
+	}
 
 	if tenantID := remoteResource.GetTenantId(); tenantID != nil {
 		data.ID = types.StringValue(*tenantID)

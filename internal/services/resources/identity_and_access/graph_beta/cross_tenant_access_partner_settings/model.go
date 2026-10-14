@@ -15,7 +15,7 @@ type tenantRestrictionsB2BSetting struct {
 	graphmodels.CrossTenantAccessPolicyB2BSetting
 }
 
-func (t *tenantRestrictionsB2BSetting) GetDevices() graphmodels.DevicesFilterable { return nil }
+func (t *tenantRestrictionsB2BSetting) GetDevices() graphmodels.DevicesFilterable      { return nil }
 func (t *tenantRestrictionsB2BSetting) SetDevices(value graphmodels.DevicesFilterable) {}
 
 type CrossTenantAccessPartnerSettingsResourceModel struct {
@@ -31,6 +31,7 @@ type CrossTenantAccessPartnerSettingsResourceModel struct {
 	AutomaticUserConsentSettings types.Object   `tfsdk:"automatic_user_consent_settings"`
 	TenantRestrictions           types.Object   `tfsdk:"tenant_restrictions"`
 	HardDelete                   types.Bool     `tfsdk:"hard_delete"`
+	EnforceDefaultInheritance    types.Bool     `tfsdk:"enforce_default_inheritance"`
 	Timeouts                     timeouts.Value `tfsdk:"timeouts"`
 }
 

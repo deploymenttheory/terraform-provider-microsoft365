@@ -46,6 +46,7 @@ Find out more about the permissions required for managing cross-tenant access po
 - **Partner-Specific Configuration**: This resource configures cross-tenant access settings for a specific partner tenant identified by `tenant_id`. Each partner can have unique B2B collaboration, B2B direct connect, inbound trust, tenant restrictions, and automatic user consent settings.
 - **Create Behavior**: The `create` operation uses a POST request (`/policies/crossTenantAccessPolicy/partners`) to create a new partner configuration.
 - **Update Behavior**: The `update` operation uses a PATCH request to modify the partner configuration.
+- **Inheritance**: With the default `enforce_default_inheritance = false`, omitted/null settings accept the remote configuration. Set `enforce_default_inheritance = true` to enforce tenant-default inheritance for every omitted/null top-level setting. A normal plan then proposes removing out-of-band partner overrides and apply restores inheritance without copying tenant-default values. Explicitly configured settings remain partner-specific. `terraform plan -refresh-only` reports remote state changes but never proposes changes to Entra.
 - **Delete Behavior**: The `delete` operation supports both soft delete (default) and hard delete:
   - **Soft Delete** (`hard_delete = false`, default): Moves the partner configuration to deleted items (can be restored within 30 days).
   - **Hard Delete** (`hard_delete = true`): Permanently removes the partner configuration from deleted items using `/directory/deletedItems/{tenantId}`.
@@ -56,6 +57,10 @@ Find out more about the permissions required for managing cross-tenant access po
 ### Minimal
 
 {{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_minimal.tf" }}
+
+### Enforce Tenant-Default Inheritance
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_cross_tenant_access_partner_settings/resource_inheritance.tf" }}
 
 ### B2B Collaboration
 
