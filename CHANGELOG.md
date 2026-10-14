@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.4.0...v1.5.0) (2026-10-14)
+
+
+### Features
+
+* add mobile app dependency resource ([#4135](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4135)) ([4e9886e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4e9886e825c9db30bffaef5ee70cee693ec0c439))
+* add Windows 11 26H2 support across Windows resources ([#4137](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4137)) ([5b598b2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5b598b28815f1ea6e82c14d5279313bc02730917))
+
+
+### Bug Fixes
+
+* **ci:** surface resource usage and termination diagnostics in bi-weekly tests ([#4185](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4185)) ([4a6a7dd](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4a6a7ddae876547321cbb02bbfdfa15c65d9be30))
+* enforce partner inheritance and correct cross-tenant policy settings ([#4188](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4188)) ([93ce6c1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/93ce6c1ef8e22c170148e0ed93ca3f23ab74feed))
+* import the group policy definition value given in the import ID ([#4132](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4132)) ([9ee8eba](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9ee8ebacb0d4edcbd064f40730171ddc112de70a))
+* preserve settings catalog template type after import ([#4134](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4134)) ([7de1922](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7de1922f7837cbf829a2291b1b316cec946d3c4d))
+* return group policy presentation lookup errors ([#4131](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4131)) ([328eb22](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/328eb225f605728536501302107d339dfc41dcd1))
+* state mapping for settingsCatalogTemplateType ([7de1922](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/7de1922f7837cbf829a2291b1b316cec946d3c4d))
+
 ## [1.4.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.3.0...v1.4.0) (2026-10-09)
 
 
