@@ -270,14 +270,19 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 			"image_id": schema.StringAttribute{
 				Required: true,
 				MarkdownDescription: "The unique identifier that represents an operating system image used for provisioning new Cloud PCs. Must be one of:" +
+					"'microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc'," +
+					"'microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365'," +
 					"'microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc-m365'," +
-					"'microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc'.",
+					"'microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc'. " +
+					"Use the `microsoft365_graph_beta_windows_365_cloud_pc_gallery_image` data source to check image availability and support status in your tenant.",
 				Validators: []validator.String{
 					stringvalidator.OneOf(
+						"microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc",
+						"microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365",
 						"microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc",

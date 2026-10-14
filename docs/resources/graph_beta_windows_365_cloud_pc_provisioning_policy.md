@@ -39,7 +39,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "win
   display_name             = "test"
   description              = ""
   cloud_pc_naming_template = "CPC-%USERNAME:5%-%RAND:5%"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
   image_type               = "gallery"
   enable_single_sign_on    = true
   provisioning_type        = "dedicated"
@@ -87,7 +87,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
   display_name             = "test"
   description              = ""
   cloud_pc_naming_template = "CPC-%USERNAME:5%-%RAND:5%"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
   image_type               = "gallery"
   enable_single_sign_on    = false
   provisioning_type        = "sharedByUser"
@@ -134,7 +134,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
 ### Required
 
 - `display_name` (String) The display name for the provisioning policy. May not contain any of the following characters: <>()&|$'",;^ and may not start or end with spaces.
-- `image_id` (String) The unique identifier that represents an operating system image used for provisioning new Cloud PCs. Must be one of:'microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc','microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc','microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc'.
+- `image_id` (String) The unique identifier that represents an operating system image used for provisioning new Cloud PCs. Must be one of:'microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc','microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc','microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc','microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc-m365','microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc'. Use the `microsoft365_graph_beta_windows_365_cloud_pc_gallery_image` data source to check image availability and support status in your tenant.
 - `microsoft_managed_desktop` (Attributes) This block is currently not supported in terraform. The registration to the Autopatch service currently only suports the intune gui,with no publically available api to call. This will return a 403 error if this block is used. Raise a ticket with Microsoft to make the Autopatch service available via api.The specific settings for Microsoft Managed Desktop that enables Microsoft Managed Desktop customers to get device managed experience for Cloud PC. (see [below for nested schema](#nestedatt--microsoft_managed_desktop))
 - `windows_setting` (Attributes) Indicates a specific Windows setting to configure during the creation of Cloud PCs for this provisioning policy. (see [below for nested schema](#nestedatt--windows_setting))
 

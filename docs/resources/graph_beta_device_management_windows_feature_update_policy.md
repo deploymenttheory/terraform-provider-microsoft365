@@ -48,8 +48,8 @@ The following client `application` permissions are needed in order to use this r
 # as soon as possible.
 
 resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "immediate" {
-  display_name                                            = "Windows 11 25H2 - Immediate Deployment"
-  feature_update_version                                  = "Windows 11, version 25H2"
+  display_name                                            = "Windows 11 26H2 - Immediate Deployment"
+  feature_update_version                                  = "Windows 11, version 26H2"
   install_feature_updates_optional                        = false
   install_latest_windows10_on_windows11_ineligible_device = false
 }
@@ -66,8 +66,8 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
 # the specified start date.
 
 resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "scheduled" {
-  display_name                                            = "Windows 11 25H2 - Scheduled Deployment"
-  feature_update_version                                  = "Windows 11, version 25H2"
+  display_name                                            = "Windows 11 26H2 - Scheduled Deployment"
+  feature_update_version                                  = "Windows 11, version 26H2"
   install_feature_updates_optional                        = false
   install_latest_windows10_on_windows11_ineligible_device = false
 
@@ -89,9 +89,9 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
 # offered the update at the specified interval.
 
 resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "gradual" {
-  display_name                                            = "Windows 11 25H2 - Gradual Deployment"
-  description                                             = "Phased rollout of Windows 11 25H2 feature update"
-  feature_update_version                                  = "Windows 11, version 25H2"
+  display_name                                            = "Windows 11 26H2 - Gradual Deployment"
+  description                                             = "Phased rollout of Windows 11 26H2 feature update"
+  feature_update_version                                  = "Windows 11, version 26H2"
   install_feature_updates_optional                        = true
   install_latest_windows10_on_windows11_ineligible_device = true
 
@@ -116,9 +116,9 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
 
 # Windows Feature Update Policy with multiple assignments
 resource "microsoft365_graph_beta_device_management_windows_feature_update_policy" "with_assignments" {
-  display_name                                            = "Windows 11 25H2 - With Assignments"
+  display_name                                            = "Windows 11 26H2 - With Assignments"
   description                                             = "Feature update deployment with targeted assignments"
-  feature_update_version                                  = "Windows 11, version 25H2"
+  feature_update_version                                  = "Windows 11, version 26H2"
   install_feature_updates_optional                        = true
   install_latest_windows10_on_windows11_ineligible_device = true
 
@@ -151,7 +151,7 @@ resource "microsoft365_graph_beta_device_management_windows_feature_update_polic
 ### Required
 
 - `display_name` (String) The display name of the profile.
-- `feature_update_version` (String) The feature update version that will be deployed to the devices targeted by this profile. Valid values are: "Windows 11, version 25H2", "Windows 11, version 24H2", "Windows 11, version 23H2". By selecting this Feature update to deploy you are agreeing that when applying this operating system to a device either (1) the applicable Windows license was purchased though volume licensing, or (2) that you are authorized to bind your organization and are accepting on its behalf the relevant Microsoft Software License Terms to be found here https://go.microsoft.com/fwlink/?linkid=2171206.
+- `feature_update_version` (String) The feature update version that will be deployed to the devices targeted by this profile. Valid values are: "Windows 11, version 26H2", "Windows 11, version 25H2", "Windows 11, version 24H2", "Windows 11, version 23H2". By selecting this Feature update to deploy you are agreeing that when applying this operating system to a device either (1) the applicable Windows license was purchased though volume licensing, or (2) that you are authorized to bind your organization and are accepting on its behalf the relevant Microsoft Software License Terms to be found here https://go.microsoft.com/fwlink/?linkid=2171206.
 
 ### Optional
 

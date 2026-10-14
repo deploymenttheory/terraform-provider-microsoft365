@@ -60,7 +60,7 @@ data "microsoft365_graph_beta_device_management_windows_autopilot_device_prepara
 resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "example" {
   display_name             = "Cloud PC - Autopilot device preparation"
   description              = "Provisioning policy using an existing device preparation policy"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
   image_type               = "gallery"
   provisioning_type        = "dedicated"
   cloud_pc_naming_template = "CPC-%USERNAME:4%-%RAND:5%"

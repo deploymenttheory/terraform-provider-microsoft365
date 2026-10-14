@@ -69,7 +69,7 @@ resource "microsoft365_graph_beta_device_and_app_management_win32_app" "example"
   information_url = "https://www.mozilla.org/firefox/"
 
   allowed_architectures             = ["x64", "arm64"]
-  minimum_supported_windows_release = "Windows11_23H2"
+  minimum_supported_windows_release = "Windows11_26H2"
 
   install_experience = {
     device_restart_behavior = "allow"
@@ -501,7 +501,7 @@ Actual Content Prep Tool packages should continue to use `app_installer`. A malf
 - `display_name` (String) The admin provided or imported title of the app.
 - `file_name` (String) The configured name of the main LOB application file. For prepackaged content, Microsoft Graph receives the inner filename from `Detection.xml`; for ZIP sources it receives the ZIP filename with an `.intunewin` extension.
 - `install_command_line` (String) The command line to install this app. Typically formatted as 'msiexec /i "application_name.msi" /qn'
-- `minimum_supported_windows_release` (String) The value for the minimum supported windows release.
+- `minimum_supported_windows_release` (String) The value for the minimum supported Windows release. Supported values are: Windows11_26H2, Windows11_25H2, Windows11_24H2, Windows11_23H2, Windows11_22H2, Windows11_21H2, Windows10_22H2, Windows10_21H2, 21H1, 2H20, 2004, 1909, 1903, 1809, 1803, 1709, 1703, 1607.
 - `publisher` (String) The publisher of the Intune macOS pkg application.
 - `uninstall_command_line` (String) The command line to uninstall this app. Typically formatted as 'msiexec /x {00000000-0000-0000-0000-000000000000} /qn'
 
