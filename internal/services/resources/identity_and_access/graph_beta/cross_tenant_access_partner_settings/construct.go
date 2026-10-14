@@ -7,13 +7,16 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoft/kiota-abstractions-go/serialization"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 func constructResource(ctx context.Context, data *CrossTenantAccessPartnerSettingsResourceModel) (graphmodels.CrossTenantAccessPolicyConfigurationPartnerable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := graphmodels.NewCrossTenantAccessPolicyConfigurationPartner()
+	requestBody := &partnerSettingsRequestBody{
+		CrossTenantAccessPolicyConfigurationPartnerable: graphmodels.NewCrossTenantAccessPolicyConfigurationPartner(),
+	}
 
 	tenantID := data.TenantID.ValueString()
 	requestBody.SetTenantId(&tenantID)
@@ -79,6 +82,14 @@ func constructResource(ctx context.Context, data *CrossTenantAccessPartnerSettin
 		requestBody.SetTenantRestrictions(tenantRestr)
 	}
 
+	if data.EnforceDefaultInheritance.ValueBool() {
+		for _, setting := range inheritablePartnerSettings {
+			if setting.value(data).IsNull() {
+				requestBody.inheritedFields = append(requestBody.inheritedFields, setting.graphName)
+			}
+		}
+	}
+
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{
 			"error": err.Error(),
@@ -88,6 +99,25 @@ func constructResource(ctx context.Context, data *CrossTenantAccessPartnerSettin
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
+}
+
+// Kiota omits nil object properties (and nil AdditionalData values). Graph PATCH
+// needs an explicit JSON null to remove an override and restore inheritance.
+type partnerSettingsRequestBody struct {
+	graphmodels.CrossTenantAccessPolicyConfigurationPartnerable
+	inheritedFields []string
+}
+
+func (b *partnerSettingsRequestBody) Serialize(writer serialization.SerializationWriter) error {
+	if err := b.CrossTenantAccessPolicyConfigurationPartnerable.Serialize(writer); err != nil {
+		return fmt.Errorf("failed to serialize partner settings: %w", err)
+	}
+	for _, name := range b.inheritedFields {
+		if err := writer.WriteNullValue(name); err != nil {
+			return fmt.Errorf("failed to serialize inherited setting %s: %w", name, err)
+		}
+	}
+	return nil
 }
 
 func constructB2BSetting(ctx context.Context, obj types.Object) (graphmodels.CrossTenantAccessPolicyB2BSettingable, error) {

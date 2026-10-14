@@ -1,7 +1,12 @@
 package graphBetaCrossTenantAccessPartnerSettings_test
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -9,6 +14,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	crossTenantAccessPartnerSettingsMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/cross_tenant_access_partner_settings/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -489,4 +497,88 @@ func TestUnitResourceCrossTenantAccessPartnerSettings_Error(t *testing.T) {
 			},
 		},
 	})
+}
+
+// TestUnitResourceCrossTenantAccessPartnerSettings_12_InheritanceDrift uses real
+// Terraform planning against HTTP mocks to detect and remove a remote override.
+func TestUnitResourceCrossTenantAccessPartnerSettings_12_InheritanceDrift(t *testing.T) {
+	for _, explicitNull := range []bool{false, true} {
+		t.Run(fmt.Sprintf("explicit_null_%t", explicitNull), func(t *testing.T) {
+			mocks.SetupUnitTestEnvironment(t)
+			_, mock := setupMockEnvironment()
+			defer httpmock.DeactivateAndReset()
+			defer mock.CleanupMockState()
+			config := strings.Replace(loadUnitTestTerraform("resource_01_minimal.tf"), "tenant_id =", "enforce_default_inheritance = true\n  tenant_id =", 1)
+			if explicitNull {
+				config = strings.Replace(config, "tenant_id =", "tenant_restrictions = null\n  tenant_id =", 1)
+			}
+			name := resourceType + ".test"
+			inherited := resource.ComposeTestCheckFunc(
+				resource.TestCheckNoResourceAttr(name, "tenant_restrictions.users_and_groups.access_type"),
+				resource.TestCheckNoResourceAttr(name, "inbound_trust.is_mfa_accepted"),
+				resource.TestCheckResourceAttr(name, "b2b_collaboration_outbound.users_and_groups.access_type", "allowed"),
+			)
+			resource.UnitTest(t, resource.TestCase{
+				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{Config: config, Check: inherited},
+					{
+						PreConfig: func() { introducePartnerOverride(t) },
+						Config:    config, Check: inherited,
+						ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+							plancheck.ExpectResourceAction(name, plancheck.ResourceActionUpdate),
+							plancheck.ExpectKnownValue(name, tfjsonpath.New("tenant_restrictions"), knownvalue.Null()),
+							plancheck.ExpectKnownValue(name, tfjsonpath.New("inbound_trust"), knownvalue.Null()),
+						}},
+					},
+					{Config: config, PlanOnly: true},
+				},
+			})
+		})
+	}
+}
+
+func TestUnitResourceCrossTenantAccessPartnerSettings_13_LegacyOmittedSettings(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, mock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer mock.CleanupMockState()
+	config := strings.Replace(loadUnitTestTerraform("resource_01_minimal.tf"), "tenant_id =", "tenant_restrictions = null\n  tenant_id =", 1)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config},
+			{PreConfig: func() { introducePartnerOverride(t) }, Config: config, PlanOnly: true},
+		},
+	})
+}
+
+// The request only reaches registered httpmock responders, simulating a change
+// made in Entra independently of the Terraform configuration.
+func introducePartnerOverride(t *testing.T) {
+	t.Helper()
+	payload := map[string]any{
+		"tenantRestrictions": map[string]any{
+			"usersAndGroups": map[string]any{"accessType": "allowed", "targets": []map[string]string{{"target": "AllUsers", "targetType": "user"}}},
+			"applications":   map[string]any{"accessType": "allowed", "targets": []map[string]string{{"target": "AllApplications", "targetType": "application"}}},
+		},
+		"inboundTrust": map[string]any{"isMfaAccepted": true, "isCompliantDeviceAccepted": true, "isHybridAzureADJoinedDeviceAccepted": true},
+	}
+	body, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodPatch,
+		"https://graph.microsoft.com/beta/policies/crossTenantAccessPolicy/partners/12345678-1234-1234-1234-123456789012", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusNoContent {
+		t.Fatalf("mock override failed: HTTP %d", response.StatusCode)
+	}
 }

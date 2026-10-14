@@ -25,6 +25,11 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *CrossTenantAcc
 	data.ID = types.StringValue(singletonID)
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.AllowedCloudEndpoints = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, remoteResource.GetAllowedCloudEndpoints())
+	// Older imports left this Terraform-only flag unset. Preserve a configured
+	// value and initialise the documented safe default when refreshing old state.
+	if data.RestoreDefaultsOnDestroy.IsNull() || data.RestoreDefaultsOnDestroy.IsUnknown() {
+		data.RestoreDefaultsOnDestroy = types.BoolValue(false)
+	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
