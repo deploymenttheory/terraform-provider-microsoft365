@@ -47,6 +47,7 @@ import subprocess
 import time
 import gc
 import argparse
+import signal
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
@@ -64,6 +65,7 @@ def run_command(cmd: List[str], output_file: str, append: bool = False) -> int:
         The exit code of the command.
     """
     mode = 'a' if append else 'w'
+    started = time.monotonic()
     with open(output_file, mode, encoding='utf-8', buffering=8192) as f:  # Use small buffer
         process = subprocess.Popen(
             cmd,
@@ -72,14 +74,26 @@ def run_command(cmd: List[str], output_file: str, append: bool = False) -> int:
             text=True,
             bufsize=1  # Line buffered
         )
+        print(f"[COMMAND] Started package={cmd[-1]} pid={process.pid}", flush=True)
         
         for line in process.stdout:
-            print(line, end='')
+            print(line, end='', flush=True)
             f.write(line)
             f.flush()  # Ensure data is written immediately
         
+        process.stdout.close()
         process.wait()
-        return process.returncode
+        status = process.returncode
+        if status < 0:
+            signal_name = signal.Signals(-status).name
+            status = 128 - status
+            message = f"[COMMAND] Terminated by {signal_name}; exit={status}"
+        else:
+            message = f"[COMMAND] Exit={status}"
+        message += f" package={cmd[-1]} elapsed={time.monotonic() - started:.2f}s\n"
+        print(message, end='', flush=True)
+        f.write(message)
+        return status
 
 
 def discover_test_packages(base_path: Path) -> List[str]:
@@ -430,7 +444,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     print(f"🚀 [EXECUTE] Starting sequential execution ({len(all_packages)} package(s))")
     print("="*70 + "\n")
     
-    has_failures = False
+    failure_status = 0
     
     # Initialize coverage file with mode line
     print(f"📝 [SETUP] Initializing coverage file: {coverage_file}")
@@ -493,10 +507,14 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
             print("⚠️  [COVERAGE] No coverage file generated")
         
         if exit_code != 0:
-            has_failures = True
+            failure_status = exit_code if exit_code >= 128 else 1
             print(f"\n❌ [RESULT] Package {pkg} completed with failures (exit code: {exit_code})")
         else:
             print(f"\n✅ [RESULT] Package {pkg} completed successfully")
+
+        if exit_code >= 128:
+            print("[TERMINATION] Stopping after command termination; preserving partial test results", flush=True)
+            break
         
         # Force garbage collection to free memory
         if force_gc:
@@ -512,7 +530,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     print("🏁 Sequential execution complete for provider-core")
     print_separator("=")
     
-    return 1 if has_failures else 0
+    return failure_status
 
 
 def run_service_tests(configuration_block_type: str, service: str,
@@ -648,7 +666,7 @@ def run_service_tests(configuration_block_type: str, service: str,
     print(f"🚀 [EXECUTE] Starting sequential execution ({len(test_packages)} package(s))")
     print("="*70 + "\n")
     
-    has_failures = False
+    failure_status = 0
     
     # Initialize coverage file with mode line
     print(f"📝 [SETUP] Initializing coverage file: {coverage_file}")
@@ -712,10 +730,14 @@ def run_service_tests(configuration_block_type: str, service: str,
             print("⚠️  [COVERAGE] No coverage file generated")
         
         if exit_code != 0:
-            has_failures = True
+            failure_status = exit_code if exit_code >= 128 else 1
             print(f"\n❌ [RESULT] Package {rel_pkg} completed with failures (exit code: {exit_code})")
         else:
             print(f"\n✅ [RESULT] Package {rel_pkg} completed successfully")
+
+        if exit_code >= 128:
+            print("[TERMINATION] Stopping after command termination; preserving partial test results", flush=True)
+            break
         
         # Force garbage collection to free memory
         if force_gc:
@@ -731,7 +753,7 @@ def run_service_tests(configuration_block_type: str, service: str,
     print(f"🏁 Sequential execution complete for {configuration_block_type}/{service}")
     print_separator("=")
     
-    return 1 if has_failures else 0
+    return failure_status
 
 
 def main():
@@ -813,17 +835,6 @@ Examples:
     print(f"⚙️  [CONFIG] Test parallel (-parallel): {args.test_parallel}")
     print(f"⚙️  [CONFIG] Package parallel (-p): {args.pkg_parallel}")
     print(f"⚙️  [CONFIG] Race detection (-race): {'enabled' if args.use_race else 'disabled'}")
-    
-    # Calculate estimated memory usage
-    base_memory = 500  # Base Go runtime memory in MB
-    test_memory = args.test_parallel * 200  # ~200MB per parallel test
-    race_memory = 1500 if args.use_race else 0  # Race detector overhead
-    estimated_memory = base_memory + test_memory + race_memory
-    
-    print(f"⚙️  [CONFIG] Estimated memory usage: ~{estimated_memory}MB")
-    if estimated_memory > 7000:
-        print("⚠️  [WARNING] Estimated memory usage exceeds 7GB - may cause OOM on 8GB runners!")
-    print()
     
     if os.environ.get("SKIP_TESTS", "false") == "true":
         print("⏭️  Skipping tests - no credentials configured")

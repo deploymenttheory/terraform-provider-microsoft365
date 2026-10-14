@@ -64,7 +64,11 @@ jobs:
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET_DEVICE_AND_APP_MGMT }}
           M365_AUTH_METHOD: client_secret
           M365_CLOUD: public
-        run: ./scripts/pipeline/bi_weekly_tests/run_tests.py provider-core "" coverage-provider-core.txt test-output-provider-core.log --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration
+        run: |
+          bash scripts/pipeline/pr/steps/monitor_resources.sh diagnostics \
+            python3 -u scripts/pipeline/bi_weekly_tests/run_tests.py provider-core "" \
+            coverage-provider-core.txt test-output-provider-core.log \
+            --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration
         continue-on-error: true
 
       - name: Upload test results
@@ -75,6 +79,7 @@ jobs:
           path: |
             test-failures.json
             test-successes.json
+            diagnostics/
             test-output-provider-core.log
           if-no-files-found: ignore
           retention-days: 7
@@ -322,7 +327,8 @@ jobs:
           fi
 
           # Run tests with shard resources for this shard
-          ./scripts/pipeline/bi_weekly_tests/run_tests.py resources ${{ matrix.service }} \
+          bash scripts/pipeline/pr/steps/monitor_resources.sh diagnostics \
+            python3 -u scripts/pipeline/bi_weekly_tests/run_tests.py resources ${{ matrix.service }} \
             coverage-resources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-resources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
@@ -337,6 +343,7 @@ jobs:
           path: |
             test-failures.json
             test-successes.json
+            diagnostics/
             test-output-resources-${{ matrix.service }}*.log
           if-no-files-found: ignore
           retention-days: 7
@@ -438,7 +445,8 @@ jobs:
           fi
 
           # Run tests with shard resources for this shard
-          ./scripts/pipeline/bi_weekly_tests/run_tests.py datasources ${{ matrix.service }} \
+          bash scripts/pipeline/pr/steps/monitor_resources.sh diagnostics \
+            python3 -u scripts/pipeline/bi_weekly_tests/run_tests.py datasources ${{ matrix.service }} \
             coverage-datasources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-datasources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
@@ -453,6 +461,7 @@ jobs:
           path: |
             test-failures.json
             test-successes.json
+            diagnostics/
             test-output-datasources-${{ matrix.service }}*.log
           if-no-files-found: ignore
           retention-days: 7
@@ -554,7 +563,8 @@ jobs:
           fi
 
           # Run tests with shard resources for this shard
-          ./scripts/pipeline/bi_weekly_tests/run_tests.py actions ${{ matrix.service }} \
+          bash scripts/pipeline/pr/steps/monitor_resources.sh diagnostics \
+            python3 -u scripts/pipeline/bi_weekly_tests/run_tests.py actions ${{ matrix.service }} \
             coverage-actions-${{ matrix.service }}${SUFFIX}.txt \
             test-output-actions-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
@@ -569,6 +579,7 @@ jobs:
           path: |
             test-failures.json
             test-successes.json
+            diagnostics/
             test-output-actions-${{ matrix.service }}*.log
           if-no-files-found: ignore
           retention-days: 7
@@ -670,7 +681,8 @@ jobs:
           fi
 
           # Run tests with shard resources for this shard
-          ./scripts/pipeline/bi_weekly_tests/run_tests.py list-resources ${{ matrix.service }} \
+          bash scripts/pipeline/pr/steps/monitor_resources.sh diagnostics \
+            python3 -u scripts/pipeline/bi_weekly_tests/run_tests.py list-resources ${{ matrix.service }} \
             coverage-list-resources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-list-resources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
@@ -685,6 +697,7 @@ jobs:
           path: |
             test-failures.json
             test-successes.json
+            diagnostics/
             test-output-list-resources-${{ matrix.service }}*.log
           if-no-files-found: ignore
           retention-days: 7
@@ -786,7 +799,8 @@ jobs:
           fi
 
           # Run tests with shard resources for this shard
-          ./scripts/pipeline/bi_weekly_tests/run_tests.py ephemerals ${{ matrix.service }} \
+          bash scripts/pipeline/pr/steps/monitor_resources.sh diagnostics \
+            python3 -u scripts/pipeline/bi_weekly_tests/run_tests.py ephemerals ${{ matrix.service }} \
             coverage-ephemerals-${{ matrix.service }}${SUFFIX}.txt \
             test-output-ephemerals-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
@@ -801,6 +815,7 @@ jobs:
           path: |
             test-failures.json
             test-successes.json
+            diagnostics/
             test-output-ephemerals-${{ matrix.service }}*.log
           if-no-files-found: ignore
           retention-days: 7
