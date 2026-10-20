@@ -101,8 +101,8 @@ Optional:
 - **Dependency Behavior**: Use `autoInstall` to automatically install the prerequisite or `detect` to require an existing installation.
 - **Relationship Management**: Each resource manages one dependency. The provider uses `updateRelationships` and preserves other outgoing dependencies and supersedence relationships.
 - **Updates**: Changing `dependency_type` updates the dependency in place. Changing `source_id` or `target_id` replaces it.
-- **Concurrent Changes**: Dependency writes for the same source app are serialized within a provider process.
-- **Import**: Import the actual relationship ID returned by Microsoft Graph. Graph supplies the source and target app IDs during import.
+- **Concurrent Changes**: Dependency and supersedence writes for the same source app are serialized within a provider process.
+- **Import**: Import the actual relationship ID returned by Graph, normally `<source_id>_<target_id>`. The provider resolves the source app from that identifier and reads its relationship collection.
 
 ## Import
 

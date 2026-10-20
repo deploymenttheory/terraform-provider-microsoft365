@@ -3,17 +3,17 @@ page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app_supers
 subcategory: "Device and App Management"
 
 description: |-
-  Manages mobile app supersedence relationships using the /deviceAppManagement/mobileApps/{mobileAppId}/relationships endpoint. This resource is used to supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
+  Manages supersedence between two Microsoft Intune Win32 apps. The source app upgrades or replaces the target app. Each resource manages one relationship using updateRelationships and preserves other app relationships.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_mobile_app_supersedence (Resource)
 
-Manages mobile app supersedence relationships using the `/deviceAppManagement/mobileApps/{mobileAppId}/relationships` endpoint. This resource is used to supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.
+Manages supersedence between two Microsoft Intune Win32 apps. The source app upgrades or replaces the target app. Each resource manages one relationship using `updateRelationships` and preserves other app relationships.
 
 ## Microsoft Documentation
 
 - [mobileAppSupersedence resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-apps-mobileappsupersedence?view=graph-rest-beta)
-- [Create mobileAppSupersedence](https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-post-supersedence?view=graph-rest-beta)
+- [updateRelationships action](https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-updaterelationships?view=graph-rest-beta)
 
 ## Microsoft Graph API Permissions
 
@@ -22,8 +22,6 @@ The following client `application` permissions are needed in order to use this r
 **Required:**
 - `DeviceManagementApps.Read.All`
 - `DeviceManagementApps.ReadWrite.All`
-- `DeviceManagementConfiguration.Read.All`
-- `DeviceManagementConfiguration.ReadWrite.All`
 
 **Optional:**
 - `None` `[N/A]`
@@ -40,11 +38,11 @@ The following client `application` permissions are needed in order to use this r
 # This example demonstrates how to create a supersedence relationship between two mobile apps in Intune
 # The supersedence relationship allows you to upgrade or replace an older app with a newer version
 
-# Example 1: Create an constants.TfOperationUpdate supersedence relationship between two apps
+# Example 1: Create an "update" supersedence relationship between two apps
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_supersedence" "update_example" {
-  source_id         = "00000000-0000-0000-0000-000000000001" # ID of the older app version
-  target_id         = "00000000-0000-0000-0000-000000000002" # ID of the newer app version
-  supersedence_type = constants.TfOperationUpdate            # Indicates this is an update to the existing app
+  source_id         = "00000000-0000-0000-0000-000000000001" # ID of the newer, superseding app
+  target_id         = "00000000-0000-0000-0000-000000000002" # ID of the older, superseded app
+  supersedence_type = "update"                               # The source app updates the target app
 
   # Optional timeouts
   timeouts = {
@@ -57,9 +55,9 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_supersede
 
 # Example 2: Create a "replace" supersedence relationship between two apps
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_supersedence" "replace_example" {
-  source_id         = "00000000-0000-0000-0000-000000000003" # ID of the app being replaced
-  target_id         = "00000000-0000-0000-0000-000000000004" # ID of the replacement app
-  supersedence_type = "replace"                              # Indicates this app replaces the source app
+  source_id         = "00000000-0000-0000-0000-000000000003" # ID of the replacement app
+  target_id         = "00000000-0000-0000-0000-000000000004" # ID of the app being replaced
+  supersedence_type = "replace"                              # Uninstall the target before installing the source
 }
 ```
 
@@ -68,9 +66,9 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_supersede
 
 ### Required
 
-- `source_id` (String) The unique app identifier of the source of the mobile app relationship entity. For example: 2dbc75b9-e993-4e4d-a071-91ac5a218672. If null during relationship creation, then it will be populated with parent Id. Read-Only.
+- `source_id` (String) The ID of the newer Win32 app that supersedes the target app.
 - `supersedence_type` (String) The supersedence relationship type between the parent and child apps. Possible values are: update, replace.
-- `target_id` (String) The unique app identifier of the target of the mobile app relationship entity. For example: 2dbc75b9-e993-4e4d-a071-91ac5a218672.
+- `target_id` (String) The ID of the older Win32 app that the source app supersedes.
 
 ### Optional
 
@@ -78,7 +76,7 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_supersede
 
 ### Read-Only
 
-- `app_relationship_type` (String) The type of relationship indicating whether the target application of a relationship is a parent or child in the relationship. Possible values are: parent, child. Read-Only.
+- `app_relationship_type` (String) Alias of `target_type`, normally `child` for the app being superseded. Read-only.
 - `id` (String) The unique identifier for the mobile app relationship entity. This is assigned at MobileAppRelationship entity creation. For example: 2dbc75b9-e993-4e4d-a071-91ac5a218672_43aaaf35-ce51-4695-9447-5eac6df31161. Read-Only.
 - `source_display_name` (String) The display name of the app that is the source of the mobile app relationship entity. For example: Orca. Maximum length is 500 characters. Read-Only.
 - `source_display_version` (String) The display version of the app that is the source of the mobile app relationship entity. For example 1.0.12 or 1.2203.156 or 3. Read-Only.
@@ -100,6 +98,15 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+## Important Notes
+
+- **Win32 Apps**: The `source_id` identifies the newer, superseding app. The `target_id` identifies the older app being superseded.
+- **Supersedence Behavior**: Use `"update"` when the source installer updates the target app, or `"replace"` to uninstall the target before installing the source.
+- **Relationship Management**: Each resource manages one relationship using `updateRelationships`, preserving other outgoing dependencies and supersedence relationships.
+- **Updates**: Changing `supersedence_type` updates the relationship in place. Changing either app ID replaces it.
+- **Concurrent Changes**: Dependency and supersedence writes for the same source app are serialized within a provider process.
+- **Import**: Import the actual relationship ID returned by Graph, normally `<source_id>_<target_id>`. The provider resolves the source app from that identifier and reads its relationship collection.
 
 ## Import
 

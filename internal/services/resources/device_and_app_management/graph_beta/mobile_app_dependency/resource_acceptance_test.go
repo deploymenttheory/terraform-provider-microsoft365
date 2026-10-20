@@ -56,23 +56,23 @@ func TestAccResourceMobileAppDependency_01_Detect(t *testing.T) {
 				PreConfig: func() { testlog.StepAction(resourceType, "01: Creating Win32 apps and a detect dependency") },
 				Config:    loadAcceptanceTestTerraform("01_detect.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(win32.ResourceName+`.apps["main"]`).
+					check.That(win32.ResourceName+`.apps.0`).
 						ExistsInGraph(win32.Win32AppTestResource{}),
-					check.That(win32.ResourceName+`.apps["runtime"]`).
+					check.That(win32.ResourceName+`.apps.1`).
 						ExistsInGraph(win32.Win32AppTestResource{}),
-					check.That(win32.ResourceName+`.apps["main"]`).
+					check.That(win32.ResourceName+`.apps.0`).
 						Key("committed_content_version").
 						IsNotEmpty(),
-					check.That(win32.ResourceName+`.apps["runtime"]`).
+					check.That(win32.ResourceName+`.apps.1`).
 						Key("committed_content_version").
 						IsNotEmpty(),
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").
 						Key("source_id").
-						MatchesOtherKey(check.That(win32.ResourceName+`.apps["main"]`).Key("id")),
+						MatchesOtherKey(check.That(win32.ResourceName+`.apps.0`).Key("id")),
 					check.That(resourceType+".test").
 						Key("target_id").
-						MatchesOtherKey(check.That(win32.ResourceName+`.apps["runtime"]`).Key("id")),
+						MatchesOtherKey(check.That(win32.ResourceName+`.apps.1`).Key("id")),
 					check.That(resourceType+".test").Key("dependency_type").HasValue("detect"),
 					check.That(resourceType+".test").Key("target_type").HasValue("child"),
 				),
@@ -122,10 +122,10 @@ func TestAccResourceMobileAppDependency_02_AutoInstallToDetect(t *testing.T) {
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").
 						Key("source_id").
-						MatchesOtherKey(check.That(win32.ResourceName+`.apps["main"]`).Key("id")),
+						MatchesOtherKey(check.That(win32.ResourceName+`.apps.0`).Key("id")),
 					check.That(resourceType+".test").
 						Key("target_id").
-						MatchesOtherKey(check.That(win32.ResourceName+`.apps["runtime"]`).Key("id")),
+						MatchesOtherKey(check.That(win32.ResourceName+`.apps.1`).Key("id")),
 					check.That(resourceType+".test").Key("dependency_type").HasValue("autoInstall"),
 					check.That(resourceType+".test").Key("timeouts.create").HasValue("5m"),
 				),
@@ -190,10 +190,10 @@ func TestAccResourceMobileAppDependency_03_SiblingRemoval(t *testing.T) {
 					check.That(resourceType+".sibling").ExistsInGraph(testResource),
 					check.That(resourceType+".test").
 						Key("target_id").
-						MatchesOtherKey(check.That(win32.ResourceName+`.apps["runtime"]`).Key("id")),
+						MatchesOtherKey(check.That(win32.ResourceName+`.apps.1`).Key("id")),
 					check.That(resourceType+".sibling").
 						Key("target_id").
-						MatchesOtherKey(check.That(win32.ResourceName+`.apps["second_runtime"]`).Key("id")),
+						MatchesOtherKey(check.That(win32.ResourceName+`.apps.2`).Key("id")),
 				),
 			},
 			{
@@ -218,11 +218,11 @@ func TestAccResourceMobileAppDependency_03_SiblingRemoval(t *testing.T) {
 				PreConfig: func() { testlog.StepAction(resourceType, "03: Removing the last dependency while retaining the apps") },
 				Config:    loadAcceptanceTestTerraform("03_siblings_step3.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(win32.ResourceName+`.apps["main"]`).
+					check.That(win32.ResourceName+`.apps.0`).
 						ExistsInGraph(win32.Win32AppTestResource{}),
-					check.That(win32.ResourceName+`.apps["runtime"]`).
+					check.That(win32.ResourceName+`.apps.1`).
 						ExistsInGraph(win32.Win32AppTestResource{}),
-					check.That(win32.ResourceName+`.apps["second_runtime"]`).
+					check.That(win32.ResourceName+`.apps.2`).
 						ExistsInGraph(win32.Win32AppTestResource{}),
 				),
 			},

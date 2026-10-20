@@ -29,7 +29,7 @@ func init() {
 func (m *MobileAppDependencyMock) RegisterMocks() {
 	m.CleanupMockState()
 	template := loadResponse("validate_get/get_dependency.json")
-	notFound := loadResponse("validate_delete/get_dependency_not_found.json")
+	badRoute := loadResponse("validate_get/get_dependency_bad_route.json")
 	httpmock.RegisterResponder(http.MethodGet,
 		`=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[^/]+/relationships$`,
 		func(req *http.Request) (*http.Response, error) {
@@ -78,14 +78,8 @@ func (m *MobileAppDependencyMock) RegisterMocks() {
 	)
 	httpmock.RegisterResponder(http.MethodGet,
 		`=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileAppRelationships/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			m.mu.Lock()
-			defer m.mu.Unlock()
-			id := req.URL.Path[strings.LastIndex(req.URL.Path, "/")+1:]
-			if record, ok := m.relationships[id]; ok {
-				return jsonResponse(http.StatusOK, record)
-			}
-			return jsonResponse(http.StatusNotFound, notFound)
+		func(_ *http.Request) (*http.Response, error) {
+			return jsonResponse(http.StatusBadRequest, badRoute)
 		})
 }
 

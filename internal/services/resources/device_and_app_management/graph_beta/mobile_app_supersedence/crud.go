@@ -2,14 +2,17 @@ package graphBetaMobileAppSupersedence
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	apprelationships "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management/app_relationships"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -17,11 +20,14 @@ import (
 
 // Create handles the Create operation for Mobile App Supersedence resources.
 //
-// Operation: Creates a new mobile app supersedence relationship between applications
+// Operation: Creates a mobile app supersedence while preserving other app relationships
 // API Calls:
-//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/relationships
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
+//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/updateRelationships
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappsupersedence-create?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-updaterelationships?view=graph-rest-beta
+// Note: updateRelationships returns no content; the relationship ID is discovered during read-back.
 func (r *MobileAppSupersedenceResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MobileAppSupersedenceResourceModel
 
@@ -38,31 +44,25 @@ func (r *MobileAppSupersedenceResource) Create(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource for Create method",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
 	sourceAppID := object.SourceID.ValueString()
 
-	baseResource, err := r.client.
-		DeviceAppManagement().
-		MobileApps().
-		ByMobileAppId(sourceAppID).
-		Relationships().
-		Post(ctx, requestBody, nil)
-
+	// Serialize the collection update and read-back with other supersedence relationships for this app.
+	unlock, err := lockAppRelationships(ctx, sourceAppID)
 	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock app relationships", err.Error())
+		return
+	}
+	defer unlock()
+
+	_, err = r.changeSupersedence(ctx, &object, constants.TfOperationCreate)
+	if err != nil {
+		if stderrors.Is(err, errExistingRelationship) {
+			resp.Diagnostics.AddError("App relationship already exists", err.Error())
+			return
+		}
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
-
-	object.ID = types.StringValue(*baseResource.GetId())
-	tflog.Debug(ctx, fmt.Sprintf("Base resource created with ID: %s", object.ID.ValueString()))
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -75,6 +75,18 @@ func (r *MobileAppSupersedenceResource) Create(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
+		var refreshedState MobileAppSupersedenceResourceModel
+		if state.Get(ctx, &refreshedState).HasError() {
+			return false
+		}
+
+		return !refreshedState.ID.IsNull() && !refreshedState.ID.IsUnknown() &&
+			refreshedState.ID.ValueString() != "" &&
+			refreshedState.SourceID.Equal(object.SourceID) &&
+			refreshedState.TargetID.Equal(object.TargetID) &&
+			refreshedState.SupersedenceType.Equal(object.SupersedenceType)
+	}
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -90,11 +102,12 @@ func (r *MobileAppSupersedenceResource) Create(ctx context.Context, req resource
 
 // Read handles the Read operation for Mobile App Supersedence resources.
 //
-// Operation: Retrieves a mobile app supersedence relationship by ID
+// Operation: Retrieves a mobile app supersedence by ID or discovers its ID after creation
 // API Calls:
-//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappsupersedence-get?view=graph-rest-beta
+// Note: Composite relationship IDs resolve the source app for ID-only imports.
 func (r *MobileAppSupersedenceResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MobileAppSupersedenceResourceModel
 	var identity sharedmodels.ResourceIdentity
@@ -120,34 +133,47 @@ func (r *MobileAppSupersedenceResource) Read(ctx context.Context, req resource.R
 	}
 	defer cancel()
 
-	identity.ID = object.ID.ValueString()
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}
-
 	sourceAppID := object.SourceID.ValueString()
 	relationshipID := object.ID.ValueString()
 
-	// Get the supersedence relationship
-	respBaseResource, err := r.client.
-		DeviceAppManagement().
-		MobileApps().
-		ByMobileAppId(sourceAppID).
-		Relationships().
-		ByMobileAppRelationshipId(relationshipID).
-		Get(ctx, nil)
+	var respBaseResource graphmodels.MobileAppRelationshipable
+	var err error
+	if sourceAppID == "" {
+		sourceAppID = apprelationships.SourceID(relationshipID)
+	}
+	if sourceAppID != "" {
+		object.SourceID = types.StringValue(sourceAppID)
+		var relationships []graphmodels.MobileAppRelationshipable
+		relationships, err = r.listRelationships(ctx, sourceAppID)
+		if err == nil {
+			respBaseResource, err = apprelationships.Find(relationships, relationshipID, object.TargetID.ValueString())
+		}
+	} else {
+		// Retain support for legacy opaque IDs whose source cannot be derived.
+		respBaseResource, err = r.client.
+			DeviceAppManagement().
+			MobileAppRelationships().
+			ByMobileAppRelationshipId(relationshipID).
+			Get(ctx, nil)
+	}
 
+	if stderrors.Is(err, apprelationships.ErrNotFound) {
+		if operation == constants.TfOperationRead {
+			resp.State.RemoveResource(ctx)
+		} else {
+			resp.Diagnostics.AddError(
+				"App supersedence not found (404)",
+				"The supersedence is not yet visible after the relationship update.",
+			)
+		}
+		return
+	}
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, operation, r.ReadPermissions, errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true})
 		return
 	}
 
-	// This ensures type safety as the Graph API returns a base interface that needs
-	// to be converted to the specific app type
+	// Convert the base Graph relationship to the supersedence type before mapping state.
 	supersedence, ok := respBaseResource.(graphmodels.MobileAppSupersedenceable)
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -163,6 +189,16 @@ func (r *MobileAppSupersedenceResource) Read(ctx context.Context, req resource.R
 		return
 	}
 
+	// Set identity after read-back has resolved the relationship ID.
+	identity.ID = object.ID.ValueString()
+
+	if resp.Identity != nil {
+		resp.Diagnostics.Append(resp.Identity.Set(ctx, identity)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -173,13 +209,16 @@ func (r *MobileAppSupersedenceResource) Read(ctx context.Context, req resource.R
 
 // Update handles the Update operation for Mobile App Supersedence resources.
 //
-// Operation: Updates an existing mobile app supersedence relationship
+// Operation: Updates the supersedence behavior while preserving other app relationships
 // API Calls:
-//   - PATCH /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
+//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/updateRelationships
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappsupersedence-update?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-updaterelationships?view=graph-rest-beta
 func (r *MobileAppSupersedenceResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state MobileAppSupersedenceResourceModel
+	var plan MobileAppSupersedenceResourceModel
+	var state MobileAppSupersedenceResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -187,38 +226,37 @@ func (r *MobileAppSupersedenceResource) Update(ctx context.Context, req resource
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
+
+	plan.ID = state.ID
+
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	// Only supersedence_type can be updated
+	sourceAppID := state.SourceID.ValueString()
+
+	unlock, err := lockAppRelationships(ctx, sourceAppID)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock app relationships", err.Error())
+		return
+	}
+	defer unlock()
+
+	// Only supersedence_type can be updated; source_id and target_id require replacement.
 	if !plan.SupersedenceType.Equal(state.SupersedenceType) {
-		requestBody, err := constructResource(ctx, &plan)
-		if err != nil {
-			resp.Diagnostics.AddError(
-				"Error constructing resource for Update method",
-				fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-			)
-			return
-		}
-
-		sourceAppID := state.SourceID.ValueString()
-		relationshipID := state.ID.ValueString()
-
-		_, err = r.client.
-			DeviceAppManagement().
-			MobileApps().
-			ByMobileAppId(sourceAppID).
-			Relationships().
-			ByMobileAppRelationshipId(relationshipID).
-			Patch(ctx, requestBody, nil)
-
+		_, err = r.changeSupersedence(ctx, &plan, constants.TfOperationUpdate)
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -227,8 +265,19 @@ func (r *MobileAppSupersedenceResource) Update(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
+		var object MobileAppSupersedenceResourceModel
+		if state.Get(ctx, &object).HasError() {
+			return false
+		}
 
-	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
+		return !object.ID.IsNull() && !object.ID.IsUnknown() && object.ID.ValueString() != "" &&
+			object.SourceID.Equal(plan.SourceID) &&
+			object.TargetID.Equal(plan.TargetID) &&
+			object.SupersedenceType.Equal(plan.SupersedenceType)
+	}
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading resource state after update",
@@ -242,11 +291,14 @@ func (r *MobileAppSupersedenceResource) Update(ctx context.Context, req resource
 
 // Delete handles the Delete operation for Mobile App Supersedence resources.
 //
-// Operation: Deletes a mobile app supersedence relationship
+// Operation: Removes the managed supersedence while preserving other app relationships
 // API Calls:
-//   - DELETE /deviceAppManagement/mobileApps/{mobileAppId}/relationships/{relationshipId}
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
+//   - POST /deviceAppManagement/mobileApps/{mobileAppId}/updateRelationships
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappsupersedence-delete?view=graph-rest-beta
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-updaterelationships?view=graph-rest-beta
+// Note: An empty outgoing relationship collection is sent when deleting the last supersedence.
 func (r *MobileAppSupersedenceResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object MobileAppSupersedenceResourceModel
 
@@ -267,19 +319,55 @@ func (r *MobileAppSupersedenceResource) Delete(ctx context.Context, req resource
 	relationshipID := object.ID.ValueString()
 	tflog.Debug(ctx, fmt.Sprintf("Deleting Mobile App Supersedence with ID: %s for source app ID: %s", relationshipID, sourceAppID))
 
-	// Delete the supersedence relationship
-	err := r.client.
-		DeviceAppManagement().
-		MobileApps().
-		ByMobileAppId(sourceAppID).
-		Relationships().
-		ByMobileAppRelationshipId(relationshipID).
-		Delete(ctx, nil)
+	unlock, err := lockAppRelationships(ctx, sourceAppID)
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock app relationships", err.Error())
+		return
+	}
+	defer unlock()
 
+	changed, err := r.changeSupersedence(ctx, &object, constants.TfOperationDelete)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Successfully deleted resource: %s", ResourceName))
+	if changed {
+		// Wait until Graph confirms deletion before removing the supersedence from state.
+		err = crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
+			relationships, err := r.listRelationships(ctx, sourceAppID)
+			if err == nil {
+				_, findErr := apprelationships.Find(relationships, relationshipID, object.TargetID.ValueString())
+				if stderrors.Is(findErr, apprelationships.ErrNotFound) {
+					return true, nil
+				}
+				return false, errMissingSupersedenceDeletion
+			}
+
+			errorInfo := errors.GraphError(ctx, err)
+			if errorInfo.StatusCode == 404 {
+				return true, nil
+			}
+			if errors.IsRetryableReadError(&errorInfo) {
+				return false, fmt.Errorf("verify supersedence deletion: %w", err)
+			}
+
+			return false, &crud.FatalPollError{
+				Err: fmt.Errorf("verify supersedence deletion: %w", err),
+			}
+		})
+		if err != nil {
+			resp.Diagnostics.AddError(
+				"Error verifying resource deletion",
+				fmt.Sprintf("Could not verify resource deletion: %s: %s", ResourceName, err.Error()),
+			)
+			return
+		}
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+
+	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }

@@ -3,21 +3,15 @@ package graphBetaMobileAppDependency
 import (
 	"context"
 	"fmt"
-	"strings"
-	"sync"
+
+	apprelationships "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management/app_relationships"
 )
 
-var dependencyAppLocks sync.Map
-
-// lockAppRelationships holds the app lock through read-back so sibling resources see the completed
-// write before editing the same collection. Waiting respects operation timeouts.
+// lockAppRelationships also coordinates with supersedence writers for the same app.
 func lockAppRelationships(ctx context.Context, sourceID string) (func(), error) {
-	value, _ := dependencyAppLocks.LoadOrStore(strings.ToLower(sourceID), make(chan struct{}, 1))
-	lock := value.(chan struct{})
-	select {
-	case lock <- struct{}{}:
-		return func() { <-lock }, nil
-	case <-ctx.Done():
-		return nil, fmt.Errorf("wait for app relationship lock: %w", ctx.Err())
+	unlock, err := apprelationships.Lock(ctx, sourceID)
+	if err != nil {
+		return nil, fmt.Errorf("lock app dependency relationships: %w", err)
 	}
+	return unlock, nil
 }
