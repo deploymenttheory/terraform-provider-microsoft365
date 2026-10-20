@@ -32,7 +32,11 @@ checkout and instrumentation checkout are separate.
 
 `tool_exec.py` records tool/package/PID attribution and per-invocation peak RSS
 using `wait4`. Vet configs and same-run replay arguments are retained. Tool
-version probes are passed through unchanged. The existing resource monitor
+version probes are passed through unchanged. From the validation phase onward,
+a separate parent relay streams these records, bypassing Go's buffered tool
+stderr. In the first two phases a killed invocation's start record can be lost
+with the runner, so absent unfinished-tool records do not imply no active tool.
+The existing resource monitor
 samples approximately every two seconds and streams cgroup OOM counters,
 available memory, CPU/I/O pressure, swap, disk and process RSS.
 

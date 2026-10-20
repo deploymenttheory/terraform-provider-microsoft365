@@ -14,7 +14,11 @@ REPO = "deploymenttheory/terraform-provider-microsoft365"
 
 
 def api(path):
-    return subprocess.check_output(["gh", "api", f"repos/{REPO}/{path}"])
+    # Logs and ZIP archives may contain escape bytes. Capture them for parsing;
+    # never send the raw API response directly to a terminal.
+    return subprocess.check_output([
+        "gh", "api", f"repos/{REPO}/{path}", "--allow-escape-sequences",
+    ])
 
 
 def main():

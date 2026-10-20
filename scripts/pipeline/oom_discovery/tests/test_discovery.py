@@ -1,6 +1,7 @@
 """Exercise the real tool wrapper and missing/incomplete evidence handling."""
 
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -9,9 +10,11 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 def load(name):
@@ -22,6 +25,33 @@ def load(name):
 
 
 class ToolTests(unittest.TestCase):
+    def test_start_event_streams_while_tool_output_is_buffered(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            events = root / "events.jsonl"
+            output = io.StringIO()
+            env = {
+                **os.environ, "OOM_DISCOVERY_REPORT": directory,
+                "OOM_DISCOVERY_EVENT_LOG": str(events),
+            }
+            with load("stream_tools").ToolEventStream(events, output):
+                process = subprocess.Popen(
+                    [sys.executable, str(ROOT / "tool_exec.py"), sys.executable,
+                     "-c", "import time; time.sleep(2)"],
+                    env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                try:
+                    deadline = time.monotonic() + 1.5
+                    while '"event": "start"' not in output.getvalue() and time.monotonic() < deadline:
+                        time.sleep(0.01)
+                    self.assertIn('"event": "start"', output.getvalue())
+                    self.assertIsNone(process.poll(), "Start event must arrive before the tool exits")
+                finally:
+                    _, stderr = process.communicate(timeout=10)
+            self.assertEqual(stderr, b"", "Relay must not duplicate records through buffered stderr")
+            records = [json.loads(line.split("[GO TOOL] ", 1)[1]) for line in output.getvalue().splitlines()]
+            self.assertEqual([record["event"] for record in records], ["start", "end"])
+
     def run_tool(self, script):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)

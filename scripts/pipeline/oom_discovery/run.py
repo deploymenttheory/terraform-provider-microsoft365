@@ -6,7 +6,10 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
+
+from stream_tools import ToolEventStream
 
 VARIANTS = ("baseline", "no-vet", "memory-budget", "combined")
 
@@ -43,6 +46,8 @@ def main():
     env.update(TF_ACC="0", GOMAXPROCS="1", GOFLAGS="-p=1",
                PYTHONUNBUFFERED="1", RESOURCE_MONITOR_INTERVAL_SECONDS="1",
                OOM_DISCOVERY_REPORT=str(report))
+    event_log = report / "tool-events.jsonl"
+    env["OOM_DISCOVERY_EVENT_LOG"] = str(event_log)
     # The existing monitor samples vmstat for one second, then sleeps one
     # second: approximately two seconds between resource snapshots.
     env.pop("GOGC", None)
@@ -63,13 +68,15 @@ def main():
         "image_version": env.get("ImageVersion"),
         "run_id": env.get("GITHUB_RUN_ID"),
         "run_attempt": env.get("GITHUB_RUN_ATTEMPT"),
+        "tool_events_streamed": True,
         "started_at": time.time(),
     }
     (report / "experiment.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print("[EXPERIMENT] " + json.dumps(metadata), flush=True)
     monitor = Path(__file__).resolve().parents[1] / "pr/steps/monitor_resources.sh"
     started = time.monotonic()
-    result = subprocess.run(["bash", str(monitor), str(report), *command], env=env)
+    with ToolEventStream(event_log, sys.stdout):
+        result = subprocess.run(["bash", str(monitor), str(report), *command], env=env)
     metadata.update(exit_code=result.returncode, elapsed_seconds=round(time.monotonic() - started, 3))
     (report / "experiment.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print("[EXPERIMENT RESULT] " + json.dumps(metadata), flush=True)

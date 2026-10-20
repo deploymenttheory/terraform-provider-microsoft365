@@ -15,7 +15,14 @@ def emit(record, path):
     line = json.dumps(record, sort_keys=True)
     with path.open("a", encoding="utf-8") as stream:
         stream.write(line + "\n")
-    print("[GO TOOL] " + line, file=sys.stderr, flush=True)
+    event_log = os.environ.get("OOM_DISCOVERY_EVENT_LOG")
+    if event_log:
+        # cmd/go buffers tool stderr until the child exits. A separate parent
+        # relay preserves the start record even if an OOM kills the runner.
+        with open(event_log, "a", encoding="utf-8") as stream:
+            stream.write(line + "\n")
+    else:
+        print("[GO TOOL] " + line, file=sys.stderr, flush=True)
 
 
 def main():
