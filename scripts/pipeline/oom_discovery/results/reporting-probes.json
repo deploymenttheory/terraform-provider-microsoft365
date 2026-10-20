@@ -1,5 +1,5 @@
 {
-  "source_commit": "86b1728a077c49c6bdc3036956831369283100e2",
+  "source_commit": "0d2bb3660b99bbe5480f231db1235793b22a66a4",
   "synthetic_fixtures": true,
   "issue_closure": {
     "scenario": "One test passes; an unrelated open test incident has no execution result",
@@ -10,6 +10,11 @@
   "classification": {
     "scenario": "Failed job with a cancelled test step, matching the incident job shape",
     "failure_type": "unknown",
-    "failed_step": "Unknown"
+    "failed_step": "Unknown",
+    "skipped_job_is_incident": false
+  },
+  "missing_artifacts": {
+    "exit_code": 1,
+    "merged_file_created": false
   }
 }

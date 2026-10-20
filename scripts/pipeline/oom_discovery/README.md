@@ -8,9 +8,9 @@ acceptance operations, issue creation, or issue closure are involved.
 
 The branch-only `Acceptance OOM discovery` workflow reads `experiments.json`.
 A push affecting the workflow, matrix, or Python harness starts the configured matrix.
-At most two experiments per phase run concurrently. The memory-budget phase
-overlaps the initial baseline phase, permitting four independent runners in
-total. Each job has a 75-minute limit.
+The first two phases used two runners each and overlapped within a four-runner
+limit. After both completed, validation uses four independent runners in one
+phase. Further phases serialize. Each job has a 75-minute limit.
 Change the matrix before pushing the next phase; do not accidentally repeat a
 completed phase by pushing harness changes alone. Documentation and saved results
 do not trigger experiments.
@@ -42,7 +42,9 @@ available memory, CPU/I/O pressure, swap, disk and process RSS.
 
 The first phase repeats baseline and vet-disabled builds on the incident commit
 twice. Subsequent phases test the memory budget, then validate the successful
-configuration against current main and Provider Core with race enabled.
+configuration against current main and Provider Core with race enabled. The
+validation matrix repeats both targets twice with `GOMEMLIMIT=10GiB` and default
+vet, following two successful incident builds and the same-run vet replay.
 
 The second memory-budget job also replays its largest completed vet invocation
 using retained build inputs, first with `GOMEMLIMIT=10GiB`, then with it unset.
