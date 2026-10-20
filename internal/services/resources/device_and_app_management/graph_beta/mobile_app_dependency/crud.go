@@ -2,19 +2,20 @@ package graphBetaMobileAppDependency
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
-	"strings"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	apprelationships "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management/app_relationships"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for Mobile App Dependency resources.
@@ -27,11 +28,7 @@ import (
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-updaterelationships?view=graph-rest-beta
 // Note: updateRelationships returns no content; the relationship ID is discovered during read-back.
-func (r *MobileAppDependencyResource) Create(
-	ctx context.Context,
-	req resource.CreateRequest,
-	resp *resource.CreateResponse,
-) {
+func (r *MobileAppDependencyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MobileAppDependencyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
@@ -41,12 +38,7 @@ func (r *MobileAppDependencyResource) Create(
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(
-		ctx,
-		object.Timeouts.Create,
-		CreateTimeout*time.Second,
-		&resp.Diagnostics,
-	)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -64,13 +56,11 @@ func (r *MobileAppDependencyResource) Create(
 
 	_, err = r.changeDependency(ctx, &object, constants.TfOperationCreate)
 	if err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationCreate,
-			r.WritePermissions,
-		)
+		if stderrors.Is(err, errExistingRelationship) {
+			resp.Diagnostics.AddError("App relationship already exists", err.Error())
+			return
+		}
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -114,16 +104,11 @@ func (r *MobileAppDependencyResource) Create(
 //
 // Operation: Retrieves a mobile app dependency by ID or discovers its ID after creation
 // API Calls:
-//   - GET /deviceAppManagement/mobileAppRelationships/{relationshipId}
 //   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileappdependency-get?view=graph-rest-beta
-// Note: The global relationship endpoint supports imports using only the relationship ID.
-func (r *MobileAppDependencyResource) Read(
-	ctx context.Context,
-	req resource.ReadRequest,
-	resp *resource.ReadResponse,
-) {
+// Note: Composite relationship IDs resolve the source app for ID-only imports.
+func (r *MobileAppDependencyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object MobileAppDependencyResourceModel
 	var identity sharedmodels.ResourceIdentity
 
@@ -135,7 +120,6 @@ func (r *MobileAppDependencyResource) Read(
 			operation = opStr
 		}
 	}
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -143,12 +127,7 @@ func (r *MobileAppDependencyResource) Read(
 
 	tflog.Debug(ctx, fmt.Sprintf("Reading %s with ID: %s", ResourceName, object.ID.ValueString()))
 
-	ctx, cancel := crud.HandleTimeout(
-		ctx,
-		object.Timeouts.Read,
-		ReadTimeout*time.Second,
-		&resp.Diagnostics,
-	)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -158,42 +137,40 @@ func (r *MobileAppDependencyResource) Read(
 	relationshipID := object.ID.ValueString()
 
 	var respBaseResource graphmodels.MobileAppRelationshipable
-
-	if !object.ID.IsNull() && !object.ID.IsUnknown() && relationshipID != "" {
-		// Read by relationship ID so imports do not require source_id in existing state.
-		var err error
+	var err error
+	if sourceAppID == "" {
+		sourceAppID = apprelationships.SourceID(relationshipID)
+	}
+	if sourceAppID != "" {
+		object.SourceID = types.StringValue(sourceAppID)
+		var relationships []graphmodels.MobileAppRelationshipable
+		relationships, err = r.listRelationships(ctx, sourceAppID)
+		if err == nil {
+			respBaseResource, err = apprelationships.Find(relationships, relationshipID, object.TargetID.ValueString())
+		}
+	} else {
+		// Retain support for legacy opaque IDs whose source cannot be derived.
 		respBaseResource, err = r.client.
 			DeviceAppManagement().
 			MobileAppRelationships().
 			ByMobileAppRelationshipId(relationshipID).
 			Get(ctx, nil)
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
-			return
-		}
-	} else {
-		// Discover the relationship ID because updateRelationships returns no content.
-		relationships, err := r.listRelationships(ctx, sourceAppID)
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
-			return
-		}
+	}
 
-		for _, relationship := range relationships {
-			if !isIncomingRelationship(relationship) && relationship.GetTargetId() != nil &&
-				strings.EqualFold(*relationship.GetTargetId(), object.TargetID.ValueString()) {
-				respBaseResource = relationship
-				break
-			}
-		}
-
-		if respBaseResource == nil {
+	if stderrors.Is(err, apprelationships.ErrNotFound) {
+		if operation == constants.TfOperationRead {
+			resp.State.RemoveResource(ctx)
+		} else {
 			resp.Diagnostics.AddError(
 				"App dependency not found (404)",
 				"The dependency is not yet visible after the relationship update.",
 			)
-			return
 		}
+		return
+	}
+	if err != nil {
+		errors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, operation, r.ReadPermissions, errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true})
+		return
 	}
 
 	// Convert the base Graph relationship to the dependency type before mapping state.
@@ -201,10 +178,7 @@ func (r *MobileAppDependencyResource) Read(
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Resource type mismatch",
-			fmt.Sprintf(
-				"Expected resource of type MobileAppDependencyable but got %T",
-				respBaseResource,
-			),
+			fmt.Sprintf("Expected resource of type MobileAppDependencyable but got %T", respBaseResource),
 		)
 		return
 	}
@@ -239,14 +213,10 @@ func (r *MobileAppDependencyResource) Read(
 // API Calls:
 //   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //   - POST /deviceAppManagement/mobileApps/{mobileAppId}/updateRelationships
-//   - GET /deviceAppManagement/mobileAppRelationships/{relationshipId}
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-updaterelationships?view=graph-rest-beta
-func (r *MobileAppDependencyResource) Update(
-	ctx context.Context,
-	req resource.UpdateRequest,
-	resp *resource.UpdateResponse,
-) {
+func (r *MobileAppDependencyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan MobileAppDependencyResourceModel
 	var state MobileAppDependencyResourceModel
 
@@ -260,12 +230,7 @@ func (r *MobileAppDependencyResource) Update(
 
 	plan.ID = state.ID
 
-	ctx, cancel := crud.HandleTimeout(
-		ctx,
-		plan.Timeouts.Update,
-		UpdateTimeout*time.Second,
-		&resp.Diagnostics,
-	)
+	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -284,13 +249,7 @@ func (r *MobileAppDependencyResource) Update(
 	if !plan.DependencyType.Equal(state.DependencyType) {
 		_, err = r.changeDependency(ctx, &plan, constants.TfOperationUpdate)
 		if err != nil {
-			errors.HandleKiotaGraphError(
-				ctx,
-				err,
-				resp,
-				constants.TfOperationUpdate,
-				r.WritePermissions,
-			)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	}
@@ -336,15 +295,11 @@ func (r *MobileAppDependencyResource) Update(
 // API Calls:
 //   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //   - POST /deviceAppManagement/mobileApps/{mobileAppId}/updateRelationships
-//   - GET /deviceAppManagement/mobileAppRelationships/{relationshipId}
+//   - GET /deviceAppManagement/mobileApps/{mobileAppId}/relationships
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapp-updaterelationships?view=graph-rest-beta
 // Note: An empty outgoing relationship collection is sent when deleting the last dependency.
-func (r *MobileAppDependencyResource) Delete(
-	ctx context.Context,
-	req resource.DeleteRequest,
-	resp *resource.DeleteResponse,
-) {
+func (r *MobileAppDependencyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object MobileAppDependencyResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting to delete resource: %s", ResourceName))
@@ -354,12 +309,7 @@ func (r *MobileAppDependencyResource) Delete(
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(
-		ctx,
-		object.Timeouts.Delete,
-		DeleteTimeout*time.Second,
-		&resp.Diagnostics,
-	)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -367,15 +317,7 @@ func (r *MobileAppDependencyResource) Delete(
 
 	sourceAppID := object.SourceID.ValueString()
 	relationshipID := object.ID.ValueString()
-
-	tflog.Debug(
-		ctx,
-		fmt.Sprintf(
-			"Deleting Mobile App Dependency with ID: %s for source app ID: %s",
-			relationshipID,
-			sourceAppID,
-		),
-	)
+	tflog.Debug(ctx, fmt.Sprintf("Deleting Mobile App Dependency with ID: %s for source app ID: %s", relationshipID, sourceAppID))
 
 	unlock, err := lockAppRelationships(ctx, sourceAppID)
 	if err != nil {
@@ -386,26 +328,19 @@ func (r *MobileAppDependencyResource) Delete(
 
 	changed, err := r.changeDependency(ctx, &object, constants.TfOperationDelete)
 	if err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationDelete,
-			r.WritePermissions,
-		)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
 	if changed {
 		// Wait until Graph confirms deletion before removing the dependency from state.
 		err = crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
-			_, err := r.client.
-				DeviceAppManagement().
-				MobileAppRelationships().
-				ByMobileAppRelationshipId(relationshipID).
-				Get(ctx, nil)
-
+			relationships, err := r.listRelationships(ctx, sourceAppID)
 			if err == nil {
+				_, findErr := apprelationships.Find(relationships, relationshipID, object.TargetID.ValueString())
+				if stderrors.Is(findErr, apprelationships.ErrNotFound) {
+					return true, nil
+				}
 				return false, errMissingDependencyDeletion
 			}
 
@@ -424,11 +359,7 @@ func (r *MobileAppDependencyResource) Delete(
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error verifying resource deletion",
-				fmt.Sprintf(
-					"Could not verify resource deletion: %s: %s",
-					ResourceName,
-					err.Error(),
-				),
+				fmt.Sprintf("Could not verify resource deletion: %s: %s", ResourceName, err.Error()),
 			)
 			return
 		}

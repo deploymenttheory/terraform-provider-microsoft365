@@ -2,6 +2,7 @@ package graphBetaMobileAppSupersedence
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -47,11 +48,9 @@ func NewMobileAppSupersedenceResource() resource.Resource {
 	return &MobileAppSupersedenceResource{
 		ReadPermissions: []string{
 			"DeviceManagementApps.Read.All",
-			"DeviceManagementConfiguration.Read.All",
 		},
 		WritePermissions: []string{
 			"DeviceManagementApps.ReadWrite.All",
-			"DeviceManagementConfiguration.ReadWrite.All",
 		},
 		ResourcePath: "/deviceAppManagement/mobileApps/{mobileAppId}/relationships",
 	}
@@ -93,7 +92,7 @@ func (r *MobileAppSupersedenceResource) IdentitySchema(ctx context.Context, req 
 // Schema returns the schema for the resource.
 func (r *MobileAppSupersedenceResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages mobile app supersedence relationships using the `/deviceAppManagement/mobileApps/{mobileAppId}/relationships` endpoint. This resource is used to supersedence enables admins to upgrade or replace existing apps with newer versions in a controlled manner.",
+		MarkdownDescription: "Manages supersedence between two Microsoft Intune Win32 apps. The source app upgrades or replaces the target app. Each resource manages one relationship using `updateRelationships` and preserves other app relationships.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -107,9 +106,12 @@ func (r *MobileAppSupersedenceResource) Schema(ctx context.Context, req resource
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "The unique app identifier of the target of the mobile app relationship entity. For example: 2dbc75b9-e993-4e4d-a071-91ac5a218672.",
+				MarkdownDescription: "The ID of the older Win32 app that the source app supersedes.",
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid app GUID",
+					),
 				},
 			},
 			"target_display_name": schema.StringAttribute{
@@ -133,9 +135,12 @@ func (r *MobileAppSupersedenceResource) Schema(ctx context.Context, req resource
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),
 				},
-				MarkdownDescription: "The unique app identifier of the source of the mobile app relationship entity. For example: 2dbc75b9-e993-4e4d-a071-91ac5a218672. If null during relationship creation, then it will be populated with parent Id. Read-Only.",
+				MarkdownDescription: "The ID of the newer Win32 app that supersedes the target app.",
 				Validators: []validator.String{
-					stringvalidator.LengthAtLeast(1),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(constants.GuidRegex),
+						"must be a valid app GUID",
+					),
 				},
 			},
 			"source_display_name": schema.StringAttribute{
@@ -156,13 +161,13 @@ func (r *MobileAppSupersedenceResource) Schema(ctx context.Context, req resource
 			},
 			"app_relationship_type": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The type of relationship indicating whether the target application of a relationship is a parent or child in the relationship. Possible values are: parent, child. Read-Only.",
+				MarkdownDescription: "Alias of `target_type`, normally `child` for the app being superseded. Read-only.",
 			},
 			"supersedence_type": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "The supersedence relationship type between the parent and child apps. Possible values are: update, replace.",
 				Validators: []validator.String{
-					stringvalidator.OneOf(constants.TfOperationUpdate, "replace"),
+					stringvalidator.OneOf("update", "replace"),
 				},
 			},
 			"superseded_app_count": schema.Int32Attribute{

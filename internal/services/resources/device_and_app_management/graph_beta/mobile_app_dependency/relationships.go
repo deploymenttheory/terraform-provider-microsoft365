@@ -10,12 +10,10 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	apprelationships "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management/app_relationships"
 )
 
 var (
-	errMissingRelationships = errors.New(
-		"graph returned an incomplete relationship collection",
-	)
 	errExistingRelationship = errors.New(
 		"a relationship already exists for the target app; import an existing dependency instead of creating it",
 	)
@@ -31,37 +29,16 @@ func (r *MobileAppDependencyResource) listRelationships(
 	ctx context.Context,
 	sourceID string,
 ) ([]graphmodels.MobileAppRelationshipable, error) {
-	builder := r.client.DeviceAppManagement().MobileApps().ByMobileAppId(sourceID).Relationships()
-	page, err := builder.Get(ctx, nil)
+	relationships, err := apprelationships.List(ctx, r.client, sourceID)
 	if err != nil {
-		return nil, fmt.Errorf("list app relationships: %w", err)
+		return nil, fmt.Errorf("read app dependency relationships: %w", err)
 	}
-	var relationships []graphmodels.MobileAppRelationshipable
-	for {
-		if page == nil || page.GetValue() == nil {
-			return nil, errMissingRelationships
-		}
-		for _, relationship := range page.GetValue() {
-			if relationship == nil {
-				return nil, errMissingRelationships
-			}
-			relationships = append(relationships, relationship)
-		}
-		if nextLink := page.GetOdataNextLink(); nextLink != nil && *nextLink != "" {
-			page, err = builder.WithUrl(*nextLink).Get(ctx, nil)
-			if err != nil {
-				return nil, fmt.Errorf("read next app relationship page: %w", err)
-			}
-			continue
-		}
-		return relationships, nil
-	}
+	return relationships, nil
 }
 
 // isIncomingRelationship identifies parent relationships excluded from outgoing updates.
 func isIncomingRelationship(relationship graphmodels.MobileAppRelationshipable) bool {
-	return relationship.GetTargetType() != nil &&
-		*relationship.GetTargetType() == graphmodels.PARENT_MOBILEAPPRELATIONSHIPTYPE
+	return apprelationships.Incoming(relationship)
 }
 
 // changeDependency applies one dependency change while retaining other outgoing relationships.

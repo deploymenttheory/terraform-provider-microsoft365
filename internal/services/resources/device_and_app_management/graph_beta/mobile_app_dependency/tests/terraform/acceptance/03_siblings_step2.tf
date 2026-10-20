@@ -11,9 +11,9 @@ resource "random_string" "test_suffix" {
 
 # Terraform uploads and publishes each Win32 app before creating dependencies.
 resource "microsoft365_graph_beta_device_and_app_management_win32_app" "apps" {
-  for_each = toset(["main", "runtime", "second_runtime"])
+  count = 3
 
-  display_name                      = "acc-test-app-dependency-${each.key}-${random_string.test_suffix.result}"
+  display_name                      = "acc-test-app-dependency-${["main", "runtime", "second_runtime"][count.index]}-${random_string.test_suffix.result}"
   description                       = "Win32 app for the mobile app dependency acceptance test"
   publisher                         = "Mozilla"
   allow_available_uninstall         = true
@@ -65,7 +65,7 @@ resource "time_sleep" "wait_for_apps" {
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_dependency" "sibling" {
   depends_on = [time_sleep.wait_for_apps]
 
-  source_id       = microsoft365_graph_beta_device_and_app_management_win32_app.apps["main"].id
-  target_id       = microsoft365_graph_beta_device_and_app_management_win32_app.apps["second_runtime"].id
+  source_id       = microsoft365_graph_beta_device_and_app_management_win32_app.apps[0].id
+  target_id       = microsoft365_graph_beta_device_and_app_management_win32_app.apps[2].id
   dependency_type = "autoInstall"
 }
