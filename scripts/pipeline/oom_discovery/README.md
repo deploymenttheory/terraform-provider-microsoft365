@@ -4,6 +4,10 @@ This branch investigates the runner failures from the 18 October 2026 acceptance
 run. It builds test binaries without executing them. No tenant credentials,
 acceptance operations, issue creation, or issue closure are involved.
 
+See [the investigation results and proposed fixes](RESULTS.md) for the evidence
+and conclusions. This document describes how to reproduce and collect the
+experiments.
+
 ## Running experiments
 
 The branch-only `Acceptance OOM discovery` workflow reads `experiments.json`.
@@ -66,6 +70,8 @@ The collector uses read-only GitHub API calls, parses stdout, and records check
 annotations. It works when the runner terminated before uploading artifacts.
 Missing logs remain missing evidence. `candidate_pass` requires a successful job
 and command, no OOM-counter increase, and at least 2 GiB sampled available memory.
+`evidence_complete` only means that an exit status, OOM counters, and available
+memory samples exist; it does not imply every tool event or artifact survived.
 
 Artifacts contain raw measurements and summaries; the large compiled test binary
 is excluded. The build work directory remains on the runner for same-run vet
