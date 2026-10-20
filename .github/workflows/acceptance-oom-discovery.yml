@@ -1,0 +1,117 @@
+name: Acceptance OOM discovery
+
+on:
+  push:
+    branches: [ci/acceptance-oom-discovery]
+    paths:
+      - .github/workflows/acceptance-oom-discovery.yml
+      - scripts/pipeline/oom_discovery/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: acceptance-oom-discovery
+  cancel-in-progress: false
+
+jobs:
+  matrix:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
+    outputs:
+      experiments: ${{ steps.matrix.outputs.experiments }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify discovery harness
+        run: |
+          python3 -m unittest discover -s scripts/pipeline/oom_discovery/tests -v
+          python3 -m unittest discover -s scripts/pipeline/bi_weekly_tests/tests -v
+          python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_monitor_resources.py -v
+      - id: matrix
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          matrix = json.loads(Path("scripts/pipeline/oom_discovery/experiments.json").read_text())
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("experiments=" + json.dumps(matrix) + "\n")
+          PY
+
+  discover:
+    name: ${{ matrix.name }}
+    needs: matrix
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.matrix.outputs.experiments) }}
+    env:
+      TF_ACC: '0'
+      GOMAXPROCS: '1'
+      GOFLAGS: '-p=1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1, incident version
+        with:
+          egress-policy: audit
+      - name: Match incident disk and swap setup
+        uses: jlumbroso/free-disk-space@ceedf095f4ec1a097402bc6bd80831f2e1a6fde6 # v2.0.0
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+      - name: Check out discovery harness
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: harness
+          persist-credentials: false
+      - name: Check out source under examination
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ matrix.source }}
+          path: source
+          persist-credentials: false
+      - name: Set up exact Go version
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: source/go.mod
+          cache: false
+      - name: Download dependencies
+        working-directory: source
+        run: go mod download
+      - name: Build and measure without executing tests
+        working-directory: source
+        timeout-minutes: 70
+        env:
+          EXPERIMENT_NAME: ${{ matrix.name }}
+          EXPERIMENT_VARIANT: ${{ matrix.variant }}
+          EXPERIMENT_PACKAGE: ${{ matrix.package }}
+          EXPERIMENT_RACE: ${{ matrix.race }}
+        run: |
+          race=()
+          if [[ "$EXPERIMENT_RACE" == true ]]; then race=(--race); fi
+          python3 ../harness/scripts/pipeline/oom_discovery/run.py \
+            --name "$EXPERIMENT_NAME" --variant "$EXPERIMENT_VARIANT" \
+            --package "$EXPERIMENT_PACKAGE" --report "$RUNNER_TEMP/discovery" "${race[@]}"
+      - name: Summarize surviving evidence
+        if: always()
+        run: python3 harness/scripts/pipeline/oom_discovery/summarize.py "$RUNNER_TEMP/discovery"
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: discovery-${{ matrix.name }}
+          path: |
+            ${{ runner.temp }}/discovery/
+            !${{ runner.temp }}/discovery/discovery.test
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,0 +1,32 @@
+{
+  "include": [
+    {
+      "name": "incident-baseline-1",
+      "source": "93ce6c1ef8e22c170148e0ed93ca3f23ab74feed",
+      "variant": "baseline",
+      "package": "./internal/services/resources/device_management/graph_beta/app_control_for_business_built_in_controls",
+      "race": false
+    },
+    {
+      "name": "incident-no-vet-1",
+      "source": "93ce6c1ef8e22c170148e0ed93ca3f23ab74feed",
+      "variant": "no-vet",
+      "package": "./internal/services/resources/device_management/graph_beta/app_control_for_business_built_in_controls",
+      "race": false
+    },
+    {
+      "name": "incident-baseline-2",
+      "source": "93ce6c1ef8e22c170148e0ed93ca3f23ab74feed",
+      "variant": "baseline",
+      "package": "./internal/services/resources/device_management/graph_beta/app_control_for_business_built_in_controls",
+      "race": false
+    },
+    {
+      "name": "incident-no-vet-2",
+      "source": "93ce6c1ef8e22c170148e0ed93ca3f23ab74feed",
+      "variant": "no-vet",
+      "package": "./internal/services/resources/device_management/graph_beta/app_control_for_business_built_in_controls",
+      "race": false
+    }
+  ]
+}
