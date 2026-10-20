@@ -1,0 +1,15 @@
+{
+  "source_commit": "86b1728a077c49c6bdc3036956831369283100e2",
+  "synthetic_fixtures": true,
+  "issue_closure": {
+    "scenario": "One test passes; an unrelated open test incident has no execution result",
+    "closure_attempts": 1,
+    "explicit_pass_argument": false,
+    "external_calls_performed": 0
+  },
+  "classification": {
+    "scenario": "Failed job with a cancelled test step, matching the incident job shape",
+    "failure_type": "unknown",
+    "failed_step": "Unknown"
+  }
+}

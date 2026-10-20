@@ -72,7 +72,8 @@ def main():
     }, path)
     if process.returncode < 0:
         signum = -process.returncode
-        signal.signal(signum, signal.SIG_DFL)
+        if signum not in (signal.SIGKILL, signal.SIGSTOP):
+            signal.signal(signum, signal.SIG_DFL)
         os.kill(os.getpid(), signum)
     raise SystemExit(process.returncode)
 

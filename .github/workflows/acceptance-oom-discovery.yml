@@ -5,13 +5,17 @@ on:
     branches: [ci/acceptance-oom-discovery]
     paths:
       - .github/workflows/acceptance-oom-discovery.yml
-      - scripts/pipeline/oom_discovery/**
+      - scripts/pipeline/oom_discovery/experiments.json
+      - scripts/pipeline/oom_discovery/*.py
+      - scripts/pipeline/oom_discovery/tests/**
 
 permissions:
   contents: read
 
 concurrency:
-  group: acceptance-oom-discovery
+  # The original baseline run uses the previous group. Two runners in each
+  # phase permit four total while that run finishes; later phases serialize.
+  group: acceptance-oom-discovery-followup
   cancel-in-progress: false
 
 jobs:
@@ -29,6 +33,13 @@ jobs:
           python3 -m unittest discover -s scripts/pipeline/oom_discovery/tests -v
           python3 -m unittest discover -s scripts/pipeline/bi_weekly_tests/tests -v
           python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_monitor_resources.py -v
+      - name: Verify replay cgroup isolation
+        run: |
+          sudo -n systemd-run --wait --pipe --collect \
+            --service-type=exec --expand-environment=no \
+            --property=MemoryMax=64M --property=MemorySwapMax=0 \
+            --uid="$(id -u)" --gid="$(id -g)" \
+            /usr/bin/python3 -c 'from pathlib import Path; p=Path("/sys/fs/cgroup"+Path("/proc/self/cgroup").read_text().strip().split("::")[1]); assert (p/"memory.max").read_text().strip()=="67108864"; print("Replay cgroup limit verified")'
       - id: matrix
         run: |
           python3 - <<'PY'
@@ -113,5 +124,17 @@ jobs:
           path: |
             ${{ runner.temp }}/discovery/
             !${{ runner.temp }}/discovery/discovery.test
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Replay largest vet invocation in isolation
+        if: success() && matrix.replay
+        timeout-minutes: 12
+        run: python3 harness/scripts/pipeline/oom_discovery/replay_vet.py "$RUNNER_TEMP/discovery"
+      - name: Upload replay diagnostics
+        if: always() && matrix.replay
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vet-replay-${{ matrix.name }}
+          path: ${{ runner.temp }}/discovery/replays/
           if-no-files-found: warn
           retention-days: 14
