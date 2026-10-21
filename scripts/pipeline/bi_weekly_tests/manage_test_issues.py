@@ -8,7 +8,7 @@ This script automates GitHub issue management for test failures by:
 - Auto-closing issues when tests pass
 
 Usage:
-    ./manage_test_issues.py <owner> <repo> <run-id> <failures-json> [successes-json]
+    ./manage_test_issues.py <owner> <repo> <run-id> <failures-json> [successes-json] [status-json]
 
 Args:
     owner: GitHub repository owner.
@@ -16,10 +16,12 @@ Args:
     run-id: GitHub Actions workflow run ID.
     failures-json: Path to merged test failures JSON file.
     successes-json: Optional path to merged test successes JSON file.
+    status-json: Aggregation completeness report, required for automatic closure.
 """
 
 import sys
 import json
+import re
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -98,38 +100,22 @@ def ensure_label_exists(owner: str, repo: str, label_name: str, color: str, desc
         print(f"  ⚠️  Warning: Could not create/update label '{label_name}': {e}", file=sys.stderr)
 
 
-def find_existing_issue(owner: str, repo: str, test_name: str) -> Optional[str]:
-    """Check if an issue already exists for this test failure.
-
-    Args:
-        owner: GitHub repository owner.
-        repo: GitHub repository name.
-        test_name: Name of the failed test.
-
-    Returns:
-        Issue number as string if found, None otherwise.
-    """
-    try:
-        result = run_gh_command([
-            "issue", "list",
-            "--repo", f"{owner}/{repo}",
-            "--state", "open",
-            "--label", "test-failure",
-            "--search", f'in:title "{test_name}"',
-            "--json", "number,title"
-        ])
-        
-        if not result:
-            return None
-        
-        # Parse JSON response in Python instead of using jq
-        issues = json.loads(result)
-        if issues and len(issues) > 0:
-            return str(issues[0]["number"])
-        
+def test_identity(result: dict) -> tuple[str, str] | None:
+    if not isinstance(result, dict):
         return None
-    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError):
-        return None
+    package, name = result.get("package"), result.get("test_name")
+    return (package, name) if isinstance(package, str) and package and isinstance(name, str) and name else None
+
+
+def issue_identity(issue: dict) -> tuple[str, str] | None:
+    """Legacy titles do not identify a package; leave those incidents open."""
+    match = re.search(r"<!-- acceptance-test: (.+?) -->", issue.get("body", ""))
+    if match:
+        try:
+            return test_identity(json.loads(match.group(1)))
+        except (ValueError, AttributeError):
+            pass
+    return None
 
 
 def get_all_open_test_issues(owner: str, repo: str) -> list[dict]:
@@ -140,7 +126,7 @@ def get_all_open_test_issues(owner: str, repo: str) -> list[dict]:
         repo: GitHub repository name.
 
     Returns:
-        List of issue dictionaries with number and title fields.
+        List of issue dictionaries with number, title and body fields.
     """
     try:
         result = run_gh_command([
@@ -148,7 +134,7 @@ def get_all_open_test_issues(owner: str, repo: str) -> list[dict]:
             "--repo", f"{owner}/{repo}",
             "--state", "open",
             "--label", "test-failure",
-            "--json", "number,title",
+            "--json", "number,title,body",
             "--limit", "1000"
         ])
         
@@ -157,7 +143,8 @@ def get_all_open_test_issues(owner: str, repo: str) -> list[dict]:
         
         return json.loads(result)
     except (subprocess.CalledProcessError, json.JSONDecodeError):
-        return []
+        # Do not create duplicates or close issues after a failed inventory query.
+        raise
 
 
 def update_existing_issue(owner: str, repo: str, issue_number: str, 
@@ -217,8 +204,8 @@ def update_existing_issue(owner: str, repo: str, issue_number: str,
 
 def close_resolved_issue(owner: str, repo: str, issue_number: str,
                         date: str, run_id: str, workflow_url: str,
-                        test_passed: bool = True) -> None:
-    """Close an issue when test is now passing or no longer failing.
+                        test_passed: bool = False) -> None:
+    """Close an issue only after an explicit matching pass.
 
     Args:
         owner: GitHub repository owner.
@@ -227,14 +214,13 @@ def close_resolved_issue(owner: str, repo: str, issue_number: str,
         date: Date string for the resolution.
         run_id: GitHub Actions workflow run ID.
         workflow_url: URL to the workflow run.
-        test_passed: True if test explicitly passed, False if simply not detected as failing.
+        test_passed: Must be True after checking identity and reporting completeness.
     """
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     
-    if test_passed:
-        message = "Test is now passing. Automatically closing this issue."
-    else:
-        message = "Test was not detected as failing in the latest test run. Automatically closing this issue."
+    if not test_passed:
+        return
+    message = "This package and test explicitly passed in a complete report. Automatically closing this issue."
     
     run_gh_command([
         "issue", "close", issue_number,
@@ -255,7 +241,7 @@ def close_resolved_issue(owner: str, repo: str, issue_number: str,
 
 def create_new_issue(owner: str, repo: str, test_name: str, 
                     service_path: str, context: str, date: str, 
-                    run_id: str, workflow_url: str) -> str:
+                    run_id: str, workflow_url: str, package: str) -> str:
     """Create a new issue for test failure.
 
     Args:
@@ -279,9 +265,13 @@ def create_new_issue(owner: str, repo: str, test_name: str,
     if len(context) > max_context_length:
         truncated_context = context[:max_context_length] + "\n\n... (truncated, see workflow logs for full output)"
     
-    issue_body = f"""## Test Failure
+    identity = json.dumps({"package": package, "test_name": test_name}, sort_keys=True)
+    issue_body = f"""<!-- acceptance-test: {identity} -->
+
+## Test Failure
 
 **Test:** `{test_name}`  
+**Package:** `{package}`<br>
 **Service:** `{service_path}`  
 **Date:** {date}  
 **Workflow:** [{run_id}]({workflow_url})
@@ -295,7 +285,7 @@ def create_new_issue(owner: str, repo: str, test_name: str,
 ### Resources
 
 - [Workflow Logs]({workflow_url})
-- [Test Source](../../internal/services/{service_path.replace('-', '_')})
+- [Test Source](https://github.com/{owner}/{repo}/tree/main/{package.removeprefix("./")})
 
 ---
 *Automated report from nightly tests*"""
@@ -311,163 +301,66 @@ def create_new_issue(owner: str, repo: str, test_name: str,
     return issue_url
 
 
-def process_test_failures(owner: str, repo: str, run_id: str, 
-                        failures_json_path: str, successes_json_path: Optional[str] = None) -> None:
-    """Process test failures and successes, create/update/close issues as needed.
-
-    Main processing function that handles the complete lifecycle of test failure issues:
-    - Creates new issues for first-time failures
-    - Updates existing issues for recurring failures
-    - Closes issues for tests that are now passing
-
-    Args:
-        owner: GitHub repository owner.
-        repo: GitHub repository name.
-        run_id: GitHub Actions workflow run ID.
-        failures_json_path: Path to JSON file containing test failures.
-        successes_json_path: Optional path to JSON file containing test successes.
-    """
-    if not all([owner, repo, run_id]):
-        print("Usage: manage_test_issues.py <owner> <repo> <run-id> <failures-json> [successes-json]", 
-            file=sys.stderr)
-        sys.exit(1)
-    
-    failures_path = Path(failures_json_path)
-    if not failures_path.exists():
-        print(f"Error: Failures JSON file not found: {failures_json_path}", 
-            file=sys.stderr)
-        sys.exit(1)
-    
-    with open(failures_path, encoding='utf-8') as f:
-        failures = json.load(f)
-    
-    successes = []
-    if successes_json_path:
-        successes_path = Path(successes_json_path)
-        if successes_path.exists():
-            with open(successes_path, encoding='utf-8') as f:
-                successes = json.load(f)
-    
-    failure_count = len(failures)
-    success_count = len(successes)
-    
-    print(f"\nTest results: {failure_count} failures, {success_count} successes")
-    
-    if failure_count == 0 and success_count == 0:
-        print("✅ No test results to process")
+def process_test_failures(owner: str, repo: str, run_id: str,
+                          failures_json_path: str, successes_json_path: Optional[str] = None,
+                          status_json_path: Optional[str] = None) -> None:
+    """Report failures; resolve only proven passes from a complete aggregation."""
+    failures = json.loads(Path(failures_json_path).read_text(encoding="utf-8"))
+    successes = json.loads(Path(successes_json_path).read_text(encoding="utf-8")) if successes_json_path else []
+    complete = False
+    if status_json_path:
+        try:
+            complete = json.loads(Path(status_json_path).read_text(encoding="utf-8")).get("complete") is True
+        except (OSError, ValueError, AttributeError):
+            pass
+    if not isinstance(failures, list) or not isinstance(successes, list):
+        raise ValueError("Expected test result arrays")
+    if any(test_identity(result) is None for result in failures + successes):
+        raise ValueError("Test result lacks package and test identity")
+    print(f"Test results: {len(failures)} failures, {len(successes)} explicit passes; complete={complete}")
+    if not failures and not successes:
+        print("No test outcomes to process; existing incidents retained")
         return
-
-    print("Checking required labels...")
-    ensure_label_exists(owner, repo, "test-failure", "d73a4a", "Automated test failure report")
-    ensure_label_exists(owner, repo, "automated", "0366d6", "Automatically generated")
-    ensure_label_exists(owner, repo, "recurring", "b60205", "Test has failed multiple times")
-    
-    print(f"\n{'='*60}")
-    print(f"Creating GitHub issues for {failure_count} test failure(s)")
-    print(f"{'='*60}\n")
-    
+    open_issues = get_all_open_test_issues(owner, repo)
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     workflow_url = f"https://github.com/{owner}/{repo}/actions/runs/{run_id}"
-    
-    created_count = 0
-    updated_count = 0
-    
+    if failures:
+        ensure_label_exists(owner, repo, "test-failure", "d73a4a", "Automated test failure report")
+        ensure_label_exists(owner, repo, "automated", "0366d6", "Automatically generated")
+        ensure_label_exists(owner, repo, "recurring", "b60205", "Test has failed multiple times")
+    reported = set()
     for failure in failures:
-        test_name = failure["test_name"]
-        configuration_block_type = failure["configuration_block_type"]
-        service = failure["service"]
-        context = failure["context"]
-        
-        service_path = f"{configuration_block_type}/{service}" if service and service != "null" else configuration_block_type
-        
-        print(f"• {test_name}")
-        print(f"  Service: {service_path}")
-        
-        existing_issue = find_existing_issue(owner, repo, test_name)
-        
-        if existing_issue:
-            print(f"  Action: Updated existing issue #{existing_issue}")
-            try:
-                update_existing_issue(
-                    owner, repo, existing_issue, 
-                    service_path, context, date, run_id, workflow_url
-                )
-                updated_count += 1
-            except subprocess.CalledProcessError as e:
-                print(f"  ⚠️  Warning: Failed to update issue: {e}", file=sys.stderr)
+        identity = test_identity(failure)
+        if identity in reported:
+            continue
+        reported.add(identity)
+        package, test_name = identity
+        kind, service = failure["configuration_block_type"], failure["service"]
+        service_path = f"{kind}/{service}" if service and service != "null" else kind
+        existing = next((issue for issue in open_issues if issue_identity(issue) == identity), None)
+        if existing:
+            update_existing_issue(owner, repo, str(existing["number"]), service_path,
+                                  failure["context"], date, run_id, workflow_url)
         else:
-            try:
-                issue_url = create_new_issue(
-                    owner, repo, test_name, service_path, 
-                    context, date, run_id, workflow_url
-                )
-                print(f"  Action: Created new issue → {issue_url}")
-                created_count += 1
-            except subprocess.CalledProcessError as e:
-                print(f"  ⚠️  Warning: Failed to create issue: {e}", file=sys.stderr)
-        
-        print()
-        
-        # Add delay to avoid rate limiting (1 second between operations)
+            create_new_issue(owner, repo, test_name, service_path, failure["context"],
+                             date, run_id, workflow_url, package)
         time.sleep(1)
-    
-    print(f"{'='*60}")
-    print(f"Issue updates: {created_count} created, {updated_count} updated")
-    print(f"{'='*60}")
-    
-    if successes:
-        print(f"\n{'='*60}")
-        print("Checking for resolved issues to close")
-        print(f"{'='*60}\n")
-        
-        open_issues = get_all_open_test_issues(owner, repo)
-        
-        failed_test_names = {f["test_name"] for f in failures}
-        passed_test_names = {s["test_name"] for s in successes}
-        
-        closed_count = 0
-        
-        for issue in open_issues:
-            issue_title = issue["title"]
-            issue_number = str(issue["number"])
-            
-            test_name = issue_title
-            if issue_title.startswith("Bug: ") and issue_title.endswith(" Failing"):
-                test_name = issue_title[5:-8]  # Remove "Bug: " prefix and " Failing" suffix
-            
-            # Close issue if test is not in current failures (regardless of whether it's explicitly in successes)
-            # This handles cases where tests pass but aren't captured in successes file
-            if test_name not in failed_test_names:
-                print(f"• {issue_title}")
-                test_passed = test_name in passed_test_names
-                status_msg = "passed" if test_passed else "not detected as failing"
-                print(f"  Status: Test {status_msg} in latest run")
-                print(f"  Action: Closing resolved issue #{issue_number}")
-                try:
-                    close_resolved_issue(
-                        owner, repo, issue_number, 
-                        date, run_id, workflow_url,
-                        test_passed
-                    )
-                    closed_count += 1
-                except subprocess.CalledProcessError as e:
-                    print(f"  ⚠️  Warning: Failed to close issue: {e}", file=sys.stderr)
-                print()
-                
-                # Add delay to avoid rate limiting
-                time.sleep(1)
-        
-        if closed_count > 0:
-            print(f"{'='*60}")
-            print(f"Closed {closed_count} resolved issue(s)")
-            print(f"{'='*60}")
-        else:
-            print("No issues to close - all open issues still failing")
+
+    if not complete:
+        print("Reporting incomplete or unverified; automatic issue closure disabled")
+        return
+    failed = {test_identity(result) for result in failures}
+    passed = {test_identity(result) for result in successes if result.get("package_complete") is True}
+    for issue in open_issues:
+        identity = issue_identity(issue)
+        if identity is not None and identity in passed and identity not in failed:
+            close_resolved_issue(owner, repo, str(issue["number"]), date, run_id, workflow_url, True)
+            time.sleep(1)
 
 
 def main():
     if len(sys.argv) < 4:
-        print("Usage: manage_test_issues.py <owner> <repo> <run-id> [failures-json] [successes-json]", 
+        print("Usage: manage_test_issues.py <owner> <repo> <run-id> [failures-json] [successes-json] [status-json]",
             file=sys.stderr)
         sys.exit(1)
     
@@ -477,7 +370,8 @@ def main():
     failures_json = sys.argv[4] if len(sys.argv) > 4 else "test-failures.json"
     successes_json = sys.argv[5] if len(sys.argv) > 5 else None
     
-    process_test_failures(owner, repo, run_id, failures_json, successes_json)
+    status_json = sys.argv[6] if len(sys.argv) > 6 else None
+    process_test_failures(owner, repo, run_id, failures_json, successes_json, status_json)
 
 
 if __name__ == "__main__":

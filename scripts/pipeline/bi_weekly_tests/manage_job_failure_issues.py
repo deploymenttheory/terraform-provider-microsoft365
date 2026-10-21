@@ -142,6 +142,7 @@ def create_job_failure_issue(owner: str, repo: str, failure: dict,
     
     issue_title = f"{emoji} Job Failure: {job_name}"
     
+    evidence = "\n".join(f"- {item}" for item in failure.get("evidence", ["No conclusive evidence available"]))
     issue_body = f"""## Job-Level Failure
 
 **Job:** `{job_name}`  
@@ -157,6 +158,10 @@ def create_job_failure_issue(owner: str, repo: str, failure: dict,
 - **Runner:** {failure.get('runner_name', 'Unknown')}
 - **Started:** {failure.get('started_at', 'Unknown')}
 - **Completed:** {failure.get('completed_at', 'Unknown')}
+
+### Evidence
+
+{evidence}
 
 ### Job Logs
 
@@ -176,9 +181,9 @@ def create_job_failure_issue(owner: str, repo: str, failure: dict,
     elif failure["failure_type"] == "out_of_memory":
         issue_body += """
 - Job ran out of memory (OOM)
-- Consider reducing parallel test execution
-- May need larger runner or memory optimization
-- Check if `-race` flag is causing excessive memory usage
+- Inspect cgroup counters and process samples in the diagnostic logs
+- Confirm `GOMEMLIMIT=10GiB` reaches the Go tools
+- Identify which process grew before changing concurrency or runner size
 """
     elif failure["failure_type"] == "runner_failure":
         issue_body += """
@@ -229,6 +234,7 @@ def update_job_failure_issue(owner: str, repo: str, issue_number: str,
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     failure_type = failure["failure_type"].replace("_", " ").title()
     
+    evidence = "\n".join(f"- {item}" for item in failure.get("evidence", ["No conclusive evidence available"]))
     comment_body = f"""## Failure Recurrence
 
 **Timestamp:** {timestamp}  
@@ -236,6 +242,10 @@ def update_job_failure_issue(owner: str, repo: str, issue_number: str,
 **Workflow:** [{run_id}]({workflow_url})  
 **Type:** {failure_type}  
 **Failed Step:** {failure.get('failed_step', 'Unknown')}
+
+### Evidence
+
+{evidence}
 
 [View Job Logs]({failure['html_url']})
 
