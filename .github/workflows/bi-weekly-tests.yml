@@ -17,6 +17,11 @@ on:
         type: boolean
         default: false
 
+# Validated on six cold ARM64 builds with default vet (including core -race).
+# This is a per-process Go runtime budget; retain serial package/build execution.
+env:
+  GOMEMLIMIT: '10GiB'
+
 jobs:
   # Provider Core Tests (client, scaffolding, utilities)
   test-provider-core:
@@ -75,10 +80,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-results-provider-core
+          name: test-results-provider-core-attempt-${{ github.run_attempt }}
           path: |
             test-failures.json
             test-successes.json
+            test-run.json
             diagnostics/
             test-output-provider-core.log
           if-no-files-found: ignore
@@ -339,10 +345,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-results-resources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          name: test-results-resources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}-attempt-${{ github.run_attempt }}
           path: |
             test-failures.json
             test-successes.json
+            test-run.json
             diagnostics/
             test-output-resources-${{ matrix.service }}*.log
           if-no-files-found: ignore
@@ -457,10 +464,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-results-datasources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          name: test-results-datasources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}-attempt-${{ github.run_attempt }}
           path: |
             test-failures.json
             test-successes.json
+            test-run.json
             diagnostics/
             test-output-datasources-${{ matrix.service }}*.log
           if-no-files-found: ignore
@@ -575,10 +583,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-results-actions-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          name: test-results-actions-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}-attempt-${{ github.run_attempt }}
           path: |
             test-failures.json
             test-successes.json
+            test-run.json
             diagnostics/
             test-output-actions-${{ matrix.service }}*.log
           if-no-files-found: ignore
@@ -693,10 +702,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-results-list-resources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          name: test-results-list-resources-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}-attempt-${{ github.run_attempt }}
           path: |
             test-failures.json
             test-successes.json
+            test-run.json
             diagnostics/
             test-output-list-resources-${{ matrix.service }}*.log
           if-no-files-found: ignore
@@ -811,10 +821,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-results-ephemerals-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}
+          name: test-results-ephemerals-${{ matrix.service }}${{ matrix.total_shards > 1 && format('-shard-{0}', matrix.shard_index) || '' }}-attempt-${{ github.run_attempt }}
           path: |
             test-failures.json
             test-successes.json
+            test-run.json
             diagnostics/
             test-output-ephemerals-${{ matrix.service }}*.log
           if-no-files-found: ignore
@@ -833,6 +844,11 @@ jobs:
   # Final aggregation job
   test-summary:
     name: '📊 Test Summary'
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+      issues: write
     needs: [test-provider-core, test-resources, test-datasources, test-actions, test-list-resources, test-ephemerals]
     runs-on: ubuntu-24.04-arm
     if: always()
@@ -843,11 +859,15 @@ jobs:
       - name: Check Out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Prepare artifact directory
+        run: mkdir -p test-artifacts
+
       - name: Download all test result artifacts
+        id: download-results
         if: always()
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          pattern: test-results-*
+          pattern: test-results-*-attempt-${{ github.run_attempt }}
           path: test-artifacts
           merge-multiple: false
 
@@ -873,11 +893,26 @@ jobs:
 
           cat summary.md
 
+      - name: Detect Job-Level Failures
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          ./scripts/pipeline/bi_weekly_tests/detect_job_failures.py \
+            ${{ github.repository_owner }} \
+            ${{ github.event.repository.name }} \
+            ${{ github.run_id }} \
+            job-failures.json \
+            workflow-jobs.json
+
       - name: Merge test results
         if: always()
+        env:
+          ARTIFACT_DOWNLOAD_OUTCOME: ${{ steps.download-results.outcome }}
         run: |
-          ./scripts/pipeline/bi_weekly_tests/merge_test_results.py test-artifacts merged-failures.json test-failures.json
-          ./scripts/pipeline/bi_weekly_tests/merge_test_results.py test-artifacts merged-successes.json test-successes.json
+          ./scripts/pipeline/bi_weekly_tests/merge_test_results.py \
+            test-artifacts merged-failures.json merged-successes.json \
+            workflow-jobs.json merged-status.json
 
       - name: Manage GitHub Issues for Test Failures
         if: always()
@@ -889,25 +924,18 @@ jobs:
             ${{ github.event.repository.name }} \
             ${{ github.run_id }} \
             merged-failures.json \
-            merged-successes.json
-
-      - name: Detect Job-Level Failures
-        if: always()
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          ./scripts/pipeline/bi_weekly_tests/detect_job_failures.py \
-            ${{ github.repository_owner }} \
-            ${{ github.event.repository.name }} \
-            ${{ github.run_id }} \
-            job-failures.json
+            merged-successes.json \
+            merged-status.json
 
       - name: Manage GitHub Issues for Job Failures
         if: always()
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          if [ -f job-failures.json ] && [ "$(cat job-failures.json)" != "[]" ]; then
+          if [ ! -f job-failures.json ]; then
+            echo "Job failure detection did not complete; consult the detection step."
+            exit 1
+          elif [ "$(cat job-failures.json)" != "[]" ]; then
             ./scripts/pipeline/bi_weekly_tests/manage_job_failure_issues.py \
               ${{ github.repository_owner }} \
               ${{ github.event.repository.name }} \
@@ -916,3 +944,14 @@ jobs:
           else
             echo "✅ No job-level failures detected"
           fi
+
+      - name: Upload aggregated reporting evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: acceptance-report-attempt-${{ github.run_attempt }}
+          path: |
+            merged-*.json
+            workflow-jobs.json
+            job-failures.json
+          retention-days: 7

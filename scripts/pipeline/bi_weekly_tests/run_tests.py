@@ -74,7 +74,10 @@ def run_command(cmd: List[str], output_file: str, append: bool = False) -> int:
             text=True,
             bufsize=1  # Line buffered
         )
-        print(f"[COMMAND] Started package={cmd[-1]} pid={process.pid}", flush=True)
+        message = f"[COMMAND] Started package={cmd[-1]} pid={process.pid}\n"
+        print(message, end="", flush=True)
+        f.write(message)
+        f.flush()
         
         for line in process.stdout:
             print(line, end='', flush=True)
@@ -181,33 +184,17 @@ def print_separator(char: str = "=", length: int = 70) -> None:
     print(char * length)
 
 
-def parse_test_results(output_file: str, configuration_block_type: str, service: str) -> None:
-    """Parse test output and create JSON reports of failures and successes.
-
-    Reads the Go test output file and extracts failed and passed tests,
-    creating test-failures.json and test-successes.json files.
-
-    Now also detects panicked tests (tests that started but never finished with PASS/FAIL).
-
-    Args:
-        output_file: Path to the test output log file.
-        configuration_block_type: Test configuration_block_type (e.g., 'provider-core', 'resources', 'datasources', 'actions', 'list-resources', 'ephemerals').
-        service: Service name (e.g., 'identity_and_access'), empty string for provider-core.
-    """
-    failures_file = "test-failures.json"
-    successes_file = "test-successes.json"
+def parse_package_results(content: str, configuration_block_type: str, service: str) -> tuple[list, list]:
+    """Extract outcomes within one package so repeated test names cannot collide."""
     failures = []
     successes = []
-
-    with open(output_file, 'r', encoding='utf-8') as f:
-        content = f.read()
-
     # Track all test names and their outcomes
     failed_tests = set()
     passed_tests = set()
+    skipped_tests = set(re.findall(r"^[ \t]*--- SKIP: (\S+)", content, re.MULTILINE))
 
     # Pattern 1: Detect explicit test failures
-    fail_pattern = re.compile(r'^--- FAIL: (\S+)', re.MULTILINE)
+    fail_pattern = re.compile(r'^[ \t]*--- FAIL: (\S+)', re.MULTILINE)
     for match in fail_pattern.finditer(content):
         test_name = match.group(1)
         failed_tests.add(test_name)
@@ -257,7 +244,7 @@ def parse_test_results(output_file: str, configuration_block_type: str, service:
         })
 
     # Pattern 2: Detect test successes
-    pass_pattern = re.compile(r'^--- PASS: (\S+)', re.MULTILINE)
+    pass_pattern = re.compile(r'^[ \t]*--- PASS: (\S+)', re.MULTILINE)
     for match in pass_pattern.finditer(content):
         test_name = match.group(1)
         passed_tests.add(test_name)
@@ -275,7 +262,7 @@ def parse_test_results(output_file: str, configuration_block_type: str, service:
         test_name = run_match.group(1)
 
         # Skip if already accounted for in failures or successes
-        if test_name in failed_tests or test_name in passed_tests:
+        if test_name in failed_tests or test_name in passed_tests or test_name in skipped_tests:
             continue
 
         # Look for panic indicators in the test output
@@ -328,17 +315,56 @@ def parse_test_results(output_file: str, configuration_block_type: str, service:
             })
             failed_tests.add(test_name)
 
-    with open(failures_file, 'w', encoding='utf-8') as f:
-        json.dump(failures, f, indent=2)
+    return failures, successes
 
-    with open(successes_file, 'w', encoding='utf-8') as f:
-        json.dump(successes, f, indent=2)
 
-    panic_count = sum(1 for f in failures if f.get('context', '').startswith('[PANIC DETECTED]'))
-    if panic_count > 0:
-        print(f"✅ Test results: {len(failures)} failures ({panic_count} panics), {len(successes)} successes")
-    else:
-        print(f"✅ Test results: {len(failures)} failures, {len(successes)} successes")
+def parse_test_results(output_file: str, configuration_block_type: str, service: str,
+                       expected_packages: list[str] | None = None) -> None:
+    """Preserve partial results, package identity and command completion separately.
+
+    Only an explicit PASS in a package that exited successfully can resolve an
+    incident. Unframed legacy output is retained for diagnosis without claiming
+    package identity or completeness.
+    """
+    content = Path(output_file).read_text(encoding="utf-8")
+    starts = list(re.finditer(r"^\[COMMAND\] Started package=(\S+) pid=\d+\n", content, re.MULTILINE))
+    sections = []
+    if not starts:
+        sections.append(("", content))
+    for index, start in enumerate(starts):
+        end = starts[index + 1].start() if index + 1 < len(starts) else len(content)
+        sections.append((start.group(1), content[start.end():end]))
+
+    failures, successes, completed = [], [], []
+    for package, output in sections:
+        exit_match = re.search(
+            rf"^\[COMMAND\] Exit=(\d+) package={re.escape(package)} elapsed=[\d.]+s$",
+            output, re.MULTILINE,
+        ) if package else None
+        status = int(exit_match.group(1)) if exit_match else None
+        package_failures, package_successes = parse_package_results(output, configuration_block_type, service)
+        # Exit 1 without a failed test can be a build/vet failure before tests ran.
+        if status == 0 or (status == 1 and package_failures):
+            completed.append(package)
+        for result in package_failures + package_successes:
+            result["package"] = package
+            result["package_complete"] = status == 0
+        failures.extend(package_failures)
+        successes.extend(package_successes)
+
+    Path("test-failures.json").write_text(json.dumps(failures, indent=2), encoding="utf-8")
+    Path("test-successes.json").write_text(json.dumps(successes, indent=2), encoding="utf-8")
+    manifest = {
+        "schema_version": 1,
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+        "expected_packages": expected_packages or [],
+        "completed_packages": completed,
+        "complete": expected_packages is not None and sorted(completed) == sorted(expected_packages)
+                    and len(starts) == len(expected_packages),
+    }
+    Path("test-run.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    print(f"Test results: {len(failures)} failures, {len(successes)} successes; complete={manifest['complete']}")
 
 
 def run_provider_core_tests(coverage_file: str, test_output_file: str, 
@@ -377,6 +403,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     for core_dir in core_dirs:
         print(f"   - {core_dir}")
     print(f"⚙️  [CONFIG] GOMAXPROCS: {max_procs}")
+    print(f"⚙️  [CONFIG] GOMEMLIMIT: {os.environ.get('GOMEMLIMIT', 'unset')}")
     print(f"⚙️  [CONFIG] Test parallel: {test_parallel}")
     print(f"⚙️  [CONFIG] Package parallel: {pkg_parallel}")
     print(f"⚙️  [CONFIG] Race detection: {use_race}")
@@ -524,7 +551,7 @@ def run_provider_core_tests(coverage_file: str, test_output_file: str,
     
     # Parse all test results from the combined output
     print("📝 Parsing test results...")
-    parse_test_results(test_output_file, "provider-core", "")
+    parse_test_results(test_output_file, "provider-core", "", all_packages)
     
     print_separator("=")
     print("🏁 Sequential execution complete for provider-core")
@@ -568,6 +595,7 @@ def run_service_tests(configuration_block_type: str, service: str,
     test_dir = Path(test_dir_str)
     print(f"📂 [CONFIG] Test directory: {test_dir_str}")
     print(f"⚙️  [CONFIG] GOMAXPROCS: {max_procs}")
+    print(f"⚙️  [CONFIG] GOMEMLIMIT: {os.environ.get('GOMEMLIMIT', 'unset')}")
     print(f"⚙️  [CONFIG] Test parallel: {test_parallel}")
     print(f"⚙️  [CONFIG] Package parallel: {pkg_parallel}")
     print(f"⚙️  [CONFIG] Race detection: {use_race}")
@@ -747,7 +775,7 @@ def run_service_tests(configuration_block_type: str, service: str,
     
     # Parse all test results from the combined output
     print("📝 Parsing test results...")
-    parse_test_results(test_output_file, configuration_block_type, service)
+    parse_test_results(test_output_file, configuration_block_type, service, test_packages)
     
     print_separator("=")
     print(f"🏁 Sequential execution complete for {configuration_block_type}/{service}")
