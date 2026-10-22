@@ -374,3 +374,25 @@ func TestUnitResourceAuthorizationPolicy_18_StableReads(t *testing.T) {
 	require.False(t, predicate(ctx, current))
 	require.True(t, predicate(ctx, current))
 }
+
+// TestUnitResourceAuthorizationPolicy_19_RiskyAppConsentPayload omits null risky-app consent and sends explicit values.
+func TestUnitResourceAuthorizationPolicy_19_RiskyAppConsentPayload(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		value types.Bool
+		want  *bool
+	}{
+		{"null", types.BoolNull(), nil},
+		{"unknown", types.BoolUnknown(), nil},
+		{"false", types.BoolValue(false), new(false)},
+		{"true", types.BoolValue(true), new(true)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			model := testModel()
+			model.AllowUserConsentForRiskyApps = test.value
+			body, err := constructResource(context.Background(), &model)
+			require.NoError(t, err)
+			require.Equal(t, test.want, body.GetAllowUserConsentForRiskyApps())
+		})
+	}
+}
