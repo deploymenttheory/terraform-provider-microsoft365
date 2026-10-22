@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.5.0...v1.5.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* allow null allow_user_consent_for_risky_apps in authorization policy ([#4253](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4253)) ([6040e58](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6040e586871255255b0c697b9e782191d8b21884))
+* **ci:** bound acceptance vet memory and preserve incident evidence ([50dbda2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/50dbda2c71ec48b73f03d264c9bccbef0675d164))
+* **ci:** prevent acceptance vet OOM and preserve incident evidence ([#4252](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4252)) ([50dbda2](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/50dbda2c71ec48b73f03d264c9bccbef0675d164))
+* correct mobile app dependency and supersedence lifecycles ([#4250](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4250)) ([86b1728](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/86b1728a077c49c6bdc3036956831369283100e2))
+* for app-supersedence and app-dependancies ([86b1728](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/86b1728a077c49c6bdc3036956831369283100e2))
+
 ## [1.5.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.4.0...v1.5.0) (2026-10-19)
 
 
