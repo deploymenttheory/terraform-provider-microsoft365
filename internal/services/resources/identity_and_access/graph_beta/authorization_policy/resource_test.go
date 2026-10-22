@@ -1,10 +1,12 @@
 package graphBetaAuthorizationPolicy_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/require"
 
@@ -158,4 +160,57 @@ func TestUnitResourceAuthorizationPolicy_05_RequiredBooleans(t *testing.T) {
 			})
 		})
 	}
+}
+
+// TestUnitResourceAuthorizationPolicy_06_NullRiskyAppConsent keeps a service null without sending it.
+func TestUnitResourceAuthorizationPolicy_06_NullRiskyAppConsent(t *testing.T) {
+	m := setupMockEnvironment(t)
+	address := policy.ResourceName + ".test"
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:             loadUnitTestTerraform(t, "risky_apps_omitted"),
+				ResourceName:       address,
+				ImportState:        true,
+				ImportStateId:      "authorizationPolicy",
+				ImportStatePersist: true,
+				ImportStateCheck: func(states []*terraform.InstanceState) error {
+					if _, ok := states[0].Attributes["allow_user_consent_for_risky_apps"]; ok {
+						return fmt.Errorf("allow_user_consent_for_risky_apps should be null after import")
+					}
+					return nil
+				},
+			},
+			{Config: loadUnitTestTerraform(t, "risky_apps_omitted"), PlanOnly: true},
+			{
+				Config: loadUnitTestTerraform(t, "risky_apps_omitted_update"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(address).Key("allow_invites_from").HasValue("none"),
+					check.That(address).Key("allow_user_consent_for_risky_apps").DoesNotExist(),
+					func(*terraform.State) error {
+						if _, ok := m.LastPatch()["allowUserConsentForRiskyApps"]; ok {
+							return fmt.Errorf("PATCH must omit allowUserConsentForRiskyApps")
+						}
+						return nil
+					},
+				),
+			},
+			{Config: loadUnitTestTerraform(t, "risky_apps_omitted_update"), PlanOnly: true},
+			{
+				Config: loadUnitTestTerraform(t, "risky_apps_false"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(address).Key("allow_user_consent_for_risky_apps").HasValue("false"),
+					func(*terraform.State) error {
+						if value, ok := m.LastPatch()["allowUserConsentForRiskyApps"]; !ok || value != false {
+							return fmt.Errorf("PATCH must send allowUserConsentForRiskyApps=false, got %v", value)
+						}
+						return nil
+					},
+				),
+			},
+			// Removing the attribute keeps the last service value instead of planning a reset.
+			{Config: loadUnitTestTerraform(t, "risky_apps_omitted_update"), PlanOnly: true},
+		},
+	})
 }

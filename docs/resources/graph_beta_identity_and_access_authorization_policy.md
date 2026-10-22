@@ -35,7 +35,7 @@ The following client `application` permissions are needed in order to use this r
 
 | Version | Status | Notes |
 |---------|--------|-------|
-| Unreleased | Experimental | Initial release |
+| v1.4.0 | Preview| Initial release |
 
 ## Example Usage
 
@@ -115,7 +115,6 @@ resource "microsoft365_graph_beta_identity_and_access_authorization_policy" "exa
 ### Required
 
 - `allow_email_verified_users_to_join_organization` (Boolean) Whether users can join the tenant through email verification.
-- `allow_user_consent_for_risky_apps` (Boolean) Whether users can consent to risky applications.
 - `allowed_to_sign_up_email_based_subscriptions` (Boolean) Whether users can sign up for email-based subscriptions.
 - `allowed_to_use_sspr` (Boolean) Whether tenant administrators can use self-service password reset.
 - `block_msol_powershell` (Boolean) Whether user-based access to the legacy MSOnline PowerShell service endpoint is blocked.
@@ -124,6 +123,7 @@ resource "microsoft365_graph_beta_identity_and_access_authorization_policy" "exa
 ### Optional
 
 - `allow_invites_from` (String) Who can invite guests: `none`, `adminsAndGuestInviters`, `adminsGuestInvitersAndAllMembers`, or `everyone`.
+- `allow_user_consent_for_risky_apps` (Boolean) Whether users can consent to risky applications. Graph returns `null` on tenants where this has never been set. When omitted, the existing service value is retained. Graph ignores `null` updates, so once set to `true` or `false` it cannot be reset to `null`.
 - `description` (String) Description of the authorization policy.
 - `display_name` (String) Display name of the authorization policy.
 - `enabled_preview_features` (Set of String) Features enabled for private preview on the tenant. Use an empty set to clear the list.
@@ -163,7 +163,8 @@ Optional:
 - **Singleton Resource**: Manage one instance per tenant across all Terraform states. The ID is always `authorizationPolicy`.
 - **Create and Update Behavior**: Both operations use PATCH to configure the existing policy, then GET to refresh state.
 - **Destroy Behavior**: Only removes Terraform state. The authorization policy and its settings remain in Microsoft Entra ID.
-- **Boolean Settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`.
+- **Boolean Settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`, except `allow_user_consent_for_risky_apps`.
+- **Risky App Consent**: Graph returns `null` for `allow_user_consent_for_risky_apps` until it is first set. Omit the attribute to keep the service value, including `null`, without sending it in PATCH requests. Graph ignores `null` updates, so after it is set to `true` or `false`, removing it from configuration keeps the last value.
 - **Optional Settings**: Omitted optional attributes retain their existing service values. Set a collection to `[]` to clear it explicitly.
 
 ## Import

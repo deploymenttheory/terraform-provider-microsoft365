@@ -136,8 +136,10 @@ func (r *AuthorizationPolicyResource) Schema(
 				},
 			},
 			"allow_user_consent_for_risky_apps": schema.BoolAttribute{
-				MarkdownDescription: "Whether users can consent to risky applications.",
-				Required:            true,
+				MarkdownDescription: "Whether users can consent to risky applications. Graph returns `null` on tenants where this has never been set. " +
+					"When omitted, the existing service value is retained. Graph ignores `null` updates, so once set to `true` or `false` it cannot be reset to `null`.",
+				Optional: true,
+				Computed: true,
 			},
 			"block_msol_powershell": schema.BoolAttribute{
 				MarkdownDescription: "Whether user-based access to the legacy MSOnline PowerShell service endpoint is blocked.",

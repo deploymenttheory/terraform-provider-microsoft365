@@ -55,7 +55,8 @@ The following client `application` permissions are needed in order to use this {
 - **Singleton Resource**: Manage one instance per tenant across all Terraform states. The ID is always `authorizationPolicy`.
 - **Create and Update Behavior**: Both operations use PATCH to configure the existing policy, then GET to refresh state.
 - **Destroy Behavior**: Only removes Terraform state. The authorization policy and its settings remain in Microsoft Entra ID.
-- **Boolean Settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`.
+- **Boolean Settings**: All Boolean attributes are required, including every field in `default_user_role_permissions`, except `allow_user_consent_for_risky_apps`.
+- **Risky App Consent**: Graph returns `null` for `allow_user_consent_for_risky_apps` until it is first set. Omit the attribute to keep the service value, including `null`, without sending it in PATCH requests. Graph ignores `null` updates, so after it is set to `true` or `false`, removing it from configuration keeps the last value.
 - **Optional Settings**: Omitted optional attributes retain their existing service values. Set a collection to `[]` to clear it explicitly.
 
 ## Import
