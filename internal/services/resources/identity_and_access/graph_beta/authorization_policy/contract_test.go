@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/kiota-abstractions-go/authentication"
 	kiotahttp "github.com/microsoft/kiota-http-go"
+	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/stretchr/testify/require"
 )
@@ -393,6 +394,17 @@ func TestUnitResourceAuthorizationPolicy_19_RiskyAppConsentPayload(t *testing.T)
 			body, err := constructResource(context.Background(), &model)
 			require.NoError(t, err)
 			require.Equal(t, test.want, body.GetAllowUserConsentForRiskyApps())
+			writer := jsonserialization.NewJsonSerializationWriter()
+			require.NoError(t, writer.WriteObjectValue("", body))
+			content, err := writer.GetSerializedContent()
+			require.NoError(t, err)
+			var payload map[string]any
+			require.NoError(t, json.Unmarshal(content, &payload))
+			value, sent := payload["allowUserConsentForRiskyApps"]
+			require.Equal(t, test.want != nil, sent)
+			if test.want != nil {
+				require.Equal(t, *test.want, value)
+			}
 		})
 	}
 }

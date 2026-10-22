@@ -58,6 +58,7 @@ func TestAccResourceAuthorizationPolicy_01_Lifecycle(t *testing.T) {
 						Key("allow_invites_from").
 						HasValue("adminsGuestInvitersAndAllMembers"),
 					check.That(resourceType+".test").Key("allowed_to_use_sspr").HasValue("true"),
+					checkRiskyAppConsentMatchesGraph(resourceType+".test"),
 				),
 			},
 			{

@@ -2,7 +2,6 @@ resource "microsoft365_graph_beta_identity_and_access_authorization_policy" "tes
   allowed_to_sign_up_email_based_subscriptions    = false
   allowed_to_use_sspr                             = true
   allow_email_verified_users_to_join_organization = false
-  allow_user_consent_for_risky_apps               = false
   block_msol_powershell                           = true
   allow_invites_from                              = "adminsGuestInvitersAndAllMembers"
   default_user_role_permissions = {
