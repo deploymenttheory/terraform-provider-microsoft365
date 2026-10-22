@@ -3,6 +3,8 @@ package mocks
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -73,16 +75,21 @@ func (m *AuthorizationPolicyMock) RegisterMocks() {
 
 	// Create and update both PATCH the existing singleton.
 	httpmock.RegisterResponder("PATCH", PatchURL, func(req *http.Request) (*http.Response, error) {
-		var body map[string]any
-		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+		raw, err := io.ReadAll(req.Body)
+		if err != nil {
+			return nil, fmt.Errorf("read authorization policy: %w", err)
+		}
+		// Decode twice so the recorded body is not mutated by the casing normalization below.
+		var body, sent map[string]any
+		if err := json.Unmarshal(raw, &body); err != nil {
+			return nil, fmt.Errorf("decode authorization policy: %w", err)
+		}
+		if err := json.Unmarshal(raw, &sent); err != nil {
 			return nil, fmt.Errorf("decode authorization policy: %w", err)
 		}
 		m.mu.Lock()
 		defer m.mu.Unlock()
-		m.lastPatch = make(map[string]any, len(body))
-		for key, value := range body {
-			m.lastPatch[key] = value
-		}
+		m.lastPatch = sent
 		for key, value := range body {
 			if key == "@odata.type" || value == nil {
 				continue
@@ -143,11 +150,11 @@ func (m *AuthorizationPolicyMock) CleanupMockState() {
 	m.lastPatch = nil
 }
 
-// LastPatch returns the most recent PATCH body as decoded JSON.
+// LastPatch returns a copy of the most recent PATCH body as sent by the provider.
 func (m *AuthorizationPolicyMock) LastPatch() map[string]any {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return m.lastPatch
+	return maps.Clone(m.lastPatch)
 }
 
 func (m *AuthorizationPolicyMock) Snapshot() (string, int) {

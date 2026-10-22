@@ -5,7 +5,6 @@ resource "microsoft365_graph_beta_identity_and_access_authorization_policy" "tes
   allowed_to_use_sspr                                       = true
   allow_email_verified_users_to_join_organization           = false
   allow_invites_from                                        = "none"
-  allow_user_consent_for_risky_apps                         = false
   block_msol_powershell                                     = true
   enabled_preview_features                                  = []
   guest_user_role_id                                        = "2af84b1e-32c8-42b7-82bc-daa82404023b"

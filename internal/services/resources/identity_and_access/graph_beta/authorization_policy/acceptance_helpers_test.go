@@ -2,11 +2,13 @@ package graphBetaAuthorizationPolicy_test
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"slices"
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/stretchr/testify/require"
 
@@ -15,8 +17,8 @@ import (
 )
 
 // authorizationPolicyPreCheck preserves the tenant settings for acceptance-test cleanup.
-// Graph ignores null resets for risky-app consent, so an originally-null value cannot
-// be safely round-tripped by tests that must explicitly configure all Boolean fields.
+// Graph ignores null resets for risky-app consent, so the acceptance configs omit it to
+// keep an originally-null value restorable.
 func authorizationPolicyPreCheck(t *testing.T) {
 	t.Helper()
 	mocks.TestAccPreCheck(t)
@@ -30,11 +32,6 @@ func authorizationPolicyPreCheck(t *testing.T) {
 	require.Len(t, response.GetValue(), 1)
 	original := response.GetValue()[0]
 	require.NotNil(t, original)
-	if original.GetAllowUserConsentForRiskyApps() == nil {
-		t.Skip(
-			"Graph cannot restore allowUserConsentForRiskyApps to null; use a test tenant with an explicitly configured Boolean value",
-		)
-	}
 	expected := authorizationPolicySnapshot(original)
 	restore := authorizationPolicyRestoreBody(original)
 
@@ -145,4 +142,39 @@ func authorizationPolicySnapshot(policy graphmodels.AuthorizationPolicyable) map
 		}
 	}
 	return snapshot
+}
+
+// checkRiskyAppConsentMatchesGraph verifies the omitted attribute mirrors Graph, including null.
+func checkRiskyAppConsentMatchesGraph(address string) func(*terraform.State) error {
+	return func(state *terraform.State) error {
+		resource, ok := state.RootModule().Resources[address]
+		if !ok {
+			return fmt.Errorf("%s not found in state", address)
+		}
+		client, err := acceptance.TestGraphClient()
+		if err != nil {
+			return err
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+		response, err := client.Policies().AuthorizationPolicy().Get(ctx, nil)
+		if err != nil {
+			return err
+		}
+		if response == nil || len(response.GetValue()) != 1 {
+			return fmt.Errorf("expected one authorization policy")
+		}
+		actual, set := resource.Primary.Attributes["allow_user_consent_for_risky_apps"]
+		remote := response.GetValue()[0].GetAllowUserConsentForRiskyApps()
+		if remote == nil {
+			if set {
+				return fmt.Errorf("expected null allow_user_consent_for_risky_apps, got %q", actual)
+			}
+			return nil
+		}
+		if want := fmt.Sprint(*remote); actual != want {
+			return fmt.Errorf("expected allow_user_consent_for_risky_apps %q, got %q", want, actual)
+		}
+		return nil
+	}
 }

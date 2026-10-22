@@ -210,7 +210,18 @@ func TestUnitResourceAuthorizationPolicy_06_NullRiskyAppConsent(t *testing.T) {
 				),
 			},
 			// Removing the attribute keeps the last service value instead of planning a reset.
-			{Config: loadUnitTestTerraform(t, "risky_apps_omitted_update"), PlanOnly: true},
+			{
+				Config: loadUnitTestTerraform(t, "risky_apps_omitted_update"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(address).Key("allow_user_consent_for_risky_apps").HasValue("false"),
+					func(*terraform.State) error {
+						if _, patches := m.Snapshot(); patches != 2 {
+							return fmt.Errorf("expected no PATCH after removing the attribute, got %d PATCHes", patches)
+						}
+						return nil
+					},
+				),
+			},
 		},
 	})
 }
