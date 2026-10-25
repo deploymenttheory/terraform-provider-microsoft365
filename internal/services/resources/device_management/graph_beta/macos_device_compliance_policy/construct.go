@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -99,7 +100,47 @@ func constructMacOSCompliancePolicy(ctx context.Context, data *DeviceComplianceP
 	convert.FrameworkToGraphBool(data.FirewallBlockAllIncoming, policy.SetFirewallBlockAllIncoming)
 	convert.FrameworkToGraphBool(data.FirewallEnableStealthMode, policy.SetFirewallEnableStealthMode)
 
+	// NEW: custom compliance -- mirrors windows_device_compliance_policy/construct.go
+	if !data.DeviceCompliancePolicyScript.IsNull() && !data.DeviceCompliancePolicyScript.IsUnknown() {
+		script, err := constructDeviceCompliancePolicyScript(ctx, data.DeviceCompliancePolicyScript)
+		if err != nil {
+			return fmt.Errorf("failed to construct device compliance policy script: %s", err)
+		}
+		policy.SetDeviceCompliancePolicyScript(script)
+
+		// Note: there's no direct SetCustomComplianceRequired method in the SDK
+		// for MacOSCompliancePolicy either (same as Windows10CompliancePolicy) --
+		// the API infers it from the presence of a device compliance policy script.
+		if !data.CustomComplianceRequired.IsNull() && !data.CustomComplianceRequired.IsUnknown() && data.CustomComplianceRequired.ValueBool() {
+			tflog.Debug(ctx, "Custom compliance is required, script is set")
+		}
+	}
+
 	return nil
+}
+
+// constructDeviceCompliancePolicyScript converts Terraform Object to Graph SDK model.
+// Identical to windows_device_compliance_policy/construct.go's version --
+// graphmodels.NewDeviceCompliancePolicyScript() is the same generic type used
+// by both platforms.
+func constructDeviceCompliancePolicyScript(ctx context.Context, scriptData types.Object) (graphmodels.DeviceCompliancePolicyScriptable, error) {
+	attrs := scriptData.Attributes()
+
+	script := graphmodels.NewDeviceCompliancePolicyScript()
+
+	if scriptIdAttr, ok := attrs["device_compliance_script_id"].(types.String); ok && !scriptIdAttr.IsNull() {
+		scriptId := scriptIdAttr.ValueString()
+		script.SetDeviceComplianceScriptId(&scriptId)
+	}
+
+	if rulesContentAttr, ok := attrs["rules_content"].(types.String); ok && !rulesContentAttr.IsNull() {
+		rulesContentStr := rulesContentAttr.ValueString()
+		// The rules content comes as a JSON string from the user which needs to be encoded to base64 for the API request
+		encodedBytes := []byte(rulesContentStr)
+		script.SetRulesContent(encodedBytes)
+	}
+
+	return script, nil
 }
 
 // constructScheduledActionsForPolicyCreation creates scheduled actions for inclusion during policy creation

@@ -30,20 +30,11 @@ const (
 )
 
 var (
-	// Basic resource interface (CRUD operations)
-	_ resource.Resource = &MacosDeviceCompliancePolicyResource{}
-
-	// Allows the resource to be configured with the provider client
-	_ resource.ResourceWithConfigure = &MacosDeviceCompliancePolicyResource{}
-
-	// Enables import functionality
+	_ resource.Resource                = &MacosDeviceCompliancePolicyResource{}
+	_ resource.ResourceWithConfigure   = &MacosDeviceCompliancePolicyResource{}
 	_ resource.ResourceWithImportState = &MacosDeviceCompliancePolicyResource{}
-
-	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &MacosDeviceCompliancePolicyResource{}
-
-	// Enables identity schema for list resource support
-	_ resource.ResourceWithIdentity = &MacosDeviceCompliancePolicyResource{}
+	_ resource.ResourceWithModifyPlan  = &MacosDeviceCompliancePolicyResource{}
+	_ resource.ResourceWithIdentity    = &MacosDeviceCompliancePolicyResource{}
 )
 
 func NewMacosDeviceCompliancePolicyResource() resource.Resource {
@@ -65,22 +56,18 @@ type MacosDeviceCompliancePolicyResource struct {
 	ResourcePath     string
 }
 
-// Metadata returns the resource type name.
 func (r *MacosDeviceCompliancePolicyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
-// Configure sets the client for the resource.
 func (r *MacosDeviceCompliancePolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-// ImportState imports the resource state.
 func (r *MacosDeviceCompliancePolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
 func (r *MacosDeviceCompliancePolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
@@ -91,7 +78,6 @@ func (r *MacosDeviceCompliancePolicyResource) IdentitySchema(ctx context.Context
 	}
 }
 
-// Schema returns the schema for the resource.
 func (r *MacosDeviceCompliancePolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages macOS device compliance policies using the `/deviceManagement/deviceCompliancePolicies` endpoint. This resource is used to device compliance policies define rules and settings that devices must meet to be considered compliant with organizational security requirements.",
@@ -126,7 +112,6 @@ func (r *MacosDeviceCompliancePolicyResource) Schema(ctx context.Context, req re
 					),
 				},
 			},
-			// Password settings
 			"password_required": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -168,7 +153,6 @@ func (r *MacosDeviceCompliancePolicyResource) Schema(ctx context.Context, req re
 				Optional:            true,
 				MarkdownDescription: "Number of previous passwords to block",
 			},
-			// OS version settings
 			"os_minimum_version": schema.StringAttribute{
 				Optional:            true,
 				MarkdownDescription: "Minimum macOS version allowed.",
@@ -185,7 +169,6 @@ func (r *MacosDeviceCompliancePolicyResource) Schema(ctx context.Context, req re
 				Optional:            true,
 				MarkdownDescription: "Maximum macOS build version",
 			},
-			// macOS security settings
 			"system_integrity_protection_enabled": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -207,7 +190,6 @@ func (r *MacosDeviceCompliancePolicyResource) Schema(ctx context.Context, req re
 					planmodifiers.DefaultValueString("notConfigured"),
 				},
 			},
-			// Firewall settings
 			"firewall_enabled": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -250,15 +232,39 @@ func (r *MacosDeviceCompliancePolicyResource) Schema(ctx context.Context, req re
 					planmodifiers.DefaultValueString("unavailable"),
 				},
 			},
+			// NEW: custom compliance (script + rules) -- copied verbatim from
+			// windows_device_compliance_policy/resource.go.
+			"device_compliance_policy_script": schema.SingleNestedAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Device compliance policy script for custom compliance.",
+				Attributes: map[string]schema.Attribute{
+					"device_compliance_script_id": schema.StringAttribute{
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The ID of the device compliance script (a microsoft365_graph_beta_device_management_macos_device_compliance_script resource).",
+					},
+					"rules_content": schema.StringAttribute{
+						Optional:            true,
+						Computed:            true,
+						MarkdownDescription: "The JSON rules content of the compliance script.",
+					},
+				},
+			},
+			"custom_compliance_required": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Indicates whether custom compliance is required.",
+				// does not require a default value of false.
+			},
 			"scheduled_actions_for_rule": schema.ListNestedAttribute{
 				Optional:            true,
 				MarkdownDescription: "The list of scheduled action for this rule",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"rule_name": schema.StringAttribute{
-							Optional:            true,
-							Computed:            true,
-							MarkdownDescription: "Name of the scheduled action rule. When omitted, resolves to PasswordRequired. Microsoft Graph applies actions policy-wide and does not return the rule name; configured names are retained in state for compatibility.",
+    						Optional:            true,
+    						MarkdownDescription: "Name of the scheduled action rule",
 						},
 						"scheduled_action_configurations": schema.SetNestedAttribute{
 							Required:            true,

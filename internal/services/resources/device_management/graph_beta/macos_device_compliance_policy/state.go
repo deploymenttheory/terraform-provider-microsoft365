@@ -128,6 +128,43 @@ func mapMacOSCompliancePolicyToState(ctx context.Context, data *DeviceCompliance
 	data.FirewallEnabled = convert.GraphToFrameworkBool(policy.GetFirewallEnabled())
 	data.FirewallBlockAllIncoming = convert.GraphToFrameworkBool(policy.GetFirewallBlockAllIncoming())
 	data.FirewallEnableStealthMode = convert.GraphToFrameworkBool(policy.GetFirewallEnableStealthMode())
+
+	// NEW: custom compliance -- mirrors windows_device_compliance_policy/state.go
+	scriptType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"device_compliance_script_id": types.StringType,
+			"rules_content":               types.StringType,
+		},
+	}
+
+	data.CustomComplianceRequired = types.BoolValue(false)
+	if policy.GetDeviceCompliancePolicyScript() != nil {
+		data.CustomComplianceRequired = types.BoolValue(true)
+
+		// Get the rules content as a byte array and convert to string
+		var rulesContentStr string
+		rulesContent := policy.GetDeviceCompliancePolicyScript().GetRulesContent()
+		if rulesContent != nil {
+			rulesContentStr = string(rulesContent)
+		}
+
+		scriptAttrs := map[string]attr.Value{
+			"device_compliance_script_id": convert.GraphToFrameworkString(policy.GetDeviceCompliancePolicyScript().GetDeviceComplianceScriptId()),
+			"rules_content":               types.StringValue(rulesContentStr),
+		}
+
+		scriptObj, diags := types.ObjectValue(scriptType.AttrTypes, scriptAttrs)
+		if diags.HasError() {
+			tflog.Error(ctx, "Failed to create device compliance policy script object", map[string]any{
+				"error": diags.Errors(),
+			})
+			data.DeviceCompliancePolicyScript = types.ObjectNull(scriptType.AttrTypes)
+		} else {
+			data.DeviceCompliancePolicyScript = scriptObj
+		}
+	} else {
+		data.DeviceCompliancePolicyScript = types.ObjectNull(scriptType.AttrTypes)
+	}
 }
 
 // mapScheduledActionsForRuleToState maps scheduled actions for rule from SDK to state.
