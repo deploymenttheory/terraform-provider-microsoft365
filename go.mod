@@ -18,7 +18,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/microsoft/kiota-abstractions-go v1.11.4
-	github.com/microsoft/kiota-http-go v1.5.7
+	github.com/microsoft/kiota-http-go v1.5.9
 	github.com/microsoft/kiota-serialization-json-go v1.1.5
 	github.com/microsoftgraph/msgraph-beta-sdk-go v0.166.0
 	github.com/microsoftgraph/msgraph-sdk-go v1.104.0
