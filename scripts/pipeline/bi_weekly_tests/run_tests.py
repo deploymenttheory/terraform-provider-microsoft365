@@ -184,6 +184,12 @@ def print_separator(char: str = "=", length: int = 70) -> None:
     print(char * length)
 
 
+# Only top-level Go test functions are incident identities. Subtest lines and the
+# CheckDestroy helper's per-resource lines (which embed random resource names) are
+# indented or lack a Go test prefix; they remain in the parent test's context.
+TOP_LEVEL_TEST = r"(?:Test|Fuzz|Example)[^\s/]*"
+
+
 def parse_package_results(content: str, configuration_block_type: str, service: str) -> tuple[list, list]:
     """Extract outcomes within one package so repeated test names cannot collide."""
     failures = []
@@ -191,15 +197,15 @@ def parse_package_results(content: str, configuration_block_type: str, service: 
     # Track all test names and their outcomes
     failed_tests = set()
     passed_tests = set()
-    skipped_tests = set(re.findall(r"^[ \t]*--- SKIP: (\S+)", content, re.MULTILINE))
+    skipped_tests = set(re.findall(rf"^--- SKIP: ({TOP_LEVEL_TEST})(?=\s)", content, re.MULTILINE))
 
     # Pattern 1: Detect explicit test failures
-    fail_pattern = re.compile(r'^[ \t]*--- FAIL: (\S+)', re.MULTILINE)
+    fail_pattern = re.compile(rf'^--- FAIL: ({TOP_LEVEL_TEST})(?=\s)', re.MULTILINE)
     for match in fail_pattern.finditer(content):
         test_name = match.group(1)
         failed_tests.add(test_name)
 
-        run_pattern = re.compile(rf'^=== RUN\s+{re.escape(test_name)}', re.MULTILINE)
+        run_pattern = re.compile(rf'^=== RUN\s+{re.escape(test_name)}[ \t]*$', re.MULTILINE)
         run_match = None
 
         search_start = max(0, match.start() - 50000)  # Look back up to 50KB
@@ -244,7 +250,7 @@ def parse_package_results(content: str, configuration_block_type: str, service: 
         })
 
     # Pattern 2: Detect test successes
-    pass_pattern = re.compile(r'^[ \t]*--- PASS: (\S+)', re.MULTILINE)
+    pass_pattern = re.compile(rf'^--- PASS: ({TOP_LEVEL_TEST})(?=\s)', re.MULTILINE)
     for match in pass_pattern.finditer(content):
         test_name = match.group(1)
         passed_tests.add(test_name)
@@ -257,7 +263,7 @@ def parse_package_results(content: str, configuration_block_type: str, service: 
 
     # Pattern 3: Detect panicked tests (NEW)
     # Find all tests that started but never got PASS or FAIL markers
-    run_pattern = re.compile(r'^=== RUN\s+(\S+)', re.MULTILINE)
+    run_pattern = re.compile(rf'^=== RUN\s+({TOP_LEVEL_TEST})[ \t]*$', re.MULTILINE)
     for run_match in run_pattern.finditer(content):
         test_name = run_match.group(1)
 

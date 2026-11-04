@@ -52,6 +52,14 @@ def output(package, body, exit_code=0):
     return f"[COMMAND] Started package={package} pid=123\n{body}{end}"
 
 
+def check_destroy(suffix):
+    """Mirror internal/acceptance/destroy/helpers.go output, including random names."""
+    return ("=== RUN   CheckDestroy\n=== RUN   CheckDestroy/Group\n"
+            f"    --- FAIL: CheckDestroy/Group/acc-test-group-{suffix} (id:abc) - still exists\n"
+            "    --- PASS: CheckDestroy/Group/acc-test-group-kept (id:def)\n"
+            "--- FAIL: CheckDestroy (1 destroyed, 1 failed)\n")
+
+
 class TemporaryTests(unittest.TestCase):
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
@@ -105,6 +113,38 @@ class ParserTests(TemporaryTests):
         body = "=== RUN   TestSkip\n--- SKIP: TestSkip (0.0s)\nFAIL github.com/example/one\n"
         failures, successes, _ = self.parse(output("./one", body, 1), ["./one"])
         self.assertEqual((failures, successes), ([], []))
+
+    def test_subtests_stay_in_parent_context(self):
+        body = ("=== RUN   TestParent\n=== RUN   TestParent/sub\n    sub_test.go:9: sub broke\n"
+                "    --- FAIL: TestParent/sub (0.1s)\n=== RUN   TestParent/ok\n"
+                "    --- PASS: TestParent/ok (0.1s)\n--- FAIL: TestParent (0.2s)\n")
+        failures, successes, _ = self.parse(output("./one", body, 1), ["./one"])
+        self.assertEqual([x["test_name"] for x in failures], ["TestParent"])
+        self.assertIn("sub broke", failures[0]["context"])
+        self.assertEqual(successes, [])
+
+    def test_check_destroy_lines_are_not_tests(self):
+        body = ("=== RUN   TestAccX\n" + check_destroy("q1w2e3r4") +
+                "    testing_new.go:85: destroy check failed\n--- FAIL: TestAccX (3.0s)\n"
+                "=== RUN   TestAccY\n=== RUN   CheckDestroy\n"
+                "    --- PASS: CheckDestroy/acc-test-y (id:1)\n--- PASS: CheckDestroy (1 resources)\n"
+                "--- PASS: TestAccY (1.0s)\n")
+        failures, successes, _ = self.parse(output("./one", body, 1), ["./one"])
+        self.assertEqual([x["test_name"] for x in failures], ["TestAccX"])
+        self.assertIn("acc-test-group-q1w2e3r4", failures[0]["context"])
+        self.assertEqual([x["test_name"] for x in successes], ["TestAccY"])
+
+    def test_subtest_panic_is_attributed_to_parent(self):
+        body = ("=== RUN   TestParent\n=== RUN   TestParent/sub\npanic: boom\n"
+                "FAIL github.com/example/one\n")
+        failures, _, _ = self.parse(output("./one", body, 1), ["./one"])
+        self.assertEqual([x["test_name"] for x in failures], ["TestParent"])
+
+    def test_context_lookup_does_not_match_longer_test_name(self):
+        body = ("=== RUN   TestFoo_1\n    foo_test.go:1: first broke\n"
+                "=== RUN   TestFoo_10\n--- PASS: TestFoo_10 (0.1s)\n--- FAIL: TestFoo_1 (0.2s)\n")
+        failures, _, _ = self.parse(output("./one", body, 1), ["./one"])
+        self.assertIn("first broke", failures[0]["context"])
 
     def test_unframed_legacy_output_cannot_resolve(self):
         _, successes, manifest = self.parse("--- PASS: TestSame (0.1s)\n", ["./one"])
@@ -253,6 +293,18 @@ class ReportingIntegrationTests(TemporaryTests):
         calls = [call.args[0] for call in gh.call_args_list]
         self.assertEqual([call[2] for call in calls if call[:2] == ["issue", "close"]], ["1"])
         self.assertEqual([call[2] for call in calls if call[:2] == ["issue", "comment"]], ["2"])
+
+    def test_recurring_check_destroy_failure_updates_instead_of_creating(self):
+        for run in ("abc12345", "zyx98765"):
+            Path("output.log").write_text(output("./one", "=== RUN   TestAccX\n" + check_destroy(run) +
+                                                 "--- FAIL: TestAccX (3.0s)\n", 1))
+            runner.parse_test_results("output.log", "resources", "example", ["./one"])
+            with patch.object(issues, "get_all_open_test_issues", return_value=[issue(7, "./one", "TestAccX")]), \
+                 patch.object(issues, "run_gh_command", return_value="url") as gh, patch.object(issues.time, "sleep"):
+                issues.process_test_failures("o", "r", "1", "test-failures.json", "test-successes.json")
+            calls = [call.args[0] for call in gh.call_args_list]
+            self.assertFalse([c for c in calls if c[:2] == ["issue", "create"]], calls)
+            self.assertEqual([c[2] for c in calls if c[:2] == ["issue", "comment"]], ["7"])
 
 
 class DetectionTests(TemporaryTests):
