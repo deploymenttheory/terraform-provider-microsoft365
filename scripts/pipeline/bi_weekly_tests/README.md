@@ -80,6 +80,11 @@ number of executed test jobs disable automatic issue closure. Successful jobs
 whose test step was skipped for missing credentials require no artifact and do
 not create incidents. A failed jobs API query fails visibly and disables closure.
 
+Only top-level Go tests (`--- FAIL: TestX` at column 0) are incident
+identities. Subtest lines and CheckDestroy helper lines, which embed random
+resource names, belong to the parent test's failure (and its truncated error
+context), so a recurring failure always maps to the same identity.
+
 New test incidents carry a hidden package-and-test identity in their body. An
 incident closes only when that exact identity explicitly passes, its package
 exits successfully, aggregation is complete, and no matching failure exists.
