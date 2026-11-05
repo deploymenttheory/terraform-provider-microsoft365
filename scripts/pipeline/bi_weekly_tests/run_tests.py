@@ -128,7 +128,7 @@ def discover_test_packages(base_path: Path) -> List[str]:
         if idx % 10 == 0:
             print(f"🔍 [DISCOVERY] Processing test file {idx}/{len(test_files)}...")
         package_dir = test_file.parent.resolve()
-        rel_path = f"./{package_dir.relative_to(cwd)}"
+        rel_path = f"./{package_dir.relative_to(cwd).as_posix()}"
         packages.add(rel_path)
     
     sorted_packages = sorted(list(packages))
@@ -571,7 +571,7 @@ def run_service_tests(configuration_block_type: str, service: str,
                     max_procs: int = 2, test_parallel: int = 1,
                     pkg_parallel: int = 1, use_race: bool = False,
                     skip_enumeration: bool = False, force_gc: bool = True,
-                    shard_resources: str = "") -> int:
+                    shard_resources: str = "", test_filters: Dict[str, str] = None) -> int:
     """Run tests for a specific service sequentially, one package at a time to conserve memory.
 
     Discovers all test packages in the service directory, runs tests package-by-package,
@@ -589,6 +589,7 @@ def run_service_tests(configuration_block_type: str, service: str,
         skip_enumeration: Whether to skip test enumeration phase.
         force_gc: Whether to force garbage collection between packages.
         shard_resources: Comma-separated list of resource paths in this shard.
+        test_filters: Relative package paths mapped to anchored Go test expressions.
 
     Returns:
         0 if all tests passed, 1 if any test failed.
@@ -599,6 +600,13 @@ def run_service_tests(configuration_block_type: str, service: str,
     
     test_dir_str = f"./internal/services/{configuration_block_type}/{service}"
     test_dir = Path(test_dir_str)
+    if test_filters is not None and (
+        not isinstance(test_filters, dict) or
+        any(not isinstance(key, str) or not isinstance(value, str) or not value
+            for key, value in test_filters.items())
+    ):
+        raise ValueError('Test filters must map package paths to nonempty test expressions')
+    package_filters = {f'{test_dir_str}/{key}': value for key, value in (test_filters or {}).items()}
     print(f"📂 [CONFIG] Test directory: {test_dir_str}")
     print(f"⚙️  [CONFIG] GOMAXPROCS: {max_procs}")
     print(f"⚙️  [CONFIG] GOMEMLIMIT: {os.environ.get('GOMEMLIMIT', 'unset')}")
@@ -607,6 +615,8 @@ def run_service_tests(configuration_block_type: str, service: str,
     print(f"⚙️  [CONFIG] Race detection: {use_race}")
     
     if not test_dir.exists():
+        if shard_resources or package_filters:
+            raise ValueError(f'Shard service directory does not exist: {test_dir_str}')
         print(f"⚠️  Directory not found: {test_dir_str}, creating empty coverage file")
         with open(coverage_file, 'w', encoding='utf-8') as f:
             f.write("mode: atomic\n")
@@ -636,11 +646,14 @@ def run_service_tests(configuration_block_type: str, service: str,
                 shard_packages.append(expected_pkg)
                 print(f"✅ [SHARD] Matched resource: {resource_path}")
             else:
-                print(f"⚠️  [SHARD] Resource not found: {resource_path}")
-                print(f"   Looking for: {expected_pkg}")
+                raise ValueError(f'Shard resource not found: {expected_pkg}')
 
         test_packages = shard_packages
         print(f"✅ [SHARD] Testing {len(test_packages)} package(s) in this shard")
+
+    unmatched_filters = set(package_filters) - set(test_packages)
+    if unmatched_filters:
+        raise ValueError(f'Test filters reference packages outside this shard: {sorted(unmatched_filters)}')
 
     if not test_packages:
         print(f"⚠️  [DISCOVERY] No test packages found in {test_dir_str}")
@@ -727,6 +740,9 @@ def run_service_tests(configuration_block_type: str, service: str,
         
         if use_race:
             cmd.append("-race")
+
+        if pkg in package_filters:
+            cmd.extend(["-run", package_filters[pkg]])
         
         cmd.extend([
             "-timeout=90m",
@@ -836,6 +852,8 @@ Examples:
                        help='Disable forced garbage collection')
     parser.add_argument('--shard-resources', type=str, default='',
                        help='Comma-separated list of resource paths in this shard (e.g., "graph_beta/resource1,graph_v1.0/resource2")')
+    parser.add_argument('--test-filters', type=json.loads, default={},
+                       help='JSON object mapping relative package paths to Go test expressions')
 
     args = parser.parse_args()
     
@@ -903,7 +921,8 @@ Examples:
             args.use_race,
             args.skip_enumeration,
             args.force_gc,
-            args.shard_resources
+            args.shard_resources,
+            args.test_filters
         )
     else:
         print(f"Error: unknown test type: {args.type}", file=sys.stderr)

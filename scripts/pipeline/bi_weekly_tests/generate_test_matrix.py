@@ -37,15 +37,36 @@ import sys
 import json
 import hashlib
 import struct
+import re
 from pathlib import Path
 from typing import Dict, List
 
 ITEMS_PER_SHARD = int(os.environ.get('ITEMS_PER_SHARD', '5'))
+TESTS_PER_SHARD = int(os.environ.get('TESTS_PER_SHARD', '25'))
+if ITEMS_PER_SHARD < 1 or TESTS_PER_SHARD < 1:
+    raise ValueError('ITEMS_PER_SHARD and TESTS_PER_SHARD must be positive integers')
 RENDEZVOUS_SEED = os.environ.get(
     'RENDEZVOUS_SEED',
     'terraform-provider-microsoft365'
 )
 VERBOSE = os.environ.get('VERBOSE', '').lower() in ('true', '1', 'yes')
+
+def discover_test_names(package_dir: Path) -> List[str]:
+    """Inventory top-level tests, fuzz seeds and examples without compiling providers."""
+    names = set()
+    for source in package_dir.glob('*_test.go'):
+        # Remove comments and string literals, preserving newlines for anchors.
+        content = re.sub(
+            r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|`[^`]*`|\'(?:\\.|[^\'\\])*\'',
+            lambda match: '\n' * match.group().count('\n'),
+            source.read_text(encoding='utf-8'),
+        )
+        names.update(re.findall(
+            r'^func\s+((?:Test|Fuzz)(?:[A-Z_0-9]\w*)?)\s*\(\s*\w+\s+\*testing\.[TF]\s*,?\s*\)',
+            content, re.MULTILINE,
+        ))
+        names.update(re.findall(r'^func\s+(Example\w*)\s*\(\s*\)', content, re.MULTILINE))
+    return sorted(names)
 
 
 def discover_services(configuration_block_type: str) -> List[str]:
@@ -156,7 +177,7 @@ def discover_resources(
                             for marker in test_markers
                         )
 
-                        rel_path = str(action_dir.relative_to(base_path))
+                        rel_path = action_dir.relative_to(base_path).as_posix()
 
                         if has_test:
                             packages.append(rel_path)
@@ -173,7 +194,7 @@ def discover_resources(
                         for marker in test_markers
                     )
 
-                    rel_path = str(resource_dir.relative_to(base_path))
+                    rel_path = resource_dir.relative_to(base_path).as_posix()
 
                     if has_test:
                         packages.append(rel_path)
@@ -190,7 +211,7 @@ def discover_resources(
                 for marker in test_markers
             )
 
-            rel_path = str(graph_version_dir.relative_to(base_path))
+            rel_path = graph_version_dir.relative_to(base_path).as_posix()
 
             if has_test:
                 packages.append(rel_path)
@@ -235,13 +256,14 @@ def rendezvous_hash(item: str, shard_index: int, seed: str) -> int:
 def distribute_rendezvous(
     items: List[str],
     shard_count: int,
-    seed: str
+    seed: str,
+    weights: Dict[str, int] = None,
 ) -> Dict[int, List[str]]:
     """Distribute items using Rendezvous (HRW) algorithm.
 
-    Why Rendezvous? It minimizes item reassignment when shard count
-    changes. Only ~1/n items move when adding a new shard, unlike
-    modulo-based methods which can reassign most items.
+    Each item prefers the eligible shard with the highest hash. Optional test
+    weights enforce test and item budgets. Capacity constraints can move more
+    items than unconstrained Rendezvous when the inventory changes.
 
     Args:
         items: List of items to distribute (resource paths)
@@ -256,17 +278,21 @@ def distribute_rendezvous(
 
     shards = {i: [] for i in range(shard_count)}
 
-    for item in items:
-        highest_weight = 0
-        selected_shard = 0
-
-        for shard_idx in range(shard_count):
-            weight = rendezvous_hash(item, shard_idx, seed)
-            if weight > highest_weight:
-                highest_weight = weight
-                selected_shard = shard_idx
-
+    loads = {i: 0 for i in range(shard_count)}
+    for item in sorted(items, key=lambda item: (-(weights or {}).get(item, 1), item)):
+        cost = (weights or {}).get(item, 1)
+        candidates = [
+            index for index in shards
+            if weights is None or (
+                len(shards[index]) < ITEMS_PER_SHARD and
+                loads[index] + cost <= TESTS_PER_SHARD
+            )
+        ]
+        if not candidates:
+            raise ValueError('Insufficient shard capacity')
+        selected_shard = max(candidates, key=lambda index: rendezvous_hash(item, index, seed))
         shards[selected_shard].append(item)
+        loads[selected_shard] += cost
 
     return shards
 
@@ -319,12 +345,40 @@ def generate_matrix_for_service(
         # Avoids creating empty jobs in GitHub Actions
         return []
 
-    shard_count = calculate_shard_count(item_count)
-    shards = distribute_rendezvous(items, shard_count, RENDEZVOUS_SEED)
+    units = {}
+    for item in items:
+        package_dir = Path('internal/services') / configuration_block_type / service / item
+        names = discover_test_names(package_dir)
+        if len(names) > TESTS_PER_SHARD:
+            for start in range(0, len(names), TESTS_PER_SHARD):
+                batch = names[start:start + TESTS_PER_SHARD]
+                identity = f'{item}::batch-{start // TESTS_PER_SHARD}'
+                units[identity] = (item, '^(' + '|'.join(batch) + ')$', len(batch))
+        else:
+            # Leave small or source-unenumerable packages unfiltered, so no tests
+            # can be silently dropped when discovery has no inventory.
+            units[item] = (item, '', max(1, len(names)))
+
+    weights = {identity: unit[2] for identity, unit in units.items()}
+    shard_count = max(calculate_shard_count(len(units)),
+                      (sum(weights.values()) + TESTS_PER_SHARD - 1) // TESTS_PER_SHARD)
+    while shard_count <= len(units):
+        try:
+            shards = distribute_rendezvous(list(units), shard_count, RENDEZVOUS_SEED, weights)
+            break
+        except ValueError:
+            # Indivisible small packages may need more capacity than the lower bound.
+            shard_count += 1
+    else:
+        raise ValueError('Unable to fit test batches within shard budgets')
+    occupied = [shard for shard in shards.values() if shard]
+    shard_count = len(occupied)
 
     matrix_entries = []
-    for shard_idx in range(shard_count):
-        shard_items = shards[shard_idx]
+    for shard_idx, identities in enumerate(occupied):
+        shard_items = [units[identity][0] for identity in identities]
+        test_filters = {units[identity][0]: units[identity][1]
+                        for identity in identities if units[identity][1]}
 
         entry = {
             "service": service,
@@ -333,7 +387,9 @@ def generate_matrix_for_service(
             "total_shards": shard_count,
             "item_count": len(shard_items),
             # comma-separating allows easy parsing in bash
-            "resources": ",".join(shard_items)
+            "resources": ",".join(shard_items),
+            "test_filters": json.dumps(test_filters, sort_keys=True),
+            "test_count": sum(weights[identity] for identity in identities),
         }
 
         # shard_label for GitHub Actions UI to show job names clearly
@@ -363,6 +419,9 @@ def generate_matrix(configuration_block_type: str, services: List[str]) -> Dict:
         entries = generate_matrix_for_service(service, configuration_block_type)
         all_entries.extend(entries)
 
+    if len(all_entries) > 256:
+        raise ValueError('Matrix exceeds 256 jobs; increase TESTS_PER_SHARD or ITEMS_PER_SHARD')
+
     return {"include": all_entries}
 
 
@@ -385,6 +444,8 @@ def main():
             file=sys.stderr
         )
         print("\nEnvironment variables:", file=sys.stderr)
+        print(f"  TESTS_PER_SHARD             Test budget per shard (default: {TESTS_PER_SHARD})",
+              file=sys.stderr)
         print(
             f"  ITEMS_PER_SHARD             "
             f"Items per shard (default: {ITEMS_PER_SHARD})",
@@ -468,6 +529,7 @@ def main():
         file=sys.stderr
     )
 
+    print(f"[generate_test_matrix] Tests per shard: {TESTS_PER_SHARD}", file=sys.stderr)
     matrix = generate_matrix(configuration_block_type, services)
 
     print(
@@ -485,7 +547,7 @@ def main():
 
         print(
             f"  - {entry['service']}: {entry['item_count']} "
-            f"items ({shard_info})",
+            f"items, {entry['test_count']} discovered tests ({shard_info})",
             file=sys.stderr
         )
 

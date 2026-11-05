@@ -1,5 +1,33 @@
 # Bi-weekly test diagnostics
 
+## Test sharding
+
+The matrix generator inventories top-level tests, fuzz seeds, and examples
+from Go source without compiling providers. Packages above the test budget are
+split into sorted, named batches. Small packages and large-package batches
+share the same capacity-aware Rendezvous distribution across every service and
+configuration block type. There are no resource-specific exceptions.
+
+`TESTS_PER_SHARD` sets the maximum discovered test count per job (default: 25).
+`ITEMS_PER_SHARD` caps package/batch count per job (default: 5). Both must be
+positive. The generator starts with the capacity lower bound and adds shards
+when indivisible packages cannot fit. Empty jobs are omitted, and a matrix
+above GitHub Actions' 256-job limit fails with a configuration error.
+
+Each job carries a JSON `test_filters` map from package paths to exact,
+anchored Go test expressions. The runner applies each filter only to its own
+package. Small packages stay unfiltered, as do packages with no discoverable
+names, preserving coverage. Filtered packages missing from a shard fail
+before execution. No test is deliberately omitted or run in multiple batches.
+
+Assignment is deterministic for the same source inventory, limits, and
+`RENDEZVOUS_SEED`. Capacity constraints and batch-boundary changes can move
+additional work when the inventory changes. Job counts and compilation work
+may increase; test-count budgets do not guarantee runtime because individual
+test durations differ. The existing package and job timeouts remain in place.
+
+## Diagnostics
+
 Every test job streams resource samples to the test step's stdout about every
 15 seconds, including while Go compiles without producing test output. Python
 output is unbuffered so package discovery, the current package, and command PID
