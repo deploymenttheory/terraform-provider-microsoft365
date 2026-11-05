@@ -24,8 +24,13 @@ func constructResource(ctx context.Context, data *GroupResourceModel, isUpdate b
 	convert.FrameworkToGraphBool(data.MailEnabled, requestBody.SetMailEnabled)
 	convert.FrameworkToGraphBool(data.SecurityEnabled, requestBody.SetSecurityEnabled)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.GroupTypes, requestBody.SetGroupTypes); err != nil {
-		return nil, fmt.Errorf("failed to set group types: %s", err)
+	// Graph's groupTypes collection is non-nullable. Calling the SDK setter
+	// with nil records an explicit null in its backing store, rather than
+	// omitting the property and allowing Graph's static-group default.
+	if !data.GroupTypes.IsNull() && !data.GroupTypes.IsUnknown() {
+		if err := convert.FrameworkToGraphStringSet(ctx, data.GroupTypes, requestBody.SetGroupTypes); err != nil {
+			return nil, fmt.Errorf("failed to set group types: %s", err)
+		}
 	}
 
 	convert.FrameworkToGraphString(data.Visibility, requestBody.SetVisibility)
