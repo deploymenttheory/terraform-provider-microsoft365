@@ -339,7 +339,7 @@ jobs:
             test-output-resources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
             --shard-resources "${{ matrix.resources }}" \
-            --test-filter "${{ matrix.test_filter }}"
+            --test-filters '${{ matrix.test_filters }}'
         continue-on-error: true
 
       - name: Upload test results
@@ -458,7 +458,8 @@ jobs:
             coverage-datasources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-datasources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --shard-resources "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}" \
+            --test-filters '${{ matrix.test_filters }}'
         continue-on-error: true
 
       - name: Upload test results
@@ -577,7 +578,8 @@ jobs:
             coverage-actions-${{ matrix.service }}${SUFFIX}.txt \
             test-output-actions-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --shard-resources "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}" \
+            --test-filters '${{ matrix.test_filters }}'
         continue-on-error: true
 
       - name: Upload test results
@@ -696,7 +698,8 @@ jobs:
             coverage-list-resources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-list-resources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --shard-resources "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}" \
+            --test-filters '${{ matrix.test_filters }}'
         continue-on-error: true
 
       - name: Upload test results
@@ -815,7 +818,8 @@ jobs:
             coverage-ephemerals-${{ matrix.service }}${SUFFIX}.txt \
             test-output-ephemerals-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --shard-resources "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}" \
+            --test-filters '${{ matrix.test_filters }}'
         continue-on-error: true
 
       - name: Upload test results

@@ -77,17 +77,42 @@ class PackageTests(unittest.TestCase):
                 self.assertEqual(status, 1)
                 self.assertEqual(command.call_count, 2)
 
-    def test_dedicated_batch_passes_filter_to_go_without_extending_timeout(self):
+    def test_shard_applies_filters_to_their_own_packages_only(self):
         expression = '^(TestAccFirst|TestUnitSecond)$'
         Path('output.log').write_text('=== RUN   TestAccFirst\n--- PASS: TestAccFirst (0.01s)\n')
-        with patch.object(runner, 'discover_test_packages', return_value=['./first']):
+        packages = ['./internal/services/resources/example/graph_beta/first',
+                    './internal/services/resources/example/graph_beta/second',
+                    './internal/services/resources/example/graph_beta/unfiltered']
+        with patch.object(runner, 'discover_test_packages', return_value=packages):
             with patch.object(runner, 'run_command', return_value=0) as command, contextlib.redirect_stdout(io.StringIO()):
                 status = runner.run_service_tests(
                     'resources', 'example', 'coverage.txt', 'output.log',
-                    skip_enumeration=True, test_filter=expression,
+                    skip_enumeration=True, test_filters={
+                        'graph_beta/first': expression, 'graph_beta/second': '^TestOther$',
+                    },
                 )
         self.assertEqual(status, 0)
-        arguments = command.call_args.args[0]
-        self.assertEqual(arguments[arguments.index('-run') + 1], expression)
-        self.assertIn('-timeout=90m', arguments)
-        self.assertEqual(arguments[-1], './first')
+        self.assertEqual(command.call_count, 3)
+        for call, expected in zip(command.call_args_list, [expression, '^TestOther$', None]):
+            arguments = call.args[0]
+            if expected:
+                self.assertEqual(arguments[arguments.index('-run') + 1], expected)
+            else:
+                self.assertNotIn('-run', arguments)
+            self.assertIn('-timeout=90m', arguments)
+
+    def test_filter_for_missing_package_fails_before_running_tests(self):
+        with patch.object(runner, 'discover_test_packages', return_value=['./first']):
+            with patch.object(runner, 'run_command') as command, contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(ValueError, 'outside this shard'):
+                    runner.run_service_tests('resources', 'example', 'coverage.txt', 'output.log',
+                                             test_filters={'graph_beta/missing': '^TestMissing$'})
+        command.assert_not_called()
+
+    def test_missing_unfiltered_shard_resource_also_fails(self):
+        with patch.object(runner, 'discover_test_packages', return_value=[]):
+            with patch.object(runner, 'run_command') as command, contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(ValueError, 'Shard resource not found'):
+                    runner.run_service_tests('resources', 'example', 'coverage.txt', 'output.log',
+                                             shard_resources='graph_beta/missing')
+        command.assert_not_called()
