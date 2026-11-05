@@ -30,10 +30,6 @@ func TestAccResourceDeviceComplianceNotificationTemplate_01_Minimal(t *testing.T
 				ResourceType: resourceType,
 				TestResource: testResource,
 			},
-			destroy.ResourceTypeMapping{
-				ResourceType: graphBetaRoleScopeTag.ResourceName,
-				TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{},
-			},
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -136,10 +132,6 @@ func TestAccResourceDeviceComplianceNotificationTemplate_05_BrandingOptions(t *t
 				ResourceType: resourceType,
 				TestResource: testResource,
 			},
-			destroy.ResourceTypeMapping{
-				ResourceType: graphBetaRoleScopeTag.ResourceName,
-				TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{},
-			},
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -170,6 +162,9 @@ func TestAccResourceDeviceComplianceNotificationTemplate_05_BrandingOptions(t *t
 }
 
 func TestAccResourceDeviceComplianceNotificationTemplate_04_Update(t *testing.T) {
+	var templateID string
+	const resourceName = "microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal"
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -178,10 +173,6 @@ func TestAccResourceDeviceComplianceNotificationTemplate_04_Update(t *testing.T)
 			destroy.ResourceTypeMapping{
 				ResourceType: resourceType,
 				TestResource: testResource,
-			},
-			destroy.ResourceTypeMapping{
-				ResourceType: graphBetaRoleScopeTag.ResourceName,
-				TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{},
 			},
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
@@ -194,33 +185,50 @@ func TestAccResourceDeviceComplianceNotificationTemplate_04_Update(t *testing.T)
 			{
 				Config: testAccWindowsDeviceComplianceNotificationsConfig_minimal(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.minimal", "branding_options.#", "1"),
+					resource.TestCheckResourceAttrWith(resourceName, "id", func(value string) error {
+						if value == "" {
+							return fmt.Errorf("template ID must not be empty")
+						}
+						templateID = value
+						return nil
+					}),
+					resource.TestCheckResourceAttr(resourceName, "branding_options.#", "1"),
 				),
 			},
 			{
-				Config: testAccWindowsDeviceComplianceNotificationsConfig_brandingTest(),
+				Config: testAccWindowsDeviceComplianceNotificationsConfig_update(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", "branding_options.#", "3"),
+					resource.TestCheckResourceAttrWith(resourceName, "id", func(value string) error {
+						if value != templateID {
+							return fmt.Errorf("update replaced template: ID changed from %q to %q", templateID, value)
+						}
+						return nil
+					}),
+					resource.TestCheckResourceAttr(resourceName, "branding_options.#", "3"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "branding_options.*", "includeCompanyLogo"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "branding_options.*", "includeCompanyName"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "branding_options.*", "includeContactInformation"),
+					resource.TestCheckResourceAttr(resourceName, "localized_notification_messages.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "localized_notification_messages.*", map[string]string{
+						"locale":           "en-us",
+						"subject":          "Device Compliance Notification",
+						"message_template": "Your device requires attention to maintain compliance with company policies.",
+						"is_default":       "true",
+					}),
 				),
 			},
-			{ResourceName: "microsoft365_graph_beta_device_management_device_compliance_notification_template.branding_test", ImportState: true, ImportStateVerify: true},
+			{ResourceName: resourceName, ImportState: true, ImportStateVerify: true},
 		},
 	})
 }
 
 // Configuration Functions
 func testAccWindowsDeviceComplianceNotificationsConfig_minimal() string {
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
 	if err != nil {
 		log.Fatalf("Failed to load minimal acceptance test config: %v", err)
 	}
-	return acceptance.ConfiguredM365ProviderBlock(roleScopeTags + "\n" + accTestConfig)
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccWindowsDeviceComplianceNotificationsConfig_maximal() string {
@@ -236,13 +244,17 @@ func testAccWindowsDeviceComplianceNotificationsConfig_maximal() string {
 }
 
 func testAccWindowsDeviceComplianceNotificationsConfig_brandingTest() string {
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_branding_test.tf")
 	if err != nil {
 		log.Fatalf("Failed to load branding test acceptance config: %v", err)
 	}
-	return acceptance.ConfiguredM365ProviderBlock(roleScopeTags + "\n" + accTestConfig)
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+}
+
+func testAccWindowsDeviceComplianceNotificationsConfig_update() string {
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_update.tf")
+	if err != nil {
+		log.Fatalf("Failed to load update acceptance test config: %v", err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
