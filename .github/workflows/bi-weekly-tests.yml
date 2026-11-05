@@ -338,7 +338,8 @@ jobs:
             coverage-resources-${{ matrix.service }}${SUFFIX}.txt \
             test-output-resources-${{ matrix.service }}${SUFFIX}.log \
             --max-procs 1 --test-parallel 1 --pkg-parallel 1 --skip-enumeration --no-race \
-            --shard-resources "${{ matrix.resources }}"
+            --shard-resources "${{ matrix.resources }}" \
+            --test-filter "${{ matrix.test_filter }}"
         continue-on-error: true
 
       - name: Upload test results

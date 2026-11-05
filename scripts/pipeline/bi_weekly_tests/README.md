@@ -1,5 +1,19 @@
 # Bi-weekly test diagnostics
 
+## Device configuration template batches
+
+The `resources/device_management/graph_beta/device_configuration_templates_json`
+suite runs in dedicated jobs containing at most 25 top-level tests each. The
+matrix discovers acceptance and unit test names from Go source and supplies an
+anchored `--test-filter` expression to the runner. Each test belongs to exactly
+one job; ordinary resource packages remain unfiltered. This keeps the large
+suite within the existing 90-minute package timeout without sharing its job
+budget with other resource packages.
+
+The batch size is configured in `TEST_BATCH_SIZES` in `generate_test_matrix.py`.
+
+## Diagnostics
+
 Every test job streams resource samples to the test step's stdout about every
 15 seconds, including while Go compiles without producing test output. Python
 output is unbuffered so package discovery, the current package, and command PID

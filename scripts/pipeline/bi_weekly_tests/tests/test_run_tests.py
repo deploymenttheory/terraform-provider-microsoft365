@@ -76,3 +76,18 @@ class PackageTests(unittest.TestCase):
                 status, command = self.run_packages(core, [1, 0])
                 self.assertEqual(status, 1)
                 self.assertEqual(command.call_count, 2)
+
+    def test_dedicated_batch_passes_filter_to_go_without_extending_timeout(self):
+        expression = '^(TestAccFirst|TestUnitSecond)$'
+        Path('output.log').write_text('=== RUN   TestAccFirst\n--- PASS: TestAccFirst (0.01s)\n')
+        with patch.object(runner, 'discover_test_packages', return_value=['./first']):
+            with patch.object(runner, 'run_command', return_value=0) as command, contextlib.redirect_stdout(io.StringIO()):
+                status = runner.run_service_tests(
+                    'resources', 'example', 'coverage.txt', 'output.log',
+                    skip_enumeration=True, test_filter=expression,
+                )
+        self.assertEqual(status, 0)
+        arguments = command.call_args.args[0]
+        self.assertEqual(arguments[arguments.index('-run') + 1], expression)
+        self.assertIn('-timeout=90m', arguments)
+        self.assertEqual(arguments[-1], './first')

@@ -571,7 +571,7 @@ def run_service_tests(configuration_block_type: str, service: str,
                     max_procs: int = 2, test_parallel: int = 1,
                     pkg_parallel: int = 1, use_race: bool = False,
                     skip_enumeration: bool = False, force_gc: bool = True,
-                    shard_resources: str = "") -> int:
+                    shard_resources: str = "", test_filter: str = "") -> int:
     """Run tests for a specific service sequentially, one package at a time to conserve memory.
 
     Discovers all test packages in the service directory, runs tests package-by-package,
@@ -589,6 +589,7 @@ def run_service_tests(configuration_block_type: str, service: str,
         skip_enumeration: Whether to skip test enumeration phase.
         force_gc: Whether to force garbage collection between packages.
         shard_resources: Comma-separated list of resource paths in this shard.
+        test_filter: Anchored Go test expression for a dedicated package batch.
 
     Returns:
         0 if all tests passed, 1 if any test failed.
@@ -727,6 +728,9 @@ def run_service_tests(configuration_block_type: str, service: str,
         
         if use_race:
             cmd.append("-race")
+
+        if test_filter:
+            cmd.extend(["-run", test_filter])
         
         cmd.extend([
             "-timeout=90m",
@@ -836,6 +840,8 @@ Examples:
                        help='Disable forced garbage collection')
     parser.add_argument('--shard-resources', type=str, default='',
                        help='Comma-separated list of resource paths in this shard (e.g., "graph_beta/resource1,graph_v1.0/resource2")')
+    parser.add_argument('--test-filter', type=str, default='',
+                       help='Go test expression for a dedicated package batch (default: all tests)')
 
     args = parser.parse_args()
     
@@ -903,7 +909,8 @@ Examples:
             args.use_race,
             args.skip_enumeration,
             args.force_gc,
-            args.shard_resources
+            args.shard_resources,
+            args.test_filter
         )
     else:
         print(f"Error: unknown test type: {args.type}", file=sys.stderr)

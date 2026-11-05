@@ -37,6 +37,7 @@ import sys
 import json
 import hashlib
 import struct
+import re
 from pathlib import Path
 from typing import Dict, List
 
@@ -46,6 +47,29 @@ RENDEZVOUS_SEED = os.environ.get(
     'terraform-provider-microsoft365'
 )
 VERBOSE = os.environ.get('VERBOSE', '').lower() in ('true', '1', 'yes')
+
+# This suite alone exceeds the package-wide 90-minute Go test timeout.
+# Keep each batch in a dedicated job so other packages do not consume its budget.
+TEST_BATCH_SIZES = {
+    ('resources', 'device_management', 'graph_beta/device_configuration_templates_json'): 25,
+}
+
+
+def discover_test_filters(package_dir: Path, batch_size: int) -> List[str]:
+    """Select each top-level Go test exactly once, in bounded sorted batches."""
+    names = set()
+    for source in package_dir.glob('*_test.go'):
+        names.update(re.findall(
+            r'^func\s+(Test\w+)\s*\(\s*\w+\s+\*testing\.T\s*\)',
+            source.read_text(encoding='utf-8'), re.MULTILINE,
+        ))
+    if not names:
+        raise ValueError(f'No tests found for batched package: {package_dir}')
+    ordered = sorted(names)
+    return [
+        '^(' + '|'.join(ordered[start:start + batch_size]) + ')$'
+        for start in range(0, len(ordered), batch_size)
+    ]
 
 
 def discover_services(configuration_block_type: str) -> List[str]:
@@ -156,7 +180,7 @@ def discover_resources(
                             for marker in test_markers
                         )
 
-                        rel_path = str(action_dir.relative_to(base_path))
+                        rel_path = action_dir.relative_to(base_path).as_posix()
 
                         if has_test:
                             packages.append(rel_path)
@@ -173,7 +197,7 @@ def discover_resources(
                         for marker in test_markers
                     )
 
-                    rel_path = str(resource_dir.relative_to(base_path))
+                    rel_path = resource_dir.relative_to(base_path).as_posix()
 
                     if has_test:
                         packages.append(rel_path)
@@ -190,7 +214,7 @@ def discover_resources(
                 for marker in test_markers
             )
 
-            rel_path = str(graph_version_dir.relative_to(base_path))
+            rel_path = graph_version_dir.relative_to(base_path).as_posix()
 
             if has_test:
                 packages.append(rel_path)
@@ -319,12 +343,28 @@ def generate_matrix_for_service(
         # Avoids creating empty jobs in GitHub Actions
         return []
 
-    shard_count = calculate_shard_count(item_count)
-    shards = distribute_rendezvous(items, shard_count, RENDEZVOUS_SEED)
+    regular_items = []
+    batches = []
+    for item in items:
+        batch_size = TEST_BATCH_SIZES.get((configuration_block_type, service, item))
+        if batch_size:
+            package_dir = Path('internal/services') / configuration_block_type / service / item
+            batches.extend((item, test_filter) for test_filter in discover_test_filters(package_dir, batch_size))
+        else:
+            regular_items.append(item)
+
+    regular_shard_count = calculate_shard_count(len(regular_items)) if regular_items else 0
+    shards = distribute_rendezvous(regular_items, regular_shard_count, RENDEZVOUS_SEED) if regular_items else {}
+    shard_count = regular_shard_count + len(batches)
 
     matrix_entries = []
     for shard_idx in range(shard_count):
-        shard_items = shards[shard_idx]
+        if shard_idx < regular_shard_count:
+            shard_items = shards[shard_idx]
+            test_filter = ''
+        else:
+            item, test_filter = batches[shard_idx - regular_shard_count]
+            shard_items = [item]
 
         entry = {
             "service": service,
@@ -333,7 +373,8 @@ def generate_matrix_for_service(
             "total_shards": shard_count,
             "item_count": len(shard_items),
             # comma-separating allows easy parsing in bash
-            "resources": ",".join(shard_items)
+            "resources": ",".join(shard_items),
+            "test_filter": test_filter,
         }
 
         # shard_label for GitHub Actions UI to show job names clearly
