@@ -65,6 +65,7 @@ const (
 	SettingDefIntelligence            = "ade_setupassistant_intelligence"
 	SettingDefOSShowcase              = "ade_setupassistant_osshowcase"
 	SettingDefAppStore                = "ade_setupassistant_appstore"
+	SettingDefLiquidGlass             = "ade_setupassistant_liquidglass"
 
 	// Setting Instance Template IDs
 	SettingInstanceTemplateUserAffinity            = "f3ddbbae-bb3d-45e8-bb9c-854f674e56ef"
@@ -95,6 +96,7 @@ const (
 	SettingInstanceTemplateIntelligence            = "cca42541-0513-41a6-ae74-e1fe878b0593"
 	SettingInstanceTemplateOSShowcase              = "5d9c8e7a-3f2b-4d1a-8e9c-6b5a7d3f2e4c"
 	SettingInstanceTemplateAppStore                = "4c8e7d9a-3f2b-4d1a-9c8e-5b7a6d3f2e1c"
+	SettingInstanceTemplateLiquidGlass             = "bbac7e67-0cae-4799-99c4-a348b7490a64"
 
 	// Setting Value Template IDs
 	SettingValueTemplateUserAffinity            = "e34ab06d-486a-4cc0-a867-295515ac2dfc"
@@ -125,6 +127,7 @@ const (
 	SettingValueTemplateIntelligence            = "d0c43d95-99c7-40ce-b3a6-33098215adc9"
 	SettingValueTemplateOSShowcase              = "8c2d7f9e-4a3b-4e1c-9d8e-5b7a3c6f2d1e"
 	SettingValueTemplateAppStore                = "7e8d9c4a-2f5b-4e3c-8d9a-6b7c3e5f2a1d"
+	SettingValueTemplateLiquidGlass             = "28eeb1b2-8505-4fa6-98f1-73f81d2294e4"
 
 	// SettingValueTemplateAccountSettings is the shared settingValueTemplateId reused by every
 	// setting nested under ade_macos_awaitconfiguration's account-settings subtree (createlocaladmin,

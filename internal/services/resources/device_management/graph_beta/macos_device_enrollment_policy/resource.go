@@ -505,6 +505,12 @@ func (r *MacOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, req re
 				Default:             booldefault.StaticBool(false),
 				MarkdownDescription: "Whether to hide the What's New (OS showcase) pane in Setup Assistant.",
 			},
+			"liquid_glass_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Whether to hide the Liquid Glass pane in Setup Assistant.",
+			},
 			"app_store_disabled": schema.BoolAttribute{
 				Optional:            true,
 				Computed:            true,

@@ -556,6 +556,23 @@
           "settingInstanceTemplateId": "4c8e7d9a-3f2b-4d1a-9c8e-5b7a6d3f2e1c"
         }
       }
+    },
+    {
+      "id": "28",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "ade_setupassistant_liquidglass",
+        "settingInstanceTemplateReference": {
+          "settingInstanceTemplateId": "bbac7e67-0cae-4799-99c4-a348b7490a64"
+        },
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "ade_setupassistant_liquidglass_0",
+          "settingValueTemplateReference": {
+            "settingValueTemplateId": "28eeb1b2-8505-4fa6-98f1-73f81d2294e4"
+          }
+        }
+      }
     }
   ],
   "@odata.count": 28

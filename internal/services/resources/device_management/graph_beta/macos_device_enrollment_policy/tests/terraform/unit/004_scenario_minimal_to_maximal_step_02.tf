@@ -29,5 +29,6 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
   siri_disabled       = true
   file_vault_disabled = true
 
-  role_scope_tag_ids = ["0", "1"]
+  role_scope_tag_ids    = ["0", "1"]
+  liquid_glass_disabled = true
 }

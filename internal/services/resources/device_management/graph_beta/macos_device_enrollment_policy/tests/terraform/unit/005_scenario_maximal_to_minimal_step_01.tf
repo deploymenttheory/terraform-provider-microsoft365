@@ -21,5 +21,6 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
   restore_disabled = true
   siri_disabled    = true
 
-  role_scope_tag_ids = ["0", "1", "2"]
+  role_scope_tag_ids    = ["0", "1", "2"]
+  liquid_glass_disabled = true
 }

@@ -31,6 +31,8 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
 
   role_scope_tag_ids = ["0"]
 
+  liquid_glass_disabled = true
+
   timeouts = {
     create = "180s"
     read   = "30s"
