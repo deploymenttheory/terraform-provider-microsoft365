@@ -240,10 +240,7 @@ func (r *SettingsCatalogJsonResource) Schema(ctx context.Context, req resource.S
 				MarkdownDescription: "Number of settings catalog settings with the policy. This will change over time as the resource is updated.",
 			},
 			"is_assigned": schema.BoolAttribute{
-				Computed: true,
-				PlanModifiers: []planmodifier.Bool{
-					planmodifiers.UseStateForUnknownBool(),
-				},
+				Computed:            true,
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
 			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),

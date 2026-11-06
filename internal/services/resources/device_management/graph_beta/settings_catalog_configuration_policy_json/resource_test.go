@@ -58,6 +58,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_01_Camera(t *testing
 					check.That(resourceType+".camera").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".camera").Key("name").HasValue("Test Camera Policy"),
 					check.That(resourceType+".camera").Key("settings_count").HasValue("1"),
+					check.That(resourceType+".camera").Key("is_assigned").HasValue("false"),
 				),
 			},
 			{
@@ -568,6 +569,31 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_18_UpdateMinimalToMa
 					check.That(resourceType+".update_test").Key("assignments.#").HasValue("4"),
 				),
 			},
+		},
+	})
+}
+
+// Test 20: Remove all policy assignments
+func TestUnitResourceSettingsCatalogConfigurationPolicyJson_20_ClearAssignments(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+
+	assigned := loadUnitTestTerraform("resource_16_file_explorer_minimal_assignments.tf")
+	unassigned := regexp.MustCompile(`(?s)\r?\n  assignments = \[.*?\r?\n  \]`).ReplaceAllString(assigned, "")
+	const name = "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.file_explorer_minimal"
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: assigned, Check: resource.TestCheckResourceAttr(name, "is_assigned", "true")},
+			{Config: unassigned, Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttr(name, "is_assigned", "false"),
+				resource.TestCheckNoResourceAttr(name, "assignments.#"),
+			)},
+			{ResourceName: name, ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"settings"}},
+			{Config: unassigned, PlanOnly: true},
 		},
 	})
 }
