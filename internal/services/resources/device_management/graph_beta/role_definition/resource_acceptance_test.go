@@ -1,6 +1,7 @@
 package graphBetaRoleDefinition_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_definition"
+	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_scope_tag"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
@@ -35,13 +37,15 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 func TestAccResourceRoleDefinition_01_Lifecycle(t *testing.T) {
+	var roleID string
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			resourceType,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: graphBetaRoleScopeTag.ResourceName, TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{}},
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -64,7 +68,11 @@ func TestAccResourceRoleDefinition_01_Lifecycle(t *testing.T) {
 					},
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-role-definition-minimal"),
+					check.That(resourceType+".test").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-role-definition-minimal-[a-z0-9]{8}$`)),
+					resource.TestCheckResourceAttrWith(resourceType+".test", "id", func(value string) error {
+						roleID = value
+						return nil
+					}),
 					check.That(resourceType+".test").Key("description").HasValue(""),
 					check.That(resourceType+".test").Key("is_built_in_role_definition").Exists(),
 					check.That(resourceType+".test").Key("is_built_in").Exists(),
@@ -97,17 +105,25 @@ func TestAccResourceRoleDefinition_01_Lifecycle(t *testing.T) {
 					},
 					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").Exists(),
-					check.That(resourceType+".test").Key("display_name").HasValue("acc-test-role-definition-maximal"),
+					check.That(resourceType+".test").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-role-definition-maximal-[a-z0-9]{8}$`)),
+					resource.TestCheckResourceAttrWith(resourceType+".test", "id", func(value string) error {
+						if value != roleID {
+							return fmt.Errorf("role update changed ID from %q to %q", roleID, value)
+						}
+						return nil
+					}),
 					check.That(resourceType+".test").Key("description").HasValue("Updated description for acceptance testing"),
 					check.That(resourceType+".test").Key("is_built_in_role_definition").Exists(),
 					check.That(resourceType+".test").Key("is_built_in").Exists(),
 					check.That(resourceType+".test").Key("role_scope_tag_ids.#").HasValue("2"),
 					check.That(resourceType+".test").Key("role_scope_tag_ids.*").ContainsTypeSetElement("0"),
-					check.That(resourceType+".test").Key("role_scope_tag_ids.*").ContainsTypeSetElement("1"),
+					resource.TestCheckTypeSetElemAttrPair(resourceType+".test", "role_scope_tag_ids.*", graphBetaRoleScopeTag.ResourceName+".test", "id"),
 					check.That(resourceType+".test").Key("role_permissions.#").HasValue("1"),
 					check.That(resourceType+".test").Key("role_permissions.0.allowed_resource_actions.#").Exists(),
 				),
 			},
+			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("resource_maximal.tf"), PlanOnly: true},
 		},
 	})
 }
@@ -141,7 +157,7 @@ func TestAccResourceRoleDefinition_02_Description(t *testing.T) {
 					},
 					check.That(resourceType+".description").ExistsInGraph(testResource),
 					check.That(resourceType+".description").Key("id").Exists(),
-					check.That(resourceType+".description").Key("display_name").HasValue("acc-test-role-definition-description"),
+					check.That(resourceType+".description").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-role-definition-description-[a-z0-9]{8}$`)),
 					check.That(resourceType+".description").Key("description").HasValue("This is a test role definition with description"),
 					check.That(resourceType+".description").Key("is_built_in_role_definition").Exists(),
 					check.That(resourceType+".description").Key("is_built_in").Exists(),

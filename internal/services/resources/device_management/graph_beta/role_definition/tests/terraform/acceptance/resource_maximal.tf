@@ -1,7 +1,18 @@
+resource "random_string" "role_suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
+  display_name = "acc-test-role-definition-${random_string.role_suffix.result}"
+  description  = "Scope tag for role definition acceptance testing"
+}
+
 resource "microsoft365_graph_beta_device_management_role_definition" "test" {
-  display_name       = "acc-test-role-definition-maximal"
+  display_name       = "acc-test-role-definition-maximal-${random_string.role_suffix.result}"
   description        = "Updated description for acceptance testing"
-  role_scope_tag_ids = ["0", "1"]
+  role_scope_tag_ids = ["0", microsoft365_graph_beta_device_management_role_scope_tag.test.id]
 
   role_permissions = [
     {
