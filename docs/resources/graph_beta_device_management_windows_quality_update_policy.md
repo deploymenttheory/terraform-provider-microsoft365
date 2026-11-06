@@ -44,7 +44,7 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
   display_name       = "Windows Quality Update Policy"
   description        = "Monthly quality updates for Windows devices"
   hotpatch_enabled   = true
-  role_scope_tag_ids = ["9", "8"]
+  role_scope_tag_ids = ["0", microsoft365_graph_beta_device_management_role_scope_tag.quality_updates.id]
 
   # Assignments
   assignments = [
@@ -76,6 +76,10 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
     update = "30m"
     delete = "10m"
   }
+}
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "quality_updates" {
+  display_name = "Windows Quality Updates"
+  description  = "Scope tag for Windows quality update policies"
 }
 ```
 
