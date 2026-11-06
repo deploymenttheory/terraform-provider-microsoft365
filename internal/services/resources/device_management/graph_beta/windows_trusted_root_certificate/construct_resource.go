@@ -29,16 +29,12 @@ func constructResource(
 	); err != nil {
 		return nil, fmt.Errorf("set destination store: %w", err)
 	}
-	// Leave omitted scope tags unset so Intune supplies the default tag.
-	// The SDK backing store serializes an explicit nil setter as JSON null.
-	if !data.RoleScopeTagIds.IsNull() && !data.RoleScopeTagIds.IsUnknown() {
-		if err := convert.FrameworkToGraphStringSet(
-			ctx,
-			data.RoleScopeTagIds,
-			body.SetRoleScopeTagIds,
-		); err != nil {
-			return nil, fmt.Errorf("set scope tags: %w", err)
-		}
+	if err := convert.FrameworkToGraphStringSetOmitUnset(
+		ctx,
+		data.RoleScopeTagIds,
+		body.SetRoleScopeTagIds,
+	); err != nil {
+		return nil, fmt.Errorf("set scope tags: %w", err)
 	}
 	return body, nil
 }
