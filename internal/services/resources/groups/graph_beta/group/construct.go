@@ -24,7 +24,7 @@ func constructResource(ctx context.Context, data *GroupResourceModel, isUpdate b
 	convert.FrameworkToGraphBool(data.MailEnabled, requestBody.SetMailEnabled)
 	convert.FrameworkToGraphBool(data.SecurityEnabled, requestBody.SetSecurityEnabled)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.GroupTypes, requestBody.SetGroupTypes); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.GroupTypes, requestBody.SetGroupTypes); err != nil {
 		return nil, fmt.Errorf("failed to set group types: %s", err)
 	}
 

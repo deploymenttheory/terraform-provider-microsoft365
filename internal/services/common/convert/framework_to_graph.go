@@ -336,6 +336,15 @@ func FrameworkToGraphStringSet(ctx context.Context, set types.Set, setter func([
 	return nil
 }
 
+// FrameworkToGraphStringSetOmitUnset converts a Terraform Framework set to a string slice and sets a Graph SDK string slice property.
+// Returns an error if set elements are not strings. No-op if the set is null or unknown.
+func FrameworkToGraphStringSetOmitUnset(ctx context.Context, set types.Set, setter func([]string)) error {
+	if set.IsNull() || set.IsUnknown() {
+		return nil
+	}
+	return FrameworkToGraphStringSet(ctx, set, setter)
+}
+
 // FrameworkToGraphObjectsFromStringSet is a generic function that converts a Terraform Framework string set to objects.
 // Extracts string values from the set, passes them to a converter function to transform them into
 // the desired object type, and then sets them using the provided setter function.

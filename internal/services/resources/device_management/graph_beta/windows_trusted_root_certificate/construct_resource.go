@@ -29,7 +29,7 @@ func constructResource(
 	); err != nil {
 		return nil, fmt.Errorf("set destination store: %w", err)
 	}
-	if err := convert.FrameworkToGraphStringSet(
+	if err := convert.FrameworkToGraphStringSetOmitUnset(
 		ctx,
 		data.RoleScopeTagIds,
 		body.SetRoleScopeTagIds,
