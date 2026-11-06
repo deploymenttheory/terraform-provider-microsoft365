@@ -65,7 +65,7 @@ func constructResource(ctx context.Context, data *MacOSSoftwareUpdateConfigurati
 
 	// Custom update time windows
 	if !data.CustomUpdateTimeWindows.IsNull() && !data.CustomUpdateTimeWindows.IsUnknown() {
-		var timeWindows []graphmodels.CustomUpdateTimeWindowable
+		timeWindows := []graphmodels.CustomUpdateTimeWindowable{}
 		for _, v := range data.CustomUpdateTimeWindows.Elements() {
 			if v.IsNull() || v.IsUnknown() {
 				continue
@@ -91,6 +91,9 @@ func constructResource(ctx context.Context, data *MacOSSoftwareUpdateConfigurati
 			timeWindows = append(timeWindows, win)
 		}
 		requestBody.SetCustomUpdateTimeWindows(timeWindows)
+	} else if data.CustomUpdateTimeWindows.IsNull() {
+		// PATCH retains omitted windows; an empty collection clears them.
+		requestBody.SetCustomUpdateTimeWindows([]graphmodels.CustomUpdateTimeWindowable{})
 	}
 
 	convert.FrameworkToGraphInt32(data.MaxUserDeferralsCount, requestBody.SetMaxUserDeferralsCount)
@@ -101,6 +104,10 @@ func constructResource(ctx context.Context, data *MacOSSoftwareUpdateConfigurati
 		requestBody.SetPriority,
 	); err != nil {
 		return nil, fmt.Errorf("failed to set priority: %w", err)
+	}
+	if data.Priority.IsNull() {
+		// PATCH requires an explicit null to clear the previously configured priority.
+		requestBody.SetPriority(nil)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

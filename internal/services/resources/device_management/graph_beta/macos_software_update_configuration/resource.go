@@ -162,7 +162,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, r
 				},
 			},
 			"custom_update_time_windows": schema.ListNestedAttribute{
-				MarkdownDescription: "Custom time windows when updates will be allowed or blocked. Maximum 20 elements. See [customUpdateTimeWindow](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-customupdatetimewindow?view=graph-rest-beta).",
+				MarkdownDescription: "Custom time windows when updates will be allowed or blocked. Maximum 20 elements. Removing this attribute clears all configured windows. See [customUpdateTimeWindow](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-customupdatetimewindow?view=graph-rest-beta).",
 				Optional:            true,
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -212,7 +212,7 @@ func (r *MacOSSoftwareUpdateConfigurationResource) Schema(ctx context.Context, r
 				},
 			},
 			"priority": schema.StringAttribute{
-				MarkdownDescription: "The scheduling priority for downloading and preparing the requested update. Possible values: `low`, `high`, `unknownFutureValue`. See [macOSPriority](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macospriority?view=graph-rest-beta).",
+				MarkdownDescription: "The scheduling priority for downloading and preparing the requested update. Possible values: `low`, `high`, `unknownFutureValue`. Removing this attribute clears the configured priority. See [macOSPriority](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-macospriority?view=graph-rest-beta).",
 				Optional:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("low", "high", "unknownFutureValue"),
