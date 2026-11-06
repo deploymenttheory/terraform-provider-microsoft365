@@ -49,6 +49,9 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_01_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".minimal").Key("name").HasValue("unit-test-ios-ade-minimal"),
+					check.That(resourceType+".minimal").Key("accessibility_appearance_disabled").HasValue("false"),
+					check.That(resourceType+".minimal").Key("liquid_glass_disabled").HasValue("false"),
+					check.That(resourceType+".minimal").Key("device_features_tour_disabled").HasValue("false"),
 					check.That(resourceType+".minimal").Key("requires_user_authentication").HasValue("false"),
 					check.That(resourceType+".minimal").Key("locked_enrollment_enabled").HasValue("true"),
 					check.That(resourceType+".minimal").Key("role_scope_tag_ids.#").HasValue("1"),
@@ -83,6 +86,9 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_02_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".maximal").Key("name").HasValue("unit-test-ios-ade-maximal"),
+					check.That(resourceType+".maximal").Key("accessibility_appearance_disabled").HasValue("true"),
+					check.That(resourceType+".maximal").Key("liquid_glass_disabled").HasValue("true"),
+					check.That(resourceType+".maximal").Key("device_features_tour_disabled").HasValue("true"),
 					check.That(resourceType+".maximal").Key("description").HasValue("iOS/iPadOS ADE enrollment policy exercising the full settings tree"),
 					check.That(resourceType+".maximal").Key("requires_user_authentication").HasValue("true"),
 					check.That(resourceType+".maximal").Key("require_setup_assistant_with_modern_authentication").HasValue("true"),
@@ -124,6 +130,9 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *test
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".update_test").Key("name").HasValue("unit-test-ios-ade-update"),
+					check.That(resourceType+".update_test").Key("accessibility_appearance_disabled").HasValue("false"),
+					check.That(resourceType+".update_test").Key("liquid_glass_disabled").HasValue("false"),
+					check.That(resourceType+".update_test").Key("device_features_tour_disabled").HasValue("false"),
 					check.That(resourceType+".update_test").Key("requires_user_authentication").HasValue("false"),
 				),
 			},
@@ -132,6 +141,9 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *test
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".update_test").Key("name").HasValue("unit-test-ios-ade-update-updated"),
+					check.That(resourceType+".update_test").Key("accessibility_appearance_disabled").HasValue("true"),
+					check.That(resourceType+".update_test").Key("liquid_glass_disabled").HasValue("true"),
+					check.That(resourceType+".update_test").Key("device_features_tour_disabled").HasValue("true"),
 					check.That(resourceType+".update_test").Key("description").HasValue("Updated to maximal configuration"),
 					check.That(resourceType+".update_test").Key("requires_user_authentication").HasValue("true"),
 					check.That(resourceType+".update_test").Key("require_setup_assistant_with_modern_authentication").HasValue("true"),
@@ -163,8 +175,11 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *test
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".downgrade_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".downgrade_test").Key("name").HasValue("unit-test-ios-ade-downgrade"),
+					check.That(resourceType+".downgrade_test").Key("accessibility_appearance_disabled").HasValue("true"),
+					check.That(resourceType+".downgrade_test").Key("liquid_glass_disabled").HasValue("true"),
+					check.That(resourceType+".downgrade_test").Key("device_features_tour_disabled").HasValue("true"),
 					check.That(resourceType+".downgrade_test").Key("requires_user_authentication").HasValue("true"),
-					check.That(resourceType+".downgrade_test").Key("enable_authentication_via_company_portal").HasValue("true"),
+					check.That(resourceType+".downgrade_test").Key("require_setup_assistant_with_modern_authentication").HasValue("true"),
 					check.That(resourceType+".downgrade_test").Key("device_name_template").HasValue("{{DEVICETYPE}}-{{SERIAL}}"),
 					check.That(resourceType+".downgrade_test").Key("role_scope_tag_ids.#").HasValue("3"),
 				),
@@ -174,6 +189,9 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *test
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".downgrade_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".downgrade_test").Key("name").HasValue("unit-test-ios-ade-downgrade-minimal"),
+					check.That(resourceType+".downgrade_test").Key("accessibility_appearance_disabled").HasValue("false"),
+					check.That(resourceType+".downgrade_test").Key("liquid_glass_disabled").HasValue("false"),
+					check.That(resourceType+".downgrade_test").Key("device_features_tour_disabled").HasValue("false"),
 					check.That(resourceType+".downgrade_test").Key("requires_user_authentication").HasValue("false"),
 					check.That(resourceType+".downgrade_test").Key("enable_authentication_via_company_portal").HasValue("false"),
 					check.That(resourceType+".downgrade_test").Key("device_name_template").DoesNotExist(),
@@ -246,8 +264,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_06_DeviceSecurityGroupUpdat
 // API logic runs - so a dedicated unit test for each would only be re-testing
 // terraform-plugin-framework's own validator plumbing. The one kept here,
 // requireUserAuthenticationForAuthenticationOptions, encodes the non-obvious settings catalog
-// shape (ade_modernauth_awaitfinalconfiguration only exists under ade_authenticationmethod_2)
-// rather than a generic "field must look like X" rule, so it's worth guarding against regression.
+// authentication choices supported by the live enrollment policy template.
 // ====================================================================================
 
 func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_07_Error_AwaitFinalConfigurationRequiresModernAuth(t *testing.T) {
@@ -264,6 +281,20 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_07_Error_AwaitFinalConfigur
 				ExpectError: regexp.MustCompile(`require_setup_assistant_with_modern_authentication is required`),
 			},
 		},
+	})
+}
+
+func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_07b_Error_CompanyPortalUnsupported(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, enrollmentPolicyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer enrollmentPolicyMock.CleanupMockState()
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{{
+			Config:      loadUnitTestTerraform("015_scenario_error_company_portal_unsupported.tf"),
+			ExpectError: regexp.MustCompile(`Company Portal authentication is not supported`),
+		}},
 	})
 }
 
@@ -309,7 +340,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_08b_DefaultPolicyAssignment
 			{
 				Config: loadUnitTestTerraform("011_scenario_default_policy_assignment.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".default_assignment").Key("is_default_policy_assignment").HasValue("true"),
+					check.That(resourceType + ".default_assignment").Key("is_default_policy_assignment").HasValue("true"),
 				),
 			},
 			{

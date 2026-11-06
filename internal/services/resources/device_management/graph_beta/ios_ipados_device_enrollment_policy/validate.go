@@ -59,8 +59,7 @@ func validateSecurityGroupOwnership(ctx context.Context, client *msgraphbetasdk.
 
 // ConfigValidators implements resource.ResourceWithConfigValidators. It encodes the settings
 // catalog business rules around the ade_useraffinity subtree: the authentication method selectors
-// are only meaningful with user affinity enabled, and await final configuration only exists under
-// Setup Assistant with modern authentication.
+// are only meaningful with user affinity enabled, and user affinity requires modern authentication.
 func (r *IOSiPadOSDeviceEnrollmentPolicyResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		requireUserAuthenticationForAuthenticationOptions{},
@@ -70,12 +69,11 @@ func (r *IOSiPadOSDeviceEnrollmentPolicyResource) ConfigValidators(ctx context.C
 // requireUserAuthenticationForAuthenticationOptions enforces:
 //   - enable_authentication_via_company_portal and require_setup_assistant_with_modern_authentication
 //     may only be true when requires_user_authentication is true.
-//   - await_final_configuration may only be true when
-//     require_setup_assistant_with_modern_authentication is true.
+//   - user affinity requires Setup Assistant with modern authentication.
 type requireUserAuthenticationForAuthenticationOptions struct{}
 
 func (v requireUserAuthenticationForAuthenticationOptions) Description(_ context.Context) string {
-	return "authentication method options require requires_user_authentication, and await_final_configuration requires require_setup_assistant_with_modern_authentication"
+	return "authentication method options require requires_user_authentication, and user affinity requires modern authentication"
 }
 
 func (v requireUserAuthenticationForAuthenticationOptions) MarkdownDescription(ctx context.Context) string {
@@ -91,18 +89,16 @@ func (v requireUserAuthenticationForAuthenticationOptions) ValidateResource(
 		return
 	}
 
-	var requiresUserAuth, companyPortal, modernAuth, awaitFinalConfiguration types.Bool
+	var requiresUserAuth, companyPortal, modernAuth types.Bool
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("requires_user_authentication"), &requiresUserAuth)...)
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("enable_authentication_via_company_portal"), &companyPortal)...)
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("require_setup_assistant_with_modern_authentication"), &modernAuth)...)
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("await_final_configuration"), &awaitFinalConfiguration)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	companyPortalTrue := !companyPortal.IsUnknown() && !companyPortal.IsNull() && companyPortal.ValueBool()
 	modernAuthTrue := !modernAuth.IsUnknown() && !modernAuth.IsNull() && modernAuth.ValueBool()
-	awaitTrue := !awaitFinalConfiguration.IsUnknown() && !awaitFinalConfiguration.IsNull() && awaitFinalConfiguration.ValueBool()
 
 	if !requiresUserAuth.IsUnknown() && (requiresUserAuth.IsNull() || !requiresUserAuth.ValueBool()) {
 		if companyPortalTrue {
@@ -121,13 +117,10 @@ func (v requireUserAuthenticationForAuthenticationOptions) ValidateResource(
 		}
 	}
 
-	if awaitTrue && !modernAuth.IsUnknown() && (modernAuth.IsNull() || !modernAuth.ValueBool()) {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("await_final_configuration"),
-			"require_setup_assistant_with_modern_authentication is required",
-			"await_final_configuration may only be true when require_setup_assistant_with_modern_authentication is true - "+
-				"the underlying ade_modernauth_awaitfinalconfiguration setting only exists under the Setup Assistant with "+
-				"modern authentication choice.",
-		)
+	if companyPortalTrue {
+		resp.Diagnostics.AddAttributeError(path.Root("enable_authentication_via_company_portal"), "Company Portal authentication is not supported", "The iOS/iPadOS enrollment policy template only supports Setup Assistant with modern authentication. Set require_setup_assistant_with_modern_authentication to true instead.")
+	}
+	if !requiresUserAuth.IsUnknown() && requiresUserAuth.ValueBool() && !modernAuth.IsUnknown() && !modernAuthTrue {
+		resp.Diagnostics.AddAttributeError(path.Root("require_setup_assistant_with_modern_authentication"), "require_setup_assistant_with_modern_authentication is required", "User affinity requires Setup Assistant with modern authentication for the iOS/iPadOS enrollment policy template.")
 	}
 }

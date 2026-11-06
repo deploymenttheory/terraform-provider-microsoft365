@@ -67,8 +67,7 @@ func mapSettingsToState(
 	return nil
 }
 
-// mapUserAffinityToState parses ade_useraffinity, its ade_authenticationmethod child, and the
-// ade_modernauth_awaitfinalconfiguration grandchild nested under the modern authentication choice.
+// mapUserAffinityToState parses user affinity and its branch-specific await-configuration setting.
 func mapUserAffinityToState(instance models.DeviceManagementConfigurationSettingInstanceable, stateModel *IOSiPadOSDeviceEnrollmentPolicyResourceModel) {
 	value, children, ok := extractChoiceInstance(instance)
 	if !ok {
@@ -85,6 +84,12 @@ func mapUserAffinityToState(instance models.DeviceManagementConfigurationSetting
 			continue
 		}
 		defIdPtr := child.GetSettingDefinitionId()
+		if defIdPtr != nil && *defIdPtr == SettingDefUserAffinityAwaitFinalConfiguration {
+			if awaitValue, _, ok := extractChoiceInstance(child); ok {
+				stateModel.AwaitFinalConfiguration = types.BoolValue(boolFromChoiceValue(SettingDefUserAffinityAwaitFinalConfiguration, awaitValue))
+			}
+			continue
+		}
 		if defIdPtr == nil || *defIdPtr != SettingDefAuthenticationMethod {
 			continue
 		}
@@ -143,7 +148,7 @@ func mapStringChoiceToState(instance models.DeviceManagementConfigurationSetting
 	return types.StringNull()
 }
 
-// mapSetupAssistantSettingToState parses one of the 32 Setup Assistant screen toggles.
+// mapSetupAssistantSettingToState parses one of the Setup Assistant screen toggles.
 func mapSetupAssistantSettingToState(settingDefinitionId string, instance models.DeviceManagementConfigurationSettingInstanceable, stateModel *IOSiPadOSDeviceEnrollmentPolicyResourceModel) {
 	value, _, ok := extractChoiceInstance(instance)
 	if !ok {
@@ -214,6 +219,12 @@ func mapSetupAssistantSettingToState(settingDefinitionId string, instance models
 		stateModel.OsShowcaseScreenDisabled = disabled
 	case SettingDefSafetyAndHandling:
 		stateModel.SafetyAndHandlingScreenDisabled = disabled
+	case SettingDefAccessibilityAppearance:
+		stateModel.AccessibilityAppearanceDisabled = disabled
+	case SettingDefLiquidGlass:
+		stateModel.LiquidGlassDisabled = disabled
+	case SettingDefDeviceFeaturesTour:
+		stateModel.DeviceFeaturesTourDisabled = disabled
 	case SettingDefWebContentFiltering:
 		stateModel.WebContentFilteringDisabled = disabled
 	}

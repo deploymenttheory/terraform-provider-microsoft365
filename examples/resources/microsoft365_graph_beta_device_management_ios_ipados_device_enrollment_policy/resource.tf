@@ -33,9 +33,9 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
   # documentation.
   is_default_policy_assignment = true
 
-  requires_user_authentication                        = true
+  requires_user_authentication                       = true
   require_setup_assistant_with_modern_authentication = true
-  await_final_configuration                           = true
+  await_final_configuration                          = true
 
   locked_enrollment_enabled = true
 
@@ -78,6 +78,10 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
   os_showcase_screen_disabled               = true
   safety_and_handling_screen_disabled       = true
   web_content_filtering_disabled            = true
+
+  accessibility_appearance_disabled = true
+  liquid_glass_disabled             = true
+  device_features_tour_disabled     = true
 
   role_scope_tag_ids = ["0"]
 

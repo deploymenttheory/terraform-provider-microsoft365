@@ -107,9 +107,9 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
   # documentation.
   is_default_policy_assignment = true
 
-  requires_user_authentication                        = true
+  requires_user_authentication                       = true
   require_setup_assistant_with_modern_authentication = true
-  await_final_configuration                           = true
+  await_final_configuration                          = true
 
   locked_enrollment_enabled = true
 
@@ -152,6 +152,10 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
   os_showcase_screen_disabled               = true
   safety_and_handling_screen_disabled       = true
   web_content_filtering_disabled            = true
+
+  accessibility_appearance_disabled = true
+  liquid_glass_disabled             = true
+  device_features_tour_disabled     = true
 
   role_scope_tag_ids = ["0"]
 
@@ -268,35 +272,38 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
 ### Required
 
 - `name` (String) The display name of the enrollment profile.
-- `requires_user_authentication` (Boolean) Whether the enrollment requires user authentication (user affinity). When `false`, the device enrolls without an associated user (shared/kiosk device path). When `true`, the authentication flow is selected via `enable_authentication_via_company_portal` or `require_setup_assistant_with_modern_authentication`; when neither is set, the legacy Setup Assistant authentication flow is used.
+- `requires_user_authentication` (Boolean) Whether the enrollment requires user authentication (user affinity). When `false`, the device enrolls without an associated user (shared/kiosk device path). When `true`, the authentication flow is selected via `require_setup_assistant_with_modern_authentication`, which must be true. The enrollment policy template does not support legacy Setup Assistant or Company Portal authentication.
 - `support_department` (String) The department name shown to the user on the Setup Assistant Remote Management pane. Must be between 1 and 125 characters.
 - `support_phone_number` (String) The support phone number shown to the user on the Setup Assistant Remote Management pane. Must be between 1 and 50 characters.
 
 ### Optional
 
+- `accessibility_appearance_disabled` (Boolean) Whether to hide the Accessibility Appearance pane in Setup Assistant.
 - `action_button_screen_disabled` (Boolean) Whether to hide the configuration pane for the action button in Setup Assistant. For iOS/iPadOS 17.0 and later.
 - `app_store_disabled` (Boolean) Whether to hide the Apple App Store pane in Setup Assistant. For iOS/iPadOS 14.3 and later.
 - `appearance_screen_disabled` (Boolean) Whether to hide the appearance setup pane in Setup Assistant. For iOS/iPadOS 13.0 and later.
 - `apple_id_disabled` (Boolean) Whether to hide the Apple ID setup pane in Setup Assistant, which gives users the option to sign in with their Apple ID and use iCloud. For iOS/iPadOS 7.0 and later.
 - `apple_intelligence_disabled` (Boolean) Whether to hide the Apple Intelligence setup pane in Setup Assistant, where users can configure Apple Intelligence features. For iOS/iPadOS 18.0 and later.
 - `apple_pay_disabled` (Boolean) Whether to hide the Apple Pay setup pane in Setup Assistant, which gives users the option to set up Apple Pay on their devices. For iOS/iPadOS 7.0 and later.
-- `await_final_configuration` (Boolean) Whether devices are locked in Setup Assistant until all enrollment-time configuration is installed (await final configuration). Only applicable when `require_setup_assistant_with_modern_authentication` is `true`.
+- `await_final_configuration` (Boolean) Whether devices are locked in Setup Assistant until all enrollment-time configuration is installed (await final configuration). Supported with and without user affinity.
 - `camera_button_screen_disabled` (Boolean) Whether to hide the camera button pane in Setup Assistant. For iOS/iPadOS 18.0 and later.
 - `cellular_data_activation_url` (String) The carrier activation server URL used to activate cellular data plans on eligible devices at enrollment. When omitted, cellular data plan activation is not configured by this profile.
 - `dep_onboarding_settings_id` (String) The ID of the Apple ABM/ASM DEP onboarding token (`/deviceManagement/depOnboardingSettings`) that owns this profile. If omitted, it is automatically resolved to the tenant's single Apple ADE/ABM (or ASM) token; if the tenant has more than one Apple token, this must be set explicitly.
 - `description` (String) Optional description of the resource. Maximum length is 1500 characters.
+- `device_features_tour_disabled` (Boolean) Whether to hide the Device Features Tour pane in Setup Assistant.
 - `device_name_template` (String) Device name template applied to supervised devices at enrollment, e.g. `{{DEVICETYPE}}-{{SERIAL}}`. Supports the `{{DEVICETYPE}}` and `{{SERIAL}}` substitution tokens. When omitted, device naming is not managed by this profile.
 - `device_security_group` (String) The ID of the static Microsoft Entra security group to use for enrollment time grouping (the "Device group" tab in the Intune admin center policy wizard). Devices assigned this policy become members of the group as they enroll. This is set via the dedicated `setEnrollmentTimeDeviceMembershipTarget` action on `/deviceManagement/configurationPolicies/{id}` (and cleared via `clearEnrollmentTimeDeviceMembershipTarget` when removed), not via the settings catalog. The group must have the 'Intune Provisioning Client' service principal (AppId: f1346770-5b25-470b-88bd-d5744ab7952c) set as its owner; in some tenants this service principal may appear as 'Intune Autopilot ConfidentialClient'.
 
 ~> **Known Microsoft Graph limitation:** as of this writing, `setEnrollmentTimeDeviceMembershipTarget` and `clearEnrollmentTimeDeviceMembershipTarget` return an `Internal Server Error - 500` from the Intune backend (`DeviceConfigV2`) when called with application permissions (client credentials) - the auth flow this provider always uses. The identical request succeeds when made with delegated (signed-in user) permissions, e.g. from the Intune admin center. Until Microsoft resolves this for application permissions, setting `device_security_group` through this provider will fail on `Create` and `Update`; this is a Microsoft Graph service limitation, not a provider defect.
 - `device_to_device_migration_disabled` (Boolean) Whether to hide the device-to-device migration pane in Setup Assistant. When shown, users can transfer data from an old device to their current device. The option to transfer data directly from a device isn't available for devices running iOS 13 or later.
 - `diagnostics_disabled` (Boolean) Whether to hide the diagnostics pane in Setup Assistant, where users can opt in to send diagnostic data to Apple. For iOS/iPadOS 7.0 and later.
-- `enable_authentication_via_company_portal` (Boolean) Whether the user authenticates via the Company Portal app instead of Setup Assistant. Only applicable when `requires_user_authentication` is `true`. Mutually exclusive with `require_setup_assistant_with_modern_authentication`.
+- `enable_authentication_via_company_portal` (Boolean, Deprecated) Deprecated: the enrollment policy template does not support Company Portal authentication. Use `require_setup_assistant_with_modern_authentication` with user affinity instead.
 - `get_started_screen_disabled` (Boolean) Whether to hide the Get Started pane in Setup Assistant.
 - `imessage_and_facetime_disabled` (Boolean) Whether to hide the iMessage and FaceTime setup pane in Setup Assistant. For iOS/iPadOS 9.0 and later.
 - `is_default_policy_assignment` (Boolean) Whether this policy is the default iOS/iPadOS enrollment profile for its `dep_onboarding_settings_id`, set via the dedicated `setDefaultProfile` action. Always reflects the DEP token's actual current default on refresh, regardless of configuration.
 
 ~> **No unassign action:** Microsoft Graph does not expose an `unsetDefaultProfile`/`clearDefaultProfile` action - `setDefaultProfile` is the only operation available. Setting this to `false` on a policy that is currently the DEP token's default has no effect on Graph; the next refresh reports `true` again. Only setting a different policy's `is_default_policy_assignment` to `true` changes which profile is the default. A change from `true` to `false` while this policy is still the token's current default can therefore never converge, and the provider rejects the update with a validation error. Promote the replacement policy first - in the same apply, give this policy a `depends_on` for the replacement so the promotion runs first, or apply the promotion separately.
+- `liquid_glass_disabled` (Boolean) Whether to hide the Liquid Glass pane in Setup Assistant.
 - `location_services_disabled` (Boolean) Whether to hide the Location Services setup pane in Setup Assistant, where users can enable location services on their device. For iOS/iPadOS 7.0 and later.
 - `lockdown_mode_disabled` (Boolean) Whether to hide the Lockdown Mode pane in Setup Assistant.
 - `locked_enrollment_enabled` (Boolean) Whether enrollment is locked to the authorized user/device, preventing the MDM profile from being removed before enrollment completes.
@@ -304,7 +311,7 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
 - `os_showcase_screen_disabled` (Boolean) Whether to hide the OS showcase pane in Setup Assistant. For iOS/iPadOS 26.0 and later.
 - `passcode_disabled` (Boolean) Whether to hide the passcode and password lock pane in Setup Assistant. When shown, users are prompted for a passcode. Always require a passcode for unsecured devices unless access is controlled in some other way (such as through a kiosk mode configuration that restricts the device to one app). For iOS/iPadOS 7.0 and later.
 - `privacy_pane_disabled` (Boolean) Whether to hide the privacy setup pane in Setup Assistant. For iOS/iPadOS 11.3 and later.
-- `require_setup_assistant_with_modern_authentication` (Boolean) Whether the user authenticates in Setup Assistant using modern authentication (Microsoft Entra ID). Only applicable when `requires_user_authentication` is `true`. Mutually exclusive with `enable_authentication_via_company_portal`.
+- `require_setup_assistant_with_modern_authentication` (Boolean) Whether the user authenticates in Setup Assistant using modern authentication (Microsoft Entra ID). Required when `requires_user_authentication` is `true`. Mutually exclusive with `enable_authentication_via_company_portal`.
 - `restore_completed_screen_disabled` (Boolean) Whether to hide the Restore Completed screen shown after a backup and restore is performed during Setup Assistant.
 - `restore_disabled` (Boolean) Whether to hide the apps and data (Restore) setup pane in Setup Assistant. When shown, users setting up devices can restore or transfer data from iCloud Backup. For iOS/iPadOS 7.0 and later.
 - `restore_from_android_disabled` (Boolean) Whether to hide the Android Migration setup pane in Setup Assistant, meant for previous Android users. When shown, users can migrate data from an Android device. For iOS/iPadOS 9.0 and later.
@@ -350,11 +357,11 @@ Optional:
 - **Settings catalog, not the legacy DEP API**: this resource manages iOS/iPadOS ADE profiles
   through the modern `/deviceManagement/configurationPolicies` settings catalog endpoint, not the
   legacy `depIOSEnrollmentProfile` API.
-- **User authentication**: when `requires_user_authentication` is `true`, the authentication flow
-  is selected with `enable_authentication_via_company_portal` or
-  `require_setup_assistant_with_modern_authentication` (mutually exclusive); when neither is set,
-  the legacy Setup Assistant authentication flow is used. `await_final_configuration` is only
-  applicable with `require_setup_assistant_with_modern_authentication`.
+- **User authentication**: when `requires_user_authentication` is `true`, set
+  `require_setup_assistant_with_modern_authentication = true`. Company Portal and legacy Setup
+  Assistant authentication are not supported by this enrollment policy template.
+  `enable_authentication_via_company_portal` is deprecated. `await_final_configuration` is
+  supported with and without user affinity.
 - **Support department/phone**: `support_department` (1-125 characters) and
   `support_phone_number` (1-50 characters) are required - Microsoft Graph rejects empty values.
 - **Device naming and cellular activation**: `device_name_template` and

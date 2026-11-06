@@ -2,8 +2,8 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
   name        = "acc-test-ios-ade-downgrade"
   description = "Initial maximal configuration for downgrade testing"
 
-  requires_user_authentication             = true
-  enable_authentication_via_company_portal = true
+  requires_user_authentication                       = true
+  require_setup_assistant_with_modern_authentication = true
 
   locked_enrollment_enabled = true
 
@@ -15,5 +15,8 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
   restore_disabled = true
   siri_disabled    = true
 
-  role_scope_tag_ids = ["0", "1", "2"]
+  role_scope_tag_ids                = ["0"]
+  accessibility_appearance_disabled = true
+  liquid_glass_disabled             = true
+  device_features_tour_disabled     = true
 }

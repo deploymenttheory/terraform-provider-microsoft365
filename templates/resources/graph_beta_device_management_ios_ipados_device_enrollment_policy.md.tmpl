@@ -84,11 +84,11 @@ admin center, outside of Terraform.
 - **Settings catalog, not the legacy DEP API**: this resource manages iOS/iPadOS ADE profiles
   through the modern `/deviceManagement/configurationPolicies` settings catalog endpoint, not the
   legacy `depIOSEnrollmentProfile` API.
-- **User authentication**: when `requires_user_authentication` is `true`, the authentication flow
-  is selected with `enable_authentication_via_company_portal` or
-  `require_setup_assistant_with_modern_authentication` (mutually exclusive); when neither is set,
-  the legacy Setup Assistant authentication flow is used. `await_final_configuration` is only
-  applicable with `require_setup_assistant_with_modern_authentication`.
+- **User authentication**: when `requires_user_authentication` is `true`, set
+  `require_setup_assistant_with_modern_authentication = true`. Company Portal and legacy Setup
+  Assistant authentication are not supported by this enrollment policy template.
+  `enable_authentication_via_company_portal` is deprecated. `await_final_configuration` is
+  supported with and without user affinity.
 - **Support department/phone**: `support_department` (1-125 characters) and
   `support_phone_number` (1-50 characters) are required - Microsoft Graph rejects empty values.
 - **Device naming and cellular activation**: `device_name_template` and

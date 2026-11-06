@@ -121,35 +121,18 @@ func constructSettings(planModel *IOSiPadOSDeviceEnrollmentPolicyResourceModel) 
 	return settings
 }
 
-// constructUserAffinitySetting builds ade_useraffinity, with its ade_authenticationmethod child
-// present only when requires_user_authentication is true. When Setup Assistant with modern
-// authentication is selected, the ade_modernauth_awaitfinalconfiguration child is nested under the
-// authentication method - the only shape observed in live Intune admin center traffic. Neither
-// nested setting carries template references.
+// constructUserAffinitySetting builds the authentication and await-configuration branches.
 func constructUserAffinitySetting(planModel *IOSiPadOSDeviceEnrollmentPolicyResourceModel) models.DeviceManagementConfigurationSettingable {
 	requiresAuth := planModel.RequiresUserAuthentication.ValueBool()
 
 	var children []models.DeviceManagementConfigurationSettingInstanceable
 	if requiresAuth {
-		authValue := AuthenticationMethodSetupAssistantLegacy
-		var authChildren []models.DeviceManagementConfigurationSettingInstanceable
-
-		if planModel.EnableAuthenticationViaCompanyPortal.ValueBool() {
-			authValue = AuthenticationMethodCompanyPortal
-		}
-		if planModel.RequireSetupAssistantWithModernAuthentication.ValueBool() {
-			authValue = AuthenticationMethodSetupAssistantModernAuth
-
-			awaitSetting := builders.ConstructBoolChoiceSettingInstance(
-				SettingDefAwaitFinalConfiguration,
-				planModel.AwaitFinalConfiguration.ValueBool(),
-				"", "",
-			)
-			authChildren = append(authChildren, awaitSetting.GetSettingInstance())
-		}
-
-		authSetting := builders.ConstructChoiceSettingWithChildren(SettingDefAuthenticationMethod, authValue, "", "", authChildren)
+		awaitSetting := builders.ConstructBoolChoiceSettingInstance(SettingDefAwaitFinalConfiguration, planModel.AwaitFinalConfiguration.ValueBool(), "", "")
+		authSetting := builders.ConstructChoiceSettingWithChildren(SettingDefAuthenticationMethod, AuthenticationMethodSetupAssistantModernAuth, "", "", []models.DeviceManagementConfigurationSettingInstanceable{awaitSetting.GetSettingInstance()})
 		children = append(children, authSetting.GetSettingInstance())
+	} else {
+		awaitSetting := builders.ConstructBoolChoiceSettingInstance(SettingDefUserAffinityAwaitFinalConfiguration, planModel.AwaitFinalConfiguration.ValueBool(), "", "")
+		children = append(children, awaitSetting.GetSettingInstance())
 	}
 
 	value := SettingDefUserAffinity + "_0"
@@ -242,6 +225,9 @@ func constructSetupAssistantSettings(planModel *IOSiPadOSDeviceEnrollmentPolicyR
 		{SettingDefOSShowcase, !planModel.OsShowcaseScreenDisabled.ValueBool(), SettingInstanceTemplateOSShowcase, SettingValueTemplateOSShowcase},
 		{SettingDefSafetyAndHandling, !planModel.SafetyAndHandlingScreenDisabled.ValueBool(), SettingInstanceTemplateSafetyAndHandling, SettingValueTemplateSafetyAndHandling},
 		{SettingDefWebContentFiltering, !planModel.WebContentFilteringDisabled.ValueBool(), SettingInstanceTemplateWebContentFiltering, SettingValueTemplateWebContentFiltering},
+		{SettingDefAccessibilityAppearance, !planModel.AccessibilityAppearanceDisabled.ValueBool(), SettingInstanceTemplateAccessibilityAppearance, SettingValueTemplateAccessibilityAppearance},
+		{SettingDefLiquidGlass, !planModel.LiquidGlassDisabled.ValueBool(), SettingInstanceTemplateLiquidGlass, SettingValueTemplateLiquidGlass},
+		{SettingDefDeviceFeaturesTour, !planModel.DeviceFeaturesTourDisabled.ValueBool(), SettingInstanceTemplateDeviceFeaturesTour, SettingValueTemplateDeviceFeaturesTour},
 	}
 
 	settings := make([]models.DeviceManagementConfigurationSettingable, 0, len(specs))

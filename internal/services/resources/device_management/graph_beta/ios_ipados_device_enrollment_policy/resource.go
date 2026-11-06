@@ -260,16 +260,14 @@ func (r *IOSiPadOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, re
 				Required: true,
 				MarkdownDescription: "Whether the enrollment requires user authentication (user affinity). When `false`, the device enrolls " +
 					"without an associated user (shared/kiosk device path). When `true`, the authentication flow is selected via " +
-					"`enable_authentication_via_company_portal` or `require_setup_assistant_with_modern_authentication`; when neither is " +
-					"set, the legacy Setup Assistant authentication flow is used.",
+					"`require_setup_assistant_with_modern_authentication`, which must be true. The enrollment policy template does not support legacy Setup Assistant or Company Portal authentication.",
 			},
 			"enable_authentication_via_company_portal": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-				MarkdownDescription: "Whether the user authenticates via the Company Portal app instead of Setup Assistant. Only applicable " +
-					"when `requires_user_authentication` is `true`. Mutually exclusive with " +
-					"`require_setup_assistant_with_modern_authentication`.",
+				Optional:            true,
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "Deprecated: the enrollment policy template does not support Company Portal authentication. Use `require_setup_assistant_with_modern_authentication` with user affinity instead.",
+				DeprecationMessage:  "Company Portal authentication is not supported by the iOS/iPadOS enrollment policy template. Use require_setup_assistant_with_modern_authentication with user affinity instead.",
 				Validators: []validator.Bool{
 					customValidator.MutuallyExclusiveBool(
 						"require_setup_assistant_with_modern_authentication",
@@ -282,7 +280,7 @@ func (r *IOSiPadOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, re
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 				MarkdownDescription: "Whether the user authenticates in Setup Assistant using modern authentication (Microsoft Entra ID). " +
-					"Only applicable when `requires_user_authentication` is `true`. Mutually exclusive with " +
+					"Required when `requires_user_authentication` is `true`. Mutually exclusive with " +
 					"`enable_authentication_via_company_portal`.",
 			},
 			"await_final_configuration": schema.BoolAttribute{
@@ -290,7 +288,7 @@ func (r *IOSiPadOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, re
 				Computed: true,
 				Default:  booldefault.StaticBool(false),
 				MarkdownDescription: "Whether devices are locked in Setup Assistant until all enrollment-time configuration is installed " +
-					"(await final configuration). Only applicable when `require_setup_assistant_with_modern_authentication` is `true`.",
+					"(await final configuration). Supported with and without user affinity.",
 			},
 			"locked_enrollment_enabled": schema.BoolAttribute{
 				Optional:            true,
@@ -355,6 +353,9 @@ func (r *IOSiPadOSDeviceEnrollmentPolicyResource) Schema(ctx context.Context, re
 			"os_showcase_screen_disabled":               setupAssistantToggleAttribute("Whether to hide the OS showcase pane in Setup Assistant. For iOS/iPadOS 26.0 and later."),
 			"safety_and_handling_screen_disabled":       setupAssistantToggleAttribute("Whether to hide the safety and handling pane in Setup Assistant. For iOS/iPadOS 18.4 and later."),
 			"web_content_filtering_disabled":            setupAssistantToggleAttribute("Whether to hide the web content filtering pane in Setup Assistant. For iOS/iPadOS 18.2 and later."),
+			"accessibility_appearance_disabled":         setupAssistantToggleAttribute("Whether to hide the Accessibility Appearance pane in Setup Assistant."),
+			"liquid_glass_disabled":                     setupAssistantToggleAttribute("Whether to hide the Liquid Glass pane in Setup Assistant."),
+			"device_features_tour_disabled":             setupAssistantToggleAttribute("Whether to hide the Device Features Tour pane in Setup Assistant."),
 			"timeouts":                                  commonschema.ResourceTimeouts(ctx),
 		},
 	}
