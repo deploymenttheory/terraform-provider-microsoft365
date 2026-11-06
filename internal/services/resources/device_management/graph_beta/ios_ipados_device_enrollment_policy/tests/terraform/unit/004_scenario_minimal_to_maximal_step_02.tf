@@ -18,5 +18,8 @@ resource "microsoft365_graph_beta_device_management_ios_ipados_device_enrollment
   siri_disabled     = true
   passcode_disabled = true
 
-  role_scope_tag_ids = ["0", "1"]
+  role_scope_tag_ids                = ["0", "1"]
+  accessibility_appearance_disabled = true
+  liquid_glass_disabled             = true
+  device_features_tour_disabled     = true
 }

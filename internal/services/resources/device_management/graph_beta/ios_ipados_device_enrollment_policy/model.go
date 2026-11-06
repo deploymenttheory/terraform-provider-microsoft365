@@ -97,5 +97,9 @@ type IOSiPadOSDeviceEnrollmentPolicyResourceModel struct {
 	SafetyAndHandlingScreenDisabled       types.Bool `tfsdk:"safety_and_handling_screen_disabled"`
 	WebContentFilteringDisabled           types.Bool `tfsdk:"web_content_filtering_disabled"`
 
+	AccessibilityAppearanceDisabled types.Bool `tfsdk:"accessibility_appearance_disabled"`
+	LiquidGlassDisabled             types.Bool `tfsdk:"liquid_glass_disabled"`
+	DeviceFeaturesTourDisabled      types.Bool `tfsdk:"device_features_tour_disabled"`
+
 	Timeouts timeouts.Value `tfsdk:"timeouts"`
 }

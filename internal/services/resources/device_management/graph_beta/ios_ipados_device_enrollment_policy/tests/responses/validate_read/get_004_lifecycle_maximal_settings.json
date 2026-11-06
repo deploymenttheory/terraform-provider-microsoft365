@@ -676,6 +676,57 @@
           "settingInstanceTemplateId": "f3a4b5c6-d7e8-9012-fabc-de3456789012"
         }
       }
+    },
+    {
+      "id": "38",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "ade_setupassistant_accessibilityappearance",
+        "settingInstanceTemplateReference": {
+          "settingInstanceTemplateId": "c5da850e-9182-47e5-bf58-02d67704321f"
+        },
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "ade_setupassistant_accessibilityappearance_0",
+          "settingValueTemplateReference": {
+            "settingValueTemplateId": "08d3c283-fb13-4b36-9061-3eac7b6f633b"
+          }
+        }
+      }
+    },
+    {
+      "id": "39",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "ade_setupassistant_liquidglass",
+        "settingInstanceTemplateReference": {
+          "settingInstanceTemplateId": "4ecdd07c-cdc3-4a89-897d-06fee0a4b2ea"
+        },
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "ade_setupassistant_liquidglass_0",
+          "settingValueTemplateReference": {
+            "settingValueTemplateId": "5bca8288-b2a8-4131-8495-9476b154e483"
+          }
+        }
+      }
+    },
+    {
+      "id": "40",
+      "settingInstance": {
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingDefinitionId": "ade_setupassistant_devicefeaturestour",
+        "settingInstanceTemplateReference": {
+          "settingInstanceTemplateId": "e468fee5-32ac-4e73-bc93-d24e83d89039"
+        },
+        "choiceSettingValue": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+          "value": "ade_setupassistant_devicefeaturestour_0",
+          "settingValueTemplateReference": {
+            "settingValueTemplateId": "f174a4bf-6737-4d9e-aff2-d06e28101072"
+          }
+        }
+      }
     }
   ],
   "@odata.count": 38

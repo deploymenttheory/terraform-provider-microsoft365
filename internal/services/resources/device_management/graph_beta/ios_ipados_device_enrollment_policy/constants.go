@@ -24,6 +24,8 @@ const (
 	SettingDefAuthenticationMethod    = "ade_authenticationmethod"
 	SettingDefAwaitFinalConfiguration = "ade_modernauth_awaitfinalconfiguration"
 
+	SettingDefUserAffinityAwaitFinalConfiguration = "ade_useraffinity_awaitfinalconfiguration"
+
 	// Setting Definition IDs - Locked Enrollment
 	SettingDefLockedEnrollment = "ade_lockedenrollment"
 
@@ -71,6 +73,10 @@ const (
 	SettingDefSafetyAndHandling       = "ade_setupassistant_safetyandhandling"
 	SettingDefWebContentFiltering     = "ade_setupassistant_webcontentfiltering"
 
+	SettingDefAccessibilityAppearance = "ade_setupassistant_accessibilityappearance"
+	SettingDefLiquidGlass             = "ade_setupassistant_liquidglass"
+	SettingDefDeviceFeaturesTour      = "ade_setupassistant_devicefeaturestour"
+
 	// Setting Instance Template IDs
 	SettingInstanceTemplateUserAffinity              = "f3ddbbae-bb3d-45e8-bb9c-854f674e56ef"
 	SettingInstanceTemplateLockedEnrollment          = "e105d3a4-7318-454a-a231-0d1510ebf1e3"
@@ -110,6 +116,10 @@ const (
 	SettingInstanceTemplateOSShowcase                = "b9c0d1e2-f3a4-5678-bcde-fa9012345678"
 	SettingInstanceTemplateSafetyAndHandling         = "d1e2f3a4-b5c6-7890-defa-bc1234567890"
 	SettingInstanceTemplateWebContentFiltering       = "f3a4b5c6-d7e8-9012-fabc-de3456789012"
+
+	SettingInstanceTemplateAccessibilityAppearance = "c5da850e-9182-47e5-bf58-02d67704321f"
+	SettingInstanceTemplateLiquidGlass             = "4ecdd07c-cdc3-4a89-897d-06fee0a4b2ea"
+	SettingInstanceTemplateDeviceFeaturesTour      = "e468fee5-32ac-4e73-bc93-d24e83d89039"
 
 	// Setting Value Template IDs
 	SettingValueTemplateUserAffinity              = "e34ab06d-486a-4cc0-a867-295515ac2dfc"
@@ -151,12 +161,12 @@ const (
 	SettingValueTemplateSafetyAndHandling         = "c0d1e2f3-a4b5-6789-cdef-ab0123456789"
 	SettingValueTemplateWebContentFiltering       = "e2f3a4b5-c6d7-8901-efab-cd2345678901"
 
-	// Authentication method values for ade_authenticationmethod. Only _2 (Setup Assistant with
-	// modern authentication, carrying the ade_modernauth_awaitfinalconfiguration child) was
-	// observed live; _0/_1 are inferred by analogy with the macOS ade_macos_authenticationmethod
-	// values and the Intune admin center's authentication method picker, and have not been
-	// independently verified against Graph. ade_authenticationmethod and its child carry no
-	// template references.
+	SettingValueTemplateAccessibilityAppearance = "08d3c283-fb13-4b36-9061-3eac7b6f633b"
+	SettingValueTemplateLiquidGlass             = "5bca8288-b2a8-4131-8495-9476b154e483"
+	SettingValueTemplateDeviceFeaturesTour      = "f174a4bf-6737-4d9e-aff2-d06e28101072"
+
+	// Legacy authentication values remain readable for existing policy state.
+	// The live enrollment policy template only accepts modern authentication.
 	AuthenticationMethodSetupAssistantLegacy     = SettingDefAuthenticationMethod + "_0"
 	AuthenticationMethodCompanyPortal            = SettingDefAuthenticationMethod + "_1"
 	AuthenticationMethodSetupAssistantModernAuth = SettingDefAuthenticationMethod + "_2"
