@@ -294,6 +294,8 @@ func mapSetupAssistantSettingToState(settingDefinitionId string, instance models
 		stateModel.AppleIntelligenceDisabled = disabled
 	case SettingDefOSShowcase:
 		stateModel.OsShowcaseScreenDisabled = disabled
+	case SettingDefLiquidGlass:
+		stateModel.LiquidGlassDisabled = disabled
 	case SettingDefAppStore:
 		stateModel.AppStoreDisabled = disabled
 	}

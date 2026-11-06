@@ -157,6 +157,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
   terms_of_address_screen_disabled          = true
   apple_intelligence_disabled               = false
   os_showcase_screen_disabled               = true
+  liquid_glass_disabled                     = true
   app_store_disabled                        = false
 
   role_scope_tag_ids = ["0"]
@@ -303,6 +304,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
 - `is_default_policy_assignment` (Boolean) Whether this policy is the default macOS enrollment profile for its `dep_onboarding_settings_id`, set via the dedicated `setDefaultProfile` action. Always reflects the DEP token's actual current default on refresh, regardless of configuration.
 
 ~> **No unassign action:** Microsoft Graph does not expose an `unsetDefaultProfile`/`clearDefaultProfile` action - `setDefaultProfile` is the only operation available. Setting this to `false` on a policy that is currently the DEP token's default has no effect on Graph; the next refresh reports `true` again. Only setting a different policy's `is_default_policy_assignment` to `true` changes which profile is the default. A change from `true` to `false` while this policy is still the token's current default can therefore never converge, and the provider rejects the update with a validation error. Promote the replacement policy first - in the same apply, give this policy a `depends_on` for the replacement so the promotion runs first, or apply the promotion separately.
+- `liquid_glass_disabled` (Boolean) Whether to hide the Liquid Glass pane in Setup Assistant.
 - `location_services_disabled` (Boolean) Whether to hide the Location Services pane in Setup Assistant.
 - `lockdown_mode_disabled` (Boolean) Whether to hide the Lockdown Mode pane in Setup Assistant.
 - `locked_enrollment_enabled` (Boolean) Whether enrollment is locked to the authorized user/device, preventing the MDM profile from being removed before enrollment completes.

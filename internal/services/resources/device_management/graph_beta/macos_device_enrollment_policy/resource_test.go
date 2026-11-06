@@ -49,6 +49,7 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_01_Minimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".minimal").Key("name").HasValue("unit-test-macos-ade-minimal"),
+					check.That(resourceType+".minimal").Key("liquid_glass_disabled").HasValue("false"),
 					check.That(resourceType+".minimal").Key("await_device_configured").HasValue("false"),
 					check.That(resourceType+".minimal").Key("requires_user_authentication").HasValue("false"),
 					check.That(resourceType+".minimal").Key("locked_enrollment_enabled").HasValue("true"),
@@ -82,6 +83,7 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_02_Maximal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".maximal").Key("name").HasValue("unit-test-macos-ade-maximal"),
+					check.That(resourceType+".maximal").Key("liquid_glass_disabled").HasValue("true"),
 					check.That(resourceType+".maximal").Key("description").HasValue("macOS ADE enrollment policy exercising the full settings tree"),
 					check.That(resourceType+".maximal").Key("await_device_configured").HasValue("true"),
 					check.That(resourceType+".maximal").Key("admin_account.user_name").HasValue("localadmin"),
@@ -123,6 +125,7 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".update_test").Key("name").HasValue("unit-test-macos-ade-update"),
+					check.That(resourceType+".update_test").Key("liquid_glass_disabled").HasValue("false"),
 					check.That(resourceType+".update_test").Key("await_device_configured").HasValue("false"),
 				),
 			},
@@ -131,6 +134,7 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".update_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".update_test").Key("name").HasValue("unit-test-macos-ade-update-updated"),
+					check.That(resourceType+".update_test").Key("liquid_glass_disabled").HasValue("true"),
 					check.That(resourceType+".update_test").Key("description").HasValue("Updated to maximal configuration"),
 					check.That(resourceType+".update_test").Key("await_device_configured").HasValue("true"),
 					check.That(resourceType+".update_test").Key("admin_account.user_name").HasValue("localadmin"),
@@ -161,6 +165,7 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".downgrade_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".downgrade_test").Key("name").HasValue("unit-test-macos-ade-downgrade"),
+					check.That(resourceType+".downgrade_test").Key("liquid_glass_disabled").HasValue("true"),
 					check.That(resourceType+".downgrade_test").Key("await_device_configured").HasValue("true"),
 					check.That(resourceType+".downgrade_test").Key("role_scope_tag_ids.#").HasValue("3"),
 				),
@@ -170,6 +175,7 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *testing.
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".downgrade_test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".downgrade_test").Key("name").HasValue("unit-test-macos-ade-downgrade-minimal"),
+					check.That(resourceType+".downgrade_test").Key("liquid_glass_disabled").HasValue("false"),
 					check.That(resourceType+".downgrade_test").Key("await_device_configured").HasValue("false"),
 					check.That(resourceType+".downgrade_test").Key("description").DoesNotExist(),
 				),
@@ -302,7 +308,7 @@ func TestUnitResourceMacOSDeviceEnrollmentPolicy_08b_DefaultPolicyAssignmentUnse
 			{
 				Config: loadUnitTestTerraform("011_scenario_default_policy_assignment.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".default_assignment").Key("is_default_policy_assignment").HasValue("true"),
+					check.That(resourceType + ".default_assignment").Key("is_default_policy_assignment").HasValue("true"),
 				),
 			},
 			{

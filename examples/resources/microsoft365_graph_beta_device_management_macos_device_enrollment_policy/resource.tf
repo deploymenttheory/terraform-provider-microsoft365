@@ -83,6 +83,7 @@ resource "microsoft365_graph_beta_device_management_macos_device_enrollment_poli
   terms_of_address_screen_disabled          = true
   apple_intelligence_disabled               = false
   os_showcase_screen_disabled               = true
+  liquid_glass_disabled                     = true
   app_store_disabled                        = false
 
   role_scope_tag_ids = ["0"]

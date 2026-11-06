@@ -307,6 +307,7 @@ func constructSetupAssistantSettings(planModel *MacOSDeviceEnrollmentPolicyResou
 		{SettingDefIntelligence, !planModel.AppleIntelligenceDisabled.ValueBool(), SettingInstanceTemplateIntelligence, SettingValueTemplateIntelligence},
 		{SettingDefOSShowcase, !planModel.OsShowcaseScreenDisabled.ValueBool(), SettingInstanceTemplateOSShowcase, SettingValueTemplateOSShowcase},
 		{SettingDefAppStore, !planModel.AppStoreDisabled.ValueBool(), SettingInstanceTemplateAppStore, SettingValueTemplateAppStore},
+		{SettingDefLiquidGlass, !planModel.LiquidGlassDisabled.ValueBool(), SettingInstanceTemplateLiquidGlass, SettingValueTemplateLiquidGlass},
 	}
 
 	settings := make([]models.DeviceManagementConfigurationSettingable, 0, len(specs))

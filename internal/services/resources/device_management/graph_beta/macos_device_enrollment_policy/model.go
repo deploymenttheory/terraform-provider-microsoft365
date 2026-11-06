@@ -81,6 +81,7 @@ type MacOSDeviceEnrollmentPolicyResourceModel struct {
 	TermsOfAddressScreenDisabled          types.Bool `tfsdk:"terms_of_address_screen_disabled"`
 	AppleIntelligenceDisabled             types.Bool `tfsdk:"apple_intelligence_disabled"`
 	OsShowcaseScreenDisabled              types.Bool `tfsdk:"os_showcase_screen_disabled"`
+	LiquidGlassDisabled                   types.Bool `tfsdk:"liquid_glass_disabled"`
 	AppStoreDisabled                      types.Bool `tfsdk:"app_store_disabled"`
 
 	Timeouts timeouts.Value `tfsdk:"timeouts"`

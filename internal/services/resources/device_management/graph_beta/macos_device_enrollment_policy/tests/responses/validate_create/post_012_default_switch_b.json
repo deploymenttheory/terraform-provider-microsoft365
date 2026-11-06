@@ -10,7 +10,7 @@
   "roleScopeTagIds": [
     "0"
   ],
-  "settingCount": 28,
+  "settingCount": 29,
   "technologies": "enrollment",
   "templateReference": {
     "templateFamily": "enrollmentConfiguration",
