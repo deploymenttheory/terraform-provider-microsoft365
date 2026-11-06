@@ -13,5 +13,5 @@ resource "microsoft365_graph_beta_device_management_visionos_device_enrollment_p
   siri_disabled        = true
   tips_screen_disabled = true
 
-  role_scope_tag_ids = ["0", "1"]
+  role_scope_tag_ids = ["0"]
 }
