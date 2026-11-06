@@ -83,6 +83,13 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			responseCopy["id"] = configId
 			responseCopy["createdDateTime"] = configData["createdDateTime"]
 			responseCopy["lastModifiedDateTime"] = configData["lastModifiedDateTime"]
+			for _, key := range []string{"priority", "customUpdateTimeWindows", "maxUserDeferralsCount"} {
+				if value, present := configData[key]; present {
+					responseCopy[key] = value
+				} else {
+					delete(responseCopy, key)
+				}
+			}
 			if strings.Contains(req.URL.Query().Get("$expand"), "assignments") {
 				responseCopy["assignments"] = configData["assignments"]
 			}
@@ -155,6 +162,13 @@ func (m *MacOSSoftwareUpdateConfigurationMock) RegisterMocks() {
 			updated["id"] = configId
 			updated["createdDateTime"] = configData["createdDateTime"]
 			updated["assignments"] = configData["assignments"]
+			for _, key := range []string{"priority", "customUpdateTimeWindows", "maxUserDeferralsCount"} {
+				if value, present := requestBody[key]; present {
+					updated[key] = value
+				} else if value, present := configData[key]; present {
+					updated[key] = value
+				}
+			}
 			mockState.Lock()
 			mockState.softwareUpdateConfigurations[configId] = updated
 			mockState.Unlock()
@@ -335,6 +349,9 @@ func validateConfigurationRequest(body, response map[string]any) error {
 		expected[key] = value
 	}
 	actual := make(map[string]any, len(body))
+	if _, present := expected["customUpdateTimeWindows"]; !present {
+		expected["customUpdateTimeWindows"] = []any{}
+	}
 	for key, value := range body {
 		if key != "@odata.type" && value != nil {
 			actual[key] = value

@@ -10,6 +10,7 @@ resource "microsoft365_graph_beta_device_management_macos_software_update_config
   max_user_deferrals_count                 = 0
   priority                                 = "low"
 
+  # Remove this attribute to clear all configured update windows.
   custom_update_time_windows = [
     {
       start_day  = "monday"

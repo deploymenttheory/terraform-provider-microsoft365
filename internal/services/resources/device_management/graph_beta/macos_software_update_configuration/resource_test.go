@@ -173,6 +173,8 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_04_UpdateMaximalToMinimal(
 					check.That(resourceType+".test_04_regression").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_04_regression").Key("display_name").HasValue("Test 04: Regression macOS Software Update Configuration"),
 					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("alwaysUpdate"),
+					check.That(resourceType+".test_04_regression").Key("priority").DoesNotExist(),
+					check.That(resourceType+".test_04_regression").Key("custom_update_time_windows.#").DoesNotExist(),
 					check.That(resourceType+".test_04_regression").Key("role_scope_tag_ids.#").HasValue("1"),
 				),
 			},

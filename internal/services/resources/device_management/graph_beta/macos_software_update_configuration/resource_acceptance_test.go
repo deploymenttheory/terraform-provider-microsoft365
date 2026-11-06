@@ -266,6 +266,7 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_04_MaximalToMinimal(t *test
 					check.That(resourceType+".test_04_regression").ExistsInGraph(testResource),
 					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("updateDuringTimeWindows"),
 					check.That(resourceType+".test_04_regression").Key("custom_update_time_windows.#").HasValue("1"),
+					check.That(resourceType+".test_04_regression").Key("priority").DoesNotExist(),
 				),
 			},
 			{
@@ -281,6 +282,8 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_04_MaximalToMinimal(t *test
 					},
 					check.That(resourceType+".test_04_regression").ExistsInGraph(testResource),
 					check.That(resourceType+".test_04_regression").Key("update_schedule_type").HasValue("alwaysUpdate"),
+					check.That(resourceType+".test_04_regression").Key("priority").DoesNotExist(),
+					check.That(resourceType+".test_04_regression").Key("custom_update_time_windows.#").DoesNotExist(),
 				),
 			},
 			{
