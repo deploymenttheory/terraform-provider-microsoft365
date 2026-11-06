@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -230,14 +229,9 @@ func (r *MacOSDepEnrollmentProfileResource) Schema(
 			"enabled_skip_keys": schema.SetAttribute{
 				Computed:    true,
 				ElementType: types.StringType,
-				PlanModifiers: []planmodifier.Set{
-					setplanmodifier.UseStateForUnknown(),
-				},
 				MarkdownDescription: "Computed, read-only set of Setup Assistant skip keys (Apple `SkipKeys`) that the provider " +
 					"sends to Graph. This is derived from the individual `*_disabled` boolean attributes; do not set it " +
-					"directly. Note: `Privacy` and `Registration` are intentionally omitted from this array because the " +
-					"Microsoft Graph API rejects those skip-key strings, even though the `privacy_pane_disabled` and " +
-					"`registration_disabled` boolean properties work correctly.",
+					"directly. Includes the Privacy and Registration panes supported by Intune.",
 			},
 			"enrollment_time_azure_ad_group_ids": schema.SetAttribute{
 				Optional:            true,
@@ -428,14 +422,61 @@ func (r *MacOSDepEnrollmentProfileResource) Schema(
 					"on_retrieval_auto_rotate_password_enabled": schema.BoolAttribute{
 						Optional:            true,
 						Computed:            true,
-						MarkdownDescription: "Indicates whether the password is automatically rotated after retrieval.",
+						MarkdownDescription: "Deprecated: Microsoft Graph does not persist this setting. Remove it from configuration. Use `auto_rotation_period_in_days` for scheduled rotation; there is no verified retrieval-triggered replacement.",
+						DeprecationMessage:  "Microsoft Graph does not persist retrieval-triggered password rotation for macOS DEP enrollment profiles. Remove this attribute. Use auto_rotation_period_in_days for scheduled rotation; it does not replace retrieval-triggered rotation.",
 					},
 					"on_retrieval_delay_auto_rotate_password_in_hours": schema.Int32Attribute{
 						Optional:            true,
 						Computed:            true,
-						MarkdownDescription: "The delay in hours before automatically rotating the password after retrieval.",
+						MarkdownDescription: "Deprecated: Microsoft Graph does not persist this setting. Remove it from configuration. Use `auto_rotation_period_in_days` for scheduled rotation; there is no verified retrieval-triggered replacement.",
+						DeprecationMessage:  "Microsoft Graph does not persist retrieval-triggered password rotation for macOS DEP enrollment profiles. Remove this attribute. Use auto_rotation_period_in_days for scheduled rotation; it does not replace retrieval-triggered rotation.",
 					},
 				},
+			},
+			"appearance_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the Appearance Setup Assistant pane. Maps to the `Appearance` enabled skip key.",
+			},
+			"enable_lockdown_mode_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the EnableLockdownMode Setup Assistant pane. Maps to the `EnableLockdownMode` enabled skip key.",
+			},
+			"software_update_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the SoftwareUpdate Setup Assistant pane. Maps to the `SoftwareUpdate` enabled skip key.",
+			},
+			"additional_privacy_settings_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the AdditionalPrivacySettings Setup Assistant pane. Maps to the `AdditionalPrivacySettings` enabled skip key.",
+			},
+			"update_completed_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the UpdateCompleted Setup Assistant pane. Maps to the `UpdateCompleted` enabled skip key.",
+			},
+			"terms_of_address_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the TermsOfAddress Setup Assistant pane. Maps to the `TermsOfAddress` enabled skip key.",
+			},
+			"intelligence_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the Intelligence Setup Assistant pane. Maps to the `Intelligence` enabled skip key.",
+			},
+			"os_showcase_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the OSShowcase Setup Assistant pane. Maps to the `OSShowcase` enabled skip key.",
+			},
+			"app_store_disabled": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Hide the AppStore Setup Assistant pane. Maps to the `AppStore` enabled skip key.",
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},

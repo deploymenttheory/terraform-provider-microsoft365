@@ -21,9 +21,7 @@ resource "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile
   hide_admin_account      = true
 
   admin_account_password_rotation = {
-    auto_rotation_period_in_days                     = 30
-    on_retrieval_auto_rotate_password_enabled        = true
-    on_retrieval_delay_auto_rotate_password_in_hours = 24
+    auto_rotation_period_in_days = 30
   }
 
   timeouts = {

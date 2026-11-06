@@ -68,6 +68,16 @@ type MacOSDepEnrollmentProfileResourceModel struct {
 	RequestRequiresNetworkTether       types.Bool `tfsdk:"request_requires_network_tether"`
 	UsePlatformSSODuringSetupAssistant types.Bool `tfsdk:"use_platform_sso_during_setup_assistant"`
 
+	AppearanceDisabled                types.Bool `tfsdk:"appearance_disabled"`
+	EnableLockdownModeDisabled        types.Bool `tfsdk:"enable_lockdown_mode_disabled"`
+	SoftwareUpdateDisabled            types.Bool `tfsdk:"software_update_disabled"`
+	AdditionalPrivacySettingsDisabled types.Bool `tfsdk:"additional_privacy_settings_disabled"`
+	UpdateCompletedDisabled           types.Bool `tfsdk:"update_completed_disabled"`
+	TermsOfAddressDisabled            types.Bool `tfsdk:"terms_of_address_disabled"`
+	IntelligenceDisabled              types.Bool `tfsdk:"intelligence_disabled"`
+	OSShowcaseDisabled                types.Bool `tfsdk:"os_showcase_disabled"`
+	AppStoreDisabled                  types.Bool `tfsdk:"app_store_disabled"`
+
 	// Primary (managed local) account auto-creation
 	SkipPrimarySetupAccountCreation     types.Bool   `tfsdk:"skip_primary_setup_account_creation"`
 	SetPrimarySetupAccountAsRegularUser types.Bool   `tfsdk:"set_primary_setup_account_as_regular_user"`
