@@ -37,11 +37,5 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
     }
   ]
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
 }
 

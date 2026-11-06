@@ -9,11 +9,10 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
   display_name     = "acc-test-windows-quality-update-policy-004-lifecycle-${random_string.test_suffix.result}"
   hotpatch_enabled = false
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
 }
 
+
+resource "microsoft365_graph_beta_device_management_role_scope_tag" "test" {
+  display_name = "acc-test-quality-scope-${random_string.test_suffix.result}"
+  description  = "Scope tag owned by the Windows quality update acceptance test"
+}

@@ -12,6 +12,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaRoleScopeTag "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/role_scope_tag"
 	graphBetaWindowsQualityUpdatePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_quality_update_policy"
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -41,23 +42,6 @@ func loadAcceptanceTestTerraform(filename string) string {
 		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
 	return acceptance.ConfiguredM365ProviderBlock(config)
-}
-
-// loadAcceptanceTestTerraformWithDeps loads test config with standard device management dependencies
-func loadAcceptanceTestTerraformWithDeps(filename string) string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		panic("failed to load groups config: " + err.Error())
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		panic("failed to load role scope tags config: " + err.Error())
-	}
-	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
-	if err != nil {
-		panic("failed to load acceptance config " + filename + ": " + err.Error())
-	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + config)
 }
 
 // Test 001: Scenario 1 - Minimal configuration without assignments
@@ -105,10 +89,10 @@ func TestAccResourceWindowsQualityUpdatePolicy_02_Scenario_Maximal(t *testing.T)
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsQualityUpdatePolicy.ResourceName,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: graphBetaWindowsQualityUpdatePolicy.ResourceName, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: graphBetaRoleScopeTag.ResourceName, TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{}},
 		),
 		Steps: []resource.TestStep{
 			{
@@ -141,10 +125,10 @@ func TestAccResourceWindowsQualityUpdatePolicy_03_Lifecycle_MinimalToMaximal(t *
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsQualityUpdatePolicy.ResourceName,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: graphBetaWindowsQualityUpdatePolicy.ResourceName, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: graphBetaRoleScopeTag.ResourceName, TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{}},
 		),
 		Steps: []resource.TestStep{
 			{
@@ -190,10 +174,10 @@ func TestAccResourceWindowsQualityUpdatePolicy_04_Lifecycle_MaximalToMinimal(t *
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			graphBetaWindowsQualityUpdatePolicy.ResourceName,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: graphBetaWindowsQualityUpdatePolicy.ResourceName, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: graphBetaRoleScopeTag.ResourceName, TestResource: graphBetaRoleScopeTag.RoleScopeTagTestResource{}},
 		),
 		Steps: []resource.TestStep{
 			{
@@ -252,7 +236,7 @@ func TestAccResourceWindowsQualityUpdatePolicy_05_AssignmentsMinimal(t *testing.
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraformWithDeps("005_assignments_minimal.tf"),
+				Config: loadAcceptanceTestTerraform("005_assignments_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_005").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_005").Key("display_name").Exists(),
@@ -301,7 +285,7 @@ func TestAccResourceWindowsQualityUpdatePolicy_06_AssignmentsMaximal(t *testing.
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraformWithDeps("006_assignments_maximal.tf"),
+				Config: loadAcceptanceTestTerraform("006_assignments_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_006").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_006").Key("display_name").Exists(),
@@ -350,7 +334,7 @@ func TestAccResourceWindowsQualityUpdatePolicy_07_AssignmentsLifecycle_MinimalTo
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraformWithDeps("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("display_name").Exists(),
@@ -358,7 +342,7 @@ func TestAccResourceWindowsQualityUpdatePolicy_07_AssignmentsLifecycle_MinimalTo
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraformWithDeps("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("display_name").Exists(),
@@ -407,7 +391,7 @@ func TestAccResourceWindowsQualityUpdatePolicy_08_AssignmentsLifecycle_MaximalTo
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraformWithDeps("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("display_name").Exists(),
@@ -415,7 +399,7 @@ func TestAccResourceWindowsQualityUpdatePolicy_08_AssignmentsLifecycle_MaximalTo
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraformWithDeps("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("display_name").Exists(),
