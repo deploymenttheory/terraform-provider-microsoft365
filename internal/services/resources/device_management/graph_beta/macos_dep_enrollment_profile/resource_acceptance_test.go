@@ -19,6 +19,7 @@ const resourceType = graphBetaMacOSDepEnrollmentProfile.ResourceName
 var testResource = graphBetaMacOSDepEnrollmentProfile.MacOSDepEnrollmentProfileTestResource{}
 
 func TestAccResourceMacOSDepEnrollmentProfile_01_Lifecycle(t *testing.T) {
+	var profileID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -33,46 +34,64 @@ func TestAccResourceMacOSDepEnrollmentProfile_01_Lifecycle(t *testing.T) {
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		Steps: []resource.TestStep{
-			{
-				Config: testAccMacOSDepEnrollmentProfileConfig_minimal(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "display_name", "acc-test-macos-dep-enrollment-profile-minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "description", "macOS DEP enrollment profile minimal acceptance test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "requires_user_authentication", "false"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "configuration_endpoint_url"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", "dep_onboarding_settings_id"),
-				),
-			},
-			{ResourceName: "microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.minimal", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"admin_account_password"}},
-			{
-				Config: testAccMacOSDepEnrollmentProfileConfig_skipSetup(),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "id"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "display_name", "acc-test-macos-dep-enrollment-profile-skip-setup"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "await_device_configured", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "supervised_mode_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "admin_account_user_name", "localadmin"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_management_macos_dep_enrollment_profile.skip_setup", "enabled_skip_keys.#", "7"),
-				),
-			},
-		},
+		Steps: lifecycleSteps(&profileID),
 	})
 }
 
-func testAccMacOSDepEnrollmentProfileConfig_minimal() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_minimal.tf")
-	if err != nil {
-		log.Fatalf("Failed to load minimal test config: %v", err)
+// lifecycleSteps exercises all wizard configurations on the same enrollment profile.
+func lifecycleSteps(profileID *string) []resource.TestStep {
+	address := resourceType + ".test"
+	scenarios := []struct {
+		name     string
+		affinity string
+		modern   string
+		skips    string
+		rotation string
+	}{
+		{"minimal", "false", "false", "0", ""},
+		{"modern_auth", "true", "true", "27", "90"},
+		{"legacy_auth", "true", "false", "27", "180"},
+		{"without_user_affinity", "false", "false", "27", ""},
+		{"minimal", "false", "false", "0", ""},
 	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	var steps []resource.TestStep
+	for i, scenario := range scenarios {
+		config := testAccMacOSDepEnrollmentProfileConfig(scenario.name)
+		checks := []resource.TestCheckFunc{
+			resource.TestCheckResourceAttr(address, "requires_user_authentication", scenario.affinity),
+			resource.TestCheckResourceAttr(address, "configuration_web_url", scenario.modern),
+			resource.TestCheckResourceAttr(address, "enabled_skip_keys.#", scenario.skips),
+			resource.TestCheckResourceAttrSet(address, "configuration_endpoint_url"),
+			resource.TestCheckResourceAttrSet(address, "dep_onboarding_settings_id"),
+		}
+		if i == 0 {
+			checks = append(checks, resource.TestCheckResourceAttrWith(address, "id", func(value string) error { *profileID = value; return nil }))
+		} else {
+			checks = append(checks, resource.TestCheckResourceAttrPtr(address, "id", profileID))
+		}
+		if scenario.rotation == "" {
+			checks = append(checks, resource.TestCheckNoResourceAttr(address, "admin_account_password_rotation.auto_rotation_period_in_days"))
+		} else {
+			checks = append(checks,
+				resource.TestCheckResourceAttr(address, "admin_account_password_rotation.auto_rotation_period_in_days", scenario.rotation),
+				resource.TestCheckNoResourceAttr(address, "admin_account_password_rotation.on_retrieval_auto_rotate_password_enabled"),
+				resource.TestCheckNoResourceAttr(address, "admin_account_password_rotation.on_retrieval_delay_auto_rotate_password_in_hours"),
+			)
+		}
+		steps = append(steps,
+			resource.TestStep{Config: config, Check: resource.ComposeTestCheckFunc(checks...)},
+			resource.TestStep{ResourceName: address, ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"admin_account_password"}},
+			resource.TestStep{Config: config, PlanOnly: true},
+		)
+	}
+	return steps
 }
 
-func testAccMacOSDepEnrollmentProfileConfig_skipSetup() string {
-	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_skip_setup.tf")
+// testAccMacOSDepEnrollmentProfileConfig loads a wizard scenario with the acceptance provider.
+func testAccMacOSDepEnrollmentProfileConfig(scenario string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_" + scenario + ".tf")
 	if err != nil {
-		log.Fatalf("Failed to load skip setup test config: %v", err)
+		log.Fatalf("Failed to load %s test config: %v", scenario, err)
 	}
-	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }

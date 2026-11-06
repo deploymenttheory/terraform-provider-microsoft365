@@ -32,9 +32,49 @@ The following client `application` permissions are needed in order to use this {
 |---------|--------|-------|
 | v0.56.0-alpha | Experimental | Initial release |
 
+## Known Issues
+
+### Retrieval-triggered password rotation
+
+Live `curl.exe` checks on 2026-11-06 found that the enrollment-profile endpoint returns
+`depProfileDelayAutoRotationSetting: null` after POST, PATCH, individual GET and filtered LIST,
+even when retrieval-triggered rotation values are submitted. The rotation period in days persists.
+The live API metadata still lists the original retrieval fields; no equivalent replacement
+was found in the ADE settings catalog.
+
+The examples and acceptance lifecycle therefore configure only `auto_rotation_period_in_days`.
+Configuring `on_retrieval_auto_rotate_password_enabled` or
+`on_retrieval_delay_auto_rotate_password_in_hours` on an affected tenant can produce an
+inconsistent-result error after apply. Both attributes are deprecated in the Terraform schema. Their state names and types remain
+unchanged, so existing state requires no field migration. Scheduled rotation has different
+semantics and is not a replacement for retrieval-triggered rotation.
+
 ## Example Usage
 
+The four examples correspond to configurations captured from the Intune enrollment-profile
+wizard. Modern and legacy authentication both use user affinity. The acceptance lifecycle
+updates one profile through minimum, modern authentication, legacy authentication, without
+user affinity, and back to minimum. All 27 current Setup Assistant skip keys are supported.
+
+Intune also offers newer enrollment policies backed by `configurationPolicies`. Those are
+managed by `microsoft365_graph_beta_device_management_macos_device_enrollment_policy`;
+these examples configure the existing DEP enrollment-profile endpoint.
+
+### Minimum
+
 {{ tffile "examples/resources/microsoft365_graph_beta_device_management_macos_dep_enrollment_profile/resource.tf" }}
+
+### Modern authentication with user affinity
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_macos_dep_enrollment_profile/resource_modern_auth.tf" }}
+
+### Legacy authentication with user affinity
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_macos_dep_enrollment_profile/resource_legacy_auth.tf" }}
+
+### Without user affinity
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_macos_dep_enrollment_profile/resource_without_user_affinity.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}
 

@@ -98,6 +98,9 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 			responseObj["id"] = id
 			// adminAccountPassword is write-only - Graph never returns it
 			delete(responseObj, "adminAccountPassword")
+			if rotation, ok := responseObj["depProfileAdminAccountPasswordRotationSetting"].(map[string]any); ok {
+				rotation["depProfileDelayAutoRotationSetting"] = nil
+			}
 			// enrollmentTimeAzureAdGroupIds is not echoed back by the per-profile GET
 			delete(responseObj, "enrollmentTimeAzureAdGroupIds")
 			// ensure subtype so kiota deserializes correctly
@@ -174,6 +177,9 @@ func (m *MacOSDepEnrollmentProfileMock) RegisterMocks() {
 				existing[k] = v
 			}
 			delete(existing, "adminAccountPassword")
+			if rotation, ok := existing["depProfileAdminAccountPasswordRotationSetting"].(map[string]any); ok {
+				rotation["depProfileDelayAutoRotationSetting"] = nil
+			}
 			existing["@odata.type"] = "#microsoft.graph.depMacOSEnrollmentProfile"
 			mockState.enrollmentProfiles[id] = existing
 			mockState.Unlock()

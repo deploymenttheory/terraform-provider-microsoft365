@@ -68,13 +68,30 @@ func MapRemoteStateToTerraform(
 	data.AwaitDeviceConfigured = convert.GraphToFrameworkBool(
 		profile.GetWaitForDeviceConfiguredConfirmation(),
 	)
-	data.EnabledSkipKeys = convert.GraphToFrameworkStringSet(ctx, profile.GetEnabledSkipKeys())
+	// Graph can repeat skip keys after PATCH; normalize before constructing a Terraform set.
+	skipKeys := slices.Clone(profile.GetEnabledSkipKeys())
+	slices.Sort(skipKeys)
+	skipKeys = slices.Compact(skipKeys)
+	if skipKeys == nil {
+		skipKeys = []string{}
+	}
+	data.EnabledSkipKeys = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, skipKeys)
 
 	// welcome_screen_disabled has no dedicated Graph property; derive it from the
 	// presence of the "Welcome" key in enabledSkipKeys.
 	data.WelcomeScreenDisabled = types.BoolValue(
 		slices.Contains(profile.GetEnabledSkipKeys(), "Welcome"),
 	)
+
+	data.AppearanceDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "Appearance"))
+	data.EnableLockdownModeDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "EnableLockdownMode"))
+	data.SoftwareUpdateDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "SoftwareUpdate"))
+	data.AdditionalPrivacySettingsDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "AdditionalPrivacySettings"))
+	data.UpdateCompletedDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "UpdateCompleted"))
+	data.TermsOfAddressDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "TermsOfAddress"))
+	data.IntelligenceDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "Intelligence"))
+	data.OSShowcaseDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "OSShowcase"))
+	data.AppStoreDisabled = types.BoolValue(slices.Contains(profile.GetEnabledSkipKeys(), "AppStore"))
 
 	// enrollment_time_azure_ad_group_ids is Optional+Computed, but the per-profile GET
 	// does not reliably echo it back. When the remote returns no group IDs, preserve the
@@ -177,6 +194,8 @@ func MapRemoteStateToTerraform(
 			)
 		}
 		data.AdminAccountPasswordRotation = mapped
+	} else {
+		data.AdminAccountPasswordRotation = nil
 	}
 
 	tflog.Debug(

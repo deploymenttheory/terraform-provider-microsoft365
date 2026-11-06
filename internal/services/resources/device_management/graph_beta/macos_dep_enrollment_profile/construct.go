@@ -56,9 +56,7 @@ func constructResource(
 		requestBody.SetWaitForDeviceConfiguredConfirmation,
 	)
 
-	// enabledSkipKeys is derived from the individual *_disabled booleans (single source
-	// of truth). Privacy and Registration are intentionally excluded because Graph rejects
-	// those skip-key strings even though their boolean properties work.
+	// Derive the skip keys from the configured Setup Assistant panes.
 	requestBody.SetEnabledSkipKeys(buildEnabledSkipKeys(data))
 
 	if err := constructAzureAdGroupIds(
@@ -186,6 +184,8 @@ func constructResource(
 		rotation.SetDepProfileDelayAutoRotationSetting(delay)
 
 		requestBody.SetDepProfileAdminAccountPasswordRotationSetting(rotation)
+	} else {
+		requestBody.SetDepProfileAdminAccountPasswordRotationSetting(nil)
 	}
 
 	if err := constructors.DebugLogGraphObject(
@@ -204,15 +204,12 @@ func constructResource(
 }
 
 // buildEnabledSkipKeys constructs the enabledSkipKeys array from the boolean fields.
-// Privacy and Registration are intentionally excluded because Microsoft Graph rejects
-// those skip-key strings, even though the privacy_pane_disabled and registration_disabled
-// boolean properties work correctly.
 func buildEnabledSkipKeys(data *MacOSDepEnrollmentProfileResourceModel) []string {
 	mappings := []struct {
 		disabled types.Bool
 		key      string
 	}{
-		// Base profile screens (Privacy excluded; Graph rejects the "Privacy" skip key)
+		// Base profile screens
 		{data.AppleIdDisabled, "AppleID"},
 		{data.ApplePayDisabled, "Payment"},
 		{data.DiagnosticsDisabled, "Diagnostics"},
@@ -223,7 +220,7 @@ func buildEnabledSkipKeys(data *MacOSDepEnrollmentProfileResourceModel) []string
 		{data.SiriDisabled, "Siri"},
 		{data.TermsAndConditionsDisabled, "TOS"},
 		{data.TouchIdDisabled, "Biometric"},
-		// macOS-specific screens (Registration excluded; Graph rejects the "Registration" skip key)
+		// macOS-specific screens
 		{data.WelcomeScreenDisabled, "Welcome"},
 		{data.AccessibilityScreenDisabled, "Accessibility"},
 		{data.AutoUnlockWithWatchDisabled, "UnlockWithWatch"},
@@ -233,6 +230,17 @@ func buildEnabledSkipKeys(data *MacOSDepEnrollmentProfileResourceModel) []string
 		{data.ICloudStorageDisabled, "iCloudStorage"},
 		{data.PassCodeDisabled, "Passcode"},
 		{data.ZoomDisabled, "Zoom"},
+		{data.PrivacyPaneDisabled, "Privacy"},
+		{data.RegistrationDisabled, "Registration"},
+		{data.AppearanceDisabled, "Appearance"},
+		{data.EnableLockdownModeDisabled, "EnableLockdownMode"},
+		{data.SoftwareUpdateDisabled, "SoftwareUpdate"},
+		{data.AdditionalPrivacySettingsDisabled, "AdditionalPrivacySettings"},
+		{data.UpdateCompletedDisabled, "UpdateCompleted"},
+		{data.TermsOfAddressDisabled, "TermsOfAddress"},
+		{data.IntelligenceDisabled, "Intelligence"},
+		{data.OSShowcaseDisabled, "OSShowcase"},
+		{data.AppStoreDisabled, "AppStore"},
 	}
 
 	skipKeys := make([]string, 0, len(mappings))
@@ -244,13 +252,13 @@ func buildEnabledSkipKeys(data *MacOSDepEnrollmentProfileResourceModel) []string
 	return skipKeys
 }
 
-// frameworkToGraphStringOrNil sets a Graph SDK string property, explicitly sending nil when
-// the value is null or empty string so the field is cleared in the API when removed from config.
+// frameworkToGraphStringOrNil sets a Graph SDK string property, preserving explicit empty strings.
+// Null values clear the field in the API when removed from configuration.
 func frameworkToGraphStringOrNil(value types.String, setter func(*string)) {
 	if value.IsUnknown() {
 		return
 	}
-	if value.IsNull() || value.ValueString() == "" {
+	if value.IsNull() {
 		setter(nil)
 	} else {
 		convert.FrameworkToGraphString(value, setter)
@@ -260,7 +268,6 @@ func frameworkToGraphStringOrNil(value types.String, setter func(*string)) {
 // constructAzureAdGroupIds converts a Terraform set of GUID strings into []uuid.UUID.
 func constructAzureAdGroupIds(ctx context.Context, set types.Set, setter func([]uuid.UUID)) error {
 	if set.IsNull() || set.IsUnknown() {
-		setter(nil)
 		return nil
 	}
 

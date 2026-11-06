@@ -2,8 +2,10 @@ package graphBetaMacOSDepEnrollmentProfile_test
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	macosMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/macos_dep_enrollment_profile/mocks"
@@ -142,6 +144,47 @@ func TestUnitResourceMacOSDepEnrollmentProfile_05_ErrorHandling(t *testing.T) {
 				ExpectError: regexp.MustCompile("Internal server error|InternalServerError|500"),
 			},
 		},
+	})
+}
+
+func TestUnitResourceMacOSDepEnrollmentProfile_06_RotationLifecycle(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, macosMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer macosMock.CleanupMockState()
+	var profileID string
+	address := resourceType + ".minimal"
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: testConfigMinimal(), Check: resource.TestCheckResourceAttrWith(address, "id", func(value string) error { profileID = value; return nil })},
+			{
+				Config: strings.ReplaceAll(testConfigSkipSetup(), `"skip_setup"`, `"minimal"`),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(address, "id", &profileID),
+					resource.TestCheckResourceAttr(address, "admin_account_password_rotation.auto_rotation_period_in_days", "30"),
+					resource.TestCheckNoResourceAttr(address, "admin_account_password_rotation.on_retrieval_auto_rotate_password_enabled"),
+				),
+			},
+			{Config: testConfigMinimal(), Check: resource.ComposeTestCheckFunc(
+				resource.TestCheckResourceAttrPtr(address, "id", &profileID),
+				resource.TestCheckNoResourceAttr(address, "admin_account_password_rotation.auto_rotation_period_in_days"),
+			)},
+			{Config: testConfigMinimal(), PlanOnly: true},
+		},
+	})
+}
+
+func TestUnitResourceMacOSDepEnrollmentProfile_07_WizardLifecycle(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, macosMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer macosMock.CleanupMockState()
+	var profileID string
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
+		Steps:                    lifecycleSteps(&profileID),
 	})
 }
 
