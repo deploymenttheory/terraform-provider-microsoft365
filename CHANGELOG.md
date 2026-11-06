@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.5.1...v1.5.2) (2026-11-06)
+
+
+### Bug Fixes
+
+* align iOS and iPadOS enrollment policies with Graph requirements ([86b6620](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/86b6620ad5235de87f6a2c07db656a79c47a4f1d))
+* align iOS/iPadOS enrollment policies with live Graph requirements ([#4742](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4742)) ([86b6620](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/86b6620ad5235de87f6a2c07db656a79c47a4f1d))
+* clear removed macOS software update settings ([#4739](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4739)) ([4c54395](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/4c54395122a9b8b1383c257dc4a0fe4b7ea98f05))
+* correct settings catalog assignment state and test fixtures ([#4737](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4737)) ([dfe15d7](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/dfe15d716f81ce0899f0497f018ef4997d0ed647))
+* cover macOS DEP enrollment profile authentication lifecycle ([#4740](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4740)) ([b4ae0fe](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b4ae0fe6a84e72bb621a10829cae959bd243f4ce))
+* include required Liquid Glass setting in macOS enrollment policies ([#4741](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4741)) ([6b8469a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6b8469a2963fa855f80fc8a142360e80b48c75ba))
+* isolate compliance notification acceptance fixtures ([#4732](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4732)) ([fecdd7a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fecdd7a802bf48291ee1004eb255ac31b9ef0294))
+* isolate notification template acceptance fixtures ([#4723](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4723)) ([fecdd7a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/fecdd7a802bf48291ee1004eb255ac31b9ef0294))
+* isolate role definition acceptance fixtures ([#4376](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4376)) ([8584b62](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8584b626676dee507f064df975202592ef81e2a1))
+* isolate role definition acceptance fixtures ([#4736](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4736)) ([8584b62](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8584b626676dee507f064df975202592ef81e2a1))
+* omit nil choice children for enrollment policies ([b2f16b8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b2f16b8304414751f9b555ae002d2648ca13c11d))
+* omit null choice children in enrollment policies ([#4738](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4738)) ([b2f16b8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b2f16b8304414751f9b555ae002d2648ca13c11d))
+* omit unset Graph collections through shared converter ([#4735](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4735)) ([1240d2a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1240d2afcfaf12d6c8103199a5f9b75a6ba970f5))
+* shard provider tests by package and test budgets ([#4734](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4734)) ([974782a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/974782a2d9e3b2f4e2de04870dc411c7d0e3211c))
+* validate macOS DEP enrollment profile configuration lifecycle ([b4ae0fe](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b4ae0fe6a84e72bb621a10829cae959bd243f4ce))
+
 ## [1.5.1](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.5.0...v1.5.1) (2026-11-04)
 
 
