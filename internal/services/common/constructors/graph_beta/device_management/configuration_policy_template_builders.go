@@ -126,7 +126,8 @@ import (
 //   // 6. Use the settings in your configuration policy
 //   configurationPolicy.SetSettings(settings)
 
-// ConstructChoiceSettingInstance creates a choice setting.
+// ConstructChoiceSettingInstance creates a childless choice setting.
+// It leaves children unset because explicitly setting nil serializes as JSON null.
 func ConstructChoiceSettingInstance(
 	settingDefinitionId string,
 	value string,
@@ -148,9 +149,6 @@ func ConstructChoiceSettingInstance(
 
 	odataTypeValue := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
 	choiceValue.SetOdataType(&odataTypeValue)
-
-	var children []models.DeviceManagementConfigurationSettingInstanceable
-	choiceValue.SetChildren(children)
 
 	if settingInstanceTemplateId != "" {
 		settingInstanceTemplateReference := models.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
@@ -328,7 +326,9 @@ func ConstructChoiceSettingWithChildren(
 	odataTypeValue := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
 	choiceValue.SetOdataType(&odataTypeValue)
 
-	choiceValue.SetChildren(children)
+	if children != nil {
+		choiceValue.SetChildren(children)
+	}
 
 	if settingInstanceTemplateId != "" {
 		settingInstanceTemplateReference := models.NewDeviceManagementConfigurationSettingInstanceTemplateReference()
