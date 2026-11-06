@@ -63,7 +63,7 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
         id = "4"
         settingInstance = {
           "@odata.type"                    = "#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance"
-          settingDefinitionId              = "device_vendor_msft_policy_config_localpoliciessecurityoptions_interactivelogon_machineinactivitylimit"
+          settingDefinitionId              = "device_vendor_msft_policy_config_localpoliciessecurityoptions_interactivelogon_machineinactivitylimit_v2"
           settingInstanceTemplateReference = null
           simpleSettingValue = {
             "@odata.type"                 = "#microsoft.graph.deviceManagementConfigurationIntegerSettingValue"
