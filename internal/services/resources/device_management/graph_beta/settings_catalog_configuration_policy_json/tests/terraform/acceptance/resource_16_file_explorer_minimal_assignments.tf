@@ -25,7 +25,7 @@ resource "time_sleep" "wait_30_seconds_file_explorer" {
   depends_on      = [microsoft365_graph_beta_groups_group.file_explorer_test_group]
 }
 
-resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "file_explorer_minimal" {
+resource "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json" "file_explorer_minimal_assignments" {
   name               = "acc-test-16-file-explorer-${random_string.file_explorer_suffix.result}"
   description        = "Acceptance test policy for File Explorer with minimal assignments"
   platforms          = "windows10"

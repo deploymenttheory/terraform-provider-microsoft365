@@ -3,9 +3,11 @@ package mocks
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 
@@ -226,10 +228,25 @@ func (m *SettingsCatalogPolicyMock) registerGetPolicyMock() {
 
 		mockState.Lock()
 		policy, exists := mockState.policies[policyId]
+		policy = maps.Clone(policy)
 		mockState.Unlock()
 
 		if !exists {
 			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Policy not found"}}`), nil
+		}
+
+		// Graph omits isAssigned unless explicitly selected without a wildcard.
+		selected := strings.Split(req.URL.Query().Get("$select"), ",")
+		if selected[0] != "" && !slices.Contains(selected, "*") {
+			projected := make(map[string]any)
+			for _, field := range selected {
+				if value, ok := policy[field]; ok {
+					projected[field] = value
+				}
+			}
+			policy = projected
+		} else {
+			delete(policy, "isAssigned")
 		}
 
 		// Return the stored policy data (without settings)

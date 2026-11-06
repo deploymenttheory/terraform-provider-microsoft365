@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -162,11 +163,19 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 		}
 	}
 
+	// isAssigned must be selected explicitly; Graph's default and wildcard projections omit it.
 	baseResource, err := r.client.
 		DeviceManagement().
 		ConfigurationPolicies().
 		ByDeviceManagementConfigurationPolicyId(object.ID.ValueString()).
-		Get(ctx, nil)
+		Get(ctx, &devicemanagement.ConfigurationPoliciesDeviceManagementConfigurationPolicyItemRequestBuilderGetRequestConfiguration{
+			QueryParameters: &devicemanagement.ConfigurationPoliciesDeviceManagementConfigurationPolicyItemRequestBuilderGetQueryParameters{
+				Select: []string{
+					"id", "name", "description", "platforms", "technologies", "roleScopeTagIds",
+					"createdDateTime", "lastModifiedDateTime", "settingCount", "isAssigned",
+				},
+			},
+		})
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
