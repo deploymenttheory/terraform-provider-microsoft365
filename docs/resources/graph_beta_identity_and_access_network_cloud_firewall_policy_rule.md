@@ -30,6 +30,7 @@ DELETE /beta/networkAccess/cloudFirewallPolicies/{policy_id}/policyRules/{id}
 - Names and priorities must be unique within a policy. To exchange priorities, move one rule to an unused priority in a separate apply first.
 - Rules with nonempty branch conditions cannot currently be imported or managed; Read returns a diagnostic to avoid dropping existing conditions.
 - Saving `enabled` and reading `status` does not confirm traffic enforcement. This resource does not create policy links or assignments.
+- Enforcement depends on the profile the policy is linked to: the baseline profile for remote networks, or a security profile assigned through Conditional Access for Global Secure Access clients (preview). Only the highest-priority applicable profile's firewall policy is evaluated. See [Configure cloud firewall for Global Secure Access clients](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-cloud-firewall-clients).
 
 ## Microsoft Graph API Permissions
 
@@ -84,7 +85,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_cloud_firewall_pol
 ### Optional
 
 - `description` (String) The rule description. Omitting it clears the description; an empty string is preserved.
-- `destinations` (Attributes) Destination conditions. Omit this object to leave destination matching unspecified. FQDN conditions can be stored but do not work for remote-network Internet Access traffic. (see [below for nested schema](#nestedatt--destinations))
+- `destinations` (Attributes) Destination conditions. Omit this object to leave destination matching unspecified. FQDN conditions apply to Global Secure Access client traffic (preview) but not to remote-network traffic, and do not match direct-IP connections without a destination FQDN. (see [below for nested schema](#nestedatt--destinations))
 - `enabled` (Boolean) Whether the rule is enabled. Terraform defaults to false and explicitly sends disabled; the API requires a status on creation.
 - `sources` (Attributes) Source conditions. Omit this object to leave source matching unspecified. (see [below for nested schema](#nestedatt--sources))
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
