@@ -3,6 +3,7 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment_test
 import (
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
@@ -209,6 +210,34 @@ func TestUnitResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 	})
 }
 
+// Each create takes 3s and has an 8s timeout. The mock rejects overlapping POSTs, so
+// creates must be serialized, and the third only succeeds if waiting on the
+// per-application lock does not consume its timeout.
+func TestUnitResourceIpApplicationSegment_04a_ConcurrentSameApplication(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+	ipSegmentMock := &ipSegmentMocks.OnPremisesIpApplicationSegmentMock{}
+	ipSegmentMock.RegisterSlowCreateMocks(3 * time.Second)
+	defer ipSegmentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigIpSegmentConcurrentSameApplication(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckExists("microsoft365_graph_beta_applications_on_premises_ip_application_segment.concurrent.0"),
+					testCheckExists("microsoft365_graph_beta_applications_on_premises_ip_application_segment.concurrent.1"),
+					testCheckExists("microsoft365_graph_beta_applications_on_premises_ip_application_segment.concurrent.2"),
+				),
+			},
+		},
+	})
+}
+
 func TestUnitResourceIpApplicationSegment_05_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
@@ -275,6 +304,14 @@ func testConfigIpSegmentFQDN() string {
 	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_fqdn.tf")
 	if err != nil {
 		panic("failed to load ip application segment fqdn config: " + err.Error())
+	}
+	return unitTestConfig
+}
+
+func testConfigIpSegmentConcurrentSameApplication() string {
+	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/resource_concurrent_same_application.tf")
+	if err != nil {
+		panic("failed to load ip application segment concurrent config: " + err.Error())
 	}
 	return unitTestConfig
 }

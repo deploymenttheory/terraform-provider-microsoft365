@@ -3,11 +3,13 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"testing"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/microsoft/kiota-abstractions-go/store"
+	kiotahttp "github.com/microsoft/kiota-http-go"
 	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 )
 
@@ -131,4 +133,23 @@ func (testRequestAdapter) GetBaseUrl() string {
 
 func (testRequestAdapter) ConvertToNativeRequest(context.Context, *abstractions.RequestInformation) (any, error) {
 	return nil, nil
+}
+
+func TestCreateIpApplicationSegmentRetryOptionsRetriesThrottlingOnly(t *testing.T) {
+	options := createIpApplicationSegmentRetryOptions(kiotahttp.RetryHandlerOptions{MaxRetries: 3, DelaySeconds: 2})
+
+	if options.MaxRetries != 3 || options.DelaySeconds != 2 {
+		t.Fatalf("retry limits = %d/%d, expected 3/2", options.MaxRetries, options.DelaySeconds)
+	}
+
+	for statusCode, expected := range map[int]bool{
+		http.StatusTooManyRequests:     true,
+		http.StatusInternalServerError: false,
+		http.StatusServiceUnavailable:  false,
+		http.StatusGatewayTimeout:      false,
+	} {
+		if got := options.ShouldRetry(0, 1, nil, &http.Response{StatusCode: statusCode}); got != expected {
+			t.Errorf("ShouldRetry(%d) = %t, expected %t", statusCode, got, expected)
+		}
+	}
 }
