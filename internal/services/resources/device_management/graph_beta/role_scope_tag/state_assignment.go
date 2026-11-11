@@ -24,24 +24,28 @@ func RoleScopeTagAssignmentType() attr.Type {
 // MapRemoteAssignmentStateToTerraform maps the assignment remote state to the Terraform model
 func MapRemoteAssignmentStateToTerraform(ctx context.Context, terraform *RoleScopeTagResourceModel, assignmentsResponse graphmodels.RoleScopeTagAutoAssignmentCollectionResponseable) {
 	if assignmentsResponse == nil {
-		terraform.Assignments = types.SetNull(RoleScopeTagAssignmentType())
+		MapAssignmentsToTerraform(ctx, terraform, nil)
 		return
 	}
 
 	assignments := assignmentsResponse.GetValue()
 	if assignments == nil {
-		terraform.Assignments = types.SetNull(RoleScopeTagAssignmentType())
+		MapAssignmentsToTerraform(ctx, terraform, nil)
 		return
 	}
 
 	MapAssignmentsToTerraform(ctx, terraform, assignments)
 }
 
-// MapAssignmentsToTerraform maps the remote DeviceManagementScript assignments to Terraform state
+// MapAssignmentsToTerraform maps role scope tag assignments to Terraform state.
 func MapAssignmentsToTerraform(ctx context.Context, data *RoleScopeTagResourceModel, assignments []graphmodels.RoleScopeTagAutoAssignmentable) {
 	if len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments to process")
-		data.Assignments = types.SetNull(RoleScopeTagAssignmentType())
+		if data.Assignments.IsNull() {
+			data.Assignments = types.SetNull(RoleScopeTagAssignmentType())
+		} else {
+			data.Assignments = types.SetValueMust(RoleScopeTagAssignmentType(), []attr.Value{})
+		}
 		return
 	}
 

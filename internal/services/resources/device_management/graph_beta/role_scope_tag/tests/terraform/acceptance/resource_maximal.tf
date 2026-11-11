@@ -24,6 +24,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_3" {
   mail_nickname    = "rst-hd-${random_string.group_suffix.result}"
   mail_enabled     = false
   security_enabled = true
+  hard_delete      = true
   visibility       = "Private"
 
   timeouts = {
@@ -40,6 +41,7 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_4" {
   mail_nickname    = "rst-sec-${random_string.group_suffix.result}"
   mail_enabled     = false
   security_enabled = true
+  hard_delete      = true
   visibility       = "Private"
 
   timeouts = {

@@ -1,4 +1,4 @@
-# Example of creating a basic role scope tag with a group assignment
+# Example of creating a basic role scope tag without group assignments
 resource "microsoft365_graph_beta_device_management_role_scope_tag" "helpdesk" {
   display_name = "Helpdesk Support Tag"
   description  = "Role scope tag for helpdesk support staff"
@@ -15,6 +15,7 @@ resource "microsoft365_graph_beta_device_management_role_scope_tag" "device_mana
   display_name = "Device Management Tag"
   description  = "Role scope tag for device management teams"
 
+  # Set assignments = [] or remove this attribute to clear all group assignments.
   assignments = [
     {
       type     = "groupAssignmentTarget"
