@@ -232,8 +232,7 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	// Only update assignments if they are specified
-	if !plan.Assignments.IsNull() && !plan.Assignments.IsUnknown() {
+	if !plan.Assignments.IsUnknown() && !plan.Assignments.Equal(state.Assignments) {
 		requestAssignment, err := constructAssignment(ctx, &plan)
 		if err != nil {
 			resp.Diagnostics.AddError(
@@ -254,6 +253,11 @@ func (r *RoleScopeTagResource) Update(ctx context.Context, req resource.UpdateRe
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
