@@ -3,7 +3,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "max
   description              = "Maximal policy for testing with all features"
   cloud_pc_naming_template = "CPC-MAX-%USERNAME:5%-%RAND:5%"
   provisioning_type        = "dedicated"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
   image_type               = "gallery"
   enable_single_sign_on    = true
   managed_by               = "windows365"
