@@ -12,6 +12,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaAssignmentFilter "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/assignment_filter"
 	graphBetaWindowsBiosConfigurationsAndOtherSettingsTemplate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_bios_configurations_and_other_settings_template"
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -48,7 +49,7 @@ func checkDestroyBase() resource.TestCheckFunc {
 	)
 }
 
-// checkDestroyWithGroups also verifies the Entra ID groups created as assignment targets are gone.
+// checkDestroyWithGroups verifies the template, assignment groups, and filters are gone.
 func checkDestroyWithGroups() resource.TestCheckFunc {
 	return destroy.CheckDestroyedTypesFunc(
 		30*time.Second,
@@ -59,6 +60,10 @@ func checkDestroyWithGroups() resource.TestCheckFunc {
 		destroy.ResourceTypeMapping{
 			ResourceType: graphBetaGroup.ResourceName,
 			TestResource: graphBetaGroup.GroupTestResource{},
+		},
+		destroy.ResourceTypeMapping{
+			ResourceType: graphBetaAssignmentFilter.ResourceName,
+			TestResource: graphBetaAssignmentFilter.AssignmentFilterTestResource{},
 		},
 	)
 }
@@ -266,9 +271,9 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_06_Assignm
 					waitForAssignmentConsistency(),
 					check.That(name).ExistsInGraph(testResource),
 					check.That(name).Key("assignments.#").HasValue("5"),
-					check.That(name).Key("assignments.*.filter_type").ContainsTypeSetElement("include"),
-					check.That(name).Key("assignments.*.filter_type").ContainsTypeSetElement("exclude"),
-					check.That(name).Key("assignments.*.type").ContainsTypeSetElement("exclusionGroupAssignmentTarget"),
+					resource.TestCheckTypeSetElemNestedAttrs(name, "assignments.*", map[string]string{"filter_type": "include"}),
+					resource.TestCheckTypeSetElemNestedAttrs(name, "assignments.*", map[string]string{"filter_type": "exclude"}),
+					resource.TestCheckTypeSetElemNestedAttrs(name, "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
 				),
 			},
 			{
@@ -306,7 +311,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_07_Assignm
 				Check: resource.ComposeTestCheckFunc(
 					waitForAssignmentConsistency(),
 					check.That(name).Key("assignments.#").HasValue("5"),
-					check.That(name).Key("assignments.*.filter_type").ContainsTypeSetElement("include"),
+					resource.TestCheckTypeSetElemNestedAttrs(name, "assignments.*", map[string]string{"filter_type": "include"}),
 				),
 			},
 			{
