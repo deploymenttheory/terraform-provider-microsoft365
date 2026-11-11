@@ -311,6 +311,15 @@ func FrameworkToGraphStringList(ctx context.Context, list types.List, setter fun
 	return nil
 }
 
+// FrameworkToGraphStringListOmitUnset converts a Terraform Framework list to a string slice and sets a Graph SDK string slice property.
+// Returns an error if list elements are not strings. No-op if the list is null or unknown.
+func FrameworkToGraphStringListOmitUnset(ctx context.Context, list types.List, setter func([]string)) error {
+	if list.IsNull() || list.IsUnknown() {
+		return nil
+	}
+	return FrameworkToGraphStringList(ctx, list, setter)
+}
+
 // FrameworkToGraphStringSet converts a Terraform Framework set to a string slice and sets a Graph SDK string slice property.
 // Returns an error if set elements are not strings. Sets nil if the set is null or unknown.
 func FrameworkToGraphStringSet(ctx context.Context, set types.Set, setter func([]string)) error {
