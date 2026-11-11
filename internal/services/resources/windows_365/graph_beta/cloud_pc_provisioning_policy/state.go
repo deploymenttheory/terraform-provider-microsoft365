@@ -20,6 +20,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 		"resourceId": convert.GraphToFrameworkString(remoteResource.GetId()).ValueString(),
 	})
 
+	data.UserExperienceType = convert.GraphToFrameworkEnum(remoteResource.GetUserExperienceType())
+	if data.UserExperienceType.IsNull() {
+		data.UserExperienceType = types.StringValue("cloudPc")
+	}
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())

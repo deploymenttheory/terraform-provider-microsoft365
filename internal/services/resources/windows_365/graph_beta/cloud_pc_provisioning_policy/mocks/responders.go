@@ -113,6 +113,11 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				"imageId":     requestBody["imageId"],
 			}
 
+			if experience, exists := requestBody["userExperienceType"]; exists {
+				policyData["userExperienceType"] = experience
+			} else {
+				policyData["userExperienceType"] = "cloudPc"
+			}
 			// Add optional fields only if provided in request
 			if description, exists := requestBody["description"]; exists {
 				policyData["description"] = description

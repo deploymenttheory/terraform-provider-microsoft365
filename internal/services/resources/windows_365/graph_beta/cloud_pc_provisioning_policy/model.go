@@ -7,6 +7,7 @@ import (
 )
 
 type CloudPcProvisioningPolicyResourceModel struct {
+	UserExperienceType       types.String                   `tfsdk:"user_experience_type"`
 	ID                       types.String                   `tfsdk:"id"`
 	AlternateResourceUrl     types.String                   `tfsdk:"alternate_resource_url"`
 	CloudPcGroupDisplayName  types.String                   `tfsdk:"cloud_pc_group_display_name"`

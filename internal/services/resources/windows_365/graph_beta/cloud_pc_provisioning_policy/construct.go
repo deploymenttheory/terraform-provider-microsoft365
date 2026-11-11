@@ -6,6 +6,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -151,9 +152,16 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 		requestBody.SetWindowsSetting(windowsSetting)
 	}
 
-	requestBody.SetAdditionalData(map[string]any{
-		"userExperienceType": "cloudPc",
-	})
+	experience := data.UserExperienceType
+	if experience.IsNull() || experience.IsUnknown() {
+		experience = types.StringValue("cloudPc")
+	}
+	if experience.ValueString() == "cloudApp" && data.ProvisioningType.ValueString() != "sharedByEntraGroup" {
+		return nil, fmt.Errorf("cloudApp requires provisioning_type to be sharedByEntraGroup")
+	}
+	if err := convert.FrameworkToGraphEnum(experience, models.ParseCloudPcUserExperienceType, requestBody.SetUserExperienceType); err != nil {
+		return nil, fmt.Errorf("failed to set user experience type: %w", err)
+	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
 		tflog.Error(ctx, "Failed to debug log object", map[string]any{
