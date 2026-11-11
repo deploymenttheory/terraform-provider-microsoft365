@@ -123,10 +123,8 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 			convert.FrameworkToGraphString(config.OnPremisesConnectionId, domainJoinConfig.SetOnPremisesConnectionId)
 			convert.FrameworkToGraphString(config.RegionName, domainJoinConfig.SetRegionName)
 
-			if !config.RegionGroup.IsNull() && !config.RegionGroup.IsUnknown() && config.RegionGroup.ValueString() != "" {
-				if val, err := models.ParseCloudPcRegionGroup(config.RegionGroup.ValueString()); err == nil && val != nil {
-					domainJoinConfig.SetRegionGroup(val.(*models.CloudPcRegionGroup))
-				}
+			if err := convert.FrameworkToGraphEnum(config.RegionGroup, models.ParseCloudPcRegionGroup, domainJoinConfig.SetRegionGroup); err != nil {
+				return nil, fmt.Errorf("failed to set region group: %v", err)
 			}
 
 			domainJoinConfigs = append(domainJoinConfigs, domainJoinConfig)

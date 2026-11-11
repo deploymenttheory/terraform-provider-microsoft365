@@ -1,11 +1,11 @@
 resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "minimal" {
-  display_name             = "unit-test-minimal"
+  display_name             = "Test Minimal Provisioning Policy - Unique"
   description              = "test"
   cloud_pc_naming_template = "CPC-%USERNAME:5%-%RAND:5%"
   provisioning_type        = "dedicated"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"
   image_type               = "gallery"
-  enable_single_sign_on    = true
+  enable_single_sign_on    = false
   managed_by               = "windows365"
 
   windows_setting = {

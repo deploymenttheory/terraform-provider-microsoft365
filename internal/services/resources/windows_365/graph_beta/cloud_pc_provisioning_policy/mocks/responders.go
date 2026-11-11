@@ -198,6 +198,9 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 
 			// Store in mock state
 			mockState.Lock()
+			if _, exists := policyData["microsoftManagedDesktop"]; !exists {
+				policyData["microsoftManagedDesktop"] = map[string]any{"managedType": "notManaged", "profile": "4aa9b805-9494-4eed-a04b-ed51ec9e631e"}
+			}
 			mockState.provisioningPolicies[policyId] = policyData
 			mockState.Unlock()
 
@@ -280,6 +283,9 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			}
 			// Ensure the ID is preserved
 			policyData["id"] = policyId
+			if _, exists := policyData["microsoftManagedDesktop"]; !exists {
+				policyData["microsoftManagedDesktop"] = map[string]any{"managedType": "notManaged", "profile": "4aa9b805-9494-4eed-a04b-ed51ec9e631e"}
+			}
 			mockState.provisioningPolicies[policyId] = policyData
 			mockState.Unlock()
 
@@ -355,6 +361,9 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 				} else {
 					// Set empty assignments array instead of deleting
 					policyData["assignments"] = []any{}
+				}
+				if _, exists := policyData["microsoftManagedDesktop"]; !exists {
+					policyData["microsoftManagedDesktop"] = map[string]any{"managedType": "notManaged", "profile": "4aa9b805-9494-4eed-a04b-ed51ec9e631e"}
 				}
 				mockState.provisioningPolicies[policyId] = policyData
 			}
