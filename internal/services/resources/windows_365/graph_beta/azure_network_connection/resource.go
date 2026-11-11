@@ -125,8 +125,8 @@ func (r *CloudPcOnPremisesConnectionResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "The ID of the target resource group. Required format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^/subscriptions/[a-f0-9\-]+/resourceGroups/[a-z0-9\-_.()]+$`),
-						"Must be a valid Azure resource group ID in lowercase (e.g., /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName})",
+						regexp.MustCompile(`^/subscriptions/[a-fA-F0-9\-]+/resourceGroups/[a-zA-Z0-9\-_.()]+$`),
+						"Must be a valid Azure resource group ID (e.g., /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName})",
 					),
 				},
 			},
@@ -135,8 +135,8 @@ func (r *CloudPcOnPremisesConnectionResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "The ID of the target subnet. Required format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkId}/subnets/{subnetName}.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^/subscriptions/[a-f0-9\-]+/resourceGroups/[a-z0-9\-_.()]+/providers/Microsoft.Network/virtualNetworks/[a-z0-9\-_.()]+/subnets/[a-z0-9\-_.()]+$`),
-						"Must be a valid Azure subnet ID in lowercase (e.g., /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet})",
+						regexp.MustCompile(`^/subscriptions/[a-fA-F0-9\-]+/resourceGroups/[a-zA-Z0-9\-_.()]+/providers/Microsoft.Network/virtualNetworks/[a-zA-Z0-9\-_.()]+/subnets/[a-zA-Z0-9\-_.()]+$`),
+						"Must be a valid Azure subnet ID (e.g., /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet})",
 					),
 				},
 			},
@@ -155,8 +155,8 @@ func (r *CloudPcOnPremisesConnectionResource) Schema(ctx context.Context, req re
 				MarkdownDescription: "The ID of the target virtual network. Required format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{virtualNetworkName}.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(`^/subscriptions/[a-f0-9\-]+/resourceGroups/[a-z0-9\-_.()]+/providers/Microsoft.Network/virtualNetworks/[a-z0-9\-_.()]+$`),
-						"Must be a valid Azure virtual network ID in lowercase (e.g., /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnet})",
+						regexp.MustCompile(`^/subscriptions/[a-fA-F0-9\-]+/resourceGroups/[a-zA-Z0-9\-_.()]+/providers/Microsoft.Network/virtualNetworks/[a-zA-Z0-9\-_.()]+$`),
+						"Must be a valid Azure virtual network ID (e.g., /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnet})",
 					),
 				},
 			},
