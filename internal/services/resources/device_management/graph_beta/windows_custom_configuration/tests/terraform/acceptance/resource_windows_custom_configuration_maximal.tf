@@ -24,7 +24,16 @@ resource "microsoft365_graph_beta_groups_group" "custom_config_group_2" {
   hard_delete      = true
 }
 
+resource "time_sleep" "group_replication" {
+  depends_on = [
+    microsoft365_graph_beta_groups_group.custom_config_group_1,
+    microsoft365_graph_beta_groups_group.custom_config_group_2,
+  ]
+  create_duration = "15s"
+}
+
 resource "microsoft365_graph_beta_device_management_windows_custom_configuration" "custom_configuration_example" {
+  depends_on   = [time_sleep.group_replication]
   display_name = "acc-test-windows-custom-config-${random_string.custom_config_suffix.result}"
   description  = "Example Windows custom configuration profile using OMA-URI settings"
 
