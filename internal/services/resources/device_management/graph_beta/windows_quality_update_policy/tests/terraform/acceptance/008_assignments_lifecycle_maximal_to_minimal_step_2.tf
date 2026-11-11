@@ -18,6 +18,24 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_1" {
   hard_delete      = true
 }
 
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_2" {
+  display_name     = "acc-test-group-008-2-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-008-2-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 2 for windows quality update policy lifecycle assignments"
+  hard_delete      = true
+}
+
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_008_3" {
+  display_name     = "acc-test-group-008-3-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-008-3-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 3 for windows quality update policy lifecycle exclusion assignments"
+  hard_delete      = true
+}
+
 # ==============================================================================
 # Windows Quality Update Policy Resource - Step 2: Minimal Assignments
 # ==============================================================================
@@ -39,11 +57,5 @@ resource "microsoft365_graph_beta_device_management_windows_quality_update_polic
     }
   ]
 
-  timeouts = {
-    create = "30s"
-    read   = "30s"
-    update = "30s"
-    delete = "30s"
-  }
 }
 
