@@ -21,13 +21,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	kiotahttp "github.com/microsoft/kiota-http-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const (
-	ResourceName  = "microsoft365_graph_beta_applications_on_premises_ip_application_segment"
-	CreateTimeout = 180
-	UpdateTimeout = 180
+	ResourceName = "microsoft365_graph_beta_applications_on_premises_ip_application_segment"
+	// A single segment POST has been observed to take one to two minutes, so create
+	// allows for that plus the read-back. Update writes the same segmentsConfiguration
+	// and is given the same budget.
+	CreateTimeout = 300
+	UpdateTimeout = 300
 	ReadTimeout   = 180
 	DeleteTimeout = 180
 )
@@ -66,6 +70,7 @@ func NewOnPremisesIpApplicationSegmentResource() resource.Resource {
 
 type OnPremisesIpApplicationSegmentResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
+	retryOptions     kiotahttp.RetryHandlerOptions
 	ReadPermissions  []string
 	WritePermissions []string
 	ResourcePath     string
@@ -79,6 +84,7 @@ func (r *OnPremisesIpApplicationSegmentResource) Metadata(ctx context.Context, r
 // Configure sets the client for the resource.
 func (r *OnPremisesIpApplicationSegmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
+	r.retryOptions = client.GraphRetryOptionsForResource(req.ProviderData)
 }
 
 // ImportState imports the resource state.

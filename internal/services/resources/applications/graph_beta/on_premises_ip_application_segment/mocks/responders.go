@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
@@ -34,60 +35,7 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 	mockState.Unlock()
 
 	// Create IP application segment - POST /applications/{application-id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments
-	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/onPremisesPublishing/segmentsConfiguration/microsoft\.graph\.ipSegmentConfiguration/applicationSegments$`, func(req *http.Request) (*http.Response, error) {
-		var requestBody map[string]any
-		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-		}
-		if requestBody["destinationType"] == "ipAddress" {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"InvalidJson_BadRequest","message":"Valid JSON content expected."}}`), nil
-		}
-		if response := normalizeSegmentRequest(requestBody); response != nil {
-			return response, nil
-		}
-		if requestBody["port"] != float64(0) {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"port must be 0 for ip application segments"}}`), nil
-		}
-
-		// Generate a UUID for the new resource
-		newId := uuid.New().String()
-
-		// Load the template response
-		jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/post_ip_application_segment_success.json")
-		if err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response"}}`), nil
-		}
-
-		var responseObj map[string]any
-		if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
-			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse response"}}`), nil
-		}
-
-		// Update response with request data
-		responseObj["id"] = newId
-		if destinationHost, ok := requestBody["destinationHost"]; ok {
-			responseObj["destinationHost"] = destinationHost
-		}
-		if destinationType, ok := requestBody["destinationType"]; ok {
-			responseObj["destinationType"] = destinationType
-		}
-		if ports, ok := requestBody["ports"]; ok {
-			responseObj["ports"] = ports
-		}
-		if port, ok := requestBody["port"]; ok {
-			responseObj["port"] = port
-		}
-		if protocol, ok := requestBody["protocol"]; ok {
-			responseObj["protocol"] = normalizeProtocolResponse(protocol)
-		}
-
-		// Store in mock state
-		mockState.Lock()
-		mockState.ipApplicationSegments[newId] = responseObj
-		mockState.Unlock()
-
-		return httpmock.NewJsonResponse(201, responseObj)
-	})
+	httpmock.RegisterResponder("POST", createSegmentURLPattern, createSegmentResponder)
 
 	// Get IP application segment - GET /applications/{application-id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/{id}
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/onPremisesPublishing/segmentsConfiguration/microsoft\.graph\.ipSegmentConfiguration/applicationSegments/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`, func(req *http.Request) (*http.Response, error) {
@@ -162,6 +110,83 @@ func (m *OnPremisesIpApplicationSegmentMock) RegisterMocks() {
 		}
 
 		return httpmock.NewStringResponse(204, ""), nil
+	})
+}
+
+const createSegmentURLPattern = `=~^https://graph\.microsoft\.com/beta/applications/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/onPremisesPublishing/segmentsConfiguration/microsoft\.graph\.ipSegmentConfiguration/applicationSegments$`
+
+func createSegmentResponder(req *http.Request) (*http.Response, error) {
+	var requestBody map[string]any
+	if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+		return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+	}
+	if requestBody["destinationType"] == "ipAddress" {
+		return httpmock.NewStringResponse(400, `{"error":{"code":"InvalidJson_BadRequest","message":"Valid JSON content expected."}}`), nil
+	}
+	if response := normalizeSegmentRequest(requestBody); response != nil {
+		return response, nil
+	}
+	if requestBody["port"] != float64(0) {
+		return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"port must be 0 for ip application segments"}}`), nil
+	}
+
+	// Generate a UUID for the new resource
+	newId := uuid.New().String()
+
+	// Load the template response
+	jsonStr, err := helpers.ParseJSONFile("../tests/responses/validate_create/post_ip_application_segment_success.json")
+	if err != nil {
+		return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load response"}}`), nil
+	}
+
+	var responseObj map[string]any
+	if err := json.Unmarshal([]byte(jsonStr), &responseObj); err != nil {
+		return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse response"}}`), nil
+	}
+
+	// Update response with request data
+	responseObj["id"] = newId
+	if destinationHost, ok := requestBody["destinationHost"]; ok {
+		responseObj["destinationHost"] = destinationHost
+	}
+	if destinationType, ok := requestBody["destinationType"]; ok {
+		responseObj["destinationType"] = destinationType
+	}
+	if ports, ok := requestBody["ports"]; ok {
+		responseObj["ports"] = ports
+	}
+	if port, ok := requestBody["port"]; ok {
+		responseObj["port"] = port
+	}
+	if protocol, ok := requestBody["protocol"]; ok {
+		responseObj["protocol"] = normalizeProtocolResponse(protocol)
+	}
+
+	// Store in mock state
+	mockState.Lock()
+	mockState.ipApplicationSegments[newId] = responseObj
+	mockState.Unlock()
+
+	return httpmock.NewJsonResponse(201, responseObj)
+}
+
+// RegisterSlowCreateMocks registers the default mocks with a create POST that takes delay to respond.
+// Overlapping POSTs for the same application return 500 so tests detect missing serialization.
+func (m *OnPremisesIpApplicationSegmentMock) RegisterSlowCreateMocks(delay time.Duration) {
+	m.RegisterMocks()
+	var inFlight sync.Map // request path -> struct{}
+	httpmock.RegisterResponder("POST", createSegmentURLPattern, func(req *http.Request) (*http.Response, error) {
+		if _, overlapping := inFlight.LoadOrStore(req.URL.Path, struct{}{}); overlapping {
+			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Overlapping segment write for the same application"}}`), nil
+		}
+		defer inFlight.Delete(req.URL.Path)
+
+		select {
+		case <-time.After(delay):
+		case <-req.Context().Done():
+			return nil, req.Context().Err()
+		}
+		return createSegmentResponder(req)
 	})
 }
 

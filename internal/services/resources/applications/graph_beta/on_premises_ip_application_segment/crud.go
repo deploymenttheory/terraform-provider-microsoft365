@@ -15,13 +15,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-var ipApplicationSegmentApplicationLocks sync.Map
+// ipApplicationSegmentApplicationLocks serializes segment writes per application.
+// Concurrent writes to the same application can return a segment id that then
+// 404s on read, so the write and its read-back are kept together.
+var ipApplicationSegmentApplicationLocks sync.Map // application object id -> chan struct{}
 
-func lockIpApplicationSegmentWrites(applicationObjectID string) func() {
-	actual, _ := ipApplicationSegmentApplicationLocks.LoadOrStore(applicationObjectID, &sync.Mutex{})
-	mutex := actual.(*sync.Mutex)
-	mutex.Lock()
-	return mutex.Unlock
+// lockIpApplicationSegmentWrites acquires the per-application segment lock and returns the unlock func.
+// Callers acquire it before starting their operation timeout so time spent waiting on
+// sibling segments does not consume the resource's own timeout budget. The wait ends
+// early if ctx is cancelled.
+func lockIpApplicationSegmentWrites(ctx context.Context, applicationObjectID string) (func(), error) {
+	actual, _ := ipApplicationSegmentApplicationLocks.LoadOrStore(applicationObjectID, make(chan struct{}, 1))
+	lock := actual.(chan struct{})
+	start := time.Now()
+	select {
+	case lock <- struct{}{}:
+	case <-ctx.Done():
+		return nil, fmt.Errorf("waiting for the ip application segment lock on application %s: %w", applicationObjectID, ctx.Err())
+	}
+	if waited := time.Since(start); waited > time.Second {
+		tflog.Debug(ctx, fmt.Sprintf("Waited %s for the ip application segment lock on application %s", waited, applicationObjectID))
+	}
+	return func() { <-lock }, nil
 }
 
 // Create handles the Create operation for IP application segment resources.
@@ -41,6 +56,14 @@ func (r *OnPremisesIpApplicationSegmentResource) Create(ctx context.Context, req
 		return
 	}
 
+	// Serialize with sibling segments on the same application (see ipApplicationSegmentApplicationLocks).
+	unlock, err := lockIpApplicationSegmentWrites(ctx, object.ApplicationObjectID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error waiting for ip application segment lock", err.Error())
+		return
+	}
+	defer unlock()
+
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
@@ -55,14 +78,6 @@ func (r *OnPremisesIpApplicationSegmentResource) Create(ctx context.Context, req
 		)
 		return
 	}
-
-	// Graph stores applicationSegments under the application's segmentsConfiguration.
-	// Concurrent writes to the same application can return a segment id that then
-	// 404s on read, even for documented values such as fqdn and ipRangeCidr. Keep
-	// the write and follow-up read together so parallel Terraform resources for
-	// the same application settle predictably.
-	unlock := lockIpApplicationSegmentWrites(object.ApplicationObjectID.ValueString())
-	defer unlock()
 
 	createdIpApplicationSegment, err := r.createIpApplicationSegment(ctx, object.ApplicationObjectID.ValueString(), requestBody)
 	if err != nil {
@@ -195,6 +210,14 @@ func (r *OnPremisesIpApplicationSegmentResource) Update(ctx context.Context, req
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting update of resource: %s with ID: %s", ResourceName, state.ID.ValueString()))
 
+	// Serialize with sibling segments on the same application (see ipApplicationSegmentApplicationLocks).
+	unlock, err := lockIpApplicationSegmentWrites(ctx, state.ApplicationObjectID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error waiting for ip application segment lock", err.Error())
+		return
+	}
+	defer unlock()
+
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
@@ -209,9 +232,6 @@ func (r *OnPremisesIpApplicationSegmentResource) Update(ctx context.Context, req
 		)
 		return
 	}
-
-	unlock := lockIpApplicationSegmentWrites(state.ApplicationObjectID.ValueString())
-	defer unlock()
 
 	if err := r.updateIpApplicationSegment(ctx, state.ApplicationObjectID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
@@ -262,14 +282,19 @@ func (r *OnPremisesIpApplicationSegmentResource) Delete(ctx context.Context, req
 		return
 	}
 
+	// Serialize with sibling segments on the same application (see ipApplicationSegmentApplicationLocks).
+	unlock, err := lockIpApplicationSegmentWrites(ctx, data.ApplicationObjectID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error waiting for ip application segment lock", err.Error())
+		return
+	}
+	defer unlock()
+
 	ctx, cancel := crud.HandleTimeout(ctx, data.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
-
-	unlock := lockIpApplicationSegmentWrites(data.ApplicationObjectID.ValueString())
-	defer unlock()
 
 	if err := r.deleteIpApplicationSegment(ctx, data.ApplicationObjectID.ValueString(), data.ID.ValueString()); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)

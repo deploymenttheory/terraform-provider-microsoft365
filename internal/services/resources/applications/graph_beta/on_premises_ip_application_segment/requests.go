@@ -3,9 +3,12 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	kiotahttp "github.com/microsoft/kiota-http-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
@@ -38,6 +41,8 @@ func (r *OnPremisesIpApplicationSegmentResource) createIpApplicationSegment(ctx 
 	if err != nil {
 		return nil, err
 	}
+	createRetryOptions := createIpApplicationSegmentRetryOptions(r.retryOptions)
+	requestInfo.AddRequestOptions([]abstractions.RequestOption{&createRetryOptions})
 
 	result, err := adapter.Send(
 		ctx,
@@ -58,6 +63,16 @@ func (r *OnPremisesIpApplicationSegmentResource) createIpApplicationSegment(ctx 
 	}
 
 	return segment, nil
+}
+
+// createIpApplicationSegmentRetryOptions retries explicit throttling only: ambiguous server
+// failures can leave an untracked duplicate.
+func createIpApplicationSegmentRetryOptions(base kiotahttp.RetryHandlerOptions) kiotahttp.RetryHandlerOptions {
+	options := base
+	options.ShouldRetry = func(_ time.Duration, _ int, _ *http.Request, response *http.Response) bool {
+		return response != nil && response.StatusCode == http.StatusTooManyRequests
+	}
+	return options
 }
 
 func (r *OnPremisesIpApplicationSegmentResource) getIpApplicationSegment(ctx context.Context, applicationObjectID, segmentID string) (*ipApplicationSegmentResponse, error) {
