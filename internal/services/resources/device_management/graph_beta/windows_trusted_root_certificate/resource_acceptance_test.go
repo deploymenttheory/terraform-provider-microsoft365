@@ -12,6 +12,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	certresource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_trusted_root_certificate"
+	groupresource "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 )
 
 func TestAccResourceWindowsTrustedRootCertificate_01_Lifecycle(t *testing.T) {
@@ -27,12 +28,16 @@ func TestAccResourceWindowsTrustedRootCertificate_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			resourceType,
-			10*time.Second,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			15*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: groupresource.ResourceName, TestResource: groupresource.GroupTestResource{}},
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,

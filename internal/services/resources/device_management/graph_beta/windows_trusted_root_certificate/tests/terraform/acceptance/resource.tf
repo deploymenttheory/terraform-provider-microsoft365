@@ -9,9 +9,16 @@ resource "microsoft365_graph_beta_groups_group" "test" {
   mail_nickname    = "acc-test-windows-certificate-${random_string.suffix.result}"
   mail_enabled     = false
   security_enabled = true
+  hard_delete      = true
+}
+
+resource "time_sleep" "wait_for_group" {
+  depends_on      = [microsoft365_graph_beta_groups_group.test]
+  create_duration = "15s"
 }
 
 resource "microsoft365_graph_beta_device_management_windows_trusted_root_certificate" "test" {
+  depends_on               = [time_sleep.wait_for_group]
   display_name             = "acc-test-windows-certificate-${random_string.suffix.result}"
   description              = "Trusted certificate provider acceptance test"
   cert_file_name           = "root.cer"
