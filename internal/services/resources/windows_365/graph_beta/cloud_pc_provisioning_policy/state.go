@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -23,6 +24,19 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	data.UserExperienceType = convert.GraphToFrameworkEnum(remoteResource.GetUserExperienceType())
 	if data.UserExperienceType.IsNull() {
 		data.UserExperienceType = types.StringValue("cloudPc")
+	}
+	persistenceTypes := map[string]attr.Type{"enabled": types.BoolType, "storage_size_category": types.StringType}
+	data.UserSettingsPersistenceConfiguration = types.ObjectNull(persistenceTypes)
+	if persistence := remoteResource.GetUserSettingsPersistenceConfiguration(); persistence != nil {
+		size := convert.GraphToFrameworkEnum(persistence.GetUserSettingsPersistenceStorageSizeCategory())
+		if size.IsNull() {
+			size = types.StringValue("fourGB")
+		}
+		enabled := convert.GraphToFrameworkBool(persistence.GetUserSettingsPersistenceEnabled())
+		if enabled.IsNull() {
+			enabled = types.BoolValue(false)
+		}
+		data.UserSettingsPersistenceConfiguration = types.ObjectValueMust(persistenceTypes, map[string]attr.Value{"enabled": enabled, "storage_size_category": size})
 	}
 	data.ID = convert.GraphToFrameworkString(remoteResource.GetId())
 	data.DisplayName = convert.GraphToFrameworkString(remoteResource.GetDisplayName())

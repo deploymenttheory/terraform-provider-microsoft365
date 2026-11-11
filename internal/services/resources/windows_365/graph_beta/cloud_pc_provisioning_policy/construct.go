@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
@@ -20,6 +21,24 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 	}
 
 	requestBody := models.NewCloudPcProvisioningPolicy()
+	if !data.UserSettingsPersistenceConfiguration.IsNull() && !data.UserSettingsPersistenceConfiguration.IsUnknown() {
+		if data.ProvisioningType.ValueString() != "sharedByEntraGroup" {
+			return nil, fmt.Errorf("user settings persistence requires provisioning_type to be sharedByEntraGroup")
+		}
+		var settings UserSettingsPersistenceConfigurationModel
+		if diags := data.UserSettingsPersistenceConfiguration.As(ctx, &settings, basetypes.ObjectAsOptions{}); diags.HasError() {
+			return nil, fmt.Errorf("failed to decode user settings persistence: %v", diags)
+		}
+		if settings.StorageSizeCategory.IsNull() || settings.StorageSizeCategory.IsUnknown() {
+			settings.StorageSizeCategory = types.StringValue("fourGB")
+		}
+		persistence := models.NewCloudPcUserSettingsPersistenceConfiguration()
+		convert.FrameworkToGraphBool(settings.Enabled, persistence.SetUserSettingsPersistenceEnabled)
+		if err := convert.FrameworkToGraphEnum(settings.StorageSizeCategory, models.ParseCloudPcUserSettingsPersistenceStorageSizeCategory, persistence.SetUserSettingsPersistenceStorageSizeCategory); err != nil {
+			return nil, fmt.Errorf("failed to set persistence storage size: %w", err)
+		}
+		requestBody.SetUserSettingsPersistenceConfiguration(persistence)
+	}
 
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
