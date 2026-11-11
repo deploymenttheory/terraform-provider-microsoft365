@@ -1,6 +1,7 @@
 package graphBetaAzureNetworkConnection_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,11 +9,17 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaAzureNetworkConnection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/azure_network_connection"
 	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/azure_network_connection/mocks"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
+	msgraphbetamodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/stretchr/testify/require"
 )
 
 // Helper functions to return the test configurations by reading from files
@@ -422,4 +429,113 @@ func TestUnitResourceAzureNetworkConnection_08_Error(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestUnitResourceAzureNetworkConnection_09_AzureIDCasingLifecycle(t *testing.T) {
+	_, connectionMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	mocks.SetupUnitTestEnvironment(t)
+	connectionMock.AzureIDCasing = strings.ToLower
+
+	const subscription = "ABCDEFAB-1234-5678-9ABC-ABCDEFABCDEF"
+	const updatedSubscription = "ABCDEFAB-1234-5678-9ABC-123456ABCDEF"
+	const address = graphBetaAzureNetworkConnection.ResourceName + ".minimal"
+	config := strings.NewReplacer(
+		"11111111-1111-1111-1111-111111111111", subscription,
+		"test-rg", "ExampleGroup", "test-vnet", "ExampleNetwork", "test-subnet", "CloudPCs",
+	).Replace(testConfigMinimal())
+	updatedConfig := strings.NewReplacer(subscription, updatedSubscription, "ExampleGroup", "UpdatedGroup").Replace(config)
+
+	checkIDs := func(subscriptionID, groupName string) resource.TestCheckFunc {
+		group := "/subscriptions/" + subscriptionID + "/resourceGroups/" + groupName
+		network := group + "/providers/Microsoft.Network/virtualNetworks/ExampleNetwork"
+		return resource.ComposeTestCheckFunc(
+			check.That(address).Key("resource_group_id").HasValue(group),
+			check.That(address).Key("virtual_network_id").HasValue(network),
+			check.That(address).Key("subnet_id").HasValue(network+"/subnets/CloudPCs"),
+			check.That(address).Key("subscription_id").HasValue(subscriptionID),
+		)
+	}
+	noChanges := resource.ConfigPlanChecks{PostApplyPostRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()}}
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check:  checkIDs(subscription, "ExampleGroup"),
+			},
+			{
+				PreConfig:        func() { connectionMock.AzureIDCasing = strings.ToUpper },
+				Config:           config,
+				PlanOnly:         true,
+				ConfigPlanChecks: noChanges,
+			},
+			{
+				Config: updatedConfig,
+				Check:  checkIDs(updatedSubscription, "UpdatedGroup"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(address, plancheck.ResourceActionUpdate),
+				}},
+			},
+			{
+				PreConfig:        func() { connectionMock.AzureIDCasing = strings.ToLower },
+				Config:           updatedConfig,
+				PlanOnly:         true,
+				ConfigPlanChecks: noChanges,
+			},
+		},
+	})
+}
+
+func TestUnitResourceAzureNetworkConnection_10_AzureIDStateMapping(t *testing.T) {
+	const subscription = "ABCDEFAB-1234-5678-9ABC-ABCDEFABCDEF"
+	const group = "/subscriptions/" + subscription + "/resourceGroups/ExampleGroup"
+	const network = group + "/providers/Microsoft.Network/virtualNetworks/ExampleNetwork"
+	model := func(value func(string) types.String) graphBetaAzureNetworkConnection.CloudPcOnPremisesConnectionResourceModel {
+		return graphBetaAzureNetworkConnection.CloudPcOnPremisesConnectionResourceModel{
+			ResourceGroupId: value(group), VirtualNetworkId: value(network),
+			SubnetId: value(network + "/subnets/CloudPCs"), SubscriptionId: value(subscription),
+		}
+	}
+	lower := func(s string) types.String { return types.StringValue(strings.ToLower(s)) }
+	upper := func(s string) types.String { return types.StringValue(strings.ToUpper(s)) }
+	null := func(string) types.String { return types.StringNull() }
+	unknown := func(string) types.String { return types.StringUnknown() }
+	empty := func(string) types.String { return types.StringValue("") }
+	changed := func(s string) types.String {
+		return types.StringValue(strings.ReplaceAll(s, "ABCDEFAB", "123456AB"))
+	}
+	for _, tc := range []struct {
+		name   string
+		prior  func(string) types.String
+		remote func(string) types.String
+		want   func(string) types.String
+	}{
+		{"unchanged", types.StringValue, types.StringValue, types.StringValue},
+		{"lowercase_response", types.StringValue, lower, types.StringValue},
+		{"uppercase_response", lower, upper, lower},
+		{"different_id", types.StringValue, changed, changed},
+		{"import_without_prior_ids", null, types.StringValue, types.StringValue},
+		{"unknown_prior_ids", unknown, upper, upper},
+		{"missing_remote_ids", types.StringValue, null, null},
+		{"empty_remote_ids", types.StringValue, empty, empty},
+		{"null_prior_empty_remote", null, empty, empty},
+		{"unknown_prior_empty_remote", unknown, empty, empty},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			data, remoteData, want := model(tc.prior), model(tc.remote), model(tc.want)
+			remote := msgraphbetamodels.NewCloudPcOnPremisesConnection()
+			remote.SetResourceGroupId(remoteData.ResourceGroupId.ValueStringPointer())
+			remote.SetVirtualNetworkId(remoteData.VirtualNetworkId.ValueStringPointer())
+			remote.SetSubnetId(remoteData.SubnetId.ValueStringPointer())
+			remote.SetSubscriptionId(remoteData.SubscriptionId.ValueStringPointer())
+
+			graphBetaAzureNetworkConnection.MapRemoteStateToTerraform(context.Background(), &data, remote, types.StringNull())
+
+			require.Equal(t, want.ResourceGroupId, data.ResourceGroupId)
+			require.Equal(t, want.VirtualNetworkId, data.VirtualNetworkId)
+			require.Equal(t, want.SubnetId, data.SubnetId)
+			require.Equal(t, want.SubscriptionId, data.SubscriptionId)
+		})
+	}
 }

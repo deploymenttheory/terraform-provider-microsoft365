@@ -2,6 +2,7 @@ package graphBetaAzureNetworkConnection
 
 import (
 	"context"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,11 +28,20 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcOnPremisesConne
 		data.AdDomainPassword = priorPassword
 	}
 	data.OrganizationalUnit = convert.GraphToFrameworkString(remote.GetOrganizationalUnit())
-	data.ResourceGroupId = convert.GraphToFrameworkString(remote.GetResourceGroupId())
-	data.SubnetId = convert.GraphToFrameworkString(remote.GetSubnetId())
-	data.SubscriptionId = convert.GraphToFrameworkString(remote.GetSubscriptionId())
-	data.VirtualNetworkId = convert.GraphToFrameworkString(remote.GetVirtualNetworkId())
+	data.ResourceGroupId = azureIDFromRemote(data.ResourceGroupId, remote.GetResourceGroupId())
+	data.SubnetId = azureIDFromRemote(data.SubnetId, remote.GetSubnetId())
+	data.SubscriptionId = azureIDFromRemote(data.SubscriptionId, remote.GetSubscriptionId())
+	data.VirtualNetworkId = azureIDFromRemote(data.VirtualNetworkId, remote.GetVirtualNetworkId())
 	data.HealthCheckStatus = convert.GraphToFrameworkEnum(remote.GetHealthCheckStatus())
 	data.ManagedBy = convert.GraphToFrameworkEnum(remote.GetManagedBy())
 	data.InUse = convert.GraphToFrameworkBool(remote.GetInUse())
+}
+
+func azureIDFromRemote(prior types.String, remote *string) types.String {
+	// Azure IDs are case-insensitive. Keep the plan/prior state spelling when
+	// Graph changes only casing, without hiding a different or missing ID.
+	if !prior.IsNull() && !prior.IsUnknown() && remote != nil && strings.EqualFold(prior.ValueString(), *remote) {
+		return prior
+	}
+	return convert.GraphToFrameworkString(remote)
 }
