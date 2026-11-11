@@ -240,7 +240,9 @@ func (r *CloudPcProvisioningPolicyResource) Update(ctx context.Context, req reso
 		return
 	}
 
+	plannedAssignments := plan.Assignments
 	MapRemoteStateToTerraform(ctx, &plan, updated)
+	plan.Assignments = plannedAssignments
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating assignments for policy ID: %s", state.ID.ValueString()))
 

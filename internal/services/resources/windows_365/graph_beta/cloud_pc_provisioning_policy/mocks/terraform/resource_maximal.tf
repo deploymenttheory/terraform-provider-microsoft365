@@ -6,7 +6,6 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "max
   image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"
   image_type               = "gallery"
   enable_single_sign_on    = true
-  local_admin_enabled      = true
   managed_by               = "windows365"
 
   domain_join_configurations = [
