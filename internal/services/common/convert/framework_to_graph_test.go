@@ -612,6 +612,38 @@ func TestFrameworkToGraphStringSet(t *testing.T) {
 	assert.Nil(t, result)
 }
 
+func TestFrameworkToGraphStringListOmitUnset(t *testing.T) {
+	for _, tc := range []struct {
+		name      string
+		value     types.List
+		wantCalls int
+		want      []string
+		wantError bool
+	}{
+		{"null", types.ListNull(types.StringType), 0, []string{"unchanged"}, false},
+		{"unknown", types.ListUnknown(types.StringType), 0, []string{"unchanged"}, false},
+		{"empty", types.ListValueMust(types.StringType, []attr.Value{}), 1, []string{}, false},
+		{"populated", types.ListValueMust(types.StringType, []attr.Value{types.StringValue("first"), types.StringValue("second")}), 1, []string{"first", "second"}, false},
+		{"invalid element", types.ListValueMust(types.Int64Type, []attr.Value{types.Int64Value(1)}), 0, []string{"unchanged"}, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			calls := 0
+			result := []string{"unchanged"}
+			err := FrameworkToGraphStringListOmitUnset(context.Background(), tc.value, func(value []string) {
+				calls++
+				result = value
+			})
+			if tc.wantError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tc.wantCalls, calls)
+			assert.Equal(t, tc.want, result)
+		})
+	}
+}
+
 func TestFrameworkToGraphStringSetOmitUnset(t *testing.T) {
 	for _, tc := range []struct {
 		name      string

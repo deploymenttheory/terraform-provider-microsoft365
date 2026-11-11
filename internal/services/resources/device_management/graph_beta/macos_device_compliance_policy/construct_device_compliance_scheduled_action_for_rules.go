@@ -66,7 +66,7 @@ func constructScheduledActionItem(ctx context.Context, configurationsData types.
 
 		convert.FrameworkToGraphString(config.NotificationTemplateId, actionItem.SetNotificationTemplateId)
 
-		if err := convert.FrameworkToGraphStringList(ctx, config.NotificationMessageCcList, actionItem.SetNotificationMessageCCList); err != nil {
+		if err := convert.FrameworkToGraphStringListOmitUnset(ctx, config.NotificationMessageCcList, actionItem.SetNotificationMessageCCList); err != nil {
 			return nil, fmt.Errorf("failed to set notification message CC list: %s", err)
 		}
 
