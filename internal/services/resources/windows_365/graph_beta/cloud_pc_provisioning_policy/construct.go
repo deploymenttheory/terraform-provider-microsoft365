@@ -28,6 +28,19 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 	// Map supported gallery image IDs to their display names.
 	if !data.ImageId.IsNull() && !data.ImageId.IsUnknown() {
 		switch data.ImageId.ValueString() {
+		case "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-devready":
+			image, err := client.DeviceManagement().VirtualEndpoint().GalleryImages().ByCloudPcGalleryImageId(data.ImageId.ValueString()).Get(ctx, nil)
+			if err != nil {
+				return nil, fmt.Errorf("failed to retrieve developer-ready gallery image: %w", err)
+			}
+			if image == nil || image.GetDisplayName() == nil || *image.GetDisplayName() == "" {
+				return nil, fmt.Errorf("developer-ready gallery image has no display name")
+			}
+			if image.GetStatus() != nil && *image.GetStatus() == models.NOTSUPPORTED_CLOUDPCGALLERYIMAGESTATUS {
+				return nil, fmt.Errorf("developer-ready gallery image is not supported in this tenant")
+			}
+			requestBody.SetImageDisplayName(image.GetDisplayName())
+
 		case "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc":
 			val := "Windows 11 Enterprise 26H2"
 			requestBody.SetImageDisplayName(&val)
