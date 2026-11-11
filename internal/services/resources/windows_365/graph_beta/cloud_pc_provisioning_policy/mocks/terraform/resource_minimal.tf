@@ -3,7 +3,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "min
   description              = "test"
   cloud_pc_naming_template = "CPC-%USERNAME:5%-%RAND:5%"
   provisioning_type        = "dedicated"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc"
   image_type               = "gallery"
   enable_single_sign_on    = false
   managed_by               = "windows365"

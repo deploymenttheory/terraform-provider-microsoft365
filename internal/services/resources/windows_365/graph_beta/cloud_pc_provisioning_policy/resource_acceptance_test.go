@@ -19,9 +19,8 @@ func TestAccResourceCloudPcProvisioningPolicy_01_Complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "display_name", "Test Acceptance Provisioning Policy"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "image_id", "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "image_id", "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "enable_single_sign_on", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "local_admin_enabled", "false"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "windows_setting.locale", "en-US"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "microsoft_managed_desktop.managed_type", "notManaged"),
 				),
@@ -40,7 +39,6 @@ func TestAccResourceCloudPcProvisioningPolicy_01_Complete(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "display_name", "Test Acceptance Provisioning Policy - Updated"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "description", "Updated description for acceptance testing"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "enable_single_sign_on", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "local_admin_enabled", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "cloud_pc_naming_template", "CPC-ACC-%USERNAME:5%-%RAND:5%"),
 				),
 			},
@@ -51,7 +49,6 @@ func TestAccResourceCloudPcProvisioningPolicy_01_Complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "id"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "display_name", "Test Acceptance Provisioning Policy"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "enable_single_sign_on", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.test", "local_admin_enabled", "false"),
 				),
 			},
 		},
@@ -98,7 +95,7 @@ func testAccCloudPcProvisioningPolicyConfig_minimal() string {
 	return `
 resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "test" {
   display_name = "Test Acceptance Provisioning Policy"
-  image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"
+  image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc"
   
   microsoft_managed_desktop = {
     # Uses default values: managed_type = "notManaged", profile = "4aa9b805-9494-4eed-a04b-ed51ec9e631e"
@@ -118,10 +115,9 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "tes
   description              = "Updated description for acceptance testing"
   cloud_pc_naming_template = "CPC-ACC-%USERNAME:5%-%RAND:5%"
   provisioning_type        = "dedicated"
-  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"
+  image_id                 = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
   image_type               = "gallery"
   enable_single_sign_on    = true
-  local_admin_enabled      = true
   managed_by               = "windows365"
 
   windows_setting = {
@@ -171,7 +167,7 @@ data "azuread_group" "test_group" {
 
 resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "test_assignments" {
   display_name = "Test Provisioning Policy with Assignments"
-  image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"
+  image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc"
 
   microsoft_managed_desktop = {
     # Uses default values
@@ -194,7 +190,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "tes
 func testAccCloudPcProvisioningPolicyConfig_missingDisplayName() string {
 	return `
 resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "test" {
-  image_id = "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"
+  image_id = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc"
   
   microsoft_managed_desktop = {}
   

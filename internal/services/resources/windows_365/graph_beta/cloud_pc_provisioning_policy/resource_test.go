@@ -69,7 +69,7 @@ func testConfigMaximalWithResourceName(resourceName string) string {
 func testConfigMinimalWithResourceName(resourceName string) string {
 	return fmt.Sprintf(`resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "%s" {
   display_name = "Test Minimal Provisioning Policy"
-  image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"
+  image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc"
   
   microsoft_managed_desktop = {
     # Uses default values: managed_type = "notManaged", profile = "4aa9b805-9494-4eed-a04b-ed51ec9e631e"
@@ -112,7 +112,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_01_CreateMinimal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckExists("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.minimal"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.minimal", "display_name", "Test Minimal Provisioning Policy - Unique"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.minimal", "image_id", "microsoftwindowsdesktop_windows-ent-cpc_win11-23h2-ent-cpc"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.minimal", "image_id", "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.minimal", "windows_setting.locale", "en-US"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.minimal", "microsoft_managed_desktop.managed_type", "notManaged"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.minimal", "provisioning_type", "dedicated"), // Default value
@@ -147,7 +147,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_02_CreateMaximal(t *testing.T) {
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "description", "Maximal policy for testing with all features"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "cloud_pc_naming_template", "CPC-MAX-%USERNAME:5%-%RAND:5%"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "provisioning_type", "dedicated"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "image_id", "microsoftwindowsdesktop_windows-ent-cpc_win11-24H2-ent-cpc-m365"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "image_id", "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "image_type", "gallery"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "enable_single_sign_on", "true"),
 					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.maximal", "managed_by", "windows365"),
@@ -180,7 +180,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_CreateNorthEurope(t *testing.T) {
 
 	config := `resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "north_europe" {
 	display_name = "Test North Europe Provisioning Policy"
-	image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-25h2-ent-cpc"
+	image_id     = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc"
 
 	windows_setting = {
 		locale = "en-US"
