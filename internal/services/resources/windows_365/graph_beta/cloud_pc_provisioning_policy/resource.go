@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -141,6 +142,16 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 				MarkdownDescription: "The user experience: cloudPc provides the full desktop; cloudApp provides published applications and requires provisioning_type = sharedByEntraGroup. Defaults to cloudPc when creating a policy. Omitting this attribute preserves an imported policy's experience. Changing the experience requires replacement.",
 				Validators:          []validator.String{stringvalidator.OneOf("cloudPc", "cloudApp"), userExperienceProvisioningTypeValidator{}},
 				PlanModifiers:       []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
+			},
+			"user_settings_persistence_configuration": schema.SingleNestedAttribute{
+				Optional: true, Computed: true,
+				MarkdownDescription: "User application settings persistence for sharedByEntraGroup policies. Omitting this block preserves remote settings, including on import. Set enabled = false explicitly to disable persistence; removing the block does not disable it.",
+				Validators:          []validator.Object{persistenceProvisioningTypeValidator{}},
+				PlanModifiers:       []planmodifier.Object{objectplanmodifier.UseStateForUnknown()},
+				Attributes: map[string]schema.Attribute{
+					"enabled":               schema.BoolAttribute{Required: true, MarkdownDescription: "Whether to persist user application settings between Cloud PC sessions."},
+					"storage_size_category": schema.StringAttribute{Optional: true, Computed: true, PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}, MarkdownDescription: "Storage size for persisted settings: fourGB, eightGB, sixteenGB, thirtyTwoGB, or sixtyFourGB. Defaults to fourGB when no existing storage size is available.", Validators: []validator.String{stringvalidator.OneOf("fourGB", "eightGB", "sixteenGB", "thirtyTwoGB", "sixtyFourGB")}},
+				},
 			},
 			"provisioning_type": schema.StringAttribute{
 				Optional: true,

@@ -118,6 +118,9 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 			} else {
 				policyData["userExperienceType"] = "cloudPc"
 			}
+			if persistence, exists := requestBody["userSettingsPersistenceConfiguration"]; exists {
+				policyData["userSettingsPersistenceConfiguration"] = persistence
+			}
 			// Add optional fields only if provided in request
 			if description, exists := requestBody["description"]; exists {
 				policyData["description"] = description
