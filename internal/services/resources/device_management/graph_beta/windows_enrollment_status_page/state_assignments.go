@@ -11,7 +11,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
-// WindowsEnrollmentStatusPageAssignmentType returns the object type for WindowsQualityUpdateProfileAssignmentModel
+// WindowsEnrollmentStatusPageAssignmentType returns the enrollment status page assignment object type.
 func WindowsEnrollmentStatusPageAssignmentType() attr.Type {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -161,7 +161,7 @@ func MapAssignmentsToTerraform(
 		}
 
 		filterID := target.GetDeviceAndAppManagementAssignmentFilterId()
-		if filterID != nil && *filterID != "" {
+		if filterID != nil && *filterID != "" && *filterID != "00000000-0000-0000-0000-000000000000" {
 			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
 		}
 
