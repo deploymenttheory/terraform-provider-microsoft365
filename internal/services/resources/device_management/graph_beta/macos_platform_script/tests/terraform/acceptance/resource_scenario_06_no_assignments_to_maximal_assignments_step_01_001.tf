@@ -1,4 +1,28 @@
+resource "random_string" "test_suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 # Scenario 6: Step 1 - Resource with no assignments
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_006_1" {
+  display_name     = "acc-test-group-006-1-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-006-1-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 1 for macOS platform script assignment lifecycle"
+  hard_delete      = true
+}
+
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_006_2" {
+  display_name     = "acc-test-group-006-2-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-006-2-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 2 for macOS platform script assignment lifecycle"
+  hard_delete      = true
+}
+
 resource "microsoft365_graph_beta_device_management_macos_platform_script" "add_maximal_assignments" {
   display_name   = "acc-test-add-maximal-assignments"
   file_name      = "test_maximal_assignments.sh"

@@ -18,6 +18,15 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_1" {
 }
 
 # Scenario 7: Step 1 - Resource with single assignment
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_2" {
+  display_name     = "acc-test-group-007-2-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-007-2-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 2 for macOS platform script assignment lifecycle"
+  hard_delete      = true
+}
+
 resource "microsoft365_graph_beta_device_management_macos_platform_script" "assignment_update" {
   display_name   = "acc-test-assignment-update"
   file_name      = "test_assignment_update.sh"

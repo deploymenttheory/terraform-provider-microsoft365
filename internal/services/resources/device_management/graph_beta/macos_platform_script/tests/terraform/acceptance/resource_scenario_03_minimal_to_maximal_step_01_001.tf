@@ -6,6 +6,10 @@ resource "microsoft365_graph_beta_device_management_macos_platform_script" "upda
   script_content = "#!/bin/bash\necho 'Min Test'\nexit 0"
   run_as_account = "system"
 
+  block_execution_notifications = false
+  execution_frequency           = "PT0S"
+  retry_count                   = 0
+
   timeouts = {
     create = "30s"
     read   = "30s"
