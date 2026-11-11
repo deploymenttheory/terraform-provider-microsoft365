@@ -18,6 +18,24 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_1" {
   hard_delete      = true
 }
 
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_2" {
+  display_name     = "acc-test-group-007-2-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-007-2-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 2 for windows platform script assignments lifecycle"
+  hard_delete      = true
+}
+
+resource "microsoft365_graph_beta_groups_group" "acc_test_group_007_3" {
+  display_name     = "acc-test-group-007-3-${random_string.test_suffix.result}"
+  mail_nickname    = "acc-test-group-007-3-${random_string.test_suffix.result}"
+  mail_enabled     = false
+  security_enabled = true
+  description      = "Test group 3 for windows platform script exclusion assignments lifecycle"
+  hard_delete      = true
+}
+
 resource "microsoft365_graph_beta_device_management_windows_platform_script" "test_007" {
   display_name   = "acc-test-windows-platform-script-007-${random_string.test_suffix.result}"
   file_name      = "test-script-007.ps1"
