@@ -15,6 +15,7 @@ import (
 	graphBetaLinuxPlatformScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/linux_platform_script"
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -114,6 +115,7 @@ func TestAccResourceLinuxPlatformScript_02_Scenario_Maximal(t *testing.T) {
 }
 
 func TestAccResourceLinuxPlatformScript_03_Lifecycle_MinimalToMaximal(t *testing.T) {
+	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -130,8 +132,11 @@ func TestAccResourceLinuxPlatformScript_03_Lifecycle_MinimalToMaximal(t *testing
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				Config:           loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_003", plancheck.ResourceActionCreate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceType+".test_003", "id", func(value string) error { scriptID = value; return nil }),
+					check.That(resourceType+".test_003").ExistsInGraph(testResource),
 					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_003").Key("name").Exists(),
 					check.That(resourceType+".test_003").Key("platforms").HasValue("linux"),
@@ -145,8 +150,18 @@ func TestAccResourceLinuxPlatformScript_03_Lifecycle_MinimalToMaximal(t *testing
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				ResourceName:            resourceType + ".test_003",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_003", plancheck.ResourceActionUpdate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_003", "id", &scriptID),
+					check.That(resourceType+".test_003").ExistsInGraph(testResource),
 					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_003").Key("name").Exists(),
 					check.That(resourceType+".test_003").Key("platforms").HasValue("linux"),
@@ -171,11 +186,38 @@ func TestAccResourceLinuxPlatformScript_03_Lifecycle_MinimalToMaximal(t *testing
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
+			{Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_003", plancheck.ResourceActionUpdate)}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_003", "id", &scriptID),
+					check.That(resourceType+".test_003").ExistsInGraph(testResource),
+					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_003").Key("name").Exists(),
+					check.That(resourceType+".test_003").Key("platforms").HasValue("linux"),
+					check.That(resourceType+".test_003").Key("technologies.0").HasValue("linuxMdm"),
+					check.That(resourceType+".test_003").Key("script_content").HasValue(minimalScriptContent),
+					check.That(resourceType+".test_003").Key("execution_context").HasValue("user"),
+					check.That(resourceType+".test_003").Key("execution_frequency").HasValue("15minutes"),
+					check.That(resourceType+".test_003").Key("execution_retries").HasValue("1"),
+					check.That(resourceType+".test_003").Key("role_scope_tag_ids.0").HasValue("0"),
+					resource.TestCheckNoResourceAttr(resourceType+".test_003", "assignments.#"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".test_003",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"), PlanOnly: true},
 		},
 	})
 }
 
 func TestAccResourceLinuxPlatformScript_04_Lifecycle_MaximalToMinimal(t *testing.T) {
+	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -192,8 +234,11 @@ func TestAccResourceLinuxPlatformScript_04_Lifecycle_MaximalToMinimal(t *testing
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				Config:           loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_004", plancheck.ResourceActionCreate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceType+".test_004", "id", func(value string) error { scriptID = value; return nil }),
+					check.That(resourceType+".test_004").ExistsInGraph(testResource),
 					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_004").Key("name").Exists(),
 					check.That(resourceType+".test_004").Key("platforms").HasValue("linux"),
@@ -208,8 +253,18 @@ func TestAccResourceLinuxPlatformScript_04_Lifecycle_MaximalToMinimal(t *testing
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				ResourceName:            resourceType + ".test_004",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_004", plancheck.ResourceActionUpdate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_004", "id", &scriptID),
+					check.That(resourceType+".test_004").ExistsInGraph(testResource),
 					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_004").Key("name").Exists(),
 					check.That(resourceType+".test_004").Key("platforms").HasValue("linux"),
@@ -233,6 +288,33 @@ func TestAccResourceLinuxPlatformScript_04_Lifecycle_MaximalToMinimal(t *testing
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
+			{Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_004", plancheck.ResourceActionUpdate)}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_004", "id", &scriptID),
+					check.That(resourceType+".test_004").ExistsInGraph(testResource),
+					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_004").Key("name").Exists(),
+					check.That(resourceType+".test_004").Key("platforms").HasValue("linux"),
+					check.That(resourceType+".test_004").Key("technologies.0").HasValue("linuxMdm"),
+					check.That(resourceType+".test_004").Key("description").HasValue("Maximal Linux platform script"),
+					check.That(resourceType+".test_004").Key("script_content").HasValue(maximalScriptContent),
+					check.That(resourceType+".test_004").Key("execution_context").HasValue("root"),
+					check.That(resourceType+".test_004").Key("execution_frequency").HasValue("1day"),
+					check.That(resourceType+".test_004").Key("execution_retries").HasValue("3"),
+					check.That(resourceType+".test_004").Key("role_scope_tag_ids.#").HasValue("1"),
+					resource.TestCheckNoResourceAttr(resourceType+".test_004", "assignments.#"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".test_004",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"), PlanOnly: true},
 		},
 	})
 }
@@ -347,6 +429,7 @@ func TestAccResourceLinuxPlatformScript_06_AssignmentsMaximal(t *testing.T) {
 }
 
 func TestAccResourceLinuxPlatformScript_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -369,8 +452,11 @@ func TestAccResourceLinuxPlatformScript_07_AssignmentsLifecycle_MinimalToMaximal
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				Config:           loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_007", plancheck.ResourceActionCreate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceType+".test_007", "id", func(value string) error { scriptID = value; return nil }),
+					check.That(resourceType+".test_007").ExistsInGraph(testResource),
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("name").Exists(),
 					check.That(resourceType+".test_007").Key("platforms").HasValue("linux"),
@@ -390,8 +476,18 @@ func TestAccResourceLinuxPlatformScript_07_AssignmentsLifecycle_MinimalToMaximal
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				ResourceName:            resourceType + ".test_007",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_007", plancheck.ResourceActionUpdate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_007", "id", &scriptID),
+					check.That(resourceType+".test_007").ExistsInGraph(testResource),
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("name").Exists(),
 					check.That(resourceType+".test_007").Key("platforms").HasValue("linux"),
@@ -419,11 +515,44 @@ func TestAccResourceLinuxPlatformScript_07_AssignmentsLifecycle_MinimalToMaximal
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
+			{Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_007", plancheck.ResourceActionUpdate)}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_007", "id", &scriptID),
+					check.That(resourceType+".test_007").ExistsInGraph(testResource),
+					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_007").Key("name").Exists(),
+					check.That(resourceType+".test_007").Key("platforms").HasValue("linux"),
+					check.That(resourceType+".test_007").Key("technologies.0").HasValue("linuxMdm"),
+					check.That(resourceType+".test_007").Key("script_content").HasValue(minimalScriptContent),
+					check.That(resourceType+".test_007").Key("execution_context").HasValue("user"),
+					check.That(resourceType+".test_007").Key("execution_frequency").HasValue("15minutes"),
+					check.That(resourceType+".test_007").Key("execution_retries").HasValue("1"),
+					check.That(resourceType+".test_007").Key("role_scope_tag_ids.0").HasValue("0"),
+					check.That(resourceType+".test_007").Key("assignments.#").HasValue("1"),
+					resource.TestCheckTypeSetElemAttrPair(resourceType+".test_007", "assignments.*.group_id", graphBetaGroup.ResourceName+".acc_test_group_007_1", "id"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("linux platform script", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:            resourceType + ".test_007",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"), PlanOnly: true},
 		},
 	})
 }
 
 func TestAccResourceLinuxPlatformScript_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -446,8 +575,11 @@ func TestAccResourceLinuxPlatformScript_08_AssignmentsLifecycle_MaximalToMinimal
 		),
 		Steps: []resource.TestStep{
 			{
-				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				Config:           loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_008", plancheck.ResourceActionCreate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceType+".test_008", "id", func(value string) error { scriptID = value; return nil }),
+					check.That(resourceType+".test_008").ExistsInGraph(testResource),
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("name").Exists(),
 					check.That(resourceType+".test_008").Key("platforms").HasValue("linux"),
@@ -470,8 +602,18 @@ func TestAccResourceLinuxPlatformScript_08_AssignmentsLifecycle_MaximalToMinimal
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				ResourceName:            resourceType + ".test_008",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_008", plancheck.ResourceActionUpdate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_008", "id", &scriptID),
+					check.That(resourceType+".test_008").ExistsInGraph(testResource),
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("name").Exists(),
 					check.That(resourceType+".test_008").Key("platforms").HasValue("linux"),
@@ -491,8 +633,18 @@ func TestAccResourceLinuxPlatformScript_08_AssignmentsLifecycle_MaximalToMinimal
 				),
 			},
 			{
-				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_3.tf"),
+				ResourceName:            resourceType + ".test_008",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_3.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_008", plancheck.ResourceActionUpdate)}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_008", "id", &scriptID),
+					check.That(resourceType+".test_008").ExistsInGraph(testResource),
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("name").Exists(),
 					check.That(resourceType+".test_008").Key("platforms").HasValue("linux"),
@@ -516,6 +668,41 @@ func TestAccResourceLinuxPlatformScript_08_AssignmentsLifecycle_MaximalToMinimal
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
+			{Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_3.tf"), PlanOnly: true},
+			{
+				Config:           loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test_008", plancheck.ResourceActionUpdate)}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_008", "id", &scriptID),
+					check.That(resourceType+".test_008").ExistsInGraph(testResource),
+					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_008").Key("name").Exists(),
+					check.That(resourceType+".test_008").Key("platforms").HasValue("linux"),
+					check.That(resourceType+".test_008").Key("technologies.0").HasValue("linuxMdm"),
+					check.That(resourceType+".test_008").Key("script_content").HasValue(minimalScriptContent),
+					check.That(resourceType+".test_008").Key("execution_context").HasValue("user"),
+					check.That(resourceType+".test_008").Key("execution_frequency").HasValue("15minutes"),
+					check.That(resourceType+".test_008").Key("execution_retries").HasValue("1"),
+					check.That(resourceType+".test_008").Key("role_scope_tag_ids.0").HasValue("0"),
+					check.That(resourceType+".test_008").Key("assignments.#").HasValue("3"),
+					resource.TestCheckTypeSetElemAttrPair(resourceType+".test_008", "assignments.*.group_id", graphBetaGroup.ResourceName+".acc_test_group_008_1", "id"),
+					resource.TestCheckTypeSetElemAttrPair(resourceType+".test_008", "assignments.*.group_id", graphBetaGroup.ResourceName+".acc_test_group_008_2", "id"),
+					resource.TestCheckTypeSetElemAttrPair(resourceType+".test_008", "assignments.*.group_id", graphBetaGroup.ResourceName+".acc_test_group_008_3", "id"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceType+".test_008", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget"}),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("linux platform script", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				ResourceName:            resourceType + ".test_008",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"), PlanOnly: true},
 		},
 	})
 }
