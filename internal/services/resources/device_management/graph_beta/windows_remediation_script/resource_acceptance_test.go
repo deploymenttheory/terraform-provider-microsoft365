@@ -16,6 +16,7 @@ import (
 	graphBetaWindowsRemediationScript "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_remediation_script"
 	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -159,6 +160,7 @@ func TestAccResourceWindowsRemediationScript_02_Scenario_Maximal(t *testing.T) {
 
 // Test 003: Scenario 3 - Lifecycle from minimal to maximal
 func TestAccResourceWindowsRemediationScript_03_Lifecycle_MinimalToMaximal(t *testing.T) {
+	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -176,30 +178,54 @@ func TestAccResourceWindowsRemediationScript_03_Lifecycle_MinimalToMaximal(t *te
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_003", plancheck.ResourceActionCreate),
+				}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceType+".test_003", "id", func(value string) error { scriptID = value; return nil }),
+					check.That(resourceType+".test_003").ExistsInGraph(testResource),
 					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_003").Key("run_as_account").HasValue("system"),
 				),
 			},
+			{ResourceName: resourceType + ".test_003", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"), PlanOnly: true},
 			{
 				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_003", plancheck.ResourceActionUpdate),
+				}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_003", "id", &scriptID),
+					check.That(resourceType+".test_003").ExistsInGraph(testResource),
 					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_003").Key("run_as_account").HasValue("user"),
 					check.That(resourceType+".test_003").Key("run_as_32_bit").HasValue("true"),
 				),
 			},
+			{ResourceName: resourceType + ".test_003", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_2.tf"), PlanOnly: true},
 			{
-				ResourceName:      resourceType + ".test_003",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_003", plancheck.ResourceActionUpdate),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_003", "id", &scriptID),
+					check.That(resourceType+".test_003").ExistsInGraph(testResource),
+					check.That(resourceType+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_003").Key("run_as_account").HasValue("system"),
+				),
 			},
+			{ResourceName: resourceType + ".test_003", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"), PlanOnly: true},
 		},
 	})
 }
 
 // Test 004: Scenario 4 - Lifecycle from maximal to minimal
 func TestAccResourceWindowsRemediationScript_04_Lifecycle_MaximalToMinimal(t *testing.T) {
+	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -217,23 +243,46 @@ func TestAccResourceWindowsRemediationScript_04_Lifecycle_MaximalToMinimal(t *te
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_004", plancheck.ResourceActionCreate),
+				}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceType+".test_004", "id", func(value string) error { scriptID = value; return nil }),
+					check.That(resourceType+".test_004").ExistsInGraph(testResource),
 					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_004").Key("run_as_account").HasValue("user"),
 				),
 			},
+			{ResourceName: resourceType + ".test_004", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"), PlanOnly: true},
 			{
 				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_004", plancheck.ResourceActionUpdate),
+				}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_004", "id", &scriptID),
+					check.That(resourceType+".test_004").ExistsInGraph(testResource),
 					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_004").Key("run_as_account").HasValue("system"),
 				),
 			},
+			{ResourceName: resourceType + ".test_004", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_2.tf"), PlanOnly: true},
 			{
-				ResourceName:      resourceType + ".test_004",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_004", plancheck.ResourceActionUpdate),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_004", "id", &scriptID),
+					check.That(resourceType+".test_004").ExistsInGraph(testResource),
+					check.That(resourceType+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_004").Key("run_as_account").HasValue("user"),
+				),
 			},
+			{ResourceName: resourceType + ".test_004", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"), PlanOnly: true},
 		},
 	})
 }
@@ -320,6 +369,7 @@ func TestAccResourceWindowsRemediationScript_06_AssignmentsMaximal(t *testing.T)
 
 // Test 007: Scenario 7 - Assignments lifecycle minimal to maximal
 func TestAccResourceWindowsRemediationScript_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
+	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -347,7 +397,12 @@ func TestAccResourceWindowsRemediationScript_07_AssignmentsLifecycle_MinimalToMa
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_007", plancheck.ResourceActionCreate),
+				}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceType+".test_007", "id", func(value string) error { scriptID = value; return nil }),
+					check.That(resourceType+".test_007").ExistsInGraph(testResource),
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("assignments.#").HasValue("1"),
 					func(_ *terraform.State) error {
@@ -357,24 +412,48 @@ func TestAccResourceWindowsRemediationScript_07_AssignmentsLifecycle_MinimalToMa
 					},
 				),
 			},
+			{ResourceName: resourceType + ".test_007", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"), PlanOnly: true},
 			{
 				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_007", plancheck.ResourceActionUpdate),
+				}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_007", "id", &scriptID),
+					check.That(resourceType+".test_007").ExistsInGraph(testResource),
 					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_007").Key("assignments.#").HasValue("5"),
 				),
 			},
+			{ResourceName: resourceType + ".test_007", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_2.tf"), PlanOnly: true},
 			{
-				ResourceName:      resourceType + ".test_007",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_007", plancheck.ResourceActionUpdate),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_007", "id", &scriptID),
+					check.That(resourceType+".test_007").ExistsInGraph(testResource),
+					check.That(resourceType+".test_007").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_007").Key("assignments.#").HasValue("1"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows remediation script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
 			},
+			{ResourceName: resourceType + ".test_007", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"), PlanOnly: true},
 		},
 	})
 }
 
 // Test 008: Scenario 8 - Assignments lifecycle maximal to minimal
 func TestAccResourceWindowsRemediationScript_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
+	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
@@ -402,7 +481,12 @@ func TestAccResourceWindowsRemediationScript_08_AssignmentsLifecycle_MaximalToMi
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_008", plancheck.ResourceActionCreate),
+				}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(resourceType+".test_008", "id", func(value string) error { scriptID = value; return nil }),
+					check.That(resourceType+".test_008").ExistsInGraph(testResource),
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("assignments.#").HasValue("5"),
 					func(_ *terraform.State) error {
@@ -412,18 +496,41 @@ func TestAccResourceWindowsRemediationScript_08_AssignmentsLifecycle_MaximalToMi
 					},
 				),
 			},
+			{ResourceName: resourceType + ".test_008", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"), PlanOnly: true},
 			{
 				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_008", plancheck.ResourceActionUpdate),
+				}},
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_008", "id", &scriptID),
+					check.That(resourceType+".test_008").ExistsInGraph(testResource),
 					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_008").Key("assignments.#").HasValue("1"),
 				),
 			},
+			{ResourceName: resourceType + ".test_008", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_2.tf"), PlanOnly: true},
 			{
-				ResourceName:      resourceType + ".test_008",
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".test_008", plancheck.ResourceActionUpdate),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".test_008", "id", &scriptID),
+					check.That(resourceType+".test_008").ExistsInGraph(testResource),
+					check.That(resourceType+".test_008").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".test_008").Key("assignments.#").HasValue("5"),
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("windows remediation script assignments", 20*time.Second)
+						time.Sleep(20 * time.Second)
+						return nil
+					},
+				),
 			},
+			{ResourceName: resourceType + ".test_008", ImportState: true, ImportStateVerify: true},
+			{Config: loadAcceptanceTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"), PlanOnly: true},
 		},
 	})
 }
