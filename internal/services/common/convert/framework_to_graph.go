@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
@@ -206,6 +207,22 @@ func FrameworkToGraphISODuration(value basetypes.StringValue, setter func(*seria
 		return fmt.Errorf("error parsing ISO 8601 duration: %v", err)
 	}
 	setter(isoDuration)
+	return nil
+}
+
+// FrameworkToGraphISODurationString validates a Terraform Framework ISO 8601 duration and sets its original string value.
+// Preserves duration formatting that the Graph SDK ISODuration serializer can change or discard.
+// Returns an error if validation fails. No-op if the value is null or unknown.
+func FrameworkToGraphISODurationString(value basetypes.StringValue, setter func(*string)) error {
+	if value.IsNull() || value.IsUnknown() {
+		return nil
+	}
+	raw := value.ValueString()
+	valid := regexp.MustCompile(constants.ISO8601DurationRegex).MatchString(raw)
+	if !valid || raw == "P" || raw == "PT" || strings.HasSuffix(raw, "T") || (strings.Contains(raw, "W") && !regexp.MustCompile(`^P\d+W$`).MatchString(raw)) {
+		return fmt.Errorf("invalid ISO 8601 duration: %q", raw)
+	}
+	setter(&raw)
 	return nil
 }
 

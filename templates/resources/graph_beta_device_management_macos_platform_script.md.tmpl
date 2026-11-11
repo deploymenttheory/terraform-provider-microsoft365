@@ -38,6 +38,12 @@ The following client `application` permissions are needed in order to use this {
 
 {{ tffile "examples/resources/microsoft365_graph_beta_device_management_macos_platform_script/resource.tf" }}
 
+### Run Once
+
+Set `execution_frequency` to `PT0S` to run once, including when changing an existing recurring schedule.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_macos_platform_script/resource_run_once.tf" }}
+
 {{ .SchemaMarkdown | trimspace }}
 
 ## Important Notes

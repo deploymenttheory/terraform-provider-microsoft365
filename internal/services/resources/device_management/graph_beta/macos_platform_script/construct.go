@@ -1,4 +1,3 @@
-// Main entry point to construct the intune windows device management script resource for the Terraform provider.
 package graphBetaMacOSPlatformScript
 
 import (
@@ -11,7 +10,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// Main entry point to construct the intune windows device management script resource for the Terraform provider.
+// constructResource creates the request body for a macOS platform script.
 func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceModel) (graphmodels.DeviceShellScriptable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
@@ -33,7 +32,9 @@ func constructResource(ctx context.Context, data *MacOSPlatformScriptResourceMod
 
 	convert.FrameworkToGraphBool(data.BlockExecutionNotifications, requestBody.SetBlockExecutionNotifications)
 
-	if err := convert.FrameworkToGraphISODuration(data.ExecutionFrequency, requestBody.SetExecutionFrequency); err != nil {
+	if err := convert.FrameworkToGraphISODurationString(data.ExecutionFrequency, func(value *string) {
+		requestBody.GetAdditionalData()["executionFrequency"] = *value
+	}); err != nil {
 		return nil, fmt.Errorf("error setting execution frequency: %v", err)
 	}
 
