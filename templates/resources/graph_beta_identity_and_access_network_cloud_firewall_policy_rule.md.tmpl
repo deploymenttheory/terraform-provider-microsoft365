@@ -30,6 +30,7 @@ DELETE /beta/networkAccess/cloudFirewallPolicies/{policy_id}/policyRules/{id}
 - Names and priorities must be unique within a policy. To exchange priorities, move one rule to an unused priority in a separate apply first.
 - Rules with nonempty branch conditions cannot currently be imported or managed; Read returns a diagnostic to avoid dropping existing conditions.
 - Saving `enabled` and reading `status` does not confirm traffic enforcement. This resource does not create policy links or assignments.
+- Enforcement depends on the profile the policy is linked to: the baseline profile for remote networks, or a security profile assigned through Conditional Access for Global Secure Access clients. Only the highest-priority applicable profile's firewall policy is evaluated. See [Configure cloud firewall for Global Secure Access clients](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-cloud-firewall-clients).
 
 ## Microsoft Graph API Permissions
 

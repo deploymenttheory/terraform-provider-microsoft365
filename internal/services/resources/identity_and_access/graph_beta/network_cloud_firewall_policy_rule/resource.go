@@ -116,7 +116,7 @@ func matchingSchema(destination bool) schema.SingleNestedAttribute {
 	description := "Source conditions. Omit this object to leave source matching unspecified."
 	if destination {
 		addressTypes = append(addressTypes, "fqdn")
-		description = "Destination conditions. Omit this object to leave destination matching unspecified. FQDN conditions can be stored but do not work for remote-network Internet Access traffic."
+		description = "Destination conditions. Omit this object to leave destination matching unspecified. FQDN conditions apply to Global Secure Access client traffic but not to remote-network traffic, and do not match direct-IP connections without a destination FQDN."
 	}
 	attrs := map[string]schema.Attribute{
 		"addresses": schema.SetNestedAttribute{MarkdownDescription: "Address groups, at most one per type. Each group's values are matched with OR. Terraform defaults to an empty set.", Optional: true, Computed: true, Default: setdefault.StaticValue(types.SetValueMust(addressObjectType(), nil)), NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
