@@ -176,7 +176,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 							Optional: true,
 							Computed: true,
 							MarkdownDescription: "The supported Azure region where the IT admin wants the provisioning policy to create Cloud PCs. It is recommended using the Automatic option." +
-								"The option allows Windows 365 to make the best selection which decreases the chance of provisioning failure.",
+								"The option allows Windows 365 to make the best selection which decreases the chance of provisioning failure. Use centralindia for Central India. The legacy indiacentral spelling remains accepted for compatibility and is sent unchanged; it is not an alias for centralindia.",
 							Default: stringdefault.StaticString("automatic"),
 							Validators: []validator.String{
 								stringvalidator.OneOf(
@@ -202,6 +202,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 									"swedencentral",
 									"switzerlandnorth",
 									"uksouth",
+									"centralindia",
 									"indiacentral",
 									"qatarcentral",
 									"israelcentral",
