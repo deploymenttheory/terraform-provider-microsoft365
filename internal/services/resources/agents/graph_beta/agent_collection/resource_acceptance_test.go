@@ -26,7 +26,7 @@ package graphBetaAgentsAgentCollection_test
 // func TestAccAgentCollectionResource_Minimal(t *testing.T) {
 // 	resource.Test(t, resource.TestCase{
 // 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-// 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+// 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 // 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 // 			testResource,
 // 			resourceType,
@@ -75,7 +75,7 @@ package graphBetaAgentsAgentCollection_test
 // func TestAccAgentCollectionResource_Maximal(t *testing.T) {
 // 	resource.Test(t, resource.TestCase{
 // 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-// 		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+// 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 // 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 // 			testResource,
 // 			resourceType,

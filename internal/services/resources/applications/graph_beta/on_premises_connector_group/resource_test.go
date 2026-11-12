@@ -31,7 +31,7 @@ func TestUnitResourceConnectorGroup_01_Minimal(t *testing.T) {
 	defer connectorGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigConnectorGroupMinimal(),
@@ -61,7 +61,7 @@ func TestUnitResourceConnectorGroup_02_WithRegion(t *testing.T) {
 	defer connectorGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigConnectorGroupWithRegion(),
@@ -84,7 +84,7 @@ func TestUnitResourceConnectorGroup_03_Update(t *testing.T) {
 	defer connectorGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigConnectorGroupMinimal(),
@@ -111,7 +111,7 @@ func TestUnitResourceConnectorGroup_04_ImportDefaultRemovesStateOnlyOnDestroy(t 
 	defer connectorGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:        testConfigConnectorGroupDefaultImport(),

@@ -26,7 +26,7 @@ func loadAccTestTerraform(filename string) string {
 func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -73,7 +73,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testin
 func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -119,7 +119,7 @@ func TestAccResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testin
 func TestAccResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

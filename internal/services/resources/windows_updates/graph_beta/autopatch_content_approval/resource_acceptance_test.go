@@ -40,7 +40,7 @@ func externalProviders() map[string]resource.ExternalProvider {
 func TestAccResourceWindowsUpdateContentApproval_01_FeatureUpdateApproval(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -86,7 +86,7 @@ func TestAccResourceWindowsUpdateContentApproval_01_FeatureUpdateApproval(t *tes
 func TestAccResourceWindowsUpdateContentApproval_02_UpdateDeploymentSettings(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{

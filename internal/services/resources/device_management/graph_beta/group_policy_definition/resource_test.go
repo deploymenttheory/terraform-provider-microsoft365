@@ -54,7 +54,7 @@ func TestUnitResourceGroupPolicyDefinition_01_Boolean_Minimal(t *testing.T) {
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_boolean_minimal.tf"),
@@ -90,7 +90,7 @@ func TestUnitResourceGroupPolicyDefinition_02_Boolean_Maximal(t *testing.T) {
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_boolean_maximal.tf"),
@@ -121,7 +121,7 @@ func TestUnitResourceGroupPolicyDefinition_03_TextBox(t *testing.T) {
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_textbox.tf"),
@@ -152,7 +152,7 @@ func TestUnitResourceGroupPolicyDefinition_04_Decimal(t *testing.T) {
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("004_decimal.tf"),
@@ -182,7 +182,7 @@ func TestUnitResourceGroupPolicyDefinition_05_MultiText(t *testing.T) {
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("005_multitext.tf"),
@@ -211,7 +211,7 @@ func TestUnitResourceGroupPolicyDefinition_06_Dropdown(t *testing.T) {
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("006_dropdown.tf"),
@@ -241,7 +241,7 @@ func TestUnitResourceGroupPolicyDefinition_07_Lifecycle_TypeTransitions(t *testi
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Boolean
 			{
@@ -301,7 +301,7 @@ func TestUnitResourceGroupPolicyDefinition_08_Validation_InvalidLabel(t *testing
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("008_validation_invalid_label.tf"),
@@ -319,7 +319,7 @@ func TestUnitResourceGroupPolicyDefinition_09_Validation_InvalidBooleanValue(t *
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("009_validation_invalid_boolean.tf"),
@@ -337,7 +337,7 @@ func TestUnitResourceGroupPolicyDefinition_10_Validation_InvalidDecimal(t *testi
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("010_validation_invalid_decimal.tf"),
@@ -355,7 +355,7 @@ func TestUnitResourceGroupPolicyDefinition_11_Validation_ReadOnlyPresentation(t 
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("011_validation_readonly_presentation.tf"),
@@ -373,7 +373,7 @@ func TestUnitResourceGroupPolicyDefinition_12_Validation_MissingFields(t *testin
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("012_validation_missing_policy_name.tf"),
@@ -399,7 +399,7 @@ func TestUnitResourceGroupPolicyDefinition_13_Validation_InvalidClassType(t *tes
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("013_validation_invalid_class_type.tf"),
@@ -417,7 +417,7 @@ func TestUnitResourceGroupPolicyDefinition_14_NoPresentations(t *testing.T) {
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("014_no_presentations.tf"),
@@ -453,7 +453,7 @@ func TestUnitResourceGroupPolicyDefinition_15_PresentationsLookupError(t *testin
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("015_presentations_error.tf"),
@@ -472,7 +472,7 @@ func TestUnitResourceGroupPolicyDefinition_16_ImportMultipleDefinitionsInConfigu
 	defer groupPolicyDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("016_multiple_definitions_in_configuration.tf"),

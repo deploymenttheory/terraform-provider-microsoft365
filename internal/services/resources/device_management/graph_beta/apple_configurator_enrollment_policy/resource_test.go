@@ -40,7 +40,7 @@ func TestUnitResourceAppleConfiguratorEnrollmentPolicy_01_Schema(t *testing.T) {
 	defer appleMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -65,7 +65,7 @@ func TestUnitResourceAppleConfiguratorEnrollmentPolicy_02_AuthenticationScenario
 	defer appleMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigWithCompanyPortal(),
@@ -96,7 +96,7 @@ func TestUnitResourceAppleConfiguratorEnrollmentPolicy_03_ValidationErrors(t *te
 	defer appleMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigValidationError(),
@@ -113,7 +113,7 @@ func TestUnitResourceAppleConfiguratorEnrollmentPolicy_04_ErrorHandling(t *testi
 	defer appleMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigMinimal(),

@@ -152,7 +152,7 @@ func TestUnitResourceSettingsCatalogInventoryPolicy_02_ErrorHandling(t *testing.
 	defer inventoryMock.CleanupMockState()
 
 	terraformResource.UnitTest(t, terraformResource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []terraformResource.TestStep{
 			{
 				Config: `
@@ -203,7 +203,7 @@ func TestUnitResourceSettingsCatalogInventoryPolicy_03_Schema(t *testing.T) {
 	defer inventoryMock.CleanupMockState()
 
 	terraformResource.UnitTest(t, terraformResource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []terraformResource.TestStep{
 			{
 				Config: testUnitInventoryPolicyMinimal(),
@@ -235,7 +235,7 @@ func TestUnitResourceSettingsCatalogInventoryPolicy_04_Assignments(t *testing.T)
 	defer inventoryMock.CleanupMockState()
 
 	terraformResource.UnitTest(t, terraformResource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []terraformResource.TestStep{
 			{
 				Config: testUnitInventoryPolicyWithAllDevicesAssignment(),
@@ -314,7 +314,7 @@ func TestUnitResourceSettingsCatalogInventoryPolicy_05_Maximal(t *testing.T) {
 	defer inventoryMock.CleanupMockState()
 
 	terraformResource.UnitTest(t, terraformResource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []terraformResource.TestStep{
 			{
 				Config: testUnitInventoryPolicyMaximal(),

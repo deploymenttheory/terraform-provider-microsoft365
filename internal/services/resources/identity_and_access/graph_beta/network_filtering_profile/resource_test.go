@@ -39,7 +39,7 @@ func TestUnitResourceNetworkFilteringProfile_01_Basic(t *testing.T) {
 	defer filteringProfileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -67,7 +67,7 @@ func TestUnitResourceNetworkFilteringProfile_02_Update(t *testing.T) {
 	defer filteringProfileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -101,7 +101,7 @@ func TestUnitResourceNetworkFilteringProfile_03_InvalidState(t *testing.T) {
 	defer filteringProfileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigHelper("resource_invalid.tf"),
@@ -118,7 +118,7 @@ func TestUnitResourceNetworkFilteringProfile_04_CreateError(t *testing.T) {
 	defer filteringProfileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigHelper("resource_minimal.tf"),

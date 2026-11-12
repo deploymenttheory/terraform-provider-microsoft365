@@ -38,7 +38,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceAssignmentFilter_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -114,7 +114,7 @@ func TestAccResourceAssignmentFilter_02_MultiPlatform(t *testing.T) {
 		t.Run(fmt.Sprintf("platform_%s", platform), func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-				ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				CheckDestroy: destroy.CheckDestroyedAllFunc(
 					testResource,
 					resourceType,
@@ -180,7 +180,7 @@ func TestAccResourceAssignmentFilter_02_MultiPlatform(t *testing.T) {
 func TestAccResourceAssignmentFilter_03_ComplexRule(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -213,7 +213,7 @@ func TestAccResourceAssignmentFilter_03_ComplexRule(t *testing.T) {
 func TestAccResourceAssignmentFilter_03_RoleScopeTags(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -253,7 +253,7 @@ func TestAccResourceAssignmentFilter_05_ManagementTypes(t *testing.T) {
 		t.Run(fmt.Sprintf("management_type_%s", mgmtType), func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-				ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				CheckDestroy: destroy.CheckDestroyedAllFunc(
 					testResource,
 					resourceType,

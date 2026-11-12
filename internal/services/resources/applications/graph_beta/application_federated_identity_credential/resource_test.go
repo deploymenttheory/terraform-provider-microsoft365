@@ -54,7 +54,7 @@ func TestUnitResourceApplicationFederatedIdentityCredential_01_Minimal(t *testin
 	defer applicationFederatedIdentityCredentialMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_minimal.tf"),
@@ -84,7 +84,7 @@ func TestUnitResourceApplicationFederatedIdentityCredential_02_Maximal(t *testin
 	defer applicationFederatedIdentityCredentialMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_maximal.tf"),
@@ -115,7 +115,7 @@ func TestUnitResourceApplicationFederatedIdentityCredential_03_Update(t *testing
 	defer applicationFederatedIdentityCredentialMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_minimal.tf"),

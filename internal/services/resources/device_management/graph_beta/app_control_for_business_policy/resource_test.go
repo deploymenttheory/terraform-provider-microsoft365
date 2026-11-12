@@ -56,7 +56,7 @@ func TestUnitResourceAppControlForBusinessPolicy_01_MinimalSchema(t *testing.T) 
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_minimal-no-assignments.tf"),
@@ -82,7 +82,7 @@ func TestUnitResourceAppControlForBusinessPolicy_02_XMLPolicy(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_minimal-no-assignments.tf"),
@@ -112,7 +112,7 @@ func TestUnitResourceAppControlForBusinessPolicy_03_Assignments(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_minimal-minimal-assignments.tf"),
@@ -166,7 +166,7 @@ func TestUnitResourceAppControlForBusinessPolicy_04_Import(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_minimal-no-assignments.tf"),
@@ -191,7 +191,7 @@ func TestUnitResourceAppControlForBusinessPolicy_05_ErrorHandling(t *testing.T) 
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("09_error-invalid-policy-xml.tf"),
@@ -209,7 +209,7 @@ func TestUnitResourceAppControlForBusinessPolicy_06_MinimalMaximalAssignments(t 
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("06_minimal-maximal-assignments.tf"),
@@ -247,7 +247,7 @@ func TestUnitResourceAppControlForBusinessPolicy_07_MinimalAssignmentsToMaximalA
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("07_minimal-assignments-to-maximal-assignments-step1.tf"),
@@ -301,7 +301,7 @@ func TestUnitResourceAppControlForBusinessPolicy_08_MaximalAssignmentsToMinimalA
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("08_maximal-assignments-to-minimal-assignments-step1.tf"),
@@ -355,7 +355,7 @@ func TestUnitResourceAppControlForBusinessPolicy_09_MinimalToMaximal(t *testing.
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_minimal-to-maximal-step1.tf"),
@@ -391,7 +391,7 @@ func TestUnitResourceAppControlForBusinessPolicy_10_MaximalToMinimal(t *testing.
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_maximal-to-minimal-step1.tf"),

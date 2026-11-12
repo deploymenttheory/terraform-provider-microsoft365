@@ -25,7 +25,7 @@ var (
 func TestUnitDatasourceDeploymentScheduler_TimeCondition_ImmediateRelease(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_time_condition_immediate.tf"),
@@ -48,7 +48,7 @@ func TestUnitDatasourceDeploymentScheduler_TimeCondition_NotMetYet(t *testing.T)
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_time_condition_not_met.tf"),
@@ -73,7 +73,7 @@ func TestUnitDatasourceDeploymentScheduler_TimeCondition_InvalidNegativeOffset(t
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("03_time_condition_negative_offset.tf"),
@@ -90,7 +90,7 @@ func TestUnitDatasourceDeploymentScheduler_TimeCondition_AbsoluteEarliest(t *tes
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("27_time_condition_absolute_earliest.tf"),
@@ -113,7 +113,7 @@ func TestUnitDatasourceDeploymentScheduler_TimeCondition_AbsoluteLatest(t *testi
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("28_time_condition_absolute_latest.tf"),
@@ -136,7 +136,7 @@ func TestUnitDatasourceDeploymentScheduler_TimeCondition_MaxDuration(t *testing.
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("29_time_condition_max_duration.tf"),
@@ -159,7 +159,7 @@ func TestUnitDatasourceDeploymentScheduler_TimeCondition_CombinedAdvanced(t *tes
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("30_time_condition_combined_advanced.tf"),
@@ -186,7 +186,7 @@ func TestUnitDatasourceDeploymentScheduler_InclusionWindow_WithinDayOfWeek(t *te
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_inclusion_window_day_of_week.tf"),
@@ -207,7 +207,7 @@ func TestUnitDatasourceDeploymentScheduler_InclusionWindow_WithinTimeOfDay(t *te
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_inclusion_window_time_of_day.tf"),
@@ -230,7 +230,7 @@ func TestUnitDatasourceDeploymentScheduler_InclusionWindow_WithinDateRange(t *te
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("06_inclusion_window_date_range.tf"),
@@ -253,7 +253,7 @@ func TestUnitDatasourceDeploymentScheduler_InclusionWindow_MultipleWindows(t *te
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("07_inclusion_window_multiple.tf"),
@@ -278,7 +278,7 @@ func TestUnitDatasourceDeploymentScheduler_ExclusionWindow_BlockedByDayOfWeek(t 
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("08_exclusion_window_day_of_week.tf"),
@@ -299,7 +299,7 @@ func TestUnitDatasourceDeploymentScheduler_ExclusionWindow_BlockedByDateRange(t 
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("09_exclusion_window_date_range.tf"),
@@ -326,7 +326,7 @@ func TestUnitDatasourceDeploymentScheduler_ManualOverride_Enabled(t *testing.T) 
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("10_manual_override_enabled.tf"),
@@ -349,7 +349,7 @@ func TestUnitDatasourceDeploymentScheduler_ManualOverride_BypassesAllConditions(
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("11_manual_override_bypasses_all.tf"),
@@ -376,7 +376,7 @@ func TestUnitDatasourceDeploymentScheduler_Dependency_NotMetPrerequisiteNotOpen(
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("12_dependency_prerequisite_not_open.tf"),
@@ -399,7 +399,7 @@ func TestUnitDatasourceDeploymentScheduler_Dependency_NotMetInsufficientTime(t *
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("13_dependency_insufficient_time.tf"),
@@ -422,7 +422,7 @@ func TestUnitDatasourceDeploymentScheduler_Dependency_Met(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("14_dependency_met.tf"),
@@ -445,7 +445,7 @@ func TestUnitDatasourceDeploymentScheduler_Dependency_InvalidNegativeMinimumHour
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("15_dependency_negative_minimum.tf"),
@@ -466,7 +466,7 @@ func TestUnitDatasourceDeploymentScheduler_ScopeId_Singular(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("16_scope_id_singular.tf"),
@@ -490,7 +490,7 @@ func TestUnitDatasourceDeploymentScheduler_ScopeIds_Plural(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("17_scope_ids_plural.tf"),
@@ -514,7 +514,7 @@ func TestUnitDatasourceDeploymentScheduler_ScopeId_BothProvided(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("18_scope_both_provided.tf"),
@@ -531,7 +531,7 @@ func TestUnitDatasourceDeploymentScheduler_ScopeId_NeitherProvided(t *testing.T)
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("19_scope_neither_provided.tf"),
@@ -552,7 +552,7 @@ func TestUnitDatasourceDeploymentScheduler_Combination_TimeAndInclusionWindow(t 
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("20_combination_time_and_inclusion.tf"),
@@ -573,7 +573,7 @@ func TestUnitDatasourceDeploymentScheduler_Combination_TimeAndExclusionWindow(t 
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("21_combination_time_and_exclusion.tf"),
@@ -594,7 +594,7 @@ func TestUnitDatasourceDeploymentScheduler_Combination_AllConditions(t *testing.
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("22_combination_all_conditions.tf"),
@@ -619,7 +619,7 @@ func TestUnitDatasourceDeploymentScheduler_ReleasedValues_GateOpen(t *testing.T)
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("23_released_values_gate_open.tf"),
@@ -643,7 +643,7 @@ func TestUnitDatasourceDeploymentScheduler_ReleasedValues_GateClosed(t *testing.
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("24_released_values_gate_closed.tf"),
@@ -671,7 +671,7 @@ func TestUnitDatasourceDeploymentScheduler_Validation_InvalidScopeIdFormat(t *te
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("25_invalid_scope_id_format.tf"),
@@ -688,7 +688,7 @@ func TestUnitDatasourceDeploymentScheduler_Validation_InvalidScopeIdsFormat(t *t
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("26_invalid_scope_ids_format.tf"),
@@ -705,7 +705,7 @@ func TestUnitDatasourceDeploymentScheduler_Validation_InvalidDayOfWeek(t *testin
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("31_validation_invalid_day_of_week.tf"),

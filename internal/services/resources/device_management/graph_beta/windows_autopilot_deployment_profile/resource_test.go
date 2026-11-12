@@ -45,7 +45,7 @@ func TestUnitResourceWindowsAutopilotDeploymentProfile_01_SelfDeployingOsDefault
 	defer profileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_self_deploying_os_default_locale.tf"),
@@ -98,7 +98,7 @@ func TestUnitResourceWindowsAutopilotDeploymentProfile_02_UserDrivenHybridDomain
 	defer profileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_user_driven_hybrid_domain_join.tf"),
@@ -140,7 +140,7 @@ func TestUnitResourceWindowsAutopilotDeploymentProfile_03_UserDrivenWithGroupAss
 	defer profileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_user_driven_with_group_assignments.tf"),
@@ -187,7 +187,7 @@ func TestUnitResourceWindowsAutopilotDeploymentProfile_04_HoloLensWithAllDeviceA
 	defer profileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_hololens_with_all_device_assignment.tf"),
@@ -226,7 +226,7 @@ func TestUnitResourceWindowsAutopilotDeploymentProfile_05_ValidationError(t *tes
 	defer profileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_self_deploying_os_default_locale.tf"),
@@ -243,7 +243,7 @@ func TestUnitResourceWindowsAutopilotDeploymentProfile_06_Import(t *testing.T) {
 	defer profileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_self_deploying_os_default_locale.tf"),
@@ -268,7 +268,7 @@ func TestUnitResourceWindowsAutopilotDeploymentProfile_07_Update(t *testing.T) {
 	defer profileMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_self_deploying_os_default_locale.tf"),

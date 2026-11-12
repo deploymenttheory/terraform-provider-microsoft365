@@ -46,7 +46,7 @@ func externalProviders() map[string]resource.ExternalProvider {
 func TestAccDatasourceUser_01_ListAll(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +63,7 @@ func TestAccDatasourceUser_01_ListAll(t *testing.T) {
 func TestAccDatasourceUser_02_ByObjectId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -82,7 +82,7 @@ func TestAccDatasourceUser_02_ByObjectId(t *testing.T) {
 func TestAccDatasourceUser_03_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -100,7 +100,7 @@ func TestAccDatasourceUser_03_ByDisplayName(t *testing.T) {
 func TestAccDatasourceUser_04_ByEmployeeId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -118,7 +118,7 @@ func TestAccDatasourceUser_04_ByEmployeeId(t *testing.T) {
 func TestAccDatasourceUser_05_ByGivenName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -136,7 +136,7 @@ func TestAccDatasourceUser_05_ByGivenName(t *testing.T) {
 func TestAccDatasourceUser_06_ByUserPrincipalName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -160,7 +160,7 @@ func TestAccDatasourceUser_06_ByUserPrincipalName(t *testing.T) {
 func TestAccDatasourceUser_09_ByODataQuery(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{

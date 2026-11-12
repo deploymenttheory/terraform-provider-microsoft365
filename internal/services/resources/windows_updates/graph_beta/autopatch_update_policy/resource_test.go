@@ -48,7 +48,7 @@ func TestUnitResourceWindowsUpdatesUpdatePolicy_01_CreateUpdatePolicy(t *testing
 	defer updatePolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create_update_policy.tf"),
@@ -74,7 +74,7 @@ func TestUnitResourceWindowsUpdatesUpdatePolicy_02_UpdatePolicySettings(t *testi
 	defer updatePolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create_update_policy.tf"),
@@ -102,7 +102,7 @@ func TestUnitResourceWindowsUpdatesUpdatePolicy_03_MinimalPolicy(t *testing.T) {
 	defer updatePolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_minimal_policy.tf"),
@@ -122,7 +122,7 @@ func TestUnitResourceWindowsUpdatesUpdatePolicy_04_ErrorOnCreate(t *testing.T) {
 	defer updatePolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_create_update_policy.tf"),

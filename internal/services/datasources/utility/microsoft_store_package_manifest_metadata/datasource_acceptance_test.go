@@ -15,7 +15,7 @@ import (
 func TestAccDatasourceMicrosoftStorePackageManifestMetadata_01_PackageIdentifier(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -41,7 +41,7 @@ func TestAccDatasourceMicrosoftStorePackageManifestMetadata_01_PackageIdentifier
 func TestAccDatasourceMicrosoftStorePackageManifestMetadata_02_SearchTerm(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -64,7 +64,7 @@ func TestAccDatasourceMicrosoftStorePackageManifestMetadata_02_SearchTerm(t *tes
 func TestAccDatasourceMicrosoftStorePackageManifestMetadata_03_ValidateVersionStructure(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -93,7 +93,7 @@ func TestAccDatasourceMicrosoftStorePackageManifestMetadata_03_ValidateVersionSt
 func TestAccDatasourceMicrosoftStorePackageManifestMetadata_04_MultipleResults(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

@@ -48,7 +48,7 @@ func TestUnitResourceGroup_01_RequiredFields(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -106,7 +106,7 @@ func TestUnitResourceGroup_02_ErrorHandling(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -131,7 +131,7 @@ func TestUnitResourceGroup_03_InvalidValues(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -157,7 +157,7 @@ func TestUnitResourceGroup_04_MailNicknameValidation(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -182,7 +182,7 @@ func TestUnitResourceGroup_05_Scenario1_SecurityGroupAssigned(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scenario_1_security_group_assigned.tf"),
@@ -220,7 +220,7 @@ func TestUnitResourceGroup_06_Scenario2_SecurityGroupDynamicUser(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scenario_2_security_group_dynamic_user.tf"),
@@ -260,7 +260,7 @@ func TestUnitResourceGroup_07_Scenario3_SecurityGroupDynamicDevice(t *testing.T)
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scenario_3_security_group_dynamic_device.tf"),
@@ -300,7 +300,7 @@ func TestUnitResourceGroup_08_Scenario4_SecurityGroupRoleAssignable(t *testing.T
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scenario_4_security_group_role_assignable.tf"),
@@ -339,7 +339,7 @@ func TestUnitResourceGroup_09_Scenario5_M365GroupDynamicUser(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scenario_5_m365_group_dynamic_user.tf"),
@@ -380,7 +380,7 @@ func TestUnitResourceGroup_10_Scenario6_M365GroupAssigned(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scenario_6_m365_group_assigned.tf"),

@@ -38,7 +38,7 @@ func TestAccResourceNetworkCrossTenantAccessSettings_01_AdoptCurrentValue(t *tes
 	config := "provider \"microsoft365\" {}\n" + strings.ReplaceAll(string(hcl), "{{STATUS}}", status)
 	address := resourceType + ".test"
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(check.That(address).Key("network_packet_tagging_status").HasValue(status), check.That(address).ExistsInGraph(settings.NetworkCrossTenantAccessSettingsTestResource{}))},
 			{ResourceName: address, ImportState: true, ImportStateId: "crossTenantAccess", ImportStateVerify: true, ImportStateVerifyIgnore: []string{"timeouts"}},

@@ -20,7 +20,7 @@ func TestAccResourceNetworkConditionalAccessSettings_01_Adopt(t *testing.T) {
 	config := acceptance.ConfiguredM365ProviderBlock(hcl)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		// The singleton must remain in Graph after destroy; it has no resource deletion lifecycle.
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(

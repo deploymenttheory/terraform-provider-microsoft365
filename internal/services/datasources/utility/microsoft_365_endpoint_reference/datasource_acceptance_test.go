@@ -56,7 +56,7 @@ func testAccConfigExpressRoute() string {
 func TestAccDatasourceMicrosoft365EndpointReference_01_Worldwide(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigWorldwide(),
@@ -75,7 +75,7 @@ func TestAccDatasourceMicrosoft365EndpointReference_01_Worldwide(t *testing.T) {
 func TestAccDatasourceMicrosoft365EndpointReference_02_FilterExchangeOptimize(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigFilterExchangeOptimize(),
@@ -97,7 +97,7 @@ func TestAccDatasourceMicrosoft365EndpointReference_02_FilterExchangeOptimize(t 
 func TestAccDatasourceMicrosoft365EndpointReference_03_TeamsMedia(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigTeamsMedia(),
@@ -119,7 +119,7 @@ func TestAccDatasourceMicrosoft365EndpointReference_03_TeamsMedia(t *testing.T) 
 func TestAccDatasourceMicrosoft365EndpointReference_04_RequiredOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigRequiredOnly(),
@@ -138,7 +138,7 @@ func TestAccDatasourceMicrosoft365EndpointReference_04_RequiredOnly(t *testing.T
 func TestAccDatasourceMicrosoft365EndpointReference_05_ExpressRoute(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccConfigExpressRoute(),

@@ -42,7 +42,7 @@ func TestUnitDatasourceConditionalAccessTemplate_01_ByTemplateId(t *testing.T) {
 	defer catMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_by_template_id.tf"),
@@ -93,7 +93,7 @@ func TestUnitDatasourceConditionalAccessTemplate_02_ByName(t *testing.T) {
 	defer catMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_name.tf"),
@@ -144,7 +144,7 @@ func TestUnitDatasourceConditionalAccessTemplate_03_ValidationError(t *testing.T
 	defer catMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_by_template_id.tf"),
@@ -161,7 +161,7 @@ func TestUnitDatasourceConditionalAccessTemplate_04_FuzzyMatchSuggestion(t *test
 	defer catMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("03_invalid_name_fuzzy.tf"),

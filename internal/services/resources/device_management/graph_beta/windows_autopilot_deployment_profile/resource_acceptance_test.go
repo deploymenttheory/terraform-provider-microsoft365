@@ -36,7 +36,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsAutopilotDeploymentProfile_01_SelfDeployingOSDefaultLocale(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -98,7 +98,7 @@ func TestAccResourceWindowsAutopilotDeploymentProfile_01_SelfDeployingOSDefaultL
 func TestAccResourceWindowsAutopilotDeploymentProfile_02_UserDrivenHybridDomainJoin(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -154,7 +154,7 @@ func TestAccResourceWindowsAutopilotDeploymentProfile_02_UserDrivenHybridDomainJ
 func TestAccResourceWindowsAutopilotDeploymentProfile_02_UserDrivenWithGroupAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -209,7 +209,7 @@ func TestAccResourceWindowsAutopilotDeploymentProfile_02_UserDrivenWithGroupAssi
 func TestAccResourceWindowsAutopilotDeploymentProfile_04_HololensWithAllDeviceAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

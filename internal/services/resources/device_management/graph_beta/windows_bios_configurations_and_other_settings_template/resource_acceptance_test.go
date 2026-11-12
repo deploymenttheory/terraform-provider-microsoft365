@@ -82,7 +82,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_01_Scenari
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             checkDestroyBase(),
 		Steps: []resource.TestStep{
@@ -117,7 +117,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_02_Scenari
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             checkDestroyBase(),
 		Steps: []resource.TestStep{
@@ -148,7 +148,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_03_Lifecyc
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             checkDestroyBase(),
 		Steps: []resource.TestStep{
@@ -186,7 +186,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_04_Lifecyc
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             checkDestroyBase(),
 		Steps: []resource.TestStep{
@@ -225,7 +225,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_05_Assignm
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             checkDestroyWithGroups(),
 		Steps: []resource.TestStep{
@@ -258,7 +258,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_06_Assignm
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             checkDestroyWithGroups(),
 		Steps: []resource.TestStep{
@@ -291,7 +291,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_07_Assignm
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             checkDestroyWithGroups(),
 		Steps: []resource.TestStep{
@@ -329,7 +329,7 @@ func TestAccResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_08_Assignm
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             checkDestroyWithGroups(),
 		Steps: []resource.TestStep{

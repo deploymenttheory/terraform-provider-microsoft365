@@ -40,7 +40,7 @@ func TestUnitResourceWindowsDriverUpdateProfile_01_Schema(t *testing.T) {
 	defer driverMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -62,7 +62,7 @@ func TestUnitResourceWindowsDriverUpdateProfile_02_ApprovalTypes(t *testing.T) {
 	defer driverMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigManualApproval(),
@@ -92,7 +92,7 @@ func TestUnitResourceWindowsDriverUpdateProfile_03_GroupAssignments(t *testing.T
 	defer driverMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigGroupAssignments(),
@@ -115,7 +115,7 @@ func TestUnitResourceWindowsDriverUpdateProfile_04_ExclusionAssignment(t *testin
 	defer driverMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigExclusionAssignment(),
@@ -137,7 +137,7 @@ func TestUnitResourceWindowsDriverUpdateProfile_05_ErrorHandling(t *testing.T) {
 	defer driverMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigMinimal(),

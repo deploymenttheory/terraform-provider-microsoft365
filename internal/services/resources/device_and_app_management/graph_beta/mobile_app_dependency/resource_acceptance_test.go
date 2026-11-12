@@ -32,7 +32,7 @@ func TestAccResourceMobileAppDependency_01_Detect(t *testing.T) {
 			mocks.TestAccPreCheck(t)
 			t.Setenv("TF_VAR_installer_zip", prepareAcceptanceInstaller(t))
 		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -95,7 +95,7 @@ func TestAccResourceMobileAppDependency_02_AutoInstallToDetect(t *testing.T) {
 			mocks.TestAccPreCheck(t)
 			t.Setenv("TF_VAR_installer_zip", prepareAcceptanceInstaller(t))
 		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -162,7 +162,7 @@ func TestAccResourceMobileAppDependency_03_SiblingRemoval(t *testing.T) {
 			mocks.TestAccPreCheck(t)
 			t.Setenv("TF_VAR_installer_zip", prepareAcceptanceInstaller(t))
 		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

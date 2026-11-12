@@ -36,7 +36,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceVisionOSDeviceEnrollmentPolicy_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -79,7 +79,7 @@ func TestAccResourceVisionOSDeviceEnrollmentPolicy_01_Minimal(t *testing.T) {
 func TestAccResourceVisionOSDeviceEnrollmentPolicy_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -124,7 +124,7 @@ func TestAccResourceVisionOSDeviceEnrollmentPolicy_02_Maximal(t *testing.T) {
 func TestAccResourceVisionOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -182,7 +182,7 @@ func TestAccResourceVisionOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *testin
 func TestAccResourceVisionOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -240,7 +240,7 @@ func TestAccResourceVisionOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *testin
 func TestAccResourceVisionOSDeviceEnrollmentPolicy_05_DefaultPolicyAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

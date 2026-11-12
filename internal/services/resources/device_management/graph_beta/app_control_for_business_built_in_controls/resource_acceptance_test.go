@@ -32,7 +32,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceAppControlForBusinessBuiltInControls_01_AuditMode(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
@@ -70,7 +70,7 @@ func TestAccResourceAppControlForBusinessBuiltInControls_01_AuditMode(t *testing
 func TestAccResourceAppControlForBusinessBuiltInControls_02_EnforceMode(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
@@ -108,7 +108,7 @@ func TestAccResourceAppControlForBusinessBuiltInControls_02_EnforceMode(t *testi
 func TestAccResourceAppControlForBusinessBuiltInControls_03_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
@@ -156,7 +156,7 @@ func TestAccResourceAppControlForBusinessBuiltInControls_03_Minimal(t *testing.T
 func TestAccResourceAppControlForBusinessBuiltInControls_04_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
@@ -204,7 +204,7 @@ func TestAccResourceAppControlForBusinessBuiltInControls_04_Maximal(t *testing.T
 func TestAccResourceAppControlForBusinessBuiltInControls_05_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
@@ -259,7 +259,7 @@ func TestAccResourceAppControlForBusinessBuiltInControls_05_Lifecycle_MinimalToM
 func TestAccResourceAppControlForBusinessBuiltInControls_06_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
@@ -313,7 +313,7 @@ func TestAccResourceAppControlForBusinessBuiltInControls_06_Lifecycle_MaximalToM
 func TestAccResourceAppControlForBusinessBuiltInControls_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaAppControlForBusinessBuiltInControls.ResourceName,
@@ -367,7 +367,7 @@ func TestAccResourceAppControlForBusinessBuiltInControls_07_AssignmentsLifecycle
 func TestAccResourceAppControlForBusinessBuiltInControls_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaAppControlForBusinessBuiltInControls.ResourceName,

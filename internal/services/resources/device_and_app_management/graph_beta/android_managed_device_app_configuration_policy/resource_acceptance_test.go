@@ -27,7 +27,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -68,7 +68,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_01_Lifecycle(t *t
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_02_MicrosoftAuthenticator(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -98,7 +98,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_02_MicrosoftAuthe
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_03_Microsoft365Copilot(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -127,7 +127,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_03_Microsoft365Co
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_04_ManagedHomeScreen(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -156,7 +156,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_04_ManagedHomeScr
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_05_MicrosoftDefender(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -185,7 +185,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_05_MicrosoftDefen
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_06_MicrosoftEdge(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -214,7 +214,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_06_MicrosoftEdge(
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_07_MicrosoftExcel(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -243,7 +243,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_07_MicrosoftExcel
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_08_MicrosoftPowerPoint(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -272,7 +272,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_08_MicrosoftPower
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_09_MicrosoftWord(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -301,7 +301,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_09_MicrosoftWord(
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_10_MicrosoftOneNote(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -330,7 +330,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_10_MicrosoftOneNo
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_11_MicrosoftOneDrive(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -359,7 +359,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_11_MicrosoftOneDr
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_12_MicrosoftOutlook(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -388,7 +388,7 @@ func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_12_MicrosoftOutlo
 func TestAccResourceAndroidManagedDeviceAppConfigurationPolicy_13_MicrosoftTeams(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAndroidManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {

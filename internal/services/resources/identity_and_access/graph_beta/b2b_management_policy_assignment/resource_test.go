@@ -36,7 +36,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_01_ServicePrincipal(t *testin
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -86,7 +86,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_02_Application(t *testing.T) 
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_application.tf"),
@@ -117,7 +117,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_03_UnsupportedDirectoryObject
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_user.tf"),
@@ -140,7 +140,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_04_EventualConsistency(t *tes
 	assignmentMock.RegisterPostNotFound(1)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -167,7 +167,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_05_CreateError(t *testing.T) 
 	assignmentMock.RegisterErrorMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -186,7 +186,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_06_TruncatedAppliesTo(t *test
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_application.tf"),
@@ -217,7 +217,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_07_StaleAppliesToOnRefresh(t 
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -245,7 +245,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_08_AlreadyAssigned(t *testing
 	assignmentMock.SeedAssignment(policyID, assignmentMocks.ServicePrincipalID)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -268,7 +268,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_09_AlreadyAssignedAfterNotFou
 	assignmentMock.RegisterPostNotFound(1)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -292,7 +292,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_10_RemovedOutOfBand(t *testin
 	)()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -345,7 +345,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_11_MinimalToMaximal(t *testin
 	defer httpmock.DeactivateAndReset()
 	defer assignmentMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -386,7 +386,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_12_MaximalToMinimal(t *testin
 	defer httpmock.DeactivateAndReset()
 	defer assignmentMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_11_both_targets.tf"),
@@ -427,7 +427,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_13_PolicyReplacement(t *testi
 	defer httpmock.DeactivateAndReset()
 	defer assignmentMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_service_principal.tf"),
@@ -471,7 +471,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_14_TargetReplacement(t *testi
 	defer httpmock.DeactivateAndReset()
 	defer assignmentMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_14_target_service_principal.tf"),

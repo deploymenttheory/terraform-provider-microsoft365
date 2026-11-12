@@ -40,7 +40,7 @@ func TestUnitDatasourceMobileAppCatalogPackage_01_All(t *testing.T) {
 	defer packagesMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigAll(),
@@ -229,7 +229,7 @@ func TestUnitDatasourceMobileAppCatalogPackage_02_ById(t *testing.T) {
 	defer packagesMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigById(),
@@ -297,7 +297,7 @@ func TestUnitDatasourceMobileAppCatalogPackage_03_ByProductName(t *testing.T) {
 	defer packagesMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByProductName(),
@@ -327,7 +327,7 @@ func TestUnitDatasourceMobileAppCatalogPackage_04_ByPublisherName(t *testing.T) 
 	defer packagesMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByPublisherName(),

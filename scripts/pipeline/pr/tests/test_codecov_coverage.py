@@ -66,7 +66,7 @@ class CodecovCoverageTests(unittest.TestCase):
         for code in [401, 403]:
             for token in [None, 'test-api-token']:
                 with self.subTest(code=code, token=token):
-                    error = HTTPError('https://api.codecov.io/example', code, 'denied', {}, None)
+                    error = HTTPError('https://api.codecov.io/example', code, 'denied', {}, io.BytesIO(b''))
                     self.addCleanup(error.close)
                     result, requests = self.run_gate(error, token)
                     self.assertEqual(result, 1)

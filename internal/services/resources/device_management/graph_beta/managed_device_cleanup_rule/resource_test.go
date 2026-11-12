@@ -49,7 +49,7 @@ func TestUnitResourceManagedDeviceCleanupRule_01_Schema(t *testing.T) {
 	defer cleanupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigFromFile("tests/terraform/unit/resource_minimal.tf"),
@@ -81,7 +81,7 @@ func TestUnitResourceManagedDeviceCleanupRule_02_Platforms_Create(t *testing.T) 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{{
 					Config: testConfigFromFile(tc.path),
 					Check: resource.ComposeTestCheckFunc(
@@ -105,7 +105,7 @@ func TestUnitResourceManagedDeviceCleanupRule_03_DuplicatePlatform_Error(t *test
 	configBoth := configFirst + "\n" + configSecond
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: configFirst},
 			{Config: configBoth, ExpectError: regexp.MustCompile(`only\s+one of this resource can exist at once in this tenant`)},

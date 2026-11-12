@@ -41,7 +41,7 @@ func TestUnitDatasourceMobileApp_01_All(t *testing.T) {
 	defer appsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigAll(),
@@ -114,7 +114,7 @@ func TestUnitDatasourceMobileApp_02_ById(t *testing.T) {
 	defer appsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigById(),
@@ -150,7 +150,7 @@ func TestUnitDatasourceMobileApp_03_ByDisplayName(t *testing.T) {
 	defer appsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByDisplayName(),
@@ -173,7 +173,7 @@ func TestUnitDatasourceMobileApp_04_ByPublisherName(t *testing.T) {
 	defer appsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByPublisherName(),
@@ -197,7 +197,7 @@ func TestUnitDatasourceMobileApp_05_ODataFilter(t *testing.T) {
 	defer appsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigODataFilter(),
@@ -218,7 +218,7 @@ func TestUnitDatasourceMobileApp_06_WithAppTypeFilter(t *testing.T) {
 	defer appsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigWithAppTypeFilter(),
@@ -241,7 +241,7 @@ func TestUnitDatasourceMobileApp_07_ByDeveloper(t *testing.T) {
 	defer appsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByDeveloper(),
@@ -265,7 +265,7 @@ func TestUnitDatasourceMobileApp_08_ByCategory(t *testing.T) {
 	defer appsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByCategory(),

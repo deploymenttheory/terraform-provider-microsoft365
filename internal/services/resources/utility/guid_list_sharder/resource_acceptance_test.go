@@ -43,7 +43,7 @@ func externalProviders() map[string]resource.ExternalProvider {
 func TestAccResourceGuidListSharder_01_UsersRoundRobinNoSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -71,7 +71,7 @@ func TestAccResourceGuidListSharder_01_UsersRoundRobinNoSeed(t *testing.T) {
 func TestAccResourceGuidListSharder_02_UsersRoundRobinWithSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -105,7 +105,7 @@ func TestAccResourceGuidListSharder_02_UsersRoundRobinWithSeed(t *testing.T) {
 func TestAccResourceGuidListSharder_03_UsersPercentageNoSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -133,7 +133,7 @@ func TestAccResourceGuidListSharder_03_UsersPercentageNoSeed(t *testing.T) {
 func TestAccResourceGuidListSharder_04_UsersPercentageWithSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -165,7 +165,7 @@ func TestAccResourceGuidListSharder_04_UsersPercentageWithSeed(t *testing.T) {
 func TestAccResourceGuidListSharder_05_UsersSizeNoSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -193,7 +193,7 @@ func TestAccResourceGuidListSharder_05_UsersSizeNoSeed(t *testing.T) {
 func TestAccResourceGuidListSharder_06_UsersSizeWithSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -226,7 +226,7 @@ func TestAccResourceGuidListSharder_06_UsersSizeWithSeed(t *testing.T) {
 func TestAccResourceGuidListSharder_07_UsersRendezvousNoSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -257,7 +257,7 @@ func TestAccResourceGuidListSharder_07_UsersRendezvousNoSeed(t *testing.T) {
 func TestAccResourceGuidListSharder_08_UsersRendezvousWithSeed(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			{
@@ -299,7 +299,7 @@ func TestAccResourceGuidListSharder_08_UsersRendezvousWithSeed(t *testing.T) {
 func TestAccResourceGuidListSharder_09_RecalculateBehaviour(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		Steps: []resource.TestStep{
 			// Step 1: Create with 6 users — flag=false, assignments always computed on first apply.

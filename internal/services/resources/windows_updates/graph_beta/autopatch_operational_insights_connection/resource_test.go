@@ -47,7 +47,7 @@ func TestUnitResourceWindowsUpdatesAutopatchOperationalInsightsConnection_01_Cre
 	defer connectionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create.tf"),
@@ -70,7 +70,7 @@ func TestUnitResourceWindowsUpdatesAutopatchOperationalInsightsConnection_02_Imp
 	defer connectionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create.tf"),
@@ -96,7 +96,7 @@ func TestUnitResourceWindowsUpdatesAutopatchOperationalInsightsConnection_03_Err
 	defer connectionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_create.tf"),

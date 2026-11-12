@@ -55,7 +55,7 @@ func TestUnitResourceGroupPolicyUploadedDefinitionFiles_01_Schema(t *testing.T) 
 	defer gpudfMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_group_policy_uploaded_definition_files_minimal.tf"),
@@ -77,7 +77,7 @@ func TestUnitResourceGroupPolicyUploadedDefinitionFiles_02_LanguageFiles(t *test
 	defer gpudfMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_group_policy_uploaded_definition_files_maximal.tf"),
@@ -99,7 +99,7 @@ func TestUnitResourceGroupPolicyUploadedDefinitionFiles_03_ErrorHandling(t *test
 	defer gpudfMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_group_policy_uploaded_definition_files_minimal.tf"),

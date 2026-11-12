@@ -13,10 +13,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from lib.git_operations import get_changed_packages, get_merge_base  # noqa: E402
 
 
-def run_lint(base_ref: str, output_dir: str = 'lint-results') -> int:
+def run_lint(base_ref: str, output_dir: str = 'lint-results', selected_packages=None) -> int:
     """Run each selected package once, preserving exit codes and streamed logs."""
     base_sha = get_merge_base(base_ref)
     packages = get_changed_packages(base_sha)
+    if selected_packages is not None:
+        if not selected_packages or not set(selected_packages).issubset(packages):
+            raise ValueError('Lint shard must contain only packages changed against the baseline')
+        packages = sorted(set(selected_packages))
     if not packages:
         print('No changed Go packages to lint.', flush=True)
         return 0
@@ -56,8 +60,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--base-ref', required=True)
     parser.add_argument('--output-dir', default='lint-results')
+    parser.add_argument('--packages', help='Exact changed packages assigned to this shard')
     args = parser.parse_args()
-    return run_lint(args.base_ref, args.output_dir)
+    return run_lint(args.base_ref, args.output_dir, args.packages.split() if args.packages else None)
 
 
 if __name__ == '__main__':

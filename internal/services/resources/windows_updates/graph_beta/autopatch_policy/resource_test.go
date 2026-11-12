@@ -40,7 +40,7 @@ func TestUnitResourceWindowsAutopatchPolicy_01_WAP001_Minimal(t *testing.T) {
 	defer autopatchMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_wap001-minimal.tf"),
@@ -70,7 +70,7 @@ func TestUnitResourceWindowsAutopatchPolicy_02_WAP002_ApprovalRules(t *testing.T
 	defer autopatchMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_wap002-approval-rules.tf"),
@@ -100,7 +100,7 @@ func TestUnitResourceWindowsAutopatchPolicy_03_WAP003_Lifecycle(t *testing.T) {
 	defer autopatchMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_wap003-lifecycle-step1.tf"),

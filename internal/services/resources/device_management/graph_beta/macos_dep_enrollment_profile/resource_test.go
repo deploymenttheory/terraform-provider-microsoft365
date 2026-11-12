@@ -42,7 +42,7 @@ func TestUnitResourceMacOSDepEnrollmentProfile_01_Schema(t *testing.T) {
 	defer macosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -66,7 +66,7 @@ func TestUnitResourceMacOSDepEnrollmentProfile_02_SkipSetupAndAdminAccount(t *te
 	defer macosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigSkipSetup(),
@@ -95,7 +95,7 @@ func TestUnitResourceMacOSDepEnrollmentProfile_03_ExplicitDepToken(t *testing.T)
 	defer macosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigExplicitToken(),
@@ -116,7 +116,7 @@ func TestUnitResourceMacOSDepEnrollmentProfile_04_ValidationErrors(t *testing.T)
 	defer macosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigValidationError(),
@@ -137,7 +137,7 @@ func TestUnitResourceMacOSDepEnrollmentProfile_05_ErrorHandling(t *testing.T) {
 	defer macosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigMinimal(),
@@ -155,7 +155,7 @@ func TestUnitResourceMacOSDepEnrollmentProfile_06_RotationLifecycle(t *testing.T
 	var profileID string
 	address := resourceType + ".minimal"
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: testConfigMinimal(), Check: resource.TestCheckResourceAttrWith(address, "id", func(value string) error { profileID = value; return nil })},
 			{
@@ -182,7 +182,7 @@ func TestUnitResourceMacOSDepEnrollmentProfile_07_WizardLifecycle(t *testing.T) 
 	defer macosMock.CleanupMockState()
 	var profileID string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
 		Steps:                    lifecycleSteps(&profileID),
 	})

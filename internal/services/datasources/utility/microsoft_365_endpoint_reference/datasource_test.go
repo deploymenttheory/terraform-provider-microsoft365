@@ -122,7 +122,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_01_Worldwide(t *testing.T) 
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigWorldwide(),
@@ -145,7 +145,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_02_FilterByServiceArea(t *t
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigFilterExchange(),
@@ -167,7 +167,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_03_FilterByCategory(t *test
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigFilterOptimize(),
@@ -189,7 +189,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_04_RequiredOnly(t *testing.
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigRequiredOnly(),
@@ -210,7 +210,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_05_ExpressRoute(t *testing.
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigExpressRoute(),
@@ -231,7 +231,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_06_USGovDoD(t *testing.T) {
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigUSGovDoD(),
@@ -252,7 +252,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_07_USGovGCCHigh(t *testing.
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigUSGovGCCHigh(),
@@ -273,7 +273,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_08_China(t *testing.T) {
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigChina(),
@@ -294,7 +294,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_09_MultipleFilters(t *testi
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMultipleFilters(),
@@ -321,7 +321,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_10_InvalidInstance(t *testi
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -342,7 +342,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_11_InvalidServiceArea(t *te
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -364,7 +364,7 @@ func TestUnitDatasourceMicrosoft365EndpointReference_12_InvalidCategory(t *testi
 	defer microsoft365EndpointsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `

@@ -28,7 +28,7 @@ var (
 func TestAccDatasourceConditionalAccessTemplate_01_ByTemplateId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -79,7 +79,7 @@ func TestAccDatasourceConditionalAccessTemplate_01_ByTemplateId(t *testing.T) {
 func TestAccDatasourceConditionalAccessTemplate_02_ByName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -130,7 +130,7 @@ func TestAccDatasourceConditionalAccessTemplate_02_ByName(t *testing.T) {
 func TestAccDatasourceConditionalAccessTemplate_03_FuzzyMatchSuggestion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -149,7 +149,7 @@ func TestAccDatasourceConditionalAccessTemplate_03_FuzzyMatchSuggestion(t *testi
 func TestAccDatasourceConditionalAccessTemplate_04_MFAAdmins(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -187,7 +187,7 @@ func TestAccDatasourceConditionalAccessTemplate_04_MFAAdmins(t *testing.T) {
 func TestAccDatasourceConditionalAccessTemplate_05_BlockLegacyAuth(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -225,7 +225,7 @@ func TestAccDatasourceConditionalAccessTemplate_05_BlockLegacyAuth(t *testing.T)
 func TestAccDatasourceConditionalAccessTemplate_06_SecuringSecurityInfo(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -263,7 +263,7 @@ func TestAccDatasourceConditionalAccessTemplate_06_SecuringSecurityInfo(t *testi
 func TestAccDatasourceConditionalAccessTemplate_07_MFAAllUsers(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -301,7 +301,7 @@ func TestAccDatasourceConditionalAccessTemplate_07_MFAAllUsers(t *testing.T) {
 func TestAccDatasourceConditionalAccessTemplate_08_MFAGuestAccess(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -339,7 +339,7 @@ func TestAccDatasourceConditionalAccessTemplate_08_MFAGuestAccess(t *testing.T) 
 func TestAccDatasourceConditionalAccessTemplate_09_MFAAzureManagement(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -377,7 +377,7 @@ func TestAccDatasourceConditionalAccessTemplate_09_MFAAzureManagement(t *testing
 func TestAccDatasourceConditionalAccessTemplate_10_MFARiskySignins(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -415,7 +415,7 @@ func TestAccDatasourceConditionalAccessTemplate_10_MFARiskySignins(t *testing.T)
 func TestAccDatasourceConditionalAccessTemplate_11_PasswordChangeHighRisk(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -453,7 +453,7 @@ func TestAccDatasourceConditionalAccessTemplate_11_PasswordChangeHighRisk(t *tes
 func TestAccDatasourceConditionalAccessTemplate_12_CompliantDeviceAdmins(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -494,7 +494,7 @@ func TestAccDatasourceConditionalAccessTemplate_12_CompliantDeviceAdmins(t *test
 func TestAccDatasourceConditionalAccessTemplate_14_CompliantDeviceOrMFAAllUsers(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -532,7 +532,7 @@ func TestAccDatasourceConditionalAccessTemplate_14_CompliantDeviceOrMFAAllUsers(
 func TestAccDatasourceConditionalAccessTemplate_15_AppEnforcedRestrictionsO365(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -570,7 +570,7 @@ func TestAccDatasourceConditionalAccessTemplate_15_AppEnforcedRestrictionsO365(t
 func TestAccDatasourceConditionalAccessTemplate_16_PhishingResistantMFAAdmins(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -608,7 +608,7 @@ func TestAccDatasourceConditionalAccessTemplate_16_PhishingResistantMFAAdmins(t 
 func TestAccDatasourceConditionalAccessTemplate_17_MFAAdminPortals(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -646,7 +646,7 @@ func TestAccDatasourceConditionalAccessTemplate_17_MFAAdminPortals(t *testing.T)
 func TestAccDatasourceConditionalAccessTemplate_18_BlockO365InsiderRisk(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -684,7 +684,7 @@ func TestAccDatasourceConditionalAccessTemplate_18_BlockO365InsiderRisk(t *testi
 func TestAccDatasourceConditionalAccessTemplate_19_RequireMDMCompliantDevice(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -722,7 +722,7 @@ func TestAccDatasourceConditionalAccessTemplate_19_RequireMDMCompliantDevice(t *
 func TestAccDatasourceConditionalAccessTemplate_20_SecureAccountRecoveryIdentityVerification(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,
@@ -760,7 +760,7 @@ func TestAccDatasourceConditionalAccessTemplate_20_SecureAccountRecoveryIdentity
 func TestAccDatasourceConditionalAccessTemplate_21_BlockHighRiskAgentIdentities(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			policyResourceType,

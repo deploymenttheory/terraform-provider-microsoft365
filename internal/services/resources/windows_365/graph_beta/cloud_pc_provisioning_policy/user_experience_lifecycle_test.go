@@ -5,8 +5,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	policyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_provisioning_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
@@ -44,9 +42,9 @@ user_experience_type = "cloudPc"`, "cloudPc"}} {
 		}
 		steps = append(steps, resource.TestStep{Config: config, Check: resource.ComposeTestCheckFunc(checks...)}, resource.TestStep{ResourceName: name, ImportState: true, ImportStateVerify: true}, resource.TestStep{Config: config, PlanOnly: true})
 	}
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: steps})
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: steps})
 }
 func TestUnitResourceCloudPcProvisioningPolicy_UserExperienceLifecycleInvalidProvisioningType(t *testing.T) {
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: strings.Replace(testConfigMinimalWithResourceName("invalid"), "display_name =", `provisioning_type = "dedicated"
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: strings.Replace(testConfigMinimalWithResourceName("invalid"), "display_name =", `provisioning_type = "dedicated"
 user_experience_type = "cloudApp"`+"\ndisplay_name =", 1), ExpectError: regexp.MustCompile("cloudApp requires")}}})
 }

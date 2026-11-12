@@ -50,7 +50,7 @@ func TestUnitDatasourceApplicableContent_01_Basic(t *testing.T) {
 	defer applicableContentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_basic.tf"),
@@ -76,7 +76,7 @@ func TestUnitDatasourceApplicableContent_02_DriverUpdates(t *testing.T) {
 	defer applicableContentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_driver_updates.tf"),
@@ -98,7 +98,7 @@ func TestUnitDatasourceApplicableContent_03_DisplayDrivers(t *testing.T) {
 	defer applicableContentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_display_drivers.tf"),
@@ -121,7 +121,7 @@ func TestUnitDatasourceApplicableContent_04_WithMatchesOnly(t *testing.T) {
 	defer applicableContentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_with_matches_only.tf"),
@@ -143,7 +143,7 @@ func TestUnitDatasourceApplicableContent_05_DeviceSpecific(t *testing.T) {
 	defer applicableContentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_device_specific.tf"),
@@ -164,7 +164,7 @@ func TestUnitDatasourceApplicableContent_06_Error(t *testing.T) {
 	defer applicableContentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_basic.tf"),

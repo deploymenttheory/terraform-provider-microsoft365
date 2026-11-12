@@ -31,7 +31,7 @@ func TestAccResourceNetworkCloudFirewallPolicyRule_01_Lifecycle(t *testing.T) {
 	noDescription = strings.ReplaceAll(noDescription, `  description = "Match example destination addresses"
 `, "")
 	var id string
-	resource.Test(t, resource.TestCase{PreCheck: func() { mocks.TestAccPreCheck(t) }, ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories, CheckDestroy: destroy.CheckDestroyedAllFunc(cloud.NetworkCloudFirewallPolicyRuleTestResource{}, resourceType, 0), ExternalProviders: map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}}, Steps: []resource.TestStep{
+	resource.Test(t, resource.TestCase{PreCheck: func() { mocks.TestAccPreCheck(t) }, ProtoV6ProviderFactories: testAccProtoV6ProviderFactories, CheckDestroy: destroy.CheckDestroyedAllFunc(cloud.NetworkCloudFirewallPolicyRuleTestResource{}, resourceType, 0), ExternalProviders: map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}}, Steps: []resource.TestStep{
 		{Config: config, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("id").Exists(), func(s *terraform.State) error {
 			id = s.RootModule().Resources[resourceType+".test"].Primary.ID
 			t.Logf("Acceptance created policy ID: %s; rule ID: %s", s.RootModule().Resources[resourceType+".test"].Primary.Attributes["policy_id"], id)

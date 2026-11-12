@@ -50,7 +50,7 @@ func TestUnitDatasourceSubscribedSkus_01_ListAll(t *testing.T) {
 	defer skuMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_list_all.tf"),
@@ -75,7 +75,7 @@ func TestUnitDatasourceSubscribedSkus_02_BySkuId(t *testing.T) {
 	defer skuMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_sku_id.tf"),
@@ -100,7 +100,7 @@ func TestUnitDatasourceSubscribedSkus_03_BySkuPartNumber(t *testing.T) {
 	defer skuMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_by_sku_part_number.tf"),
@@ -122,7 +122,7 @@ func TestUnitDatasourceSubscribedSkus_04_ByAccountId(t *testing.T) {
 	defer skuMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_by_account_id.tf"),
@@ -145,7 +145,7 @@ func TestUnitDatasourceSubscribedSkus_05_ByAccountName(t *testing.T) {
 	defer skuMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_by_account_name.tf"),
@@ -167,7 +167,7 @@ func TestUnitDatasourceSubscribedSkus_06_ByAppliesToUser(t *testing.T) {
 	defer skuMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("06_by_applies_to_user.tf"),
@@ -189,7 +189,7 @@ func TestUnitDatasourceSubscribedSkus_07_ByAppliesToCompany(t *testing.T) {
 	defer skuMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("07_by_applies_to_company.tf"),
@@ -211,7 +211,7 @@ func TestUnitDatasourceSubscribedSkus_Error(t *testing.T) {
 	defer skuMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_list_all.tf"),

@@ -44,7 +44,7 @@ func TestUnitResourceGroupAppRoleAssignment_01_Minimal(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: func() string {
@@ -87,7 +87,7 @@ func TestUnitResourceGroupAppRoleAssignment_02_Maximal(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: func() string {
@@ -130,7 +130,7 @@ func TestUnitResourceGroupAppRoleAssignment_03_Delete(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: func() string {
@@ -163,7 +163,7 @@ func TestUnitResourceGroupAppRoleAssignment_04_RequiredFields(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -204,7 +204,7 @@ func TestUnitResourceGroupAppRoleAssignment_05_InvalidValues(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -248,7 +248,7 @@ func TestUnitResourceGroupAppRoleAssignment_06_ErrorHandling(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: func() string {

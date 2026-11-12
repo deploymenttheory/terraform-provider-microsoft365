@@ -43,7 +43,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicy_01_Lifecycle(t *testing.T) 
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: mocks.LoadUnitTerraformConfig("resource.tf"),
@@ -90,7 +90,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicy_02_InvalidAction(t *testing
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config:      invalidActionConfig(),
@@ -114,7 +114,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicy_03_Drift(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: mocks.LoadUnitTerraformConfig("resource.tf")},
 				{PreConfig: func() {

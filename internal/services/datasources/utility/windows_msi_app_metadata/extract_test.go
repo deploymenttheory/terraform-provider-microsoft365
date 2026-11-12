@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	utilityWindowsMSIAppMetadata "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/utility/windows_msi_app_metadata"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/utilities/common"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -105,7 +103,7 @@ func TestUnitWindowsMSIAppMetadataDataSource_FirefoxMSI(t *testing.T) {
 	config := createTerraformConfigWithPath(t, msiPath)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -155,7 +153,7 @@ func TestUnitWindowsMSIAppMetadataDataSource_LocalMSI(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

@@ -25,7 +25,7 @@ var testResource = graphBetaSettingsCatalogConfigurationPolicy.SettingsCatalogTe
 func TestAccResourceSettingsCatalogConfigurationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -66,7 +66,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_01_Lifecycle(t *testing.T
 func TestAccResourceSettingsCatalogConfigurationPolicy_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -110,7 +110,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_03_Assignments(t *testing
 			mocks.TestAccPreCheck(t)
 			t.Log("=== PRE-CHECK COMPLETE ===")
 		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -204,7 +204,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_03_Assignments(t *testing
 func TestAccResourceSettingsCatalogConfigurationPolicy_03_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -232,7 +232,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicy_03_RequiredFields(t *test
 func TestAccResourceSettingsCatalogConfigurationPolicy_05_InvalidValues(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

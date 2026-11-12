@@ -98,7 +98,7 @@ func TestAccResourceNetworkExplicitForwardProxy_01_Lifecycle(t *testing.T) {
 	resource.Test(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: config,

@@ -3,8 +3,6 @@ package graphBetaRoleScopeTag_test
 import (
 	"fmt"
 	"testing"
-
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
@@ -26,7 +24,7 @@ func TestUnitResourceRoleScopeTag_10_AssignmentRemoval(t *testing.T) {
 	empty := config(`assignments = []`)
 	omitted := config("")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: assigned, Check: resource.TestCheckResourceAttr(resourceType+".test", "assignments.#", "1")},
 			{Config: empty, Check: resource.TestCheckResourceAttr(resourceType+".test", "assignments.#", "0")},

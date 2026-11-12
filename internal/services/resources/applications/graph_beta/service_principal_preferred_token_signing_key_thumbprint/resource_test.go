@@ -50,7 +50,7 @@ func TestUnitResourceServicePrincipalPreferredTokenSigningKeyThumbprint_01_Lifec
 	defer thumbprintMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		// Destroy must clear the property via an explicit JSON null; the mock only
 		// removes the stored thumbprint when the PATCH body contains the null key.
 		CheckDestroy: func(s *terraform.State) error {
@@ -97,7 +97,7 @@ func TestUnitResourceServicePrincipalPreferredTokenSigningKeyThumbprint_02_Casin
 	defer thumbprintMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				// Graph stores the thumbprint lowercased; the configured uppercase value
@@ -122,7 +122,7 @@ func TestUnitResourceServicePrincipalPreferredTokenSigningKeyThumbprint_03_Inval
 	defer thumbprintMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_04_invalid.tf"),

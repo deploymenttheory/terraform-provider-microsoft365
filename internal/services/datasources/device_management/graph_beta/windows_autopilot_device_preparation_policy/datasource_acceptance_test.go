@@ -29,7 +29,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_01_ListAll(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("01_list_all.tf"),
@@ -46,7 +46,7 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_01_ListAll(t *test
 func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_02_ByPolicyId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -77,7 +77,7 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_02_ByPolicyId(t *t
 func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_03_ByName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -106,7 +106,7 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_03_ByName(t *testi
 func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_04_ODataQuery(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("04_odata_query.tf"),
@@ -123,7 +123,7 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_04_ODataQuery(t *t
 func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_05_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("05_with_assignments.tf"),

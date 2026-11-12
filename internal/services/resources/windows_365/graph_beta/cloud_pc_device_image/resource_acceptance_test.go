@@ -12,7 +12,7 @@ import (
 func TestAccResourceCloudPcDeviceImage_01_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
 			{
@@ -61,7 +61,7 @@ func TestAccResourceCloudPcDeviceImage_01_Complete(t *testing.T) {
 func TestAccResourceCloudPcDeviceImage_02_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCloudPcDeviceImageConfig_missingDisplayName(),
@@ -82,7 +82,7 @@ func TestAccResourceCloudPcDeviceImage_02_RequiredFields(t *testing.T) {
 func TestAccResourceCloudPcDeviceImage_03_InvalidValues(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCloudPcDeviceImageConfig_invalidSourceImageResourceId(),

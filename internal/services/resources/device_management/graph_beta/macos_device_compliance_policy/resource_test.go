@@ -38,7 +38,7 @@ func TestUnitResourceMacosDeviceCompliancePolicy_01_OmittedRuleName(t *testing.T
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_omitted_rule_name.tf"),
@@ -82,7 +82,7 @@ func TestUnitResourceMacosDeviceCompliancePolicy_02_ExplicitRuleName(t *testing.
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_explicit_rule_name.tf"),
@@ -126,7 +126,7 @@ func TestUnitResourceMacosDeviceCompliancePolicy_03_LegacyRuleName(t *testing.T)
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_legacy_rule_name.tf"),
@@ -164,7 +164,7 @@ func TestUnitResourceMacosDeviceCompliancePolicy_04_Assignments(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_assignment_initial.tf"),

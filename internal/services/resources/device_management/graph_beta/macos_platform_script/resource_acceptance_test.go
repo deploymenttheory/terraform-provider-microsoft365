@@ -39,7 +39,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceMacOSPlatformScript_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -84,7 +84,7 @@ func TestAccResourceMacOSPlatformScript_01_Minimal(t *testing.T) {
 func TestAccResourceMacOSPlatformScript_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -136,7 +136,7 @@ func TestAccResourceMacOSPlatformScript_03_MinimalToMaximal(t *testing.T) {
 	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -256,7 +256,7 @@ func TestAccResourceMacOSPlatformScript_04_MaximalToMinimal(t *testing.T) {
 	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -378,7 +378,7 @@ func TestAccResourceMacOSPlatformScript_05_NoAssignmentsToMinimalAssignment(t *t
 	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
 			destroy.ResourceTypeMapping{ResourceType: graphBetaGroup.ResourceName, TestResource: graphBetaGroup.GroupTestResource{}},
@@ -496,7 +496,7 @@ func TestAccResourceMacOSPlatformScript_06_NoAssignmentsToMaximalAssignments(t *
 	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
 			destroy.ResourceTypeMapping{ResourceType: graphBetaGroup.ResourceName, TestResource: graphBetaGroup.GroupTestResource{}},
@@ -623,7 +623,7 @@ func TestAccResourceMacOSPlatformScript_07_MinimalToMaximalAssignments(t *testin
 	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
 			destroy.ResourceTypeMapping{ResourceType: graphBetaGroup.ResourceName, TestResource: graphBetaGroup.GroupTestResource{}},
@@ -756,7 +756,7 @@ func TestAccResourceMacOSPlatformScript_08_MaximalToMinimalAssignments(t *testin
 	var scriptID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
 			destroy.ResourceTypeMapping{ResourceType: graphBetaGroup.ResourceName, TestResource: graphBetaGroup.GroupTestResource{}},

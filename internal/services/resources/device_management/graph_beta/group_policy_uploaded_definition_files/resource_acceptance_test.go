@@ -26,7 +26,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceGroupPolicyUploadedDefinitionFiles_01_Mozilla(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -56,7 +56,7 @@ func TestAccResourceGroupPolicyUploadedDefinitionFiles_01_Mozilla(t *testing.T) 
 func TestAccResourceGroupPolicyUploadedDefinitionFiles_02_Google(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -86,7 +86,7 @@ func TestAccResourceGroupPolicyUploadedDefinitionFiles_02_Google(t *testing.T) {
 func TestAccResourceGroupPolicyUploadedDefinitionFiles_03_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

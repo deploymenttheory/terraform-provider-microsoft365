@@ -43,7 +43,7 @@ func TestUnitResourceAgentCollection_01_Minimal(t *testing.T) {
 	defer agentCollectionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -73,7 +73,7 @@ func TestUnitResourceAgentCollection_02_Maximal(t *testing.T) {
 	defer agentCollectionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -106,7 +106,7 @@ func TestUnitResourceAgentCollection_03_UpdateMinimalToMaximal(t *testing.T) {
 	defer agentCollectionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigUpdateMinimal(),
@@ -138,7 +138,7 @@ func TestUnitResourceAgentCollection_04_UpdateMaximalToMinimal(t *testing.T) {
 	defer agentCollectionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigUpdateMaximal(),
