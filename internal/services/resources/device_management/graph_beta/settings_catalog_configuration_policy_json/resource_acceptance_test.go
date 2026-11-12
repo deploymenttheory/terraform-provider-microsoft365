@@ -1,6 +1,7 @@
 package graphBetaSettingsCatalogConfigurationPolicyJson_test
 
 import (
+	"fmt"
 	"regexp"
 	"testing"
 	"time"
@@ -12,7 +13,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaSettingsCatalogConfigurationPolicyJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_configuration_policy_json"
+	graphBetaGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -851,15 +854,26 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_16_FileExplorerMinima
 	})
 }
 
-// TestAccSettingsCatalogPolicyResource_17_LocalPoliciesMaximalAssignments tests policy with maximal group assignments
+// TestAccResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaximalAssignments tests setting and assignment removal and restoration.
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaximalAssignments(t *testing.T) {
+	var policyID string
+	checkPolicyID := resource.TestCheckResourceAttrWith(resourceType+".local_policies_maximal", "id", func(id string) error {
+		if policyID == "" {
+			policyID = id
+			return nil
+		}
+		if id != policyID {
+			return fmt.Errorf("policy ID changed: expected %s, got %s", policyID, id)
+		}
+		return nil
+	})
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			resourceType,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: graphBetaGroup.ResourceName, TestResource: graphBetaGroup.GroupTestResource{}},
 		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -889,6 +903,8 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaxim
 					check.That(resourceType+".local_policies_maximal").Key("assignments.#").HasValue("4"),
 					check.That(resourceType+".local_policies_maximal").Key("is_assigned").HasValue("true"),
 					check.That(resourceType+".local_policies_maximal").Key("settings_count").HasValue("6"),
+					check.That(resourceType+".local_policies_maximal").Key("settings").MatchesRegex(regexp.MustCompile(`"value"\s*:\s*900\b`)),
+					checkPolicyID,
 				),
 			},
 			{
@@ -899,6 +915,56 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaxim
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Removing Local Policies settings and assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_17_local_policies_minimal_assignments.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".local_policies_maximal", plancheck.ResourceActionUpdate),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".local_policies_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".local_policies_maximal").Key("settings_count").HasValue("1"),
+					check.That(resourceType+".local_policies_maximal").Key("settings").MatchesRegex(regexp.MustCompile(`"value"\s*:\s*300\b`)),
+					check.That(resourceType+".local_policies_maximal").Key("assignments.#").HasValue("0"),
+					check.That(resourceType+".local_policies_maximal").Key("is_assigned").HasValue("false"),
+					checkPolicyID,
+				),
+			},
+			{
+				ResourceName:            resourceType + ".local_policies_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Restoring Local Policies settings and assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_17_local_policies_maximal_assignments.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(resourceType+".local_policies_maximal", plancheck.ResourceActionUpdate),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".local_policies_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".local_policies_maximal").Key("settings_count").HasValue("6"),
+					check.That(resourceType+".local_policies_maximal").Key("settings").MatchesRegex(regexp.MustCompile(`"value"\s*:\s*900\b`)),
+					check.That(resourceType+".local_policies_maximal").Key("assignments.#").HasValue("4"),
+					check.That(resourceType+".local_policies_maximal").Key("is_assigned").HasValue("true"),
+					checkPolicyID,
+				),
+			},
+			{
+				ResourceName:            resourceType + ".local_policies_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				Config:   loadAcceptanceTestTerraform("resource_17_local_policies_maximal_assignments.tf"),
+				PlanOnly: true,
 			},
 		},
 	})
