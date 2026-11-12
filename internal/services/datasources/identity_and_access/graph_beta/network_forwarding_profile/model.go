@@ -16,19 +16,22 @@ type NetworkForwardingProfileDataSourceModel struct {
 }
 
 type ForwardingProfileModel struct {
-	ID                    types.String                       `tfsdk:"id"`
-	Name                  types.String                       `tfsdk:"name"`
-	Description           types.String                       `tfsdk:"description"`
-	State                 types.String                       `tfsdk:"state"`
-	Version               types.String                       `tfsdk:"version"`
-	LastModifiedDateTime  types.String                       `tfsdk:"last_modified_date_time"`
-	TrafficForwardingType types.String                       `tfsdk:"traffic_forwarding_type"`
-	Priority              types.Int32                        `tfsdk:"priority"`
-	IsCustomProfile       types.Bool                         `tfsdk:"is_custom_profile"`
-	ClientFallbackAction  types.String                       `tfsdk:"client_fallback_action"`
-	ServicePrincipalAppID types.String                       `tfsdk:"service_principal_app_id"`
-	ServicePrincipalID    types.String                       `tfsdk:"service_principal_id"`
-	Policies              []ForwardingProfilePolicyLinkModel `tfsdk:"policies"`
+	ID                       types.String                       `tfsdk:"id"`
+	Name                     types.String                       `tfsdk:"name"`
+	Description              types.String                       `tfsdk:"description"`
+	State                    types.String                       `tfsdk:"state"`
+	Version                  types.String                       `tfsdk:"version"`
+	LastModifiedDateTime     types.String                       `tfsdk:"last_modified_date_time"`
+	TrafficForwardingType    types.String                       `tfsdk:"traffic_forwarding_type"`
+	Priority                 types.Int32                        `tfsdk:"priority"`
+	IsCustomProfile          types.Bool                         `tfsdk:"is_custom_profile"`
+	ClientFallbackAction     types.String                       `tfsdk:"client_fallback_action"`
+	ServicePrincipalAppID    types.String                       `tfsdk:"service_principal_app_id"`
+	ServicePrincipalID       types.String                       `tfsdk:"service_principal_id"`
+	ForwardingSourceMatching types.Object                       `tfsdk:"forwarding_source_matching"`
+	LocalNetworkSettings     types.Object                       `tfsdk:"local_network_settings"`
+	AssignmentRules          types.Object                       `tfsdk:"assignment_rules"`
+	Policies                 []ForwardingProfilePolicyLinkModel `tfsdk:"policies"`
 }
 
 type ForwardingProfilePolicyLinkModel struct {
