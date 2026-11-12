@@ -1,5 +1,7 @@
 """Verify package partition completeness, dependent tests, and coverage aggregation."""
 
+import os
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -243,33 +245,96 @@ class WorkflowGateTests(unittest.TestCase):
                 )
                 self.assertIn('export TF_ACC_TERRAFORM_PATH="$(command -v terraform)"', run)
 
-    def test_lint_workers_wait_for_the_shared_production_build_cache(self):
-        """Fail compilation explicitly and restore its snapshot before running checks."""
+    def test_unit_and_race_workers_restore_one_successful_prepared_snapshot(self):
+        """Use one writer and exact-key readers, preserving preparation failures."""
+        workflow = Path(__file__).resolve().parents[4] / ".github/workflows/pr-tests.yml"
+        jobs = yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"]
+        producer = jobs["prepare-build-cache"]
+        writers = [
+            step for step in producer["steps"] if step.get("uses", "").startswith("actions/cache@")
+        ]
+        self.assertEqual(len(writers), 1)
+        for worker, gate in (("unit-test-shards", "unit-tests"), ("race-shards", "race-detection")):
+            self.assertIn("prepare-build-cache", jobs[worker]["needs"])
+            self.assertIn("prepare-build-cache", jobs[gate]["needs"])
+            self.assertIn("needs.prepare-build-cache.result", str(jobs[gate]["steps"]))
+            steps = jobs[worker]["steps"]
+            setup = next(
+                step for step in steps if step.get("uses", "").startswith("actions/setup-go@")
+            )
+            self.assertFalse(setup["with"]["cache"])
+            readers = [
+                step for step in steps if step.get("uses", "").startswith("actions/cache/restore@")
+            ]
+            self.assertEqual(len(readers), 1)
+            self.assertEqual(
+                readers[0]["with"]["key"], "${{ needs.prepare-build-cache.outputs.cache-key }}"
+            )
+            self.assertTrue(readers[0]["with"]["fail-on-cache-miss"])
+            self.assertFalse(
+                any(step.get("uses", "").startswith("actions/cache@") for step in steps)
+            )
+
+    @unittest.skipIf(os.name == "nt", "Gate shell execution is verified on Linux")
+    def test_preparation_failure_cannot_be_hidden_by_successful_workers(self):
+        """Run the actual shell gates with deliberately contradictory worker outcomes."""
+        workflows = Path(__file__).resolve().parents[4] / ".github/workflows"
+        scenarios = (
+            ("pr-tests.yml", "unit-tests", {"HAS_CHANGES": "true", "CACHE": "failure"}),
+            (
+                "pr-tests.yml",
+                "race-detection",
+                {
+                    "HAS_GOROUTINES": "true",
+                    "RUN_RACE": "true",
+                    "CACHE": "failure",
+                    "UNIT_RESULT": "success",
+                },
+            ),
+            ("go-lint.yml", "golint", {"HAS_CHANGES": "true", "COMPILE": "failure"}),
+        )
+        for filename, job, values in scenarios:
+            with self.subTest(gate=job):
+                jobs = yaml.safe_load((workflows / filename).read_text(encoding="utf-8"))["jobs"]
+                command = next(
+                    step["run"]
+                    for step in jobs[job]["steps"]
+                    if 'test "$PLAN"' in step.get("run", "")
+                )
+                environment = {**os.environ, "PLAN": "success", "RESULT": "success", **values}
+                result = subprocess.run(["bash", "-e", "-c", command], env=environment, check=False)
+                self.assertNotEqual(result.returncode, 0)
+
+    def test_lint_workers_wait_for_their_successful_prepared_snapshot(self):
+        """Prepare only selected graphs and fail the gate if the cache writer fails."""
         workflow = Path(__file__).resolve().parents[4] / ".github/workflows/go-lint.yml"
         jobs = yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"]
         self.assertIn("compile-provider", jobs["lint-shards"]["needs"])
         self.assertIn("compile-provider", jobs["golint"]["needs"])
         self.assertIn("needs.compile-provider.result", str(jobs["golint"]["steps"]))
-        snapshots = []
-        for name in ("compile-provider", "lint-shards"):
-            setup = next(
-                step
-                for step in jobs[name]["steps"]
-                if step.get("uses", "").startswith("actions/setup-go@")
-            )
-            snapshots.append(setup["with"]["cache-dependency-path"])
-            self.assertTrue(setup["with"]["cache"])
-            self.assertEqual(jobs[name]["runs-on"], "ubuntu-24.04-arm")
-        for snapshot in snapshots:
-            for pattern in ("go.mod", "go.sum", "internal/provider/*.go"):
-                self.assertIn(pattern, snapshot)
-        self.assertIn("needs.plan-lint.outputs.has-provider-changes", snapshots[1])
-        self.assertIn("needs.compile-provider.result == 'skipped'", jobs["lint-shards"]["if"])
-        self.assertIn(
-            "needs.plan-lint.outputs.has-provider-changes", jobs["compile-provider"]["if"]
+        producer = jobs["compile-provider"]
+        self.assertIn("has-changes", producer["if"])
+        writers = [
+            step for step in producer["steps"] if step.get("uses", "").startswith("actions/cache@")
+        ]
+        self.assertEqual(len(writers), 1)
+        full_build = next(
+            step
+            for step in producer["steps"]
+            if "go build ./internal/provider" in step.get("run", "")
         )
-        self.assertIn("internal/provider/*.go", snapshots[0])
-        self.assertIn("go build ./internal/provider", str(jobs["compile-provider"]["steps"]))
+        self.assertIn("has-provider-changes", full_build["if"])
+        steps = jobs["lint-shards"]["steps"]
+        reader = next(
+            step for step in steps if step.get("uses", "").startswith("actions/cache/restore@")
+        )
+        self.assertEqual(reader["with"]["key"], "${{ needs.compile-provider.outputs.cache-key }}")
+        for output in ("mod-cache", "build-cache"):
+            self.assertIn(f"needs.compile-provider.outputs.{output}", reader["with"]["path"])
+            self.assertIn(output, producer["outputs"])
+        self.assertTrue(reader["with"]["fail-on-cache-miss"])
+        self.assertFalse(any(step.get("uses", "").startswith("actions/cache@") for step in steps))
+        self.assertIn("needs.compile-provider.result == 'success'", jobs["lint-shards"]["if"])
 
     def test_required_checks_keep_their_names_and_require_all_worker_shards(self):
         """Verify required checks keep their names and require all worker shards."""

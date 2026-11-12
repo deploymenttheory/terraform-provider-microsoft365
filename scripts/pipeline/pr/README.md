@@ -30,17 +30,26 @@ timeouts, failure propagation and OOM diagnostics remain enforced. Its success
 must be established from the standard runner's diagnostics.
 Ordinary package workers keep the default Go garbage-collection settings. The
 diagnostics record both settings alongside memory peaks and OOM counters.
-When the production registry itself is selected, one standard-runner job compiles
-the complete production provider before lint workers start with `go build ./internal/provider`. Its successful post-step
-saves the shared Go cache before workers restore it. The compilation and lint
-workers use the same `go.mod`, `go.sum` and production-registry cache key; unit
-workers use a separate `go.mod`/`go.sum` key so an earlier test worker cannot win
-and save a partial production snapshot. Go still validates source hashes and
-rebuilds changed packages. Compilation failures fail the required lint gate.
-Leaf-package-only lint runs skip this full-provider compilation and use the
-ordinary dependency cache, so they cannot populate a partial production snapshot.
-Cold compilation and lint analysis each retain their existing 45-minute command
-budgets in separate 60-minute jobs; no lint checks are removed.
+Each workflow has one cache-preparation job before its workers fan out. The
+lint producer compiles the full production provider only when its registry is
+selected, then prepares the selected packages' production and test imports.
+Leaf-only selections stay isolated. The test producer prepares the planned unit
+packages' imports and, when race detection applies, their race-instrumented imports.
+Preparation compiles dependencies without executing tests or provider code.
+
+The producer restores a previous compatible snapshot, verifies the required builds,
+and publishes a new immutable key for this source revision. Keys include the Go
+version, dependencies, preparation recipe and build mode; manual lint subsets
+also include their package selection. Only a successful producer saves a snapshot.
+Workers depend on it and restore its exact published key using restore-only actions.
+They cannot race to save partial caches. Missing snapshots and failed preparation
+fail CI. Normal and race artifacts coexist safely because Go keys build artifacts
+by source, compiler and build flags. Actual tests still run in their normal workers.
+
+Cold compilation and lint analysis retain separate 45-minute command budgets in
+60-minute jobs. Test cache preparation also has a 60-minute job budget. Cache
+preparation failures fail the applicable required lint, unit and race gates.
+No lint checks or test assertions are removed.
 
 Manual lint dispatches may set `packages` to a space-separated subset of changed
 packages, for example `internal/provider`; PR runs continue checking every
@@ -61,11 +70,6 @@ the selected packages with `TF_ACC=0` for the project's mocks and explicitly ski
 independent of coverage. Unit execution stops at the first failed or terminated
 package and preserves its exit status. Per-package coverage remains available
 for diagnostics; merged coverage is produced only after all selected packages pass.
-Workers key the shared Go cache on both `go.mod` and `go.sum`. This separates
-these compile-heavy jobs from the older `go.sum`-only cache populated before the
-SDK build completed, so a successful worker can persist the compiled dependencies.
-Cache reuse never skips executing the selected lint checks or tests.
-
 Package/test parallelism and `GOMAXPROCS` are one. Successful unit profiles are
 downloaded and merged before the single Codecov upload, coverage gate, and PR
 comment. Duplicate coverage blocks are counted once when combining profiles.
