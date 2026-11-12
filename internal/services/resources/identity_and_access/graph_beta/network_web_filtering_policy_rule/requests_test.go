@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
@@ -249,4 +251,179 @@ func (webFilteringPolicyRuleTestRequestAdapter) GetBaseUrl() string {
 
 func (webFilteringPolicyRuleTestRequestAdapter) ConvertToNativeRequest(context.Context, *abstractions.RequestInformation) (any, error) {
 	return nil, nil
+}
+
+func TestConstructResourceSerializesCustomHeadersInOrder(t *testing.T) {
+	ctx := context.Background()
+	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"example.com"})
+	if diags.HasError() {
+		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
+	}
+	headers, diags := types.ListValueFrom(ctx, customHeaderObjectType(), []CustomHeaderModel{
+		{Name: types.StringValue("test"), Value: types.StringValue("a1")},
+		{Name: types.StringValue("test2"), Value: types.StringValue("a2")},
+	})
+	if diags.HasError() {
+		t.Fatalf("failed to build custom_headers list: %s", diags.Errors()[0].Detail())
+	}
+
+	payload := serializedRulePayload(t, ctx, &NetworkWebFilteringPolicyRuleResourceModel{
+		Name:          types.StringValue("headers"),
+		Description:   types.StringValue(""),
+		Action:        types.StringValue("allow"),
+		Priority:      types.Int64Value(100),
+		Status:        types.StringValue("enabled"),
+		UrlsOrFqdns:   urlsOrFqdns,
+		CustomHeaders: headers,
+	})
+
+	got, err := json.Marshal(payload["action"])
+	if err != nil {
+		t.Fatalf("failed to marshal action: %v", err)
+	}
+	want := `{"@odata.type":"#microsoft.graph.networkaccess.webFilteringActionAllow","headerSettings":{"modifications":[` +
+		`{"@odata.type":"#microsoft.graph.networkaccess.headerModificationAdd","headerName":"test","headerValue":"a1"},` +
+		`{"@odata.type":"#microsoft.graph.networkaccess.headerModificationAdd","headerName":"test2","headerValue":"a2"}]}}`
+	if string(got) != want {
+		t.Fatalf("action = %s, expected %s", got, want)
+	}
+}
+
+func TestConstructResourceSendsNullHeaderSettingsWithoutCustomHeaders(t *testing.T) {
+	ctx := context.Background()
+	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AlcoholAndTobacco"})
+	if diags.HasError() {
+		t.Fatalf("failed to build web_categories set: %s", diags.Errors()[0].Detail())
+	}
+
+	payload := serializedRulePayload(t, ctx, &NetworkWebFilteringPolicyRuleResourceModel{
+		Name:          types.StringValue("no-headers"),
+		Description:   types.StringValue(""),
+		Action:        types.StringValue("allow"),
+		Priority:      types.Int64Value(100),
+		Status:        types.StringValue("enabled"),
+		WebCategories: webCategories,
+		CustomHeaders: types.ListNull(customHeaderObjectType()),
+	})
+
+	headerSettings, ok := payload["action"].(map[string]any)["headerSettings"]
+	if !ok || headerSettings != nil {
+		t.Fatalf("action = %#v, expected explicit null headerSettings", payload["action"])
+	}
+}
+
+func TestMapRemoteStateToTerraformReadsCustomHeaders(t *testing.T) {
+	ctx := context.Background()
+	cases := map[string]struct {
+		body string
+		want []CustomHeaderModel
+	}{
+		"headers in Graph order": {
+			body: `{"id":"rule","action":{"@odata.type":"#microsoft.graph.networkaccess.webFilteringActionAllow","headerSettings":{"modifications":[` +
+				`{"@odata.type":"#microsoft.graph.networkaccess.headerModificationAdd","headerName":"zeta","headerValue":"1"},` +
+				`{"@odata.type":"#microsoft.graph.networkaccess.headerModificationAdd","headerName":"alpha","headerValue":"2"}]}}}`,
+			want: []CustomHeaderModel{
+				{Name: types.StringValue("zeta"), Value: types.StringValue("1")},
+				{Name: types.StringValue("alpha"), Value: types.StringValue("2")},
+			},
+		},
+		"null headerSettings": {
+			body: `{"id":"rule","action":{"@odata.type":"#microsoft.graph.networkaccess.webFilteringActionAllow","headerSettings":null}}`,
+		},
+		"empty modifications": {
+			body: `{"id":"rule","action":{"@odata.type":"#microsoft.graph.networkaccess.webFilteringActionAllow","headerSettings":{"modifications":[]}}}`,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			parseNode, err := jsonserialization.NewJsonParseNode([]byte(tc.body))
+			if err != nil {
+				t.Fatalf("failed to build parse node: %v", err)
+			}
+			parsed, err := parseNode.GetObjectValue(createWebFilteringPolicyRuleResponseFromDiscriminatorValue)
+			if err != nil {
+				t.Fatalf("failed to parse response: %v", err)
+			}
+
+			var data NetworkWebFilteringPolicyRuleResourceModel
+			MapRemoteStateToTerraform(ctx, &data, parsed.(*webFilteringPolicyRuleResponse))
+
+			if tc.want == nil {
+				if !data.CustomHeaders.IsNull() {
+					t.Fatalf("custom_headers = %s, expected null", data.CustomHeaders)
+				}
+				return
+			}
+			var got []CustomHeaderModel
+			if diags := data.CustomHeaders.ElementsAs(ctx, &got, false); diags.HasError() {
+				t.Fatalf("failed to read custom_headers: %s", diags.Errors()[0].Detail())
+			}
+			if len(got) != len(tc.want) {
+				t.Fatalf("custom_headers = %#v, expected %#v", got, tc.want)
+			}
+			for i := range got {
+				if !got[i].Name.Equal(tc.want[i].Name) || !got[i].Value.Equal(tc.want[i].Value) {
+					t.Fatalf("custom_headers[%d] = %#v, expected %#v", i, got[i], tc.want[i])
+				}
+			}
+		})
+	}
+}
+
+func TestUniqueCustomHeaderNamesValidator(t *testing.T) {
+	ctx := context.Background()
+	cases := map[string]struct {
+		names   []string
+		wantErr bool
+	}{
+		"unique":                 {names: []string{"test", "test2"}},
+		"duplicate":              {names: []string{"test", "test"}, wantErr: true},
+		"case-insensitive match": {names: []string{"X-Test", "x-test"}, wantErr: true},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			headers := make([]CustomHeaderModel, 0, len(tc.names))
+			for _, n := range tc.names {
+				headers = append(headers, CustomHeaderModel{Name: types.StringValue(n), Value: types.StringValue("v")})
+			}
+			list, diags := types.ListValueFrom(ctx, customHeaderObjectType(), headers)
+			if diags.HasError() {
+				t.Fatalf("failed to build list: %s", diags.Errors()[0].Detail())
+			}
+
+			resp := &validator.ListResponse{}
+			uniqueCustomHeaderNamesValidator{}.ValidateList(ctx, validator.ListRequest{
+				Path:        path.Root("custom_headers"),
+				ConfigValue: list,
+			}, resp)
+
+			if resp.Diagnostics.HasError() != tc.wantErr {
+				t.Fatalf("HasError = %v, expected %v: %v", resp.Diagnostics.HasError(), tc.wantErr, resp.Diagnostics)
+			}
+		})
+	}
+}
+
+func TestConstructResourceOmitsHeaderSettingsForBlock(t *testing.T) {
+	ctx := context.Background()
+	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AlcoholAndTobacco"})
+	if diags.HasError() {
+		t.Fatalf("failed to build web_categories set: %s", diags.Errors()[0].Detail())
+	}
+
+	payload := serializedRulePayload(t, ctx, &NetworkWebFilteringPolicyRuleResourceModel{
+		Name:          types.StringValue("block"),
+		Description:   types.StringValue(""),
+		Action:        types.StringValue("block"),
+		Priority:      types.Int64Value(100),
+		Status:        types.StringValue("enabled"),
+		WebCategories: webCategories,
+		CustomHeaders: types.ListNull(customHeaderObjectType()),
+	})
+
+	if _, ok := payload["action"].(map[string]any)["headerSettings"]; ok {
+		t.Fatalf("action = %#v, expected no headerSettings", payload["action"])
+	}
 }

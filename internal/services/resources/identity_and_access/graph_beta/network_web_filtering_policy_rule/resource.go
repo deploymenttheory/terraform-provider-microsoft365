@@ -9,6 +9,7 @@ import (
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -95,6 +96,7 @@ func (r *NetworkWebFilteringPolicyRuleResource) ConfigValidators(ctx context.Con
 			path.MatchRoot("urls_or_fqdns"),
 			path.MatchRoot("web_categories"),
 		),
+		customHeadersRequireAllowValidator{},
 	}
 }
 
@@ -180,6 +182,26 @@ func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req 
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(stringvalidator.OneOf("user", "agent")),
 				},
+			},
+			"custom_headers": schema.ListNestedAttribute{
+				MarkdownDescription: "HTTP headers that Global Secure Access adds to matching requests, for example tenant restriction headers such as `anthropic-allowed-org-ids`. At most 10 headers per rule. Only valid when `action` is `allow`. TLS inspection must be enabled for HTTPS destinations. See [Configure custom headers](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-custom-headers).",
+				Optional:            true,
+				Validators: []validator.List{
+					// Graph: "The number of modifications (11) exceeds the maximum allowed (10)".
+					listvalidator.SizeBetween(1, 10),
+					uniqueCustomHeaderNamesValidator{},
+				},
+				NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
+					"name": schema.StringAttribute{
+						MarkdownDescription: "The header name. Must be unique within the rule (case-insensitive).",
+						Required:            true,
+						Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
+					},
+					"value": schema.StringAttribute{
+						MarkdownDescription: "The header value.",
+						Required:            true,
+					},
+				}},
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},

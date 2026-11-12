@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -28,6 +30,31 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkWebFilteringPol
 	data.WebCategories = convert.GraphToFrameworkStringSet(ctx, remoteResource.webCategories)
 	data.HTTPMethods = convert.GraphToFrameworkStringSet(ctx, remoteResource.httpMethods)
 	data.SessionTypes = convert.GraphToFrameworkStringSet(ctx, remoteResource.sessionTypes)
+	data.CustomHeaders = customHeadersToList(remoteResource.customHeaders)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping resource %s with id %s", ResourceName, data.ID.ValueString()))
+}
+
+func customHeaderObjectType() types.ObjectType {
+	return types.ObjectType{AttrTypes: map[string]attr.Type{
+		"name":  types.StringType,
+		"value": types.StringType,
+	}}
+}
+
+// customHeadersToList keeps Graph order so state matches the configured list.
+func customHeadersToList(headers []customHeader) types.List {
+	if len(headers) == 0 {
+		return types.ListNull(customHeaderObjectType())
+	}
+
+	elements := make([]attr.Value, 0, len(headers))
+	for _, header := range headers {
+		elements = append(elements, types.ObjectValueMust(customHeaderObjectType().AttrTypes, map[string]attr.Value{
+			"name":  types.StringValue(header.name),
+			"value": types.StringValue(header.value),
+		}))
+	}
+
+	return types.ListValueMust(customHeaderObjectType(), elements)
 }

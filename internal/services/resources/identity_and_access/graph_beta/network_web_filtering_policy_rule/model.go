@@ -19,5 +19,12 @@ type NetworkWebFilteringPolicyRuleResourceModel struct {
 	WebCategories        types.Set      `tfsdk:"web_categories"`
 	HTTPMethods          types.Set      `tfsdk:"http_methods"`
 	SessionTypes         types.Set      `tfsdk:"session_types"`
+	CustomHeaders        types.List     `tfsdk:"custom_headers"`
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
+}
+
+// CustomHeaderModel is one header that Global Secure Access adds to matching requests.
+type CustomHeaderModel struct {
+	Name  types.String `tfsdk:"name"`
+	Value types.String `tfsdk:"value"`
 }

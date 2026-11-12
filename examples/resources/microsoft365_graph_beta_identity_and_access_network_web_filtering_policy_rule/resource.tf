@@ -31,3 +31,21 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_poli
   web_categories = ["AIAgents"]
   session_types  = ["user", "agent"]
 }
+
+resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule" "custom_headers" {
+  web_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_filtering_policy.example.id
+
+  name     = "Restrict YouTube Content"
+  priority = 300
+  action   = "allow"
+  status   = "enabled"
+
+  urls_or_fqdns = ["youtube.com", "*.youtube.com"]
+
+  custom_headers = [
+    {
+      name  = "YouTube-Restrict"
+      value = "Strict"
+    },
+  ]
+}
