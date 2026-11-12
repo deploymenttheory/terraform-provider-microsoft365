@@ -81,7 +81,7 @@ func TestUnitResourceOperationApprovalPolicy_01_Schema(t *testing.T) {
 	defer operationApprovalPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -109,7 +109,7 @@ func TestUnitResourceOperationApprovalPolicy_02_Minimal(t *testing.T) {
 	defer operationApprovalPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
@@ -150,7 +150,7 @@ func TestUnitResourceOperationApprovalPolicy_03_UpdateInPlace(t *testing.T) {
 	defer operationApprovalPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -181,7 +181,7 @@ func TestUnitResourceOperationApprovalPolicy_04_PolicyTypeValidation(t *testing.
 	defer operationApprovalPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -255,7 +255,7 @@ resource "microsoft365_graph_beta_device_management_operation_approval_policy" "
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config:      tc.config,
@@ -275,7 +275,7 @@ func TestUnitResourceOperationApprovalPolicy_06_ErrorHandling(t *testing.T) {
 	defer operationApprovalPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -304,7 +304,7 @@ func TestUnitResourceOperationApprovalPolicy_07_ApproverGroupIds(t *testing.T) {
 	defer operationApprovalPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -342,7 +342,7 @@ func TestUnitResourceOperationApprovalPolicy_08_InvalidApproverGroupId(t *testin
 	defer operationApprovalPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `

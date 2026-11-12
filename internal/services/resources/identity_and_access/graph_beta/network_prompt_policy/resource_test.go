@@ -45,7 +45,7 @@ func TestUnitResourceNetworkPromptPolicy_01_Lifecycle(t *testing.T) {
 		}
 		return nil
 	}
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: testConfigHelper("resource.tf"), Check: resource.ComposeTestCheckFunc(sameID, check.That(resourceType+".test").Key("id").Exists())},
 		{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true},
 		{Config: testConfigHelper("resource_updated.tf"), Check: resource.ComposeTestCheckFunc(sameID, check.That(resourceType+".test").Key("version").HasValue("1.0.0"), check.That(resourceType+".test").Key("description").DoesNotExist())},
@@ -66,7 +66,7 @@ func TestUnitResourceNetworkPromptPolicy_01_Lifecycle(t *testing.T) {
 }
 func TestUnitResourceNetworkPromptPolicy_02_InvalidAction(t *testing.T) {
 	setupMockEnvironment(t)
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: invalidActionConfig(), ExpectError: regexp.MustCompile(`value must be one of`)}}})
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: invalidActionConfig(), ExpectError: regexp.MustCompile(`value must be one of`)}}})
 }
 
 func invalidActionConfig() string {
@@ -75,7 +75,7 @@ func invalidActionConfig() string {
 
 func TestUnitResourceNetworkPromptPolicy_03_Drift(t *testing.T) {
 	m := setupMockEnvironment(t)
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: testConfigHelper("resource.tf")},
 		{PreConfig: func() {
 			m.Lock()

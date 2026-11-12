@@ -36,7 +36,7 @@ func TestUnitDatasourceDeviceEnrollment_01_ByEntraDeviceId(t *testing.T) {
 	deviceEnrollmentMocks.RegisterGetDeviceByIdSuccessMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_by_entra_device_id.tf"),
@@ -65,7 +65,7 @@ func TestUnitDatasourceDeviceEnrollment_02_ListAll(t *testing.T) {
 	deviceEnrollmentMocks.RegisterListAllDevicesSuccessMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_list_all.tf"),
@@ -95,7 +95,7 @@ func TestUnitDatasourceDeviceEnrollment_03_FilterByUpdateCategory(t *testing.T) 
 	deviceEnrollmentMocks.RegisterListAllDevicesSuccessMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_filter_by_update_category.tf"),
@@ -120,7 +120,7 @@ func TestUnitDatasourceDeviceEnrollment_04_WithODataFilter(t *testing.T) {
 	deviceEnrollmentMocks.RegisterListDevicesWithFilterSuccessMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_with_odata_filter.tf"),
@@ -146,7 +146,7 @@ func TestUnitDatasourceDeviceEnrollment_05_DeviceWithErrors(t *testing.T) {
 	deviceEnrollmentMocks.RegisterGetDeviceWithRegistrationErrorMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_device_with_errors.tf"),
@@ -174,7 +174,7 @@ func TestUnitDatasourceDeviceEnrollment_06_FilterFeatureCategory(t *testing.T) {
 	deviceEnrollmentMocks.RegisterListAllDevicesSuccessMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("06_filter_feature_category.tf"),
@@ -200,7 +200,7 @@ func TestUnitDatasourceDeviceEnrollment_07_FilterDriverCategory(t *testing.T) {
 	deviceEnrollmentMocks.RegisterListAllDevicesSuccessMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("07_filter_driver_category.tf"),
@@ -226,7 +226,7 @@ func TestUnitDatasourceDeviceEnrollment_08_ByDeviceName(t *testing.T) {
 	deviceEnrollmentMocks.RegisterGetDeviceByNameSuccessMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("08_by_device_name.tf"),
@@ -252,7 +252,7 @@ func TestUnitDatasourceDeviceEnrollment_09_Error(t *testing.T) {
 	deviceEnrollmentMocks.RegisterGetDeviceByIdErrorMock()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_by_entra_device_id.tf"),

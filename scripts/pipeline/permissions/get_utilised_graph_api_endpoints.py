@@ -60,19 +60,23 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from permission_update_common import find_repo_root as _find_repo_root
+
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 
 SERVICES_SUBPATH: str = "internal/services"
 
-CATEGORIES: frozenset[str] = frozenset({
-    "actions",
-    "datasources",
-    "ephemerals",
-    "list-resources",
-    "resources",
-})
+CATEGORIES: frozenset[str] = frozenset(
+    {
+        "actions",
+        "datasources",
+        "ephemerals",
+        "list-resources",
+        "resources",
+    }
+)
 
 API_VERSION_DIR_MAP: dict[str, str] = {
     "graph_beta": "beta",
@@ -83,13 +87,15 @@ API_VERSION_DIR_MAP: dict[str, str] = {
 _HTTP_VERB_SET: frozenset[str] = frozenset({"Get", "Post", "Patch", "Put", "Delete"})
 
 # Go client infrastructure methods that are NOT URL path segments
-_INFRA_METHODS: frozenset[str] = frozenset({
-    "GetAdapter",
-    "GetRequestAdapter",
-    "GetBackingStore",
-    "GetAdditionalData",
-    "GetChangeTracker",
-})
+_INFRA_METHODS: frozenset[str] = frozenset(
+    {
+        "GetAdapter",
+        "GetRequestAdapter",
+        "GetBackingStore",
+        "GetAdditionalData",
+        "GetChangeTracker",
+    }
+)
 
 # Custom request helper function name → HTTP method
 _CUSTOM_FUNC_METHOD: dict[str, str] = {
@@ -106,15 +112,12 @@ _CUSTOM_FUNC_METHOD: dict[str, str] = {
 # Matches: {receiver}.client.{chain}.{Verb}(ctx
 # Receiver can be r, d, a, or any single/multi-char lowercase identifier
 _RE_CLIENT_CHAIN = re.compile(
-    r'(?:[a-z]\w*\.)?client\.'
-    r'(.+?)'
-    r'\.(Get|Post|Patch|Put|Delete)\s*\(ctx'
+    r"(?:[a-z]\w*\.)?client\." + r"(.+?)" + r"\.(Get|Post|Patch|Put|Delete)\s*\(ctx"
 )
 
 # Compiled regex: custom request function call site
 _RE_CUSTOM_FUNC = re.compile(
-    r'\b(Get|Post|Patch|Put|Delete)Request'
-    r'(?:ByResourceId|WithPagination|WithFilter)?\s*\('
+    r"\b(Get|Post|Patch|Put|Delete)Request" + r"(?:ByResourceId|WithPagination|WithFilter)?\s*\("
 )
 
 # Compiled regex: Endpoint field in a request config struct
@@ -124,19 +127,18 @@ _RE_ENDPOINT_FIELD = re.compile(r'\bEndpoint:\s*"([^"]+)"')
 _RE_ENDPOINT_SUFFIX = re.compile(r'\bEndpointSuffix:\s*"(/[^"]+)"')
 
 # Compiled regex: ResourceIDPattern field (any value means an ID segment exists)
-_RE_RESOURCE_ID = re.compile(r'\bResourceID:\s*\S')
+_RE_RESOURCE_ID = re.compile(r"\bResourceID:\s*\S")
 
 # Compiled regex: API version constant or literal in config struct
 _RE_API_VERSION = re.compile(
-    r'GraphAPI(?P<const>Beta|V1)\b'
-    r'|APIVersion:\s*"(?P<literal>beta|v1\.0)"'
+    r"GraphAPI(?P<const>Beta|V1)\b" + r'|APIVersion:\s*"(?P<literal>beta|v1\.0)"'
 )
 
 # Compiled regex: ResourcePath struct field (used in list-resources)
 _RE_RESOURCE_PATH = re.compile(r'\bResourcePath:\s*"(/[^"]+)"')
 
 # Compiled regex: hard/soft delete verification helpers
-_RE_HARD_DELETE = re.compile(r'\bExecuteDeleteWithVerification\b|\bExecuteHardDelete\b')
+_RE_HARD_DELETE = re.compile(r"\bExecuteDeleteWithVerification\b|\bExecuteHardDelete\b")
 
 # =============================================================================
 # DATA CLASSES
@@ -205,14 +207,14 @@ def _join_chain_lines(source: str) -> str:
     joined: list[str] = []
     idx = 0
     while idx < len(lines):
-        line = re.sub(r'//.*$', '', lines[idx]).rstrip()
-        while line.endswith('.') and (idx + 1) < len(lines):
+        line = re.sub(r"//.*$", "", lines[idx]).rstrip()
+        while line.endswith(".") and (idx + 1) < len(lines):
             idx += 1
-            next_line = re.sub(r'//.*$', '', lines[idx]).rstrip()
+            next_line = re.sub(r"//.*$", "", lines[idx]).rstrip()
             line = line + next_line.lstrip()
         joined.append(line)
         idx += 1
-    return '\n'.join(joined)
+    return "\n".join(joined)
 
 
 def _extract_chain_method_names(chain: str) -> list[str]:
@@ -237,19 +239,19 @@ def _extract_chain_method_names(chain: str) -> list[str]:
 
     for char in chain:
         if depth == 0:
-            if char == '.':
+            if char == ".":
                 current = []
                 after_dot = True
-            elif after_dot and (char.isalnum() or char == '_'):
+            elif after_dot and (char.isalnum() or char == "_"):
                 current.append(char)
-            elif after_dot and char == '(':
-                name = ''.join(current)
+            elif after_dot and char == "(":
+                name = "".join(current)
                 if name:
                     methods.append(name)
                 current = []
                 after_dot = False
                 depth = 1
-            elif char == '(':
+            elif char == "(":
                 depth = 1
                 after_dot = False
                 current = []
@@ -257,9 +259,9 @@ def _extract_chain_method_names(chain: str) -> list[str]:
                 after_dot = False
                 current = []
         else:
-            if char == '(':
+            if char == "(":
                 depth += 1
-            elif char == ')':
+            elif char == ")":
                 depth -= 1
 
     return methods
@@ -286,8 +288,8 @@ def _chain_methods_to_url_segments(method_names: list[str]) -> list[str]:
     for name in method_names:
         if name in _HTTP_VERB_SET or name in _INFRA_METHODS:
             continue
-        if re.match(r'^By[A-Z]', name):
-            segments.append('{id}')
+        if re.match(r"^By[A-Z]", name):
+            segments.append("{id}")
         elif name and name[0].isupper():
             segments.append(name[0].lower() + name[1:])
     return segments
@@ -326,12 +328,14 @@ def _extract_sdk_endpoints(
         segments = _chain_methods_to_url_segments(names)
         if not segments:
             continue
-        endpoints.append(GraphEndpoint(
-            uri='/' + '/'.join(segments),
-            method=http_method,
-            api_version=api_version,
-            source_file=filepath,
-        ))
+        endpoints.append(
+            GraphEndpoint(
+                uri="/" + "/".join(segments),
+                method=http_method,
+                api_version=api_version,
+                source_file=filepath,
+            )
+        )
     return endpoints
 
 
@@ -352,10 +356,10 @@ def _parse_api_version_from_window(window: str, fallback: str) -> str:
     version_match = _RE_API_VERSION.search(window)
     if not version_match:
         return fallback
-    const = version_match.group('const')
+    const = version_match.group("const")
     if const:
-        return 'beta' if const == 'Beta' else 'v1.0'
-    return version_match.group('literal') or fallback
+        return "beta" if const == "Beta" else "v1.0"
+    return version_match.group("literal") or fallback
 
 
 def _build_custom_request_uri(base: str, window: str) -> str:
@@ -372,9 +376,9 @@ def _build_custom_request_uri(base: str, window: str) -> str:
     Returns:
         Normalised URI string starting with ``/``.
     """
-    uri = base if base.startswith('/') else '/' + base
+    uri = base if base.startswith("/") else "/" + base
     if _RE_RESOURCE_ID.search(window):
-        uri = uri + '/{id}'
+        uri = uri + "/{id}"
     suffix_match = _RE_ENDPOINT_SUFFIX.search(window)
     if suffix_match:
         uri = uri + suffix_match.group(1)
@@ -410,7 +414,7 @@ def _extract_custom_request_endpoints(
 
         http_method = func_match.group(1).upper()
         window_end = min(len(lines), line_idx + 25)
-        window = '\n'.join(lines[line_idx:window_end])
+        window = "\n".join(lines[line_idx:window_end])
 
         ep_match = _RE_ENDPOINT_FIELD.search(window)
         if not ep_match:
@@ -418,12 +422,14 @@ def _extract_custom_request_endpoints(
 
         uri = _build_custom_request_uri(ep_match.group(1), window)
         ep_version = _parse_api_version_from_window(window, api_version)
-        endpoints.append(GraphEndpoint(
-            uri=uri,
-            method=http_method,
-            api_version=ep_version,
-            source_file=filepath,
-        ))
+        endpoints.append(
+            GraphEndpoint(
+                uri=uri,
+                method=http_method,
+                api_version=ep_version,
+                source_file=filepath,
+            )
+        )
 
     return endpoints
 
@@ -450,12 +456,14 @@ def _extract_resource_path_endpoints(
     """
     endpoints: list[GraphEndpoint] = []
     for match in _RE_RESOURCE_PATH.finditer(source):
-        endpoints.append(GraphEndpoint(
-            uri=match.group(1),
-            method='GET',
-            api_version=api_version,
-            source_file=filepath,
-        ))
+        endpoints.append(
+            GraphEndpoint(
+                uri=match.group(1),
+                method="GET",
+                api_version=api_version,
+                source_file=filepath,
+            )
+        )
     return endpoints
 
 
@@ -483,14 +491,14 @@ def _extract_hard_delete_endpoints(
         return []
     return [
         GraphEndpoint(
-            uri='/directory/deletedItems/{id}',
-            method='DELETE',
+            uri="/directory/deletedItems/{id}",
+            method="DELETE",
             api_version=api_version,
             source_file=filepath,
         ),
         GraphEndpoint(
-            uri='/directory/deletedItems/{id}',
-            method='GET',
+            uri="/directory/deletedItems/{id}",
+            method="GET",
             api_version=api_version,
             source_file=filepath,
         ),
@@ -514,11 +522,11 @@ def extract_endpoints_from_file(
     Returns:
         Deduplicated list of :class:`GraphEndpoint` objects found in the file.
     """
-    if go_file.name.endswith('_test.go'):
+    if go_file.name.endswith("_test.go"):
         return []
 
     try:
-        source = go_file.read_text(encoding='utf-8')
+        source = go_file.read_text(encoding="utf-8")
     except OSError:
         return []
 
@@ -595,7 +603,7 @@ def _scan_resource_dir(
     seen: set[tuple[str, str, str]] = set()
     all_eps: list[GraphEndpoint] = []
 
-    for go_file in sorted(resource_dir.rglob('*.go')):
+    for go_file in sorted(resource_dir.rglob("*.go")):
         for ep in extract_endpoints_from_file(go_file, api_version):
             key = (ep.uri, ep.method, ep.api_version)
             if key not in seen:
@@ -647,9 +655,7 @@ def _iter_resources_under_domain(
     else:
         # No api_version subdirectory — treat subdirs directly as resources
         for resource_dir in non_api_dirs:
-            entry = _scan_resource_dir(
-                resource_dir, resource_dir.name, category, 'beta', repo_root
-            )
+            entry = _scan_resource_dir(resource_dir, resource_dir.name, category, "beta", repo_root)
             if entry.endpoints:
                 results.append(entry)
 
@@ -718,18 +724,13 @@ def _compute_statistics(domains: list[ServiceDomainResult]) -> dict[str, int]:
         Dict with counts for domains, resources, total and unique endpoints.
     """
     total_resources = sum(len(d.resources) for d in domains)
-    all_eps = [
-        ep
-        for d in domains
-        for r in d.resources
-        for ep in r.endpoints
-    ]
+    all_eps = [ep for d in domains for r in d.resources for ep in r.endpoints]
     unique_eps = len({(e.uri, e.method, e.api_version) for e in all_eps})
     return {
-        'total_domains': len(domains),
-        'total_resources': total_resources,
-        'total_endpoint_references': len(all_eps),
-        'total_unique_endpoints': unique_eps,
+        "total_domains": len(domains),
+        "total_resources": total_resources,
+        "total_endpoint_references": len(all_eps),
+        "total_unique_endpoints": unique_eps,
     }
 
 
@@ -747,29 +748,33 @@ def _build_json_output(result: ScanResult) -> dict[str, Any]:
     for domain in result.service_domains:
         resources_out: list[dict[str, Any]] = []
         for res in domain.resources:
-            resources_out.append({
-                'resource_name': res.resource_name,
-                'category': res.category,
-                'api_version': res.api_version,
-                'source_dir': res.source_dir,
-                'endpoints': [
-                    {
-                        'uri': ep.uri,
-                        'method': ep.method,
-                        'api_version': ep.api_version,
-                    }
-                    for ep in res.endpoints
-                ],
-            })
-        domains_out.append({
-            'domain': domain.domain,
-            'resources': resources_out,
-        })
+            resources_out.append(
+                {
+                    "resource_name": res.resource_name,
+                    "category": res.category,
+                    "api_version": res.api_version,
+                    "source_dir": res.source_dir,
+                    "endpoints": [
+                        {
+                            "uri": ep.uri,
+                            "method": ep.method,
+                            "api_version": ep.api_version,
+                        }
+                        for ep in res.endpoints
+                    ],
+                }
+            )
+        domains_out.append(
+            {
+                "domain": domain.domain,
+                "resources": resources_out,
+            }
+        )
     return {
-        'scan_root': result.scan_root,
-        'generated_at': result.generated_at,
-        'statistics': result.statistics,
-        'service_domains': domains_out,
+        "scan_root": result.scan_root,
+        "generated_at": result.generated_at,
+        "statistics": result.statistics,
+        "service_domains": domains_out,
     }
 
 
@@ -782,9 +787,9 @@ def _print_summary(result: ScanResult) -> None:
     """
     stats = result.statistics
     print()
-    print('╔══════════════════════════════════════════════════════════════════╗')
-    print('║       GRAPH API ENDPOINT SCAN — RESULTS SUMMARY                 ║')
-    print('╚══════════════════════════════════════════════════════════════════╝')
+    print("╔══════════════════════════════════════════════════════════════════╗")
+    print("║       GRAPH API ENDPOINT SCAN — RESULTS SUMMARY                 ║")
+    print("╚══════════════════════════════════════════════════════════════════╝")
     print(f"  Scan root:          {result.scan_root}")
     print(f"  Generated:          {result.generated_at}")
     print(f"  Service domains:    {stats['total_domains']}")
@@ -800,7 +805,7 @@ def _print_summary(result: ScanResult) -> None:
             for ep in res.endpoints:
                 method_padded = ep.method.ljust(7)
                 print(f"  │  │      {method_padded} {ep.uri}")
-        print('  │')
+        print("  │")
 
     print()
     print(f"  Total unique endpoints: {stats['total_unique_endpoints']}")
@@ -821,7 +826,7 @@ def _print_permissions_script_calls(
     """
     seen: set[tuple[str, str, str]] = set()
     print()
-    print('# ── get_graph_endpoint_permissions.py calls ──────────────────────')
+    print("# ── get_graph_endpoint_permissions.py calls ──────────────────────")
     for domain in result.service_domains:
         for res in domain.resources:
             for ep in res.endpoints:
@@ -830,10 +835,10 @@ def _print_permissions_script_calls(
                     continue
                 seen.add(key)
                 print(
-                    f'python3 {perms_script} '
+                    f"python3 {perms_script} "
                     f'--uri "{ep.uri}" '
-                    f'--method {ep.method} '
-                    f'--api-version {ep.api_version}'
+                    f"--method {ep.method} "
+                    f"--api-version {ep.api_version}"
                 )
     print()
 
@@ -843,74 +848,51 @@ def _print_permissions_script_calls(
 # =============================================================================
 
 
-def _find_repo_root(start: Path) -> Path:
-    """
-    Walk up from ``start`` until a ``go.mod`` file is found.
-
-    Falls back to the current working directory if no ``go.mod`` is found.
-
-    Args:
-        start: Directory to begin the upward search from.
-
-    Returns:
-        Path to the repository root.
-    """
-    current = start.resolve()
-    for _ in range(10):
-        if (current / 'go.mod').exists():
-            return current
-        parent = current.parent
-        if parent == current:
-            break
-        current = parent
-    return Path.cwd()
-
-
 def _parse_args() -> argparse.Namespace:
     """Parse and validate command-line arguments."""
     parser = argparse.ArgumentParser(
-        description='Scan Go sources and extract Microsoft Graph API endpoints.',
+        description="Scan Go sources and extract Microsoft Graph API endpoints.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            'Examples:\n'
-            '  %(prog)s\n'
-            '  %(prog)s --root /path/to/repo --output endpoints.json\n'
-            '  %(prog)s --domain device_management --category resources\n'
-            '  %(prog)s --json-stdout | jq .statistics\n'
+            "Examples:\n"
+            "  %(prog)s\n"
+            "  %(prog)s --root /path/to/repo --output endpoints.json\n"
+            "  %(prog)s --domain device_management --category resources\n"
+            "  %(prog)s --json-stdout | jq .statistics\n"
         ),
     )
     parser.add_argument(
-        '--root',
-        metavar='PATH',
-        help='Repository root directory (default: auto-detected via go.mod).',
+        "--root",
+        metavar="PATH",
+        help="Repository root directory (default: auto-detected via go.mod).",
     )
     parser.add_argument(
-        '--output',
-        metavar='FILE',
-        help='Write JSON output to this file path.',
+        "--output",
+        metavar="FILE",
+        help="Write JSON output to this file path.",
     )
     parser.add_argument(
-        '--domain',
-        metavar='DOMAIN',
-        help='Limit scan to this service domain (e.g. device_management).',
+        "--domain",
+        metavar="DOMAIN",
+        help="Limit scan to this service domain (e.g. device_management).",
     )
     parser.add_argument(
-        '--category',
-        metavar='CATEGORY',
+        "--category",
+        metavar="CATEGORY",
         choices=sorted(CATEGORIES),
-        help='Limit scan to this service category.',
+        help="Limit scan to this service category.",
     )
     parser.add_argument(
-        '--json-stdout',
-        action='store_true',
-        dest='json_stdout',
-        help='Write JSON to stdout instead of the summary table.',
+        "--json-stdout",
+        action="store_true",
+        dest="json_stdout",
+        help="Write JSON to stdout instead of the summary table.",
     )
     parser.add_argument(
-        '--show-commands',
-        action='store_true',
-        dest='show_commands',
-        help='Print get_graph_endpoint_permissions.py shell commands to stdout.',
+        "--show-commands",
+        action="store_true",
+        dest="show_commands",
+        help="Print get_graph_endpoint_permissions.py shell commands to stdout.",
     )
     return parser.parse_args()
 
@@ -928,7 +910,7 @@ def main() -> None:
     services_root = repo_root / SERVICES_SUBPATH
     if not services_root.is_dir():
         print(
-            f'error: services directory not found: {services_root}',
+            f"error: services directory not found: {services_root}",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -958,13 +940,13 @@ def main() -> None:
 
     if args.output:
         output_path = Path(args.output)
-        output_path.write_text(json.dumps(json_data, indent=2), encoding='utf-8')
-        print(f'  JSON written to: {output_path}')
+        output_path.write_text(json.dumps(json_data, indent=2), encoding="utf-8")
+        print(f"  JSON written to: {output_path}")
 
     if args.show_commands:
-        perms_script = Path(__file__).parent / 'get_graph_endpoint_permissions.py'
+        perms_script = Path(__file__).parent / "get_graph_endpoint_permissions.py"
         _print_permissions_script_calls(result, perms_script)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

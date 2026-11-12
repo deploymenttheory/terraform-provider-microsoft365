@@ -41,7 +41,7 @@ func TestAccResourceManagedDeviceCleanupRule_01_Platforms(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			resource.Test(t, resource.TestCase{
 				PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-				ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 				ExternalProviders: map[string]resource.ExternalProvider{
 					"random": {
 						Source:            "hashicorp/random",
@@ -74,7 +74,7 @@ func TestAccResourceManagedDeviceCleanupRule_01_Platforms(t *testing.T) {
 func TestAccResourceManagedDeviceCleanupRule_02_RequiredAndInvalid(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

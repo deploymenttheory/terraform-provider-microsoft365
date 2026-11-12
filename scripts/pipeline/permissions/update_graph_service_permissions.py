@@ -55,6 +55,7 @@ import asyncio
 import re
 import sys
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -73,10 +74,17 @@ from get_graph_endpoint_permissions import (  # noqa: E402
     is_application_permission,
 )
 from get_utilised_graph_api_endpoints import (  # noqa: E402
-    ResourceEndpoints,
     SERVICES_SUBPATH,
+    ResourceEndpoints,
     scan_services,
 )
+from permission_update_common import (
+    build_update_parser,
+)
+from permission_update_common import find_constructor_file as _find_constructor_file
+from permission_update_common import find_repo_root as _find_repo_root
+from permission_update_common import scan_update_domains, update_scanned_resources
+
 # pylint: enable=wrong-import-position
 
 # =============================================================================
@@ -84,7 +92,7 @@ from get_utilised_graph_api_endpoints import (  # noqa: E402
 # =============================================================================
 
 # Categories whose Go structs include a WritePermissions field
-_WRITE_CATEGORIES: frozenset[str] = frozenset({'resources', 'actions'})
+_WRITE_CATEGORIES: frozenset[str] = frozenset({"resources", "actions"})
 
 # Per-domain allowlist of permission-name prefixes.
 # Only permissions whose name starts with one of the listed prefixes are kept
@@ -93,77 +101,100 @@ _WRITE_CATEGORIES: frozenset[str] = frozenset({'resources', 'actions'})
 # from completely unrelated domains (e.g. AgentIdentity.* or DeviceManagement.*).
 # Domains absent from this dict receive no filtering.
 _DOMAIN_PERM_PREFIXES: dict[str, tuple[str, ...]] = {
-    'agents': (
-        'Agent', 'Application.', 'Directory.', 'User.',
+    "agents": (
+        "Agent",
+        "Application.",
+        "Directory.",
+        "User.",
     ),
-    'applications': (
-        'AppRoleAssignment.', 'Application.', 'Directory.', 'Group.', 'User.',
+    "applications": (
+        "AppRoleAssignment.",
+        "Application.",
+        "Directory.",
+        "Group.",
+        "User.",
     ),
-    'device_and_app_management': (
-        'DeviceManagement', 'Directory.',
+    "device_and_app_management": (
+        "DeviceManagement",
+        "Directory.",
     ),
-    'device_management': (
-        'DeviceManagement', 'Directory.', 'Group.', 'GroupMember.', 'User.',
+    "device_management": (
+        "DeviceManagement",
+        "Directory.",
+        "Group.",
+        "GroupMember.",
+        "User.",
     ),
-    'groups': (
-        'Application.', 'Directory.', 'Group.', 'GroupMember.',
-        'LicenseAssignment.', 'RoleManagement.', 'User.',
+    "groups": (
+        "Application.",
+        "Directory.",
+        "Group.",
+        "GroupMember.",
+        "LicenseAssignment.",
+        "RoleManagement.",
+        "User.",
     ),
-    'identity_and_access': (
+    "identity_and_access": (
         # CustomSecAttribute (no dot) matches both CustomSecAttributeAssignment.*
         # and CustomSecAttributeDefinition.* — the dot variant would miss them.
-        'Application.', 'CustomSecAttribute', 'Directory.',
-        'Policy.', 'RoleManagement.',
+        "Application.",
+        "CustomSecAttribute",
+        "Directory.",
+        "Policy.",
+        "RoleManagement.",
         # User.* needed for validate.go calls e.g. validateUserExists -> GET /users/{id}
-        'User.',
+        "User.",
         # CrossTenantInformation.* needed for validate.go calls that verify tenant IDs
         # via GET /tenantRelationships/findTenantInformationByTenantIdWithTenantId
         # used in: conditional_access_policy, cross_tenant_access_partner_settings,
         #          cross_tenant_access_partner_user_sync_settings
-        'CrossTenantInformation.',
+        "CrossTenantInformation.",
         # Group.* needed for validate.go calls that verify group GUIDs exist
         # via GET /groups in: cross_tenant_access_default_settings,
         #          cross_tenant_access_partner_settings
-        'Group.',
+        "Group.",
     ),
-    'multitenant_management': (
-        'ManagedTenant',
+    "multitenant_management": ("ManagedTenant",),
+    "users": (
+        "Directory.",
+        "LicenseAssignment.",
+        "Mailbox",
+        "User.",
     ),
-    'users': (
-        'Directory.', 'LicenseAssignment.', 'Mailbox', 'User.',
+    "utility": (
+        "Application.",
+        "Device.",
+        "Directory.",
+        "Group.",
+        "User.",
     ),
-    'utility': (
-        'Application.', 'Device.', 'Directory.', 'Group.', 'User.',
+    "windows_365": (
+        "CloudPC.",
+        "Directory.",
+        "RoleManagement.",
     ),
-    'windows_365': (
-        'CloudPC.', 'Directory.', 'RoleManagement.',
-    ),
-    'windows_updates': (
-        'WindowsUpdates.',
-    ),
+    "windows_updates": ("WindowsUpdates.",),
 }
 
 # Permission-name suffixes that indicate purely read-only access.
 # These are excluded from WritePermissions — write operation blocks must only
 # contain permissions that actually grant write / action capabilities.
 _READ_ONLY_SUFFIXES: tuple[str, ...] = (
-    '.Read.All', '.ReadBasic.All', '.Read.Basic.All',
+    ".Read.All",
+    ".ReadBasic.All",
+    ".Read.Basic.All",
 )
 
 # Regex: locate any New*() constructor function signature
-_RE_CONSTRUCTOR = re.compile(
-    r'\bfunc\s+New\w+\s*\([^)]*\)\s+\w+(?:\.\w+)?\s*\{',
-    re.MULTILINE,
-)
 
 # Regex: ReadPermissions: []string{...}, — flexible leading whitespace
 _RE_READ_BLOCK = re.compile(
-    r'(?P<indent>[ \t]*)ReadPermissions:\s*\[\]string\{[^}]*\},?',
+    r"(?P<indent>[ \t]*)ReadPermissions:\s*\[\]string\{[^}]*\},?",
 )
 
 # Regex: WritePermissions: []string{...}, — flexible leading whitespace
 _RE_WRITE_BLOCK = re.compile(
-    r'(?P<indent>[ \t]*)WritePermissions:\s*\[\]string\{[^}]*\},?',
+    r"(?P<indent>[ \t]*)WritePermissions:\s*\[\]string\{[^}]*\},?",
 )
 
 # =============================================================================
@@ -180,7 +211,7 @@ class _UpdateResult:
     go_file: Path | None
     read_perms: list[str] = field(default_factory=list)
     write_perms: list[str] = field(default_factory=list)
-    status: str = 'pending'
+    status: str = "pending"
 
 
 # =============================================================================
@@ -209,7 +240,7 @@ def _get_app_perms(
     matched = find_endpoint_permissions(metadata, uri, method, api_version)
     result: set[str] = set()
     for entry in matched:
-        for perm_obj in entry.get('Permissions', []):
+        for perm_obj in entry.get("Permissions", []):
             name = get_permission_name(perm_obj)
             if name and is_application_permission(name):
                 result.add(name)
@@ -248,8 +279,8 @@ def _filter_for_read(perms: frozenset[str]) -> frozenset[str]:
     """
     result: set[str] = set()
     for perm in perms:
-        if '.ReadWrite.' in perm:
-            read_only = perm.replace('.ReadWrite.', '.Read.')
+        if ".ReadWrite." in perm:
+            read_only = perm.replace(".ReadWrite.", ".Read.")
             if read_only in perms:
                 continue  # read-only equivalent exists; skip the ReadWrite one
         result.add(perm)
@@ -288,7 +319,7 @@ def _compute_permissions(
         perms = _get_app_perms(metadata, ep.uri, ep.method, ep.api_version)
         if allowed is not None:
             perms = frozenset(p for p in perms if any(p.startswith(pf) for pf in allowed))
-        if ep.method.upper() == 'GET':
+        if ep.method.upper() == "GET":
             read_raw.update(perms)
         else:
             write_raw.update(perms)
@@ -316,10 +347,10 @@ def _make_perms_block(field_name: str, perms: list[str], indent: str) -> str:
         Formatted Go field assignment string ending with ``,``.
     """
     if not perms:
-        return f'{indent}{field_name}: []string{{}},'
-    item_indent = indent + '\t'
-    inner = '\n'.join(f'{item_indent}"{p}",' for p in perms)
-    return f'{indent}{field_name}: []string{{\n{inner}\n{indent}}},'
+        return f"{indent}{field_name}: []string{{}},"
+    item_indent = indent + "\t"
+    inner = "\n".join(f'{item_indent}"{p}",' for p in perms)
+    return f"{indent}{field_name}: []string{{\n{inner}\n{indent}}},"
 
 
 def _replace_first(
@@ -341,7 +372,7 @@ def _replace_first(
     match = pattern.search(source)
     if not match:
         return source, False
-    updated = source[:match.start()] + replacement + source[match.end():]
+    updated = source[: match.start()] + replacement + source[match.end() :]
     return updated, updated != source
 
 
@@ -370,8 +401,8 @@ def _apply_write_update(
     write_match = _RE_WRITE_BLOCK.search(source)
     if not write_match:
         return source, False
-    w_indent = write_match.group('indent')
-    write_block = _make_perms_block('WritePermissions', write_perms, w_indent)
+    w_indent = write_match.group("indent")
+    write_block = _make_perms_block("WritePermissions", write_perms, w_indent)
     return _replace_first(source, _RE_WRITE_BLOCK, write_block)
 
 
@@ -405,36 +436,12 @@ def _update_source(
     if not read_match:
         return None
 
-    indent = read_match.group('indent')
-    read_block = _make_perms_block('ReadPermissions', read_perms, indent)
+    indent = read_match.group("indent")
+    read_block = _make_perms_block("ReadPermissions", read_perms, indent)
     updated, read_changed = _replace_first(source, _RE_READ_BLOCK, read_block)
     updated, write_changed = _apply_write_update(updated, write_perms, category)
 
     return updated if (read_changed or write_changed) else None
-
-
-def _find_constructor_file(resource_dir: Path) -> Path | None:
-    """
-    Return the Go file in *resource_dir* that contains a ``New*()`` constructor.
-
-    Test files (``*_test.go``) are skipped.
-
-    Args:
-        resource_dir: Directory to search.
-
-    Returns:
-        Path to the first matching Go file, or ``None``.
-    """
-    for go_file in sorted(resource_dir.glob('*.go')):
-        if go_file.name.endswith('_test.go'):
-            continue
-        try:
-            text = go_file.read_text(encoding='utf-8')
-        except OSError:
-            continue
-        if _RE_CONSTRUCTOR.search(text):
-            return go_file
-    return None
 
 
 def _update_go_file(
@@ -451,31 +458,31 @@ def _update_go_file(
         apply_changes: When ``True``, write the updated file to disk.
     """
     if result.go_file is None:
-        result.status = 'no file'
+        result.status = "no file"
         return
 
     try:
-        original = result.go_file.read_text(encoding='utf-8')
+        original = result.go_file.read_text(encoding="utf-8")
     except OSError as exc:
-        result.status = f'read error: {exc}'
+        result.status = f"read error: {exc}"
         return
 
     updated = _update_source(
         original, result.read_perms, result.write_perms, result.resource.category
     )
     if updated is None:
-        result.status = 'no change'
+        result.status = "no change"
         return
 
     if apply_changes:
         try:
-            result.go_file.write_text(updated, encoding='utf-8')
+            result.go_file.write_text(updated, encoding="utf-8")
         except OSError as exc:
-            result.status = f'write error: {exc}'
+            result.status = f"write error: {exc}"
             return
-        result.status = 'updated'
+        result.status = "updated"
     else:
-        result.status = 'would update'
+        result.status = "would update"
 
 
 # =============================================================================
@@ -485,7 +492,7 @@ def _update_go_file(
 
 def _fmt_perms(perms: list[str]) -> str:
     """Return a comma-separated permission list, or ``'(none)'`` if empty."""
-    return ', '.join(perms) if perms else '(none)'
+    return ", ".join(perms) if perms else "(none)"
 
 
 def _print_result(result: _UpdateResult) -> None:
@@ -495,13 +502,13 @@ def _print_result(result: _UpdateResult) -> None:
     Args:
         result: Completed update result.
     """
-    file_label = result.go_file.name if result.go_file else '(no constructor file)'
-    name = f'{result.domain}/{result.resource.resource_name}'
-    label = f'{name}  ({result.resource.category})  {file_label}'
-    print(f'  [{result.status:^14}] {label}')
-    print(f'               R: {_fmt_perms(result.read_perms)}')
+    file_label = result.go_file.name if result.go_file else "(no constructor file)"
+    name = f"{result.domain}/{result.resource.resource_name}"
+    label = f"{name}  ({result.resource.category})  {file_label}"
+    print(f"  [{result.status:^14}] {label}")
+    print(f"               R: {_fmt_perms(result.read_perms)}")
     if result.resource.category in _WRITE_CATEGORIES:
-        print(f'               W: {_fmt_perms(result.write_perms)}')
+        print(f"               W: {_fmt_perms(result.write_perms)}")
 
 
 # =============================================================================
@@ -561,47 +568,23 @@ async def _run(args: argparse.Namespace) -> int:
 
     services_root = repo_root / SERVICES_SUBPATH
     if not services_root.is_dir():
-        print(f'error: services directory not found: {services_root}', file=sys.stderr)
+        print(f"error: services directory not found: {services_root}", file=sys.stderr)
         return 1
 
-    print('Loading Graph command metadata …', flush=True)
+    print("Loading Graph command metadata …", flush=True)
     metadata = await get_graph_command_metadata(force_refresh=args.refresh_metadata)
-    print(f'  {len(metadata):,} metadata entries loaded.')
+    print(f"  {len(metadata):,} metadata entries loaded.")
 
-    print('Scanning Go source tree …', flush=True)
-    domains = scan_services(
-        services_root,
-        category_filter=args.category,
-        domain_filter=args.domain,
+    domains = scan_update_domains(scan_services, services_root, args)
+    return update_scanned_resources(
+        args,
+        domains,
+        partial(
+            _process_resource, repo_root=repo_root, metadata=metadata, apply_changes=args.apply
+        ),
+        _print_result,
+        skip_unmatched=True,
     )
-    total = sum(len(d.resources) for d in domains)
-    print(f'  {len(domains)} domains, {total} resources found.')
-
-    mode = 'APPLY' if args.apply else 'DRY-RUN'
-    print(f'\n  Mode: {mode}\n')
-
-    changed = errors = skipped = 0
-
-    for domain_result in domains:
-        for resource in domain_result.resources:
-            if not resource.endpoints:
-                skipped += 1
-                continue
-            result = _process_resource(
-                resource, domain_result.domain, repo_root, metadata, args.apply,
-            )
-            _print_result(result)
-            if result.status in ('updated', 'would update'):
-                changed += 1
-            elif 'error' in result.status:
-                errors += 1
-            else:
-                skipped += 1
-
-    print(f'\n  Changed: {changed}  |  Skipped/no-change: {skipped}  |  Errors: {errors}')
-    if not args.apply:
-        print('\n  (dry-run — re-run with --apply to write changes)')
-    return 0 if errors == 0 else 1
 
 
 # =============================================================================
@@ -609,65 +592,14 @@ async def _run(args: argparse.Namespace) -> int:
 # =============================================================================
 
 
-def _find_repo_root(start: Path) -> Path:
-    """
-    Walk up from *start* until a ``go.mod`` file is found.
-
-    Args:
-        start: Directory to begin the upward search from.
-
-    Returns:
-        Repository root path, or the current working directory as a fallback.
-    """
-    current = start.resolve()
-    for _ in range(10):
-        if (current / 'go.mod').exists():
-            return current
-        parent = current.parent
-        if parent == current:
-            break
-        current = parent
-    return Path.cwd()
-
-
 def _parse_args() -> argparse.Namespace:
-    """Parse and validate command-line arguments."""
-    parser = argparse.ArgumentParser(
-        description=(
-            'Update ReadPermissions/WritePermissions fields in Go Terraform '
-            'provider service source files.'
-        ),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=(
-            'Examples:\n'
-            '  %(prog)s                          # dry-run all domains\n'
-            '  %(prog)s --apply                  # apply all changes\n'
-            '  %(prog)s --domain applications --apply\n'
-            '  %(prog)s --category resources --apply\n'
-        ),
-    )
-    parser.add_argument(
-        '--root', metavar='PATH',
-        help='Repository root (default: auto-detected via go.mod).',
-    )
-    parser.add_argument(
-        '--apply', action='store_true',
-        help='Write changes to source files (default: dry-run).',
-    )
-    parser.add_argument(
-        '--domain', metavar='DOMAIN',
-        help='Limit to this service domain (e.g. device_management).',
-    )
-    parser.add_argument(
-        '--category', metavar='CATEGORY',
-        choices=sorted({'actions', 'datasources', 'ephemerals', 'list-resources', 'resources'}),
-        help='Limit to this service category.',
-    )
-    parser.add_argument(
-        '--refresh-metadata', action='store_true', dest='refresh_metadata',
-        help='Force re-download of Graph command metadata.',
-    )
-    return parser.parse_args()
+    """Parse the shared update flags with this tool's description and output target."""
+    return build_update_parser(
+        "Update ReadPermissions/WritePermissions fields in Go Terraform provider service source"
+        " files.",
+        "source",
+        metadata=True,
+    ).parse_args()
 
 
 def main() -> None:
@@ -675,5 +607,5 @@ def main() -> None:
     sys.exit(asyncio.run(_run(_parse_args())))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

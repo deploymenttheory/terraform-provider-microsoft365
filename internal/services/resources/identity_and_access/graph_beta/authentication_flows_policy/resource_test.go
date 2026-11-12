@@ -38,7 +38,7 @@ func TestUnitResourceAuthenticationFlowsPolicy_01_Lifecycle(t *testing.T) {
 	m := setupMockEnvironment(t)
 	address := policy.ResourceName + ".test"
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: loadUnitTestTerraform(t, "enabled"), Check: resource.ComposeTestCheckFunc(
 				check.That(address).Key("id").HasValue("authenticationFlowsPolicy"),

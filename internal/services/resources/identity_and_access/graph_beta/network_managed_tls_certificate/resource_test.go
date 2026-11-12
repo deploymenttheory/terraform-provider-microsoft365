@@ -40,7 +40,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_01_DefaultsAndImport(t *testin
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -71,7 +71,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_02_CreateEnabledThenDisable(t 
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_enabled.tf"),
@@ -102,7 +102,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_03_CreateError(t *testing.T) {
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{{
 			Config:      testConfigHelper("resource_minimal.tf"),
 			ExpectError: regexp.MustCompile(`Bad Request - 400`),

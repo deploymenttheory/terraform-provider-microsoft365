@@ -37,7 +37,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsDeviceCompliancePolicy_01_CustomCompliance(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -92,7 +92,7 @@ func TestAccResourceWindowsDeviceCompliancePolicy_01_CustomCompliance(t *testing
 func TestAccResourceWindowsDeviceCompliancePolicy_02_DeviceHealth(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -145,7 +145,7 @@ func TestAccResourceWindowsDeviceCompliancePolicy_02_DeviceHealth(t *testing.T) 
 func TestAccResourceWindowsDeviceCompliancePolicy_03_DeviceProperties(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -198,7 +198,7 @@ func TestAccResourceWindowsDeviceCompliancePolicy_03_DeviceProperties(t *testing
 func TestAccResourceWindowsDeviceCompliancePolicy_04_MicrosoftDefenderForEndpoint(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -250,7 +250,7 @@ func TestAccResourceWindowsDeviceCompliancePolicy_04_MicrosoftDefenderForEndpoin
 func TestAccResourceWindowsDeviceCompliancePolicy_05_WSL(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -301,7 +301,7 @@ func TestAccResourceWindowsDeviceCompliancePolicy_05_WSL(t *testing.T) {
 func TestAccResourceWindowsDeviceCompliancePolicy_07_SystemSecurity(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -368,7 +368,7 @@ func TestAccResourceWindowsDeviceCompliancePolicy_07_SystemSecurity(t *testing.T
 func TestAccResourceWindowsDeviceCompliancePolicy_06_WSL_Assignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

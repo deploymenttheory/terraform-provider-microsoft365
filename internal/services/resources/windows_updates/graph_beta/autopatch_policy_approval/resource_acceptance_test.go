@@ -31,7 +31,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsUpdatePolicyApproval_01_ApprovedAndImport(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
 			{
@@ -73,7 +73,7 @@ func TestAccResourceWindowsUpdatePolicyApproval_01_ApprovedAndImport(t *testing.
 func TestAccResourceWindowsUpdatePolicyApproval_02_ApprovedToSuspended(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
 			{

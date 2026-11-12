@@ -7,10 +7,20 @@ on:
         description: 'Git ref to compare against (changed Go packages only)'
         required: true
         default: origin/main
+      packages:
+        description: 'Optional space-separated changed Go packages for a diagnostic run'
+        required: false
+        default: ''
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '**/*.go'
+      - 'internal/**'
+      - '.golangci.yml'
+      - 'go.mod'
+      - 'go.sum'
+      - 'scripts/pipeline/**'
+      - '.github/workflows/go-lint.yml'
 
 permissions:
   contents: read
@@ -20,15 +30,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  golint:
-    name: '✨ Run golangci-lint'
+  plan-lint:
+    name: '📋 Plan lint partitions'
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 60
-    env:
-      GOMAXPROCS: '1'
-      GOFLAGS: '-p=1'
-      PYTHONUNBUFFERED: '1'
-
+    outputs:
+      has-changes: ${{ steps.plan.outputs.has-lint-changes }}
+      has-provider-changes: ${{ steps.plan.outputs.has-provider-changes }}
+      packages: ${{ steps.plan.outputs.lint-packages }}
+      base-sha: ${{ steps.plan.outputs.base-sha }}
+      matrix: ${{ steps.plan.outputs.lint-matrix }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
@@ -40,45 +50,211 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect changed Go packages
-        id: changes
-        env:
-          BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref }}
-        run: python3 scripts/pipeline/pr/steps/detect_changes.py --base-ref "$BASE_REF"
-
       - name: Set up Go
-        if: steps.changes.outputs.has-changes == 'true'
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
-          cache: true
+          cache: false
+
+      - name: '🔎 Verify isolated test factories'
+        run: |
+          python3 -m unittest discover -s scripts/pipeline/tests -v
+          python3 scripts/pipeline/generate_test_factories.py --check
+          python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_partitions.py -v
+
+      - name: '📦 Detect changed packages and plan Go jobs'
+        id: plan
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref }}
+          LINT_PACKAGES: ${{ inputs.packages || '' }}
+        run: |
+          args=(--base-ref "$BASE_REF")
+          if [[ -n "$LINT_PACKAGES" ]]; then
+            args+=(--lint-packages "$LINT_PACKAGES")
+          fi
+          python3 scripts/pipeline/pr/steps/plan_jobs.py "${args[@]}"
+
+  compile-provider:
+    name: '📦 Prepare lint build cache'
+    needs: plan-lint
+    if: needs.plan-lint.outputs.has-changes == 'true'
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    outputs:
+      cache-key: ${{ steps.identity.outputs.key }}
+      mod-cache: ${{ steps.identity.outputs.mod-cache }}
+      build-cache: ${{ steps.identity.outputs.build-cache }}
+    env:
+      GOMAXPROCS: '1'
+      GOFLAGS: '-p=1 -mod=readonly'
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Check Out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        id: go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: '🔑 Identify the lint snapshot'
+        id: identity
+        env:
+          CACHE_PLATFORM: ${{ runner.os }}-${{ runner.arch }}
+          GO_VERSION: ${{ steps.go.outputs.go-version }}
+          DEPENDENCIES: ${{ hashFiles('go.mod', 'go.sum', 'scripts/pipeline/pr/steps/prepare_go_cache.py') }}
+          PROVIDER_SELECTED: ${{ needs.plan-lint.outputs.has-provider-changes }}
+          PACKAGES: ${{ needs.plan-lint.outputs.packages }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          mode=leaf
+          if [ "$PROVIDER_SELECTED" = true ]; then mode=provider; fi
+          selection=$(printf '%s' "$PACKAGES" | sha256sum | cut -c1-16)
+          prefix="go-lint-build-v1-$CACHE_PLATFORM-$GO_VERSION-$DEPENDENCIES-$mode-"
+          echo "mod-cache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+          echo "build-cache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+          echo "legacy-prefix=setup-go-${RUNNER_OS}-${RUNNER_ARCH,,}-${ImageOS}-go-$GO_VERSION-" >> "$GITHUB_OUTPUT"
+          echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
+          echo "key=$prefix$SOURCE_SHA-$selection" >> "$GITHUB_OUTPUT"
+
+      - name: '📥 Restore prior lint dependency artifacts'
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ${{ steps.identity.outputs.mod-cache }}
+            ${{ steps.identity.outputs.build-cache }}
+          key: ${{ steps.identity.outputs.key }}
+          restore-keys: |
+            ${{ steps.identity.outputs.prefix }}
+            ${{ steps.identity.outputs.legacy-prefix }}
+
+      - name: '🏗️ Compile complete production registration graph'
+        if: needs.plan-lint.outputs.has-provider-changes == 'true'
+        timeout-minutes: 45
+        run: |
+          bash scripts/pipeline/pr/steps/monitor_resources.sh compile-results \
+            go build ./internal/provider
+
+      - name: '🏗️ Prepare selected lint dependencies'
+        timeout-minutes: 45
+        env:
+          PACKAGES: ${{ needs.plan-lint.outputs.packages }}
+        run: |
+          bash scripts/pipeline/pr/steps/monitor_resources.sh compile-results/dependencies \
+            python3 scripts/pipeline/pr/steps/prepare_go_cache.py --packages "$PACKAGES"
+
+      - name: Upload compilation diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: provider-compile-results
+          path: compile-results/
+          if-no-files-found: ignore
+
+  lint-shards:
+    name: '✨ Lint ${{ matrix.label }}'
+    needs: [plan-lint, compile-provider]
+    if: >-
+      !cancelled() && needs.plan-lint.result == 'success' &&
+      needs.plan-lint.outputs.has-changes == 'true' &&
+      needs.compile-provider.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan-lint.outputs.matrix) }}
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    env:
+      GOMAXPROCS: '1'
+      GOFLAGS: '-p=1'
+      GOMEMLIMIT: ${{ matrix.gomemlimit }}
+      GOGC: ${{ matrix.gogc }}
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        with:
+          egress-policy: audit
+
+      - name: Check Out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: '📥 Restore the prepared lint build cache'
+        uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ${{ needs.compile-provider.outputs.mod-cache }}
+            ${{ needs.compile-provider.outputs.build-cache }}
+          key: ${{ needs.compile-provider.outputs.cache-key }}
+          fail-on-cache-miss: true
 
       - name: Install golangci-lint
-        if: steps.changes.outputs.has-changes == 'true'
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.14.0
+          version: v2.15.0
           install-only: true
 
+      - name: '🧠 Add swap for the complete provider registry'
+        if: matrix.packages == 'internal/provider'
+        shell: bash
+        run: |
+          # The complete registry must retain all object kinds during analysis.
+          # Add disk-backed headroom only to this worker on the standard runner.
+          swap_file=/swapfile-provider-lint
+          if [[ -e "$swap_file" ]]; then
+            echo "Refusing to overwrite existing swap file: $swap_file" >&2
+            exit 1
+          fi
+          available_bytes=$(df --output=avail -B1 / | tail -1)
+          if (( available_bytes < 10 * 1024 * 1024 * 1024 )); then
+            echo 'Registry lint requires 10 GiB free disk for 8 GiB swap and report headroom.' >&2
+            df -h /
+            exit 1
+          fi
+          sudo fallocate -l 8G "$swap_file"
+          sudo chmod 600 "$swap_file"
+          sudo mkswap "$swap_file"
+          sudo swapon "$swap_file"
+          free -h
+          swapon --show
+
       - name: Validate lint configuration
-        if: steps.changes.outputs.has-changes == 'true'
         run: golangci-lint config verify
+
+      - name: '🔎 Verify changed-line lint reporting'
+        run: python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_go_lint.py -v
 
       - name: Lint changed Go packages
         timeout-minutes: 50
-        if: steps.changes.outputs.has-changes == 'true'
         env:
-          BASE_SHA: ${{ steps.changes.outputs.base-sha }}
+          PACKAGES: ${{ matrix.packages }}
+          BASE_SHA: ${{ needs.plan-lint.outputs.base-sha }}
         run: |
+          args=(--base-ref "$BASE_SHA" --packages "$PACKAGES")
           bash scripts/pipeline/pr/steps/monitor_resources.sh lint-results \
-            python3 scripts/pipeline/pr/steps/run_lint.py --base-ref "$BASE_SHA"
+            python3 scripts/pipeline/pr/steps/run_lint.py "${args[@]}"
 
       - name: Upload lint reports and diagnostics
-        if: always() && steps.changes.outputs.has-changes == 'true'
+        if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: lint-results
+          name: lint-results-${{ matrix.shard_index }}
           path: lint-results/
           if-no-files-found: ignore
 
@@ -86,3 +262,22 @@ jobs:
         if: failure()
         run: |
           echo 'Lint failed. See the failing step and lint-results artifact: results.json distinguishes findings from execution failures; command.log contains compiler and linter diagnostics.' >> "$GITHUB_STEP_SUMMARY"
+
+  golint:
+    name: '✨ Run golangci-lint'
+    runs-on: ubuntu-24.04-arm
+    needs: [plan-lint, compile-provider, lint-shards]
+    if: always()
+    steps:
+      - name: '✅ Require every lint partition to pass'
+        env:
+          PLAN: ${{ needs.plan-lint.result }}
+          COMPILE: ${{ needs.compile-provider.result }}
+          HAS_CHANGES: ${{ needs.plan-lint.outputs.has-changes }}
+          RESULT: ${{ needs.lint-shards.result }}
+        run: |
+          test "$PLAN" = success
+          if [ "$HAS_CHANGES" = true ]; then
+            test "$COMPILE" = success
+            test "$RESULT" = success
+          fi

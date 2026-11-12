@@ -41,7 +41,7 @@ func TestUnitResourceIpApplicationSegment_01_Minimal(t *testing.T) {
 	defer ipSegmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIpSegmentMinimal(),
@@ -70,7 +70,7 @@ func TestUnitResourceIpApplicationSegment_02_Maximal(t *testing.T) {
 	defer ipSegmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIpSegmentMaximal(),
@@ -103,7 +103,7 @@ func TestUnitResourceIpApplicationSegment_03_IpRange(t *testing.T) {
 	defer ipSegmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIpSegmentRange(),
@@ -128,7 +128,7 @@ func TestUnitResourceIpApplicationSegment_03a_IpRangeStartEnd(t *testing.T) {
 	defer ipSegmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIpSegmentRangeStartEnd(),
@@ -173,7 +173,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
 }
 `
 		resource.UnitTest(t, resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config:      config,
@@ -191,7 +191,7 @@ func TestUnitResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 	defer ipSegmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIpSegmentFQDN(),
@@ -224,7 +224,7 @@ func TestUnitResourceIpApplicationSegment_04a_ConcurrentSameApplication(t *testi
 	defer ipSegmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIpSegmentConcurrentSameApplication(),
@@ -245,7 +245,7 @@ func TestUnitResourceIpApplicationSegment_05_Update(t *testing.T) {
 	defer ipSegmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				// Create minimal config

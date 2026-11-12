@@ -50,7 +50,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_01_Scenario_Minimal(t *testing.
 	policyMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -91,7 +91,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_02_Scenario_Maximal(t *testing.
 	policyMock.ExpectedWrites = []string{"validate_create/post_002_scenario_maximal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -141,7 +141,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_03_Lifecycle_MinimalToMaximal(t
 	policyMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json", "validate_update/put_003_lifecycle_maximal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -211,7 +211,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_04_Lifecycle_MaximalToMinimal(t
 	policyMock.ExpectedWrites = []string{"validate_create/post_002_scenario_maximal.json", "validate_update/put_004_lifecycle_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -281,7 +281,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_05_AssignmentsMinimal(t *testin
 	policyMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -323,7 +323,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_06_AssignmentsMaximal(t *testin
 	policyMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -369,7 +369,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_07_AssignmentsLifecycle_Minimal
 	policyMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json", "validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -436,7 +436,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_08_AssignmentsLifecycle_Maximal
 	policyMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json", "validate_create/post_001_scenario_minimal.json", "validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -522,7 +522,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_09_ErrorHandling(t *testing.T) 
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("009_error_scenario.tf"),
@@ -539,7 +539,7 @@ func TestUnitResourceLinuxDeviceCompliancePolicy_10_CustomComplianceUpdate(t *te
 	defer policyMock.CleanupMockState()
 	policyMock.ExpectedWrites = []string{"validate_create/post_010_custom_compliance.json", "validate_update/put_010_custom_compliance.json"}
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return policyMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{

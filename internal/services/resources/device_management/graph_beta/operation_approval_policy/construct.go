@@ -4,14 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // constructResource constructs and returns an OperationApprovalPolicy
-func constructResource(ctx context.Context, data OperationApprovalPolicyResourceModel) (graphmodels.OperationApprovalPolicyable, error) {
+func constructResource(
+	ctx context.Context,
+	data OperationApprovalPolicyResourceModel,
+) (graphmodels.OperationApprovalPolicyable, error) {
 	tflog.Debug(ctx, "Starting operation approval policy construction")
 
 	policy := graphmodels.NewOperationApprovalPolicy()
@@ -31,17 +35,25 @@ func constructResource(ctx context.Context, data OperationApprovalPolicyResource
 		return nil, fmt.Errorf("error setting policy platform: %v", err)
 	}
 
-	policySet, err := constructPolicySet(ctx, &data.PolicySet)
+	policySet, err := constructPolicySet(ctx, data.PolicySet)
 	if err != nil {
 		return nil, fmt.Errorf("error constructing policy set: %v", err)
 	}
 	policy.SetPolicySet(policySet)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.ApproverGroupIds, policy.SetApproverGroupIds); err != nil {
+	if err := convert.FrameworkToGraphStringSet(
+		ctx,
+		data.ApproverGroupIds,
+		policy.SetApproverGroupIds,
+	); err != nil {
 		return nil, fmt.Errorf("error setting approver group IDs: %v", err)
 	}
 
-	if err := constructors.DebugLogGraphObject(ctx, "Constructed operation approval policy", policy); err != nil {
+	if err := constructors.DebugLogGraphObject(
+		ctx,
+		"Constructed operation approval policy",
+		policy,
+	); err != nil {
 		tflog.Error(ctx, "Failed to log operation approval policy", map[string]any{
 			"error": err.Error(),
 		})
@@ -51,7 +63,10 @@ func constructResource(ctx context.Context, data OperationApprovalPolicyResource
 }
 
 // constructPolicySet constructs the operation approval policy set
-func constructPolicySet(ctx context.Context, data *OperationApprovalPolicySetResourceModel) (graphmodels.OperationApprovalPolicySetable, error) {
+func constructPolicySet(
+	ctx context.Context,
+	data *OperationApprovalPolicySetResourceModel,
+) (graphmodels.OperationApprovalPolicySetable, error) {
 	if data == nil {
 		return nil, fmt.Errorf("policy set data is required")
 	}

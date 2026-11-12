@@ -1,0 +1,13 @@
+{
+  "source": "Intune fixture payload\n",
+  "ciphertext_base64": "HLmTvGncXGV7UO/D5qOAYcddQLFPfEjQtyyAkbIDkSkAAQIDBAUGBwgJCgsMDQ4PrRQIH2WRyZUpdj3eGJnpORk44vV+tRi5BC0UlrTSCB0=",
+  "encryption_info": {
+    "encryptionKey": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+    "fileDigest": "M20Y3PMsgZnuBaFlcny3HizZ0OQLVdyKYdijEC9qNbc=",
+    "fileDigestAlgorithm": "SHA256",
+    "initializationVector": "AAECAwQFBgcICQoLDA0ODw==",
+    "mac": "HLmTvGncXGV7UO/D5qOAYcddQLFPfEjQtyyAkbIDkSk=",
+    "macKey": "ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8=",
+    "profileIdentifier": "ProfileVersion1"
+  }
+}

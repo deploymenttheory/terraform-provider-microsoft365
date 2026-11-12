@@ -37,7 +37,7 @@ func TestUnitResourceB2bManagementPolicy_01_Minimal(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
@@ -84,7 +84,7 @@ func TestUnitResourceB2bManagementPolicy_02_Maximal(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_maximal.tf"),
@@ -118,7 +118,7 @@ func TestUnitResourceB2bManagementPolicy_03_Update(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
@@ -159,7 +159,7 @@ func TestUnitResourceB2bManagementPolicy_04_EventualConsistency(t *testing.T) {
 	policyMock.RegisterEventualConsistencyMocks(2)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
@@ -185,7 +185,7 @@ func TestUnitResourceB2bManagementPolicy_05_InvalidDefinition(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfig("tests/terraform/unit/resource_invalid_definition.tf"),
@@ -204,7 +204,7 @@ func TestUnitResourceB2bManagementPolicy_06_CreateError(t *testing.T) {
 	policyMock.RegisterErrorMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfig("tests/terraform/unit/resource_minimal.tf"),
@@ -222,7 +222,7 @@ func TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh(t *testing.T)
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
@@ -250,7 +250,7 @@ func TestUnitResourceB2bManagementPolicy_08_DeletedOutOfBand(t *testing.T) {
 	)()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
@@ -275,7 +275,7 @@ func TestUnitResourceB2bManagementPolicy_09_OrganizationDefaultRequiresReplace(t
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
@@ -317,7 +317,7 @@ func TestUnitResourceB2bManagementPolicy_10_AllowDomains(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_20_allow_domains.tf"),
@@ -360,7 +360,7 @@ func TestUnitResourceB2bManagementPolicy_11_BlockDomains(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_21_block_domains.tf"),
@@ -403,7 +403,7 @@ func TestUnitResourceB2bManagementPolicy_12_AnyDomain(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_22_any_domain.tf"),
@@ -446,7 +446,7 @@ func TestUnitResourceB2bManagementPolicy_13_AllowToBlock(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_20_allow_domains.tf"),
@@ -513,7 +513,7 @@ func TestUnitResourceB2bManagementPolicy_14_BlockToAllow(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_21_block_domains.tf"),
@@ -580,7 +580,7 @@ func TestUnitResourceB2bManagementPolicy_15_RestrictedToAny(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_20_allow_domains.tf"),
@@ -647,7 +647,7 @@ func TestUnitResourceB2bManagementPolicy_16_AnyToRestricted(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_22_any_domain.tf"),
@@ -714,7 +714,7 @@ func TestUnitResourceB2bManagementPolicy_17_MinimalToMaximal(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_20_allow_domains.tf"),
@@ -781,7 +781,7 @@ func TestUnitResourceB2bManagementPolicy_18_MaximalToMinimal(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_23_expanded_domains.tf"),
@@ -848,7 +848,7 @@ func TestUnitResourceB2bManagementPolicy_19_OtherSettings(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_24_other_settings.tf"),
@@ -891,7 +891,7 @@ func TestUnitResourceB2bManagementPolicy_20_Rename(t *testing.T) {
 	defer mock.CleanupMockState()
 	var id string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("tests/terraform/unit/resource_20_allow_domains.tf"),
@@ -960,7 +960,7 @@ func TestUnitResourceB2bManagementPolicy_21_FormattedJSON(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: testConfig("tests/terraform/unit/resource_25_formatted_json.tf")},
 			{
@@ -983,7 +983,7 @@ func TestUnitResourceB2bManagementPolicy_22_DomainDrift(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: testConfig("tests/terraform/unit/resource_20_allow_domains.tf")},
 			{PreConfig: func() {
@@ -1008,7 +1008,7 @@ func TestUnitResourceB2bManagementPolicy_23_DefaultToNonDefaultRequiresReplace(t
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: testConfig("tests/terraform/unit/resource_minimal_organization_default.tf")},
 			{

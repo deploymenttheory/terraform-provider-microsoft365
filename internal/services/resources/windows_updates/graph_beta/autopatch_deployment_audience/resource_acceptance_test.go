@@ -41,7 +41,7 @@ var testResource = graphBetaWindowsAutopatchDeploymentAudience.WindowsUpdateDepl
 func TestAccResourceWindowsUpdateDeploymentAudience_01_BasicAudience(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsAutopatchDeploymentAudience.ResourceName,
@@ -82,7 +82,7 @@ func TestAccResourceWindowsUpdateDeploymentAudience_01_BasicAudience(t *testing.
 func TestAccResourceWindowsUpdateDeploymentAudience_02_WithMembers(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			60*time.Second,
 			destroy.ResourceTypeMapping{
@@ -150,7 +150,7 @@ func TestAccResourceWindowsUpdateDeploymentAudience_02_WithMembers(t *testing.T)
 func TestAccResourceWindowsUpdateDeploymentAudience_03_WithExclusions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			60*time.Second,
 			destroy.ResourceTypeMapping{
@@ -228,7 +228,7 @@ func TestAccResourceWindowsUpdateDeploymentAudience_03_WithExclusions(t *testing
 func TestAccResourceWindowsUpdateDeploymentAudience_04_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			60*time.Second,
 			destroy.ResourceTypeMapping{

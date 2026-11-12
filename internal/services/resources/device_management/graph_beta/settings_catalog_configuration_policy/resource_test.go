@@ -304,7 +304,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicy_01_ErrorHandling(t *test
 	defer settingsCatalogMock.CleanupMockState()
 
 	terraformResource.UnitTest(t, terraformResource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []terraformResource.TestStep{
 			// Test invalid configuration - missing required name field
 			{
@@ -397,7 +397,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicy_02_SettingTypeErrors(t *
 	defer settingsCatalogMock.CleanupMockState()
 
 	terraformResource.UnitTest(t, terraformResource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []terraformResource.TestStep{
 			// Test invalid choice setting value
 			{
@@ -471,7 +471,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicy_03_Schema(t *testing.T) 
 	defer settingsCatalogMock.CleanupMockState()
 
 	terraformResource.UnitTest(t, terraformResource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []terraformResource.TestStep{
 			// Test Simple String Setting Schema
 			{

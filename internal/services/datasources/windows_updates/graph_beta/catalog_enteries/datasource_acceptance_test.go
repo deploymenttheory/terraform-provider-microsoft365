@@ -23,7 +23,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccDatasourceWindowsUpdateCatalog_01_AllEntries(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -56,7 +56,7 @@ func TestAccDatasourceWindowsUpdateCatalog_01_AllEntries(t *testing.T) {
 func TestAccDatasourceWindowsUpdateCatalog_02_FeatureUpdatesOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -88,7 +88,7 @@ func TestAccDatasourceWindowsUpdateCatalog_02_FeatureUpdatesOnly(t *testing.T) {
 func TestAccDatasourceWindowsUpdateCatalog_03_QualityUpdatesOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -122,7 +122,7 @@ func TestAccDatasourceWindowsUpdateCatalog_03_QualityUpdatesOnly(t *testing.T) {
 func TestAccDatasourceWindowsUpdateCatalog_04_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

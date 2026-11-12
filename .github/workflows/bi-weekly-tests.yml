@@ -61,6 +61,12 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+
+      - name: '🔎 Verify isolated test factories'
+        run: |
+          python3 -m unittest discover -s scripts/pipeline/tests -v
+          python3 scripts/pipeline/generate_test_factories.py --check
+
       - name: Run provider core tests
         env:
           TF_ACC: 1
@@ -115,7 +121,7 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          # Auto-discover all services 
+          # Auto-discover all services
           MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py resources)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
@@ -144,7 +150,7 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          # Auto-discover all services 
+          # Auto-discover all services
           MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py datasources)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
@@ -173,7 +179,7 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          # Auto-discover all services 
+          # Auto-discover all services
           MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py actions)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
@@ -202,7 +208,7 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          # Auto-discover all services 
+          # Auto-discover all services
           MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py list-resources)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
@@ -231,7 +237,7 @@ jobs:
       - name: Generate matrix
         id: set-matrix
         run: |
-          # Auto-discover all services 
+          # Auto-discover all services
           MATRIX=$(./scripts/pipeline/bi_weekly_tests/generate_test_matrix.py ephemerals)
 
           echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
@@ -316,6 +322,12 @@ jobs:
           M365_CLIENT_ID_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_ID_WINDOWS_UPDATES }}
           M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
+
+
+      - name: '🔎 Verify isolated test factories'
+        run: |
+          python3 -m unittest discover -s scripts/pipeline/tests -v
+          python3 scripts/pipeline/generate_test_factories.py --check
 
       - name: Run resource tests
         if: env.SKIP_TESTS != 'true'
@@ -437,6 +449,12 @@ jobs:
           M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
 
+
+      - name: '🔎 Verify isolated test factories'
+        run: |
+          python3 -m unittest discover -s scripts/pipeline/tests -v
+          python3 scripts/pipeline/generate_test_factories.py --check
+
       - name: Run datasource tests
         if: env.SKIP_TESTS != 'true'
         env:
@@ -556,6 +574,12 @@ jobs:
           M365_CLIENT_ID_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_ID_WINDOWS_UPDATES }}
           M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
+
+
+      - name: '🔎 Verify isolated test factories'
+        run: |
+          python3 -m unittest discover -s scripts/pipeline/tests -v
+          python3 scripts/pipeline/generate_test_factories.py --check
 
       - name: Run actions tests
         if: env.SKIP_TESTS != 'true'
@@ -677,6 +701,9 @@ jobs:
           M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
 
+      - name: '🔎 Verify isolated test factories'
+        run: python3 scripts/pipeline/generate_test_factories.py --check
+
       - name: Run list-resources tests
         if: env.SKIP_TESTS != 'true'
         env:
@@ -796,6 +823,9 @@ jobs:
           M365_CLIENT_ID_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_ID_WINDOWS_UPDATES }}
           M365_CLIENT_SECRET_WINDOWS_UPDATES: ${{ secrets.M365_CLIENT_SECRET_WINDOWS_UPDATES }}
         run: ./scripts/pipeline/bi_weekly_tests/map_credentials.py ${{ matrix.service }}
+
+      - name: '🔎 Verify isolated test factories'
+        run: python3 scripts/pipeline/generate_test_factories.py --check
 
       - name: Run ephemerals tests
         if: env.SKIP_TESTS != 'true'

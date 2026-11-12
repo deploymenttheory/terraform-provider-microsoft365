@@ -39,7 +39,7 @@ func TestUnitResourceCloudPcRoleDefinition_01_Schema(t *testing.T) {
 	defer roleDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -64,7 +64,7 @@ func TestUnitResourceCloudPcRoleDefinition_02_Minimal(t *testing.T) {
 	defer roleDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -101,7 +101,7 @@ func TestUnitResourceCloudPcRoleDefinition_03_UpdateInPlace(t *testing.T) {
 	defer roleDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -145,7 +145,7 @@ func TestUnitResourceCloudPcRoleDefinition_04_RequiredFields(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config:      testConfigHelper(tc.configFile),
@@ -165,7 +165,7 @@ func TestUnitResourceCloudPcRoleDefinition_05_ErrorHandling(t *testing.T) {
 	defer roleDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigHelper("resource_error_handling.tf"),
@@ -183,7 +183,7 @@ func TestUnitResourceCloudPcRoleDefinition_06_RolePermissions(t *testing.T) {
 	defer roleDefinitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_role_permissions.tf"),

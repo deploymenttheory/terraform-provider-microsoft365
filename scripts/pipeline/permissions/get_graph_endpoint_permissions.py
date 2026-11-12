@@ -135,11 +135,7 @@ def log_error(message: str, indent: int = 0) -> None:
 
 def _get_cache_path() -> Path:
     """Resolve the platform-appropriate cache file path."""
-    tmp = Path(
-        os.environ.get("TEMP")
-        or os.environ.get("TMPDIR")
-        or "/tmp"
-    )
+    tmp = Path(os.environ.get("TEMP") or os.environ.get("TMPDIR") or "/tmp")
     return tmp / CACHE_DIR_NAME / CACHE_FILE_NAME
 
 
@@ -197,8 +193,7 @@ async def get_graph_command_metadata(force_refresh: bool = False) -> list[dict[s
                 log_warning(f"Failed to download from {url} — {exc}", indent=1)
 
     raise RuntimeError(
-        "Could not download Graph command metadata from any known URL. "
-        "Check network connectivity."
+        "Could not download Graph command metadata from any known URL. Check network connectivity."
     )
 
 
@@ -347,13 +342,15 @@ async def get_service_principal_by_app_id(
     """
     log_info(f"Retrieving service principal for AppId: {app_id}...", indent=1)
 
-    QueryParams = ServicePrincipalsRequestBuilder.ServicePrincipalsRequestBuilderGetQueryParameters
-    RequestConfig = (
+    query_params_class = (
+        ServicePrincipalsRequestBuilder.ServicePrincipalsRequestBuilderGetQueryParameters
+    )
+    request_config_class = (
         ServicePrincipalsRequestBuilder.ServicePrincipalsRequestBuilderGetRequestConfiguration
     )
 
-    request_config = RequestConfig(
-        query_parameters=QueryParams(
+    request_config = request_config_class(
+        query_parameters=query_params_class(
             filter=f"appId eq '{app_id}'",
             select=["id", "appId", "displayName"],
         )
@@ -395,10 +392,9 @@ async def get_app_role_assignments(
     log_info(f"Retrieving app role assignments for service principal '{sp_id}'...", indent=1)
 
     try:
-        result = (
-            await client.service_principals.by_service_principal_id(sp_id)
-            .app_role_assignments.get()
-        )
+        result = await client.service_principals.by_service_principal_id(
+            sp_id
+        ).app_role_assignments.get()
     except Exception as exc:
         raise RuntimeError(f"Failed to retrieve app role assignments: {exc}") from exc
 
@@ -426,13 +422,15 @@ async def get_microsoft_graph_service_principal(
     """
     log_info("Retrieving Microsoft Graph first-party service principal...", indent=1)
 
-    QueryParams = ServicePrincipalsRequestBuilder.ServicePrincipalsRequestBuilderGetQueryParameters
-    RequestConfig = (
+    query_params_class = (
+        ServicePrincipalsRequestBuilder.ServicePrincipalsRequestBuilderGetQueryParameters
+    )
+    request_config_class = (
         ServicePrincipalsRequestBuilder.ServicePrincipalsRequestBuilderGetRequestConfiguration
     )
 
-    request_config = RequestConfig(
-        query_parameters=QueryParams(
+    request_config = request_config_class(
+        query_parameters=query_params_class(
             filter=f"appId eq '{MICROSOFT_GRAPH_APP_ID}'",
             select=["id", "appId", "appRoles"],
         )
@@ -473,10 +471,9 @@ async def get_service_principal_directory_roles(
     log_info("Retrieving directory role memberships...", indent=1)
 
     try:
-        result = (
-            await client.service_principals.by_service_principal_id(sp_id)
-            .member_of.graph_directory_role.get()
-        )
+        result = await client.service_principals.by_service_principal_id(
+            sp_id
+        ).member_of.graph_directory_role.get()
     except Exception as exc:
         raise RuntimeError(f"Failed to retrieve directory roles: {exc}") from exc
 
@@ -670,8 +667,9 @@ def _print_coverage_summary(
         log_info("1. Open Azure Portal → Entra ID → Enterprise Applications", indent=2)
         log_info(f"2. Locate: {display_name}  (AppId: {app_id})", indent=2)
         log_info("3. Navigate to: API Permissions", indent=2)
-        log_info("4. Add each missing Microsoft Graph Application permission listed above",
-                 indent=2)
+        log_info(
+            "4. Add each missing Microsoft Graph Application permission listed above", indent=2
+        )
         log_info("5. Click 'Grant admin consent'", indent=2)
     else:
         print()
@@ -721,8 +719,7 @@ def _check_role_assignable_groups(
         )
     else:
         log_warning(
-            "Service principal has directory roles but none required for "
-            "isAssignableToRole groups",
+            "Service principal has directory roles but none required for isAssignableToRole groups",
             indent=1,
         )
         log_info("Required: Privileged Role Administrator OR Global Administrator", indent=2)

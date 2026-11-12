@@ -48,7 +48,7 @@ func TestUnitResourceAdministrativeUnit_01_AU001(t *testing.T) {
 	defer administrativeUnitMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_au001_user_based.tf"),
@@ -84,7 +84,7 @@ func TestUnitResourceAdministrativeUnit_02_AU002(t *testing.T) {
 	defer administrativeUnitMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_au002_group_based.tf"),
@@ -120,7 +120,7 @@ func TestUnitResourceAdministrativeUnit_03_AU003(t *testing.T) {
 	defer administrativeUnitMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_au003_mixed.tf"),
@@ -157,7 +157,7 @@ func TestUnitResourceAdministrativeUnit_04_AU004(t *testing.T) {
 	defer administrativeUnitMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_au004_dynamic.tf"),

@@ -77,7 +77,7 @@ func TestUnitResourceWindowsTrustedRootCertificate_01_Lifecycle(t *testing.T) {
   ]
 }`
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: minimal, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceAddress).
@@ -136,7 +136,7 @@ func TestUnitResourceWindowsTrustedRootCertificate_02_Validation(t *testing.T) {
 				base64.StdEncoding.EncodeToString(certificate),
 			)
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{Config: config, ExpectError: regexp.MustCompile(tc.message)},
 				},
@@ -165,7 +165,7 @@ import {
   id = "44444444-4444-4444-8444-444444444444"
 }`
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceAddress).Key("id").HasValue(id)},
 			{Config: config, PlanOnly: true},
@@ -182,7 +182,7 @@ func TestUnitResourceWindowsTrustedRootCertificate_04_WrongPolicyImport(t *testi
 		"#microsoft.graph.windows10CustomConfiguration",
 	)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:        loadConfig(t, "unit/resource.tf"),
@@ -198,7 +198,7 @@ func TestUnitResourceWindowsTrustedRootCertificate_04_WrongPolicyImport(t *testi
 func TestUnitResourceWindowsTrustedRootCertificate_05_PermissionDenied(t *testing.T) {
 	setupMockEnvironment(t).RegisterErrorMocks()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadConfig(t, "unit/resource.tf"),
@@ -212,7 +212,7 @@ func TestUnitResourceWindowsTrustedRootCertificate_06_DeletedRemotely(t *testing
 	mock := setupMockEnvironment(t)
 	config := loadConfig(t, "unit/resource.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config},
 			{
@@ -238,7 +238,7 @@ func TestUnitResourceWindowsTrustedRootCertificate_07_InvalidAssignments(t *test
 				"}",
 			) + "\nassignments = [" + tc.assignment + "]\n}"
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{Config: config, ExpectError: regexp.MustCompile(tc.message)},
 				},
@@ -264,7 +264,7 @@ func TestUnitResourceWindowsTrustedRootCertificate_08_AssignmentFailureRetainsID
 assignments = [{type = "groupAssignmentTarget", group_id = "11111111-1111-4111-8111-111111111111"}]
 }`
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, ExpectError: regexp.MustCompile("Bad Request|400")},
 		},

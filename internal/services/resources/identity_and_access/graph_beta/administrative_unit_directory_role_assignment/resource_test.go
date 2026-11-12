@@ -54,7 +54,7 @@ func TestUnitResourceAdministrativeUnitRoleAssignment_01_AURA001(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_aura001_basic.tf"),
@@ -83,7 +83,7 @@ func TestUnitResourceAdministrativeUnitRoleAssignment_02_AURA002(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_aura002_different_member.tf"),

@@ -25,7 +25,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccDatasourceGroupPolicyValueReference_01_SingleMachinePolicy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -54,7 +54,7 @@ func TestAccDatasourceGroupPolicyValueReference_01_SingleMachinePolicy(t *testin
 func TestAccDatasourceGroupPolicyValueReference_02_MultipleDefinitions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -87,7 +87,7 @@ func TestAccDatasourceGroupPolicyValueReference_02_MultipleDefinitions(t *testin
 func TestAccDatasourceGroupPolicyValueReference_03_NoResults(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -111,7 +111,7 @@ func TestAccDatasourceGroupPolicyValueReference_03_NoResults(t *testing.T) {
 func TestAccDatasourceGroupPolicyValueReference_04_BooleanPresentation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -140,7 +140,7 @@ func TestAccDatasourceGroupPolicyValueReference_04_BooleanPresentation(t *testin
 func TestAccDatasourceGroupPolicyValueReference_05_TextPresentation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -170,7 +170,7 @@ func TestAccDatasourceGroupPolicyValueReference_05_TextPresentation(t *testing.T
 func TestAccDatasourceGroupPolicyValueReference_06_ListBoxPresentation(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

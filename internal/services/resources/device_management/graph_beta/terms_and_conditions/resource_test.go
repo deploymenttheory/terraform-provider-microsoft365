@@ -47,7 +47,7 @@ func TestUnitResourceTermsAndConditions_01_Schema(t *testing.T) {
 	defer termsAndConditionsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -72,7 +72,7 @@ func TestUnitResourceTermsAndConditions_02_Minimal(t *testing.T) {
 	defer termsAndConditionsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
@@ -112,7 +112,7 @@ func TestUnitResourceTermsAndConditions_03_UpdateInPlace(t *testing.T) {
 	defer termsAndConditionsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -195,7 +195,7 @@ resource "microsoft365_graph_beta_device_management_terms_and_conditions" "test"
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config:      tc.config,
@@ -215,7 +215,7 @@ func TestUnitResourceTermsAndConditions_05_ErrorHandling(t *testing.T) {
 	defer termsAndConditionsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -246,7 +246,7 @@ func TestUnitResourceTermsAndConditions_06_DescriptionValidation(t *testing.T) {
 	}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
@@ -278,7 +278,7 @@ func TestUnitResourceTermsAndConditions_07_BodyTextValidation(t *testing.T) {
 	}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
@@ -309,7 +309,7 @@ func TestUnitResourceTermsAndConditions_08_AcceptanceStatementValidation(t *test
 	}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
@@ -334,7 +334,7 @@ func TestUnitResourceTermsAndConditions_09_RoleScopeTagIds(t *testing.T) {
 	defer termsAndConditionsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `

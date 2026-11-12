@@ -61,7 +61,7 @@ func TestAccResourceAzureNetworkConnection_01_Create_Minimal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
@@ -136,7 +136,7 @@ func TestAccResourceAzureNetworkConnection_02_Create_Maximal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
 			// Create with maximal configuration
@@ -210,7 +210,7 @@ func TestAccResourceAzureNetworkConnection_03_Update_MinimalToMaximal(t *testing
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
@@ -282,7 +282,7 @@ func TestAccResourceAzureNetworkConnection_04_Delete_Minimal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
 			// Create the resource
@@ -355,7 +355,7 @@ func TestAccResourceAzureNetworkConnection_05_Import(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckAzureNetworkConnectionDestroy,
 		Steps: []resource.TestStep{
 			// Create

@@ -261,7 +261,7 @@ func TestUnitSettingsCatalogTemplateJsonImportConverges(t *testing.T) {
 
 	t.Run("create_and_verify_import", func(t *testing.T) {
 		testresource.UnitTest(t, testresource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []testresource.TestStep{
 				{
 					Config: config,
@@ -290,7 +290,7 @@ func TestUnitSettingsCatalogTemplateJsonImportConverges(t *testing.T) {
 	// Persist imports into a fresh workspace so the next plan uses the imported state.
 	t.Run("import_existing_policy_and_plan", func(t *testing.T) {
 		testresource.UnitTest(t, testresource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []testresource.TestStep{
 				{
 					Config:             config,
@@ -382,7 +382,7 @@ func TestUnitResourceSettingsCatalogTemplateJson_01_AIAgentRuntimeProtection(t *
 	resourceName := templatejson.ResourceName + ".test"
 	t.Run("create_and_verify_import", func(t *testing.T) {
 		testresource.UnitTest(t, testresource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []testresource.TestStep{
 				{
 					Config: config,
@@ -403,7 +403,7 @@ func TestUnitResourceSettingsCatalogTemplateJson_01_AIAgentRuntimeProtection(t *
 	})
 	t.Run("import_existing_policy_and_update", func(t *testing.T) {
 		testresource.UnitTest(t, testresource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []testresource.TestStep{
 				{
 					Config:             config,

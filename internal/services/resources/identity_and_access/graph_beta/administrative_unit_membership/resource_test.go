@@ -47,7 +47,7 @@ func TestUnitResourceAdministrativeUnitMembership_01_AUM001(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_aum001_basic.tf"),
@@ -73,7 +73,7 @@ func TestUnitResourceAdministrativeUnitMembership_02_AUM002(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_aum002_single.tf"),

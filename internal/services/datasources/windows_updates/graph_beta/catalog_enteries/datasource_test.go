@@ -50,7 +50,7 @@ func TestUnitDatasourceWindowsUpdateCatalog_01_AllEntries(t *testing.T) {
 	defer catalogMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_all_entries.tf"),
@@ -73,7 +73,7 @@ func TestUnitDatasourceWindowsUpdateCatalog_02_ById(t *testing.T) {
 	defer catalogMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_id.tf"),
@@ -96,7 +96,7 @@ func TestUnitDatasourceWindowsUpdateCatalog_03_ByDisplayName(t *testing.T) {
 	defer catalogMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_by_display_name.tf"),
@@ -117,7 +117,7 @@ func TestUnitDatasourceWindowsUpdateCatalog_04_FeatureUpdatesOnly(t *testing.T) 
 	defer catalogMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_feature_updates_only.tf"),
@@ -140,7 +140,7 @@ func TestUnitDatasourceWindowsUpdateCatalog_05_QualityUpdatesOnly(t *testing.T) 
 	defer catalogMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_quality_updates_only.tf"),
@@ -169,7 +169,7 @@ func TestUnitDatasourceWindowsUpdateCatalog_06_Error(t *testing.T) {
 	defer catalogMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_all_entries.tf"),

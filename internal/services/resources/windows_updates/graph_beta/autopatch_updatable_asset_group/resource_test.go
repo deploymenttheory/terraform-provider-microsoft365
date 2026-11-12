@@ -55,7 +55,7 @@ func TestUnitResourceWindowsUpdatesAutopatchUpdatableAssetGroup_01_CreateEmpty(t
 	defer assetGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create_empty.tf"),
@@ -84,7 +84,7 @@ func TestUnitResourceWindowsUpdatesAutopatchUpdatableAssetGroup_02_CreateWithMem
 	defer assetGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_create_with_members.tf"),
@@ -117,7 +117,7 @@ func TestUnitResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_UpdateAddMemb
 	defer assetGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_create_with_members.tf"),
@@ -148,7 +148,7 @@ func TestUnitResourceWindowsUpdatesAutopatchUpdatableAssetGroup_04_Import(t *tes
 	defer assetGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create_empty.tf"),
@@ -179,7 +179,7 @@ func TestUnitResourceWindowsUpdatesAutopatchUpdatableAssetGroup_05_Error(t *test
 	defer assetGroupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_create_empty.tf"),

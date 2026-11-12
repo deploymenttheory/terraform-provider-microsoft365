@@ -46,7 +46,7 @@ func TestUnitResourceWindowsDeviceCompliancePolicy_01_Minimal(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_windows_minimal.tf"),
@@ -96,7 +96,7 @@ func TestUnitResourceWindowsDeviceCompliancePolicy_02_Maximal(t *testing.T) {
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_windows_maximal.tf"),
@@ -149,7 +149,7 @@ func TestUnitResourceWindowsDeviceCompliancePolicy_04_DeviceHealthUpdate(t *test
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_windows_maximal.tf"),
@@ -179,7 +179,7 @@ func TestUnitResourceWindowsDeviceCompliancePolicy_05_SystemSecurity(t *testing.
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_windows_system_security.tf"),
@@ -246,7 +246,7 @@ func TestUnitResourceWindowsDeviceCompliancePolicy_03_ErrorHandling(t *testing.T
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_windows_minimal.tf"),

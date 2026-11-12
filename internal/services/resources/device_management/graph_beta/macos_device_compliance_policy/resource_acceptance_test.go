@@ -33,7 +33,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceMacosDeviceCompliancePolicy_01_OmittedRuleName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -96,7 +96,7 @@ func TestAccResourceMacosDeviceCompliancePolicy_01_OmittedRuleName(t *testing.T)
 func TestAccResourceMacosDeviceCompliancePolicy_02_ExplicitRuleName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -159,7 +159,7 @@ func TestAccResourceMacosDeviceCompliancePolicy_02_ExplicitRuleName(t *testing.T
 func TestAccResourceMacosDeviceCompliancePolicy_03_LegacyRuleName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -216,7 +216,7 @@ func TestAccResourceMacosDeviceCompliancePolicy_03_LegacyRuleName(t *testing.T) 
 func TestAccResourceMacosDeviceCompliancePolicy_04_Assignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -326,7 +326,7 @@ func TestAccResourceMacosDeviceCompliancePolicy_04_Assignments(t *testing.T) {
 func TestAccResourceMacosDeviceCompliancePolicy_05_EmptyNotificationTemplate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

@@ -33,7 +33,7 @@ func TestUnitResourceNetworkContentPolicyRule_01_CRUDAndImport(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	defer ruleMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfig("resource_minimal.tf"),
@@ -69,7 +69,7 @@ func TestUnitResourceNetworkContentPolicyRule_02_InvalidAction(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	defer ruleMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps:                    []resource.TestStep{{Config: testConfig("resource_invalid_action.tf"), ExpectError: regexp.MustCompile(`action.*allow.*block.*scanPurview|value must be one of`)}},
 	})
 }
@@ -80,7 +80,7 @@ func TestUnitResourceNetworkContentPolicyRule_03_CreateError(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	defer ruleMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps:                    []resource.TestStep{{Config: testConfig("resource_minimal.tf"), ExpectError: regexp.MustCompile(`Bad Request - 400`)}},
 	})
 }

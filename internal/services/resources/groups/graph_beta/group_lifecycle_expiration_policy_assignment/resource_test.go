@@ -45,7 +45,7 @@ func TestUnitResourceGroupLifecyclePolicyAssignment_01_Create(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -65,7 +65,7 @@ func TestUnitResourceGroupLifecyclePolicyAssignment_02_Import(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -89,7 +89,7 @@ func TestUnitResourceGroupLifecyclePolicyAssignment_03_Delete(t *testing.T) {
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -118,7 +118,7 @@ func TestUnitResourceGroupLifecyclePolicyAssignment_04_RequiredFields(t *testing
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      `resource "microsoft365_graph_beta_groups_group_lifecycle_expiration_policy_assignment" "test" { }`,
@@ -135,7 +135,7 @@ func TestUnitResourceGroupLifecyclePolicyAssignment_05_InvalidGroupID(t *testing
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -160,7 +160,7 @@ func TestUnitResourceGroupLifecyclePolicyAssignment_06_ErrorHandling_NoPolicyExi
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBasic(),
@@ -177,7 +177,7 @@ func TestUnitResourceGroupLifecyclePolicyAssignment_07_ErrorHandling_BadRequest(
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBasic(),
@@ -194,7 +194,7 @@ func TestUnitResourceGroupLifecyclePolicyAssignment_08_UpdateNotSupported(t *tes
 	defer assignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),

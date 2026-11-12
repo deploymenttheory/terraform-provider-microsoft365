@@ -50,7 +50,7 @@ func TestUnitDatasourceGroup_01_ByObjectId(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_by_object_id.tf"),
@@ -73,7 +73,7 @@ func TestUnitDatasourceGroup_02_ByDisplayName(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_display_name.tf"),
@@ -94,7 +94,7 @@ func TestUnitDatasourceGroup_03_ByDisplayNameWithSecurityFilter(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_by_display_name_with_security_filter.tf"),
@@ -115,7 +115,7 @@ func TestUnitDatasourceGroup_04_ByMailNickname(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_by_mail_nickname.tf"),
@@ -136,7 +136,7 @@ func TestUnitDatasourceGroup_05_ByODataQuery(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_by_odata_query.tf"),
@@ -157,7 +157,7 @@ func TestUnitDatasourceGroup_06_Error(t *testing.T) {
 	defer groupMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_by_object_id.tf"),

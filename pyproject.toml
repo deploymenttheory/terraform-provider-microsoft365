@@ -1,0 +1,18 @@
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+required-version = "26.10.1"
+preview = true
+enable-unstable-feature = ["string_processing"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pylint.main]
+py-version = "3.10"
+# Direct CLI entrypoints resolve sibling helpers from these source directories.
+init-hook = "import sys; sys.path[:0] = ['scripts/python', 'scripts/pipeline/sdk_diff/lib']"
+
+[tool.pylint.format]
+max-line-length = 100

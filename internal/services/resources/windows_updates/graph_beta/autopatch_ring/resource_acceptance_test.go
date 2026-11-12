@@ -47,7 +47,7 @@ func externalProviders() map[string]resource.ExternalProvider {
 func TestAccResourceWindowsUpdateRing_01_InclusionOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
@@ -90,7 +90,7 @@ func TestAccResourceWindowsUpdateRing_01_InclusionOnly(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_02_ExclusionOnly(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
@@ -115,7 +115,7 @@ func TestAccResourceWindowsUpdateRing_02_ExclusionOnly(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_03_NoAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
@@ -140,7 +140,7 @@ func TestAccResourceWindowsUpdateRing_03_NoAssignments(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_04_InclusionAndExclusion(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
@@ -165,7 +165,7 @@ func TestAccResourceWindowsUpdateRing_04_InclusionAndExclusion(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_05_MinToMaxAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
@@ -201,7 +201,7 @@ func TestAccResourceWindowsUpdateRing_05_MinToMaxAssignments(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_06_MaxToMinAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders(),
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{

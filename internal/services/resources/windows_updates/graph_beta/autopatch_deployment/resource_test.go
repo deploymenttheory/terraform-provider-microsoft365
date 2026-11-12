@@ -50,7 +50,7 @@ func TestUnitResourceWindowsUpdateDeployment_01_FeatureUpdateDeployment(t *testi
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_feature_update_deployment.tf"),
@@ -83,7 +83,7 @@ func TestUnitResourceWindowsUpdateDeployment_02_QualityUpdateDeployment(t *testi
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_quality_update_deployment.tf"),
@@ -104,7 +104,7 @@ func TestUnitResourceWindowsUpdateDeployment_03_MinimalDeployment(t *testing.T) 
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_minimal_deployment.tf"),
@@ -125,7 +125,7 @@ func TestUnitResourceWindowsUpdateDeployment_04_IneligibleOfferFallback(t *testi
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_ineligible_offer_fallback.tf"),
@@ -146,7 +146,7 @@ func TestUnitResourceWindowsUpdateDeployment_06_ValidationIneligibleWrongAction(
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("05_invalid_ineligible_wrong_action.tf"),
@@ -163,7 +163,7 @@ func TestUnitResourceWindowsUpdateDeployment_07_ValidationRollbackOfferFallback(
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("06_invalid_rollback_offer_fallback.tf"),
@@ -180,7 +180,7 @@ func TestUnitResourceWindowsUpdateDeployment_08_ValidationOfferFallbackWithThres
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("07_invalid_offer_fallback_with_threshold.tf"),
@@ -197,7 +197,7 @@ func TestUnitResourceWindowsUpdateDeployment_09_WithUserExperience(t *testing.T)
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("08_with_user_experience.tf"),
@@ -218,7 +218,7 @@ func TestUnitResourceWindowsUpdateDeployment_10_WithExpedite(t *testing.T) {
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("09_with_expedite.tf"),
@@ -240,7 +240,7 @@ func TestUnitResourceWindowsUpdateDeployment_11_WithSafeguards(t *testing.T) {
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("10_with_safeguards.tf"),
@@ -261,7 +261,7 @@ func TestUnitResourceWindowsUpdateDeployment_12_AllSettings(t *testing.T) {
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("11_all_settings.tf"),
@@ -286,7 +286,7 @@ func TestUnitResourceWindowsUpdateDeployment_13_Error(t *testing.T) {
 	defer deploymentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_feature_update_deployment.tf"),

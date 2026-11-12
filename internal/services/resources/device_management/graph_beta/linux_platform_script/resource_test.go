@@ -53,7 +53,7 @@ func TestUnitResourceLinuxPlatformScript_01_Scenario_Minimal(t *testing.T) {
 	scriptMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return scriptMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -89,7 +89,7 @@ func TestUnitResourceLinuxPlatformScript_02_Scenario_Maximal(t *testing.T) {
 	scriptMock.ExpectedWrites = []string{"validate_create/post_002_scenario_maximal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return scriptMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -126,7 +126,7 @@ func TestUnitResourceLinuxPlatformScript_03_Lifecycle_MinimalToMaximal(t *testin
 	scriptMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json", "validate_update/put_003_lifecycle_maximal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return scriptMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -178,7 +178,7 @@ func TestUnitResourceLinuxPlatformScript_04_Lifecycle_MaximalToMinimal(t *testin
 	scriptMock.ExpectedWrites = []string{"validate_create/post_002_scenario_maximal.json", "validate_update/put_004_lifecycle_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return scriptMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -230,7 +230,7 @@ func TestUnitResourceLinuxPlatformScript_05_AssignmentsMinimal(t *testing.T) {
 	scriptMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return scriptMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -267,7 +267,7 @@ func TestUnitResourceLinuxPlatformScript_06_AssignmentsMaximal(t *testing.T) {
 	scriptMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return scriptMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -308,7 +308,7 @@ func TestUnitResourceLinuxPlatformScript_07_AssignmentsLifecycle_MinimalToMaxima
 	scriptMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json", "validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return scriptMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -365,7 +365,7 @@ func TestUnitResourceLinuxPlatformScript_08_AssignmentsLifecycle_MaximalToMinima
 	scriptMock.ExpectedWrites = []string{"validate_create/post_001_scenario_minimal.json", "validate_create/post_001_scenario_minimal.json", "validate_create/post_001_scenario_minimal.json"}
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		CheckDestroy:             func(_ *terraform.State) error { return scriptMock.CheckDestroyed() },
 		Steps: []resource.TestStep{
 			{
@@ -436,7 +436,7 @@ func TestUnitResourceLinuxPlatformScript_09_ErrorHandling(t *testing.T) {
 	defer scriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("009_error_scenario.tf"),

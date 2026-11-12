@@ -39,7 +39,7 @@ func TestUnitResourceNetworkContentPolicy_01_BasicAndImport(t *testing.T) {
 	defer contentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -66,7 +66,7 @@ func TestUnitResourceNetworkContentPolicy_02_UpdateAndClearDescription(t *testin
 	defer contentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_with_description.tf"),
@@ -92,7 +92,7 @@ func TestUnitResourceNetworkContentPolicy_03_InvalidDefaultAction(t *testing.T) 
 	defer contentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{{
 			Config:      testConfigHelper("resource_invalid_default_action.tf"),
 			ExpectError: regexp.MustCompile(`default_action.*allow|value must be one of`),
@@ -107,7 +107,7 @@ func TestUnitResourceNetworkContentPolicy_04_CreateError(t *testing.T) {
 	defer contentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{{
 			Config:      testConfigHelper("resource_minimal.tf"),
 			ExpectError: regexp.MustCompile(`Bad Request - 400`),

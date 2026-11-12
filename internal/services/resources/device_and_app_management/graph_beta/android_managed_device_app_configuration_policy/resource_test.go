@@ -169,7 +169,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_01_Schema(t *tes
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -203,7 +203,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_02_Minimal(t *te
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
@@ -236,7 +236,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_03_MicrosoftAuth
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftAuthenticator(),
@@ -267,7 +267,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_04_Microsoft365C
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoft365Copilot(),
@@ -296,7 +296,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_05_ManagedHomeSc
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigManagedHomeScreen(),
@@ -325,7 +325,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_06_MicrosoftDefe
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftDefender(),
@@ -354,7 +354,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_07_MicrosoftEdge
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftEdge(),
@@ -386,7 +386,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_08_MicrosoftExce
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftExcel(),
@@ -411,7 +411,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_09_MicrosoftPowe
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftPowerPoint(),
@@ -436,7 +436,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_10_MicrosoftWord
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftWord(),
@@ -461,7 +461,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_11_MicrosoftOneN
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftOneNote(),
@@ -486,7 +486,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_12_MicrosoftOneD
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftOneDrive(),
@@ -511,7 +511,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_13_MicrosoftOutl
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftOutlook(),
@@ -540,7 +540,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_14_MicrosoftTeam
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMicrosoftTeams(),
@@ -569,7 +569,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_15_RequiredField
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -593,7 +593,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_16_ErrorHandling
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -618,7 +618,7 @@ func TestUnitResourceAndroidManagedDeviceAppConfigurationPolicy_17_TargetedMobil
 	defer androidManagedDeviceAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Test invalid GUID format
 			{

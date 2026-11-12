@@ -42,7 +42,7 @@ func TestUnitDatasourceGroupPolicyValueReference_01_SingleDefinition(t *testing.
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_single_definition.tf"),
@@ -70,7 +70,7 @@ func TestUnitDatasourceGroupPolicyValueReference_02_MultipleDefinitions(t *testi
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_multiple_definitions.tf"),
@@ -101,7 +101,7 @@ func TestUnitDatasourceGroupPolicyValueReference_03_NoResults(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_no_results.tf"),
@@ -122,7 +122,7 @@ func TestUnitDatasourceGroupPolicyValueReference_04_FuzzyMatchSuggestions(t *tes
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("04_fuzzy_match_casing.tf"),
@@ -164,7 +164,7 @@ func TestUnitDatasourceGroupPolicyValueReference_05_CaseInsensitiveMatch(t *test
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config: fmt.Sprintf(`

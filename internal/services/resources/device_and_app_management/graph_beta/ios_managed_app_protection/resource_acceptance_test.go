@@ -30,7 +30,7 @@ func loadAcceptanceTestTerraform(t *testing.T, filename string) string {
 func TestAccResourceIosManagedAppProtection_01_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
     		"random": {
         		Source: "hashicorp/random",
@@ -68,7 +68,7 @@ func TestAccResourceIosManagedAppProtection_01_Scenario_Minimal(t *testing.T) {
 func TestAccResourceIosManagedAppProtection_02_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
     		"random": {
         		Source: "hashicorp/random",
@@ -115,7 +115,7 @@ func TestAccResourceIosManagedAppProtection_02_Scenario_Maximal(t *testing.T) {
 func TestAccResourceIosManagedAppProtection_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
     		"random": {
         		Source: "hashicorp/random",
@@ -165,7 +165,7 @@ func TestAccResourceIosManagedAppProtection_03_Lifecycle_MinimalToMaximal(t *tes
 func TestAccResourceIosManagedAppProtection_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
     		"random": {
         		Source: "hashicorp/random",

@@ -52,7 +52,7 @@ func TestUnitResourceNetworkMCPPolicy_01_Lifecycle(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: testConfigHelper("resource.tf"),
@@ -99,7 +99,7 @@ func TestUnitResourceNetworkMCPPolicy_02_InvalidAction(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config:      invalidActionConfig(),
@@ -119,7 +119,7 @@ func TestUnitResourceNetworkMCPPolicy_03_Drift(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: testConfigHelper("resource.tf")},
 				{PreConfig: func() {

@@ -42,7 +42,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_01_Minimal(t *testing.T) {
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
@@ -75,7 +75,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_02_Maximal(t *testing.T) {
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
@@ -112,7 +112,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *testi
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_scenario_minimal_to_maximal_step_01.tf"),
@@ -149,7 +149,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *testi
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("005_scenario_maximal_to_minimal_step_01.tf"),
@@ -185,7 +185,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_05_DeviceSecurityGroup(t *te
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("007_scenario_device_security_group.tf"),
@@ -209,7 +209,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_06_DeviceSecurityGroupUpdate
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("008_scenario_device_security_group_update_step_01.tf"),
@@ -238,7 +238,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_07_DefaultPolicyAssignment(t
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("011_scenario_default_policy_assignment.tf"),
@@ -264,7 +264,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_07b_DefaultPolicyAssignmentU
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("011_scenario_default_policy_assignment.tf"),
@@ -291,7 +291,7 @@ func TestUnitResourceVisionOSDeviceEnrollmentPolicy_08_DefaultPolicyAssignmentSw
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("012_scenario_default_policy_assignment_switch_step_01.tf"),

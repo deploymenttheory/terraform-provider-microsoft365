@@ -34,7 +34,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_01_Camera(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -89,7 +89,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_01_Camera(t *testing.
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_02_TaskManager(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -140,7 +140,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_02_TaskManager(t *tes
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_03_AppPrivacy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -191,7 +191,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_03_AppPrivacy(t *test
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_04_Cryptography(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -242,7 +242,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_04_Cryptography(t *te
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_05_Notifications(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -293,7 +293,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_05_Notifications(t *t
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_06_AttachmentManager(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -344,7 +344,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_06_AttachmentManager(
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_07_CredentialUserInterface(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -395,7 +395,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_07_CredentialUserInte
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_08_RemoteDesktopAVDURL(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -446,7 +446,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_08_RemoteDesktopAVDUR
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_09_StorageSense(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -497,7 +497,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_09_StorageSense(t *te
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_11_AutoPlayPolicies(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -548,7 +548,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_11_AutoPlayPolicies(t
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_12_DefenderSmartscreen(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -599,7 +599,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_12_DefenderSmartscree
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_13_EdgeExtensionsMacOS(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -650,7 +650,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_13_EdgeExtensionsMacO
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_14_OfficeConfigurationMacOS(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -701,7 +701,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_14_OfficeConfiguratio
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_10_WindowsConnectionManager(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -752,7 +752,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_10_WindowsConnectionM
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_15_DefenderAntivirusBaseline(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -803,7 +803,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_15_DefenderAntivirusB
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_16_FileExplorerMinimalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -855,7 +855,7 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_16_FileExplorerMinima
 func TestAccResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

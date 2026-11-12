@@ -27,7 +27,7 @@ func TestAccResourceWindowsManagedMobileApp_01_Create_Minimal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
@@ -61,7 +61,7 @@ func TestAccResourceWindowsManagedMobileApp_02_Create_Maximal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
 			// Create with maximal configuration
@@ -96,7 +96,7 @@ func TestAccResourceWindowsManagedMobileApp_03_Update_MinimalToMaximal(t *testin
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
@@ -139,7 +139,7 @@ func TestAccResourceWindowsManagedMobileApp_04_Update_MaximalToMinimal(t *testin
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
@@ -181,7 +181,7 @@ func TestAccResourceWindowsManagedMobileApp_05_Delete_Minimal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
 			// Create the resource
@@ -224,7 +224,7 @@ func TestAccResourceWindowsManagedMobileApp_06_Delete_Maximal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
 			// Create the resource
@@ -267,7 +267,7 @@ func TestAccResourceWindowsManagedMobileApp_07_Import(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckWindowsManagedMobileAppDestroy,
 		Steps: []resource.TestStep{
 			// Create

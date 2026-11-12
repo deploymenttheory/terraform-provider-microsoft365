@@ -5,8 +5,6 @@ import (
 	"os"
 	"regexp"
 	"testing"
-
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_v1.0/device_configuration_assignment/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -129,7 +127,7 @@ func TestUnitResourceDeviceConfigurationAssignment_01_GroupAssignment(t *testing
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigGroupAssignment(),
@@ -158,7 +156,7 @@ func TestUnitResourceDeviceConfigurationAssignment_02_AllDevices(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigAllDevices(),
@@ -186,7 +184,7 @@ func TestUnitResourceDeviceConfigurationAssignment_03_AllLicensedUsers(t *testin
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigAllLicensedUsers(),
@@ -214,7 +212,7 @@ func TestUnitResourceDeviceConfigurationAssignment_04_ExclusionGroup(t *testing.
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigExclusionGroup(),
@@ -248,7 +246,7 @@ func TestUnitResourceDeviceConfigurationAssignment_05_Update(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigGroupAssignment(),
@@ -282,7 +280,7 @@ func TestUnitResourceDeviceConfigurationAssignment_06_Error(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigError(),
@@ -306,7 +304,7 @@ func TestUnitResourceDeviceConfigurationAssignment_07_Import(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigGroupAssignment(),

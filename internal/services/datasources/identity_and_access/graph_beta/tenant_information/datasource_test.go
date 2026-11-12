@@ -42,7 +42,7 @@ func TestUnitDatasourceTenantInformation_01_ByTenantId(t *testing.T) {
 	defer tiMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByTenantId(),
@@ -66,7 +66,7 @@ func TestUnitDatasourceTenantInformation_02_ByDomainName(t *testing.T) {
 	defer tiMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByDomainName(),
@@ -90,7 +90,7 @@ func TestUnitDatasourceTenantInformation_03_ValidationError(t *testing.T) {
 	defer tiMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigByTenantId(),

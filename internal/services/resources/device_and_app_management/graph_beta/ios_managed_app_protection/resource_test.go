@@ -48,7 +48,7 @@ func TestUnitResourceIosManagedAppProtection_01_Scenario_Minimal(t *testing.T) {
 	defer imapMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
@@ -79,7 +79,7 @@ func TestUnitResourceIosManagedAppProtection_02_Scenario_Maximal(t *testing.T) {
 	defer imapMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
@@ -120,7 +120,7 @@ func TestUnitResourceIosManagedAppProtection_03_Lifecycle_MinimalToMaximal(t *te
 	defer imapMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
@@ -155,7 +155,7 @@ func TestUnitResourceIosManagedAppProtection_04_Lifecycle_MaximalToMinimal(t *te
 	defer imapMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
@@ -188,7 +188,7 @@ func TestUnitResourceIosManagedAppProtection_05_ErrorHandling(t *testing.T) {
 	defer imapMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("005_error_scenario.tf"),

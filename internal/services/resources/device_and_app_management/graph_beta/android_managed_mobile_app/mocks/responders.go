@@ -2,192 +2,84 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
 )
 
-// mockState tracks the state of resources for consistent responses
+// mockState tracks app collections independently for each protection policy.
 var mockState struct {
 	sync.Mutex
-	apps map[string]map[string]any
+	apps map[string]map[string]map[string]any
 }
 
-func init() {
-	// Initialize mockState
-	mockState.apps = make(map[string]map[string]any)
-
-	// Register a default 404 responder for any unmatched requests
-	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
-}
-
-// AndroidManagedMobileAppMock provides mock responses for Android managed mobile app operations
+// AndroidManagedMobileAppMock provides mock responses for Android managed mobile app operations.
 type AndroidManagedMobileAppMock struct{}
 
-// RegisterMocks registers HTTP mock responses for Android managed mobile app operations
+// RegisterMocks registers collection reads and full-list targetApps replacements.
 func (m *AndroidManagedMobileAppMock) RegisterMocks() {
-	// Reset the state when registering mocks
 	mockState.Lock()
-	mockState.apps = make(map[string]map[string]any)
+	mockState.apps = make(map[string]map[string]map[string]any)
 	mockState.Unlock()
-
-	// Register test apps
 	registerTestApps()
-
-	// Register GET for app by protection ID and app ID
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps/[^/]+$`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps(\?.+)?$`,
 		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			appId := urlParts[len(urlParts)-1]
-
-			mockState.Lock()
-			appData, exists := mockState.apps[appId]
-			mockState.Unlock()
-
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"App not found"}}`), nil
-			}
-
-			return httpmock.NewJsonResponse(200, appData)
-		})
-
-	// Register GET for listing apps
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps(\?.+)?$`,
-		func(req *http.Request) (*http.Response, error) {
+			policyID := strings.Split(req.URL.Path, "/")[4]
 			mockState.Lock()
 			defer mockState.Unlock()
-
-			apps := make([]map[string]any, 0, len(mockState.apps))
-			for _, app := range mockState.apps {
+			apps := make([]map[string]any, 0, len(mockState.apps[policyID]))
+			for _, app := range mockState.apps[policyID] {
 				apps = append(apps, app)
 			}
-
-			response := map[string]any{
-				"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/androidManagedAppProtections('00000000-0000-0000-0000-000000000002')/apps",
-				"value":          apps,
-			}
-
-			return httpmock.NewJsonResponse(200, response)
-		})
-
-	// Register POST for creating apps
-	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps$`,
+			return httpmock.NewJsonResponse(http.StatusOK, map[string]any{"value": apps})
+		},
+	)
+	httpmock.RegisterResponder(
+		"POST",
+		`=~^https://graph.microsoft.com/beta/deviceAppManagement/managedAppPolicies/[^/]+/targetApps$`,
 		func(req *http.Request) (*http.Response, error) {
-			var appData map[string]any
-			err := json.NewDecoder(req.Body).Decode(&appData)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+			var payload struct {
+				Apps []map[string]any `json:"apps"`
 			}
-
-			// Extract protection ID from URL
-			urlParts := strings.Split(req.URL.Path, "/")
-			protectionId := urlParts[len(urlParts)-2]
-
-			// Validate required fields
-			if mobileAppId, ok := appData["mobileAppIdentifier"].(map[string]any); !ok || mobileAppId["packageId"] == nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"mobileAppIdentifier with packageId is required"}}`), nil
+			if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+				return nil, fmt.Errorf("decode targetApps request: %w", err)
 			}
-
-			// Generate ID if not provided
-			if appData["id"] == nil {
-				appData["id"] = uuid.New().String()
+			apps := make(map[string]map[string]any, len(payload.Apps))
+			for _, app := range payload.Apps {
+				id, ok := app["id"].(string)
+				if !ok || id == "" {
+					id = uuid.NewString()
+					app["id"] = id
+				}
+				if app["version"] == nil {
+					app["version"] = "1.0"
+				}
+				apps[id] = app
 			}
-
-			// Set computed fields
-			now := time.Now().Format(time.RFC3339)
-			appData["createdDateTime"] = now
-			appData["@odata.context"] = "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/androidManagedAppProtections('" + protectionId + "')/apps/$entity"
-			appData["@odata.type"] = "#microsoft.graph.managedMobileApp"
-
-			// Set default version if not provided
-			if appData["version"] == nil {
-				appData["version"] = "1.0"
-			}
-
-			// Ensure mobile app identifier has correct odata type
-			if mobileAppId, ok := appData["mobileAppIdentifier"].(map[string]any); ok {
-				mobileAppId["@odata.type"] = "#microsoft.graph.androidMobileAppIdentifier"
-			}
-
-			// Store app in mock state
-			appId := appData["id"].(string)
+			policyID := strings.Split(req.URL.Path, "/")[4]
 			mockState.Lock()
-			mockState.apps[appId] = appData
+			mockState.apps[policyID] = apps
 			mockState.Unlock()
-
-			return httpmock.NewJsonResponse(201, appData)
-		})
-
-	// Register PATCH for updating apps
-	httpmock.RegisterResponder("PATCH", `=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			appId := urlParts[len(urlParts)-1]
-
-			mockState.Lock()
-			appData, exists := mockState.apps[appId]
-			mockState.Unlock()
-
-			if !exists {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"App not found"}}`), nil
-			}
-
-			var updateData map[string]any
-			err := json.NewDecoder(req.Body).Decode(&updateData)
-			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-			}
-
-			// Update app data
-			mockState.Lock()
-
-			// Apply the updates
-			for k, v := range updateData {
-				appData[k] = v
-			}
-
-			mockState.apps[appId] = appData
-			mockState.Unlock()
-
-			return httpmock.NewJsonResponse(200, appData)
-		})
-
-	// Register DELETE for removing apps
-	httpmock.RegisterResponder("DELETE", `=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps/[^/]+$`,
-		func(req *http.Request) (*http.Response, error) {
-			urlParts := strings.Split(req.URL.Path, "/")
-			appId := urlParts[len(urlParts)-1]
-
-			mockState.Lock()
-			_, exists := mockState.apps[appId]
-			if exists {
-				delete(mockState.apps, appId)
-			}
-			mockState.Unlock()
-
-			// Return 204 No Content for successful deletion
-			return httpmock.NewStringResponse(204, ""), nil
-		})
+			return httpmock.NewStringResponse(http.StatusNoContent, ""), nil
+		},
+	)
 }
 
-// RegisterErrorMocks registers HTTP mock responses for error scenarios
+// RegisterErrorMocks registers the targetApps failure used by error lifecycle tests.
 func (m *AndroidManagedMobileAppMock) RegisterErrorMocks() {
-	// Register error response for app creation
-	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps$`,
-		factories.ErrorResponse(400, "BadRequest", "Error creating Android managed mobile app"))
-
-	// Register error response for app not found
-	httpmock.RegisterResponder("GET", `=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps/not-found-app$`,
-		factories.ErrorResponse(404, "ResourceNotFound", "App not found"))
-
-	// Register error response for invalid protection ID
-	httpmock.RegisterResponder("POST", `=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/invalid-id/apps$`,
-		factories.ErrorResponse(400, "BadRequest", "Invalid managed app protection ID"))
+	httpmock.RegisterResponder(
+		"POST",
+		`=~^https://graph.microsoft.com/beta/deviceAppManagement/managedAppPolicies/[^/]+/targetApps$`,
+		factories.ErrorResponse(400, "BadRequest", "Error creating Android managed mobile app"),
+	)
 }
 
 // registerTestApps registers predefined test apps
@@ -222,7 +114,11 @@ func registerTestApps() {
 
 	// Store apps in mock state
 	mockState.Lock()
-	mockState.apps[minimalAppId] = minimalAppData
-	mockState.apps[maximalAppId] = maximalAppData
+	mockState.apps["00000000-0000-0000-0000-000000000002"] = map[string]map[string]any{
+		minimalAppId: minimalAppData,
+	}
+	mockState.apps["00000000-0000-0000-0000-000000000003"] = map[string]map[string]any{
+		maximalAppId: maximalAppData,
+	}
 	mockState.Unlock()
 }

@@ -45,7 +45,7 @@ func TestUnitResourceWindowsUpdatePolicyApproval_01_Approved(t *testing.T) {
 	defer approvalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_approved.tf"),
@@ -69,7 +69,7 @@ func TestUnitResourceWindowsUpdatePolicyApproval_02_Suspended(t *testing.T) {
 	defer approvalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_suspended.tf"),
@@ -89,7 +89,7 @@ func TestUnitResourceWindowsUpdatePolicyApproval_03_UpdateStatus(t *testing.T) {
 	defer approvalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_approved.tf"),
@@ -114,7 +114,7 @@ func TestUnitResourceWindowsUpdatePolicyApproval_04_Import(t *testing.T) {
 	defer approvalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_approved.tf"),
@@ -140,7 +140,7 @@ func TestUnitResourceWindowsUpdatePolicyApproval_05_Error(t *testing.T) {
 	defer approvalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_approved.tf"),

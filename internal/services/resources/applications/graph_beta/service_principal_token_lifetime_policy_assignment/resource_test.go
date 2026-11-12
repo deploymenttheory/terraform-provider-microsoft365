@@ -36,7 +36,7 @@ func TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_01_Basic(t *t
 	defer tlpMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -76,7 +76,7 @@ func TestUnitResourceServicePrincipalTokenLifetimePolicyAssignment_02_EventualCo
 	assignmentMock.RegisterEventualConsistencyMocks(1, 1)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),

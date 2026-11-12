@@ -59,7 +59,7 @@ func TestUnitResourceWindowsUpdateDeploymentAudience_01_BasicAudience(t *testing
 	defer audienceMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_basic_audience.tf"),
@@ -93,7 +93,7 @@ func TestUnitResourceWindowsUpdateDeploymentAudience_02_WithMembers(t *testing.T
 	defer audienceMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_with_members.tf"),
@@ -128,7 +128,7 @@ func TestUnitResourceWindowsUpdateDeploymentAudience_03_WithExclusions(t *testin
 	defer audienceMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_with_exclusions.tf"),
@@ -177,7 +177,7 @@ func TestUnitResourceWindowsUpdateDeploymentAudience_04_Lifecycle(t *testing.T) 
 	defer audienceMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_lifecycle_step1.tf"),
@@ -215,7 +215,7 @@ func TestUnitResourceWindowsUpdateDeploymentAudience_05_Error(t *testing.T) {
 	defer audienceMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_basic_audience.tf"),

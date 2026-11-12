@@ -22,7 +22,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccDatasourceDeviceEnrollment_01_ByEntraDeviceId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -50,7 +50,7 @@ func TestAccDatasourceDeviceEnrollment_01_ByEntraDeviceId(t *testing.T) {
 func TestAccDatasourceDeviceEnrollment_02_ListAll(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -76,7 +76,7 @@ func TestAccDatasourceDeviceEnrollment_02_ListAll(t *testing.T) {
 func TestAccDatasourceDeviceEnrollment_03_FilterByUpdateCategory(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -103,7 +103,7 @@ func TestAccDatasourceDeviceEnrollment_03_FilterByUpdateCategory(t *testing.T) {
 func TestAccDatasourceDeviceEnrollment_04_ByDeviceName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

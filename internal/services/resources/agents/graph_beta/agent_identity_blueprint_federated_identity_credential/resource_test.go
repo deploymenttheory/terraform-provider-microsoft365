@@ -46,7 +46,7 @@ func TestUnitResourceAgentIdentityBlueprintFederatedIdentityCredential_01_Minima
 	defer agentIdentityBlueprintFederatedIdentityCredentialMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -76,7 +76,7 @@ func TestUnitResourceAgentIdentityBlueprintFederatedIdentityCredential_02_Maxima
 	defer agentIdentityBlueprintFederatedIdentityCredentialMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -107,7 +107,7 @@ func TestUnitResourceAgentIdentityBlueprintFederatedIdentityCredential_03_Update
 	defer agentIdentityBlueprintFederatedIdentityCredentialMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),

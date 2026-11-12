@@ -38,7 +38,7 @@ func TestUnitDatasourceServicePrincipal_01_ByObjectId(t *testing.T) {
 	defer spMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_by_object_id.tf"),
@@ -78,7 +78,7 @@ func TestUnitDatasourceServicePrincipal_02_ByAppId(t *testing.T) {
 	defer spMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_app_id.tf"),
@@ -106,7 +106,7 @@ func TestUnitDatasourceServicePrincipal_03_ByDisplayName(t *testing.T) {
 	defer spMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_by_display_name.tf"),
@@ -125,7 +125,7 @@ func TestUnitDatasourceServicePrincipal_04_ODataFilter(t *testing.T) {
 	defer spMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_odata_filter.tf"),
@@ -151,7 +151,7 @@ func TestUnitDatasourceServicePrincipal_05_ODataAdvanced(t *testing.T) {
 	defer spMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_odata_advanced.tf"),
@@ -179,7 +179,7 @@ func TestUnitDatasourceServicePrincipal_06_ODataComprehensive(t *testing.T) {
 	defer spMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("06_odata_comprehensive.tf"),
@@ -206,7 +206,7 @@ func TestUnitDatasourceServicePrincipal_07_ValidationError(t *testing.T) {
 	defer spMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_by_object_id.tf"),

@@ -22,7 +22,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsUpdatesUpdatePolicy_01_CreateUpdatePolicy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
@@ -54,7 +54,7 @@ func TestAccResourceWindowsUpdatesUpdatePolicy_01_CreateUpdatePolicy(t *testing.
 func TestAccResourceWindowsUpdatesUpdatePolicy_02_LifecycleUpdate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
@@ -84,7 +84,7 @@ func TestAccResourceWindowsUpdatesUpdatePolicy_02_LifecycleUpdate(t *testing.T) 
 func TestAccResourceWindowsUpdatesUpdatePolicy_03_MinimalPolicy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {

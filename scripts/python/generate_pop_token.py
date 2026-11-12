@@ -17,7 +17,8 @@ The PoP token must contain:
 - exp: Expiration time (nbf + 10 minutes recommended)
 
 Usage:
-    python generate_pop_token.py --client-id <app_id> --object-id <object_id> --cert-path <path> [--password <pwd>]
+    python generate_pop_token.py --client-id <app_id> --object-id <object_id> --cert-path <path>
+    [--password <pwd>]
 
 Requirements:
     pip install cryptography PyJWT
@@ -106,9 +107,7 @@ def load_certificate(
                     key_data, password=password_bytes, backend=default_backend()
                 )
             else:
-                raise ValueError(
-                    f"Private key not found in {cert_path} or {key_path}"
-                ) from exc
+                raise ValueError(f"Private key not found in {cert_path} or {key_path}") from exc
 
         return certificate, private_key
 
@@ -402,9 +401,7 @@ https://learn.microsoft.com/en-us/graph/application-rollkey-prooftoken
             # If a new certificate is specified, show its key value
             if args.new_cert_path:
                 print(f"\nLoading new certificate from: {args.new_cert_path}")
-                new_cert, _ = load_certificate(
-                    args.new_cert_path, args.new_cert_password
-                )
+                new_cert, _ = load_certificate(args.new_cert_path, args.new_cert_password)
                 key_value = get_certificate_public_key_base64(new_cert)
                 print("\nNew certificate key value (for addKey 'key' field):")
                 print(key_value)
@@ -458,7 +455,9 @@ https://learn.microsoft.com/en-us/graph/application-rollkey-prooftoken
             print(json.dumps(result, indent=2))
 
         # Show usage hints
-        if args.output_format == "text" and (result.get("pop_token") or result.get("client_assertion")):
+        if args.output_format == "text" and (
+            result.get("pop_token") or result.get("client_assertion")
+        ):
             print("\n" + "=" * 60)
             print("Usage Hints")
             print("=" * 60)
@@ -506,4 +505,3 @@ https://learn.microsoft.com/en-us/graph/application-rollkey-prooftoken
 
 if __name__ == "__main__":
     main()
-

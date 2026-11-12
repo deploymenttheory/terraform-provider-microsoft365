@@ -48,7 +48,7 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_01_Scenario_Minimal(t *t
 	defer registrationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
@@ -74,7 +74,7 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_02_Scenario_Maximal(t *t
 	defer registrationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
@@ -100,7 +100,7 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_03_Lifecycle_AddDevices(
 	defer registrationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_lifecycle_add_devices_step_1.tf"),
@@ -127,7 +127,7 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_04_Lifecycle_RemoveDevic
 	defer registrationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("004_lifecycle_remove_devices_step_1.tf"),
@@ -154,7 +154,7 @@ func TestUnitResourceWindowsAutopatchDeviceRegistration_05_ErrorHandling(t *test
 	defer registrationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("005_error_scenario.tf"),

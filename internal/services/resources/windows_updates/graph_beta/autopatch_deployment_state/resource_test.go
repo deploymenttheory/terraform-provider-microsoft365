@@ -50,7 +50,7 @@ func TestUnitResourceWindowsUpdateDeploymentState_01_PauseDeployment(t *testing.
 	defer stateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_deployment_state_paused.tf"),
@@ -72,7 +72,7 @@ func TestUnitResourceWindowsUpdateDeploymentState_02_UpdateState(t *testing.T) {
 	defer stateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_deployment_state_paused.tf"),
@@ -97,7 +97,7 @@ func TestUnitResourceWindowsUpdateDeploymentState_03_Import(t *testing.T) {
 	defer stateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_deployment_state_paused.tf"),
@@ -122,7 +122,7 @@ func TestUnitResourceWindowsUpdateDeploymentState_04_Error(t *testing.T) {
 	defer stateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_deployment_state_paused.tf"),

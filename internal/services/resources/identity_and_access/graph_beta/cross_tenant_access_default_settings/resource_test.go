@@ -47,7 +47,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_01_Minimal(t *testing.T) {
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_minimal.tf"),
@@ -90,7 +90,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_02_B2BCollaborationInbound
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_b2b_collaboration_inbound.tf"),
@@ -132,7 +132,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_03_B2BDirectConnect(t *tes
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_03_b2b_direct_connect.tf"),
@@ -186,7 +186,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_04_InboundTrust(t *testing
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_04_inbound_trust.tf"),
@@ -221,7 +221,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_05_InvitationRedemption(t 
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_05_invitation_redemption.tf"),
@@ -258,7 +258,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_06_TenantRestrictions(t *t
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_06_tenant_restrictions.tf"),
@@ -300,7 +300,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_07_AutomaticUserConsent(t 
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_07_automatic_user_consent.tf"),
@@ -334,7 +334,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_08_Maximal(t *testing.T) {
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_08_maximal.tf"),
@@ -398,7 +398,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_09_ValidatorGUID(t *testin
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_09_validator_guid.tf"),
@@ -424,7 +424,7 @@ func TestUnitResourceCrossTenantAccessDefaultSettings_10_ValidatorOffice365(t *t
 	defer crossTenantAccessDefaultSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_10_validator_office365.tf"),

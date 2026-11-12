@@ -49,7 +49,7 @@ func TestUnitResourceServicePrincipalTokenSigningCertificate_01_Lifecycle(t *tes
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		// Destroy must remove the certificate's Sign/Verify key credentials and password
 		// credential via the read-modify-write PATCH while retaining the unrelated
 		// credential pair the mock seeds (1 key + 1 password).
@@ -95,7 +95,7 @@ func TestUnitResourceServicePrincipalTokenSigningCertificate_02_Defaults(t *test
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_defaults.tf"),

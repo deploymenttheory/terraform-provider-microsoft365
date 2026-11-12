@@ -1,11 +1,68 @@
 # PR Go checks
 
-Lint and unit tests are separate workflows. Automatic runs are triggered only by
-changed `.go` files. Each workflow compares the checked-out commit with the Git
+Lint and unit tests are separate workflows. Each workflow compares the checked-out commit with the Git
 merge-base of the PR base SHA and selects exact package directories. Root files,
 renames and deletions are included; completely deleted packages are skipped.
-An empty selection skips Go installation and execution. There is no `./...`
-fallback and no dependency-test expansion.
+Planning and factory validation also run when their pipeline files change. An
+empty Go selection launches no lint, unit, or race workers. There is no `./...`
+fallback. Unit tests include local packages whose test import graph depends on a
+changed production package. Test-only changes do not propagate as production
+dependencies. Internal fixture and embedded-data changes select their owning Go
+packages and dependent tests. Unit workers select packages containing test files;
+production-only packages remain in lint analysis and are compiled through their
+test consumers. Lint findings remain restricted to changed Go packages and lines.
+
+Lint, unit, and race workers use the acceptance pipeline's bounded Rendezvous
+sharder, assigning each selected package exactly once, with at most five packages
+per worker by default. Workers use standard `ubuntu-24.04-arm` runners and execute
+their packages serially. A failed shard does not cancel other shards. The existing
+lint and unit summary checks require every applicable worker to pass.
+
+The production `internal/provider` registry necessarily imports every object kind.
+Its lint job runs alone as `✨ Lint Provider Registry`, with `GOMEMLIMIT=20GiB` and
+`GOGC=100` to accommodate its measured live analysis data and disk-backed headroom. Go's memory limit is a soft
+heap target, not an RSS cap; live analysis data can exceed it. The dedicated job
+runs all 23 configured checks with golangci-lint v2.15.0. It also adds 8 GiB of
+swap on the ephemeral runner, after requiring 10 GiB of free disk. This provides
+disk-backed headroom without changing the runner tier. Ordinary partitions do
+not allocate extra swap. Swapping can increase execution time; the existing
+timeouts, failure propagation and OOM diagnostics remain enforced. Its success
+must be established from the standard runner's diagnostics.
+Ordinary package workers keep the default Go garbage-collection settings. The
+diagnostics record both settings alongside memory peaks and OOM counters.
+Each workflow has one cache-preparation job before its workers fan out. The
+lint producer compiles the full production provider only when its registry is
+selected, then prepares the selected packages' production and test imports.
+Leaf-only selections stay isolated. The test producer prepares the planned unit
+packages' imports and, when race detection applies, their race-instrumented imports.
+Preparation compiles dependencies without executing tests or provider code. Unit
+and race workers then run in parallel, with independent required summary gates.
+Race execution does not wait for the unit or coverage result.
+
+The producer restores a previous compatible snapshot, verifies the required builds,
+and publishes a new immutable key for this source revision. Keys include the Go
+version, dependencies, preparation recipe and build mode; manual lint subsets
+also include their package selection. Only a successful producer saves a snapshot.
+Workers depend on it and restore its exact published key using restore-only actions.
+They cannot race to save partial caches. Missing snapshots and failed preparation
+fail CI. Normal and race artifacts coexist safely because Go keys build artifacts
+by source, compiler and build flags. Actual tests still run in their normal workers.
+
+Cold compilation and lint analysis retain separate 45-minute command budgets in
+60-minute jobs. Test cache preparation also has a 60-minute job budget. Cache
+preparation failures fail the applicable required lint, unit and race gates.
+No lint checks or test assertions are removed.
+
+Manual lint dispatches may set `packages` to a space-separated subset of changed
+packages, for example `internal/provider`; PR runs continue checking every
+changed package and all configured linters.
+
+Unit and race workers install the latest stable Terraform once, without the CLI
+wrapper, and export its path as `TF_ACC_TERRAFORM_PATH` for every test. Tests do
+not repeatedly download Terraform while running. In GitHub Actions, test stdout
+is streamed in green and failures in red, with a colour reset after every line.
+Resource utilisation and system diagnostics remain uncoloured. Set `NO_COLOR`
+to disable test colouring.
 
 Lint reports findings on changed lines, includes test-file analysis, retains the
 configured linters/formatters, and does not rewrite source. It runs one package
@@ -15,8 +72,38 @@ the selected packages with `TF_ACC=0` for the project's mocks and explicitly ski
 independent of coverage. Unit execution stops at the first failed or terminated
 package and preserves its exit status. Per-package coverage remains available
 for diagnostics; merged coverage is produced only after all selected packages pass.
-Package/test parallelism and `GOMAXPROCS` are one. Resource tests can still compile
-much of the provider through the shared mock provider factory.
+Package/test parallelism and `GOMAXPROCS` are one. Successful unit profiles are
+downloaded and merged before the single Codecov upload, coverage gate, and PR
+comment. Duplicate coverage blocks are counted once when combining profiles.
+
+## Isolated provider factories
+
+`internal/provider/core` contains the real provider schema, validation and client
+configuration. The production provider composes this core with its complete
+resource, data source, action, list, and ephemeral registries. Test factories
+compose the same core with only the package under test and fixture dependencies.
+The shared mocks no longer import the complete production provider.
+
+Each participating test package has a generated `provider_factories_test.go`.
+Its local unit and acceptance maps preserve their respective authentication
+modes. Test steps, assertions, and lifecycle ordering remain in their existing
+files. Generate factories after adding a registration, changing test imports, or
+adding a Terraform fixture dependency:
+
+```sh
+python3 scripts/pipeline/generate_test_factories.py
+python3 scripts/pipeline/generate_test_factories.py --check
+```
+
+The generator reads production constructors and type names, package imports, and
+Terraform block declarations in Go and Terraform fixtures. Resource and data
+source types are resolved separately even when their names match.
+List-resource factories also include the matching managed resource required by
+the protocol to retrieve its schema and identity. CI fails when
+checked-in factories are stale or production type metadata cannot be resolved.
+Dependencies assembled by a helper must be represented by an explicit test
+import of their registered package or a Terraform declaration in the package's
+fixtures. Generated files must not be edited manually.
 
 ## Manual fallback
 
@@ -31,14 +118,15 @@ Local equivalents, from the repository root:
 
 ```sh
 python3 scripts/pipeline/pr/steps/detect_changes.py --base-ref origin/main
+python3 scripts/pipeline/pr/steps/plan_jobs.py --base-ref origin/main
 python3 scripts/pipeline/pr/steps/run_lint.py --base-ref origin/main
 # Use the exact packages printed by the selector, separated by spaces:
 python3 scripts/pipeline/pr/steps/run_tests.py --packages 'internal/client internal/provider'
 ```
 
 Selection compares committed changes. Commit work intended for comparison first.
-Non-Go fixtures, documentation, dependency manifests and workflow-only changes do
-not automatically run these Go checks. Scheduled acceptance tests are unchanged.
+Documentation-only changes do not select Go packages. Scheduled acceptance jobs
+retain their existing test batches and use the isolated factories as well.
 
 ## Diagnostics
 
@@ -50,8 +138,9 @@ SARIF and `results.json` with findings versus execution exit statuses. A runner
 shutdown may prevent artifact upload; periodic samples remain in the live log.
 Lint has a 45-minute per-package timeout. Lint and test steps have a 50-minute
 budget within 60-minute jobs, leaving time for failure reports and cache post-steps.
-No speculative memory cap, GC override, or disabled linter is used to conceal a
-failed execution. A resource failure must be investigated from the measurements.
+Memory targets and GC overrides are restricted to the dedicated registry worker
+and recorded in diagnostics. They never convert a failed execution into success
+or disable checks. A resource failure must be investigated from the measurements.
 
 ### Initial validation evidence
 
@@ -88,7 +177,7 @@ the shared analysis dependency graph while retaining the required checks.
 
 ## Pipeline regression checks
 
-Requires Python 3, Git, Go compatible with `go.mod`, golangci-lint v2.14.0 and
+Requires Python 3, Git, Go compatible with `go.mod`, golangci-lint v2.15.0 and
 `actionlint`. Tests use isolated repositories and tiny Go modules, not the provider
 suite or a tenant. The intentionally failing fixture tests must be caught by the
 Python assertions.

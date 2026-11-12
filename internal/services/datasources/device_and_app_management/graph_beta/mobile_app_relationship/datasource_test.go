@@ -25,7 +25,7 @@ func TestUnitDatasourceMobileAppRelationship_01_All(t *testing.T) {
 	relMocks.RegisterMobileAppRelationshipMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigAll(),
@@ -63,7 +63,7 @@ func TestUnitDatasourceMobileAppRelationship_02_ById(t *testing.T) {
 	relMocks.RegisterMobileAppRelationshipMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigById(),
@@ -101,7 +101,7 @@ func TestUnitDatasourceMobileAppRelationship_03_BySourceId(t *testing.T) {
 	relMocks.RegisterMobileAppRelationshipMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBySourceId(),
@@ -132,7 +132,7 @@ func TestUnitDatasourceMobileAppRelationship_04_ByTargetId(t *testing.T) {
 	relMocks.RegisterMobileAppRelationshipMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByTargetId(),
@@ -162,7 +162,7 @@ func TestUnitDatasourceMobileAppRelationship_05_ODataFilter(t *testing.T) {
 	relMocks.RegisterMobileAppRelationshipMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigODataFilter(),

@@ -32,7 +32,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsUpdateRing_01_Scenario_NotifyDownload(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -80,7 +80,7 @@ func TestAccResourceWindowsUpdateRing_01_Scenario_NotifyDownload(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_02_Scenario_AutoInstallMaintenance(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -129,7 +129,7 @@ func TestAccResourceWindowsUpdateRing_02_Scenario_AutoInstallMaintenance(t *test
 func TestAccResourceWindowsUpdateRing_03_Scenario_AutoRebootMaintenance(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -178,7 +178,7 @@ func TestAccResourceWindowsUpdateRing_03_Scenario_AutoRebootMaintenance(t *testi
 func TestAccResourceWindowsUpdateRing_04_Scenario_ScheduledInstall(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -228,7 +228,7 @@ func TestAccResourceWindowsUpdateRing_04_Scenario_ScheduledInstall(t *testing.T)
 func TestAccResourceWindowsUpdateRing_05_Scenario_NoEndUserControl(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -275,7 +275,7 @@ func TestAccResourceWindowsUpdateRing_05_Scenario_NoEndUserControl(t *testing.T)
 func TestAccResourceWindowsUpdateRing_06_Scenario_WindowsDefault(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -323,7 +323,7 @@ func TestAccResourceWindowsUpdateRing_06_Scenario_WindowsDefault(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_07_FullLifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -446,7 +446,7 @@ func TestAccResourceWindowsUpdateRing_07_FullLifecycle(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_08_AssignmentsMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -491,7 +491,7 @@ func TestAccResourceWindowsUpdateRing_08_AssignmentsMinimal(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_09_AssignmentsMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -536,7 +536,7 @@ func TestAccResourceWindowsUpdateRing_09_AssignmentsMaximal(t *testing.T) {
 func TestAccResourceWindowsUpdateRing_10_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -596,7 +596,7 @@ func TestAccResourceWindowsUpdateRing_10_AssignmentsLifecycle_MinimalToMaximal(t
 func TestAccResourceWindowsUpdateRing_11_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdateRing.ResourceName,
@@ -656,7 +656,7 @@ func TestAccResourceWindowsUpdateRing_11_AssignmentsLifecycle_MaximalToMinimal(t
 func TestAccResourceWindowsUpdateRing_12_ValidationErrors(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

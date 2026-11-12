@@ -30,7 +30,7 @@ func loadAcceptanceTestTerraform(t *testing.T, filename string) string {
 func TestAccResourceAndroidManagedAppProtection_01_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaAndroidManagedAppProtection.ResourceName,
@@ -62,7 +62,7 @@ func TestAccResourceAndroidManagedAppProtection_01_Scenario_Minimal(t *testing.T
 func TestAccResourceAndroidManagedAppProtection_02_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaAndroidManagedAppProtection.ResourceName,
@@ -101,7 +101,7 @@ func TestAccResourceAndroidManagedAppProtection_02_Scenario_Maximal(t *testing.T
 func TestAccResourceAndroidManagedAppProtection_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaAndroidManagedAppProtection.ResourceName,
@@ -146,7 +146,7 @@ func TestAccResourceAndroidManagedAppProtection_03_Lifecycle_MinimalToMaximal(t 
 func TestAccResourceAndroidManagedAppProtection_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaAndroidManagedAppProtection.ResourceName,

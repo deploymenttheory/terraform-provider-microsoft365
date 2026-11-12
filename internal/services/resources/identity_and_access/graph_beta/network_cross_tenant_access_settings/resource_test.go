@@ -39,7 +39,7 @@ func TestUnitResourceNetworkCrossTenantAccessSettings_01_Lifecycle(t *testing.T)
 	m := setupMockEnvironment(t)
 	address := resourceType + ".test"
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config(t, "disabled"), Check: resource.ComposeTestCheckFunc(
 				check.That(address).Key("id").HasValue("crossTenantAccess"),
@@ -61,7 +61,7 @@ func TestUnitResourceNetworkCrossTenantAccessSettings_01_Lifecycle(t *testing.T)
 func TestUnitResourceNetworkCrossTenantAccessSettings_02_InvalidStatus(t *testing.T) {
 	setupMockEnvironment(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps:                    []resource.TestStep{{Config: config(t, "invalid"), ExpectError: regexp.MustCompile(`Attribute network_packet_tagging_status value must be one of`)}},
 	})
 }
@@ -69,7 +69,7 @@ func TestUnitResourceNetworkCrossTenantAccessSettings_02_InvalidStatus(t *testin
 func TestUnitResourceNetworkCrossTenantAccessSettings_03_Drift(t *testing.T) {
 	m := setupMockEnvironment(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config(t, "disabled")},
 			{PreConfig: func() { m.SetStatus("enabled") }, Config: config(t, "disabled"), Check: check.That(resourceType + ".test").Key("network_packet_tagging_status").HasValue("disabled")},
@@ -81,7 +81,7 @@ func TestUnitResourceNetworkCrossTenantAccessSettings_04_Forbidden(t *testing.T)
 	m := setupMockEnvironment(t)
 	m.RegisterErrorMocks()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps:                    []resource.TestStep{{Config: config(t, "disabled"), ExpectError: regexp.MustCompile(`(?i)(permission|privilege|forbidden|access)`)}},
 	})
 }

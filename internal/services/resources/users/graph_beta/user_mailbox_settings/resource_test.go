@@ -41,7 +41,7 @@ func TestUnitResourceUserMailboxSettings_01_Basic(t *testing.T) {
 	defer mailboxSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -73,7 +73,7 @@ func TestUnitResourceUserMailboxSettings_02_Update(t *testing.T) {
 	defer mailboxSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -123,7 +123,7 @@ func TestUnitResourceUserMailboxSettings_03_AutomaticReplies(t *testing.T) {
 	defer mailboxSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigUpdate(),
@@ -145,7 +145,7 @@ func TestUnitResourceUserMailboxSettings_04_WorkingHours(t *testing.T) {
 	defer mailboxSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigUpdate(),
@@ -167,7 +167,7 @@ func TestUnitResourceUserMailboxSettings_05_RequiresImport(t *testing.T) {
 	defer mailboxSettingsMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),

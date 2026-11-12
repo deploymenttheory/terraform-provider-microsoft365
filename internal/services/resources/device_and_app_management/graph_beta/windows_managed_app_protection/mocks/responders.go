@@ -1,9 +1,14 @@
 package windowsManagedAppProtectionMocks
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"path"
+	"regexp"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 )
 
@@ -16,7 +21,7 @@ const (
 // WindowsManagedAppProtectionMock manages mock HTTP responses for unit tests.
 type WindowsManagedAppProtectionMock struct {
 	mu    sync.Mutex
-	state map[string]string // tracks which mock ID is "active"
+	state map[string]map[string]any
 }
 
 // minimalResponse is the API response for a minimal policy configuration.
@@ -81,51 +86,100 @@ const errorResponse = `{
 // RegisterMocks registers all standard HTTP mock responders.
 func (m *WindowsManagedAppProtectionMock) RegisterMocks() {
 	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.state = make(map[string]string)
+	m.state = make(map[string]map[string]any)
+	m.mu.Unlock()
 
-	// POST - Create minimal
-	httpmock.RegisterResponder("POST", baseURL,
-		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(http.StatusCreated, minimalResponse), nil
-		},
-	)
+	httpmock.RegisterResponder("POST", baseURL, func(req *http.Request) (*http.Response, error) {
+		var payload map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+			return nil, fmt.Errorf("decode mock create request: %w", err)
+		}
+		fixture := minimalResponse
+		if payload["printBlocked"] == true {
+			fixture = maximalResponse
+		}
+		var stored map[string]any
+		if err := json.Unmarshal([]byte(fixture), &stored); err != nil {
+			return nil, fmt.Errorf("decode mock create fixture: %w", err)
+		}
+		for key, value := range payload {
+			stored[key] = value
+		}
+		id := uuid.NewString()
+		stored["id"] = id
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		m.state[id] = stored
+		return newJSONResponse(http.StatusCreated, stored)
+	})
 
-	// GET - Read minimal
-	httpmock.RegisterResponder("GET", baseURL+"/"+mockIDMin,
-		httpmock.NewStringResponder(http.StatusOK, minimalResponse),
-	)
+	itemURL := "=~^" + regexp.QuoteMeta(baseURL) + "/[^/?]+(?:\\?.*)?$"
+	httpmock.RegisterResponder("GET", itemURL, func(req *http.Request) (*http.Response, error) {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		stored, exists := m.state[path.Base(req.URL.Path)]
+		if !exists {
+			return newJSONResponse(
+				http.StatusNotFound,
+				map[string]any{
+					"error": map[string]string{
+						"code":    "ResourceNotFound",
+						"message": "Policy not found",
+					},
+				},
+			)
+		}
+		return newJSONResponse(http.StatusOK, stored)
+	})
 
-	// PATCH - Update minimal
-	httpmock.RegisterResponder("PATCH", baseURL+"/"+mockIDMin,
-		httpmock.NewStringResponder(http.StatusOK, minimalResponse),
-	)
+	httpmock.RegisterResponder("PATCH", itemURL, func(req *http.Request) (*http.Response, error) {
+		var payload map[string]any
+		if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+			return nil, fmt.Errorf("decode mock update request: %w", err)
+		}
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		id := path.Base(req.URL.Path)
+		stored, exists := m.state[id]
+		if !exists {
+			return newJSONResponse(
+				http.StatusNotFound,
+				map[string]any{
+					"error": map[string]string{
+						"code":    "ResourceNotFound",
+						"message": "Policy not found",
+					},
+				},
+			)
+		}
+		for key, value := range payload {
+			stored[key] = value
+		}
+		stored["id"] = id
+		return newJSONResponse(http.StatusOK, stored)
+	})
 
-	// DELETE - Delete minimal
-	httpmock.RegisterResponder("DELETE", baseURL+"/"+mockIDMin,
-		httpmock.NewStringResponder(http.StatusNoContent, ""),
-	)
+	httpmock.RegisterResponder("DELETE", itemURL, func(req *http.Request) (*http.Response, error) {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		delete(m.state, path.Base(req.URL.Path))
+		return httpmock.NewStringResponse(http.StatusNoContent, ""), nil
+	})
+}
 
-	// GET - Read maximal
-	httpmock.RegisterResponder("GET", baseURL+"/"+mockIDMax,
-		httpmock.NewStringResponder(http.StatusOK, maximalResponse),
-	)
-
-	// PATCH - Update maximal
-	httpmock.RegisterResponder("PATCH", baseURL+"/"+mockIDMax,
-		httpmock.NewStringResponder(http.StatusOK, maximalResponse),
-	)
-
-	// DELETE - Delete maximal
-	httpmock.RegisterResponder("DELETE", baseURL+"/"+mockIDMax,
-		httpmock.NewStringResponder(http.StatusNoContent, ""),
-	)
+// newJSONResponse returns a mock response with the content type required by the Graph SDK.
+func newJSONResponse(status int, payload any) (*http.Response, error) {
+	response, err := httpmock.NewJsonResponse(status, payload)
+	if err != nil {
+		return nil, fmt.Errorf("encode mock response: %w", err)
+	}
+	return response, nil
 }
 
 // RegisterErrorMocks registers HTTP mock responders that return errors.
 func (m *WindowsManagedAppProtectionMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", baseURL,
-		httpmock.NewStringResponder(http.StatusBadRequest, errorResponse),
+		httpmock.NewJsonResponderOrPanic(http.StatusBadRequest, json.RawMessage(errorResponse)),
 	)
 }
 
@@ -133,5 +187,5 @@ func (m *WindowsManagedAppProtectionMock) RegisterErrorMocks() {
 func (m *WindowsManagedAppProtectionMock) CleanupMockState() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.state = make(map[string]string)
+	m.state = make(map[string]map[string]any)
 }

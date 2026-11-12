@@ -91,7 +91,7 @@ func TestAccResourceWindowsCustomConfiguration_01_Lifecycle(t *testing.T) {
 	}
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},

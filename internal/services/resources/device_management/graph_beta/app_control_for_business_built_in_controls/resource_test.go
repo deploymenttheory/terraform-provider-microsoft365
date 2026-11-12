@@ -50,7 +50,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_01_AuditMode(t *testin
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_acfb_built_in_controls_audit_mode.tf"),
@@ -72,7 +72,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_02_EnforceMode(t *test
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_acfb_built_in_controls_enforce_mode.tf"),
@@ -94,7 +94,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_03_Minimal(t *testing.
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_acfb_built_in_controls_minimal.tf"),
@@ -117,7 +117,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_04_Maximal(t *testing.
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_acfb_built_in_controls_maximal.tf"),
@@ -139,7 +139,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_05_Lifecycle_MinimalTo
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_acfb_built_in_controls_lifecycle_step_1_minimal.tf"),
@@ -169,7 +169,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_06_Lifecycle_MaximalTo
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_acfb_built_in_controls_downgrade_step_1_maximal.tf"),
@@ -198,7 +198,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_07_AssignmentsLifecycl
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_acfb_built_in_controls_assignments_lifecycle_step_1_minimal.tf"),
@@ -226,7 +226,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_08_AssignmentsLifecycl
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_acfb_built_in_controls_assignments_downgrade_step_1_maximal.tf"),
@@ -254,7 +254,7 @@ func TestUnitResourceAppControlForBusinessBuiltInControls_09_ErrorHandling(t *te
 	defer appControlMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_acfb_built_in_controls_minimal.tf"),

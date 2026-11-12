@@ -43,7 +43,7 @@ func TestUnitResourceNetworkForwardingOptions_01_Lifecycle(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: c,
@@ -83,7 +83,7 @@ func TestUnitResourceNetworkForwardingOptions_02_Validation(t *testing.T) {
 			resource.UnitTest(
 				t,
 				resource.TestCase{
-					ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+					ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 					Steps: []resource.TestStep{
 						{
 							Config: c,
@@ -101,7 +101,7 @@ func TestUnitResourceNetworkForwardingOptions_02_Validation(t *testing.T) {
 		resource.UnitTest(
 			t,
 			resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config:      `resource "` + resourceType + `" "test" {}`,

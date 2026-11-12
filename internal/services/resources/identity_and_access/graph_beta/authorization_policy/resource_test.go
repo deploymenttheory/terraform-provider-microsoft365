@@ -42,7 +42,7 @@ func TestUnitResourceAuthorizationPolicy_01_Lifecycle(t *testing.T) {
 	m := setupMockEnvironment(t)
 	address := policy.ResourceName + ".test"
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: loadUnitTestTerraform(t, "minimal"), Check: resource.ComposeTestCheckFunc(
 				check.That(address).Key("id").HasValue("authorizationPolicy"),
@@ -97,7 +97,7 @@ func TestUnitResourceAuthorizationPolicy_02_Validation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			setupMockEnvironment(t)
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config:      loadUnitTestTerraform(t, name),
@@ -113,7 +113,7 @@ func TestUnitResourceAuthorizationPolicy_02_Validation(t *testing.T) {
 func TestUnitResourceAuthorizationPolicy_03_Drift(t *testing.T) {
 	m := setupMockEnvironment(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: loadUnitTestTerraform(t, "minimal")},
 			{
@@ -132,7 +132,7 @@ func TestUnitResourceAuthorizationPolicy_04_Forbidden(t *testing.T) {
 	m := setupMockEnvironment(t)
 	m.RegisterErrorMocks()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform(t, "minimal"),
@@ -148,7 +148,7 @@ func TestUnitResourceAuthorizationPolicy_05_RequiredBooleans(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			setupMockEnvironment(t)
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config: loadUnitTestTerraform(t, name),
@@ -167,7 +167,7 @@ func TestUnitResourceAuthorizationPolicy_06_NullRiskyAppConsent(t *testing.T) {
 	m := setupMockEnvironment(t)
 	address := policy.ResourceName + ".test"
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:             loadUnitTestTerraform(t, "risky_apps_omitted"),

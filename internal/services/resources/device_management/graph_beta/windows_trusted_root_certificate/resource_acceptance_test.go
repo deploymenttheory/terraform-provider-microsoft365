@@ -27,7 +27,7 @@ func TestAccResourceWindowsTrustedRootCertificate_01_Lifecycle(t *testing.T) {
 	updated = strings.Replace(updated, "computerCertStoreRoot", "computerCertStoreIntermediate", 1)
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			15*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},

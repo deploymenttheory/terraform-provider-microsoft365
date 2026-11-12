@@ -33,7 +33,7 @@ func TestAccResourceGroupMemberAssignment_01_Create_Minimal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupMemberAssignmentDestroy,
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
@@ -75,7 +75,7 @@ func TestAccResourceGroupMemberAssignment_02_Create_Maximal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupMemberAssignmentDestroy,
 		Steps: []resource.TestStep{
 			// Create with maximal configuration (using a group as the member)
@@ -117,7 +117,7 @@ func TestAccResourceGroupMemberAssignment_03_Delete_Minimal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupMemberAssignmentDestroy,
 		Steps: []resource.TestStep{
 			// Create the resource
@@ -166,7 +166,7 @@ func TestAccResourceGroupMemberAssignment_04_Delete_Maximal(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupMemberAssignmentDestroy,
 		Steps: []resource.TestStep{
 			// Create the resource
@@ -215,7 +215,7 @@ func TestAccResourceGroupMemberAssignment_05_Import(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckGroupMemberAssignmentDestroy,
 		Steps: []resource.TestStep{
 			// Create

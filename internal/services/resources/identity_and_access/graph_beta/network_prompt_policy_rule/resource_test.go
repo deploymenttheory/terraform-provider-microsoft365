@@ -45,7 +45,7 @@ func TestUnitResourceNetworkPromptPolicyRule_01_Lifecycle(t *testing.T) {
 		}
 		return nil
 	}
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: testConfigHelper("resource.tf"), Check: resource.ComposeTestCheckFunc(sameID, check.That(resourceType+".test").Key("id").Exists())},
 		{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true, ImportStateIdFunc: func(s *terraform.State) (string, error) {
 			v := s.RootModule().Resources[resourceType+".test"]
@@ -69,7 +69,7 @@ func TestUnitResourceNetworkPromptPolicyRule_01_Lifecycle(t *testing.T) {
 }
 func TestUnitResourceNetworkPromptPolicyRule_02_InvalidAction(t *testing.T) {
 	setupMockEnvironment(t)
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: invalidActionConfig(), ExpectError: regexp.MustCompile(`value must be one of`)}}})
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: invalidActionConfig(), ExpectError: regexp.MustCompile(`value must be one of`)}}})
 }
 
 func invalidActionConfig() string {
@@ -78,7 +78,7 @@ func invalidActionConfig() string {
 
 func TestUnitResourceNetworkPromptPolicyRule_03_Drift(t *testing.T) {
 	m := setupMockEnvironment(t)
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: testConfigHelper("resource.tf")},
 		{PreConfig: func() {
 			m.Lock()
@@ -103,7 +103,7 @@ func TestUnitResourceNetworkPromptPolicyRule_04_PriorityAndSchemeValidation(t *t
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			setupMockEnvironment(t)
-			resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: strings.ReplaceAll(testConfigHelper("resource.tf"), tc.old, tc.new), ExpectError: regexp.MustCompile(tc.pattern)}}})
+			resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: strings.ReplaceAll(testConfigHelper("resource.tf"), tc.old, tc.new), ExpectError: regexp.MustCompile(tc.pattern)}}})
 		})
 	}
 }
@@ -111,7 +111,7 @@ func TestUnitResourceNetworkPromptPolicyRule_05_PriorityConflict(t *testing.T) {
 	setupMockEnvironment(t)
 	original := testConfigHelper("resource.tf")
 	duplicate := strings.ReplaceAll(original[strings.Index(original, `resource "microsoft365_graph_beta_identity_and_access_network_prompt_policy_rule"`):], `"test" {`, `"duplicate" {`)
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: original + "\n" + duplicate, ExpectError: regexp.MustCompile(`priority already exists`)}}})
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: original + "\n" + duplicate, ExpectError: regexp.MustCompile(`priority already exists`)}}})
 }
 
 func TestUnitResourceNetworkPromptPolicyRule_06_ParentReplacement(t *testing.T) {
@@ -124,7 +124,7 @@ func TestUnitResourceNetworkPromptPolicyRule_06_ParentReplacement(t *testing.T) 
 	original := testConfigHelper("resource.tf") + "\n" + extraPolicy
 	moved := strings.ReplaceAll(original, policyType+".test.id", policyType+".other.id")
 	var oldID, oldParent string
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: original, Check: func(s *terraform.State) error {
 			v := s.RootModule().Resources[resourceType+".test"].Primary
 			oldID = v.ID
@@ -156,7 +156,7 @@ func TestUnitResourceNetworkPromptPolicyRule_06_ParentReplacementWithNewParent(t
 	original := testConfigHelper("resource.tf")
 	moved := strings.ReplaceAll(original, policyType+".test.id", policyType+".other.id") + "\n" + extraPolicy
 	var oldID, oldParent string
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: original, Check: func(s *terraform.State) error {
 			v := s.RootModule().Resources[resourceType+".test"].Primary
 			oldID = v.ID

@@ -27,7 +27,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckIOSManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -73,7 +73,7 @@ func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_01_Lifecycle(t *testi
 func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_02_CustomSettings(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckIOSManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -98,7 +98,7 @@ func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_02_CustomSettings(t *
 func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_03_XMLEncoded(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             testAccCheckIOSManagedDeviceAppConfigurationPolicyDestroy,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {

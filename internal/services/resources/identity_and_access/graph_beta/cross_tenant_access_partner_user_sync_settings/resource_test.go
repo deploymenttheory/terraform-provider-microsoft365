@@ -39,7 +39,7 @@ func TestUnitResourceCrossTenantAccessPartnerUserSyncSettings_01_Minimal(t *test
 	defer partnerSyncMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitConfig("resource_01_minimal.tf"),
@@ -69,7 +69,7 @@ func TestUnitResourceCrossTenantAccessPartnerUserSyncSettings_02_WithDisplayName
 	defer partnerSyncMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitConfig("resource_02_with_display_name.tf"),
@@ -100,7 +100,7 @@ func TestUnitResourceCrossTenantAccessPartnerUserSyncSettings_03_SyncDisabled(t 
 	defer partnerSyncMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitConfig("resource_03_sync_disabled.tf"),
@@ -123,7 +123,7 @@ func TestUnitResourceCrossTenantAccessPartnerUserSyncSettings_04_Update(t *testi
 	defer partnerSyncMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitConfig("resource_01_minimal.tf"),

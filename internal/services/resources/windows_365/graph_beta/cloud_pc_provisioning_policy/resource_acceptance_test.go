@@ -11,7 +11,7 @@ import (
 func TestAccResourceCloudPcProvisioningPolicy_01_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with minimal configuration
 			{
@@ -58,7 +58,7 @@ func TestAccResourceCloudPcProvisioningPolicy_01_Complete(t *testing.T) {
 func TestAccResourceCloudPcProvisioningPolicy_02_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with assignments
 			{
@@ -77,7 +77,7 @@ func TestAccResourceCloudPcProvisioningPolicy_02_WithAssignments(t *testing.T) {
 func TestAccResourceCloudPcProvisioningPolicy_03_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCloudPcProvisioningPolicyConfig_missingDisplayName(),

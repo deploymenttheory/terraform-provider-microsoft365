@@ -45,7 +45,7 @@ func TestUnitResourceMacosDeviceConfigurationTemplates_01_CustomConfiguration(t 
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_custom_configuration_maximal.tf"),
@@ -72,7 +72,7 @@ func TestUnitResourceMacosDeviceConfigurationTemplates_02_PreferenceFile(t *test
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_preference_file_maximal.tf"),
@@ -97,7 +97,7 @@ func TestUnitResourceMacosDeviceConfigurationTemplates_03_TrustedRootCertificate
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_trusted_root_certificate_maximal.tf"),
@@ -122,7 +122,7 @@ func TestUnitResourceMacosDeviceConfigurationTemplates_04_ScepCertificate(t *tes
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scep_certificate_maximal.tf"),
@@ -160,7 +160,7 @@ func TestUnitResourceMacosDeviceConfigurationTemplates_05_PkcsCertificate(t *tes
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_pkcs_certificate_maximal.tf"),
@@ -194,7 +194,7 @@ func TestUnitResourceMacosDeviceConfigurationTemplates_06_CreateWithError(t *tes
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_custom_configuration_maximal.tf"),
@@ -211,7 +211,7 @@ func TestUnitResourceMacosDeviceConfigurationTemplates_07_Update(t *testing.T) {
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_custom_configuration_maximal.tf"),
@@ -238,7 +238,7 @@ func TestUnitResourceMacosDeviceConfigurationTemplates_08_ImportState(t *testing
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_custom_configuration_maximal.tf"),

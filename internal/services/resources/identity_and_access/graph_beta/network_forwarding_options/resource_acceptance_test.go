@@ -43,7 +43,7 @@ func TestAccResourceNetworkForwardingOptions_01_AdoptExisting(t *testing.T) {
 		value,
 	) + source
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: func(_ *terraform.State) error {
 			remote, err := client.NetworkAccess().
 				Settings().

@@ -52,7 +52,7 @@ func TestUnitResourceNetworkMCPPolicyRule_01_Lifecycle(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: testConfigHelper("resource.tf"),
@@ -117,7 +117,7 @@ func TestUnitResourceNetworkMCPPolicyRule_02_InvalidAction(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config:      invalidActionConfig(),
@@ -137,7 +137,7 @@ func TestUnitResourceNetworkMCPPolicyRule_03_Drift(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: testConfigHelper("resource.tf")},
 				{PreConfig: func() {
@@ -171,7 +171,7 @@ func TestUnitResourceNetworkMCPPolicyRule_04_PriorityAndConditionValidation(t *t
 			resource.UnitTest(
 				t,
 				resource.TestCase{
-					ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+					ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 					Steps: []resource.TestStep{
 						{
 							Config: strings.ReplaceAll(
@@ -202,7 +202,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_mcp_policy_rule" "
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: config, ExpectError: regexp.MustCompile("priority already exists")},
 			},
@@ -223,7 +223,7 @@ func TestUnitResourceNetworkMCPPolicyRule_06_ParentReplacement(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: original, Check: func(s *terraform.State) error {
 					v := s.RootModule().Resources[resourceType+".test"].Primary
@@ -265,7 +265,7 @@ func TestUnitResourceNetworkMCPPolicyRule_06_ParentReplacementWithNewParent(t *t
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: original, Check: func(s *terraform.State) error {
 					v := s.RootModule().Resources[resourceType+".test"].Primary
