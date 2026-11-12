@@ -19,8 +19,8 @@ their packages serially. A failed shard does not cancel other shards. The existi
 lint and unit summary checks require every applicable worker to pass.
 
 The production `internal/provider` registry necessarily imports every object kind.
-Its lint job runs alone as `✨ Lint Provider Registry`, with `GOMEMLIMIT=6GiB` and
-`GOGC=50` as a measured diagnostic configuration. Go's memory limit is a soft
+Its lint job runs alone as `✨ Lint Provider Registry`, with `GOMEMLIMIT=20GiB` and
+`GOGC=100` to accommodate its measured live analysis data and disk-backed headroom. Go's memory limit is a soft
 heap target, not an RSS cap; live analysis data can exceed it. The dedicated job
 runs all 23 configured checks with golangci-lint v2.15.0. It also adds 8 GiB of
 swap on the ephemeral runner, after requiring 10 GiB of free disk. This provides
@@ -30,6 +30,18 @@ timeouts, failure propagation and OOM diagnostics remain enforced. Its success
 must be established from the standard runner's diagnostics.
 Ordinary package workers keep the default Go garbage-collection settings. The
 diagnostics record both settings alongside memory peaks and OOM counters.
+When the production registry itself is selected, one standard-runner job compiles
+the complete production provider before lint workers start with `go build ./internal/provider`. Its successful post-step
+saves the shared Go cache before workers restore it. The compilation and lint
+workers use the same `go.mod`, `go.sum` and production-registry cache key; unit
+workers use a separate `go.mod`/`go.sum` key so an earlier test worker cannot win
+and save a partial production snapshot. Go still validates source hashes and
+rebuilds changed packages. Compilation failures fail the required lint gate.
+Leaf-package-only lint runs skip this full-provider compilation and use the
+ordinary dependency cache, so they cannot populate a partial production snapshot.
+Cold compilation and lint analysis each retain their existing 45-minute command
+budgets in separate 60-minute jobs; no lint checks are removed.
+
 Manual lint dispatches may set `packages` to a space-separated subset of changed
 packages, for example `internal/provider`; PR runs continue checking every
 changed package and all configured linters.
@@ -49,6 +61,11 @@ the selected packages with `TF_ACC=0` for the project's mocks and explicitly ski
 independent of coverage. Unit execution stops at the first failed or terminated
 package and preserves its exit status. Per-package coverage remains available
 for diagnostics; merged coverage is produced only after all selected packages pass.
+Workers key the shared Go cache on both `go.mod` and `go.sum`. This separates
+these compile-heavy jobs from the older `go.sum`-only cache populated before the
+SDK build completed, so a successful worker can persist the compiled dependencies.
+Cache reuse never skips executing the selected lint checks or tests.
+
 Package/test parallelism and `GOMAXPROCS` are one. Successful unit profiles are
 downloaded and merged before the single Codecov upload, coverage gate, and PR
 comment. Duplicate coverage blocks are counted once when combining profiles.

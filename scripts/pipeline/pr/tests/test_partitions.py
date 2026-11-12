@@ -50,8 +50,8 @@ class PartitionTests(RepositoryTest):
             entry for entry in matrix["include"] if entry["packages"] == "internal/provider"
         )
         self.assertEqual(registry["label"], "Provider Registry")
-        self.assertEqual(registry["gomemlimit"], "6GiB")
-        self.assertEqual(registry["gogc"], "50")
+        self.assertEqual(registry["gomemlimit"], "20GiB")
+        self.assertEqual(registry["gogc"], "100")
         for entry in matrix["include"]:
             self.assertLessEqual(len(entry["packages"].split()), 5)
             if entry is not registry:
@@ -242,6 +242,34 @@ class WorkflowGateTests(unittest.TestCase):
                     step["run"] for step in steps if "monitor_resources.sh" in step.get("run", "")
                 )
                 self.assertIn('export TF_ACC_TERRAFORM_PATH="$(command -v terraform)"', run)
+
+    def test_lint_workers_wait_for_the_shared_production_build_cache(self):
+        """Fail compilation explicitly and restore its snapshot before running checks."""
+        workflow = Path(__file__).resolve().parents[4] / ".github/workflows/go-lint.yml"
+        jobs = yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"]
+        self.assertIn("compile-provider", jobs["lint-shards"]["needs"])
+        self.assertIn("compile-provider", jobs["golint"]["needs"])
+        self.assertIn("needs.compile-provider.result", str(jobs["golint"]["steps"]))
+        snapshots = []
+        for name in ("compile-provider", "lint-shards"):
+            setup = next(
+                step
+                for step in jobs[name]["steps"]
+                if step.get("uses", "").startswith("actions/setup-go@")
+            )
+            snapshots.append(setup["with"]["cache-dependency-path"])
+            self.assertTrue(setup["with"]["cache"])
+            self.assertEqual(jobs[name]["runs-on"], "ubuntu-24.04-arm")
+        for snapshot in snapshots:
+            for pattern in ("go.mod", "go.sum", "internal/provider/*.go"):
+                self.assertIn(pattern, snapshot)
+        self.assertIn("needs.plan-lint.outputs.has-provider-changes", snapshots[1])
+        self.assertIn("needs.compile-provider.result == 'skipped'", jobs["lint-shards"]["if"])
+        self.assertIn(
+            "needs.plan-lint.outputs.has-provider-changes", jobs["compile-provider"]["if"]
+        )
+        self.assertIn("internal/provider/*.go", snapshots[0])
+        self.assertIn("go build ./internal/provider", str(jobs["compile-provider"]["steps"]))
 
     def test_required_checks_keep_their_names_and_require_all_worker_shards(self):
         """Verify required checks keep their names and require all worker shards."""

@@ -52,6 +52,7 @@ def main():
         "base-sha": base,
         "has-changes": str(bool(tests)).lower(),
         "has-lint-changes": str(bool(lint_packages)).lower(),
+        "has-provider-changes": str("internal/provider" in lint_packages).lower(),
         "has-goroutines": str(bool(races)).lower(),
         "service-domains": " ".join(detect_service_domains(tests, load_pr_checks_config())),
         "unit-matrix": json.dumps(unit_matrix, separators=(",", ":")),

@@ -104,8 +104,8 @@ def partition_lint_packages(packages):
                 "shard_index": len(matrix["include"]),
                 "packages": registry,
                 "label": "Provider Registry",
-                "gomemlimit": "6GiB",
-                "gogc": "50",
+                "gomemlimit": "20GiB",
+                "gogc": "100",
             }
         )
     if len(matrix["include"]) > 256:
