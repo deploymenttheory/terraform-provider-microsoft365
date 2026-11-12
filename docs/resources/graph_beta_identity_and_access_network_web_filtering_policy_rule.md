@@ -45,7 +45,7 @@ Web category IDs are passed through unchanged. For example, the portal was obser
 - Lower `priority` values are evaluated before higher values. Keep priorities unique within a policy to make rule ordering predictable.
 - `action = "allow"` permits matching traffic. `action = "block"` blocks matching traffic.
 - `custom_headers` maps to `action.headerSettings.modifications` (one `headerModificationAdd` per header, order preserved). Header names and values are defined by the destination service; see [Configure custom headers](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-custom-headers). HTTPS destinations need TLS inspection.
-- Graph rejects more than 10 headers and duplicate names (case-insensitive) with `400 BadRequest`; the provider checks both at plan time.
+- Graph rejects more than 10 headers, duplicate names (case-insensitive) and empty values with `400 BadRequest`; the provider checks these at plan time.
 - `custom_headers` requires `action = "allow"`, because Graph rejects any `headerSettings` on block rules. Allow rules without headers send `headerSettings: null`, since a PATCH that omits it keeps the existing headers.
 
 ## Microsoft Graph API Permissions
@@ -128,7 +128,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_poli
 
 ### Optional
 
-- `custom_headers` (Attributes List) HTTP headers that Global Secure Access adds to matching requests, for example tenant restriction headers such as `anthropic-allowed-org-ids`. At most 10 headers per rule. Only valid when `action` is `allow`. TLS inspection must be enabled for HTTPS destinations. See [Configure custom headers](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-custom-headers). (see [below for nested schema](#nestedatt--custom_headers))
+- `custom_headers` (Attributes List) HTTP headers that Global Secure Access adds to matching requests, such as tenant restriction headers required by the destination service. At most 10 headers per rule. Only valid when `action` is `allow`. TLS inspection must be enabled for HTTPS destinations. See [Configure custom headers](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-custom-headers). (see [below for nested schema](#nestedatt--custom_headers))
 - `description` (String) Optional description of the web filtering rule. Maximum length is 8192 characters.
 - `http_methods` (Set of String) HTTP methods that must match the rule. The Entra portal sends these as comma-separated lowercase values.
 - `session_types` (Set of String) Session types that must match the rule. Possible values are `user` and `agent`.
@@ -146,7 +146,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_poli
 Required:
 
 - `name` (String) The header name. Must be unique within the rule (case-insensitive).
-- `value` (String) The header value.
+- `value` (String) The header value. Must not be empty.
 
 
 <a id="nestedatt--timeouts"></a>

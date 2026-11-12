@@ -71,7 +71,7 @@ func (v customHeadersRequireAllowValidator) ValidateResource(ctx context.Context
 	var headers types.List
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("action"), &action)...)
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("custom_headers"), &headers)...)
-	if resp.Diagnostics.HasError() || action.IsNull() || action.IsUnknown() || headers.IsNull() {
+	if resp.Diagnostics.HasError() || action.IsNull() || action.IsUnknown() || headers.IsNull() || headers.IsUnknown() {
 		return
 	}
 

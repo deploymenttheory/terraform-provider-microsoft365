@@ -184,7 +184,7 @@ func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req 
 				},
 			},
 			"custom_headers": schema.ListNestedAttribute{
-				MarkdownDescription: "HTTP headers that Global Secure Access adds to matching requests, for example tenant restriction headers such as `anthropic-allowed-org-ids`. At most 10 headers per rule. Only valid when `action` is `allow`. TLS inspection must be enabled for HTTPS destinations. See [Configure custom headers](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-custom-headers).",
+				MarkdownDescription: "HTTP headers that Global Secure Access adds to matching requests, such as tenant restriction headers required by the destination service. At most 10 headers per rule. Only valid when `action` is `allow`. TLS inspection must be enabled for HTTPS destinations. See [Configure custom headers](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-custom-headers).",
 				Optional:            true,
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 10),
@@ -197,8 +197,9 @@ func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req 
 						Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
 					},
 					"value": schema.StringAttribute{
-						MarkdownDescription: "The header value.",
+						MarkdownDescription: "The header value. Must not be empty.",
 						Required:            true,
+						Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
 					},
 				}},
 			},

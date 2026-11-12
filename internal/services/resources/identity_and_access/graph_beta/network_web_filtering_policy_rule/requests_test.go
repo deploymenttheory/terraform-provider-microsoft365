@@ -7,8 +7,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 	"github.com/microsoft/kiota-abstractions-go/store"
@@ -327,6 +330,14 @@ func TestMapRemoteStateToTerraformReadsCustomHeaders(t *testing.T) {
 				{Name: types.StringValue("alpha"), Value: types.StringValue("2")},
 			},
 		},
+		"non-add modifications skipped": {
+			body: `{"id":"rule","action":{"@odata.type":"#microsoft.graph.networkaccess.webFilteringActionAllow","headerSettings":{"modifications":[` +
+				`{"@odata.type":"#microsoft.graph.networkaccess.headerModificationRemove","headerName":"x-removed"},` +
+				`{"@odata.type":"#microsoft.graph.networkaccess.headerModificationAdd","headerName":"kept","headerValue":"1"}]}}}`,
+			want: []CustomHeaderModel{
+				{Name: types.StringValue("kept"), Value: types.StringValue("1")},
+			},
+		},
 		"null headerSettings": {
 			body: `{"id":"rule","action":{"@odata.type":"#microsoft.graph.networkaccess.webFilteringActionAllow","headerSettings":null}}`,
 		},
@@ -425,5 +436,48 @@ func TestConstructResourceOmitsHeaderSettingsForBlock(t *testing.T) {
 
 	if _, ok := payload["action"].(map[string]any)["headerSettings"]; ok {
 		t.Fatalf("action = %#v, expected no headerSettings", payload["action"])
+	}
+}
+
+func TestCustomHeadersRequireAllowValidatorSkipsUnknown(t *testing.T) {
+	ctx := context.Background()
+	schemaResp := &resource.SchemaResponse{}
+	(&NetworkWebFilteringPolicyRuleResource{}).Schema(ctx, resource.SchemaRequest{}, schemaResp)
+	objectType := schemaResp.Schema.Type().TerraformType(ctx).(tftypes.Object)
+
+	attrs := map[string]tftypes.Value{}
+	for name, typ := range objectType.AttributeTypes {
+		attrs[name] = tftypes.NewValue(typ, nil)
+	}
+	attrs["action"] = tftypes.NewValue(tftypes.String, "block")
+
+	cases := map[string]struct {
+		headers tftypes.Value
+		wantErr bool
+	}{
+		"unknown": {headers: tftypes.NewValue(objectType.AttributeTypes["custom_headers"], tftypes.UnknownValue)},
+		"set": {
+			headers: tftypes.NewValue(objectType.AttributeTypes["custom_headers"], []tftypes.Value{
+				tftypes.NewValue(objectType.AttributeTypes["custom_headers"].(tftypes.List).ElementType, map[string]tftypes.Value{
+					"name":  tftypes.NewValue(tftypes.String, "Test1"),
+					"value": tftypes.NewValue(tftypes.String, "a1"),
+				}),
+			}),
+			wantErr: true,
+		},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			attrs["custom_headers"] = tc.headers
+			resp := &resource.ValidateConfigResponse{}
+			customHeadersRequireAllowValidator{}.ValidateResource(ctx, resource.ValidateConfigRequest{
+				Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: tftypes.NewValue(objectType, attrs)},
+			}, resp)
+
+			if resp.Diagnostics.HasError() != tc.wantErr {
+				t.Fatalf("HasError = %v, expected %v: %v", resp.Diagnostics.HasError(), tc.wantErr, resp.Diagnostics)
+			}
+		})
 	}
 }
