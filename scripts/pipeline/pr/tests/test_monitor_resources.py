@@ -85,6 +85,27 @@ class ResourceMonitorTests(unittest.TestCase):
                 self.assertIn(f'Command exit status: {expected}', (self.report / 'exit-status.log').read_text())
                 self.assertIn('[KERNEL OOM EVIDENCE]', result.stdout)
 
+    def test_coloured_test_output_leaves_resource_diagnostics_uncoloured(self):
+        test_script = 'print("--- PASS: TestExample (0.01s)"); print("Error: apply failed"); raise SystemExit(7)'
+        script = (
+            f'import os, sys; sys.path.insert(0, {str(MONITOR.parent.parent)!r}); '
+            'from lib.go_tests import _run_test_command; '
+            f'result = _run_test_command([sys.executable, "-c", {test_script!r}], '
+            'env=os.environ.copy(), check=False); raise SystemExit(result.returncode)'
+        )
+        environment = {**self.environment, 'GITHUB_ACTIONS': 'true'}
+        environment.pop('NO_COLOR', None)
+        result = subprocess.run(self.command(script), capture_output=True, text=True,
+                                env=environment, timeout=15)
+        self.assertEqual(result.returncode, 7, result.stdout + result.stderr)
+        self.assertIn('\033[32m--- PASS: TestExample (0.01s)\033[0m', result.stdout)
+        self.assertIn('\033[31mError: apply failed\033[0m', result.stdout)
+        for name in ['environment.log', 'resources.log', 'time.log', 'exit-status.log']:
+            self.assertNotIn('\033[', (self.report / name).read_text())
+        for line in result.stdout.splitlines():
+            if '[RESOURCE MONITOR]' in line or 'Mem:' in line or 'Filesystem' in line:
+                self.assertNotIn('\033[', line)
+
     def test_sigterm_to_monitor_terminates_command_descendants(self):
         child_pid_file = Path(self.directory.name) / 'child.pid'
         script = (

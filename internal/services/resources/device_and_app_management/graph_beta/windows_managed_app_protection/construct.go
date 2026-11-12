@@ -86,7 +86,7 @@ func constructResource(
 			data.AllowedInboundDataTransferSources.ValueString(),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("invalid allowed_inbound_data_transfer_sources value: %s", err)
+			return nil, fmt.Errorf("invalid allowed_inbound_data_transfer_sources value: %w", err)
 		}
 		requestBody.SetAllowedInboundDataTransferSources(
 			val.(*graphmodels.WindowsManagedAppDataTransferLevel),
@@ -101,7 +101,7 @@ func constructResource(
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"invalid allowed_outbound_clipboard_sharing_level value: %s",
+				"invalid allowed_outbound_clipboard_sharing_level value: %w",
 				err,
 			)
 		}
@@ -118,7 +118,7 @@ func constructResource(
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"invalid allowed_outbound_data_transfer_destinations value: %s",
+				"invalid allowed_outbound_data_transfer_destinations value: %w",
 				err,
 			)
 		}
@@ -135,7 +135,7 @@ func constructResource(
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"invalid app_action_if_unable_to_authenticate_user value: %s",
+				"invalid app_action_if_unable_to_authenticate_user value: %w",
 				err,
 			)
 		}
@@ -151,7 +151,7 @@ func constructResource(
 			data.MaximumAllowedDeviceThreatLevel.ValueString(),
 		)
 		if err != nil {
-			return nil, fmt.Errorf("invalid maximum_allowed_device_threat_level value: %s", err)
+			return nil, fmt.Errorf("invalid maximum_allowed_device_threat_level value: %w", err)
 		}
 		requestBody.SetMaximumAllowedDeviceThreatLevel(
 			val.(*graphmodels.ManagedAppDeviceThreatLevel),
@@ -166,7 +166,7 @@ func constructResource(
 		)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"invalid mobile_threat_defense_remediation_action value: %s",
+				"invalid mobile_threat_defense_remediation_action value: %w",
 				err,
 			)
 		}

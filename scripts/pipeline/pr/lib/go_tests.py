@@ -5,9 +5,38 @@ Provides functions for running Go unit tests and race detection.
 """
 
 import os
+import re
 import subprocess
+import sys
 from pathlib import Path
 from typing import List
+
+
+def _run_test_command(cmd, *, env, check):
+    """Stream coloured test output without buffering the complete test log."""
+    colour = 'NO_COLOR' not in os.environ and (
+        os.environ.get('GITHUB_ACTIONS') == 'true' or sys.stdout.isatty()
+    )
+    failed = False
+    with subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, encoding='utf-8', errors='replace', bufsize=1) as process:
+        for line in process.stdout:
+            if re.match(r'\s*(=== RUN|--- PASS:|PASS\b|ok\s)', line):
+                failed = False
+            elif re.search(r'--- FAIL:|^FAIL\b|^# |\.go:\d+:\d+:|panic:|fatal error:|WARNING: DATA RACE|\bError:|\berror:', line):
+                failed = True
+            if colour and line.strip():
+                # Reset on every line so concurrent resource diagnostics stay uncoloured.
+                ending = '\n' if line.endswith('\n') else ''
+                text = line.removesuffix('\n')
+                print(f'\033[{31 if failed else 32}m{text}\033[0m',
+                      end=ending, flush=True)
+            else:
+                print(line, end='', flush=True)
+        returncode = process.wait()
+    if check and returncode:
+        raise subprocess.CalledProcessError(returncode, cmd)
+    return subprocess.CompletedProcess(cmd, returncode)
 
 
 def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
@@ -45,7 +74,7 @@ def run_unit_tests(packages: List[str], output_dir: str = "coverage") -> Path:
             f"./{package}"
         ]
         
-        subprocess.run(
+        _run_test_command(
             cmd,
             env={**os.environ, "TF_ACC": "0", "GOMAXPROCS": "1", "GOFLAGS": "-p=1"},
             check=True
@@ -86,7 +115,7 @@ def run_race_detection(packages: List[str]) -> int:
         cmd = ["go", "test", "-v", "-race", "-p=1", "-parallel=1",
                "-timeout=30m", "-skip=^TestAcc", f"./{package}"]
         
-        result = subprocess.run(
+        result = _run_test_command(
             cmd,
             env={**os.environ, "TF_ACC": "0", "GOMAXPROCS": "1", "GOFLAGS": "-p=1"},
             check=False

@@ -125,6 +125,19 @@ class CoverageMergeTests(unittest.TestCase):
 
 
 class WorkflowGateTests(unittest.TestCase):
+    def test_unit_and_race_workers_use_the_preinstalled_terraform_binary(self):
+        import yaml
+        workflow = Path(__file__).resolve().parents[4] / '.github/workflows/pr-tests.yml'
+        jobs = yaml.safe_load(workflow.read_text(encoding='utf-8'))['jobs']
+        for worker in ['unit-test-shards', 'race-shards']:
+            with self.subTest(worker=worker):
+                steps = jobs[worker]['steps']
+                setup = next(step for step in steps if step.get('uses', '').startswith('hashicorp/setup-terraform@'))
+                self.assertEqual(setup['with']['terraform_version'], 'latest')
+                self.assertFalse(setup['with']['terraform_wrapper'])
+                run = next(step['run'] for step in steps if 'monitor_resources.sh' in step.get('run', ''))
+                self.assertIn('export TF_ACC_TERRAFORM_PATH="$(command -v terraform)"', run)
+
     def test_required_checks_keep_their_names_and_require_all_worker_shards(self):
         import yaml
         workflows = Path(__file__).resolve().parents[4] / '.github/workflows'

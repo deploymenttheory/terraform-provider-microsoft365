@@ -24,16 +24,18 @@ func TestUnitListResourceConditionalAccessPolicy_02_Metadata(t *testing.T) {
 	}
 
 	if listResource.ResourcePath != "/identity/conditionalAccess/policies" {
-		t.Errorf("Expected ResourcePath to be '/identity/conditionalAccess/policies', got %s", listResource.ResourcePath)
+		t.Errorf(
+			"Expected ResourcePath to be '/identity/conditionalAccess/policies', got %s",
+			listResource.ResourcePath,
+		)
 	}
 
-	if len(listResource.ReadPermissions) != 2 {
-		t.Errorf("Expected 2 read permissions, got %d", len(listResource.ReadPermissions))
+	if len(listResource.ReadPermissions) != 1 {
+		t.Errorf("Expected 1 read permission, got %d", len(listResource.ReadPermissions))
 	}
 
 	expectedPermissions := []string{
 		"Policy.Read.All",
-		"Policy.Read.ConditionalAccess",
 	}
 
 	for i, expected := range expectedPermissions {
@@ -42,7 +44,11 @@ func TestUnitListResourceConditionalAccessPolicy_02_Metadata(t *testing.T) {
 			continue
 		}
 		if listResource.ReadPermissions[i] != expected {
-			t.Errorf("Expected read permission '%s', got '%s'", expected, listResource.ReadPermissions[i])
+			t.Errorf(
+				"Expected read permission '%s', got '%s'",
+				expected,
+				listResource.ReadPermissions[i],
+			)
 		}
 	}
 }

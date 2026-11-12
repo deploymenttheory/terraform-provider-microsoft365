@@ -8,14 +8,22 @@ empty Go selection launches no lint, unit, or race workers. There is no `./...`
 fallback. Unit tests include local packages whose test import graph depends on a
 changed production package. Test-only changes do not propagate as production
 dependencies. Internal fixture and embedded-data changes select their owning Go
-packages and dependent tests. Unit workers select packages containing test files; production-only packages remain in lint analysis and are compiled through their test consumers. Lint findings remain restricted to changed Go
-packages and lines.
+packages and dependent tests. Unit workers select packages containing test files;
+production-only packages remain in lint analysis and are compiled through their
+test consumers. Lint findings remain restricted to changed Go packages and lines.
 
 Lint, unit, and race workers use the acceptance pipeline's bounded Rendezvous
 sharder, assigning each selected package exactly once, with at most five packages
 per worker by default. Workers use standard `ubuntu-24.04-arm` runners and execute
 their packages serially. A failed shard does not cancel other shards. The existing
 lint and unit summary checks require every applicable worker to pass.
+
+Unit and race workers install the latest stable Terraform once, without the CLI
+wrapper, and export its path as `TF_ACC_TERRAFORM_PATH` for every test. Tests do
+not repeatedly download Terraform while running. In GitHub Actions, test stdout
+is streamed in green and failures in red, with a colour reset after every line.
+Resource utilisation and system diagnostics remain uncoloured. Set `NO_COLOR`
+to disable test colouring.
 
 Lint reports findings on changed lines, includes test-file analysis, retains the
 configured linters/formatters, and does not rewrite source. It runs one package

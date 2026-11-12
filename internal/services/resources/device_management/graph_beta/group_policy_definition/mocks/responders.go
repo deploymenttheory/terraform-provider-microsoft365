@@ -585,7 +585,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			}
 
 			scenario := determineScenarioFromDefValue(defValueData)
-			phaseFolder := "validate_" + phase
+			phaseFolder := "validate_" + strings.ToLower(phase)
 			if phase == constants.TfOperationCreate {
 				phaseFolder = "validate_create"
 			}
@@ -661,7 +661,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 
 			// Fallback to JSON files for initial test data
 			scenario := determineScenarioFromDefValue(defValueData)
-			phaseFolder := "validate_" + phase
+			phaseFolder := "validate_" + strings.ToLower(phase)
 			if phase == constants.TfOperationCreate {
 				phaseFolder = "validate_create"
 			}
