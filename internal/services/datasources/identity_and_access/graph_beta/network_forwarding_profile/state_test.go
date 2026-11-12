@@ -1,6 +1,7 @@
 package graphBetaNetworkForwardingProfile
 
 import (
+	"context"
 	"testing"
 
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
@@ -47,7 +48,7 @@ func TestMapRemoteStateToDataSourceForwardingProfile(t *testing.T) {
 	profile.SetPolicies([]models.PolicyLinkable{link})
 	profile.GetAdditionalData()["clientFallbackAction"] = "bypass"
 
-	mapped := MapRemoteStateToDataSource(profile)
+	mapped := MapRemoteStateToDataSource(context.Background(), profile)
 	if mapped.ID.ValueString() != profileID {
 		t.Fatalf("id = %q, want %q", mapped.ID.ValueString(), profileID)
 	}
