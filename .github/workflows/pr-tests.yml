@@ -15,6 +15,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '**/*.go'
+      - 'internal/**'
       - 'scripts/pipeline/pr/**'
       - 'scripts/pipeline/generate_test_factories.py'
       - 'scripts/pipeline/tests/**'

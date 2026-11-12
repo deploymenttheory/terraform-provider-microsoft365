@@ -6,7 +6,10 @@ renames and deletions are included; completely deleted packages are skipped.
 Planning and factory validation also run when their pipeline files change. An
 empty Go selection launches no lint, unit, or race workers. There is no `./...`
 fallback. Unit tests include local packages whose test import graph depends on a
-changed package; lint findings remain restricted to changed packages and lines.
+changed production package. Test-only changes do not propagate as production
+dependencies. Internal fixture and embedded-data changes select their owning Go
+packages and dependent tests. Lint findings remain restricted to changed Go
+packages and lines.
 
 Lint, unit, and race workers use the acceptance pipeline's bounded Rendezvous
 sharder, assigning each selected package exactly once, with at most five packages
@@ -47,7 +50,9 @@ python3 scripts/pipeline/generate_test_factories.py --check
 
 The generator reads production constructors and type names, package imports, and
 Terraform block declarations in Go and Terraform fixtures. Resource and data
-source types are resolved separately even when their names match. CI fails when
+source types are resolved separately even when their names match.
+List-resource factories also include the matching managed resource required by
+the protocol to retrieve its schema and identity. CI fails when
 checked-in factories are stale or production type metadata cannot be resolved.
 Dependencies assembled by a helper must be represented by an explicit test
 import of their registered package or a Terraform declaration in the package's
@@ -73,9 +78,8 @@ python3 scripts/pipeline/pr/steps/run_tests.py --packages 'internal/client inter
 ```
 
 Selection compares committed changes. Commit work intended for comparison first.
-Non-Go-only changes do not select additional Go packages automatically. Scheduled
-acceptance jobs retain their existing test batches and use the isolated factories
-as well.
+Documentation-only changes do not select Go packages. Scheduled acceptance jobs
+retain their existing test batches and use the isolated factories as well.
 
 ## Diagnostics
 

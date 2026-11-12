@@ -11,6 +11,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - '**/*.go'
+      - 'internal/**'
       - '.golangci.yml'
       - 'go.mod'
       - 'go.sum'
@@ -29,7 +30,7 @@ jobs:
     name: '📋 Plan lint partitions'
     runs-on: ubuntu-24.04-arm
     outputs:
-      has-changes: ${{ steps.plan.outputs.has-changes }}
+      has-changes: ${{ steps.plan.outputs.has-lint-changes }}
       base-sha: ${{ steps.plan.outputs.base-sha }}
       matrix: ${{ steps.plan.outputs.lint-matrix }}
     steps:

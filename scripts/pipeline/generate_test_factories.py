@@ -61,7 +61,14 @@ def selected_entries(root, directory, entries):
         r'\b(resource|data|action|list|ephemeral)\s+"(microsoft365_[a-zA-Z0-9_]+)"', source.replace('\\"', '"'))}
     imports = set(re.findall(r'"(' + re.escape(MODULE) + r'/internal/services/[^"\n]+)"', source))
     own_path = MODULE + '/' + directory.as_posix()
-    return [entry for entry in entries if entry[3] == own_path or entry[3] in imports or (entry[0], entry[5]) in references]
+    selected = [entry for entry in entries if entry[3] == own_path or entry[3] in imports or (entry[0], entry[5]) in references]
+    list_names = {entry[5] for entry in selected if entry[0] == 'ListResources'}
+    for name in list_names:
+        resources = [entry for entry in entries if entry[0] == 'Resources' and entry[5] == name]
+        if not resources:
+            raise ValueError(f'List resource requires a matching managed resource: {name}')
+        selected.extend(entry for entry in resources if entry not in selected)
+    return [entry for entry in entries if entry in selected]
 
 
 def render(package_name, entries):
