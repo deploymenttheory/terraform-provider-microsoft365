@@ -30,7 +30,10 @@ func MapAssignmentsToTerraform(ctx context.Context, data *sharedmodels.SettingsC
 		if data.Assignments.IsNull() {
 			data.Assignments = types.SetNull(SettingsCatalogConfigurationPolicyAssignmentType())
 		} else {
-			data.Assignments = types.SetValueMust(SettingsCatalogConfigurationPolicyAssignmentType(), []attr.Value{})
+			data.Assignments = types.SetValueMust(
+				SettingsCatalogConfigurationPolicyAssignmentType(),
+				[]attr.Value{},
+			)
 		}
 		return
 	}
