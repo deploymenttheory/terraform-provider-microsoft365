@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// uniqueCustomHeaderNamesValidator catches at plan time what Graph rejects with
+// "Duplicate header name". Graph compares names case-insensitively.
 type uniqueCustomHeaderNamesValidator struct{}
 
 func (v uniqueCustomHeaderNamesValidator) Description(ctx context.Context) string {
@@ -52,6 +54,8 @@ func (v uniqueCustomHeaderNamesValidator) ValidateList(ctx context.Context, req 
 
 var _ validator.List = uniqueCustomHeaderNamesValidator{}
 
+// customHeadersRequireAllowValidator rejects custom_headers on block rules,
+// which Graph refuses with "Invalid request parameters".
 type customHeadersRequireAllowValidator struct{}
 
 func (v customHeadersRequireAllowValidator) Description(ctx context.Context) string {
