@@ -77,6 +77,11 @@ func (r *WindowsBiosConfigurationsAndOtherSettingsTemplateResource) Create(
 		return
 	}
 
+	if err := r.orderAssignmentsByFilterCreationTime(ctx, requestAssignment); err != nil {
+		resp.Diagnostics.AddError("Error ordering assignments", err.Error())
+		return
+	}
+
 	_, err = r.client.
 		DeviceManagement().
 		HardwareConfigurations().
@@ -266,6 +271,11 @@ func (r *WindowsBiosConfigurationsAndOtherSettingsTemplateResource) Update(
 			"Error constructing assignment for update method",
 			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 		)
+		return
+	}
+
+	if err := r.orderAssignmentsByFilterCreationTime(ctx, requestAssignment); err != nil {
+		resp.Diagnostics.AddError("Error ordering assignments", err.Error())
 		return
 	}
 
