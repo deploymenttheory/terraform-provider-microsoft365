@@ -187,7 +187,6 @@ func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req 
 				MarkdownDescription: "HTTP headers that Global Secure Access adds to matching requests, for example tenant restriction headers such as `anthropic-allowed-org-ids`. At most 10 headers per rule. Only valid when `action` is `allow`. TLS inspection must be enabled for HTTPS destinations. See [Configure custom headers](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-custom-headers).",
 				Optional:            true,
 				Validators: []validator.List{
-					// Graph: "The number of modifications (11) exceeds the maximum allowed (10)".
 					listvalidator.SizeBetween(1, 10),
 					uniqueCustomHeaderNamesValidator{},
 				},
