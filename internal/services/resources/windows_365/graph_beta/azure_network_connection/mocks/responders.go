@@ -26,7 +26,10 @@ func init() {
 }
 
 // AzureNetworkConnectionMock provides mock responses for azure network connection operations
-type AzureNetworkConnectionMock struct{}
+type AzureNetworkConnectionMock struct {
+	// AzureIDCasing simulates Graph returning Azure IDs with different casing.
+	AzureIDCasing func(string) string
+}
 
 // RegisterMocks registers HTTP mock responses for azure network connection operations
 func (m *AzureNetworkConnectionMock) RegisterMocks() {
@@ -67,7 +70,7 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Connection not found"}}`), nil
 			}
 
-			return httpmock.NewJsonResponse(200, connectionData)
+			return httpmock.NewJsonResponse(200, m.withAzureIDCasing(connectionData))
 		})
 
 	// Register POST for creating connection
@@ -105,7 +108,7 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 			mockState.connections[connectionId] = connectionData
 			mockState.Unlock()
 
-			return httpmock.NewJsonResponse(201, connectionData)
+			return httpmock.NewJsonResponse(201, m.withAzureIDCasing(connectionData))
 		})
 
 	// Register PATCH for updating connection
@@ -156,7 +159,7 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 			mockState.connections[connectionId] = connectionData
 			mockState.Unlock()
 
-			return httpmock.NewJsonResponse(200, connectionData)
+			return httpmock.NewJsonResponse(200, m.withAzureIDCasing(connectionData))
 		})
 
 	// Register DELETE for removing connection
@@ -181,6 +184,22 @@ func (m *AzureNetworkConnectionMock) RegisterMocks() {
 
 	// Register specific connection mocks for testing
 	registerSpecificConnectionMocks()
+}
+
+func (m *AzureNetworkConnectionMock) withAzureIDCasing(connection map[string]any) map[string]any {
+	if m.AzureIDCasing == nil {
+		return connection
+	}
+	response := make(map[string]any, len(connection))
+	for key, value := range connection {
+		response[key] = value
+	}
+	for _, key := range []string{"resourceGroupId", "virtualNetworkId", "subnetId", "subscriptionId"} {
+		if value, ok := response[key].(string); ok {
+			response[key] = m.AzureIDCasing(value)
+		}
+	}
+	return response
 }
 
 // RegisterErrorMocks registers HTTP mock responses for error scenarios
