@@ -11,7 +11,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// SettingsCatalogConfigurationPolicyAssignmentType returns the object type for WindowsRemediationScriptAssignmentModel
+// SettingsCatalogConfigurationPolicyAssignmentType returns the object type for settings catalog policy assignments.
 func SettingsCatalogConfigurationPolicyAssignmentType() attr.Type {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -23,11 +23,18 @@ func SettingsCatalogConfigurationPolicyAssignmentType() attr.Type {
 	}
 }
 
-// MapAssignmentsToTerraform maps the remote DeviceHealthScript assignments to Terraform state
+// MapAssignmentsToTerraform maps remote settings catalog policy assignments to Terraform state.
 func MapAssignmentsToTerraform(ctx context.Context, data *sharedmodels.SettingsCatalogJsonResourceModel, assignments []graphmodels.DeviceManagementConfigurationPolicyAssignmentable) {
 	if len(assignments) == 0 {
 		tflog.Debug(ctx, "No assignments to process")
-		data.Assignments = types.SetNull(SettingsCatalogConfigurationPolicyAssignmentType())
+		if data.Assignments.IsNull() {
+			data.Assignments = types.SetNull(SettingsCatalogConfigurationPolicyAssignmentType())
+		} else {
+			data.Assignments = types.SetValueMust(
+				SettingsCatalogConfigurationPolicyAssignmentType(),
+				[]attr.Value{},
+			)
+		}
 		return
 	}
 
