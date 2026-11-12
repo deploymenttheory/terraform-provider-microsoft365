@@ -15,6 +15,7 @@ Exit codes:
 
 import argparse
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -26,9 +27,26 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from lib.common import load_pr_checks_config  # noqa: E402
 from lib.coverage import check_coverage_threshold  # noqa: E402
 from lib.get_codecov_coverage import fetch_codecov_coverage  # noqa: E402
+from lib.git_operations import get_changed_files  # noqa: E402
 from lib.github import write_output  # noqa: E402
 
 # pylint: enable=wrong-import-position
+
+
+def _verify_test_only_changes(base_ref):
+    """Require Git evidence before treating a completed empty Go patch as inapplicable."""
+    if not base_ref:
+        print("❌ ERROR: An empty patch requires a Git base reference for verification")
+        return False
+    try:
+        changed = get_changed_files(base_ref)
+    except (OSError, subprocess.CalledProcessError) as error:
+        print(f"❌ ERROR: Cannot verify changed Go files: {error}")
+        return False
+    if any(name.endswith(".go") and not name.endswith("_test.go") for name in changed):
+        print("❌ ERROR: Production Go files changed but Codecov has no executable patch coverage")
+        return False
+    return True
 
 
 def main():
@@ -37,6 +55,9 @@ def main():
     parser.add_argument("--repo-slug", required=True, help="Repository slug (owner/repo)")
     parser.add_argument("--pr-number", required=True, help="Pull request number")
     parser.add_argument("--commit-sha", help="Require Codecov coverage for this PR head commit")
+    parser.add_argument(
+        "--base-ref", help="Git base reference for verifying test-only empty patches"
+    )
     parser.add_argument(
         "--codecov-token",
         default=os.environ.get("CODECOV_API_TOKEN"),
@@ -66,20 +87,30 @@ def main():
         print("❌ ERROR: Could not fetch coverage from Codecov")
         return 1
 
+    no_executable_changes = stats.get("no_executable_changes", False)
+    if no_executable_changes and not _verify_test_only_changes(args.base_ref):
+        return 1
+    coverage_pct = "N/A" if no_executable_changes else stats["coverage_pct"]
+
     print(f"\n{'='*60}")
-    print(f"Codecov Patch Coverage: {stats['coverage_pct']}%")
+    coverage_display = coverage_pct if no_executable_changes else f"{coverage_pct}%"
+    print(f"Codecov Patch Coverage: {coverage_display}")
     print(f"Total Lines Changed: {stats['total_lines']}")
     print(f"Covered Lines: {stats['covered_lines']}")
     print(f"{'='*60}")
 
     write_output(
         {
-            "coverage-pct": str(stats["coverage_pct"]),
+            "coverage-pct": str(coverage_pct),
             "total-lines": str(stats["total_lines"]),
             "covered-lines": str(stats["covered_lines"]),
         },
         args.github_output,
     )
+
+    if no_executable_changes:
+        print("✅ No executable Go lines changed; patch coverage is not applicable")
+        return 0
 
     # Enforce threshold
     min_coverage = config.get("coverage_threshold", {}).get("minimum_pct", 60)
