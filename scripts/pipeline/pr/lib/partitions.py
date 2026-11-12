@@ -10,9 +10,10 @@ from generate_test_matrix import calculate_shard_count, distribute_rendezvous, R
 MODULE = 'github.com/deploymenttheory/terraform-provider-microsoft365'
 
 
-def affected_test_packages(changed, root=Path('.')):
+def affected_test_packages(changed, root=Path('.'), production_changed=None):
     """Include tests whose local import graph depends on a changed package."""
     imports = {}
+    test_imports = {}
     tests = set()
     for directory in sorted({path.parent for path in (root / 'internal').rglob('*.go')}):
         package = directory.relative_to(root).as_posix()
@@ -20,17 +21,36 @@ def affected_test_packages(changed, root=Path('.')):
         if any(path.name.endswith('_test.go') for path in sources):
             tests.add(package)
         imports[package] = set()
+        test_imports[package] = set()
         for path in sources:
             source = path.read_text(encoding='utf-8')
             for declaration in re.findall(r'\bimport\s*(\([\s\S]*?\)|(?:\w+\s+)?"[^"\n]+")', source):
-                imports[package].update(re.findall('"' + re.escape(MODULE) + r'/([^"\n]+)"', declaration))
-    affected = set(changed)
+                target = test_imports if path.name.endswith('_test.go') else imports
+                target[package].update(re.findall('"' + re.escape(MODULE) + r'/([^"\n]+)"', declaration))
+    affected = set(changed if production_changed is None else production_changed)
     while True:
         expanded = affected | {package for package, deps in imports.items() if deps & affected}
         if expanded == affected:
             break
         affected = expanded
-    return sorted(set(changed) | (affected & tests))
+    dependent_tests = {package for package in tests if test_imports[package] & affected}
+    return sorted(set(changed) | (affected & tests) | dependent_tests)
+
+
+def fixture_packages(files):
+    """Resolve changed internal fixtures and embedded data to their nearest Go package."""
+    owners = set()
+    for name in files:
+        path = Path(name)
+        if path.suffix == '.go' or not path.parts or path.parts[0] != 'internal':
+            continue
+        for directory in path.parents:
+            if not directory.parts or directory.parts[0] != 'internal':
+                break
+            if any(directory.glob('*.go')):
+                owners.add(directory.as_posix())
+                break
+    return owners
 
 
 def partition_packages(packages):

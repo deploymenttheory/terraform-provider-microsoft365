@@ -5,10 +5,15 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	providercore "github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider/core"
 	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/list-resources/users/graph_beta/user"
+	testProvider1 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/users/graph_beta/user"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var testProviderRegistry = providercore.Registry{
+	Resources: []func() resource.Resource{
+		testProvider1.NewUserResource,
+	},
 	ListResources: []func() list.ListResource{
 		testProvider0.NewUserListResource,
 	},

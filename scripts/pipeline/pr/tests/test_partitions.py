@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 from support import RepositoryTest
-from lib.partitions import affected_test_packages, partition_packages
+from lib.partitions import affected_test_packages, fixture_packages, partition_packages
 from merge_coverage import merge_profiles, merge_shard_profiles
 from run_lint import run_lint
 from unittest.mock import patch
@@ -44,6 +44,42 @@ import "github.com/deploymenttheory/terraform-provider-microsoft365/internal/moc
                 run_lint(self.base, selected_packages=['unrelated'])
         run.assert_not_called()
 
+    def test_test_only_changes_do_not_propagate_as_production_dependencies(self):
+        self.write('internal/shared/helper.go', 'package shared\n')
+        self.write('internal/shared/helper_test.go', 'package shared_test\n')
+        self.write('internal/consumer/consumer_test.go', '''package consumer_test
+import "github.com/deploymenttheory/terraform-provider-microsoft365/internal/shared"
+''')
+        self.assertEqual(affected_test_packages(['internal/shared'], production_changed=set()), ['internal/shared'])
+
+    def test_dependency_of_shared_helpers_tests_does_not_fan_out_to_all_consumers(self):
+        self.write('internal/target/resource.go', 'package target\n')
+        self.write('internal/target/resource_test.go', 'package target_test\n')
+        self.write('internal/mocks/mocks.go', 'package mocks\n')
+        self.write('internal/mocks/mocks_test.go', '''package mocks_test
+import "github.com/deploymenttheory/terraform-provider-microsoft365/internal/target"
+''')
+        self.write('internal/unrelated/resource_test.go', '''package unrelated_test
+import "github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+''')
+        self.assertEqual(affected_test_packages(['internal/target']), ['internal/mocks', 'internal/target'])
+
+    def test_changed_fixtures_resolve_to_the_package_that_serves_them(self):
+        self.write('internal/resource/mocks/responders.go', 'package mocks\n')
+        self.write('internal/resource/resource_test.go', '''package resource_test
+import "github.com/deploymenttheory/terraform-provider-microsoft365/internal/resource/mocks"
+''')
+        files = ['internal/resource/mocks/responses/new.json', 'docs/example.json']
+        owners = fixture_packages(files)
+        self.assertEqual(owners, {'internal/resource/mocks'})
+        self.assertEqual(affected_test_packages(sorted(owners)), ['internal/resource', 'internal/resource/mocks'])
+
+    def test_deleted_helper_still_selects_tests_that_import_it(self):
+        self.write('internal/consumer/consumer_test.go', '''package consumer_test
+import "github.com/deploymenttheory/terraform-provider-microsoft365/internal/deleted"
+''')
+        self.assertEqual(affected_test_packages([], production_changed={'internal/deleted'}), ['internal/consumer'])
+
 
 class CoverageMergeTests(unittest.TestCase):
     def test_overlapping_blocks_are_covered_once_after_shards_are_combined(self):
@@ -69,6 +105,17 @@ class CoverageMergeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Missing shard coverage profiles'):
                 merge_shard_profiles(root, output, 2)
             self.assertFalse(output.exists())
+
+    def test_single_artifact_flat_download_merges_successfully(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            profile = root / 'unit-coverage.txt'
+            profile.write_text('mode: atomic\nmodule/a.go:1.1,2.1 1 1\n')
+            output = root / 'merged'
+            merge_shard_profiles(root, output, 1)
+            self.assertEqual(output.read_text(), profile.read_text())
+            with self.assertRaisesRegex(ValueError, 'Missing shard coverage profiles'):
+                merge_shard_profiles(root, output, 2)
 
 
 class WorkflowGateTests(unittest.TestCase):

@@ -28,6 +28,9 @@ def merge_shard_profiles(artifacts, output, expected_shards):
     """Require a profile from every successful shard before producing merged coverage."""
     profiles = [artifacts / f'unit-test-results-{index}' / 'unit-coverage.txt'
                 for index in range(expected_shards)]
+    # download-artifact extracts a single matched artifact directly into its destination.
+    if expected_shards == 1 and not profiles[0].is_file() and (artifacts / 'unit-coverage.txt').is_file():
+        profiles = [artifacts / 'unit-coverage.txt']
     missing = [str(path) for path in profiles if not path.is_file()]
     if missing:
         raise ValueError('Missing shard coverage profiles: ' + ', '.join(missing))

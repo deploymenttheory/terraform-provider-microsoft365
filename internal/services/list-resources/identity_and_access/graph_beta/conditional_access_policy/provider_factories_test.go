@@ -5,10 +5,15 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	providercore "github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider/core"
 	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/list-resources/identity_and_access/graph_beta/conditional_access_policy"
+	testProvider1 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/conditional_access_policy"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var testProviderRegistry = providercore.Registry{
+	Resources: []func() resource.Resource{
+		testProvider1.NewConditionalAccessPolicyResource,
+	},
 	ListResources: []func() list.ListResource{
 		testProvider0.NewConditionalAccessPolicyListResource,
 	},

@@ -95,6 +95,20 @@ var config = "resource \"microsoft365_second\" \"dependency\" {}"
         with self.assertRaisesRegex(ValueError, 'manually maintained'):
             generate(self.root)
 
+    def test_list_resource_includes_matching_managed_resource_schema_dependency(self):
+        self.write('internal/services/list-resources/example/second/list.go', 'package second\nconst ListResourceName = "microsoft365_second"\n')
+        self.write('internal/provider/list_resources.go', '''package provider
+import second "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/list-resources/example/second"
+func lists() { return []func() list.ListResource{
+ second.NewSecondListResource,
+} }
+''')
+        self.write(str(self.directory / 'list.tf'), 'list "microsoft365_second" "query" {}\n')
+        chosen = selected_entries(self.root, self.directory, inventory(self.root))
+        self.assertEqual([(entry[0], entry[5]) for entry in chosen],
+                         [('Resources', 'microsoft365_first'), ('Resources', 'microsoft365_second'),
+                          ('ListResources', 'microsoft365_second')])
+
 
 if __name__ == '__main__':
     unittest.main()
