@@ -16,10 +16,15 @@ import (
 
 // NewProviderFactories creates protocol factories with only the supplied test registrations.
 // Uses the real provider schema and configuration in unit or acceptance mode.
-func NewProviderFactories(unitTestMode bool, registry providercore.Registry) map[string]func() (tfprotov6.ProviderServer, error) {
+func NewProviderFactories(
+	unitTestMode bool,
+	registry providercore.Registry,
+) map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
 		"microsoft365": func() (tfprotov6.ProviderServer, error) {
-			server, err := providerserver.NewProtocol6WithError(providercore.NewWithRegistry("test", unitTestMode, registry))()
+			server, err := providerserver.NewProtocol6WithError(
+				providercore.NewWithRegistry("test", unitTestMode, registry),
+			)()
 			if err != nil {
 				return nil, fmt.Errorf("failed to create isolated provider server: %w", err)
 			}

@@ -4,11 +4,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/jarcoal/httpmock"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	roleDefinitionsMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/role_definitions/mocks"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/jarcoal/httpmock"
 )
 
 func setupMockEnvironment() (*mocks.Mocks, *roleDefinitionsMocks.RoleDefinitionsMock) {
@@ -41,16 +42,56 @@ func TestUnitDatasourceRoleDefinitions_01_All(t *testing.T) {
 			{
 				Config: testConfigAll(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "filter_type", "all"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.#", "5"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.0.display_name", "Global Administrator"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.0.id", "62e90394-69f5-4237-9190-012177145e10"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.0.is_privileged", "true"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.1.display_name", "Privileged Role Administrator"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.1.id", "e8611ab8-c189-46e8-94e1-60213ab1f814"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.2.display_name", "Security Administrator"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.3.display_name", "Application Administrator"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.all", "items.4.display_name", "Conditional Access Administrator"),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"filter_type",
+						"all",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.#",
+						"5",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.0.display_name",
+						"Global Administrator",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.0.id",
+						"62e90394-69f5-4237-9190-012177145e10",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.0.is_privileged",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.1.display_name",
+						"Privileged Role Administrator",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.1.id",
+						"e8611ab8-c189-46e8-94e1-60213ab1f814",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.2.display_name",
+						"Security Administrator",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.3.display_name",
+						"Application Administrator",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.all",
+						"items.4.display_name",
+						"Conditional Access Administrator",
+					),
 				),
 			},
 		},
@@ -69,14 +110,46 @@ func TestUnitDatasourceRoleDefinitions_02_ById(t *testing.T) {
 			{
 				Config: testConfigById(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id", "filter_type", "id"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id", "filter_value", "62e90394-69f5-4237-9190-012177145e10"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id", "items.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id", "items.0.id", "62e90394-69f5-4237-9190-012177145e10"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id", "items.0.display_name", "Global Administrator"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id", "items.0.template_id", "62e90394-69f5-4237-9190-012177145e10"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id", "items.0.is_built_in", "true"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id", "items.0.is_privileged", "true"),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id",
+						"filter_type",
+						"id",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id",
+						"filter_value",
+						"62e90394-69f5-4237-9190-012177145e10",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id",
+						"items.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id",
+						"items.0.id",
+						"62e90394-69f5-4237-9190-012177145e10",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id",
+						"items.0.display_name",
+						"Global Administrator",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id",
+						"items.0.template_id",
+						"62e90394-69f5-4237-9190-012177145e10",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id",
+						"items.0.is_built_in",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_id",
+						"items.0.is_privileged",
+						"true",
+					),
 				),
 			},
 		},
@@ -95,11 +168,31 @@ func TestUnitDatasourceRoleDefinitions_03_ByDisplayName(t *testing.T) {
 			{
 				Config: testConfigByDisplayName(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name", "filter_type", "display_name"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name", "filter_value", "Global Administrator"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name", "items.#", "1"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name", "items.0.display_name", "Global Administrator"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name", "items.0.id", "62e90394-69f5-4237-9190-012177145e10"),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name",
+						"filter_type",
+						"display_name",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name",
+						"filter_value",
+						"Global Administrator",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name",
+						"items.#",
+						"1",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name",
+						"items.0.display_name",
+						"Global Administrator",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.by_display_name",
+						"items.0.id",
+						"62e90394-69f5-4237-9190-012177145e10",
+					),
 				),
 			},
 		},
@@ -118,11 +211,31 @@ func TestUnitDatasourceRoleDefinitions_04_ODataFilter(t *testing.T) {
 			{
 				Config: testConfigODataFilter(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter", "odata_filter", "isPrivileged eq true"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter", "items.#", "2"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter", "items.0.is_privileged", "true"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter", "items.1.is_privileged", "true"),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter",
+						"filter_type",
+						"odata",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter",
+						"odata_filter",
+						"isPrivileged eq true",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter",
+						"items.#",
+						"2",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter",
+						"items.0.is_privileged",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_filter",
+						"items.1.is_privileged",
+						"true",
+					),
 				),
 			},
 		},
@@ -141,11 +254,31 @@ func TestUnitDatasourceRoleDefinitions_05_ODataAdvanced(t *testing.T) {
 			{
 				Config: testConfigODataAdvanced(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced", "odata_filter", "isBuiltIn eq true"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced", "odata_orderby", "displayName"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced", "odata_select", "id,displayName,isPrivileged"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced", "items.#", "2"),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced",
+						"filter_type",
+						"odata",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced",
+						"odata_filter",
+						"isBuiltIn eq true",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced",
+						"odata_orderby",
+						"displayName",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced",
+						"odata_select",
+						"id,displayName,isPrivileged",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_advanced",
+						"items.#",
+						"2",
+					),
 				),
 			},
 		},
@@ -164,11 +297,31 @@ func TestUnitDatasourceRoleDefinitions_06_ODataComprehensive(t *testing.T) {
 			{
 				Config: testConfigODataComprehensive(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive", "filter_type", "odata"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive", "odata_filter", "isPrivileged eq true"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive", "odata_top", "5"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive", "odata_skip", "0"),
-					resource.TestCheckResourceAttr("data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive", "items.#", "2"),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive",
+						"filter_type",
+						"odata",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive",
+						"odata_filter",
+						"isPrivileged eq true",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive",
+						"odata_top",
+						"5",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive",
+						"odata_skip",
+						"0",
+					),
+					resource.TestCheckResourceAttr(
+						"data.microsoft365_graph_beta_identity_and_access_role_definitions.odata_comprehensive",
+						"items.#",
+						"2",
+					),
 				),
 			},
 		},
@@ -185,8 +338,10 @@ func TestUnitDatasourceRoleDefinitions_07_ValidationError(t *testing.T) {
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      testConfigAll(),
-				ExpectError: regexp.MustCompile("Insufficient privileges to complete the operation"),
+				Config: testConfigAll(),
+				ExpectError: regexp.MustCompile(
+					`Insufficient\s+privileges\s+to\s+complete\s+the\s+operation`,
+				),
 			},
 		},
 	})

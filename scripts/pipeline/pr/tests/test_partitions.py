@@ -34,7 +34,13 @@ import "github.com/deploymenttheory/terraform-provider-microsoft365/internal/moc
 ''')
         self.write('internal/services/second/resource_test.go', 'package second_test\n')
         self.assertEqual(affected_test_packages(['internal/core']),
-                         ['internal/core', 'internal/services/first'])
+                         ['internal/services/first'])
+
+    def test_production_registry_without_tests_is_not_compiled_by_unit_workers(self):
+        self.write('internal/provider/registry.go', 'package provider\n')
+        self.write('internal/provider/core/config_test.go', 'package core_test\n')
+        self.assertEqual(affected_test_packages(['internal/provider', 'internal/provider/core']),
+                         ['internal/provider/core'])
 
     def test_lint_shard_cannot_expand_its_changed_package_scope(self):
         with patch('run_lint.get_merge_base', return_value=self.base), \
@@ -72,7 +78,7 @@ import "github.com/deploymenttheory/terraform-provider-microsoft365/internal/res
         files = ['internal/resource/mocks/responses/new.json', 'docs/example.json']
         owners = fixture_packages(files)
         self.assertEqual(owners, {'internal/resource/mocks'})
-        self.assertEqual(affected_test_packages(sorted(owners)), ['internal/resource', 'internal/resource/mocks'])
+        self.assertEqual(affected_test_packages(sorted(owners)), ['internal/resource'])
 
     def test_deleted_helper_still_selects_tests_that_import_it(self):
         self.write('internal/consumer/consumer_test.go', '''package consumer_test
@@ -124,6 +130,7 @@ class WorkflowGateTests(unittest.TestCase):
         workflows = Path(__file__).resolve().parents[4] / '.github/workflows'
         unit = yaml.safe_load((workflows / 'pr-tests.yml').read_text(encoding='utf-8'))['jobs']
         lint = yaml.safe_load((workflows / 'go-lint.yml').read_text(encoding='utf-8'))['jobs']
+        self.assertEqual(unit['unit-test-shards']['name'], '🧪 Unit Test Partition ${{ matrix.shard_index }}')
         for jobs, gate, worker, name in (
             (unit, 'unit-tests', 'unit-test-shards', '🧪 Go Unit Tests & Coverage'),
             (unit, 'race-detection', 'race-shards', '🔍 Race Detection'),

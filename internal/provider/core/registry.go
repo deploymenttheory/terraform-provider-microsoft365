@@ -21,8 +21,10 @@ type Registry struct {
 	EphemeralResources []func() ephemeral.EphemeralResource
 }
 
-var _ provider.ProviderWithEphemeralResources = &M365Provider{}
-var _ provider.ProviderWithListResources = &M365Provider{}
+var (
+	_ provider.ProviderWithEphemeralResources = &M365Provider{}
+	_ provider.ProviderWithListResources      = &M365Provider{}
+)
 
 // NewWithRegistry creates a provider using the shared schema and client configuration.
 // Each invocation returns an independent instance with the supplied registrations.

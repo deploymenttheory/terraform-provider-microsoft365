@@ -8,7 +8,7 @@ empty Go selection launches no lint, unit, or race workers. There is no `./...`
 fallback. Unit tests include local packages whose test import graph depends on a
 changed production package. Test-only changes do not propagate as production
 dependencies. Internal fixture and embedded-data changes select their owning Go
-packages and dependent tests. Lint findings remain restricted to changed Go
+packages and dependent tests. Unit workers select packages containing test files; production-only packages remain in lint analysis and are compiled through their test consumers. Lint findings remain restricted to changed Go
 packages and lines.
 
 Lint, unit, and race workers use the acceptance pipeline's bounded Rendezvous

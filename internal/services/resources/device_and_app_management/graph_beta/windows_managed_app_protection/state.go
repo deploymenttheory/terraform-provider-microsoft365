@@ -4,18 +4,23 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // MapRemoteStateToTerraform maps the Graph API response to the Terraform state model.
 // Every optional field that the API may return as null is explicitly set to types.StringNull()
 // or types.BoolNull() in the else branch — this prevents Terraform from seeing "unknown"
 // values after apply, which would cause a provider error.
-func MapRemoteStateToTerraform(ctx context.Context, data *WindowsManagedAppProtectionResourceModel, remoteResource graphmodels.WindowsManagedAppProtectionable) {
+func MapRemoteStateToTerraform(
+	ctx context.Context,
+	data *WindowsManagedAppProtectionResourceModel,
+	remoteResource graphmodels.WindowsManagedAppProtectionable,
+) {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return
@@ -64,17 +69,39 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsManagedAppProte
 	// convert.GraphToFrameworkString already handles nil pointers by returning types.StringNull(),
 	// so these are safe to use directly without an explicit else branch.
 	data.Description = convert.GraphToFrameworkString(remoteResource.GetDescription())
-	data.MinimumRequiredSdkVersion = convert.GraphToFrameworkString(remoteResource.GetMinimumRequiredSdkVersion())
-	data.MinimumWipeSdkVersion = convert.GraphToFrameworkString(remoteResource.GetMinimumWipeSdkVersion())
-	data.MinimumRequiredOsVersion = convert.GraphToFrameworkString(remoteResource.GetMinimumRequiredOsVersion())
-	data.MinimumWarningOsVersion = convert.GraphToFrameworkString(remoteResource.GetMinimumWarningOsVersion())
-	data.MinimumWipeOsVersion = convert.GraphToFrameworkString(remoteResource.GetMinimumWipeOsVersion())
-	data.MinimumRequiredAppVersion = convert.GraphToFrameworkString(remoteResource.GetMinimumRequiredAppVersion())
-	data.MinimumWarningAppVersion = convert.GraphToFrameworkString(remoteResource.GetMinimumWarningAppVersion())
-	data.MinimumWipeAppVersion = convert.GraphToFrameworkString(remoteResource.GetMinimumWipeAppVersion())
-	data.MaximumRequiredOsVersion = convert.GraphToFrameworkString(remoteResource.GetMaximumRequiredOsVersion())
-	data.MaximumWarningOsVersion = convert.GraphToFrameworkString(remoteResource.GetMaximumWarningOsVersion())
-	data.MaximumWipeOsVersion = convert.GraphToFrameworkString(remoteResource.GetMaximumWipeOsVersion())
+	data.MinimumRequiredSdkVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMinimumRequiredSdkVersion(),
+	)
+	data.MinimumWipeSdkVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMinimumWipeSdkVersion(),
+	)
+	data.MinimumRequiredOsVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMinimumRequiredOsVersion(),
+	)
+	data.MinimumWarningOsVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMinimumWarningOsVersion(),
+	)
+	data.MinimumWipeOsVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMinimumWipeOsVersion(),
+	)
+	data.MinimumRequiredAppVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMinimumRequiredAppVersion(),
+	)
+	data.MinimumWarningAppVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMinimumWarningAppVersion(),
+	)
+	data.MinimumWipeAppVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMinimumWipeAppVersion(),
+	)
+	data.MaximumRequiredOsVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMaximumRequiredOsVersion(),
+	)
+	data.MaximumWarningOsVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMaximumWarningOsVersion(),
+	)
+	data.MaximumWipeOsVersion = convert.GraphToFrameworkString(
+		remoteResource.GetMaximumWipeOsVersion(),
+	)
 
 	// --- Optional bool fields ---
 	if v := remoteResource.GetPrintBlocked(); v != nil {
@@ -84,19 +111,12 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsManagedAppProte
 	}
 
 	// --- Duration fields ---
-	// API returns these as ISODuration objects. Convert to string for Terraform state.
-	// Explicitly null when not set by the API.
-	if v := remoteResource.GetPeriodOfflineBeforeWipeIsEnforced(); v != nil {
-		data.PeriodOfflineBeforeWipeIsEnforced = types.StringValue(v.String())
-	} else {
-		data.PeriodOfflineBeforeWipeIsEnforced = types.StringNull()
-	}
-
-	if v := remoteResource.GetPeriodOfflineBeforeAccessCheck(); v != nil {
-		data.PeriodOfflineBeforeAccessCheck = types.StringValue(v.String())
-	} else {
-		data.PeriodOfflineBeforeAccessCheck = types.StringNull()
-	}
+	data.PeriodOfflineBeforeWipeIsEnforced = convert.GraphToFrameworkISODuration(
+		remoteResource.GetPeriodOfflineBeforeWipeIsEnforced(),
+	)
+	data.PeriodOfflineBeforeAccessCheck = convert.GraphToFrameworkISODuration(
+		remoteResource.GetPeriodOfflineBeforeAccessCheck(),
+	)
 
 	// --- Enum fields ---
 	// Every enum field is explicitly nulled in the else branch so Terraform never
@@ -154,5 +174,8 @@ func MapRemoteStateToTerraform(ctx context.Context, data *WindowsManagedAppProte
 		data.RoleScopeTagIds, _ = types.ListValue(types.StringType, []attr.Value{})
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+	tflog.Debug(
+		ctx,
+		fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()),
+	)
 }

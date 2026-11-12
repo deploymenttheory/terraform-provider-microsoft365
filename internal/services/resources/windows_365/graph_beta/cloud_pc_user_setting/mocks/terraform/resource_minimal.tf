@@ -1,10 +1,10 @@
-resource "microsoft365_graph_beta_windows_365_cloud_pc_user_setting" "test" {
-  display_name        = "unit-test-minimal"
-  local_admin_enabled = true
-  reset_enabled       = true
+resource "microsoft365_graph_beta_windows_365_cloud_pc_user_setting" "minimal" {
+  display_name        = "Test Minimal User Setting"
+  local_admin_enabled = false
+  reset_enabled       = false
 
   restore_point_setting = {
-    user_restore_enabled = true
+    user_restore_enabled = false
     frequency_in_hours   = 12
   }
 

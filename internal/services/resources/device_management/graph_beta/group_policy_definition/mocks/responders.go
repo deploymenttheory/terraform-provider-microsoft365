@@ -8,11 +8,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/uuid"
+	"github.com/jarcoal/httpmock"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	"github.com/google/uuid"
-	"github.com/jarcoal/httpmock"
 )
 
 // mockState tracks the state of resources for consistent responses
@@ -29,7 +30,12 @@ func init() {
 	mockState.definitionValues = make(map[string]map[string]any)
 	mockState.presentationValues = make(map[string][]any)
 	mockState.operationPhase = make(map[string]string)
-	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
+	httpmock.RegisterNoResponder(
+		httpmock.NewStringResponder(
+			404,
+			`{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`,
+		),
+	)
 	mocks.GlobalRegistry.Register("group_policy_definition", &GroupPolicyDefinitionMock{})
 }
 
@@ -48,7 +54,9 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 	mockState.Unlock()
 
 	// Register GET for group policy configurations (parent resource)
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+$`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			configID := urlParts[len(urlParts)-1]
@@ -65,55 +73,88 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			}
 
 			return httpmock.NewJsonResponse(200, config)
-		})
+		},
+	)
 
 	// Register GET for group policy definitions catalog search
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyDefinitions\?`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyDefinitions\?`,
 		func(req *http.Request) (*http.Response, error) {
 			query := req.URL.Query()
 			filter := query.Get("$filter")
 
 			scenario := determineCatalogScenario(filter)
 			if scenario == "" {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Could not determine catalog scenario"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Could not determine catalog scenario"}}`,
+				), nil
 			}
 
 			// Determine operation phase from filter content to load correct folder
 			phase := determinePhaseFromContext(filter)
 
-			content, err := helpers.ParseJSONFile(filepath.Join("../tests", "responses", phase, "get_catalog_"+scenario+".json"))
+			content, err := helpers.ParseJSONFile(
+				filepath.Join("../tests", "responses", phase, "get_catalog_"+scenario+".json"),
+			)
 			if err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load catalog JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to load catalog JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			var response map[string]any
 			if err := json.Unmarshal([]byte(content), &response); err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse catalog JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to parse catalog JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			return httpmock.NewJsonResponse(200, response)
-		})
+		},
+	)
 
 	// Register GET for single group policy definition by ID
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyDefinitions/[^/?]+$`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyDefinitions/[^/?]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			defID := urlParts[len(urlParts)-1]
 
 			scenario := determinePresentationsScenario(defID)
 			if scenario == "" {
-				return httpmock.NewStringResponse(404, `{"error":{"code":"NotFound","message":"Definition not found"}}`), nil
+				return httpmock.NewStringResponse(
+					404,
+					`{"error":{"code":"NotFound","message":"Definition not found"}}`,
+				), nil
 			}
 
 			// Load the catalog JSON for this definition
-			content, err := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_create", "get_catalog_"+scenario+".json"))
+			content, err := helpers.ParseJSONFile(
+				filepath.Join(
+					"../tests",
+					"responses",
+					"validate_create",
+					"get_catalog_"+scenario+".json",
+				),
+			)
 			if err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load definition JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to load definition JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			var catalogResponse map[string]any
 			if err := json.Unmarshal([]byte(content), &catalogResponse); err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse definition JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to parse definition JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			// Extract the first definition from the catalog response
@@ -123,11 +164,17 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 				}
 			}
 
-			return httpmock.NewStringResponse(404, `{"error":{"code":"NotFound","message":"Definition not found"}}`), nil
-		})
+			return httpmock.NewStringResponse(
+				404,
+				`{"error":{"code":"NotFound","message":"Definition not found"}}`,
+			), nil
+		},
+	)
 
 	// Register GET for presentation templates
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyDefinitions/[^/]+/presentations`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyDefinitions/[^/]+/presentations`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			defID := urlParts[len(urlParts)-2]
@@ -141,7 +188,10 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 
 			scenario := determinePresentationsScenario(defID)
 			if scenario == "" {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Could not determine presentations scenario"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Could not determine presentations scenario"}}`,
+				), nil
 			}
 
 			// Determine phase - if definition value doesn't exist yet, it's create
@@ -152,21 +202,37 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			}
 			mockState.Unlock()
 
-			content, err := helpers.ParseJSONFile(filepath.Join("../tests", "responses", phase, "get_presentations_"+scenario+".json"))
+			content, err := helpers.ParseJSONFile(
+				filepath.Join(
+					"../tests",
+					"responses",
+					phase,
+					"get_presentations_"+scenario+".json",
+				),
+			)
 			if err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load presentations JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to load presentations JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			var response map[string]any
 			if err := json.Unmarshal([]byte(content), &response); err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse presentations JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to parse presentations JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			return httpmock.NewJsonResponse(200, response)
-		})
+		},
+	)
 
 	// Register POST for updateDefinitionValues (CREATE/UPDATE/DELETE operation)
-	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/updateDefinitionValues$`,
+	httpmock.RegisterResponder(
+		"POST",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/updateDefinitionValues$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			configID := urlParts[len(urlParts)-2]
@@ -174,7 +240,10 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			var requestBody map[string]any
 			err := json.NewDecoder(req.Body).Decode(&requestBody)
 			if err != nil {
-				return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+				return httpmock.NewStringResponse(
+					400,
+					`{"error":{"code":"BadRequest","message":"Invalid request body"}}`,
+				), nil
 			}
 
 			// Determine if this is CREATE, UPDATE, or DELETE
@@ -249,15 +318,18 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 						// Store definition reference with ID
 						if definitionID != "" {
 							storedDefVal["definition"] = map[string]any{
-								"@odata.id": fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')", definitionID),
-								"id":        definitionID,
+								"@odata.id": fmt.Sprintf(
+									"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')",
+									definitionID,
+								),
+								"id": definitionID,
 							}
 						}
 
 						stateKey := configID + "/" + defValueID
 
 						// Extract and store presentation values
-						var presValues []any
+						presValues := []any{}
 						if presValuesArray, hasPres := defVal["presentationValues"].([]any); hasPres {
 							presValues = make([]any, len(presValuesArray))
 							for i, pv := range presValuesArray {
@@ -279,7 +351,9 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 										if len(parts) >= 2 {
 											presID := parts[len(parts)-2]
 											enrichedPV["presentationId"] = presID
-											enrichedPV["presentation"] = map[string]any{"id": presID}
+											enrichedPV["presentation"] = map[string]any{
+												"id": presID,
+											}
 										}
 									}
 
@@ -290,9 +364,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 
 						mockState.Lock()
 						mockState.definitionValues[stateKey] = storedDefVal
-						if len(presValues) > 0 {
-							mockState.presentationValues[stateKey] = presValues
-						}
+						mockState.presentationValues[stateKey] = presValues
 						mockState.operationPhase[stateKey] = constants.TfOperationUpdate
 						mockState.Unlock()
 					}
@@ -350,15 +422,18 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 						// Store definition reference with ID
 						if definitionID != "" {
 							storedDefVal["definition"] = map[string]any{
-								"@odata.id": fmt.Sprintf("https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')", definitionID),
-								"id":        definitionID,
+								"@odata.id": fmt.Sprintf(
+									"https://graph.microsoft.com/beta/deviceManagement/groupPolicyDefinitions('%s')",
+									definitionID,
+								),
+								"id": definitionID,
 							}
 						}
 
 						stateKey := configID + "/" + defValueID
 
 						// Extract and store presentation values
-						var presValues []any
+						presValues := []any{}
 						if presValuesArray, hasPres := defVal["presentationValues"].([]any); hasPres {
 							presValues = make([]any, len(presValuesArray))
 							for i, pv := range presValuesArray {
@@ -380,7 +455,9 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 										if len(parts) >= 2 {
 											presID := parts[len(parts)-2]
 											enrichedPV["presentationId"] = presID
-											enrichedPV["presentation"] = map[string]any{"id": presID}
+											enrichedPV["presentation"] = map[string]any{
+												"id": presID,
+											}
 										}
 									}
 
@@ -391,9 +468,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 
 						mockState.Lock()
 						mockState.definitionValues[stateKey] = storedDefVal
-						if len(presValues) > 0 {
-							mockState.presentationValues[stateKey] = presValues
-						}
+						mockState.presentationValues[stateKey] = presValues
 						mockState.operationPhase[stateKey] = constants.TfOperationCreate
 						mockState.Unlock()
 					}
@@ -401,10 +476,13 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			}
 
 			return httpmock.NewStringResponse(204, ""), nil
-		})
+		},
+	)
 
 	// Register GET for listing definition values in a configuration
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues$`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			configID := urlParts[len(urlParts)-2]
@@ -437,11 +515,19 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 						if defID != "" {
 							scenario := determinePresentationsScenario(defID)
 							if scenario != "" {
-								content, err := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_create", "get_catalog_"+scenario+".json"))
+								content, err := helpers.ParseJSONFile(
+									filepath.Join(
+										"../tests",
+										"responses",
+										"validate_create",
+										"get_catalog_"+scenario+".json",
+									),
+								)
 								if err == nil {
 									var catalogResponse map[string]any
 									if json.Unmarshal([]byte(content), &catalogResponse) == nil {
-										if values, hasValues := catalogResponse["value"].([]any); hasValues && len(values) > 0 {
+										if values, hasValues := catalogResponse["value"].([]any); hasValues &&
+											len(values) > 0 {
 											if fullDef, ok := values[0].(map[string]any); ok {
 												defValueCopy["definition"] = fullDef
 											}
@@ -463,10 +549,13 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			}
 
 			return httpmock.NewJsonResponse(200, response)
-		})
+		},
+	)
 
 	// Register GET for individual definition value
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+$`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			defValueID := urlParts[len(urlParts)-1]
@@ -482,7 +571,14 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_delete", "get_definition_value_not_found.json"))
+				content, _ := helpers.ParseJSONFile(
+					filepath.Join(
+						"../tests",
+						"responses",
+						"validate_delete",
+						"get_definition_value_not_found.json",
+					),
+				)
 				var errorResponse map[string]any
 				json.Unmarshal([]byte(content), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
@@ -494,14 +590,27 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 				phaseFolder = "validate_create"
 			}
 
-			content, err := helpers.ParseJSONFile(filepath.Join("../tests", "responses", phaseFolder, "get_definition_value_"+scenario+".json"))
+			content, err := helpers.ParseJSONFile(
+				filepath.Join(
+					"../tests",
+					"responses",
+					phaseFolder,
+					"get_definition_value_"+scenario+".json",
+				),
+			)
 			if err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load definition value JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to load definition value JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			var response map[string]any
 			if err := json.Unmarshal([]byte(content), &response); err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse definition value JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to parse definition value JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			response["id"] = defValueID
@@ -513,10 +622,13 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			}
 
 			return httpmock.NewJsonResponse(200, response)
-		})
+		},
+	)
 
 	// Register GET for presentation values collection
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+/presentationValues`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+/presentationValues`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			defValueID := urlParts[len(urlParts)-2]
@@ -540,7 +652,7 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			}
 
 			// If we have stored presentation values, return those
-			if hasPresValues && len(storedPresValues) > 0 {
+			if hasPresValues {
 				return httpmock.NewJsonResponse(200, map[string]any{
 					"@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/groupPolicyConfigurations/definitionValues/presentationValues",
 					"value":          storedPresValues,
@@ -554,21 +666,37 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 				phaseFolder = "validate_create"
 			}
 
-			content, err := helpers.ParseJSONFile(filepath.Join("../tests", "responses", phaseFolder, "get_presentation_values_"+scenario+".json"))
+			content, err := helpers.ParseJSONFile(
+				filepath.Join(
+					"../tests",
+					"responses",
+					phaseFolder,
+					"get_presentation_values_"+scenario+".json",
+				),
+			)
 			if err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load presentation values JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to load presentation values JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			var response map[string]any
 			if err := json.Unmarshal([]byte(content), &response); err != nil {
-				return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to parse presentation values JSON: `+err.Error()+`"}}`), nil
+				return httpmock.NewStringResponse(
+					500,
+					`{"error":{"code":"InternalServerError","message":"Failed to parse presentation values JSON: `+err.Error()+`"}}`,
+				), nil
 			}
 
 			return httpmock.NewJsonResponse(200, response)
-		})
+		},
+	)
 
 	// Register DELETE for definition value
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+$`,
+	httpmock.RegisterResponder(
+		"DELETE",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
 			urlParts := strings.Split(req.URL.Path, "/")
 			defValueID := urlParts[len(urlParts)-1]
@@ -585,14 +713,22 @@ func (m *GroupPolicyDefinitionMock) RegisterMocks() {
 			mockState.Unlock()
 
 			if !exists {
-				content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_delete", "get_definition_value_not_found.json"))
+				content, _ := helpers.ParseJSONFile(
+					filepath.Join(
+						"../tests",
+						"responses",
+						"validate_delete",
+						"get_definition_value_not_found.json",
+					),
+				)
 				var errorResponse map[string]any
 				json.Unmarshal([]byte(content), &errorResponse)
 				return httpmock.NewJsonResponse(404, errorResponse)
 			}
 
 			return httpmock.NewStringResponse(204, ""), nil
-		})
+		},
+	)
 }
 
 // Helper functions
@@ -693,16 +829,32 @@ func (m *GroupPolicyDefinitionMock) RegisterErrorMocks() {
 	mockState.operationPhase = make(map[string]string)
 	mockState.Unlock()
 
-	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/updateDefinitionValues$`,
+	httpmock.RegisterResponder(
+		"POST",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/updateDefinitionValues$`,
 		func(req *http.Request) (*http.Response, error) {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
-		})
+			return httpmock.NewStringResponse(
+				400,
+				`{"error":{"code":"BadRequest","message":"Invalid request body"}}`,
+			), nil
+		},
+	)
 
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+$`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/groupPolicyConfigurations/[^/]+/definitionValues/[^/]+$`,
 		func(req *http.Request) (*http.Response, error) {
-			content, _ := helpers.ParseJSONFile(filepath.Join("../tests", "responses", "validate_delete", "get_definition_value_not_found.json"))
+			content, _ := helpers.ParseJSONFile(
+				filepath.Join(
+					"../tests",
+					"responses",
+					"validate_delete",
+					"get_definition_value_not_found.json",
+				),
+			)
 			var errorResponse map[string]any
 			json.Unmarshal([]byte(content), &errorResponse)
 			return httpmock.NewJsonResponse(404, errorResponse)
-		})
+		},
+	)
 }

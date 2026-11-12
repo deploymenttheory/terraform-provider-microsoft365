@@ -1,5 +1,5 @@
-resource "microsoft365_graph_beta_windows_365_cloud_pc_user_setting" "test" {
-  display_name        = "unit-test"
+resource "microsoft365_graph_beta_windows_365_cloud_pc_user_setting" "maximal" {
+  display_name        = "Test Maximal User Setting"
   local_admin_enabled = true
   reset_enabled       = true
 
@@ -11,8 +11,8 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_user_setting" "test" {
   cross_region_disaster_recovery_setting = {
     cross_region_disaster_recovery_enabled      = true
     maintain_cross_region_restore_point_enabled = true
-    user_initiated_disaster_recovery_allowed    = false
-    disaster_recovery_type                      = "crossRegion"
+    user_initiated_disaster_recovery_allowed    = true
+    disaster_recovery_type                      = "premium"
 
     disaster_recovery_network_setting = {
       region_name  = "automatic"

@@ -4,14 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // MapRemoteStateToTerraform maps a remote operation approval policy to the Terraform resource model
-func MapRemoteStateToTerraform(ctx context.Context, data OperationApprovalPolicyResourceModel, policy graphmodels.OperationApprovalPolicyable) OperationApprovalPolicyResourceModel {
+func MapRemoteStateToTerraform(
+	ctx context.Context,
+	data OperationApprovalPolicyResourceModel,
+	policy graphmodels.OperationApprovalPolicyable,
+) OperationApprovalPolicyResourceModel {
 	if policy == nil {
 		tflog.Debug(ctx, "Remote policy is nil")
 		return data
@@ -22,7 +27,9 @@ func MapRemoteStateToTerraform(ctx context.Context, data OperationApprovalPolicy
 	data.Description = convert.GraphToFrameworkString(policy.GetDescription())
 
 	if lastModified := policy.GetLastModifiedDateTime(); lastModified != nil {
-		data.LastModifiedDateTime = types.StringValue(lastModified.Format("2006-01-02T15:04:05Z07:00"))
+		data.LastModifiedDateTime = types.StringValue(
+			lastModified.Format("2006-01-02T15:04:05Z07:00"),
+		)
 	}
 
 	if policyType := policy.GetPolicyType(); policyType != nil {
@@ -41,14 +48,19 @@ func MapRemoteStateToTerraform(ctx context.Context, data OperationApprovalPolicy
 		data.ApproverGroupIds = convert.GraphToFrameworkStringSet(ctx, approverGroupIds)
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
+	tflog.Debug(
+		ctx,
+		fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()),
+	)
 
 	return data
 }
 
 // mapRemotePolicySetToTerraform maps a remote policy set to a Terraform policy set
-func mapRemotePolicySetToTerraform(remotePolicySet graphmodels.OperationApprovalPolicySetable) OperationApprovalPolicySetResourceModel {
-	policySet := OperationApprovalPolicySetResourceModel{}
+func mapRemotePolicySetToTerraform(
+	remotePolicySet graphmodels.OperationApprovalPolicySetable,
+) *OperationApprovalPolicySetResourceModel {
+	policySet := &OperationApprovalPolicySetResourceModel{}
 
 	if policyType := remotePolicySet.GetPolicyType(); policyType != nil {
 		policySet.PolicyType = types.StringValue(policyType.String())

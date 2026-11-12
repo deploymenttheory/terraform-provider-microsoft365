@@ -3,6 +3,7 @@ package graphBetaCloudPcUserSetting_test
 import (
 	"os"
 	"testing"
+
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
@@ -17,11 +18,29 @@ func TestAccResourceCloudPcUserSetting_01_Create_Minimal(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_user_setting.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.minimal", "display_name", "Test Minimal User Setting"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.minimal", "local_admin_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.minimal", "reset_enabled", "false"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.minimal", "self_service_enabled", "false"),
+					testCheckExists(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.minimal",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.minimal",
+						"display_name",
+						"Test Minimal User Setting",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.minimal",
+						"local_admin_enabled",
+						"false",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.minimal",
+						"reset_enabled",
+						"false",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.minimal",
+						"self_service_enabled",
+						"false",
+					),
 				),
 			},
 		},
@@ -39,14 +58,44 @@ func TestAccResourceCloudPcUserSetting_02_Create_Maximal(t *testing.T) {
 			{
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_user_setting.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.maximal", "display_name", "Test Maximal User Setting"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.maximal", "local_admin_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.maximal", "reset_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.maximal", "self_service_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.maximal", "restore_point_setting.0.frequency_in_hours", "24"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.maximal", "restore_point_setting.0.frequency_type", "twentyFourHours"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.maximal", "restore_point_setting.0.user_restore_enabled", "true"),
+					testCheckExists(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.maximal",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.maximal",
+						"display_name",
+						"Test Maximal User Setting",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.maximal",
+						"local_admin_enabled",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.maximal",
+						"reset_enabled",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.maximal",
+						"self_service_enabled",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.maximal",
+						"restore_point_setting.frequency_in_hours",
+						"24",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.maximal",
+						"restore_point_setting.frequency_type",
+						"default",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.maximal",
+						"restore_point_setting.user_restore_enabled",
+						"true",
+					),
 				),
 			},
 		},
@@ -65,20 +114,48 @@ func TestAccResourceCloudPcUserSetting_03_Update_MinimalToMaximal(t *testing.T) 
 			{
 				Config: testConfigMinimalWithResourceName("test"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_user_setting.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.test", "display_name", "Test Minimal User Setting"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.test", "local_admin_enabled", "false"),
+					testCheckExists(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.test",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.test",
+						"display_name",
+						"Test Minimal User Setting",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.test",
+						"local_admin_enabled",
+						"false",
+					),
 				),
 			},
 			// Update to maximal configuration
 			{
 				Config: testConfigMaximalWithResourceName("test"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_user_setting.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.test", "display_name", "Test Maximal User Setting"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.test", "local_admin_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.test", "reset_enabled", "true"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_windows_365_user_setting.test", "restore_point_setting.0.frequency_in_hours", "24"),
+					testCheckExists(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.test",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.test",
+						"display_name",
+						"Test Maximal User Setting",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.test",
+						"local_admin_enabled",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.test",
+						"reset_enabled",
+						"true",
+					),
+					resource.TestCheckResourceAttr(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.test",
+						"restore_point_setting.frequency_in_hours",
+						"24",
+					),
 				),
 			},
 		},
@@ -96,7 +173,9 @@ func TestAccResourceCloudPcUserSetting_04_Delete_Minimal(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_user_setting.minimal"),
+					testCheckExists(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.minimal",
+					),
 				),
 			},
 		},
@@ -114,11 +193,13 @@ func TestAccResourceCloudPcUserSetting_05_Import(t *testing.T) {
 			{
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_windows_365_user_setting.minimal"),
+					testCheckExists(
+						"microsoft365_graph_beta_windows_365_cloud_pc_user_setting.minimal",
+					),
 				),
 			},
 			{
-				ResourceName:      "microsoft365_graph_beta_windows_365_user_setting.minimal",
+				ResourceName:      "microsoft365_graph_beta_windows_365_cloud_pc_user_setting.minimal",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

@@ -87,7 +87,7 @@ jobs:
           python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_partitions.py -v
 
   unit-test-shards:
-    name: '🧪 Unit partition ${{ matrix.shard_index }}'
+    name: '🧪 Unit Test Partition ${{ matrix.shard_index }}'
     needs: plan-tests
     if: needs.plan-tests.outputs.has-changes == 'true'
     strategy:

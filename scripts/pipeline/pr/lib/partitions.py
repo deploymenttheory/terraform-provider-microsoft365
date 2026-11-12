@@ -34,7 +34,7 @@ def affected_test_packages(changed, root=Path('.'), production_changed=None):
             break
         affected = expanded
     dependent_tests = {package for package in tests if test_imports[package] & affected}
-    return sorted(set(changed) | (affected & tests) | dependent_tests)
+    return sorted(((set(changed) | affected) & tests) | dependent_tests)
 
 
 def fixture_packages(files):
