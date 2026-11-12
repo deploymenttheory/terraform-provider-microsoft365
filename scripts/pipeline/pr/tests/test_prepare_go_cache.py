@@ -71,8 +71,22 @@ func TestMustNotRun(t *testing.T) {
     def test_invalid_test_only_dependency_fails_preparation(self):
         """Do not publish a snapshot when a required test dependency cannot compile."""
         self.write("testonly/value.go", "invalid Go dependency\n")
-        with self.assertRaises(subprocess.CalledProcessError):
-            self.run_preparation()
+        actual_run = subprocess.run
+
+        def capture_expected_diagnostic(*args, **kwargs):
+            kwargs["stderr"] = subprocess.PIPE
+            return actual_run(*args, check=kwargs.pop("check", False), **kwargs)
+
+        with (
+            patch("prepare_go_cache.subprocess.run", side_effect=capture_expected_diagnostic),
+            self.assertRaises(subprocess.CalledProcessError) as failure,
+        ):
+            prepare_go_cache(["selected"])
+        diagnostic = failure.exception.stderr
+        if isinstance(diagnostic, bytes):
+            diagnostic = diagnostic.decode("utf-8", errors="replace")
+        self.assertIn("expected 'package'", diagnostic)
+        self.assertFalse(Path("selected/test-executed").exists())
 
     def test_empty_selection_is_rejected(self):
         """A missing planner output cannot produce a successful empty cache."""

@@ -35,7 +35,9 @@ lint producer compiles the full production provider only when its registry is
 selected, then prepares the selected packages' production and test imports.
 Leaf-only selections stay isolated. The test producer prepares the planned unit
 packages' imports and, when race detection applies, their race-instrumented imports.
-Preparation compiles dependencies without executing tests or provider code.
+Preparation compiles dependencies without executing tests or provider code. Unit
+and race workers then run in parallel, with independent required summary gates.
+Race execution does not wait for the unit or coverage result.
 
 The producer restores a previous compatible snapshot, verifies the required builds,
 and publishes a new immutable key for this source revision. Keys include the Go

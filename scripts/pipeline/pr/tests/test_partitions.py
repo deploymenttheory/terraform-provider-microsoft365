@@ -305,6 +305,15 @@ class WorkflowGateTests(unittest.TestCase):
                 result = subprocess.run(["bash", "-e", "-c", command], env=environment, check=False)
                 self.assertNotEqual(result.returncode, 0)
 
+    def test_race_and_unit_workers_run_independently_after_cache_preparation(self):
+        """A unit or coverage result must not serialize or suppress race execution."""
+        workflow = Path(__file__).resolve().parents[4] / ".github/workflows/pr-tests.yml"
+        jobs = yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"]
+        self.assertEqual(set(jobs["race-shards"]["needs"]), {"plan-tests", "prepare-build-cache"})
+        self.assertNotIn("unit-tests", jobs["race-detection"]["needs"])
+        self.assertIn("prepare-build-cache", jobs["unit-test-shards"]["needs"])
+        self.assertIn("race-shards", jobs["race-detection"]["needs"])
+
     def test_lint_workers_wait_for_their_successful_prepared_snapshot(self):
         """Prepare only selected graphs and fail the gate if the cache writer fails."""
         workflow = Path(__file__).resolve().parents[4] / ".github/workflows/go-lint.yml"

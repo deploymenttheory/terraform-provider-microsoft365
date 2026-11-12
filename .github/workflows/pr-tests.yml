@@ -410,7 +410,7 @@ jobs:
   race-shards:
     name: '🔍 Race Detection — partition ${{ matrix.shard_index }}'
     runs-on: ubuntu-24.04-arm
-    needs: [plan-tests, prepare-build-cache, unit-tests]
+    needs: [plan-tests, prepare-build-cache]
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan-tests.outputs.race-matrix) }}
@@ -470,7 +470,7 @@ jobs:
   race-detection:
     name: '🔍 Race Detection'
     runs-on: ubuntu-24.04-arm
-    needs: [plan-tests, prepare-build-cache, unit-tests, race-shards]
+    needs: [plan-tests, prepare-build-cache, race-shards]
     if: always()
     steps:
       - name: '✅ Require every applicable race partition to pass'
@@ -478,13 +478,11 @@ jobs:
           PLAN: ${{ needs.plan-tests.result }}
           CACHE: ${{ needs.prepare-build-cache.result }}
           HAS_GOROUTINES: ${{ needs.plan-tests.outputs.has-goroutines }}
-          UNIT_RESULT: ${{ needs.unit-tests.result }}
           RESULT: ${{ needs.race-shards.result }}
           RUN_RACE: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false }}
         run: |
           test "$PLAN" = success
           if [ "$HAS_GOROUTINES" = true ] && [ "$RUN_RACE" = true ]; then
             test "$CACHE" = success
-            test "$UNIT_RESULT" = success
             test "$RESULT" = success
           fi
