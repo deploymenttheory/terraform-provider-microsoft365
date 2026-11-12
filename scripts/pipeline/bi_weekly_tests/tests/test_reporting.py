@@ -128,6 +128,37 @@ class ParserTests(TemporaryTests):
         self.assertEqual(successes[0]["package"], "./one")
         self.assertTrue(manifest["complete"])
 
+    def test_panic_context_ends_at_go_package_failure_trailers(self):
+        """Keep panic details and exclude trailers for any Go module host."""
+        for trailer in (
+            "FAIL github.com/example/one",
+            "FAIL\texample.org/project/one\t0.125s",
+            "FAIL local/package [build failed]",
+            "FAIL example.org/project/one [setup failed]",
+        ):
+            with self.subTest(trailer=trailer):
+                body = f"=== RUN   TestPanic\npanic: boom\nstack details\n{trailer}\n"
+                failures, _, _ = self.parse(output("./one", body, 1), ["./one"])
+                self.assertEqual(len(failures), 1)
+                self.assertIn("stack details", failures[0]["context"])
+                self.assertNotIn(trailer, failures[0]["context"])
+
+    def test_panic_context_keeps_github_substrings_in_diagnostic_text(self):
+        """Do not mistake arbitrary URL text or FAIL prefixes for package trailers."""
+        diagnostics = (
+            "FAIL response contained https://example.org/github.com/message\n"
+            "FAILURE https://github.com/example/one\n"
+        )
+        body = "=== RUN   TestPanic\npanic: boom\n" + diagnostics + "FAIL github.com/example/one\n"
+        failures, _, _ = self.parse(output("./one", body, 1), ["./one"])
+        self.assertIn(diagnostics.strip(), failures[0]["context"])
+
+    def test_package_failure_without_panic_is_detected_for_other_module_hosts(self):
+        """Attribute incomplete tests when a non-GitHub Go package fails."""
+        body = "=== RUN   TestInterrupted\ntest stopped\nFAIL example.org/project/one 0.25s\n"
+        failures, _, _ = self.parse(output("./one", body, 1), ["./one"])
+        self.assertEqual([item["test_name"] for item in failures], ["TestInterrupted"])
+
     def test_interrupted_package_keeps_pass_but_cannot_resolve(self):
         """Verify interrupted package keeps pass but cannot resolve."""
         content = output("./one", "=== RUN   TestSame\n--- PASS: TestSame (0.1s)\n", None)

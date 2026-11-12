@@ -191,6 +191,10 @@ def print_separator(char: str = "=", length: int = 70) -> None:
 # CheckDestroy helper's per-resource lines (which embed random resource names) are
 # indented or lack a Go test prefix; they remain in the parent test's context.
 TOP_LEVEL_TEST = r"(?:Test|Fuzz|Example)[^\s/]*"
+PACKAGE_FAILURE = re.compile(
+    r"^FAIL[ \t]+\S+(?:[ \t]+(?:\d+(?:\.\d+)?s|\[(?:build|setup) failed\]))?[ \t]*$",
+    re.MULTILINE,
+)
 
 
 def _failure_context(content: str, match, test_name: str) -> str:
@@ -222,7 +226,7 @@ def _panic_context(output: str) -> str:
         ):
             capture = True
         if capture:
-            if line.startswith("FAIL") and "github.com/" in line:
+            if PACKAGE_FAILURE.fullmatch(line):
                 break
             lines.append(line)
             if len(lines) > 50:
@@ -245,7 +249,7 @@ def _incomplete_test_failures(content: str, completed: set, metadata: dict) -> l
         output = content[match.end() : next_run.start() if next_run else len(content)]
         if any(
             marker in output for marker in ["panic:", "SIGSEGV", "segmentation violation"]
-        ) or re.search(r"^FAIL\s+github\.com/", output, re.MULTILINE):
+        ) or PACKAGE_FAILURE.search(output):
             failures.append(
                 {
                     **metadata,
