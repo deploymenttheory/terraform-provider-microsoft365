@@ -86,6 +86,11 @@ var policyConfigMap = map[string]PolicyTemplateConfig{
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
 		TemplateID:   "e3f74c5a-a6de-411d-aef6-eb15628f3a0a_1",
 	},
+	"windows_anti_virus_microsoft_defender_ai_agent_runtime_protection": {
+		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
+		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
+		TemplateID:   "e9ba1278-2d10-42d6-8004-1e3f6dcef811_1",
+	},
 	"windows_anti_virus_microsoft_defender_antivirus": {
 		Platform:     graphmodels.WINDOWS10_DEVICEMANAGEMENTCONFIGURATIONPLATFORMS,
 		Technologies: graphmodels.MDM_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES | graphmodels.MICROSOFTSENSE_DEVICEMANAGEMENTCONFIGURATIONTECHNOLOGIES,
