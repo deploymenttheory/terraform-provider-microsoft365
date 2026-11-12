@@ -1,0 +1,47 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Prerequisites
+
+The tenant must use traffic forwarding profiles v2 (Global Secure Access > Connect > Traffic forwarding). Switching to v2 cannot be undone. Custom profiles require the latest Global Secure Access client.
+
+## Considerations
+
+- Graph currently allows custom profiles only for `private` traffic. `internet` and `m365` return an error until Microsoft enables multiple profiles for the tenant.
+- Custom private profiles use priorities 101-200 and every priority must be unique in the tenant. The default private profile uses 200. Up to 10 custom private profiles are supported during preview.
+- `local_network_settings` enables [home network support](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-home-network-support) (preview). It applies to directly connected IPv4 RFC 1918 subnets only and is not supported on mobile clients.
+- `assignment_rules` replaces all assignments. Graph rejects device IDs passed as users or groups (and vice versa), and returns HTTP 500 for IDs that do not exist.
+- Graph can return HTTP 504 after it has created a profile. The resource then adopts the custom profile with the planned name, type and priority instead of failing.
+- Private Access applications, Private DNS policies and remote networks are linked to profiles separately and are not managed by this resource.
+
+## Microsoft Documentation
+
+- [Create a traffic forwarding profile](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-create-traffic-forwarding-profile)
+- [Manage the Private Access traffic forwarding profile](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-private-access-profile)
+- [Configure home network support](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-home-network-support)
+
+## Microsoft Graph API Permissions
+
+- Read / Write (application): `NetworkAccess.ReadWrite.All`, verified in live testing.
+
+The v2 profile properties are not documented in the Microsoft Graph reference. The request shapes follow the Microsoft Entra admin center.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_forwarding_profile/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_forwarding_profile/import.sh" }}
