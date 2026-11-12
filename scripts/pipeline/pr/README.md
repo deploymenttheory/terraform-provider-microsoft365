@@ -22,8 +22,12 @@ The production `internal/provider` registry necessarily imports every object kin
 Its lint job runs alone as `✨ Lint Provider Registry`, with `GOMEMLIMIT=6GiB` and
 `GOGC=50` as a measured diagnostic configuration. Go's memory limit is a soft
 heap target, not an RSS cap; live analysis data can exceed it. The dedicated job
-runs all 23 configured checks with golangci-lint v2.15.0. Its success must be
-established from the standard runner's diagnostics.
+runs all 23 configured checks with golangci-lint v2.15.0. It also adds 8 GiB of
+swap on the ephemeral runner, after requiring 10 GiB of free disk. This provides
+disk-backed headroom without changing the runner tier. Ordinary partitions do
+not allocate extra swap. Swapping can increase execution time; the existing
+timeouts, failure propagation and OOM diagnostics remain enforced. Its success
+must be established from the standard runner's diagnostics.
 Ordinary package workers keep the default Go garbage-collection settings. The
 diagnostics record both settings alongside memory peaks and OOM counters.
 Manual lint dispatches may set `packages` to a space-separated subset of changed

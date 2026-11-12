@@ -112,6 +112,30 @@ jobs:
           version: v2.15.0
           install-only: true
 
+      - name: '🧠 Add swap for the complete provider registry'
+        if: matrix.packages == 'internal/provider'
+        shell: bash
+        run: |
+          # The complete registry must retain all object kinds during analysis.
+          # Add disk-backed headroom only to this worker on the standard runner.
+          swap_file=/swapfile-provider-lint
+          if [[ -e "$swap_file" ]]; then
+            echo "Refusing to overwrite existing swap file: $swap_file" >&2
+            exit 1
+          fi
+          available_bytes=$(df --output=avail -B1 / | tail -1)
+          if (( available_bytes < 10 * 1024 * 1024 * 1024 )); then
+            echo 'Registry lint requires 10 GiB free disk for 8 GiB swap and report headroom.' >&2
+            df -h /
+            exit 1
+          fi
+          sudo fallocate -l 8G "$swap_file"
+          sudo chmod 600 "$swap_file"
+          sudo mkswap "$swap_file"
+          sudo swapon "$swap_file"
+          free -h
+          swapon --show
+
       - name: Validate lint configuration
         run: golangci-lint config verify
 
