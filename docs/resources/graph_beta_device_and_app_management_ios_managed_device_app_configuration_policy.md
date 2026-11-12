@@ -38,6 +38,8 @@ The following client `application` permissions are needed in order to use this r
 
 ## Example Usage
 
+Use `settings` for key/value items or `encoded_setting_xml` for raw XML. Switching modes updates the existing policy and clears its previous configuration.
+
 ```terraform
 # Example resource with XML encoded settings
 resource "microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy" "test_xml_encoded" {
@@ -136,8 +138,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_device_a
 
 # Data source to find specific iOS app by display name (e.g., "Company Portal")
 data "microsoft365_graph_beta_device_and_app_management_mobile_app" "company_portal" {
-  filter_type     = "display_name"
-  filter_value    = "Microsoft Intune Company Portal"
+  display_name    = "Microsoft Intune Company Portal"
   app_type_filter = "iosStoreApp" # Only search iOS store apps
 }
 ```
@@ -152,7 +153,7 @@ data "microsoft365_graph_beta_device_and_app_management_mobile_app" "company_por
 ### Optional
 
 - `description` (String) Optional description of the resource. Maximum length is 1500 characters.
-- `encoded_setting_xml` (String, Sensitive) MDM app configuration in Base64 encoded format. **Note:** This field is mutually exclusive with `settings` - only one can be specified.
+- `encoded_setting_xml` (String, Sensitive) Raw XML app configuration content. The provider encodes this content for Microsoft Graph. **Note:** This field is mutually exclusive with `settings` - only one can be specified.
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this iOS mobile app configuration.
 - `settings` (Attributes Set) Configuration setting items for the iOS mobile app. **Note:** This field is mutually exclusive with `encoded_setting_xml` - only one can be specified. (see [below for nested schema](#nestedatt--settings))
 - `targeted_mobile_apps` (Set of String) Set of mobile app IDs that this configuration targets.

@@ -150,7 +150,7 @@ func (r *IOSManagedDeviceAppConfigurationPolicyResource) Schema(ctx context.Cont
 			"encoded_setting_xml": schema.StringAttribute{
 				Optional:            true,
 				Sensitive:           true,
-				MarkdownDescription: "MDM app configuration in Base64 encoded format. **Note:** This field is mutually exclusive with `settings` - only one can be specified.",
+				MarkdownDescription: "Raw XML app configuration content. The provider encodes this content for Microsoft Graph. **Note:** This field is mutually exclusive with `settings` - only one can be specified.",
 			},
 			"settings": schema.SetNestedAttribute{
 				Optional:            true,

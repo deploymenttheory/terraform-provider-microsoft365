@@ -12,6 +12,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
@@ -56,15 +57,47 @@ func TestAccResourceIOSManagedDeviceAppConfigurationPolicy_01_Lifecycle(t *testi
 			},
 			// Update to xml encoded configuration
 			{
-				Config: loadAcceptanceTestTerraform("resource_xml_config.tf"),
+				Config: loadAcceptanceTestTerraform("resource_lifecycle_xml_config.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(
+						"microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings",
+						plancheck.ResourceActionUpdate,
+					),
+				}},
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "id"),
-					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "display_name", regexp.MustCompile(`^acc-test-ios-managed-device-app-configuration-policy-xml-encoded-[a-z0-9]{8}$`)),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "description", "Updated description for acceptance testing"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "role_scope_tag_ids.#", "1"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "targeted_mobile_apps.#", "1"),
-					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.xml_encoded", "encoded_setting_xml"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "id"),
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "display_name", regexp.MustCompile(`^acc-test-ios-managed-device-app-configuration-policy-xml-encoded-[a-z0-9]{8}$`)),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "description", "Updated description for acceptance testing"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "role_scope_tag_ids.#", "1"),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "targeted_mobile_apps.#", "1"),
+					resource.TestCheckResourceAttrSet("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "encoded_setting_xml"),
+					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "settings.#"),
 				),
+			},
+			{
+				ResourceName:      "microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			// Update back to custom settings configuration
+			{
+				Config: loadAcceptanceTestTerraform("resource_minimal.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(
+						"microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings",
+						plancheck.ResourceActionUpdate,
+					),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "display_name", regexp.MustCompile(`^acc-test-ios-managed-device-app-configuration-policy-custom-settings-[a-z0-9]{8}$`)),
+					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "settings.#", "2"),
+					resource.TestCheckNoResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings", "encoded_setting_xml"),
+				),
+			},
+			{
+				ResourceName:      "microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy.custom_settings",
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
