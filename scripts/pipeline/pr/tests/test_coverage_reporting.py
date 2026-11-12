@@ -12,7 +12,15 @@ import yaml
 class CoverageReportingTests(unittest.TestCase):
     """Exercise coverage reporting behavior."""
 
-    def run_report(self, *, fork=False, actor="contributor", existing=False, draft=False):
+    def run_report(
+        self,
+        *,
+        fork=False,
+        actor="contributor",
+        existing=False,
+        draft=False,
+        no_executable_changes=False,
+    ):
         """Run report."""
         workflow = Path(__file__).resolve().parents[4] / ".github/workflows/pr-tests.yml"
         steps = yaml.safe_load(workflow.read_text(encoding="utf-8"))["jobs"]["unit-tests"]["steps"]
@@ -21,13 +29,16 @@ class CoverageReportingTests(unittest.TestCase):
             for step in steps
             if step["name"] == "💬 Comment coverage summary on PR"
         )
-        enforce_outputs = "steps.enforce-coverage.outputs"
         calculate_outputs = "steps.calculate-coverage.outputs"
         values = {
-            "steps.enforce-coverage.outputs.coverage-pct": "" if draft else "71.9",
+            "steps.enforce-coverage.outputs.coverage-pct": (
+                "" if draft else ("N/A" if no_executable_changes else "71.9")
+            ),
             "steps.calculate-coverage.outputs.coverage-pct": "55.3",
-            f"{enforce_outputs}.total-lines || {calculate_outputs}.total-lines": "121",
-            f"{enforce_outputs}.covered-lines || {calculate_outputs}.covered-lines": "87",
+            f"steps.enforce-coverage.outputs.total-lines || {calculate_outputs}.total-lines": "121",
+            f"steps.enforce-coverage.outputs.covered-lines || {calculate_outputs}.covered-lines": (
+                "87"
+            ),
             "needs.plan-tests.outputs.service-domains": "device_management",
             "steps.pr-state.outputs.is-draft": "true" if draft else "false",
             "github.repository": "example/provider",
@@ -103,6 +114,14 @@ new AsyncFunction('github', 'context', 'core', {json.dumps(script)})(
         self.assertEqual(result["calls"], [])
         self.assertIn("Coverage is informational only", result["summary"])
         self.assertIn("Coverage for Changed Packages:** 55.3%", result["summary"])
+
+    def test_test_only_patch_is_reported_as_inapplicable_without_fake_coverage(self):
+        """A verified empty patch is neither a coverage failure nor fabricated 100%."""
+        result = self.run_report(no_executable_changes=True)
+        self.assertIn("Coverage Not Applicable", result["summary"])
+        self.assertIn("N/A (no executable Go lines changed)", result["summary"])
+        self.assertNotIn("Coverage Failed", result["summary"])
+        self.assertNotIn("100%", result["summary"])
 
 
 if __name__ == "__main__":
