@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAndroidManagedAppProtection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_app_protection"
@@ -31,6 +32,9 @@ func TestAccResourceAndroidManagedAppProtection_01_Scenario_Minimal(t *testing.T
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaAndroidManagedAppProtection.ResourceName,
@@ -40,7 +44,7 @@ func TestAccResourceAndroidManagedAppProtection_01_Scenario_Minimal(t *testing.T
 			{
 				Config: loadAcceptanceTestTerraform(t, "001_scenario_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_001").Key("id").MatchesRegex(regexp.MustCompile(`^T_[0-9a-fA-F-]+$`)),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_001").Key("display_name").Exists(),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_001").Key("pin_required").HasValue("true"),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_001").Key("encrypt_app_data").HasValue("true"),
@@ -63,6 +67,9 @@ func TestAccResourceAndroidManagedAppProtection_02_Scenario_Maximal(t *testing.T
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaAndroidManagedAppProtection.ResourceName,
@@ -72,7 +79,7 @@ func TestAccResourceAndroidManagedAppProtection_02_Scenario_Maximal(t *testing.T
 			{
 				Config: loadAcceptanceTestTerraform(t, "002_scenario_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_002").Key("id").MatchesRegex(regexp.MustCompile(`^T_[0-9a-fA-F-]+$`)),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_002").Key("display_name").Exists(),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_002").Key("description").Exists(),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_002").Key("print_blocked").HasValue("true"),
@@ -102,6 +109,9 @@ func TestAccResourceAndroidManagedAppProtection_03_Lifecycle_MinimalToMaximal(t 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaAndroidManagedAppProtection.ResourceName,
@@ -111,7 +121,7 @@ func TestAccResourceAndroidManagedAppProtection_03_Lifecycle_MinimalToMaximal(t 
 			{
 				Config: loadAcceptanceTestTerraform(t, "003_lifecycle_minimal_to_maximal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^T_[0-9a-fA-F-]+$`)),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("display_name").Exists(),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("print_blocked").HasValue("false"),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("allowed_inbound_data_transfer_sources").HasValue("allApps"),
@@ -120,7 +130,7 @@ func TestAccResourceAndroidManagedAppProtection_03_Lifecycle_MinimalToMaximal(t 
 			{
 				Config: loadAcceptanceTestTerraform(t, "003_lifecycle_minimal_to_maximal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("id").MatchesRegex(regexp.MustCompile(`^T_[0-9a-fA-F-]+$`)),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("display_name").Exists(),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("description").Exists(),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_003").Key("print_blocked").HasValue("true"),
@@ -147,6 +157,9 @@ func TestAccResourceAndroidManagedAppProtection_04_Lifecycle_MaximalToMinimal(t 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			accTestResource,
 			graphBetaAndroidManagedAppProtection.ResourceName,
@@ -156,7 +169,7 @@ func TestAccResourceAndroidManagedAppProtection_04_Lifecycle_MaximalToMinimal(t 
 			{
 				Config: loadAcceptanceTestTerraform(t, "004_lifecycle_maximal_to_minimal_step_1.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^T_[0-9a-fA-F-]+$`)),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("display_name").Exists(),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("print_blocked").HasValue("true"),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("allowed_inbound_data_transfer_sources").HasValue("none"),
@@ -167,7 +180,7 @@ func TestAccResourceAndroidManagedAppProtection_04_Lifecycle_MaximalToMinimal(t 
 			{
 				Config: loadAcceptanceTestTerraform(t, "004_lifecycle_maximal_to_minimal_step_2.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("id").MatchesRegex(regexp.MustCompile(`^T_[0-9a-fA-F-]+$`)),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("display_name").Exists(),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("print_blocked").HasValue("false"),
 					check.That(graphBetaAndroidManagedAppProtection.ResourceName+".test_004").Key("allowed_inbound_data_transfer_sources").HasValue("allApps"),

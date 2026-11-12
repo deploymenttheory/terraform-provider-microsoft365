@@ -128,10 +128,61 @@ def _parse_coverage_response(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     total_lines = hits + misses + partials
 
     return {
-        "coverage_pct": round(float(patch["coverage"]), 2),
+        "coverage_pct": float(patch["coverage"]),
         "total_lines": total_lines,
         "covered_lines": hits,
     }
+
+
+def _parse_comparison_response(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Read completed head diff totals when comparison patch totals are placeholders."""
+    totals = data.get("totals") or {}
+    coverage = _parse_coverage_response({"patch": totals.get("patch")})
+    if coverage and coverage["total_lines"] > 0:
+        return coverage
+
+    head = data.get("head_commit")
+    if not head or not any(
+        upload.get("commitid") == head and upload.get("state") == "complete"
+        for upload in data.get("commit_uploads", [])
+    ):
+        return None
+
+    # Codecov ReportTotals.astuple: files, lines, hits, misses, partials, coverage,
+    # branches, methods, messages, sessions, complexity, complexity_total, diff.
+    # https://github.com/codecov/shared/blob/main/shared/reports/types.py
+    return _parse_diff_totals((totals.get("head") or {}).get("diff"))
+
+
+def _parse_diff_totals(diff: Any) -> Optional[Dict[str, Any]]:
+    """Validate Codecov's serialized ReportTotals before enforcing patch coverage."""
+    if (
+        not isinstance(diff, list)
+        or len(diff) != 13
+        or any(
+            not isinstance(value, int) or isinstance(value, bool) or value < 0 for value in diff[:5]
+        )
+    ):
+        return None
+    files, lines, hits, misses, partials, percent = diff[:6]
+    if lines != hits + misses + partials or (
+        lines == 0 and (files != 0 or percent not in (None, 0, "0"))
+    ):
+        return None
+    if lines == 0:
+        return {
+            "coverage_pct": None,
+            "total_lines": 0,
+            "covered_lines": 0,
+            "no_executable_changes": True,
+        }
+    try:
+        percent = float(percent)
+    except (TypeError, ValueError):
+        return None
+    if not 0 <= percent <= 100:
+        return None
+    return {"coverage_pct": percent, "total_lines": lines, "covered_lines": hits}
 
 
 # ============================================================================
@@ -266,15 +317,18 @@ def _retry_with_backoff(
                     print(f"⏳ [{elapsed}s] Waiting for coverage of commit {expected_commit}")
                     coverage = None
                 else:
-                    coverage = _parse_coverage_response(
-                        {"patch": data.get("totals", {}).get("patch")}
-                    )
+                    coverage = _parse_comparison_response(data)
             else:
                 coverage = _parse_coverage_response(data)
 
             if coverage:
                 print(f"\n✅ Coverage retrieved after {elapsed}s ({attempt} attempts)")
-                print(f"   Patch Coverage: {coverage['coverage_pct']}%")
+                display = (
+                    "N/A (no executable Go lines changed)"
+                    if coverage.get("no_executable_changes")
+                    else f"{coverage['coverage_pct']}%"
+                )
+                print(f"   Patch Coverage: {display}")
                 return coverage
 
             # Data exists but coverage not ready
@@ -283,11 +337,7 @@ def _retry_with_backoff(
                 "PR found but coverage not processed yet"
             )
 
-        except urllib.error.HTTPError as e:
-            if not _handle_error(e, elapsed, attempt, len(delays)):
-                return None
-
-        except urllib.error.URLError as e:
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
             if not _handle_error(e, elapsed, attempt, len(delays)):
                 return None
 

@@ -325,7 +325,8 @@ jobs:
           python3 scripts/pipeline/pr/steps/enforce_coverage.py \
             --repo-slug "${{ github.repository }}" \
             --pr-number "${{ github.event.pull_request.number }}" \
-            --commit-sha "${{ github.event.pull_request.head.sha }}"
+            --commit-sha "${{ github.event.pull_request.head.sha }}" \
+            --base-ref "${{ github.event.pull_request.base.sha }}"
 
       - name: 💬 Comment coverage summary on PR
         if: github.event_name == 'pull_request' && needs.plan-tests.outputs.has-changes == 'true'
@@ -335,6 +336,8 @@ jobs:
           script: |
             const patchCoverage = '${{ steps.enforce-coverage.outputs.coverage-pct }}';
             const coveragePct = patchCoverage || '${{ steps.calculate-coverage.outputs.coverage-pct }}';
+            const noExecutableChanges = patchCoverage === 'N/A';
+            const coverageDisplay = noExecutableChanges ? 'N/A (no executable Go lines changed)' : `${coveragePct}%`;
             const totalLines = '${{ steps.enforce-coverage.outputs.total-lines || steps.calculate-coverage.outputs.total-lines }}';
             const coveredLines = '${{ steps.enforce-coverage.outputs.covered-lines || steps.calculate-coverage.outputs.covered-lines }}';
             const coverageScope = patchCoverage ? 'Changed Lines (Codecov Patch)' : 'Changed Packages';
@@ -343,10 +346,12 @@ jobs:
             const isDraft = '${{ steps.pr-state.outputs.is-draft }}' === 'true';
             const minThreshold = 60;
 
-            const passEmoji = parseFloat(coveragePct) >= minThreshold ? '✅' : '❌';
+            const passEmoji = noExecutableChanges || parseFloat(coveragePct) >= minThreshold ? '✅' : '❌';
             const statusText = isDraft
               ? '📝 **Draft PR** - Coverage is informational only'
-              : parseFloat(coveragePct) >= minThreshold
+              : noExecutableChanges
+                ? '✅ **Coverage Not Applicable** - No executable Go lines changed'
+                : parseFloat(coveragePct) >= minThreshold
                 ? `${passEmoji} **Coverage Passed** - Meets ${minThreshold}% threshold`
                 : `${passEmoji} **Coverage Failed** - Below ${minThreshold}% threshold`;
 
@@ -354,7 +359,7 @@ jobs:
 
             ${statusText}
 
-            **Coverage for ${coverageScope}:** ${coveragePct}%
+            **Coverage for ${coverageScope}:** ${coverageDisplay}
 
             - **Total ${countUnit}:** ${totalLines}
             - **Covered ${countUnit}:** ${coveredLines}

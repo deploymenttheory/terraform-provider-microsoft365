@@ -3,6 +3,7 @@
 import io
 import json
 import os
+import subprocess
 import sys
 import unittest
 from unittest.mock import patch
@@ -18,11 +19,13 @@ from enforce_coverage import main
 class CodecovCoverageTests(unittest.TestCase):
     """Exercise codecov coverage behavior."""
 
-    def run_gate(self, response, token=None, commit=None):
+    def run_gate(self, response, token=None, commit=None, base_ref=None, changed_files=None):
         """Run gate."""
         argv = ["enforce_coverage.py", "--repo-slug", "example/provider", "--pr-number", "123"]
         if commit:
             argv.extend(["--commit-sha", commit])
+        if base_ref:
+            argv.extend(["--base-ref", base_ref])
         responses = iter(response) if isinstance(response, list) else None
         environment = {} if token is None else {"CODECOV_API_TOKEN": token}
         requests = []
@@ -42,10 +45,105 @@ class CodecovCoverageTests(unittest.TestCase):
                 with patch("lib.get_codecov_coverage.urllib.request.urlopen", side_effect=respond):
                     with (
                         patch("lib.get_codecov_coverage.time.sleep"),
+                        patch(
+                            "enforce_coverage.get_changed_files", return_value=changed_files or []
+                        ),
                         patch("sys.stdout", new_callable=io.StringIO),
                     ):
                         result = main()
         return result, requests
+
+    @staticmethod
+    def comparison_response(coverage, hits, misses, partials=0, state="complete"):
+        """Model the complete comparison shape returned by the live Codecov API."""
+        lines = hits + misses + partials
+        return {
+            "head_commit": "current-head",
+            "commit_uploads": [{"commitid": "current-head", "state": state}],
+            "totals": {
+                "patch": {"coverage": 0, "hits": 0, "misses": 0, "partials": 0},
+                "head": {
+                    "diff": [
+                        int(lines > 0),
+                        lines,
+                        hits,
+                        misses,
+                        partials,
+                        coverage,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                    ]
+                },
+            },
+        }
+
+    def test_live_comparison_diff_totals_enforce_the_existing_threshold(self):
+        """Use actual diff totals instead of the empty comparison patch placeholder."""
+        for coverage, hits, misses, partials, expected in [
+            ("100", 5, 0, 0, 0),
+            ("66.66667", 6, 2, 1, 0),
+            ("59.99", 5999, 4001, 0, 1),
+            ("59.999", 59999, 40001, 0, 1),
+            ("0", 0, 10, 0, 1),
+        ]:
+            with self.subTest(coverage=coverage):
+                result, requests = self.run_gate(
+                    self.comparison_response(coverage, hits, misses, partials),
+                    commit="current-head",
+                )
+                self.assertEqual(result, expected)
+                self.assertEqual(len(requests), 1)
+
+    def test_unprocessed_or_malformed_diff_cannot_pass(self):
+        """Incomplete uploads and invalid totals cannot be mistaken for coverage."""
+        pending = self.comparison_response("100", 5, 0, state="pending")
+        malformed = self.comparison_response("100", 5, 0)
+        malformed["totals"]["head"]["diff"] = [1, 5]
+        for response in [pending, malformed]:
+            with self.subTest(response=response):
+                result, requests = self.run_gate(response, commit="current-head")
+                self.assertEqual(result, 1)
+                self.assertGreater(len(requests), 1)
+
+    def test_completed_empty_diff_requires_proof_of_test_only_changes(self):
+        """Zero executable lines are applicable only to verified non-production changes."""
+        empty = self.comparison_response(None, 0, 0)
+        result, _ = self.run_gate(
+            empty,
+            commit="current-head",
+            base_ref="base-head",
+            changed_files=["internal/example/resource_acceptance_test.go"],
+        )
+        self.assertEqual(result, 0)
+        result, _ = self.run_gate(
+            empty,
+            commit="current-head",
+            base_ref="base-head",
+            changed_files=["internal/example/resource.go"],
+        )
+        self.assertEqual(result, 1)
+        result, _ = self.run_gate(empty, commit="current-head")
+        self.assertEqual(result, 1)
+
+    def test_empty_patch_cannot_pass_when_git_verification_fails(self):
+        """Missing Git history must not turn unavailable coverage into a passing gate."""
+        from enforce_coverage import (  # pylint: disable=import-outside-toplevel
+            _verify_test_only_changes,
+        )
+
+        with (
+            patch(
+                "enforce_coverage.get_changed_files",
+                side_effect=subprocess.CalledProcessError(1, "git"),
+            ),
+            patch("sys.stdout", new_callable=io.StringIO),
+        ):
+            self.assertFalse(_verify_test_only_changes("missing-base"))
 
     def test_public_coverage_passes_without_authorization_header(self):
         """Verify public coverage passes without authorization header."""
