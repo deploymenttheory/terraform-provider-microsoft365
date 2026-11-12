@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -18,6 +19,8 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/device_management"
 	templatejson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/settings_catalog_template_json"
@@ -33,6 +36,11 @@ const (
 )
 
 func setupTemplateMocks(t *testing.T, includeTemplateMetadata bool) *mocks.Mocks {
+	t.Helper()
+	return setupTemplateMocksWithSettings(t, includeTemplateMetadata, testTemplateID, testSettings)
+}
+
+func setupTemplateMocksWithSettings(t *testing.T, includeTemplateMetadata bool, templateID, settingsJSON string) *mocks.Mocks {
 	t.Helper()
 	httpmock.Activate()
 	t.Cleanup(httpmock.DeactivateAndReset)
@@ -53,9 +61,9 @@ func setupTemplateMocks(t *testing.T, includeTemplateMetadata bool) *mocks.Mocks
 	}
 	if includeTemplateMetadata {
 		policy["templateReference"] = map[string]any{
-			"templateId":             testTemplateID,
+			"templateId":             templateID,
 			"templateFamily":         "endpointSecurityAntivirus",
-			"templateDisplayName":    "Defender Update controls",
+			"templateDisplayName":    "Template policy",
 			"templateDisplayVersion": "Version 1",
 		}
 	}
@@ -71,7 +79,7 @@ func setupTemplateMocks(t *testing.T, includeTemplateMetadata bool) *mocks.Mocks
 	)
 
 	var settings map[string]any
-	require.NoError(t, json.Unmarshal([]byte(testSettings), &settings))
+	require.NoError(t, json.Unmarshal([]byte(settingsJSON), &settings))
 	settingsResponder, err := httpmock.NewJsonResponder(
 		http.StatusOK,
 		map[string]any{"value": settings["settings"]},
@@ -312,4 +320,119 @@ func TestUnitSettingsCatalogTemplateJsonImportConverges(t *testing.T) {
 		})
 	})
 	require.Zero(t, httpmock.GetCallCountInfo()[http.MethodPut+" "+testPutURL])
+}
+
+func TestUnitResourceSettingsCatalogTemplateJson_01_AIAgentRuntimeProtection(t *testing.T) {
+	t.Setenv("TF_ACC", "0")
+	t.Setenv("MS365_TEST_MODE", "true")
+	const templateType = "windows_anti_virus_microsoft_defender_ai_agent_runtime_protection"
+	const templateID = "e9ba1278-2d10-42d6-8004-1e3f6dcef811_1"
+	settingsJSON, err := os.ReadFile("tests/responses/validate_get/get_ai_agent_runtime_protection_settings.json")
+	require.NoError(t, err)
+	setupTemplateMocksWithSettings(t, true, templateID, string(settingsJSON))
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/ai_agent_runtime_protection.tf")
+	require.NoError(t, err)
+	updatedConfig, err := helpers.ParseHCLFile("tests/terraform/unit/ai_agent_runtime_protection_updated.tf")
+	require.NoError(t, err)
+
+	for _, method := range []string{http.MethodPost, http.MethodPut} {
+		url := testPutURL
+		if method == http.MethodPost {
+			url = "https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"
+		}
+		httpmock.RegisterResponder(method, url, func(request *http.Request) (*http.Response, error) {
+			var body map[string]any
+			require.NoError(t, json.NewDecoder(request.Body).Decode(&body))
+			require.Equal(t, "windows10", body["platforms"])
+			require.Equal(t, "mdm,microsoftSense", body["technologies"])
+			require.Equal(t, templateID, body["templateReference"].(map[string]any)["templateId"])
+			require.Equal(t, []any{"0"}, body["roleScopeTagIds"])
+			settings := body["settings"].([]any)
+			require.Len(t, settings, 1)
+			instance := settings[0].(map[string]any)["settingInstance"].(map[string]any)
+			require.Equal(t, "device_vendor_msft_defender_configuration_aiagentprotection", instance["settingDefinitionId"])
+			require.Equal(t, "3f1291bd-0278-44e1-b20d-476ab98f0e75",
+				instance["settingInstanceTemplateReference"].(map[string]any)["settingInstanceTemplateId"])
+			choice := instance["choiceSettingValue"].(map[string]any)
+			value := "device_vendor_msft_defender_configuration_aiagentprotection_1"
+			if request.Method == http.MethodPut {
+				value = "device_vendor_msft_defender_configuration_aiagentprotection_2"
+			}
+			require.Equal(t, value, choice["value"])
+			require.Equal(t, map[string]any{
+				"settingValueTemplateId": "d5b64c03-f997-4d49-b6f0-df0a77dd19e5",
+				"useTemplateDefault":     false,
+			}, choice["settingValueTemplateReference"])
+			require.Empty(t, choice["children"])
+
+			var responseSettings map[string]any
+			require.NoError(t, json.Unmarshal(settingsJSON, &responseSettings))
+			responseValues := responseSettings["settings"].([]any)
+			responseValues[0].(map[string]any)["settingInstance"].(map[string]any)["choiceSettingValue"].(map[string]any)["value"] = value
+			settingsResponder, err := httpmock.NewJsonResponder(http.StatusOK, map[string]any{"value": responseValues})
+			require.NoError(t, err)
+			httpmock.RegisterResponder(http.MethodGet, testPutURL+"/settings", settingsResponder)
+			if request.Method == http.MethodPost {
+				return httpmock.NewJsonResponse(http.StatusCreated, map[string]any{"id": testPolicyID})
+			}
+			return httpmock.NewStringResponse(http.StatusNoContent, ""), nil
+		})
+	}
+
+	resourceName := templatejson.ResourceName + ".test"
+	t.Run("create_and_verify_import", func(t *testing.T) {
+		testresource.UnitTest(t, testresource.TestCase{
+			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			Steps: []testresource.TestStep{
+				{
+					Config: config,
+					Check: testresource.ComposeTestCheckFunc(
+						check.That(resourceName).Key("id").HasValue(testPolicyID),
+						check.That(resourceName).Key("settings_catalog_template_type").HasValue(templateType),
+						check.That(resourceName).Key("platforms").HasValue("windows10"),
+						check.That(resourceName).Key("technologies.#").HasValue("2"),
+					),
+				},
+				{
+					ResourceName:      resourceName,
+					ImportState:       true,
+					ImportStateVerify: true,
+				},
+			},
+		})
+	})
+	t.Run("import_existing_policy_and_update", func(t *testing.T) {
+		testresource.UnitTest(t, testresource.TestCase{
+			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			Steps: []testresource.TestStep{
+				{
+					Config:             config,
+					ResourceName:       resourceName,
+					ImportStateId:      testPolicyID,
+					ImportState:        true,
+					ImportStatePersist: true,
+				},
+				{
+					Config:   config,
+					PlanOnly: true,
+					ConfigPlanChecks: testresource.ConfigPlanChecks{
+						PostApplyPreRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+					},
+				},
+				{
+					Config: updatedConfig,
+					Check:  check.That(resourceName).Key("settings_catalog_template_type").HasValue(templateType),
+				},
+				{
+					Config:   updatedConfig,
+					PlanOnly: true,
+					ConfigPlanChecks: testresource.ConfigPlanChecks{
+						PostApplyPreRefresh: []plancheck.PlanCheck{plancheck.ExpectEmptyPlan()},
+					},
+				},
+			},
+		})
+	})
+	require.Equal(t, 1, httpmock.GetCallCountInfo()[http.MethodPost+" https://graph.microsoft.com/beta/deviceManagement/configurationPolicies"])
+	require.Equal(t, 1, httpmock.GetCallCountInfo()[http.MethodPut+" "+testPutURL])
 }

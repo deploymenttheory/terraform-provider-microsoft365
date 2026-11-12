@@ -36,6 +36,34 @@ The following client `application` permissions are needed in order to use this r
 ## Example Usage
 
 ```terraform
+resource "microsoft365_graph_beta_device_management_settings_catalog_template_json" "windows_anti_virus_microsoft_defender_ai_agent_runtime_protection" {
+  name                           = "Windows - Microsoft Defender AI agent runtime protection"
+  description                    = "Microsoft Defender AI agent runtime protection policy"
+  settings_catalog_template_type = "windows_anti_virus_microsoft_defender_ai_agent_runtime_protection"
+  role_scope_tag_ids             = ["0"]
+
+  settings = jsonencode({
+    settings = [{
+      id = "0"
+      settingInstance = {
+        "@odata.type"       = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+        settingDefinitionId = "device_vendor_msft_defender_configuration_aiagentprotection"
+        settingInstanceTemplateReference = {
+          settingInstanceTemplateId = "3f1291bd-0278-44e1-b20d-476ab98f0e75"
+        }
+        choiceSettingValue = {
+          value = "device_vendor_msft_defender_configuration_aiagentprotection_1"
+          settingValueTemplateReference = {
+            settingValueTemplateId = "d5b64c03-f997-4d49-b6f0-df0a77dd19e5"
+            useTemplateDefault     = false
+          }
+          children = []
+        }
+      }
+    }]
+  })
+}
+
 resource "microsoft365_graph_beta_device_management_settings_catalog_template_json" "windows_anti_virus_defender_update_controls" {
   name                           = "Windows - Defender Update controls"
   description                    = "terraform test for settings catalog templates"
@@ -351,6 +379,8 @@ This value will automatically set the correct `platform` , `templateID` , `creat
 `windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.
 
 `windows_anti_virus_defender_update_controls`: This template allows you to configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.
+
+`windows_anti_virus_microsoft_defender_ai_agent_runtime_protection`: This template allows you to configure Microsoft Defender AI agent runtime protection for Windows devices. See [Set up AI agent runtime protection](https://learn.microsoft.com/en-us/defender-endpoint/configure-ai-agent-runtime-protection).
 
 `windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.
 

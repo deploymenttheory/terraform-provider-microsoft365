@@ -1,3 +1,31 @@
+resource "microsoft365_graph_beta_device_management_settings_catalog_template_json" "windows_anti_virus_microsoft_defender_ai_agent_runtime_protection" {
+  name                           = "Windows - Microsoft Defender AI agent runtime protection"
+  description                    = "Microsoft Defender AI agent runtime protection policy"
+  settings_catalog_template_type = "windows_anti_virus_microsoft_defender_ai_agent_runtime_protection"
+  role_scope_tag_ids             = ["0"]
+
+  settings = jsonencode({
+    settings = [{
+      id = "0"
+      settingInstance = {
+        "@odata.type"       = "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance"
+        settingDefinitionId = "device_vendor_msft_defender_configuration_aiagentprotection"
+        settingInstanceTemplateReference = {
+          settingInstanceTemplateId = "3f1291bd-0278-44e1-b20d-476ab98f0e75"
+        }
+        choiceSettingValue = {
+          value = "device_vendor_msft_defender_configuration_aiagentprotection_1"
+          settingValueTemplateReference = {
+            settingValueTemplateId = "d5b64c03-f997-4d49-b6f0-df0a77dd19e5"
+            useTemplateDefault     = false
+          }
+          children = []
+        }
+      }
+    }]
+  })
+}
+
 resource "microsoft365_graph_beta_device_management_settings_catalog_template_json" "windows_anti_virus_defender_update_controls" {
   name                           = "Windows - Defender Update controls"
   description                    = "terraform test for settings catalog templates"
