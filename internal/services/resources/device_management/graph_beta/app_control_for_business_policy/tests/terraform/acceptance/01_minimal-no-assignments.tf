@@ -50,14 +50,14 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
   </FileRules>
   <Signers />
   <SigningScenarios>
-    <SigningScenario Value="131" ID="ID_SIGNINGSCENARIO_DRIVERS_1" FriendlyName="Auto generated policy on 08-17-2015">
+    <SigningScenario Value="131" ID="ID_SIGNINGSCENARIO_DRIVERS_1" FriendlyName="Test &amp; managed devices on 08-17-2015">
       <ProductSigners>
         <FileRulesRef>
           <FileRuleRef RuleID="ID_ALLOW_A_1" />
         </FileRulesRef>
       </ProductSigners>
     </SigningScenario>
-    <SigningScenario Value="12" ID="ID_SIGNINGSCENARIO_WINDOWS" FriendlyName="Auto generated policy on 08-17-2015">
+    <SigningScenario Value="12" ID="ID_SIGNINGSCENARIO_WINDOWS" FriendlyName="Test &amp; managed devices on 08-17-2015">
       <ProductSigners>
         <FileRulesRef>
           <FileRuleRef RuleID="ID_ALLOW_A_2" />
