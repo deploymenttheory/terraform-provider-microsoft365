@@ -1,0 +1,47 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Prerequisites
+
+The tenant must be onboarded to Global Secure Access and use traffic forwarding profiles v2. Switching to v2 cannot be undone.
+
+## Considerations
+
+- The default profile ID differs per tenant, so the profile is selected by `traffic_forwarding_type`.
+- `name`, `description` and `priority` are read-only on default profiles.
+- Only the attributes you configure are sent. Omitted attributes keep their current values.
+- `assignment_rules` replaces all assignments of the profile.
+- `local_network_settings` ([home network support](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-home-network-support), preview) applies to the `private` profile only.
+- Destroy does not disable, reset or delete the profile. Disable it explicitly with `state = "disabled"` before removing the resource if needed.
+
+## Microsoft Documentation
+
+- [Global Secure Access traffic forwarding profiles](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding)
+- [Manage the Internet Access traffic forwarding profile](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile)
+- [Manage the Private Access traffic forwarding profile](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-private-access-profile)
+
+## Microsoft Graph API Permissions
+
+- Read / Write (application): `NetworkAccess.ReadWrite.All`, verified in live testing.
+
+The v2 profile properties are not documented in the Microsoft Graph reference. The request shapes follow the Microsoft Entra admin center.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_default_forwarding_profile/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_default_forwarding_profile/import.sh" }}
