@@ -36,6 +36,7 @@ def main():
     parser = argparse.ArgumentParser(description="Enforce coverage threshold via Codecov")
     parser.add_argument("--repo-slug", required=True, help="Repository slug (owner/repo)")
     parser.add_argument("--pr-number", required=True, help="Pull request number")
+    parser.add_argument("--commit-sha", help="Require Codecov coverage for this PR head commit")
     parser.add_argument(
         "--codecov-token",
         default=os.environ.get("CODECOV_API_TOKEN"),
@@ -57,7 +58,9 @@ def main():
 
     # Fetch coverage from Codecov
     print("\n📊 Fetching coverage from Codecov...")
-    stats = fetch_codecov_coverage(args.repo_slug, args.pr_number, args.codecov_token)
+    stats = fetch_codecov_coverage(
+        args.repo_slug, args.pr_number, args.codecov_token, expected_commit=args.commit_sha
+    )
 
     if not stats:
         print("❌ ERROR: Could not fetch coverage from Codecov")

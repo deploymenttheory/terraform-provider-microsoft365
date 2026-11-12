@@ -225,7 +225,8 @@ jobs:
         run: |
           python3 scripts/pipeline/pr/steps/enforce_coverage.py \
             --repo-slug "${{ github.repository }}" \
-            --pr-number "${{ github.event.pull_request.number }}"
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --commit-sha "${{ github.event.pull_request.head.sha }}"
 
       - name: 💬 Comment coverage summary on PR
         if: github.event_name == 'pull_request' && needs.plan-tests.outputs.has-changes == 'true'

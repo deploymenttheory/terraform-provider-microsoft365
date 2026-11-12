@@ -4,13 +4,37 @@ package provider_test
 import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	providercore "github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider/core"
-	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/windows_remediation_script"
+	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/actions/device_management/graph_beta/managed_device/sync_device"
+	testProvider1 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/windows_remediation_script"
+	testProvider2 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/groups/graph_beta/group"
+	testProvider3 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/ephemerals/multitenant_management/graph_beta/audit_events"
+	testProvider4 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/list-resources/device_management/graph_beta/windows_platform_script"
+	testProvider5 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_platform_script"
+	testProvider6 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/utility/guid_list_sharder"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var testProviderRegistry = providercore.Registry{
+	Resources: []func() resource.Resource{
+		testProvider5.NewWindowsPlatformScriptResource,
+		testProvider6.NewGuidListSharderResource,
+	},
 	DataSources: []func() datasource.DataSource{
-		testProvider0.NewWindowsRemediationScriptDataSource,
+		testProvider1.NewWindowsRemediationScriptDataSource,
+		testProvider2.NewGroupDataSource,
+	},
+	Actions: []func() action.Action{
+		testProvider0.NewSyncManagedDeviceAction,
+	},
+	ListResources: []func() list.ListResource{
+		testProvider4.NewWindowsPlatformScriptListResource,
+	},
+	EphemeralResources: []func() ephemeral.EphemeralResource{
+		testProvider3.NewAuditEventsEphemeralResource,
 	},
 }
 

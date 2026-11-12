@@ -18,17 +18,21 @@ from enforce_coverage import main
 class CodecovCoverageTests(unittest.TestCase):
     """Exercise codecov coverage behavior."""
 
-    def run_gate(self, response, token=None):
+    def run_gate(self, response, token=None, commit=None):
         """Run gate."""
         argv = ["enforce_coverage.py", "--repo-slug", "example/provider", "--pr-number", "123"]
+        if commit:
+            argv.extend(["--commit-sha", commit])
+        responses = iter(response) if isinstance(response, list) else None
         environment = {} if token is None else {"CODECOV_API_TOKEN": token}
         requests = []
 
         def respond(request, **_kwargs):
             requests.append(request)
-            if isinstance(response, Exception):
-                raise response
-            return io.BytesIO(json.dumps(response).encode())
+            item = next(responses) if responses is not None else response
+            if isinstance(item, Exception):
+                raise item
+            return io.BytesIO(json.dumps(item).encode())
 
         with patch.object(sys, "argv", argv), patch.dict(os.environ, environment, clear=True):
             with patch(
@@ -84,6 +88,46 @@ class CodecovCoverageTests(unittest.TestCase):
                 result, requests = self.run_gate(response)
                 self.assertEqual(result, 1)
                 self.assertGreater(len(requests), 1)
+
+    def test_stale_passing_coverage_cannot_pass_the_current_commit(self):
+        """Reject old green reports until the exact PR head has been processed."""
+        response = {
+            "head_commit": "old-head",
+            "totals": {"patch": {"coverage": 100, "hits": 10, "misses": 0}},
+        }
+        result, requests = self.run_gate(response, commit="current-head")
+        self.assertEqual(result, 1)
+        self.assertGreater(len(requests), 1)
+        self.assertTrue(all("compare/?pullid=123" in request.full_url for request in requests))
+
+    def test_retry_uses_the_current_commit_coverage_and_preserves_the_threshold(self):
+        """An old report cannot mask the current commit's failing or passing patch."""
+        for coverage, expected in ((59.99, 1), (60, 0)):
+            with self.subTest(coverage=coverage):
+                responses = [
+                    {"head_commit": "old-head", "totals": {"patch": {"coverage": 100}}},
+                    {
+                        "head_commit": "current-head",
+                        "totals": {
+                            "patch": {
+                                "coverage": coverage,
+                                "hits": 6,
+                                "misses": 4,
+                            }
+                        },
+                    },
+                ]
+                result, requests = self.run_gate(responses, commit="current-head")
+                self.assertEqual(result, expected)
+                self.assertEqual(len(requests), 2)
+
+    def test_current_commit_without_processed_patch_cannot_pass(self):
+        """Require a completed patch report as well as a matching commit."""
+        result, requests = self.run_gate(
+            {"head_commit": "current-head", "totals": {}}, commit="current-head"
+        )
+        self.assertEqual(result, 1)
+        self.assertGreater(len(requests), 1)
 
     def test_access_denied_fails_without_retrying_anonymously(self):
         """Verify access denied fails without retrying anonymously."""

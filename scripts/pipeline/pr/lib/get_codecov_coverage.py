@@ -235,7 +235,11 @@ def _build_backoff_schedule(max_wait_seconds: int) -> List[int]:
 
 
 def _retry_with_backoff(
-    api_url: str, token: Optional[str], delays: List[int], start_time: float
+    api_url: str,
+    token: Optional[str],
+    delays: List[int],
+    start_time: float,
+    expected_commit: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """Retry API requests with exponential backoff.
 
@@ -244,6 +248,7 @@ def _retry_with_backoff(
         token: Authentication token.
         delays: List of delay intervals for retry schedule.
         start_time: Timestamp when retries started.
+        expected_commit: Required head commit for a comparison response, when supplied.
 
     Returns:
         Coverage statistics dict or None if all retries exhausted.
@@ -256,8 +261,16 @@ def _retry_with_backoff(
             request = _build_request(api_url, token)
             data = _execute_request(request)
 
-            # Parse response
-            coverage = _parse_coverage_response(data)
+            if expected_commit:
+                if data.get("head_commit") != expected_commit:
+                    print(f"⏳ [{elapsed}s] Waiting for coverage of commit {expected_commit}")
+                    coverage = None
+                else:
+                    coverage = _parse_coverage_response(
+                        {"patch": data.get("totals", {}).get("patch")}
+                    )
+            else:
+                coverage = _parse_coverage_response(data)
 
             if coverage:
                 print(f"\n✅ Coverage retrieved after {elapsed}s ({attempt} attempts)")
@@ -301,6 +314,7 @@ def fetch_codecov_coverage(
     codecov_token: Optional[str] = None,
     max_wait_seconds: int = 180,
     service: str = "github",
+    expected_commit: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     """Fetch PR patch coverage from Codecov API v2 with exponential backoff.
 
@@ -316,6 +330,7 @@ def fetch_codecov_coverage(
         codecov_token: Optional API token; public repositories allow anonymous reads.
         max_wait_seconds: Maximum total wait time (default: 180s = 3 minutes).
         service: Git service provider (default: 'github').
+        expected_commit: Require coverage for this exact PR head commit.
 
     Returns:
         Dict with coverage statistics or None if fetch fails:
@@ -338,7 +353,11 @@ def fetch_codecov_coverage(
     """
 
     owner, repo = _parse_repo_slug(repo_slug)
-    api_url = _build_api_url(service, owner, repo, pr_number)
+    api_url = (
+        f"https://api.codecov.io/api/v2/{service}/{owner}/repos/{repo}/compare/?pullid={pr_number}"
+        if expected_commit
+        else _build_api_url(service, owner, repo, pr_number)
+    )
     delays = _build_backoff_schedule(max_wait_seconds)
 
     print("\n⏳ Fetching coverage from Codecov API v2")
@@ -346,7 +365,7 @@ def fetch_codecov_coverage(
     print(f"   Max wait: {max_wait_seconds}s ({len(delays)} attempts with exponential backoff)\n")
 
     start_time = time.time()
-    coverage_data = _retry_with_backoff(api_url, codecov_token, delays, start_time)
+    coverage_data = _retry_with_backoff(api_url, codecov_token, delays, start_time, expected_commit)
 
     if coverage_data:
         return coverage_data
