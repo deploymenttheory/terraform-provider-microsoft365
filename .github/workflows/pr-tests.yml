@@ -133,7 +133,7 @@ jobs:
           prefix="go-test-build-v1-$CACHE_PLATFORM-$GO_VERSION-$DEPENDENCIES-$mode-"
           echo "mod-cache=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
           echo "build-cache=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
-          echo "legacy-prefix=setup-go-${RUNNER_OS}-${RUNNER_ARCH,,}-${ImageOS}-${RUNNER_ARCH,,}-go-$GO_VERSION-" >> "$GITHUB_OUTPUT"
+          echo "legacy-prefix=setup-go-${RUNNER_OS}-${RUNNER_ARCH,,}-${ImageOS}-go-$GO_VERSION-" >> "$GITHUB_OUTPUT"
           echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
           echo "key=$prefix$SOURCE_SHA" >> "$GITHUB_OUTPUT"
 
