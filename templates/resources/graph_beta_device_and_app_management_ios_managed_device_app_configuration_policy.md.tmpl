@@ -38,6 +38,8 @@ The following client `application` permissions are needed in order to use this {
 
 ## Example Usage
 
+Use `settings` for key/value items or `encoded_setting_xml` for raw XML. Switching modes updates the existing policy and clears its previous configuration.
+
 {{ tffile "examples/resources/microsoft365_graph_beta_device_and_app_management_ios_managed_device_app_configuration_policy/resource.tf" }}
 
 {{ .SchemaMarkdown | trimspace }}

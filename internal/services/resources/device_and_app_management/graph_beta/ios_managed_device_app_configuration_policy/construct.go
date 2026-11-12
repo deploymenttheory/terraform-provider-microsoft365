@@ -82,6 +82,9 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		}
 
 		requestBody.SetSettings(graphSettings)
+	} else if !data.EncodedSettingXml.IsNull() && !data.EncodedSettingXml.IsUnknown() {
+		// Graph requires an empty settings collection when switching a policy to XML.
+		requestBody.SetSettings([]graphmodels.AppConfigurationSettingItemable{})
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {

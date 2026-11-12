@@ -68,7 +68,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *IOSManagedDeviceAppCon
 
 			data.Settings = settingsSet
 		} else {
-			if data.Settings.IsNull() || data.Settings.IsUnknown() {
+			if data.Settings.IsNull() || data.Settings.IsUnknown() || len(data.Settings.Elements()) > 0 {
 				data.Settings = types.SetNull(types.ObjectType{
 					AttrTypes: map[string]attr.Type{
 						"app_config_key":       types.StringType,
