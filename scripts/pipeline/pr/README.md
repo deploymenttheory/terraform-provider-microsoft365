@@ -18,6 +18,18 @@ per worker by default. Workers use standard `ubuntu-24.04-arm` runners and execu
 their packages serially. A failed shard does not cancel other shards. The existing
 lint and unit summary checks require every applicable worker to pass.
 
+The production `internal/provider` registry necessarily imports every object kind.
+Its lint job runs alone as `✨ Lint Provider Registry`, with `GOMEMLIMIT=6GiB` and
+`GOGC=50` as a measured diagnostic configuration. Go's memory limit is a soft
+heap target, not an RSS cap; live analysis data can exceed it. The dedicated job
+runs all 23 configured checks with golangci-lint v2.15.0. Its success must be
+established from the standard runner's diagnostics.
+Ordinary package workers keep the default Go garbage-collection settings. The
+diagnostics record both settings alongside memory peaks and OOM counters.
+Manual lint dispatches may set `packages` to a space-separated subset of changed
+packages, for example `internal/provider`; PR runs continue checking every
+changed package and all configured linters.
+
 Unit and race workers install the latest stable Terraform once, without the CLI
 wrapper, and export its path as `TF_ACC_TERRAFORM_PATH` for every test. Tests do
 not repeatedly download Terraform while running. In GitHub Actions, test stdout
@@ -99,8 +111,9 @@ SARIF and `results.json` with findings versus execution exit statuses. A runner
 shutdown may prevent artifact upload; periodic samples remain in the live log.
 Lint has a 45-minute per-package timeout. Lint and test steps have a 50-minute
 budget within 60-minute jobs, leaving time for failure reports and cache post-steps.
-No speculative memory cap, GC override, or disabled linter is used to conceal a
-failed execution. A resource failure must be investigated from the measurements.
+Memory targets and GC overrides are restricted to the dedicated registry worker
+and recorded in diagnostics. They never convert a failed execution into success
+or disable checks. A resource failure must be investigated from the measurements.
 
 ### Initial validation evidence
 
@@ -137,7 +150,7 @@ the shared analysis dependency graph while retaining the required checks.
 
 ## Pipeline regression checks
 
-Requires Python 3, Git, Go compatible with `go.mod`, golangci-lint v2.14.0 and
+Requires Python 3, Git, Go compatible with `go.mod`, golangci-lint v2.15.0 and
 `actionlint`. Tests use isolated repositories and tiny Go modules, not the provider
 suite or a tenant. The intentionally failing fixture tests must be caught by the
 Python assertions.

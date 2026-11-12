@@ -89,3 +89,35 @@ def partition_packages(packages):
             for index, items in enumerate(occupied)
         ]
     }
+
+
+def partition_lint_packages(packages):
+    """Keep the full production registry on a dedicated standard-runner worker."""
+    packages = set(packages)
+    registry = "internal/provider"
+    matrix = partition_packages(packages - {registry})
+    for entry in matrix["include"]:
+        entry.update({"label": f"Partition {entry['shard_index']}", "gomemlimit": "", "gogc": ""})
+    if registry in packages:
+        matrix["include"].append(
+            {
+                "shard_index": len(matrix["include"]),
+                "packages": registry,
+                "label": "Provider Registry",
+                "gomemlimit": "6GiB",
+                "gogc": "50",
+            }
+        )
+    if len(matrix["include"]) > 256:
+        raise ValueError("Go job matrix exceeds the GitHub Actions 256-job limit")
+    return matrix
+
+
+def select_lint_packages(changed, requested=None):
+    """Allow manual diagnostic runs to narrow, but never expand, the changed package set."""
+    if requested is None:
+        return sorted(set(changed))
+    selected = set(requested.split())
+    if not selected or not selected.issubset(changed):
+        raise ValueError("Lint selection must contain only packages changed against the baseline")
+    return sorted(selected)

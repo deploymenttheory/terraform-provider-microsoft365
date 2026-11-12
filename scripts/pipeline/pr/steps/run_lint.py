@@ -78,7 +78,9 @@ def main() -> int:
     parser.add_argument("--packages", help="Exact changed packages assigned to this shard")
     args = parser.parse_args()
     return run_lint(
-        args.base_ref, args.output_dir, args.packages.split() if args.packages else None
+        args.base_ref,
+        args.output_dir,
+        args.packages.split() if args.packages else None,
     )
 
 

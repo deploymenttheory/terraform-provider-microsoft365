@@ -10,7 +10,13 @@ from support import RepositoryTest
 
 # isort: split
 
-from lib.partitions import affected_test_packages, fixture_packages, partition_packages
+from lib.partitions import (
+    affected_test_packages,
+    fixture_packages,
+    partition_lint_packages,
+    partition_packages,
+    select_lint_packages,
+)
 from merge_coverage import merge_profiles, merge_shard_profiles
 from run_lint import run_lint
 
@@ -31,6 +37,36 @@ class PartitionTests(RepositoryTest):
     def test_empty_selection_launches_no_jobs(self):
         """Verify empty selection launches no jobs."""
         self.assertEqual(partition_packages([]), {"include": []})
+
+    def test_production_registry_is_alone_and_every_lint_package_is_assigned_once(self):
+        """Verify the aggregate registry cannot crowd out the ordinary package workers."""
+        packages = [f"internal/example/package_{index}" for index in range(31)]
+        packages += ["internal/provider", "internal/provider/core"]
+        matrix = partition_lint_packages(packages)
+        assigned = [package for entry in matrix["include"] for package in entry["packages"].split()]
+        self.assertEqual(sorted(assigned), sorted(packages))
+        self.assertEqual(len(assigned), len(set(assigned)))
+        registry = next(
+            entry for entry in matrix["include"] if entry["packages"] == "internal/provider"
+        )
+        self.assertEqual(registry["label"], "Provider Registry")
+        self.assertEqual(registry["gomemlimit"], "6GiB")
+        self.assertEqual(registry["gogc"], "50")
+        for entry in matrix["include"]:
+            self.assertLessEqual(len(entry["packages"].split()), 5)
+            if entry is not registry:
+                self.assertEqual((entry["gomemlimit"], entry["gogc"]), ("", ""))
+        self.assertEqual(matrix, partition_lint_packages(reversed(packages)))
+
+    def test_manual_lint_selection_can_only_narrow_the_changed_packages(self):
+        """Verify diagnostic dispatches cannot lint an unselected production package."""
+        changed = ["internal/provider", "internal/provider/core"]
+        self.assertEqual(select_lint_packages(changed), sorted(changed))
+        self.assertEqual(select_lint_packages(changed, "internal/provider"), ["internal/provider"])
+        for requested in ("", "unrelated", "internal/provider unrelated"):
+            with self.assertRaisesRegex(ValueError, "only packages changed"):
+                select_lint_packages(changed, requested)
+        self.assertEqual(partition_lint_packages([]), {"include": []})
 
     def test_shared_dependency_change_includes_transitive_tests(self):
         """Verify shared dependency change includes transitive tests."""

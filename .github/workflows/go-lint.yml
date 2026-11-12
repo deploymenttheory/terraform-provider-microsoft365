@@ -7,6 +7,10 @@ on:
         description: 'Git ref to compare against (changed Go packages only)'
         required: true
         default: origin/main
+      packages:
+        description: 'Optional space-separated changed Go packages for a diagnostic run'
+        required: false
+        default: ''
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
@@ -61,10 +65,16 @@ jobs:
         id: plan
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || inputs.base_ref }}
-        run: python3 scripts/pipeline/pr/steps/plan_jobs.py --base-ref "$BASE_REF"
+          LINT_PACKAGES: ${{ inputs.packages || '' }}
+        run: |
+          args=(--base-ref "$BASE_REF")
+          if [[ -n "$LINT_PACKAGES" ]]; then
+            args+=(--lint-packages "$LINT_PACKAGES")
+          fi
+          python3 scripts/pipeline/pr/steps/plan_jobs.py "${args[@]}"
 
   lint-shards:
-    name: '✨ Lint partition ${{ matrix.shard_index }}'
+    name: '✨ Lint ${{ matrix.label }}'
     needs: plan-lint
     if: needs.plan-lint.outputs.has-changes == 'true'
     strategy:
@@ -75,6 +85,8 @@ jobs:
     env:
       GOMAXPROCS: '1'
       GOFLAGS: '-p=1'
+      GOMEMLIMIT: ${{ matrix.gomemlimit }}
+      GOGC: ${{ matrix.gogc }}
       PYTHONUNBUFFERED: '1'
     steps:
       - name: Harden Runner
@@ -97,7 +109,7 @@ jobs:
       - name: Install golangci-lint
         uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.14.0
+          version: v2.15.0
           install-only: true
 
       - name: Validate lint configuration
@@ -112,8 +124,9 @@ jobs:
           PACKAGES: ${{ matrix.packages }}
           BASE_SHA: ${{ needs.plan-lint.outputs.base-sha }}
         run: |
+          args=(--base-ref "$BASE_SHA" --packages "$PACKAGES")
           bash scripts/pipeline/pr/steps/monitor_resources.sh lint-results \
-            python3 scripts/pipeline/pr/steps/run_lint.py --base-ref "$BASE_SHA" --packages "$PACKAGES"
+            python3 scripts/pipeline/pr/steps/run_lint.py "${args[@]}"
 
       - name: Upload lint reports and diagnostics
         if: always()
