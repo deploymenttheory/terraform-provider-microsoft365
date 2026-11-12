@@ -23,6 +23,11 @@ func TestUnitSettingsCatalogTemplateJsonStateResolvesTemplateType(t *testing.T) 
 		creationSource string
 	}{
 		{
+			"windows_anti_virus_microsoft_defender_ai_agent_runtime_protection",
+			"e9ba1278-2d10-42d6-8004-1e3f6dcef811_1",
+			"",
+		},
+		{
 			"windows_anti_virus_microsoft_defender_antivirus",
 			"804339ad-1553-4478-a742-138fb5807418_1",
 			"",

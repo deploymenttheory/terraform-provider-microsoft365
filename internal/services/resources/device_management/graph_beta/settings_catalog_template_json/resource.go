@@ -139,6 +139,7 @@ func (r *DeviceManagementTemplateJsonResource) Schema(ctx context.Context, req r
 					"`Windows settings catalog templates`\n\n" +
 					"`windows_account_protection`: Account protection policies help protect user credentials by using technology such as Windows Hello for Business and Credential Guard.\n\n" +
 					"`windows_anti_virus_defender_update_controls`: This template allows you to configure the gradual release rollout of Defender Updates to targeted device groups. Use a ringed approach to test, validate, and rollout updates to devices through release channels. Updates available are platform, engine, security intelligence updates. These policy types have pause, resume, manual rollback commands similar to Windows Update ring policies.\n\n" +
+					"`windows_anti_virus_microsoft_defender_ai_agent_runtime_protection`: This template allows you to configure Microsoft Defender AI agent runtime protection for Windows devices. See [Set up AI agent runtime protection](https://learn.microsoft.com/en-us/defender-endpoint/configure-ai-agent-runtime-protection).\n\n" +
 					"`windows_anti_virus_microsoft_defender_antivirus`: Windows Defender Antivirus is the next-generation protection component of Microsoft Defender for Endpoint. Next-generation protection brings together machine learning, big-data analysis, in-depth threat resistance research, and cloud infrastructure to protect devices in your enterprise organization.\n\n" +
 					"`windows_anti_virus_microsoft_defender_antivirus_exclusions`: This template allows you to manage settings for Microsoft Defender Antivirus that define Antivirus exclusions for paths, extensions and processes. Antivirus exclusion are also managed by Microsoft Defender Antivirus policy, which includes identical settings for exclusions. Settings from both templates (Antivirus and Antivirus exclusions) are subject to policy merge, and create a super set of exclusions for applicable devices and users.\n\n" +
 					"`windows_anti_virus_security_experience`: This template allows you to configure the Windows Security app is used by a number of Windows security features to provide notifications about the health and security of the machine. These include notifications about firewalls, antivirus products, Windows Defender SmartScreen, and others.\n\n" +
@@ -188,6 +189,7 @@ func (r *DeviceManagementTemplateJsonResource) Schema(ctx context.Context, req r
 						"security_baseline_for_microsoft_365_apps",
 						"windows_account_protection",
 						"windows_anti_virus_defender_update_controls",
+						"windows_anti_virus_microsoft_defender_ai_agent_runtime_protection",
 						"windows_anti_virus_microsoft_defender_antivirus",
 						"windows_anti_virus_microsoft_defender_antivirus_exclusions",
 						"windows_anti_virus_security_experience",
