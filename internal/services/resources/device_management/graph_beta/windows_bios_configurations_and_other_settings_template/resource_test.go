@@ -59,7 +59,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_01_Scenar
 	name := resourceName("test_001")
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
@@ -96,7 +96,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_02_Scenar
 	name := resourceName("test_002")
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
@@ -129,7 +129,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_03_Lifecy
 	name := resourceName("test_003")
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
@@ -163,7 +163,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_04_Lifecy
 	name := resourceName("test_004")
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
@@ -197,7 +197,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_05_Assign
 	name := resourceName("test_005")
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("005_assignments_minimal.tf"),
@@ -227,7 +227,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_06_Assign
 	name := resourceName("test_006")
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("006_assignments_maximal.tf"),
@@ -279,7 +279,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_07_Assign
 	name := resourceName("test_007")
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
@@ -316,7 +316,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_08_Assign
 	name := resourceName("test_008")
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
@@ -353,7 +353,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_09_ErrorH
 	defer biosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("009_error_scenario.tf"),
@@ -370,7 +370,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_10_Valida
 	defer biosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("010_validation_invalid_base64.tf"),
@@ -387,7 +387,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_11_Valida
 	defer biosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("011_validation_invalid_format.tf"),
@@ -404,7 +404,7 @@ func TestUnitResourceWindowsBiosConfigurationsAndOtherSettingsTemplate_12_Valida
 	defer biosMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("012_validation_invalid_assignment_target.tf"),

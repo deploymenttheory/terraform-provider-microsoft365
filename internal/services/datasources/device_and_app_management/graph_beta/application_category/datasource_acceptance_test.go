@@ -25,7 +25,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccDatasourceApplicationCategory_01_All(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -53,7 +53,7 @@ func TestAccDatasourceApplicationCategory_01_All(t *testing.T) {
 func TestAccDatasourceApplicationCategory_02_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -81,7 +81,7 @@ func TestAccDatasourceApplicationCategory_02_ByDisplayName(t *testing.T) {
 func TestAccDatasourceApplicationCategory_03_ODataFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

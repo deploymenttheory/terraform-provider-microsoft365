@@ -54,7 +54,7 @@ func TestUnitResourceApplicationOwner_01_OwnerTypeUser(t *testing.T) {
 	defer applicationOwnerMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_owner_type_user.tf"),
@@ -85,7 +85,7 @@ func TestUnitResourceApplicationOwner_02_OwnerTypeServicePrincipal(t *testing.T)
 	defer applicationOwnerMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_owner_type_service_principal.tf"),

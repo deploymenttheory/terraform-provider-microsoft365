@@ -32,7 +32,7 @@ func TestUnitDatasourceNetworkManagedTLSCertificate_01_ByID(t *testing.T) {
 
 	dataSourceType := graphBetaNetworkManagedTLSCertificate.DataSourceName
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{{
 			Config: dataSourceTestConfig(t),
 			Check: resource.ComposeTestCheckFunc(
@@ -59,7 +59,7 @@ func TestUnitDatasourceNetworkManagedTLSCertificate_02_NotFound(t *testing.T) {
 	)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{{
 			Config:      dataSourceTestConfig(t),
 			ExpectError: regexp.MustCompile(`Not Found - 404`),

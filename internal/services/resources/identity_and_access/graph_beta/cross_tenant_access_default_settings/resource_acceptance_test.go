@@ -44,7 +44,7 @@ func TestAccResourceCrossTenantAccessDefaultSettings_01_Minimal(t *testing.T) {
 	r := resourceType + ".test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -99,7 +99,7 @@ func TestAccResourceCrossTenantAccessDefaultSettings_02_Maximal(t *testing.T) {
 	r := resourceType + ".test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -168,7 +168,7 @@ func TestAccResourceCrossTenantAccessDefaultSettings_03_UpdateMinimalToMaximal(t
 	r := resourceType + ".test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -237,7 +237,7 @@ func TestAccResourceCrossTenantAccessDefaultSettings_04_UpdateMaximalToMinimal(t
 	r := resourceType + ".test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

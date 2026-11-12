@@ -11,7 +11,7 @@ import (
 func TestAccResourceCloudPcOrganizationSettings_01_Complete(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with maximal configuration
 			{
@@ -38,7 +38,7 @@ func TestAccResourceCloudPcOrganizationSettings_01_Complete(t *testing.T) {
 func TestAccResourceCloudPcOrganizationSettings_02_RequiredFields(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCloudPcOrganizationSettingsConfig_invalidOsVersion(),

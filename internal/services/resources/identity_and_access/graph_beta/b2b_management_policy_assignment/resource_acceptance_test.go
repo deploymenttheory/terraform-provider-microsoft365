@@ -35,7 +35,7 @@ func TestAccResourceB2bManagementPolicyAssignment_01_ServicePrincipal(t *testing
 	var assignmentID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
@@ -100,7 +100,7 @@ func TestAccResourceB2bManagementPolicyAssignment_02_Application(t *testing.T) {
 	var assignmentID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
@@ -161,7 +161,7 @@ func TestAccResourceB2bManagementPolicyAssignment_03_MinimalToMaximal(t *testing
 	var assignmentID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
@@ -264,7 +264,7 @@ func TestAccResourceB2bManagementPolicyAssignment_04_MaximalToMinimal(t *testing
 	var assignmentID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},

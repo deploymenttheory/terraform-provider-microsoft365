@@ -81,7 +81,7 @@ func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_01_Schema(t *testing
 	defer iosMobileAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -108,7 +108,7 @@ func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_02_Minimal(t *testin
 	defer iosMobileAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
@@ -149,7 +149,7 @@ func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_03_UpdateInPlace(t *
 	defer iosMobileAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -179,7 +179,7 @@ func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_04_RequiredFields(t 
 	defer iosMobileAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -201,7 +201,7 @@ func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_05_ErrorHandling(t *
 	defer iosMobileAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -223,7 +223,7 @@ func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_06_Settings(t *testi
 	defer iosMobileAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -259,7 +259,7 @@ func TestUnitResourceIOSManagedDeviceAppConfigurationPolicy_07_TargetedMobileApp
 	defer iosMobileAppConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Test invalid GUID format
 			{

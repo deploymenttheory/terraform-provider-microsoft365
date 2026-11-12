@@ -11,7 +11,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaAuthorizationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/authorization_policy"
 )
 
@@ -39,7 +38,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceAuthorizationPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { authorizationPolicyPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -92,7 +91,7 @@ func TestAccResourceAuthorizationPolicy_01_Lifecycle(t *testing.T) {
 func TestAccResourceAuthorizationPolicy_02_EmptySets(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { authorizationPolicyPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

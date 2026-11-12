@@ -33,7 +33,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsManagedAppProtection_01_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsManagedAppProtection.ResourceName,
@@ -68,7 +68,7 @@ func TestAccResourceWindowsManagedAppProtection_01_Scenario_Minimal(t *testing.T
 func TestAccResourceWindowsManagedAppProtection_02_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsManagedAppProtection.ResourceName,
@@ -112,7 +112,7 @@ func TestAccResourceWindowsManagedAppProtection_02_Scenario_Maximal(t *testing.T
 func TestAccResourceWindowsManagedAppProtection_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsManagedAppProtection.ResourceName,
@@ -160,7 +160,7 @@ func TestAccResourceWindowsManagedAppProtection_03_Lifecycle_MinimalToMaximal(t 
 func TestAccResourceWindowsManagedAppProtection_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsManagedAppProtection.ResourceName,

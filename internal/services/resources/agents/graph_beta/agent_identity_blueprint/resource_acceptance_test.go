@@ -18,7 +18,7 @@ import (
 
 func TestAccResourceAgentIdentityBlueprint_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -75,7 +75,7 @@ func TestAccResourceAgentIdentityBlueprint_01_Minimal(t *testing.T) {
 func TestAccResourceAgentIdentityBlueprint_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -137,7 +137,7 @@ func TestAccResourceAgentIdentityBlueprint_02_Maximal(t *testing.T) {
 func TestAccResourceAgentIdentityBlueprint_03_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

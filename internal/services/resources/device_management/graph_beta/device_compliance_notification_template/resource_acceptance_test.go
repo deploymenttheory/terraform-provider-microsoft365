@@ -23,7 +23,7 @@ var testResource = graphBetaDeviceComplianceNotificationTemplate.DeviceComplianc
 func TestAccResourceDeviceComplianceNotificationTemplate_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{
@@ -66,7 +66,7 @@ func TestAccResourceDeviceComplianceNotificationTemplate_01_Minimal(t *testing.T
 func TestAccResourceDeviceComplianceNotificationTemplate_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{
@@ -125,7 +125,7 @@ func TestAccResourceDeviceComplianceNotificationTemplate_02_Maximal(t *testing.T
 func TestAccResourceDeviceComplianceNotificationTemplate_05_BrandingOptions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{
@@ -167,7 +167,7 @@ func TestAccResourceDeviceComplianceNotificationTemplate_04_Update(t *testing.T)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			30*time.Second,
 			destroy.ResourceTypeMapping{

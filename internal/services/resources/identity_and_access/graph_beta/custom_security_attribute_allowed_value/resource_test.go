@@ -40,7 +40,7 @@ func TestUnitResourceCustomSecurityAttributeAllowedValue_01_Basic(t *testing.T) 
 	defer allowedValueMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -67,7 +67,7 @@ func TestUnitResourceCustomSecurityAttributeAllowedValue_02_Minimal(t *testing.T
 	defer allowedValueMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -94,7 +94,7 @@ func TestUnitResourceCustomSecurityAttributeAllowedValue_03_Update(t *testing.T)
 	defer allowedValueMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -127,7 +127,7 @@ func TestUnitResourceCustomSecurityAttributeAllowedValue_04_Inactive(t *testing.
 	defer allowedValueMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigInactive(),
@@ -154,7 +154,7 @@ func TestUnitResourceCustomSecurityAttributeAllowedValue_05_WithSpaces(t *testin
 	defer allowedValueMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigWithSpaces(),
@@ -181,7 +181,7 @@ func TestUnitResourceCustomSecurityAttributeAllowedValue_06_CreateError(t *testi
 	defer allowedValueMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBasic(),
@@ -198,7 +198,7 @@ func TestUnitResourceCustomSecurityAttributeAllowedValue_07_NotFound(t *testing.
 	defer allowedValueMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBasic(),

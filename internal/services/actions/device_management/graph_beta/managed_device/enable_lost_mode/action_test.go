@@ -29,7 +29,7 @@ func TestUnitActionEnableLostModeManagedDevice_01_Basic(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -53,7 +53,7 @@ func TestUnitActionEnableLostModeManagedDevice_02_Maximal(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -77,7 +77,7 @@ func TestUnitActionEnableLostModeManagedDevice_03_PartialFailures(t *testing.T) 
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -114,7 +114,7 @@ func TestUnitActionEnableLostModeManagedDevice_04_ValidationDisabled(t *testing.
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -151,7 +151,7 @@ func TestUnitActionEnableLostModeManagedDevice_05_CustomTimeout(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -185,7 +185,7 @@ func TestEnableLostModeManagedDeviceAction_NoDevices(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -210,7 +210,7 @@ func TestUnitActionEnableLostModeManagedDevice_07_MissingMessage(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -238,7 +238,7 @@ func TestUnitActionEnableLostModeManagedDevice_08_MissingPhoneNumber(t *testing.
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -266,7 +266,7 @@ func TestUnitActionEnableLostModeManagedDevice_09_InvalidDeviceID(t *testing.T) 
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -300,7 +300,7 @@ func TestUnitActionEnableLostModeManagedDevice_10_BothManagedAndComanaged(t *tes
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

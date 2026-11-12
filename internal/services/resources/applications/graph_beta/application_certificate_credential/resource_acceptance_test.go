@@ -26,7 +26,7 @@ func loadAccTestTerraform(filename string) string {
 func TestAccResourceApplicationCertificateCredential_01_PEM(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -73,7 +73,7 @@ func TestAccResourceApplicationCertificateCredential_01_PEM(t *testing.T) {
 func TestAccResourceApplicationCertificateCredential_02_Base64(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -119,7 +119,7 @@ func TestAccResourceApplicationCertificateCredential_02_Base64(t *testing.T) {
 func TestAccResourceApplicationCertificateCredential_03_DER(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -165,7 +165,7 @@ func TestAccResourceApplicationCertificateCredential_03_DER(t *testing.T) {
 func TestAccResourceApplicationCertificateCredential_04_HEX(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -207,7 +207,7 @@ func TestAccResourceApplicationCertificateCredential_04_HEX(t *testing.T) {
 func TestAccResourceApplicationCertificateCredential_05_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

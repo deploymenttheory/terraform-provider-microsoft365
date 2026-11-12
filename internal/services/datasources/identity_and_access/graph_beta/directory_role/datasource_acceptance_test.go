@@ -20,7 +20,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccDatasourceDirectoryRole_01_ListAll(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("01_list_all.tf"),
@@ -35,7 +35,7 @@ func TestAccDatasourceDirectoryRole_01_ListAll(t *testing.T) {
 func TestAccDatasourceDirectoryRole_02_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("02_by_display_name.tf"),

@@ -46,7 +46,7 @@ func TestUnitResourceDeviceEnrollmentNotification_01_Schema(t *testing.T) {
 	defer enrollmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_android_email_minimal.tf"),
@@ -70,7 +70,7 @@ func TestUnitResourceDeviceEnrollmentNotification_02_PlatformTypes(t *testing.T)
 	defer enrollmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_android_email_maximal.tf"),
@@ -103,7 +103,7 @@ func TestUnitResourceDeviceEnrollmentNotification_03_AllTerraformConfigurations(
 	defer enrollmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Android Platform Tests
 			{
@@ -192,7 +192,7 @@ func TestUnitResourceDeviceEnrollmentNotification_04_BrandingOptions(t *testing.
 	defer enrollmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_android_email_minimal.tf"),
@@ -225,7 +225,7 @@ func TestUnitResourceDeviceEnrollmentNotification_05_LocalizedMessages(t *testin
 	defer enrollmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_android_email_maximal.tf"),
@@ -251,7 +251,7 @@ func TestUnitResourceDeviceEnrollmentNotification_06_Assignments(t *testing.T) {
 	defer enrollmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_android_email_maximal.tf"),
@@ -274,7 +274,7 @@ func TestUnitResourceDeviceEnrollmentNotification_07_ErrorHandling(t *testing.T)
 	defer enrollmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_01_android_email_minimal.tf"),

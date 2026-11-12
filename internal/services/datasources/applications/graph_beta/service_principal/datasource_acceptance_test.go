@@ -21,7 +21,7 @@ var (
 func TestAccDatasourceServicePrincipal_01_ByObjectId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 
 			"random": {
@@ -52,7 +52,7 @@ func TestAccDatasourceServicePrincipal_01_ByObjectId(t *testing.T) {
 func TestAccDatasourceServicePrincipal_02_ByDisplayName(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 
 			"random": {
@@ -83,7 +83,7 @@ func TestAccDatasourceServicePrincipal_02_ByDisplayName(t *testing.T) {
 func TestAccDatasourceServicePrincipal_03_ByAppId(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 
 			"random": {
@@ -114,7 +114,7 @@ func TestAccDatasourceServicePrincipal_03_ByAppId(t *testing.T) {
 func TestAccDatasourceServicePrincipal_04_ODataFilter(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 
 			"random": {
@@ -145,7 +145,7 @@ func TestAccDatasourceServicePrincipal_04_ODataFilter(t *testing.T) {
 func TestAccDatasourceServicePrincipal_05_ODataAdvanced(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 
 			"random": {
@@ -177,7 +177,7 @@ func TestAccDatasourceServicePrincipal_05_ODataAdvanced(t *testing.T) {
 func TestAccDatasourceServicePrincipal_06_ODataComprehensive(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 
 			"random": {
@@ -209,7 +209,7 @@ func TestAccDatasourceServicePrincipal_06_ODataComprehensive(t *testing.T) {
 func TestAccDatasourceServicePrincipal_07_ByODataTags(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 
 			"random": {

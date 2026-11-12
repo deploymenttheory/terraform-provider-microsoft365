@@ -45,7 +45,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_01_CreateMinimal(t *testin
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_minimal.tf"),
@@ -72,7 +72,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_02_CreateMaximal(t *testin
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_maximal.tf"),
@@ -101,7 +101,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_03_UpdateMinimalToMaximal(
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_03_minimal_step.tf"),
@@ -148,7 +148,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_04_UpdateMaximalToMinimal(
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_04_maximal_step.tf"),
@@ -189,7 +189,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_05_MinimalAssignments(t *t
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_05_minimal_assignments.tf"),
@@ -210,7 +210,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_06_MaximalAssignments(t *t
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_06_maximal_assignments.tf"),
@@ -231,7 +231,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_07_MinimalToMaximalAssignm
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_07_minimal_assignments_step.tf"),
@@ -260,7 +260,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_08_MaximalToMinimalAssignm
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_08_maximal_assignments_step.tf"),
@@ -289,7 +289,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_09_Import(t *testing.T) {
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_minimal.tf"),
@@ -313,7 +313,7 @@ func TestUnitResourceMacOSSoftwareUpdateConfiguration_10_Error(t *testing.T) {
 	defer softwareUpdateConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_01_minimal.tf"),

@@ -50,7 +50,7 @@ func TestUnitDatasourceManagedDevice_01_ListAll(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_list_all.tf"),
@@ -75,7 +75,7 @@ func TestUnitDatasourceManagedDevice_02_ByDeviceId(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_device_id.tf"),
@@ -99,7 +99,7 @@ func TestUnitDatasourceManagedDevice_03_ByDeviceName(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_by_device_name.tf"),
@@ -121,7 +121,7 @@ func TestUnitDatasourceManagedDevice_04_ByOperatingSystem(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_by_operating_system.tf"),
@@ -144,7 +144,7 @@ func TestUnitDatasourceManagedDevice_05_ByOsAndVersion(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_by_os_and_version.tf"),
@@ -168,7 +168,7 @@ func TestUnitDatasourceManagedDevice_06_ByAzureADDeviceId(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("06_by_azure_ad_device_id.tf"),
@@ -190,7 +190,7 @@ func TestUnitDatasourceManagedDevice_07_BySerialNumber(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("07_by_serial_number.tf"),
@@ -212,7 +212,7 @@ func TestUnitDatasourceManagedDevice_08_ByUserPrincipalName(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("08_by_user_principal_name.tf"),
@@ -235,7 +235,7 @@ func TestUnitDatasourceManagedDevice_09_ByODataQuery(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("09_by_odata_query.tf"),
@@ -259,7 +259,7 @@ func TestUnitDatasourceManagedDevice_10_Error(t *testing.T) {
 	defer mdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("02_by_device_id.tf"),

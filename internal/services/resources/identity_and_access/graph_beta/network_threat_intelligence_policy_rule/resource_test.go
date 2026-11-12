@@ -43,7 +43,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_01_Lifecycle(t *testing
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: mocks.LoadUnitTerraformConfig("resource.tf"),
@@ -100,7 +100,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_02_InvalidAction(t *tes
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config:      invalidActionConfig(),
@@ -121,7 +121,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_03_Drift(t *testing.T) 
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: mocks.LoadUnitTerraformConfig("resource.tf")},
 				{PreConfig: func() {
@@ -157,7 +157,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_04_PriorityAndDestinati
 			resource.UnitTest(
 				t,
 				resource.TestCase{
-					ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+					ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 					Steps: []resource.TestStep{
 						{
 							Config: strings.ReplaceAll(
@@ -179,7 +179,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_05_PriorityConflict(t *
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config: strings.ReplaceAll(
@@ -207,7 +207,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_06_ParentReplacement(t 
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: original, Check: func(s *terraform.State) error {
 					v := s.RootModule().Resources[resourceType+".test"].Primary
@@ -253,7 +253,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_06_ParentReplacementWit
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: original, Check: func(s *terraform.State) error {
 					v := s.RootModule().Resources[resourceType+".test"].Primary
@@ -288,7 +288,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_07_EmptyDestinations(t 
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: original},
 				{

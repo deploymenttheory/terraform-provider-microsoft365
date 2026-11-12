@@ -41,7 +41,7 @@ func TestAccResourceWin32App_01_Scenario_Minimal(t *testing.T) {
 			mocks.TestAccPreCheck(t)
 			packages.prepare(t, "140.0.2")
 		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
 		},
@@ -70,7 +70,7 @@ func TestAccResourceWin32App_02_Scenario_Maximal(t *testing.T) {
 			mocks.TestAccPreCheck(t)
 			packages.prepare(t, "140.0.4")
 		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
 		},
@@ -119,7 +119,7 @@ func TestAccResourceWin32App_03_Lifecycle_ContentUpdate(t *testing.T) {
 			mocks.TestAccPreCheck(t)
 			packages.prepare(t, "140.0.2", "140.0.4")
 		},
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
 		},

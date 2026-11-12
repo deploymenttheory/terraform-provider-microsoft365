@@ -1,11 +1,18 @@
 # PR Go checks
 
-Lint and unit tests are separate workflows. Automatic runs are triggered only by
-changed `.go` files. Each workflow compares the checked-out commit with the Git
+Lint and unit tests are separate workflows. Each workflow compares the checked-out commit with the Git
 merge-base of the PR base SHA and selects exact package directories. Root files,
 renames and deletions are included; completely deleted packages are skipped.
-An empty selection skips Go installation and execution. There is no `./...`
-fallback and no dependency-test expansion.
+Planning and factory validation also run when their pipeline files change. An
+empty Go selection launches no lint, unit, or race workers. There is no `./...`
+fallback. Unit tests include local packages whose test import graph depends on a
+changed package; lint findings remain restricted to changed packages and lines.
+
+Lint, unit, and race workers use the acceptance pipeline's bounded Rendezvous
+sharder, assigning each selected package exactly once, with at most five packages
+per worker by default. Workers use standard `ubuntu-24.04-arm` runners and execute
+their packages serially. A failed shard does not cancel other shards. The existing
+lint and unit summary checks require every applicable worker to pass.
 
 Lint reports findings on changed lines, includes test-file analysis, retains the
 configured linters/formatters, and does not rewrite source. It runs one package
@@ -15,8 +22,36 @@ the selected packages with `TF_ACC=0` for the project's mocks and explicitly ski
 independent of coverage. Unit execution stops at the first failed or terminated
 package and preserves its exit status. Per-package coverage remains available
 for diagnostics; merged coverage is produced only after all selected packages pass.
-Package/test parallelism and `GOMAXPROCS` are one. Resource tests can still compile
-much of the provider through the shared mock provider factory.
+Package/test parallelism and `GOMAXPROCS` are one. Successful unit profiles are
+downloaded and merged before the single Codecov upload, coverage gate, and PR
+comment. Duplicate coverage blocks are counted once when combining profiles.
+
+## Isolated provider factories
+
+`internal/provider/core` contains the real provider schema, validation and client
+configuration. The production provider composes this core with its complete
+resource, data source, action, list, and ephemeral registries. Test factories
+compose the same core with only the package under test and fixture dependencies.
+The shared mocks no longer import the complete production provider.
+
+Each participating test package has a generated `provider_factories_test.go`.
+Its local unit and acceptance maps preserve their respective authentication
+modes. Test steps, assertions, and lifecycle ordering remain in their existing
+files. Generate factories after adding a registration, changing test imports, or
+adding a Terraform fixture dependency:
+
+```sh
+python3 scripts/pipeline/generate_test_factories.py
+python3 scripts/pipeline/generate_test_factories.py --check
+```
+
+The generator reads production constructors and type names, package imports, and
+Terraform block declarations in Go and Terraform fixtures. Resource and data
+source types are resolved separately even when their names match. CI fails when
+checked-in factories are stale or production type metadata cannot be resolved.
+Dependencies assembled by a helper must be represented by an explicit test
+import of their registered package or a Terraform declaration in the package's
+fixtures. Generated files must not be edited manually.
 
 ## Manual fallback
 
@@ -31,14 +66,16 @@ Local equivalents, from the repository root:
 
 ```sh
 python3 scripts/pipeline/pr/steps/detect_changes.py --base-ref origin/main
+python3 scripts/pipeline/pr/steps/plan_jobs.py --base-ref origin/main
 python3 scripts/pipeline/pr/steps/run_lint.py --base-ref origin/main
 # Use the exact packages printed by the selector, separated by spaces:
 python3 scripts/pipeline/pr/steps/run_tests.py --packages 'internal/client internal/provider'
 ```
 
 Selection compares committed changes. Commit work intended for comparison first.
-Non-Go fixtures, documentation, dependency manifests and workflow-only changes do
-not automatically run these Go checks. Scheduled acceptance tests are unchanged.
+Non-Go-only changes do not select additional Go packages automatically. Scheduled
+acceptance jobs retain their existing test batches and use the isolated factories
+as well.
 
 ## Diagnostics
 

@@ -38,7 +38,7 @@ func TestUnitResourceGroupLicenseAssignment_01_CreateMinimal(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -63,7 +63,7 @@ func TestUnitResourceGroupLicenseAssignment_02_CreateMaximal(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -89,7 +89,7 @@ func TestUnitResourceGroupLicenseAssignment_03_Update(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -123,7 +123,7 @@ func TestUnitResourceGroupLicenseAssignment_04_RemoveDisabledPlans(t *testing.T)
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Create with one disabled plan
 			{
@@ -152,7 +152,7 @@ func TestUnitResourceGroupLicenseAssignment_06_DeleteMinimal(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -180,7 +180,7 @@ func TestUnitResourceGroupLicenseAssignment_07_DeleteMaximal(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -210,7 +210,7 @@ func TestUnitResourceGroupLicenseAssignment_08_Error(t *testing.T) {
 	licenseAssignmentMock.RegisterErrorMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigError(),

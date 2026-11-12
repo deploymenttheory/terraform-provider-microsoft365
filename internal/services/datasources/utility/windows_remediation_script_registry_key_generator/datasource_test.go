@@ -20,7 +20,7 @@ func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_01_CurrentUs
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigCurrentUserDword(),
@@ -45,7 +45,7 @@ func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_02_AllUsersS
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigAllUsersString(),
@@ -66,7 +66,7 @@ func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_03_MultiStri
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMultiString(),
@@ -84,7 +84,7 @@ func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_04_Binary(t 
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBinary(),
@@ -102,7 +102,7 @@ func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_05_InvalidCo
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidContext(),
@@ -116,7 +116,7 @@ func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_06_InvalidVa
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidValueType(),
@@ -130,7 +130,7 @@ func TestUnitDatasourceWindowsRemediationScriptRegistryKeyGenerator_07_InvalidDw
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidDwordValue(),

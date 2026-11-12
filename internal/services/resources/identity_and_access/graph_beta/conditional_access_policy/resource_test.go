@@ -46,7 +46,7 @@ func TestUnitResourceConditionalAccessPolicy_01_CAD001(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad001-o365.tf"),
@@ -107,7 +107,7 @@ func TestUnitResourceConditionalAccessPolicy_02_CAD002(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad002-o365.tf"),
@@ -169,7 +169,7 @@ func TestUnitResourceConditionalAccessPolicy_03_CAD003(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad003-o365.tf"),
@@ -232,7 +232,7 @@ func TestUnitResourceConditionalAccessPolicy_04_CAD004(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad004-o365.tf"),
@@ -282,7 +282,7 @@ func TestUnitResourceConditionalAccessPolicy_05_CAD005(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad005-o365.tf"),
@@ -339,7 +339,7 @@ func TestUnitResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad006-o365.tf"),
@@ -392,7 +392,7 @@ func TestUnitResourceConditionalAccessPolicy_07_CAD007(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad007-o365.tf"),
@@ -453,7 +453,7 @@ func TestUnitResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad008-all.tf"),
@@ -509,7 +509,7 @@ func TestUnitResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad009-all.tf"),
@@ -562,7 +562,7 @@ func TestUnitResourceConditionalAccessPolicy_10_CAD010(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad010-rjd.tf"),
@@ -609,7 +609,7 @@ func TestUnitResourceConditionalAccessPolicy_11_CAD011(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad011-o365.tf"),
@@ -662,7 +662,7 @@ func TestUnitResourceConditionalAccessPolicy_12_CAD012(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad012-all.tf"),
@@ -710,7 +710,7 @@ func TestUnitResourceConditionalAccessPolicy_13_CAD013(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad013-selected.tf"),
@@ -764,7 +764,7 @@ func TestUnitResourceConditionalAccessPolicy_14_CAD014(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad014-o365.tf"),
@@ -819,7 +819,7 @@ func TestUnitResourceConditionalAccessPolicy_15_CAD015(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad015-all.tf"),
@@ -873,7 +873,7 @@ func TestUnitResourceConditionalAccessPolicy_16_CAD016(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad016-exo_spo_cloudpc.tf"),
@@ -933,7 +933,7 @@ func TestUnitResourceConditionalAccessPolicy_17_CAD017(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad017-selected.tf"),
@@ -996,7 +996,7 @@ func TestUnitResourceConditionalAccessPolicy_18_CAD018(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad018-cloudpc.tf"),
@@ -1048,7 +1048,7 @@ func TestUnitResourceConditionalAccessPolicy_19_CAD019(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cad019-intune.tf"),
@@ -1099,7 +1099,7 @@ func TestUnitResourceConditionalAccessPolicy_20_CAL001(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cal001-all.tf"),
@@ -1148,7 +1148,7 @@ func TestUnitResourceConditionalAccessPolicy_21_CAL002(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cal002-rsi.tf"),
@@ -1198,7 +1198,7 @@ func TestUnitResourceConditionalAccessPolicy_22_CAL003(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cal003-all.tf"),
@@ -1249,7 +1249,7 @@ func TestUnitResourceConditionalAccessPolicy_23_CAL004(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cal004-all.tf"),
@@ -1299,7 +1299,7 @@ func TestUnitResourceConditionalAccessPolicy_24_CAL005(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cal005-selected.tf"),
@@ -1350,7 +1350,7 @@ func TestUnitResourceConditionalAccessPolicy_25_CAL006(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cal006-all.tf"),
@@ -1401,7 +1401,7 @@ func TestUnitResourceConditionalAccessPolicy_26_CAP001(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cap001-all.tf"),
@@ -1445,7 +1445,7 @@ func TestUnitResourceConditionalAccessPolicy_27_CAP002(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cap002-all.tf"),
@@ -1489,7 +1489,7 @@ func TestUnitResourceConditionalAccessPolicy_28_CAP003(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cap003-all.tf"),
@@ -1536,7 +1536,7 @@ func TestUnitResourceConditionalAccessPolicy_29_CAP004(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cap004-all.tf"),
@@ -1583,7 +1583,7 @@ func TestUnitResourceConditionalAccessPolicy_30_CAU001(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau001-all.tf"),
@@ -1627,7 +1627,7 @@ func TestUnitResourceConditionalAccessPolicy_31_CAU001A(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau001a-windows_azure_active_directory.tf"),
@@ -1670,7 +1670,7 @@ func TestUnitResourceConditionalAccessPolicy_32_CAU002(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau002-all.tf"),
@@ -1715,7 +1715,7 @@ func TestUnitResourceConditionalAccessPolicy_33_CAU003(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau003-selected.tf"),
@@ -1758,7 +1758,7 @@ func TestUnitResourceConditionalAccessPolicy_34_CAU004(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau004-selected.tf"),
@@ -1805,7 +1805,7 @@ func TestUnitResourceConditionalAccessPolicy_35_CAU006(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau006-all.tf"),
@@ -1860,7 +1860,7 @@ func TestUnitResourceConditionalAccessPolicy_36_CAU007(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau007-all.tf"),
@@ -1915,7 +1915,7 @@ func TestUnitResourceConditionalAccessPolicy_37_CAU008(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau008-all.tf"),
@@ -1958,7 +1958,7 @@ func TestUnitResourceConditionalAccessPolicy_38_CAU009(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau009-management.tf"),
@@ -2003,7 +2003,7 @@ func TestUnitResourceConditionalAccessPolicy_39_CAU010(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau010-all.tf"),
@@ -2047,7 +2047,7 @@ func TestUnitResourceConditionalAccessPolicy_40_CAU011(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau011-all.tf"),
@@ -2094,7 +2094,7 @@ func TestUnitResourceConditionalAccessPolicy_41_CAU012(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau012-rsi.tf"),
@@ -2149,7 +2149,7 @@ func TestUnitResourceConditionalAccessPolicy_42_CAU013(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau013-all.tf"),
@@ -2192,7 +2192,7 @@ func TestUnitResourceConditionalAccessPolicy_43_CAU014(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau014-all.tf"),
@@ -2245,7 +2245,7 @@ func TestUnitResourceConditionalAccessPolicy_44_CAU015(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau015-all.tf"),
@@ -2293,7 +2293,7 @@ func TestUnitResourceConditionalAccessPolicy_45_CAU016(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau016-all.tf"),
@@ -2341,7 +2341,7 @@ func TestUnitResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau017-all.tf"),
@@ -2389,7 +2389,7 @@ func TestUnitResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau018-all.tf"),
@@ -2434,7 +2434,7 @@ func TestUnitResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_cau019-selected.tf"),

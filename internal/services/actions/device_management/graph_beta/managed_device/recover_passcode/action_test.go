@@ -29,7 +29,7 @@ func TestUnitActionRecoverManagedDevicePasscode_01_Basic(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -53,7 +53,7 @@ func TestUnitActionRecoverManagedDevicePasscode_02_Maximal(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -77,7 +77,7 @@ func TestUnitActionRecoverManagedDevicePasscode_03_PartialFailures(t *testing.T)
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -110,7 +110,7 @@ func TestUnitActionRecoverManagedDevicePasscode_04_ValidationDisabled(t *testing
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -143,7 +143,7 @@ func TestUnitActionRecoverManagedDevicePasscode_05_ValidationEnabled(t *testing.
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -176,7 +176,7 @@ func TestUnitActionRecoverManagedDevicePasscode_06_InvalidDeviceID(t *testing.T)
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -209,7 +209,7 @@ func TestUnitActionRecoverManagedDevicePasscode_07_NoDevices(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -240,7 +240,7 @@ func TestUnitActionRecoverManagedDevicePasscode_08_DuplicateDeviceIDs(t *testing
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -273,7 +273,7 @@ func TestUnitActionRecoverManagedDevicePasscode_09_MultipleDevices(t *testing.T)
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -309,7 +309,7 @@ func TestUnitActionRecoverManagedDevicePasscode_10_CustomTimeout(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

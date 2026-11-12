@@ -29,7 +29,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_01_Basic(t *testing.T)
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -53,7 +53,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_02_Maximal(t *testing.
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -77,7 +77,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_03_PartialFailures(t *
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -108,7 +108,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_04_ValidationDisabled(
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -139,7 +139,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_05_CustomTimeout(t *te
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -167,7 +167,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_06_NoDevices(t *testin
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -192,7 +192,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_07_InvalidDeviceID(t *
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -220,7 +220,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_08_DuplicateDeviceIDs(
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -253,7 +253,7 @@ func TestUnitActionInitiateDeviceAttestationManagedDevice_09_BothManagedAndComan
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

@@ -34,7 +34,7 @@ func TestAccResourceNetworkPromptPolicyRule_01_Lifecycle(t *testing.T) {
 		return nil
 	}
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { mocks.TestAccPreCheck(t) }, ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		PreCheck: func() { mocks.TestAccPreCheck(t) }, ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
 		CheckDestroy:      destroy.CheckDestroyedAllFunc(testResource, resourceType, 0),
 		Steps: []resource.TestStep{

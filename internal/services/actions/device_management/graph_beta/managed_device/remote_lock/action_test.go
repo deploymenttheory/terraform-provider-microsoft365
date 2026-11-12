@@ -29,7 +29,7 @@ func TestUnitActionRemoteLockManagedDevice_01_Basic(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -53,7 +53,7 @@ func TestUnitActionRemoteLockManagedDevice_02_Maximal(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -77,7 +77,7 @@ func TestUnitActionRemoteLockManagedDevice_03_PartialFailures(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -110,7 +110,7 @@ func TestUnitActionRemoteLockManagedDevice_04_ValidationDisabled(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -143,7 +143,7 @@ func TestUnitActionRemoteLockManagedDevice_05_ValidationEnabled(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -176,7 +176,7 @@ func TestUnitActionRemoteLockManagedDevice_06_InvalidDeviceID(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -209,7 +209,7 @@ func TestUnitActionRemoteLockManagedDevice_07_NoDevices(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -240,7 +240,7 @@ func TestUnitActionRemoteLockManagedDevice_08_DuplicateDeviceIDs(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
@@ -273,7 +273,7 @@ func TestUnitActionRemoteLockManagedDevice_09_MultipleDevices(t *testing.T) {
 	mockClient.AuthMocks.RegisterMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},

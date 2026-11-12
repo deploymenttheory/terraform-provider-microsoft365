@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	userSettingMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_user_setting/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
@@ -100,7 +98,7 @@ func TestUnitResourceCloudPcUserSetting_01_CreateMinimal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -131,7 +129,7 @@ func TestUnitResourceCloudPcUserSetting_02_CreateMaximal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -169,7 +167,7 @@ func TestUnitResourceCloudPcUserSetting_03_UpdateMinimalToMaximal(t *testing.T) 
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
 			{
@@ -210,7 +208,7 @@ func TestUnitResourceCloudPcUserSetting_04_UpdateMaximalToMinimal(t *testing.T) 
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
 			{
@@ -251,7 +249,7 @@ func TestUnitResourceCloudPcUserSetting_05_DeleteMinimal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -278,7 +276,7 @@ func TestUnitResourceCloudPcUserSetting_06_DeleteMaximal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -305,7 +303,7 @@ func TestUnitResourceCloudPcUserSetting_07_Import(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -336,7 +334,7 @@ func TestUnitResourceCloudPcUserSetting_08_Error(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigMinimal(),

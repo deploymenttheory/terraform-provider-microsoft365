@@ -47,7 +47,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_01_AutomaticMinimal
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_automatic_minimal.tf"),
@@ -73,7 +73,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_02_AutomaticMaximal
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_scenario_automatic_maximal.tf"),
@@ -98,7 +98,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_03_UserDrivenMinima
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_scenario_user_driven_minimal.tf"),
@@ -124,7 +124,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_04_UserDrivenMaxima
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("004_scenario_user_driven_maximal.tf"),
@@ -150,7 +150,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinima
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("005_scenario_user_driven_minimal_with_minimal_assignments.tf"),
@@ -177,7 +177,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMaxima
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("006_scenario_user_driven_minimal_with_maximal_assignments.tf"),
@@ -203,7 +203,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_08_AutomaticWithout
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("007_scenario_automatic_without_device_security_group.tf"),
@@ -232,7 +232,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_09_AutomaticUpdateP
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_automatic_minimal.tf"),
@@ -259,7 +259,7 @@ func TestUnitResourceWindowsAutopilotDevicePreparationPolicy_07_ErrorHandling(t 
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("003_scenario_user_driven_minimal.tf"),

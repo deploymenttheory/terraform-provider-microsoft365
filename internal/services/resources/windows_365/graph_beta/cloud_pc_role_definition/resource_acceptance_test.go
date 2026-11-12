@@ -26,7 +26,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceCloudPcRoleDefinition_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -89,7 +89,7 @@ func TestAccResourceCloudPcRoleDefinition_01_Lifecycle(t *testing.T) {
 func TestAccResourceCloudPcRoleDefinition_02_Description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

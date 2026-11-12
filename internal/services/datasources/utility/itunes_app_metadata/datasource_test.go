@@ -86,7 +86,7 @@ func TestUnitDatasourceItunesAppMetadata_01_Firefox(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigFirefox(),
@@ -117,7 +117,7 @@ func TestUnitDatasourceItunesAppMetadata_02_Office(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigOffice(),
@@ -148,7 +148,7 @@ func TestUnitDatasourceItunesAppMetadata_03_Empty(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigEmpty(),
@@ -177,7 +177,7 @@ func TestUnitDatasourceItunesAppMetadata_04_Error(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigError(),

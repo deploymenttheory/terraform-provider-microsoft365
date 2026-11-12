@@ -16,7 +16,7 @@ import (
 func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_01_CurrentUserDword(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -46,7 +46,7 @@ func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_01_CurrentUse
 func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_02_AllUsersString(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -70,7 +70,7 @@ func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_02_AllUsersSt
 func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_03_QWord(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -94,7 +94,7 @@ func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_03_QWord(t *t
 func TestAccDatasourceWindowsRemediationScriptRegistryKeyGenerator_04_ExpandString(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

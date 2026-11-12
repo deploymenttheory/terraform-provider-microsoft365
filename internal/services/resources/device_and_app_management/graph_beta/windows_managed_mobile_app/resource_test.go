@@ -137,7 +137,7 @@ func TestUnitResourceWindowsManagedMobileApp_01_Create_Minimal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -162,7 +162,7 @@ func TestUnitResourceWindowsManagedMobileApp_02_Create_Maximal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -188,7 +188,7 @@ func TestUnitResourceWindowsManagedMobileApp_03_Update_MinimalToMaximal(t *testi
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
 			{
@@ -224,7 +224,7 @@ func TestUnitResourceWindowsManagedMobileApp_04_Update_MaximalToMinimal(t *testi
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
 			{
@@ -257,7 +257,7 @@ func TestUnitResourceWindowsManagedMobileApp_05_Delete_Minimal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create the resource
 			{
@@ -293,7 +293,7 @@ func TestUnitResourceWindowsManagedMobileApp_06_Delete_Maximal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create the resource
 			{
@@ -339,7 +339,7 @@ resource "microsoft365_graph_beta_device_and_app_management_windows_managed_mobi
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Import using the composite ID format: managedAppProtectionId/appId
 			{
@@ -378,7 +378,7 @@ func TestUnitResourceWindowsManagedMobileApp_08_Error(t *testing.T) {
 
 	// Run the test with an error case
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigError(),

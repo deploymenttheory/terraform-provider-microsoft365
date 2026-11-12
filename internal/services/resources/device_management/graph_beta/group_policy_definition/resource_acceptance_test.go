@@ -78,7 +78,7 @@ var testResource = graphBetaGroupPolicyDefinition.GroupPolicyDefinitionTestResou
 func TestAccResourceGroupPolicyDefinition_01_Boolean_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -125,7 +125,7 @@ func TestAccResourceGroupPolicyDefinition_01_Boolean_Minimal(t *testing.T) {
 func TestAccResourceGroupPolicyDefinition_02_Boolean_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -169,7 +169,7 @@ func TestAccResourceGroupPolicyDefinition_02_Boolean_Maximal(t *testing.T) {
 func TestAccResourceGroupPolicyDefinition_03_TextBox(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -214,7 +214,7 @@ func TestAccResourceGroupPolicyDefinition_03_TextBox(t *testing.T) {
 func TestAccResourceGroupPolicyDefinition_04_Decimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -257,7 +257,7 @@ func TestAccResourceGroupPolicyDefinition_04_Decimal(t *testing.T) {
 func TestAccResourceGroupPolicyDefinition_05_MultiText(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -299,7 +299,7 @@ func TestAccResourceGroupPolicyDefinition_05_MultiText(t *testing.T) {
 func TestAccResourceGroupPolicyDefinition_06_Dropdown(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -342,7 +342,7 @@ func TestAccResourceGroupPolicyDefinition_06_Dropdown(t *testing.T) {
 func TestAccResourceGroupPolicyDefinition_07_Lifecycle_TypeTransitions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

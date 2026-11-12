@@ -55,7 +55,7 @@ func TestUnitResourceApplicationIdentifierUri_01(t *testing.T) {
 	defer applicationIdentifierUriMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01.tf"),

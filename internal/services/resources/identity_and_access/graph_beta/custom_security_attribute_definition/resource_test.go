@@ -40,7 +40,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_01_Basic(t *testing.T) {
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -72,7 +72,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_02_Minimal(t *testing.T) 
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -100,7 +100,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_03_Update(t *testing.T) {
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBasic(),
@@ -133,7 +133,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_04_BooleanType(t *testing
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigBoolean(),
@@ -160,7 +160,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_05_Collection(t *testing.
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigCollection(),
@@ -186,7 +186,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_06_InvalidAttributeSetNam
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidAttributeSet(),
@@ -203,7 +203,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_07_InvalidName(t *testing
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidName(),
@@ -220,7 +220,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_08_InvalidBooleanWithColl
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidBooleanWithCollection(),
@@ -237,7 +237,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_09_InvalidBooleanWithPred
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidBooleanWithPredefinedValues(),
@@ -254,7 +254,7 @@ func TestUnitResourceCustomSecurityAttributeDefinition_10_CreateError(t *testing
 	defer definitionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBasic(),

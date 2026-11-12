@@ -39,7 +39,7 @@ func TestUnitResourceServicePrincipal_01_Minimal(t *testing.T) {
 	defer mockState.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_minimal.tf"),
@@ -69,7 +69,7 @@ func TestUnitResourceServicePrincipal_02_Maximal(t *testing.T) {
 	defer mockState.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_maximal.tf"),
@@ -125,7 +125,7 @@ func TestUnitResourceServicePrincipal_04_RemoveSamlSettings(t *testing.T) {
 	defer mockState.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -162,7 +162,7 @@ func TestUnitResourceServicePrincipal_05_ClearAlternativeNames(t *testing.T) {
 	defer mockState.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -200,7 +200,7 @@ func TestUnitResourceServicePrincipal_08_ClearSamlAndTokenKeyTogether(t *testing
 	defer mockState.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -240,7 +240,7 @@ func TestUnitResourceServicePrincipal_06_ClearTokenEncryptionKeyId(t *testing.T)
 	defer mockState.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				// The description makes the mock seed a key credential, and the key ID below
@@ -278,7 +278,7 @@ func TestUnitResourceServicePrincipal_03_Update(t *testing.T) {
 	defer mockState.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_minimal.tf"),

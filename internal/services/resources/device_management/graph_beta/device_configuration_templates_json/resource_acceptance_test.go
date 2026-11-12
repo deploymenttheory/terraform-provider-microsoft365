@@ -29,7 +29,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_01_IosGeneral(t *testing.T)
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -50,7 +50,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_02_IosFeatures(t *testing.T
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -71,7 +71,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_03_IosCustom(t *testing.T) 
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -92,7 +92,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_04_IosRoot(t *testing.T) {
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -113,7 +113,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_05_IosScep(t *testing.T) {
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -134,7 +134,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_06_MacosCustom(t *testing.T
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -155,7 +155,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_07_WindowsCustom(t *testing
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -176,7 +176,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_08_WindowsRoot(t *testing.T
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -197,7 +197,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_09_AndroidGeneral(t *testin
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -218,7 +218,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_10_WindowsEncrypted(t *test
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -239,7 +239,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_11_IosNestedFolder(t *testi
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -260,7 +260,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_12_MacosRoot(t *testing.T) 
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -281,7 +281,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_13_MacosScep(t *testing.T) 
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -302,7 +302,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_22_WindowsOmaInteger(t *tes
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -323,7 +323,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_23_WindowsOmaBoolean(t *tes
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -344,7 +344,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_24_WindowsOmaFloatingpoint(
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -365,7 +365,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_25_WindowsOmaDatetime(t *te
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -386,7 +386,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_26_PlaintextString(t *testi
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -407,7 +407,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_27_PlaintextBase64(t *testi
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -428,7 +428,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_28_PlaintextStringxml(t *te
 	updated := loadAcceptanceTestTerraform("resource_28_plaintext_stringxml_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -449,7 +449,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_29_WindowsUpdates(t *testin
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -470,7 +470,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_30_IosWifi(t *testing.T) {
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -495,7 +495,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_31_MacosWifi(t *testing.T) 
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -520,7 +520,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_32_WindowsWifi(t *testing.T
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -545,7 +545,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_33_AndroidOwnerWifi(t *test
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -570,7 +570,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_34_AndroidWorkWifi(t *testi
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -595,7 +595,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_35_AospWifi(t *testing.T) {
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -620,7 +620,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_36_IosEnterpriseWifi(t *tes
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -641,7 +641,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_37_MacosEnterpriseWifi(t *t
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -662,7 +662,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_38_WindowsEnterpriseWifi(t 
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -683,7 +683,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_39_AndroidOwnerEnterpriseWi
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -704,7 +704,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_40_AndroidWorkEnterpriseWif
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -725,7 +725,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_41_AospEnterpriseWifi(t *te
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -746,7 +746,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_42_IosVpn(t *testing.T) {
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -767,7 +767,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_43_MacosVpn(t *testing.T) {
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -788,7 +788,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_44_WindowsVpn(t *testing.T)
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -809,7 +809,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_45_AndroidOwnerVpn(t *testi
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -830,7 +830,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_46_IosEmail(t *testing.T) {
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -851,7 +851,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_47_IosPkcs(t *testing.T) {
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -872,7 +872,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_48_MacosPkcs(t *testing.T) 
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -893,7 +893,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_49_WindowsPkcs(t *testing.T
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -914,7 +914,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_50_AndroidWorkPkcs(t *testi
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -935,7 +935,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_51_MacosPreferences(t *test
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -956,7 +956,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_52_MacosUpdates(t *testing.
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -977,7 +977,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_53_AospRestrictions(t *test
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -997,7 +997,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_54_SingletonRelationships(t
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
 		Steps: []resource.TestStep{
@@ -1018,7 +1018,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_55_CollectionRelationships(
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
 		Steps: []resource.TestStep{
@@ -1059,7 +1059,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_55_CollectionRelationships(
 func TestAccResourceDeviceConfigurationTemplatesJson_14_AssignmentTransitions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}, "time": {Source: "hashicorp/time", VersionConstraint: constants.ExternalProviderTimeVersion}},
 		Steps: []resource.TestStep{
@@ -1077,7 +1077,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_14_AssignmentTransitions(t 
 func TestAccResourceDeviceConfigurationTemplatesJson_15_ExplicitResets(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
 		Steps: []resource.TestStep{
@@ -1095,7 +1095,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_21_FormattedJSON(t *testing
 	config := loadAcceptanceTestTerraform("resource_21_formatted_json.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
 		Steps: []resource.TestStep{
@@ -1113,7 +1113,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_57_WifiKeyClear(t *testing.
 	config := loadAcceptanceTestTerraform("resource_33_android_owner_wifi.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
 		Steps: []resource.TestStep{
@@ -1132,7 +1132,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_61_AssignmentsMinimalToMaxi
 	updated := loadAcceptanceTestTerraform("resource_61_assignments_minimal_to_maximal_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1156,7 +1156,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_62_AssignmentsMaximalToMini
 	updated := loadAcceptanceTestTerraform("resource_62_assignments_maximal_to_minimal_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1179,7 +1179,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_63_MixedOmaValues(t *testin
 	updated := loadAcceptanceTestTerraform("resource_63_mixed_oma_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1200,7 +1200,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_65_WindowsDeliveryOptimizat
 	updated := loadAcceptanceTestTerraform("resource_65_windows_delivery_optimization_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1223,7 +1223,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_66_WindowsDfci(t *testing.T
 	updated := loadAcceptanceTestTerraform("resource_66_windows_dfci_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1246,7 +1246,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_67_WindowsDeviceRestriction
 	updated := loadAcceptanceTestTerraform("resource_67_windows_device_restrictions_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1269,7 +1269,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_68_WindowsDomainJoin(t *tes
 	updated := loadAcceptanceTestTerraform("resource_68_windows_domain_join_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1292,7 +1292,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_69_WindowsEditionUpgrade(t 
 	updated := loadAcceptanceTestTerraform("resource_69_windows_edition_upgrade_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1315,7 +1315,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_70_WindowsEmail(t *testing.
 	updated := loadAcceptanceTestTerraform("resource_70_windows_email_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1338,7 +1338,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_71_WindowsEndpointProtectio
 	updated := loadAcceptanceTestTerraform("resource_71_windows_endpoint_protection_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1361,7 +1361,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_72_WindowsKiosk(t *testing.
 	updated := loadAcceptanceTestTerraform("resource_72_windows_kiosk_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1383,7 +1383,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_73_WindowsImportedPkcs(t *t
 	updated := loadAcceptanceTestTerraform("resource_73_windows_imported_pkcs_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1406,7 +1406,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_74_WindowsScep(t *testing.T
 	updated := loadAcceptanceTestTerraform("resource_74_windows_scep_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1429,7 +1429,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_75_WindowsSecureAssessment(
 	updated := loadAcceptanceTestTerraform("resource_75_windows_secure_assessment_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1452,7 +1452,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_76_WindowsSharedDevice(t *t
 	updated := loadAcceptanceTestTerraform("resource_76_windows_shared_device_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1475,7 +1475,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_77_WindowsHealthMonitoring(
 	updated := loadAcceptanceTestTerraform("resource_77_windows_health_monitoring_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1498,7 +1498,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_78_WindowsWiredNetwork(t *t
 	updated := loadAcceptanceTestTerraform("resource_78_windows_wired_network_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1521,7 +1521,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_79_IosDerivedCredential(t *
 	updated := loadAcceptanceTestTerraform("resource_79_ios_derived_credential_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1543,7 +1543,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_80_IosImportedPkcs(t *testi
 	updated := loadAcceptanceTestTerraform("resource_80_ios_imported_pkcs_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1566,7 +1566,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_81_IosEducation(t *testing.
 	updated := loadAcceptanceTestTerraform("resource_81_ios_education_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1588,7 +1588,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_82_IosWiredNetwork(t *testi
 	updated := loadAcceptanceTestTerraform("resource_82_ios_wired_network_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1611,7 +1611,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_83_MacosDeviceFeatures(t *t
 	updated := loadAcceptanceTestTerraform("resource_83_macos_device_features_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1634,7 +1634,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_84_MacosDeviceRestrictions(
 	updated := loadAcceptanceTestTerraform("resource_84_macos_device_restrictions_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1657,7 +1657,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_85_MacosEndpointProtection(
 	updated := loadAcceptanceTestTerraform("resource_85_macos_endpoint_protection_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1680,7 +1680,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_86_MacosExtensions(t *testi
 	updated := loadAcceptanceTestTerraform("resource_86_macos_extensions_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1703,7 +1703,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_87_MacosImportedPkcs(t *tes
 	updated := loadAcceptanceTestTerraform("resource_87_macos_imported_pkcs_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1726,7 +1726,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_88_MacosWiredNetwork(t *tes
 	updated := loadAcceptanceTestTerraform("resource_88_macos_wired_network_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1749,7 +1749,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_89_AospPkcs(t *testing.T) {
 	updated := loadAcceptanceTestTerraform("resource_89_aosp_pkcs_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1772,7 +1772,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_90_AndroidOwnerPkcs(t *test
 	updated := loadAcceptanceTestTerraform("resource_90_android_owner_pkcs_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1795,7 +1795,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_91_AndroidOwnerImportedPkcs
 	updated := loadAcceptanceTestTerraform("resource_91_android_owner_imported_pkcs_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1818,7 +1818,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_92_AndroidOwnerDerivedCrede
 	updated := loadAcceptanceTestTerraform("resource_92_android_owner_derived_credential_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1840,7 +1840,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_93_AndroidWorkDeviceRestric
 	updated := loadAcceptanceTestTerraform("resource_93_android_work_device_restrictions_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1863,7 +1863,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_94_AndroidWorkGmail(t *test
 	updated := loadAcceptanceTestTerraform("resource_94_android_work_gmail_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1886,7 +1886,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_95_AndroidWorkNineEmail(t *
 	updated := loadAcceptanceTestTerraform("resource_95_android_work_nine_email_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1909,7 +1909,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_96_AndroidWorkVpn(t *testin
 	updated := loadAcceptanceTestTerraform("resource_96_android_work_vpn_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1932,7 +1932,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_97_AndroidWorkImportedPkcs(
 	updated := loadAcceptanceTestTerraform("resource_97_android_work_imported_pkcs_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1955,7 +1955,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_98_AospRoot(t *testing.T) {
 	updated := loadAcceptanceTestTerraform("resource_98_aosp_root_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -1978,7 +1978,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_99_AospScep(t *testing.T) {
 	updated := loadAcceptanceTestTerraform("resource_99_aosp_scep_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -2001,7 +2001,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_100_AndroidOwnerRoot(t *tes
 	updated := loadAcceptanceTestTerraform("resource_100_android_owner_root_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -2024,7 +2024,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_101_AndroidOwnerScep(t *tes
 	updated := loadAcceptanceTestTerraform("resource_101_android_owner_scep_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -2047,7 +2047,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_102_AndroidWorkRoot(t *test
 	updated := loadAcceptanceTestTerraform("resource_102_android_work_root_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -2070,7 +2070,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_103_AndroidWorkScep(t *test
 	updated := loadAcceptanceTestTerraform("resource_103_android_work_scep_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -2093,7 +2093,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_104_AndroidWorkMigration(t 
 	updated := loadAcceptanceTestTerraform("resource_104_android_work_migration_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
@@ -2116,7 +2116,7 @@ func TestAccResourceDeviceConfigurationTemplatesJson_105_IosUpdates(t *testing.T
 	updated := loadAcceptanceTestTerraform("resource_105_ios_updates_updated.tf")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},

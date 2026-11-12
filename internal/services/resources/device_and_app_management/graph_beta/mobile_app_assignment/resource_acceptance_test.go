@@ -122,7 +122,7 @@ func checkDestroyAllTypes() resource.TestCheckFunc {
 func TestAccResourceMobileAppAssignment_01_Ios_Available_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -150,7 +150,7 @@ func TestAccResourceMobileAppAssignment_01_Ios_Available_Minimal(t *testing.T) {
 func TestAccResourceMobileAppAssignment_02_Ios_Required_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -173,7 +173,7 @@ func TestAccResourceMobileAppAssignment_02_Ios_Required_Maximal(t *testing.T) {
 func TestAccResourceMobileAppAssignment_03_Ios_Uninstall_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -195,7 +195,7 @@ func TestAccResourceMobileAppAssignment_03_Ios_Uninstall_Minimal(t *testing.T) {
 func TestAccResourceMobileAppAssignment_04_Ios_AvailableWithoutEnrollment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -219,7 +219,7 @@ func TestAccResourceMobileAppAssignment_04_Ios_AvailableWithoutEnrollment(t *tes
 func TestAccResourceMobileAppAssignment_05_Ios_Lifecycle_RequiredToAvailable(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -254,7 +254,7 @@ func TestAccResourceMobileAppAssignment_05_Ios_Lifecycle_RequiredToAvailable(t *
 func TestAccResourceMobileAppAssignment_06_Ios_Validation_IsRemovableUnsupportedIntent(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadAcceptanceTestTerraform("006_ios_validation_is_removable_unsupported_intent.tf"),
@@ -269,7 +269,7 @@ func TestAccResourceMobileAppAssignment_06_Ios_Validation_IsRemovableUnsupported
 func TestAccResourceMobileAppAssignment_07_Ios_Validation_UninstallUnsupportedSettings(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadAcceptanceTestTerraform("007_ios_validation_uninstall_unsupported_settings.tf"),
@@ -283,7 +283,7 @@ func TestAccResourceMobileAppAssignment_07_Ios_Validation_UninstallUnsupportedSe
 func TestAccResourceMobileAppAssignment_08_WinGet_Required(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -306,7 +306,7 @@ func TestAccResourceMobileAppAssignment_08_WinGet_Required(t *testing.T) {
 func TestAccResourceMobileAppAssignment_09_Win32Lob_Available(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -332,7 +332,7 @@ func TestAccResourceMobileAppAssignment_09_Win32Lob_Available(t *testing.T) {
 func TestAccResourceMobileAppAssignment_10_Win32Catalog_Available(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -354,7 +354,7 @@ func TestAccResourceMobileAppAssignment_10_Win32Catalog_Available(t *testing.T) 
 func TestAccResourceMobileAppAssignment_11_WindowsUniversalAppX_Required(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{
@@ -373,7 +373,7 @@ func TestAccResourceMobileAppAssignment_11_WindowsUniversalAppX_Required(t *test
 func TestAccResourceMobileAppAssignment_12_AndroidManagedStore_Required(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        externalProviders,
 		CheckDestroy:             checkDestroyAllTypes(),
 		Steps: []resource.TestStep{

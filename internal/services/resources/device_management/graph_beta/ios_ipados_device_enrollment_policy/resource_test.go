@@ -42,7 +42,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_01_Minimal(t *testing.T) {
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
@@ -79,7 +79,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_02_Maximal(t *testing.T) {
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
@@ -123,7 +123,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_03_MinimalToMaximal(t *test
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_scenario_minimal_to_maximal_step_01.tf"),
@@ -168,7 +168,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_04_MaximalToMinimal(t *test
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("005_scenario_maximal_to_minimal_step_01.tf"),
@@ -213,7 +213,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_05_DeviceSecurityGroup(t *t
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("007_scenario_device_security_group.tf"),
@@ -237,7 +237,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_06_DeviceSecurityGroupUpdat
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("008_scenario_device_security_group_update_step_01.tf"),
@@ -274,7 +274,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_07_Error_AwaitFinalConfigur
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("010_scenario_error_await_final_configuration_requires_modern_auth.tf"),
@@ -290,7 +290,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_07b_Error_CompanyPortalUnsu
 	defer httpmock.DeactivateAndReset()
 	defer enrollmentPolicyMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{{
 			Config:      loadUnitTestTerraform("015_scenario_error_company_portal_unsupported.tf"),
 			ExpectError: regexp.MustCompile(`Company Portal authentication is not supported`),
@@ -309,7 +309,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_08_DefaultPolicyAssignment(
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("011_scenario_default_policy_assignment.tf"),
@@ -335,7 +335,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_08b_DefaultPolicyAssignment
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("011_scenario_default_policy_assignment.tf"),
@@ -362,7 +362,7 @@ func TestUnitResourceIOSiPadOSDeviceEnrollmentPolicy_09_DefaultPolicyAssignmentS
 	defer enrollmentPolicyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("012_scenario_default_policy_assignment_switch_step_01.tf"),

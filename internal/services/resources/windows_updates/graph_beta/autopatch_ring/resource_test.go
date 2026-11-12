@@ -45,7 +45,7 @@ func TestUnitResourceWindowsUpdateRing_01_Create(t *testing.T) {
 	defer ringMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create.tf"),
@@ -71,7 +71,7 @@ func TestUnitResourceWindowsUpdateRing_02_Update(t *testing.T) {
 	defer ringMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create.tf"),
@@ -98,7 +98,7 @@ func TestUnitResourceWindowsUpdateRing_03_Import(t *testing.T) {
 	defer ringMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_create.tf"),
@@ -124,7 +124,7 @@ func TestUnitResourceWindowsUpdateRing_04_Error(t *testing.T) {
 	defer ringMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_create.tf"),

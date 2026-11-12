@@ -45,7 +45,7 @@ func TestUnitDatasourceUser_01_ListAll(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_list_all.tf"),
@@ -70,7 +70,7 @@ func TestUnitDatasourceUser_02_ByObjectId(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_object_id.tf"),
@@ -95,7 +95,7 @@ func TestUnitDatasourceUser_03_ByDisplayName(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_by_display_name.tf"),
@@ -117,7 +117,7 @@ func TestUnitDatasourceUser_04_ByEmployeeId(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_by_employee_id.tf"),
@@ -139,7 +139,7 @@ func TestUnitDatasourceUser_05_ByGivenName(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_by_given_name.tf"),
@@ -161,7 +161,7 @@ func TestUnitDatasourceUser_06_ByUserPrincipalName(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("06_by_user_principal_name.tf"),
@@ -183,7 +183,7 @@ func TestUnitDatasourceUser_07_ByOnPremisesImmutableId(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("07_by_on_premises_immutable_id.tf"),
@@ -205,7 +205,7 @@ func TestUnitDatasourceUser_08_ByOnPremisesDistinguishedName(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("08_by_on_premises_distinguished_name.tf"),
@@ -227,7 +227,7 @@ func TestUnitDatasourceUser_09_ByODataQuery(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("09_odata_query.tf"),
@@ -249,7 +249,7 @@ func TestUnitDatasourceUser_10_Error(t *testing.T) {
 	defer uMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("02_by_object_id.tf"),

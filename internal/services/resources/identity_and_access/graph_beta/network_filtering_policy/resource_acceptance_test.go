@@ -34,7 +34,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceNetworkFilteringPolicy_01_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -86,7 +86,7 @@ func TestAccResourceNetworkFilteringPolicy_01_Lifecycle(t *testing.T) {
 func TestAccResourceNetworkFilteringPolicy_02_BlockAction(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -120,7 +120,7 @@ func TestAccResourceNetworkFilteringPolicy_02_BlockAction(t *testing.T) {
 func TestAccResourceNetworkFilteringPolicy_03_AllowAction(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -154,7 +154,7 @@ func TestAccResourceNetworkFilteringPolicy_03_AllowAction(t *testing.T) {
 func TestAccResourceNetworkFilteringPolicy_04_MinimalConfiguration(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

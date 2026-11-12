@@ -37,7 +37,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceConditionalAccessPolicy_01_CAD001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -116,7 +116,7 @@ func TestAccResourceConditionalAccessPolicy_01_CAD001(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_02_CAD002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -196,7 +196,7 @@ func TestAccResourceConditionalAccessPolicy_02_CAD002(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_03_CAD003(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -259,7 +259,7 @@ func TestAccResourceConditionalAccessPolicy_03_CAD003(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_04_CAD004(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -316,7 +316,7 @@ func TestAccResourceConditionalAccessPolicy_04_CAD004(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_05_CAD005(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -379,7 +379,7 @@ func TestAccResourceConditionalAccessPolicy_05_CAD005(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -437,7 +437,7 @@ func TestAccResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_07_CAD007(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -500,7 +500,7 @@ func TestAccResourceConditionalAccessPolicy_07_CAD007(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -561,7 +561,7 @@ func TestAccResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -619,7 +619,7 @@ func TestAccResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_10_CAD010(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -675,7 +675,7 @@ func TestAccResourceConditionalAccessPolicy_10_CAD010(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_11_CAD011(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -735,7 +735,7 @@ func TestAccResourceConditionalAccessPolicy_11_CAD011(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_12_CAD012(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -792,7 +792,7 @@ func TestAccResourceConditionalAccessPolicy_12_CAD012(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_13_CAD013(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -855,7 +855,7 @@ func TestAccResourceConditionalAccessPolicy_13_CAD013(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_14_CAD014(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -915,7 +915,7 @@ func TestAccResourceConditionalAccessPolicy_14_CAD014(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_15_CAD015(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -976,7 +976,7 @@ func TestAccResourceConditionalAccessPolicy_15_CAD015(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_16_CAD016(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1039,7 +1039,7 @@ func TestAccResourceConditionalAccessPolicy_16_CAD016(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_17_CAD017(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1102,7 +1102,7 @@ func TestAccResourceConditionalAccessPolicy_17_CAD017(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_18_CAD018(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1161,7 +1161,7 @@ func TestAccResourceConditionalAccessPolicy_18_CAD018(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_19_CAD019(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1219,7 +1219,7 @@ func TestAccResourceConditionalAccessPolicy_19_CAD019(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_20_CAL001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1283,7 +1283,7 @@ func TestAccResourceConditionalAccessPolicy_20_CAL001(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_21_CAL002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1342,7 +1342,7 @@ func TestAccResourceConditionalAccessPolicy_21_CAL002(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_22_CAL003(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1402,7 +1402,7 @@ func TestAccResourceConditionalAccessPolicy_22_CAL003(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_23_CAL004(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1461,7 +1461,7 @@ func TestAccResourceConditionalAccessPolicy_23_CAL004(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_24_CAL005(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1527,7 +1527,7 @@ func TestAccResourceConditionalAccessPolicy_24_CAL005(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_25_CAL006(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1592,7 +1592,7 @@ func TestAccResourceConditionalAccessPolicy_25_CAL006(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_26_CAP001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1647,7 +1647,7 @@ func TestAccResourceConditionalAccessPolicy_26_CAP001(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_27_CAP002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1702,7 +1702,7 @@ func TestAccResourceConditionalAccessPolicy_27_CAP002(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_28_CAP003(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1758,7 +1758,7 @@ func TestAccResourceConditionalAccessPolicy_28_CAP003(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_29_CAP004(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1814,7 +1814,7 @@ func TestAccResourceConditionalAccessPolicy_29_CAP004(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_30_CAU001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1869,7 +1869,7 @@ func TestAccResourceConditionalAccessPolicy_30_CAU001(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_31_CAU001A(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1923,7 +1923,7 @@ func TestAccResourceConditionalAccessPolicy_31_CAU001A(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_32_CAU002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -1979,7 +1979,7 @@ func TestAccResourceConditionalAccessPolicy_32_CAU002(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_33_CAU003(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2033,7 +2033,7 @@ func TestAccResourceConditionalAccessPolicy_33_CAU003(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_34_CAU004(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2089,7 +2089,7 @@ func TestAccResourceConditionalAccessPolicy_34_CAU004(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_35_CAU006(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2151,7 +2151,7 @@ func TestAccResourceConditionalAccessPolicy_35_CAU006(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_36_CAU007(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2213,7 +2213,7 @@ func TestAccResourceConditionalAccessPolicy_36_CAU007(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_37_CAU008(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2267,7 +2267,7 @@ func TestAccResourceConditionalAccessPolicy_37_CAU008(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_38_CAU009(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2323,7 +2323,7 @@ func TestAccResourceConditionalAccessPolicy_38_CAU009(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_39_CAU010(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2382,7 +2382,7 @@ func TestAccResourceConditionalAccessPolicy_39_CAU010(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_40_CAU011(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2440,7 +2440,7 @@ func TestAccResourceConditionalAccessPolicy_40_CAU011(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_41_CAU012(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2502,7 +2502,7 @@ func TestAccResourceConditionalAccessPolicy_41_CAU012(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_42_CAU013(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2557,7 +2557,7 @@ func TestAccResourceConditionalAccessPolicy_43_CAU014(t *testing.T) {
 	t.Skip("CAU014 requires Workload Identities Premium license (servicePrincipalRiskLevels) which is not available in the test tenant")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2621,7 +2621,7 @@ func TestAccResourceConditionalAccessPolicy_43_CAU014(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_44_CAU015(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2678,7 +2678,7 @@ func TestAccResourceConditionalAccessPolicy_44_CAU015(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_45_CAU016(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2735,7 +2735,7 @@ func TestAccResourceConditionalAccessPolicy_45_CAU016(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2792,7 +2792,7 @@ func TestAccResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2846,7 +2846,7 @@ func TestAccResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2907,7 +2907,7 @@ func TestAccResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_50_CAAU001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -2994,7 +2994,7 @@ func TestAccResourceConditionalAccessPolicy_50_CAAU001(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_51_CAAU002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -3082,7 +3082,7 @@ func TestAccResourceConditionalAccessPolicy_51_CAAU002(t *testing.T) {
 func TestAccResourceConditionalAccessPolicy_49_CAU020(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

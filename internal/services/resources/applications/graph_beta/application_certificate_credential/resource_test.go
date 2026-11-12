@@ -58,7 +58,7 @@ func TestUnitResourceApplicationCertificateCredential_01_Base64(t *testing.T) {
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_base64.tf"),
@@ -82,7 +82,7 @@ func TestUnitResourceApplicationCertificateCredential_02_DER(t *testing.T) {
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_der.tf"),
@@ -106,7 +106,7 @@ func TestUnitResourceApplicationCertificateCredential_03_HEX(t *testing.T) {
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_03_hex.tf"),
@@ -130,7 +130,7 @@ func TestUnitResourceApplicationCertificateCredential_04_PEM(t *testing.T) {
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_04_pem.tf"),

@@ -65,7 +65,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_01_IosGeneral(t *testing.T
 	config := loadUnitTestTerraform("resource_01_ios_general.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -89,7 +89,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_02_IosFeatures(t *testing.
 	config := loadUnitTestTerraform("resource_02_ios_features.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -113,7 +113,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_03_IosCustom(t *testing.T)
 	config := loadUnitTestTerraform("resource_03_ios_custom.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -137,7 +137,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_04_IosRoot(t *testing.T) {
 	config := loadUnitTestTerraform("resource_04_ios_root.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -161,7 +161,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_05_IosScep(t *testing.T) {
 	config := loadUnitTestTerraform("resource_05_ios_scep.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -185,7 +185,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_06_MacosCustom(t *testing.
 	config := loadUnitTestTerraform("resource_06_macos_custom.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -209,7 +209,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_07_WindowsCustom(t *testin
 	config := loadUnitTestTerraform("resource_07_windows_custom.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -233,7 +233,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_08_WindowsRoot(t *testing.
 	config := loadUnitTestTerraform("resource_08_windows_root.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -257,7 +257,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_09_AndroidGeneral(t *testi
 	config := loadUnitTestTerraform("resource_09_android_general.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -281,7 +281,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_10_WindowsEncrypted(t *tes
 	config := loadUnitTestTerraform("resource_10_windows_encrypted.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -305,7 +305,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_11_IosNestedFolder(t *test
 	config := loadUnitTestTerraform("resource_11_ios_nested_folder.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -329,7 +329,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_12_MacosRoot(t *testing.T)
 	config := loadUnitTestTerraform("resource_12_macos_root.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -353,7 +353,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_13_MacosScep(t *testing.T)
 	config := loadUnitTestTerraform("resource_13_macos_scep.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -378,7 +378,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_14_AssignmentTransitions(t
 	maximal := loadUnitTestTerraform("resource_14_assignments_maximal.tf")
 	empty := loadUnitTestTerraform("resource_14_assignments_empty.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: minimal},
 			{Config: maximal, Check: check.That(resourceType + ".test").Key("assignments.#").HasValue("4")},
@@ -399,7 +399,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_15_ExplicitResets(t *testi
 	config := loadUnitTestTerraform("resource_01_ios_general.tf")
 	updated := loadUnitTestTerraform("resource_15_explicit_resets.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config},
 			{Config: updated, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"cameraBlocked":false`))},
@@ -427,7 +427,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_16_InvalidJSON(t *testing.
 			defer profileMock.CleanupMockState()
 			config := loadUnitTestTerraform("resource_16_invalid_" + tc.name + ".tf")
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps:                    []resource.TestStep{{Config: config, ExpectError: regexp.MustCompile(tc.message)}},
 			})
 		})
@@ -440,7 +440,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_17_PermissionDenied(t *tes
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps:                    []resource.TestStep{{Config: loadUnitTestTerraform("resource_03_ios_custom.tf"), ExpectError: regexp.MustCompile("403|Forbidden|permissions")}},
 	})
 }
@@ -452,7 +452,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_18_RemoteDrift(t *testing.
 	defer profileMock.CleanupMockState()
 	config := loadUnitTestTerraform("resource_01_ios_general.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config},
 			{PreConfig: func() { profileMock.SetRemoteProperty("cameraBlocked", false) }, Config: config, PlanOnly: true, ExpectNonEmptyPlan: true},
@@ -468,7 +468,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_19_RemoteDeletion(t *testi
 	defer profileMock.CleanupMockState()
 	config := loadUnitTestTerraform("resource_03_ios_custom.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config},
 			{PreConfig: profileMock.CleanupMockState, Config: config, PlanOnly: true, ExpectNonEmptyPlan: true},
@@ -485,7 +485,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_20_AssignmentFailureRetain
 		httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Assignment rejected"}}`))
 	config := loadUnitTestTerraform("resource_20_assignment_failure.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps:                    []resource.TestStep{{Config: config, ExpectError: regexp.MustCompile("400|Bad Request")}},
 	})
 	deleted := false
@@ -507,7 +507,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_21_FormattedJSON(t *testin
 	config := loadUnitTestTerraform("resource_21_formatted_json.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`(?s)^\{\n  "`))},
 			{Config: config, PlanOnly: true},
@@ -553,7 +553,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_22_WindowsOmaInteger(t *te
 	config := loadUnitTestTerraform("resource_22_windows_oma_integer.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -572,7 +572,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_23_WindowsOmaBoolean(t *te
 	config := loadUnitTestTerraform("resource_23_windows_oma_boolean.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -591,7 +591,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_24_WindowsOmaFloatingpoint
 	config := loadUnitTestTerraform("resource_24_windows_oma_floatingpoint.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -610,7 +610,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_25_WindowsOmaDatetime(t *t
 	config := loadUnitTestTerraform("resource_25_windows_oma_datetime.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -629,7 +629,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_26_PlaintextString(t *test
 	config := loadUnitTestTerraform("resource_26_plaintext_string.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -648,7 +648,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_27_PlaintextBase64(t *test
 	config := loadUnitTestTerraform("resource_27_plaintext_base64.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -667,7 +667,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_28_PlaintextStringxml(t *t
 	config := loadUnitTestTerraform("resource_28_plaintext_stringxml.tf")
 	updated := loadUnitTestTerraform("resource_28_plaintext_stringxml_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: checkOMASettingValue("#microsoft.graph.omaSettingStringXml", `<test enabled="true"/>`)},
 			importStep(),
@@ -686,7 +686,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_29_WindowsUpdates(t *testi
 	config := loadUnitTestTerraform("resource_29_windows_updates.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -705,7 +705,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_30_IosWifi(t *testing.T) {
 	config := loadUnitTestTerraform("resource_30_ios_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true,
@@ -728,7 +728,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_31_MacosWifi(t *testing.T)
 	config := loadUnitTestTerraform("resource_31_macos_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true,
@@ -751,7 +751,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_32_WindowsWifi(t *testing.
 	config := loadUnitTestTerraform("resource_32_windows_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true,
@@ -774,7 +774,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_33_AndroidOwnerWifi(t *tes
 	config := loadUnitTestTerraform("resource_33_android_owner_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true,
@@ -797,7 +797,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_34_AndroidWorkWifi(t *test
 	config := loadUnitTestTerraform("resource_34_android_work_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true,
@@ -820,7 +820,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_35_AospWifi(t *testing.T) 
 	config := loadUnitTestTerraform("resource_35_aosp_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true,
@@ -843,7 +843,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_36_IosEnterpriseWifi(t *te
 	config := loadUnitTestTerraform("resource_36_ios_enterprise_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -862,7 +862,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_37_MacosEnterpriseWifi(t *
 	config := loadUnitTestTerraform("resource_37_macos_enterprise_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -881,7 +881,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_38_WindowsEnterpriseWifi(t
 	config := loadUnitTestTerraform("resource_38_windows_enterprise_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -900,7 +900,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_39_AndroidOwnerEnterpriseW
 	config := loadUnitTestTerraform("resource_39_android_owner_enterprise_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -919,7 +919,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_40_AndroidWorkEnterpriseWi
 	config := loadUnitTestTerraform("resource_40_android_work_enterprise_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -938,7 +938,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_41_AospEnterpriseWifi(t *t
 	config := loadUnitTestTerraform("resource_41_aosp_enterprise_wifi.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -957,7 +957,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_42_IosVpn(t *testing.T) {
 	config := loadUnitTestTerraform("resource_42_ios_vpn.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -976,7 +976,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_43_MacosVpn(t *testing.T) 
 	config := loadUnitTestTerraform("resource_43_macos_vpn.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -995,7 +995,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_44_WindowsVpn(t *testing.T
 	config := loadUnitTestTerraform("resource_44_windows_vpn.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1014,7 +1014,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_45_AndroidOwnerVpn(t *test
 	config := loadUnitTestTerraform("resource_45_android_owner_vpn.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1033,7 +1033,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_46_IosEmail(t *testing.T) 
 	config := loadUnitTestTerraform("resource_46_ios_email.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1052,7 +1052,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_47_IosPkcs(t *testing.T) {
 	config := loadUnitTestTerraform("resource_47_ios_pkcs.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1071,7 +1071,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_48_MacosPkcs(t *testing.T)
 	config := loadUnitTestTerraform("resource_48_macos_pkcs.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1090,7 +1090,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_49_WindowsPkcs(t *testing.
 	config := loadUnitTestTerraform("resource_49_windows_pkcs.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1109,7 +1109,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_50_AndroidWorkPkcs(t *test
 	config := loadUnitTestTerraform("resource_50_android_work_pkcs.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1128,7 +1128,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_51_MacosPreferences(t *tes
 	config := loadUnitTestTerraform("resource_51_macos_preferences.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1147,7 +1147,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_52_MacosUpdates(t *testing
 	config := loadUnitTestTerraform("resource_52_macos_updates.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1166,7 +1166,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_53_AospRestrictions(t *tes
 	config := loadUnitTestTerraform("resource_53_aosp_restrictions.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").Exists()},
 			importStep(),
@@ -1183,7 +1183,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_54_SingletonRelationships(
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: loadUnitTestTerraform("resource_54_singleton_initial.tf")},
 			importStep(),
@@ -1204,7 +1204,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_55_CollectionRelationships
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: loadUnitTestTerraform("resource_55_collection_initial.tf"), Check: func(state *terraform.State) error {
 				settingsBeforeImport = state.RootModule().Resources[resourceType+".test"].Primary.Attributes["settings"]
@@ -1293,7 +1293,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_56_RefreshErrorsPreserveSt
 			config := loadUnitTestTerraform("resource_03_ios_custom.tf")
 			endpoint := "https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/"
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{Config: config, Check: func(state *terraform.State) error {
 						id = state.RootModule().Resources[resourceType+".test"].Primary.ID
@@ -1321,7 +1321,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_57_RemoteWifiKeyCleared(t 
 	defer profileMock.CleanupMockState()
 	config := loadUnitTestTerraform("resource_33_android_owner_wifi.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config},
 			{PreConfig: func() { profileMock.SetRemoteProperty("preSharedKey", nil) }, Config: config, PlanOnly: true, ExpectNonEmptyPlan: true},
@@ -1339,7 +1339,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_58_ProfileTypeChange(t *te
 	config := loadUnitTestTerraform("resource_03_ios_custom.tf")
 	updated := strings.ReplaceAll(config, "#microsoft.graph.iosCustomConfiguration", "#microsoft.graph.macOSCustomConfiguration")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config},
 			{Config: updated, ExpectError: regexp.MustCompile("Profile type cannot be changed")},
@@ -1362,7 +1362,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_59_InvalidAssignments(t *t
 			defer httpmock.DeactivateAndReset()
 			defer profileMock.CleanupMockState()
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps:                    []resource.TestStep{{Config: loadUnitTestTerraform("resource_59_" + tc.name + ".tf"), ExpectError: regexp.MustCompile(tc.message)}},
 			})
 		})
@@ -1377,7 +1377,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_60_PaginatedRelationships(
 	var endpoint, firstID, secondID string
 	config := loadUnitTestTerraform("resource_55_collection_multiple.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: func(state *terraform.State) error {
 				objects := state.RootModule().Resources
@@ -1413,7 +1413,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_61_AssignmentsMinimalToMax
 	initial := loadUnitTestTerraform("resource_61_assignments_minimal_to_maximal.tf")
 	updated := loadUnitTestTerraform("resource_61_assignments_minimal_to_maximal_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: initial, Check: checkTemplateAssignments(&profileID, false, false)},
 			importStep(),
@@ -1434,7 +1434,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_62_AssignmentsMaximalToMin
 	initial := loadUnitTestTerraform("resource_62_assignments_maximal_to_minimal.tf")
 	updated := loadUnitTestTerraform("resource_62_assignments_maximal_to_minimal_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: initial, Check: checkTemplateAssignments(&profileID, true, false)},
 			importStep(),
@@ -1505,7 +1505,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_63_MixedOmaValues(t *testi
 	config := loadUnitTestTerraform("resource_63_mixed_oma.tf")
 	updated := loadUnitTestTerraform("resource_63_mixed_oma_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.ComposeTestCheckFunc(checkOMASettingValue("#microsoft.graph.omaSettingStringXml", `<test enabled="true"/>`), checkOMASettingValue("#microsoft.graph.omaSettingString", "dGVzdA=="), checkOMASettingValue("#microsoft.graph.omaSettingBase64", "AAECA//+/Q=="))},
 			importStep(),
@@ -1524,7 +1524,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_64_UnencryptedXML(t *testi
 	config := loadUnitTestTerraform("resource_28_plaintext_stringxml.tf")
 	var profileID string
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: func(state *terraform.State) error {
 				profileID = state.RootModule().Resources[resourceType+".test"].Primary.ID
@@ -1555,7 +1555,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_65_WindowsDeliveryOptimiza
 	config := loadUnitTestTerraform("resource_65_windows_delivery_optimization.tf")
 	updated := loadUnitTestTerraform("resource_65_windows_delivery_optimization_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsDeliveryOptimizationConfiguration"`))},
 			importStep(),
@@ -1576,7 +1576,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_66_WindowsDfci(t *testing.
 	config := loadUnitTestTerraform("resource_66_windows_dfci.tf")
 	updated := loadUnitTestTerraform("resource_66_windows_dfci_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10DeviceFirmwareConfigurationInterface"`))},
 			importStep(),
@@ -1597,7 +1597,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_67_WindowsDeviceRestrictio
 	config := loadUnitTestTerraform("resource_67_windows_device_restrictions.tf")
 	updated := loadUnitTestTerraform("resource_67_windows_device_restrictions_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10GeneralConfiguration"`))},
 			importStep(),
@@ -1618,7 +1618,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_68_WindowsDomainJoin(t *te
 	config := loadUnitTestTerraform("resource_68_windows_domain_join.tf")
 	updated := loadUnitTestTerraform("resource_68_windows_domain_join_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsDomainJoinConfiguration"`))},
 			importStep(),
@@ -1639,7 +1639,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_69_WindowsEditionUpgrade(t
 	config := loadUnitTestTerraform("resource_69_windows_edition_upgrade.tf")
 	updated := loadUnitTestTerraform("resource_69_windows_edition_upgrade_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.editionUpgradeConfiguration"`))},
 			importStep(),
@@ -1660,7 +1660,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_70_WindowsEmail(t *testing
 	config := loadUnitTestTerraform("resource_70_windows_email.tf")
 	updated := loadUnitTestTerraform("resource_70_windows_email_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10EasEmailProfileConfiguration"`))},
 			importStep(),
@@ -1681,7 +1681,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_71_WindowsEndpointProtecti
 	config := loadUnitTestTerraform("resource_71_windows_endpoint_protection.tf")
 	updated := loadUnitTestTerraform("resource_71_windows_endpoint_protection_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10EndpointProtectionConfiguration"`))},
 			importStep(),
@@ -1702,7 +1702,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_72_WindowsKiosk(t *testing
 	config := loadUnitTestTerraform("resource_72_windows_kiosk.tf")
 	updated := loadUnitTestTerraform("resource_72_windows_kiosk_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsKioskConfiguration"`))},
 			importStep(),
@@ -1722,7 +1722,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_73_WindowsImportedPkcs(t *
 	config := loadUnitTestTerraform("resource_73_windows_imported_pkcs.tf")
 	updated := loadUnitTestTerraform("resource_73_windows_imported_pkcs_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10ImportedPFXCertificateProfile"`))},
 			importStep(),
@@ -1743,7 +1743,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_74_WindowsScep(t *testing.
 	config := loadUnitTestTerraform("resource_74_windows_scep.tf")
 	updated := loadUnitTestTerraform("resource_74_windows_scep_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows81SCEPCertificateProfile"`))},
 			importStep(),
@@ -1764,7 +1764,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_75_WindowsSecureAssessment
 	config := loadUnitTestTerraform("resource_75_windows_secure_assessment.tf")
 	updated := loadUnitTestTerraform("resource_75_windows_secure_assessment_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windows10SecureAssessmentConfiguration"`))},
 			importStep(),
@@ -1785,7 +1785,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_76_WindowsSharedDevice(t *
 	config := loadUnitTestTerraform("resource_76_windows_shared_device.tf")
 	updated := loadUnitTestTerraform("resource_76_windows_shared_device_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.sharedPCConfiguration"`))},
 			importStep(),
@@ -1806,7 +1806,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_77_WindowsHealthMonitoring
 	config := loadUnitTestTerraform("resource_77_windows_health_monitoring.tf")
 	updated := loadUnitTestTerraform("resource_77_windows_health_monitoring_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsHealthMonitoringConfiguration"`))},
 			importStep(),
@@ -1827,7 +1827,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_78_WindowsWiredNetwork(t *
 	config := loadUnitTestTerraform("resource_78_windows_wired_network.tf")
 	updated := loadUnitTestTerraform("resource_78_windows_wired_network_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.windowsWiredNetworkConfiguration"`))},
 			importStep(),
@@ -1848,7 +1848,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_79_IosDerivedCredential(t 
 	config := loadUnitTestTerraform("resource_79_ios_derived_credential.tf")
 	updated := loadUnitTestTerraform("resource_79_ios_derived_credential_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosDerivedCredentialAuthenticationConfiguration"`))},
 			importStep(),
@@ -1868,7 +1868,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_80_IosImportedPkcs(t *test
 	config := loadUnitTestTerraform("resource_80_ios_imported_pkcs.tf")
 	updated := loadUnitTestTerraform("resource_80_ios_imported_pkcs_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosImportedPFXCertificateProfile"`))},
 			importStep(),
@@ -1889,7 +1889,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_81_IosEducation(t *testing
 	config := loadUnitTestTerraform("resource_81_ios_education.tf")
 	updated := loadUnitTestTerraform("resource_81_ios_education_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosEduDeviceConfiguration"`))},
 			importStep(),
@@ -1909,7 +1909,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_82_IosWiredNetwork(t *test
 	config := loadUnitTestTerraform("resource_82_ios_wired_network.tf")
 	updated := loadUnitTestTerraform("resource_82_ios_wired_network_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosWiredNetworkConfiguration"`))},
 			importStep(),
@@ -1930,7 +1930,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_83_MacosDeviceFeatures(t *
 	config := loadUnitTestTerraform("resource_83_macos_device_features.tf")
 	updated := loadUnitTestTerraform("resource_83_macos_device_features_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSDeviceFeaturesConfiguration"`))},
 			importStep(),
@@ -1951,7 +1951,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_84_MacosDeviceRestrictions
 	config := loadUnitTestTerraform("resource_84_macos_device_restrictions.tf")
 	updated := loadUnitTestTerraform("resource_84_macos_device_restrictions_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSGeneralDeviceConfiguration"`))},
 			importStep(),
@@ -1972,7 +1972,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_85_MacosEndpointProtection
 	config := loadUnitTestTerraform("resource_85_macos_endpoint_protection.tf")
 	updated := loadUnitTestTerraform("resource_85_macos_endpoint_protection_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSEndpointProtectionConfiguration"`))},
 			importStep(),
@@ -1993,7 +1993,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_86_MacosExtensions(t *test
 	config := loadUnitTestTerraform("resource_86_macos_extensions.tf")
 	updated := loadUnitTestTerraform("resource_86_macos_extensions_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSExtensionsConfiguration"`))},
 			importStep(),
@@ -2014,7 +2014,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_87_MacosImportedPkcs(t *te
 	config := loadUnitTestTerraform("resource_87_macos_imported_pkcs.tf")
 	updated := loadUnitTestTerraform("resource_87_macos_imported_pkcs_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSImportedPFXCertificateProfile"`))},
 			importStep(),
@@ -2035,7 +2035,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_88_MacosWiredNetwork(t *te
 	config := loadUnitTestTerraform("resource_88_macos_wired_network.tf")
 	updated := loadUnitTestTerraform("resource_88_macos_wired_network_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.macOSWiredNetworkConfiguration"`))},
 			importStep(),
@@ -2056,7 +2056,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_89_AospPkcs(t *testing.T) 
 	config := loadUnitTestTerraform("resource_89_aosp_pkcs.tf")
 	updated := loadUnitTestTerraform("resource_89_aosp_pkcs_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.aospDeviceOwnerPkcsCertificateProfile"`))},
 			importStep(),
@@ -2077,7 +2077,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_90_AndroidOwnerPkcs(t *tes
 	config := loadUnitTestTerraform("resource_90_android_owner_pkcs.tf")
 	updated := loadUnitTestTerraform("resource_90_android_owner_pkcs_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerPkcsCertificateProfile"`))},
 			importStep(),
@@ -2098,7 +2098,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_91_AndroidOwnerImportedPkc
 	config := loadUnitTestTerraform("resource_91_android_owner_imported_pkcs.tf")
 	updated := loadUnitTestTerraform("resource_91_android_owner_imported_pkcs_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerImportedPFXCertificateProfile"`))},
 			importStep(),
@@ -2119,7 +2119,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_92_AndroidOwnerDerivedCred
 	config := loadUnitTestTerraform("resource_92_android_owner_derived_credential.tf")
 	updated := loadUnitTestTerraform("resource_92_android_owner_derived_credential_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerDerivedCredentialAuthenticationConfiguration"`))},
 			importStep(),
@@ -2139,7 +2139,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_93_AndroidWorkDeviceRestri
 	config := loadUnitTestTerraform("resource_93_android_work_device_restrictions.tf")
 	updated := loadUnitTestTerraform("resource_93_android_work_device_restrictions_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileGeneralDeviceConfiguration"`))},
 			importStep(),
@@ -2160,7 +2160,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_94_AndroidWorkGmail(t *tes
 	config := loadUnitTestTerraform("resource_94_android_work_gmail.tf")
 	updated := loadUnitTestTerraform("resource_94_android_work_gmail_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileGmailEasConfiguration"`))},
 			importStep(),
@@ -2181,7 +2181,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_95_AndroidWorkNineEmail(t 
 	config := loadUnitTestTerraform("resource_95_android_work_nine_email.tf")
 	updated := loadUnitTestTerraform("resource_95_android_work_nine_email_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileNineWorkEasConfiguration"`))},
 			importStep(),
@@ -2202,7 +2202,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_96_AndroidWorkVpn(t *testi
 	config := loadUnitTestTerraform("resource_96_android_work_vpn.tf")
 	updated := loadUnitTestTerraform("resource_96_android_work_vpn_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileVpnConfiguration"`))},
 			importStep(),
@@ -2223,7 +2223,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_97_AndroidWorkImportedPkcs
 	config := loadUnitTestTerraform("resource_97_android_work_imported_pkcs.tf")
 	updated := loadUnitTestTerraform("resource_97_android_work_imported_pkcs_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidForWorkImportedPFXCertificateProfile"`))},
 			importStep(),
@@ -2244,7 +2244,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_98_AospRoot(t *testing.T) 
 	config := loadUnitTestTerraform("resource_98_aosp_root.tf")
 	updated := loadUnitTestTerraform("resource_98_aosp_root_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.aospDeviceOwnerTrustedRootCertificate"`))},
 			importStep(),
@@ -2265,7 +2265,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_99_AospScep(t *testing.T) 
 	config := loadUnitTestTerraform("resource_99_aosp_scep.tf")
 	updated := loadUnitTestTerraform("resource_99_aosp_scep_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.aospDeviceOwnerScepCertificateProfile"`))},
 			importStep(),
@@ -2286,7 +2286,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_100_AndroidOwnerRoot(t *te
 	config := loadUnitTestTerraform("resource_100_android_owner_root.tf")
 	updated := loadUnitTestTerraform("resource_100_android_owner_root_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerTrustedRootCertificate"`))},
 			importStep(),
@@ -2307,7 +2307,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_101_AndroidOwnerScep(t *te
 	config := loadUnitTestTerraform("resource_101_android_owner_scep.tf")
 	updated := loadUnitTestTerraform("resource_101_android_owner_scep_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidDeviceOwnerScepCertificateProfile"`))},
 			importStep(),
@@ -2328,7 +2328,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_102_AndroidWorkRoot(t *tes
 	config := loadUnitTestTerraform("resource_102_android_work_root.tf")
 	updated := loadUnitTestTerraform("resource_102_android_work_root_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileTrustedRootCertificate"`))},
 			importStep(),
@@ -2349,7 +2349,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_103_AndroidWorkScep(t *tes
 	config := loadUnitTestTerraform("resource_103_android_work_scep.tf")
 	updated := loadUnitTestTerraform("resource_103_android_work_scep_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileScepCertificateProfile"`))},
 			importStep(),
@@ -2370,7 +2370,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_104_AndroidWorkMigration(t
 	config := loadUnitTestTerraform("resource_104_android_work_migration.tf")
 	updated := loadUnitTestTerraform("resource_104_android_work_migration_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.androidWorkProfileMigrationConfiguration"`))},
 			importStep(),
@@ -2391,7 +2391,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_105_IosUpdates(t *testing.
 	config := loadUnitTestTerraform("resource_105_ios_updates.tf")
 	updated := loadUnitTestTerraform("resource_105_ios_updates_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`"@odata.type":"#microsoft.graph.iosUpdateConfiguration"`))},
 			importStep(),
@@ -2411,7 +2411,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_106_ImportedCertificateKey
 	defer profileMock.CleanupMockState()
 	config := loadUnitTestTerraform("resource_91_android_owner_imported_pkcs.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config},
 			{Config: config, PlanOnly: true},

@@ -12,14 +12,14 @@ import yaml
 class CoverageReportingTests(unittest.TestCase):
     def run_report(self, *, fork=False, actor='contributor', existing=False, draft=False):
         workflow = Path(__file__).resolve().parents[4] / '.github/workflows/pr-tests.yml'
-        steps = yaml.safe_load(workflow.read_text())['jobs']['unit-tests']['steps']
+        steps = yaml.safe_load(workflow.read_text(encoding='utf-8'))['jobs']['unit-tests']['steps']
         script = next(step['with']['script'] for step in steps if step['name'] == '💬 Comment coverage summary on PR')
         values = {
             'steps.enforce-coverage.outputs.coverage-pct': '' if draft else '71.9',
             'steps.calculate-coverage.outputs.coverage-pct': '55.3',
             'steps.enforce-coverage.outputs.total-lines || steps.calculate-coverage.outputs.total-lines': '121',
             'steps.enforce-coverage.outputs.covered-lines || steps.calculate-coverage.outputs.covered-lines': '87',
-            'steps.analyze-code.outputs.service-domains': 'device_management',
+            'needs.plan-tests.outputs.service-domains': 'device_management',
             'steps.pr-state.outputs.is-draft': 'true' if draft else 'false',
             'github.repository': 'example/provider',
             'github.event.pull_request.number': '123',

@@ -58,7 +58,7 @@ func TestUnitResourceAgentIdentityBlueprintCertificateCredential_01_PEM(t *testi
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_pem.tf"),
@@ -83,7 +83,7 @@ func TestUnitResourceAgentIdentityBlueprintCertificateCredential_02_DER(t *testi
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_der.tf"),
@@ -107,7 +107,7 @@ func TestUnitResourceAgentIdentityBlueprintCertificateCredential_03_HEX(t *testi
 	defer certificateMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_hex.tf"),

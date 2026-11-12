@@ -37,7 +37,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_01_CreateEmpty(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup.ResourceName,
@@ -79,7 +79,7 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_01_CreateEmpty(t 
 func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_02_WithMembers(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup.ResourceName,
@@ -130,7 +130,7 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_02_WithMembers(t 
 func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMember(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup.ResourceName,
@@ -191,7 +191,7 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMe
 func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_04_LifecycleRemoveMember(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup.ResourceName,

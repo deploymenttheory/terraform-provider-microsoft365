@@ -37,7 +37,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceMacOSSoftwareUpdateConfiguration_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -90,7 +90,7 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_01_Minimal(t *testing.T) {
 func TestAccResourceMacOSSoftwareUpdateConfiguration_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -142,7 +142,7 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_02_Maximal(t *testing.T) {
 func TestAccResourceMacOSSoftwareUpdateConfiguration_03_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -222,7 +222,7 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_03_MinimalToMaximal(t *test
 func TestAccResourceMacOSSoftwareUpdateConfiguration_04_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -303,7 +303,7 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_04_MaximalToMinimal(t *test
 func TestAccResourceMacOSSoftwareUpdateConfiguration_05_MinimalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -353,7 +353,7 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_05_MinimalAssignments(t *te
 func TestAccResourceMacOSSoftwareUpdateConfiguration_06_MaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -402,7 +402,7 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_06_MaximalAssignments(t *te
 func TestAccResourceMacOSSoftwareUpdateConfiguration_07_MinimalToMaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -466,7 +466,7 @@ func TestAccResourceMacOSSoftwareUpdateConfiguration_07_MinimalToMaximalAssignme
 func TestAccResourceMacOSSoftwareUpdateConfiguration_08_MaximalToMinimalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

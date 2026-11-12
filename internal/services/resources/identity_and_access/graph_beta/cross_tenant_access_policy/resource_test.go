@@ -40,7 +40,7 @@ func TestUnitResourceCrossTenantAccessPolicy_01_WithNoB2B(t *testing.T) {
 	defer crossTenantMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitConfig("resource_cross_tenant_access_policy_with_no_b2b.tf"),
@@ -72,7 +72,7 @@ func TestUnitResourceCrossTenantAccessPolicy_02_WithAllowedCloudEndpoints(t *tes
 	defer crossTenantMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitConfig("resource_cross_tenant_access_policy_with_endpoints.tf"),
@@ -106,7 +106,7 @@ func TestUnitResourceCrossTenantAccessPolicy_03_RestoreDefaultsOnDestroy(t *test
 	defer crossTenantMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitConfig("resource_cross_tenant_access_policy_restore_defaults.tf"),
@@ -132,7 +132,7 @@ func TestUnitResourceCrossTenantAccessPolicy_04_UpdateEndpoints(t *testing.T) {
 	defer crossTenantMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitConfig("resource_cross_tenant_access_policy_with_no_b2b.tf"),
@@ -163,7 +163,7 @@ func TestUnitResourceCrossTenantAccessPolicy_05_CommercialEndpoint(t *testing.T)
   restore_defaults_on_destroy = false
 }`
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: config, Check: resource.TestCheckTypeSetElemAttr(resourceType+".commercial", "allowed_cloud_endpoints.*", "microsoftonline.com")},
 			{
@@ -191,7 +191,7 @@ func TestUnitResourceCrossTenantAccessPolicy_06_ImportDestroyFlag(t *testing.T) 
   restore_defaults_on_destroy = %s
 }`, testCase.flag)
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config:       config,
@@ -218,7 +218,7 @@ func TestUnitResourceCrossTenantAccessPolicy_07_InvalidImportDestroyFlag(t *test
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: loadUnitConfig("resource_cross_tenant_access_policy_with_no_b2b.tf")},
 			{

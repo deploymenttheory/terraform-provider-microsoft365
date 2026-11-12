@@ -36,7 +36,7 @@ func TestUnitDatasourceRoleDefinitions_01_All(t *testing.T) {
 	defer rdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigAll(),
@@ -64,7 +64,7 @@ func TestUnitDatasourceRoleDefinitions_02_ById(t *testing.T) {
 	defer rdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigById(),
@@ -90,7 +90,7 @@ func TestUnitDatasourceRoleDefinitions_03_ByDisplayName(t *testing.T) {
 	defer rdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByDisplayName(),
@@ -113,7 +113,7 @@ func TestUnitDatasourceRoleDefinitions_04_ODataFilter(t *testing.T) {
 	defer rdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigODataFilter(),
@@ -136,7 +136,7 @@ func TestUnitDatasourceRoleDefinitions_05_ODataAdvanced(t *testing.T) {
 	defer rdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigODataAdvanced(),
@@ -159,7 +159,7 @@ func TestUnitDatasourceRoleDefinitions_06_ODataComprehensive(t *testing.T) {
 	defer rdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigODataComprehensive(),
@@ -182,7 +182,7 @@ func TestUnitDatasourceRoleDefinitions_07_ValidationError(t *testing.T) {
 	defer rdMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigAll(),

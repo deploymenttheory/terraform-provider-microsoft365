@@ -13,7 +13,7 @@ func TestUnitDatasourceMacOSPkgAppMetadata_01_InvalidFileExtension(t *testing.T)
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidFileExtension(),
@@ -27,7 +27,7 @@ func TestUnitDatasourceMacOSPkgAppMetadata_02_InvalidURL(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigInvalidURL(),
@@ -41,7 +41,7 @@ func TestUnitDatasourceMacOSPkgAppMetadata_03_BothParametersProvided(t *testing.
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigBothProvided(),
@@ -55,7 +55,7 @@ func TestUnitDatasourceMacOSPkgAppMetadata_04_NeitherParameterProvided(t *testin
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigNeitherProvided(),
@@ -69,7 +69,7 @@ func TestUnitDatasourceMacOSPkgAppMetadata_05_ValidFilePathFormat(t *testing.T) 
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigValidFilePath(),
@@ -84,7 +84,7 @@ func TestUnitDatasourceMacOSPkgAppMetadata_06_ValidURLFormat(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigValidURL(),

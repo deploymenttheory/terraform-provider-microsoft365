@@ -33,7 +33,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceMacosDeviceConfigurationTemplates_01_CustomConfiguration(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -84,7 +84,7 @@ func TestAccResourceMacosDeviceConfigurationTemplates_01_CustomConfiguration(t *
 func TestAccResourceMacosDeviceConfigurationTemplates_02_PreferenceFile(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -134,7 +134,7 @@ func TestAccResourceMacosDeviceConfigurationTemplates_02_PreferenceFile(t *testi
 func TestAccResourceMacosDeviceConfigurationTemplates_03_TrustedRootCertificate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -184,7 +184,7 @@ func TestAccResourceMacosDeviceConfigurationTemplates_03_TrustedRootCertificate(
 func TestAccResourceMacosDeviceConfigurationTemplates_04_PkcsCertificate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -240,7 +240,7 @@ func TestAccResourceMacosDeviceConfigurationTemplates_04_PkcsCertificate(t *test
 func TestAccResourceMacosDeviceConfigurationTemplates_05_ScepCertificate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

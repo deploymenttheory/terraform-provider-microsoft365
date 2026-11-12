@@ -46,7 +46,7 @@ func TestUnitResourceGuidListSharder_01_UsersRoundRobinNoSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_users_round_robin_no_seed.tf"),
@@ -71,7 +71,7 @@ func TestUnitResourceGuidListSharder_02_UsersRoundRobinWithSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_users_round_robin_with_seed.tf"),
@@ -98,7 +98,7 @@ func TestUnitResourceGuidListSharder_03_UsersPercentageNoSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_users_percentage_no_seed.tf"),
@@ -122,7 +122,7 @@ func TestUnitResourceGuidListSharder_04_UsersPercentageWithSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_users_percentage_with_seed.tf"),
@@ -150,7 +150,7 @@ func TestUnitResourceGuidListSharder_05_UsersSizeNoSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_users_size_no_seed.tf"),
@@ -176,7 +176,7 @@ func TestUnitResourceGuidListSharder_06_UsersSizeWithSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("06_users_size_with_seed.tf"),
@@ -206,7 +206,7 @@ func TestUnitResourceGuidListSharder_07_GroupMembersRoundRobinNoSeed(t *testing.
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("07_group_members_round_robin_no_seed.tf"),
@@ -231,7 +231,7 @@ func TestUnitResourceGuidListSharder_08_GroupMembersRoundRobinWithSeed(t *testin
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("08_group_members_round_robin_with_seed.tf"),
@@ -258,7 +258,7 @@ func TestUnitResourceGuidListSharder_09_GroupMembersPercentageNoSeed(t *testing.
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("09_group_members_percentage_no_seed.tf"),
@@ -282,7 +282,7 @@ func TestUnitResourceGuidListSharder_10_GroupMembersPercentageWithSeed(t *testin
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("10_group_members_percentage_with_seed.tf"),
@@ -310,7 +310,7 @@ func TestUnitResourceGuidListSharder_11_GroupMembersSizeNoSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("11_group_members_size_no_seed.tf"),
@@ -336,7 +336,7 @@ func TestUnitResourceGuidListSharder_12_GroupMembersSizeWithSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("12_group_members_size_with_seed.tf"),
@@ -364,7 +364,7 @@ func TestUnitResourceGuidListSharder_13_DevicesRoundRobinNoSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("13_devices_round_robin_no_seed.tf"),
@@ -389,7 +389,7 @@ func TestUnitResourceGuidListSharder_14_DevicesRoundRobinWithSeed(t *testing.T) 
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("14_devices_round_robin_with_seed.tf"),
@@ -416,7 +416,7 @@ func TestUnitResourceGuidListSharder_15_DevicesPercentageNoSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("15_devices_percentage_no_seed.tf"),
@@ -440,7 +440,7 @@ func TestUnitResourceGuidListSharder_16_DevicesPercentageWithSeed(t *testing.T) 
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("16_devices_percentage_with_seed.tf"),
@@ -468,7 +468,7 @@ func TestUnitResourceGuidListSharder_17_DevicesSizeNoSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("17_devices_size_no_seed.tf"),
@@ -492,7 +492,7 @@ func TestUnitResourceGuidListSharder_18_DevicesSizeWithSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("18_devices_size_with_seed.tf"),
@@ -527,7 +527,7 @@ func TestUnitResourceGuidListSharder_19_IntegrationConditionalAccess(t *testing.
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("19_integration_conditional_access.tf"),
@@ -551,7 +551,7 @@ func TestUnitResourceGuidListSharder_20_IntegrationGroupAssignment(t *testing.T)
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("20_integration_group_assignment.tf"),
@@ -579,7 +579,7 @@ func TestUnitResourceGuidListSharder_21_SpecialSingleShard(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("21_special_single_shard.tf"),
@@ -602,7 +602,7 @@ func TestUnitResourceGuidListSharder_22_SpecialNoFilter(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("22_special_no_filter.tf"),
@@ -633,7 +633,7 @@ func TestUnitResourceGuidListSharder_23_UsersRendezvousNoSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("23_users_rendezvous_no_seed.tf"),
@@ -658,7 +658,7 @@ func TestUnitResourceGuidListSharder_24_UsersRendezvousWithSeed(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("24_users_rendezvous_with_seed.tf"),
@@ -683,7 +683,7 @@ func TestUnitResourceGuidListSharder_25_RendezvousStability(t *testing.T) {
 	defer guidListSharderMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("25_rendezvous_stability_test.tf"),
@@ -708,7 +708,7 @@ func TestUnitResourceGuidListSharder_Validation_MissingGroupId(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -729,7 +729,7 @@ func TestUnitResourceGuidListSharder_Validation_InvalidStrategy(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -750,7 +750,7 @@ func TestUnitResourceGuidListSharder_Validation_InvalidResourceType(t *testing.T
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -771,7 +771,7 @@ func TestUnitResourceGuidListSharder_Validation_BothShardingMethods(t *testing.T
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -793,7 +793,7 @@ func TestUnitResourceGuidListSharder_Validation_InvalidPercentageSum(t *testing.
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `
@@ -814,7 +814,7 @@ func TestUnitResourceGuidListSharder_Validation_NegativeShardCount(t *testing.T)
 	mocks.SetupUnitTestEnvironment(t)
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `

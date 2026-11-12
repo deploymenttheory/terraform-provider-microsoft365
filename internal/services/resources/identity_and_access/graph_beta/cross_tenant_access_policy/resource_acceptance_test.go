@@ -42,7 +42,7 @@ func loadAcceptanceConfig(filename string) string {
 func TestAccResourceCrossTenantAccessPolicy_01_WithNoB2B(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -91,7 +91,7 @@ func TestAccResourceCrossTenantAccessPolicy_01_WithNoB2B(t *testing.T) {
 func TestAccResourceCrossTenantAccessPolicy_02_WithAllowedCloudEndpoints(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -147,7 +147,7 @@ func TestAccResourceCrossTenantAccessPolicy_02_WithAllowedCloudEndpoints(t *test
 func TestAccResourceCrossTenantAccessPolicy_03_RestoreDefaultsOnDestroy(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

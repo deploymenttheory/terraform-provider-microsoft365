@@ -32,7 +32,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsEnrollmentStatusPage_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsEnrollmentStatusPage.ResourceName,
@@ -82,7 +82,7 @@ func TestAccResourceWindowsEnrollmentStatusPage_01_Minimal(t *testing.T) {
 func TestAccResourceWindowsEnrollmentStatusPage_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsEnrollmentStatusPage.ResourceName,
@@ -141,7 +141,7 @@ func TestAccResourceWindowsEnrollmentStatusPage_02_Maximal(t *testing.T) {
 func TestAccResourceWindowsEnrollmentStatusPage_03_WithAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsEnrollmentStatusPage.ResourceName,
@@ -188,7 +188,7 @@ func TestAccResourceWindowsEnrollmentStatusPage_03_WithAssignments(t *testing.T)
 func TestAccResourceWindowsEnrollmentStatusPage_04_Update(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsEnrollmentStatusPage.ResourceName,
@@ -248,7 +248,7 @@ func TestAccResourceWindowsEnrollmentStatusPage_04_Update(t *testing.T) {
 func TestAccResourceWindowsEnrollmentStatusPage_05_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsEnrollmentStatusPage.ResourceName,
@@ -319,7 +319,7 @@ func TestAccResourceWindowsEnrollmentStatusPage_05_Lifecycle_MinimalToMaximal(t 
 func TestAccResourceWindowsEnrollmentStatusPage_06_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			graphBetaWindowsEnrollmentStatusPage.ResourceName,

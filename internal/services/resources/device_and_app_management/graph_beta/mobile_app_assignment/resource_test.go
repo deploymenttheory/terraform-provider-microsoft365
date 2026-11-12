@@ -80,7 +80,7 @@ func TestUnitResourceMobileAppAssignment_01_Scenario_Available_IosStore_Minimal(
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_available_ios_store_minimal.tf"),
@@ -107,7 +107,7 @@ func TestUnitResourceMobileAppAssignment_02_Scenario_Available_IosVpp(t *testing
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_scenario_available_ios_vpp.tf"),
@@ -131,7 +131,7 @@ func TestUnitResourceMobileAppAssignment_03_Scenario_Available_IosLob(t *testing
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_scenario_available_ios_lob.tf"),
@@ -156,7 +156,7 @@ func TestUnitResourceMobileAppAssignment_04_Scenario_Required_IosVpp_Maximal(t *
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("004_scenario_required_ios_vpp_maximal.tf"),
@@ -186,7 +186,7 @@ func TestUnitResourceMobileAppAssignment_05_Scenario_Required_IsRemovable_Omitte
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("005_scenario_required_is_removable_omitted.tf"),
@@ -208,7 +208,7 @@ func TestUnitResourceMobileAppAssignment_06_Scenario_Uninstall_IosVpp(t *testing
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("006_scenario_uninstall_ios_vpp.tf"),
@@ -234,7 +234,7 @@ func TestUnitResourceMobileAppAssignment_07_Scenario_Uninstall_IosStore(t *testi
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("007_scenario_uninstall_ios_store.tf"),
@@ -264,7 +264,7 @@ func TestUnitResourceMobileAppAssignment_08_Scenario_Unknown_Intent(t *testing.T
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("008_scenario_unknown_intent.tf"),
@@ -290,7 +290,7 @@ func TestUnitResourceMobileAppAssignment_09_Lifecycle_Settings_Update(t *testing
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("009_lifecycle_settings_update_step_1.tf"),
@@ -322,7 +322,7 @@ func TestUnitResourceMobileAppAssignment_10_Import_CompositeId(t *testing.T) {
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("010_scenario_import.tf"),
@@ -362,7 +362,7 @@ func TestUnitResourceMobileAppAssignment_11_ValidationErrors(t *testing.T) {
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("011_validation_is_removable_available.tf"),
@@ -404,7 +404,7 @@ func TestUnitResourceMobileAppAssignment_12_Settings_Win32Catalog(t *testing.T) 
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("012_settings_win32_catalog.tf"),
@@ -432,7 +432,7 @@ func TestUnitResourceMobileAppAssignment_13_Settings_Win32Lob(t *testing.T) {
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("013_settings_win32_lob.tf"),
@@ -458,7 +458,7 @@ func TestUnitResourceMobileAppAssignment_14_Settings_WinGet(t *testing.T) {
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("014_settings_win_get.tf"),
@@ -481,7 +481,7 @@ func TestUnitResourceMobileAppAssignment_15_Settings_AndroidManagedStore(t *test
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("015_settings_android_managed_store.tf"),
@@ -503,7 +503,7 @@ func TestUnitResourceMobileAppAssignment_16_Settings_MacOsLob(t *testing.T) {
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("016_settings_macos_lob.tf"),
@@ -524,7 +524,7 @@ func TestUnitResourceMobileAppAssignment_17_Settings_MacOsVpp(t *testing.T) {
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("017_settings_macos_vpp.tf"),
@@ -548,7 +548,7 @@ func TestUnitResourceMobileAppAssignment_18_Settings_MicrosoftStoreForBusiness(t
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("018_settings_microsoft_store_for_business.tf"),
@@ -569,7 +569,7 @@ func TestUnitResourceMobileAppAssignment_19_Settings_WindowsAppX(t *testing.T) {
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("019_settings_windows_app_x.tf"),
@@ -590,7 +590,7 @@ func TestUnitResourceMobileAppAssignment_20_Settings_WindowsUniversalAppX(t *tes
 	defer mobileAppAssignmentMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("020_settings_windows_universal_app_x.tf"),

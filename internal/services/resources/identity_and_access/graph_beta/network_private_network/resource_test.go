@@ -39,7 +39,7 @@ func TestUnitResourceNetworkPrivateNetwork_01_Basic(t *testing.T) {
 	defer privateNetworkMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -65,7 +65,7 @@ func TestUnitResourceNetworkPrivateNetwork_02_Update(t *testing.T) {
 	defer privateNetworkMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("resource_minimal.tf"),
@@ -92,7 +92,7 @@ func TestUnitResourceNetworkPrivateNetwork_03_InvalidExpectedIPResolution(t *tes
 	defer privateNetworkMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigHelper("resource_invalid.tf"),
@@ -113,7 +113,7 @@ func TestUnitResourceNetworkPrivateNetwork_04_CreateError(t *testing.T) {
 	defer privateNetworkMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigHelper("resource_minimal.tf"),

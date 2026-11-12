@@ -61,7 +61,7 @@ func TestUnitResourceWindowsRemediationScript_01_Scenario_Minimal(t *testing.T) 
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("001_scenario_minimal.tf"),
@@ -98,7 +98,7 @@ func TestUnitResourceWindowsRemediationScript_02_Scenario_Maximal(t *testing.T) 
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("002_scenario_maximal.tf"),
@@ -135,7 +135,7 @@ func TestUnitResourceWindowsRemediationScript_03_Lifecycle_MinimalToMaximal(t *t
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("003_lifecycle_minimal_to_maximal_step_1.tf"),
@@ -179,7 +179,7 @@ func TestUnitResourceWindowsRemediationScript_04_Lifecycle_MaximalToMinimal(t *t
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("004_lifecycle_maximal_to_minimal_step_1.tf"),
@@ -220,7 +220,7 @@ func TestUnitResourceWindowsRemediationScript_05_AssignmentsMinimal(t *testing.T
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("005_assignments_minimal.tf"),
@@ -250,7 +250,7 @@ func TestUnitResourceWindowsRemediationScript_06_AssignmentsMaximal(t *testing.T
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("006_assignments_maximal.tf"),
@@ -303,7 +303,7 @@ func TestUnitResourceWindowsRemediationScript_07_AssignmentsLifecycle_MinimalToM
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("007_assignments_lifecycle_minimal_to_maximal_step_1.tf"),
@@ -351,7 +351,7 @@ func TestUnitResourceWindowsRemediationScript_08_AssignmentsLifecycle_MaximalToM
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("008_assignments_lifecycle_maximal_to_minimal_step_1.tf"),
@@ -395,7 +395,7 @@ func TestUnitResourceWindowsRemediationScript_09_ValidationErrors(t *testing.T) 
 	defer windowsRemediationScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("009_validation_missing_display_name.tf"),

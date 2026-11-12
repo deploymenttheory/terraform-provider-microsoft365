@@ -41,7 +41,7 @@ func TestUnitDatasourceDirectoryRole_01_ListAll(t *testing.T) {
 	defer drMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_list_all.tf"),
@@ -66,7 +66,7 @@ func TestUnitDatasourceDirectoryRole_02_ByID(t *testing.T) {
 	defer drMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_id.tf"),
@@ -88,7 +88,7 @@ func TestUnitDatasourceDirectoryRole_03_ByDisplayName(t *testing.T) {
 	defer drMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_by_display_name.tf"),

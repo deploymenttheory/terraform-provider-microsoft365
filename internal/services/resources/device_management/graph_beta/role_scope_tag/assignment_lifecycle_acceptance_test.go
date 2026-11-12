@@ -39,7 +39,7 @@ func TestAccResourceRoleScopeTag_04_AssignmentLifecycle(t *testing.T) {
 	}
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders:        map[string]resource.ExternalProvider{"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion}},
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
 			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},

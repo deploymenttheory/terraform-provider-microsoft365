@@ -38,7 +38,7 @@ func acceptanceImportStateIDFunc(resourceName string) resource.ImportStateIdFunc
 func TestAccResourceAdministrativeUnitRoleAssignment_01_AURA001(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -90,7 +90,7 @@ func TestAccResourceAdministrativeUnitRoleAssignment_01_AURA001(t *testing.T) {
 func TestAccResourceAdministrativeUnitRoleAssignment_02_AURA002(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -142,7 +142,7 @@ func TestAccResourceAdministrativeUnitRoleAssignment_02_AURA002(t *testing.T) {
 func TestAccResourceAdministrativeUnitRoleAssignment_03_AURA003_Replace(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

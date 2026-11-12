@@ -37,7 +37,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceTermsAndConditions_01_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 15*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -76,7 +76,7 @@ func TestAccResourceTermsAndConditions_01_Minimal(t *testing.T) {
 func TestAccResourceTermsAndConditions_02_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			45*time.Second,
 			destroy.ResourceTypeMapping{
@@ -141,7 +141,7 @@ func TestAccResourceTermsAndConditions_02_Maximal(t *testing.T) {
 func TestAccResourceTermsAndConditions_03_MinimalAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 15*time.Second),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
@@ -186,7 +186,7 @@ func TestAccResourceTermsAndConditions_03_MinimalAssignment(t *testing.T) {
 func TestAccResourceTermsAndConditions_05_MaximalAssignment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			20*time.Second,
 			destroy.ResourceTypeMapping{
@@ -248,7 +248,7 @@ func TestAccResourceTermsAndConditions_05_MaximalAssignment(t *testing.T) {
 func TestAccResourceTermsAndConditions_05_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			45*time.Second,
 			destroy.ResourceTypeMapping{
@@ -329,7 +329,7 @@ func TestAccResourceTermsAndConditions_05_MinimalToMaximal(t *testing.T) {
 func TestAccResourceTermsAndConditions_06_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedTypesFunc(
 			15*time.Second,
 			destroy.ResourceTypeMapping{
@@ -409,7 +409,7 @@ func TestAccResourceTermsAndConditions_06_MaximalToMinimal(t *testing.T) {
 func TestAccResourceTermsAndConditions_07_Description(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 0),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {

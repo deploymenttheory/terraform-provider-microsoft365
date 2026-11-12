@@ -43,7 +43,7 @@ func TestUnitResourceNetworkCloudFirewallPolicyRule_01_Lifecycle(t *testing.T) {
   \}
 `).ReplaceAllString(noDescription, "\n")
 	var id string
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: config, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("id").Exists(), func(s *terraform.State) error {
 			id = s.RootModule().Resources[resourceType+".test"].Primary.ID
 			return nil
@@ -93,7 +93,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_cloud_firewall_pol
 `
 	replacement = strings.ReplaceAll(replacement, "policy.test.id", "policy.replacement.id")
 	var oldID string
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: config, Check: func(s *terraform.State) error {
 			oldID = s.RootModule().Resources[resourceType+".test"].Primary.ID
 			return nil
@@ -144,7 +144,7 @@ func TestUnitResourceNetworkCloudFirewallPolicyRule_05_Validation(t *testing.T) 
 			httpmock.Activate()
 			defer httpmock.DeactivateAndReset()
 			mocks.NewMocks().AuthMocks.RegisterMocks()
-			resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: strings.ReplaceAll(config, tc.from, tc.to), ExpectError: regexp.MustCompile(tc.message)}}})
+			resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{{Config: strings.ReplaceAll(config, tc.from, tc.to), ExpectError: regexp.MustCompile(tc.message)}}})
 		})
 	}
 }

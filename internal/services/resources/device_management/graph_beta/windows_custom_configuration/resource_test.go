@@ -45,7 +45,7 @@ func TestUnitResourceWindowsCustomConfiguration_01_Create(t *testing.T) {
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_windows_custom_configuration_maximal.tf"),
@@ -80,7 +80,7 @@ func TestUnitResourceWindowsCustomConfiguration_02_InvalidOmaSettingValue(t *tes
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_invalid_integer.tf"),
@@ -97,7 +97,7 @@ func TestUnitResourceWindowsCustomConfiguration_02a_NonCanonicalValue(t *testing
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_non_canonical_value.tf"),
@@ -114,7 +114,7 @@ func TestUnitResourceWindowsCustomConfiguration_02b_DuplicateOmaUri(t *testing.T
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_duplicate_oma_uri.tf"),
@@ -131,7 +131,7 @@ func TestUnitResourceWindowsCustomConfiguration_02c_MissingAssignmentGroupId(t *
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_missing_group_id.tf"),
@@ -152,7 +152,7 @@ func TestUnitResourceWindowsCustomConfiguration_03_CreateWithError(t *testing.T)
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_maximal.tf"),
@@ -170,7 +170,7 @@ func TestUnitResourceWindowsCustomConfiguration_03a_AssignmentErrorRollsBackCrea
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_windows_custom_configuration_maximal.tf"),
@@ -191,7 +191,7 @@ func TestUnitResourceWindowsCustomConfiguration_04_Update(t *testing.T) {
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_windows_custom_configuration_maximal.tf"),
@@ -220,7 +220,7 @@ func TestUnitResourceWindowsCustomConfiguration_05_ImportState(t *testing.T) {
 	defer configMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_windows_custom_configuration_maximal.tf"),

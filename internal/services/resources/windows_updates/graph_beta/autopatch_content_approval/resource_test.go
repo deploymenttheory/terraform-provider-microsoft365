@@ -45,7 +45,7 @@ func TestUnitResourceWindowsUpdateContentApproval_01_FeatureUpdateApproval(t *te
 	defer contentApprovalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_feature_update_approval.tf"),
@@ -71,7 +71,7 @@ func TestUnitResourceWindowsUpdateContentApproval_02_QualityUpdateApproval(t *te
 	defer contentApprovalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_quality_update_approval.tf"),
@@ -92,7 +92,7 @@ func TestUnitResourceWindowsUpdateContentApproval_03_MinimalApproval(t *testing.
 	defer contentApprovalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_minimal_approval.tf"),
@@ -114,7 +114,7 @@ func TestUnitResourceWindowsUpdateContentApproval_04_Update(t *testing.T) {
 	defer contentApprovalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_feature_update_approval.tf"),
@@ -147,7 +147,7 @@ func TestUnitResourceWindowsUpdateContentApproval_05_Error(t *testing.T) {
 	defer contentApprovalMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_feature_update_approval.tf"),

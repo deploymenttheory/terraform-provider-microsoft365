@@ -36,7 +36,7 @@ func TestUnitResourceNetworkCloudFirewallPolicy_01_Lifecycle(t *testing.T) {
 	noDescription = strings.ReplaceAll(noDescription, `  description = "Match example destination addresses"
 `, "")
 	var id string
-	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
+	resource.UnitTest(t, resource.TestCase{ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories, Steps: []resource.TestStep{
 		{Config: config, Check: resource.ComposeTestCheckFunc(check.That(resourceType+".test").Key("id").Exists(), func(s *terraform.State) error {
 			id = s.RootModule().Resources[resourceType+".test"].Primary.ID
 			return nil

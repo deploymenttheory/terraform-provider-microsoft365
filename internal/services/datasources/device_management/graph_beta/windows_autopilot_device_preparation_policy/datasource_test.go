@@ -48,7 +48,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_01_ListAll(t *tes
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("01_list_all.tf"),
@@ -72,7 +72,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_02_ByPolicyId(t *
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_by_policy_id.tf"),
@@ -104,7 +104,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_03_ByName(t *test
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("03_by_name.tf"),
@@ -126,7 +126,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_04_ByODataQuery(t
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("04_odata_query.tf"),
@@ -148,7 +148,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_05_NotADevicePrep
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("05_not_a_device_preparation_policy.tf"),
@@ -165,7 +165,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_06_NameNotFound(t
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("06_name_not_found.tf"),
@@ -182,7 +182,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_07_ConflictingSea
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("07_conflicting_search_methods.tf"),
@@ -199,7 +199,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_08_NoSearchMethod
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("08_no_search_method.tf"),
@@ -216,7 +216,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_09_WithAssignment
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("09_with_assignments.tf"),
@@ -241,7 +241,7 @@ func TestUnitDatasourceWindowsAutopilotDevicePreparationPolicy_10_Error(t *testi
 	defer pMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_list_all.tf"),

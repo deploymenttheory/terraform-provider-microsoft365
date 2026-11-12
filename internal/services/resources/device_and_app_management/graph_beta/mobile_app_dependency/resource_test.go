@@ -42,7 +42,7 @@ func loadUnitTestTerraform(filename string) string {
 func TestUnitResourceMobileAppDependency_01_Detect(t *testing.T) {
 	setupMockEnvironment(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: loadUnitTestTerraform("01_detect.tf"), Check: resource.ComposeTestCheckFunc(
 				check.That(resourceType+".test").Key("id").IsSet(),
@@ -63,7 +63,7 @@ func TestUnitResourceMobileAppDependency_01_Detect(t *testing.T) {
 func TestUnitResourceMobileAppDependency_02_AutoInstallToDetect(t *testing.T) {
 	setupMockEnvironment(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("02_auto_install.tf"),
@@ -95,7 +95,7 @@ func TestUnitResourceMobileAppDependency_02_AutoInstallToDetect(t *testing.T) {
 func TestUnitResourceMobileAppDependency_03_SiblingRemoval(t *testing.T) {
 	setupMockEnvironment(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("05_siblings_step1.tf"),
@@ -128,7 +128,7 @@ func TestUnitResourceMobileAppDependency_04_Validation(t *testing.T) {
 		t.Run(tc.filename, func(t *testing.T) {
 			setupMockEnvironment(t)
 			resource.UnitTest(t, resource.TestCase{
-				ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 				Steps: []resource.TestStep{
 					{
 						Config:      loadUnitTestTerraform(tc.filename),
@@ -145,7 +145,7 @@ func TestUnitResourceMobileAppDependency_05_ErrorHandling(t *testing.T) {
 	mock := setupMockEnvironment(t)
 	mock.RegisterErrorMocks()
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("01_detect.tf"),

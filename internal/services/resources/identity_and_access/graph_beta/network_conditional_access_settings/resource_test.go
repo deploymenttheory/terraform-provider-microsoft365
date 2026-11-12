@@ -30,7 +30,7 @@ func setupMockEnvironment(t *testing.T) *settingsmocks.ConditionalAccessSettings
 func TestUnitResourceNetworkConditionalAccessSettings_01_Lifecycle(t *testing.T) {
 	m := setupMockEnvironment(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: mocks.LoadUnitTerraformConfig("enabled.tf"),
@@ -70,7 +70,7 @@ func TestUnitResourceNetworkConditionalAccessSettings_02_NoDefault(t *testing.T)
 			resource.UnitTest(
 				t,
 				resource.TestCase{
-					ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+					ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 					Steps: []resource.TestStep{
 						{
 							Config: mocks.LoadUnitTerraformConfig("omitted.tf"),
@@ -99,7 +99,7 @@ func TestUnitResourceNetworkConditionalAccessSettings_03_InvalidValue(t *testing
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{
 					Config:      mocks.LoadUnitTerraformConfig("invalid.tf"),
@@ -116,7 +116,7 @@ func TestUnitResourceNetworkConditionalAccessSettings_04_Drift(t *testing.T) {
 	resource.UnitTest(
 		t,
 		resource.TestCase{
-			ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+			ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 			Steps: []resource.TestStep{
 				{Config: mocks.LoadUnitTerraformConfig("enabled.tf")},
 				{

@@ -37,7 +37,7 @@ func TestUnitResourceNamedLocation_01_IPMinimal(t *testing.T) {
 	defer namedLocationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIPMinimal(),
@@ -73,7 +73,7 @@ func TestUnitResourceNamedLocation_02_IPMaximal(t *testing.T) {
 	defer namedLocationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIPMaximal(),
@@ -110,7 +110,7 @@ func TestUnitResourceNamedLocation_03_IPv6Only(t *testing.T) {
 	defer namedLocationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigIPv6Only(),
@@ -141,7 +141,7 @@ func TestUnitResourceNamedLocation_04_CountryMinimal(t *testing.T) {
 	defer namedLocationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigCountryMinimal(),
@@ -177,7 +177,7 @@ func TestUnitResourceNamedLocation_05_CountryAuthenticatorGPS(t *testing.T) {
 	defer namedLocationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigCountryAuthenticatorGPS(),
@@ -253,7 +253,7 @@ func TestUnitResourceNamedLocation_06_TrustedIPDeletion(t *testing.T) {
 	defer namedLocationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				// Create a trusted IP location

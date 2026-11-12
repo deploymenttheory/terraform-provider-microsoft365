@@ -29,7 +29,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsUpdateDeployment_01_FeatureUpdateDeployment(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
 			{
@@ -64,7 +64,7 @@ func TestAccResourceWindowsUpdateDeployment_01_FeatureUpdateDeployment(t *testin
 func TestAccResourceWindowsUpdateDeployment_02_MinimalToFull(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
 			{
@@ -100,7 +100,7 @@ func TestAccResourceWindowsUpdateDeployment_02_MinimalToFull(t *testing.T) {
 func TestAccResourceWindowsUpdateDeployment_03_FullToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
 			{
@@ -136,7 +136,7 @@ func TestAccResourceWindowsUpdateDeployment_03_FullToMinimal(t *testing.T) {
 func TestAccResourceWindowsUpdateDeployment_04_MultipleMonitoringRules(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
 			{
@@ -170,7 +170,7 @@ func TestAccResourceWindowsUpdateDeployment_04_MultipleMonitoringRules(t *testin
 func TestAccResourceWindowsUpdateDeployment_05_RollbackAlertError(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
 			{
@@ -202,7 +202,7 @@ func TestAccResourceWindowsUpdateDeployment_05_RollbackAlertError(t *testing.T) 
 func TestAccResourceWindowsUpdateDeployment_06_IneligibleOfferFallback(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy:             destroy.CheckDestroyedAllFunc(testResource, resourceType, 30*time.Second),
 		Steps: []resource.TestStep{
 			{

@@ -32,7 +32,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsAutopatchPolicy_01_WAP001_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -78,7 +78,7 @@ func TestAccResourceWindowsAutopatchPolicy_01_WAP001_Minimal(t *testing.T) {
 func TestAccResourceWindowsAutopatchPolicy_02_WAP002_ApprovalRules(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -122,7 +122,7 @@ func TestAccResourceWindowsAutopatchPolicy_02_WAP002_ApprovalRules(t *testing.T)
 func TestAccResourceWindowsAutopatchPolicy_03_WAP003_Lifecycle(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

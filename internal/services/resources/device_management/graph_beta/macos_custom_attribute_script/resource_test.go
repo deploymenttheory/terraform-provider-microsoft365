@@ -56,7 +56,7 @@ func TestUnitResourceMacOSCustomAttributeScript_01_Schema(t *testing.T) {
 	defer macosCustomAttributeScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -82,7 +82,7 @@ func TestUnitResourceMacOSCustomAttributeScript_02_Minimal(t *testing.T) {
 	defer macosCustomAttributeScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
@@ -110,7 +110,7 @@ func TestUnitResourceMacOSCustomAttributeScript_03_Maximal(t *testing.T) {
 	defer macosCustomAttributeScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -132,7 +132,7 @@ func TestUnitResourceMacOSCustomAttributeScript_04_Update(t *testing.T) {
 	defer macosCustomAttributeScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create with minimal
 			{
@@ -160,7 +160,7 @@ func TestUnitResourceMacOSCustomAttributeScript_05_ErrorHandling(t *testing.T) {
 	defer macosCustomAttributeScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigMinimal(),

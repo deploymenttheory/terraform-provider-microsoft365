@@ -41,7 +41,7 @@ func TestUnitResourceUserLicenseAssignment_01_CreateMinimal(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -66,7 +66,7 @@ func TestUnitResourceUserLicenseAssignment_02_CreateMaximal(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -92,7 +92,7 @@ func TestUnitResourceUserLicenseAssignment_03_Update(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -121,7 +121,7 @@ func TestUnitResourceUserLicenseAssignment_04_DeleteMinimal(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -149,7 +149,7 @@ func TestUnitResourceUserLicenseAssignment_05_DeleteMaximal(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -179,7 +179,7 @@ func TestUnitResourceUserLicenseAssignment_06_Error(t *testing.T) {
 	licenseAssignmentMock.RegisterErrorMocks()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigError(),

@@ -37,7 +37,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceWindowsAutopilotDevicePreparationPolicy_01_AutomaticMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -90,7 +90,7 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_01_AutomaticMinimal(
 func TestAccResourceWindowsAutopilotDevicePreparationPolicy_02_AutomaticMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -135,7 +135,7 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_02_AutomaticMaximal(
 func TestAccResourceWindowsAutopilotDevicePreparationPolicy_03_UserDrivenMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -190,7 +190,7 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_03_UserDrivenMinimal
 func TestAccResourceWindowsAutopilotDevicePreparationPolicy_04_UserDrivenMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -236,7 +236,7 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_04_UserDrivenMaximal
 func TestAccResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinimalWithMinimalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,
@@ -279,7 +279,7 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinimal
 func TestAccResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMinimalWithMaximalAssignments(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		CheckDestroy: destroy.CheckDestroyedAllFunc(
 			testResource,
 			resourceType,

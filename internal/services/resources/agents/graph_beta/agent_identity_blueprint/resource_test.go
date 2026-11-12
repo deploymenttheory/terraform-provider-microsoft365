@@ -48,7 +48,7 @@ func TestUnitResourceAgentIdentityBlueprint_01_Minimal(t *testing.T) {
 	defer agentIdentityBlueprintMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -83,7 +83,7 @@ func TestUnitResourceAgentIdentityBlueprint_02_Maximal(t *testing.T) {
 	defer agentIdentityBlueprintMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -131,7 +131,7 @@ func TestUnitResourceAgentIdentityBlueprint_03_Update(t *testing.T) {
 	defer agentIdentityBlueprintMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),

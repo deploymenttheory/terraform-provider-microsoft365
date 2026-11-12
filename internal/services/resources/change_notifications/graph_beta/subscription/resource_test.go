@@ -37,7 +37,7 @@ func TestUnitResourceChangeNotificationsSubscription_01_SUB001(t *testing.T) {
 	defer subscriptionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_sub001-minimal.tf"),
@@ -66,7 +66,7 @@ func TestUnitResourceChangeNotificationsSubscription_02_SUB002(t *testing.T) {
 	defer subscriptionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_sub001-minimal.tf"),
@@ -92,7 +92,7 @@ func TestUnitResourceChangeNotificationsSubscription_03_SUB003(t *testing.T) {
 	defer subscriptionMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: `

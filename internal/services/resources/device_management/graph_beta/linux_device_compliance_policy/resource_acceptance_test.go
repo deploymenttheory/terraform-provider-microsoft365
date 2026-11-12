@@ -33,7 +33,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 func TestAccResourceLinuxDeviceCompliancePolicy_01_Scenario_Minimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -79,7 +79,7 @@ func TestAccResourceLinuxDeviceCompliancePolicy_01_Scenario_Minimal(t *testing.T
 func TestAccResourceLinuxDeviceCompliancePolicy_02_Scenario_Maximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -134,7 +134,7 @@ func TestAccResourceLinuxDeviceCompliancePolicy_02_Scenario_Maximal(t *testing.T
 func TestAccResourceLinuxDeviceCompliancePolicy_03_Lifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -214,7 +214,7 @@ func TestAccResourceLinuxDeviceCompliancePolicy_03_Lifecycle_MinimalToMaximal(t 
 func TestAccResourceLinuxDeviceCompliancePolicy_04_Lifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -294,7 +294,7 @@ func TestAccResourceLinuxDeviceCompliancePolicy_04_Lifecycle_MaximalToMinimal(t 
 func TestAccResourceLinuxDeviceCompliancePolicy_05_AssignmentsMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -352,7 +352,7 @@ func TestAccResourceLinuxDeviceCompliancePolicy_05_AssignmentsMinimal(t *testing
 func TestAccResourceLinuxDeviceCompliancePolicy_06_AssignmentsMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -413,7 +413,7 @@ func TestAccResourceLinuxDeviceCompliancePolicy_06_AssignmentsMaximal(t *testing
 func TestAccResourceLinuxDeviceCompliancePolicy_07_AssignmentsLifecycle_MinimalToMaximal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
@@ -500,7 +500,7 @@ func TestAccResourceLinuxDeviceCompliancePolicy_07_AssignmentsLifecycle_MinimalT
 func TestAccResourceLinuxDeviceCompliancePolicy_08_AssignmentsLifecycle_MaximalToMinimal(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

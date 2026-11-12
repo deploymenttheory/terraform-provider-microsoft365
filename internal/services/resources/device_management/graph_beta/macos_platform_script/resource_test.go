@@ -42,7 +42,7 @@ func TestUnitResourceMacOSPlatformScript_01_Minimal(t *testing.T) {
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scenario_01_minimal_001.tf"),
@@ -77,7 +77,7 @@ func TestUnitResourceMacOSPlatformScript_02_Maximal(t *testing.T) {
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_scenario_02_maximal_001.tf"),
@@ -116,7 +116,7 @@ func TestUnitResourceMacOSPlatformScript_03_MinimalToMaximal(t *testing.T) {
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Create minimal configuration
 			{
@@ -161,7 +161,7 @@ func TestUnitResourceMacOSPlatformScript_04_MaximalToMinimal(t *testing.T) {
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Create maximal configuration
 			{
@@ -204,7 +204,7 @@ func TestUnitResourceMacOSPlatformScript_05_NoAssignmentsToMinimalAssignment(t *
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Create resource with no assignments
 			{
@@ -241,7 +241,7 @@ func TestUnitResourceMacOSPlatformScript_06_NoAssignmentsToMaximalAssignments(t 
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Create resource with no assignments
 			{
@@ -290,7 +290,7 @@ func TestUnitResourceMacOSPlatformScript_07_MinimalToMaximalAssignments(t *testi
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Create with single assignment
 			{
@@ -341,7 +341,7 @@ func TestUnitResourceMacOSPlatformScript_08_MaximalToMinimalAssignments(t *testi
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Step 1: Create with all 4 assignment types
 			{
@@ -392,7 +392,7 @@ func TestUnitResourceMacOSPlatformScript_09_Error_InvalidRunAs(t *testing.T) {
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_scenario_09_error_invalid_run_as_001.tf"),
@@ -409,7 +409,7 @@ func TestUnitResourceMacOSPlatformScript_10_Error_InvalidDuration(t *testing.T) 
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_scenario_09_error_invalid_duration_002.tf"),
@@ -426,7 +426,7 @@ func TestUnitResourceMacOSPlatformScript_11_Error_DescriptionLength(t *testing.T
 	defer macOSPlatformScriptMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadUnitTestTerraform("resource_scenario_09_error_description_length_003.tf"),

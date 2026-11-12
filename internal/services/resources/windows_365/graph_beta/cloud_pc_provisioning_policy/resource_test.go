@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"strings"
 	"testing"
-
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	provisioningPolicyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_365/graph_beta/cloud_pc_provisioning_policy/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
@@ -105,7 +103,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_01_CreateMinimal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -137,7 +135,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_02_CreateMaximal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -199,7 +197,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_CreateNorthEurope(t *testing.T) {
 }`
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -227,7 +225,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_03_UpdateMinimalToMaximal(t *test
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
 			{
@@ -273,7 +271,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_04_UpdateMaximalToMinimal(t *test
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
 			{
@@ -316,7 +314,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_05_DeleteMinimal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -343,7 +341,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_06_DeleteMaximal(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -370,7 +368,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_07_Import(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -402,7 +400,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_08_WithAssignments(t *testing.T) 
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -434,7 +432,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_09_Error(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigMinimal(),

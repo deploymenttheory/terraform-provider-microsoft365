@@ -50,7 +50,7 @@ func TestUnitResourceGroupPolicyConfiguration_01_Minimal(t *testing.T) {
 	defer groupPolicyConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("tests/terraform/unit/resource_minimal.tf"),
@@ -81,7 +81,7 @@ func TestUnitResourceGroupPolicyConfiguration_02_Maximal(t *testing.T) {
 	defer groupPolicyConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("tests/terraform/unit/resource_maximal.tf"),
@@ -113,7 +113,7 @@ func TestUnitResourceGroupPolicyConfiguration_03_MinimalAssignment(t *testing.T)
 	defer groupPolicyConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("tests/terraform/unit/resource_minimal_assignment.tf"),
@@ -141,7 +141,7 @@ func TestUnitResourceGroupPolicyConfiguration_04_MaximalAssignment(t *testing.T)
 	defer groupPolicyConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("tests/terraform/unit/resource_maximal_assignment.tf"),
@@ -170,7 +170,7 @@ func TestUnitResourceGroupPolicyConfiguration_05_MinimalToMaximal(t *testing.T) 
 	defer groupPolicyConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("tests/terraform/unit/resource_minimal.tf"),
@@ -207,7 +207,7 @@ func TestUnitResourceGroupPolicyConfiguration_06_MaximalToMinimal(t *testing.T) 
 	defer groupPolicyConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigHelper("tests/terraform/unit/resource_minimal_to_maximal.tf"),
@@ -246,7 +246,7 @@ func TestUnitResourceGroupPolicyConfiguration_07_ErrorHandling(t *testing.T) {
 	defer groupPolicyConfigurationMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigHelper("tests/terraform/unit/resource_minimal.tf"),

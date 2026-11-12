@@ -25,7 +25,7 @@ func TestUnitDatasourceApplicationCategory_01_All(t *testing.T) {
 	catmocks.RegisterApplicationCategoryMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigAll(),
@@ -61,7 +61,7 @@ func TestUnitDatasourceApplicationCategory_02_ById(t *testing.T) {
 	catmocks.RegisterApplicationCategoryMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigById(),
@@ -91,7 +91,7 @@ func TestUnitDatasourceApplicationCategory_03_ByDisplayName(t *testing.T) {
 	catmocks.RegisterApplicationCategoryMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigByDisplayName(),
@@ -122,7 +122,7 @@ func TestUnitDatasourceApplicationCategory_04_ODataFilter(t *testing.T) {
 	catmocks.RegisterApplicationCategoryMockResponders()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigODataFilter(),

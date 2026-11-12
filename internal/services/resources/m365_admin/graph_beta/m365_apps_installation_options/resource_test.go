@@ -148,7 +148,7 @@ func TestUnitResourceM365AppsInstallationOptions_01_CreateMinimal(t *testing.T) 
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMinimal(),
@@ -176,7 +176,7 @@ func TestUnitResourceM365AppsInstallationOptions_02_CreateMaximal(t *testing.T) 
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigMaximal(),
@@ -204,7 +204,7 @@ func TestUnitResourceM365AppsInstallationOptions_03_UpdateMinimalToMaximal(t *te
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with minimal configuration
 			{
@@ -240,7 +240,7 @@ func TestUnitResourceM365AppsInstallationOptions_04_UpdateMaximalToMinimal(t *te
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Start with maximal configuration
 			{
@@ -275,7 +275,7 @@ func TestUnitResourceM365AppsInstallationOptions_05_DeleteMinimal(t *testing.T) 
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create the resource
 			{
@@ -311,7 +311,7 @@ func TestUnitResourceM365AppsInstallationOptions_06_DeleteMaximal(t *testing.T) 
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create the resource
 			{
@@ -347,7 +347,7 @@ func TestUnitResourceM365AppsInstallationOptions_07_Import(t *testing.T) {
 
 	// Run the test
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create
 			{
@@ -381,7 +381,7 @@ func TestUnitResourceM365AppsInstallationOptions_08_Error(t *testing.T) {
 
 	// Run the test with an error case
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testConfigError(),

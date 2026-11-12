@@ -50,7 +50,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_01_Camera(t *testing
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_01_camera.tf"),
@@ -79,7 +79,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_02_TaskManager(t *te
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_02_task_manager.tf"),
@@ -108,7 +108,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_03_AppPrivacy(t *tes
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_03_app_privacy.tf"),
@@ -137,7 +137,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_04_Cryptography(t *t
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_04_cryptography.tf"),
@@ -166,7 +166,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_05_Notifications(t *
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_05_notifications.tf"),
@@ -195,7 +195,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_06_AttachmentManager
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_06_attachment_manager.tf"),
@@ -224,7 +224,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_07_CredentialUserInt
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_07_credential_user_interface.tf"),
@@ -253,7 +253,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_08_RemoteDesktopAVDU
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_08_remote_desktop_avd_url.tf"),
@@ -282,7 +282,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_09_StorageSense(t *t
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_09_storage_sense.tf"),
@@ -311,7 +311,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_10_WindowsConnection
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_10_windows_connection_manager.tf"),
@@ -340,7 +340,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_11_AutoPlayPolicies(
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_11_autoplay_policies.tf"),
@@ -369,7 +369,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_12_DefenderSmartscre
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_12_defender_smartscreen.tf"),
@@ -398,7 +398,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_13_EdgeExtensionsMac
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_13_edge_extensions_macos.tf"),
@@ -428,7 +428,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_14_OfficeConfigurati
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_14_office_configuration_macos.tf"),
@@ -458,7 +458,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_15_DefenderAntivirus
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_15_defender_antivirus_baseline.tf"),
@@ -487,7 +487,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_16_FileExplorerMinim
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_16_file_explorer_minimal_assignments.tf"),
@@ -518,7 +518,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaxi
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_17_local_policies_maximal_assignments.tf"),
@@ -549,7 +549,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_18_UpdateMinimalToMa
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_18_update_minimal_to_maximal.tf"),
@@ -585,7 +585,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_20_ClearAssignments(
 	const name = "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.file_explorer_minimal"
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{Config: assigned, Check: resource.TestCheckResourceAttr(name, "is_assigned", "true")},
 			{Config: unassigned, Check: resource.ComposeTestCheckFunc(
@@ -607,7 +607,7 @@ func TestUnitResourceSettingsCatalogConfigurationPolicyJson_19_UpdateMaximalToMi
 	defer policyMock.CleanupMockState()
 
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: loadUnitTestTerraform("resource_19_update_maximal_to_minimal.tf"),
