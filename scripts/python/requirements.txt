@@ -2,7 +2,8 @@ requests
 colorama
 azure-identity
 aiohttp
+aiofiles
 msgraph-core 
-msgraph-beta
+msgraph-beta-sdk
 cryptography
 PyJWT

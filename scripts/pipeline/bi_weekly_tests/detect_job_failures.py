@@ -14,27 +14,40 @@ from pathlib import Path
 
 
 def run_gh_command(args: list[str]) -> str:
+    """Run GitHub CLI arguments and return the command output."""
     return subprocess.run(["gh"] + args, capture_output=True, text=True, check=True).stdout.strip()
 
 
 def get_workflow_jobs(owner: str, repo: str, run_id: str) -> list[dict]:
     # --slurp produces one JSON document even when there are more than 100 jobs.
+    """Load the jobs belonging to a GitHub Actions workflow run."""
     endpoint = f"/repos/{owner}/{repo}/actions/runs/{run_id}"
     attempt = os.environ.get("GITHUB_RUN_ATTEMPT")
     if attempt:
         endpoint += f"/attempts/{attempt}"
-    pages = json.loads(run_gh_command(["api", f"{endpoint}/jobs?per_page=100", "--paginate", "--slurp"]))
+    pages = json.loads(
+        run_gh_command(["api", f"{endpoint}/jobs?per_page=100", "--paginate", "--slurp"])
+    )
     jobs = [job for page in pages for job in page["jobs"]]
     if not jobs:
         raise ValueError("GitHub returned no workflow jobs")
     return jobs
 
 
-def analyze_job_failure(job: dict, log: str = "", annotations: list[dict] | None = None) -> dict | None:
+def analyze_job_failure(
+    job: dict, log: str = "", annotations: list[dict] | None = None
+) -> dict | None:
+    """Extract the failure category and details from a workflow job."""
     if job.get("conclusion") not in ("failure", "cancelled", "timed_out"):
         return None
-    failed_step = next((step for step in job.get("steps", [])
-                        if step.get("conclusion") in ("failure", "cancelled", "timed_out")), None)
+    failed_step = next(
+        (
+            step
+            for step in job.get("steps", [])
+            if step.get("conclusion") in ("failure", "cancelled", "timed_out")
+        ),
+        None,
+    )
     evidence = []
     counters = {}
     for path, value in re.findall(r"(\S+/memory.events):[^\n]*?\boom_kill (\d+)", log):
@@ -50,30 +63,44 @@ def analyze_job_failure(job: dict, log: str = "", annotations: list[dict] | None
         evidence.append("GitHub reported a timeout")
     elif "lost communication with the server" in messages:
         failure_type = "runner_failure"
-        evidence.append("GitHub reported lost runner communication; underlying cause is unconfirmed")
+        evidence.append(
+            "GitHub reported lost runner communication; underlying cause is unconfirmed"
+        )
     elif job["conclusion"] == "cancelled":
         failure_type = "cancelled"
         evidence.append("GitHub marked the job cancelled; no OOM counter increase was observed")
     elif failed_step:
-        failure_type = "step_failure" if failed_step["name"].lower().startswith("run ") else "infrastructure"
-        evidence.append(f"Step conclusion: {failed_step.get('conclusion')}; underlying cause is unconfirmed")
+        failure_type = (
+            "step_failure" if failed_step["name"].lower().startswith("run ") else "infrastructure"
+        )
+        evidence.append(
+            f"Step conclusion: {failed_step.get('conclusion')}; underlying cause is unconfirmed"
+        )
     else:
         failure_type = "unknown"
-        evidence.append("GitHub reported job failure without a failed step or conclusive resource evidence")
+        evidence.append(
+            "GitHub reported job failure without a failed step or conclusive resource evidence"
+        )
     return {
-        "job_name": job.get("name", "Unknown"), "job_id": job.get("id"),
-        "conclusion": job.get("conclusion"), "failure_type": failure_type,
+        "job_name": job.get("name", "Unknown"),
+        "job_id": job.get("id"),
+        "conclusion": job.get("conclusion"),
+        "failure_type": failure_type,
         "failed_step": failed_step.get("name") if failed_step else "Unknown",
         "step_number": failed_step.get("number") if failed_step else None,
-        "started_at": job.get("started_at"), "completed_at": job.get("completed_at"),
-        "html_url": job.get("html_url"), "runner_name": job.get("runner_name"),
+        "started_at": job.get("started_at"),
+        "completed_at": job.get("completed_at"),
+        "html_url": job.get("html_url"),
+        "runner_name": job.get("runner_name"),
         "evidence": evidence,
     }
 
 
-def detect_job_failures(owner: str, repo: str, run_id: str, output_file: str,
-                        jobs_file: str = "workflow-jobs.json") -> None:
+def detect_job_failures(
+    owner: str, repo: str, run_id: str, output_file: str, jobs_file: str = "workflow-jobs.json"
+) -> None:
     # Fail visibly on an API error. Never emit [] as though the query succeeded.
+    """Collect failed jobs and their diagnostics for the workflow run."""
     Path(output_file).unlink(missing_ok=True)
     Path(jobs_file).unlink(missing_ok=True)
     jobs = get_workflow_jobs(owner, repo, run_id)
@@ -84,17 +111,28 @@ def detect_job_failures(owner: str, repo: str, run_id: str, output_file: str,
             continue
         log, annotations, unavailable = "", [], []
         try:
-            log = run_gh_command(["api", f"/repos/{owner}/{repo}/actions/jobs/{job['id']}/logs",
-                                  "--allow-escape-sequences"])
+            log = run_gh_command(
+                [
+                    "api",
+                    f"/repos/{owner}/{repo}/actions/jobs/{job['id']}/logs",
+                    "--allow-escape-sequences",
+                ]
+            )
         except subprocess.CalledProcessError:
             unavailable.append("Job logs unavailable")
         check_id = str(job.get("check_run_url", "")).rsplit("/", 1)[-1]
         if check_id.isdigit():
             try:
-                pages = json.loads(run_gh_command([
-                    "api", f"/repos/{owner}/{repo}/check-runs/{check_id}/annotations?per_page=100",
-                    "--paginate", "--slurp",
-                ]))
+                pages = json.loads(
+                    run_gh_command(
+                        [
+                            "api",
+                            f"/repos/{owner}/{repo}/check-runs/{check_id}/annotations?per_page=100",
+                            "--paginate",
+                            "--slurp",
+                        ]
+                    )
+                )
                 annotations = [annotation for page in pages for annotation in page]
             except (subprocess.CalledProcessError, ValueError):
                 unavailable.append("Runner annotations unavailable")
@@ -107,10 +145,14 @@ def detect_job_failures(owner: str, repo: str, run_id: str, output_file: str,
 
 
 def main():
+    """Report failed jobs for the selected workflow run."""
     if len(sys.argv) < 4:
         sys.exit("Usage: detect_job_failures.py OWNER REPO RUN_ID [FAILURES_JSON] [JOBS_JSON]")
-    detect_job_failures(*sys.argv[1:4], sys.argv[4] if len(sys.argv) > 4 else "job-failures.json",
-                        sys.argv[5] if len(sys.argv) > 5 else "workflow-jobs.json")
+    detect_job_failures(
+        *sys.argv[1:4],
+        sys.argv[4] if len(sys.argv) > 4 else "job-failures.json",
+        sys.argv[5] if len(sys.argv) > 5 else "workflow-jobs.json",
+    )
 
 
 if __name__ == "__main__":

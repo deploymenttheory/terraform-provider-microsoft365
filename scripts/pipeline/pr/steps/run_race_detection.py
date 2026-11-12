@@ -13,20 +13,25 @@ from pathlib import Path
 # Add parent directory to path for lib imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Direct script execution requires sibling search paths before these imports.
+# pylint: disable=wrong-import-position
 from lib.go_tests import run_race_detection  # noqa: E402
+
+# pylint: enable=wrong-import-position
 
 
 def main():
     """Run race detection tests."""
-    parser = argparse.ArgumentParser(description='Run Go race detection')
-    parser.add_argument('--packages', required=True,
-                        help='Space-separated list of packages to test')
-    
+    parser = argparse.ArgumentParser(description="Run Go race detection")
+    parser.add_argument(
+        "--packages", required=True, help="Space-separated list of packages to test"
+    )
+
     args = parser.parse_args()
-    
+
     # Parse packages from space-separated string
     packages = args.packages.split()
-    
+
     print(f"🔍 Running race detection on {len(packages)} package(s)...")
     return run_race_detection(packages)
 

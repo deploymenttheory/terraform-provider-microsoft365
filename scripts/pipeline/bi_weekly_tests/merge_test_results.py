@@ -12,20 +12,26 @@ import os
 import sys
 from pathlib import Path
 
-
 TEST_STEPS = {
-    "Run provider core tests", "Run resource tests", "Run datasource tests",
-    "Run actions tests", "Run list-resources tests", "Run ephemerals tests",
+    "Run provider core tests",
+    "Run resource tests",
+    "Run datasource tests",
+    "Run actions tests",
+    "Run list-resources tests",
+    "Run ephemerals tests",
 }
 
 
 def read_results(path: Path, failures: bool) -> list[dict]:
+    """Load one test result artifact from disk."""
     results = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(results, list):
         raise ValueError("expected an array")
     fields = ("test_name", "package", "configuration_block_type", "service")
     for result in results:
-        if not isinstance(result, dict) or any(not isinstance(result.get(key), str) for key in fields):
+        if not isinstance(result, dict) or any(
+            not isinstance(result.get(key), str) for key in fields
+        ):
             raise ValueError("invalid test identity")
         if not result["test_name"] or not result["package"]:
             raise ValueError("missing test or package identity")
@@ -36,7 +42,10 @@ def read_results(path: Path, failures: bool) -> list[dict]:
     return results
 
 
-def aggregate(artifacts: Path, jobs_file: Path, download_ok: bool = True) -> tuple[list, list, dict]:
+def aggregate(
+    artifacts: Path, jobs_file: Path, download_ok: bool = True
+) -> tuple[list, list, dict]:
+    """Combine package and test results across artifact files."""
     failures, successes, problems = [], [], []
     expected = None
     if not download_ok:
@@ -46,24 +55,39 @@ def aggregate(artifacts: Path, jobs_file: Path, download_ok: bool = True) -> tup
         if not isinstance(jobs, list) or not jobs:
             raise ValueError("no workflow jobs available")
         # Expected credential skips never require an artifact or create an incident.
-        expected = sum(any(step.get("name") in TEST_STEPS and step.get("conclusion") != "skipped"
-                           for step in job.get("steps", [])) for job in jobs)
+        expected = sum(
+            any(
+                step.get("name") in TEST_STEPS and step.get("conclusion") != "skipped"
+                for step in job.get("steps", [])
+            )
+            for job in jobs
+        )
         if any(job.get("conclusion") in ("failure", "cancelled", "timed_out") for job in jobs):
             problems.append("Workflow has failed or interrupted jobs")
     except (OSError, ValueError, TypeError, AttributeError) as error:
         problems.append(f"Workflow job inventory unavailable: {error}")
 
-    directories = sorted({path.parent for name in ("test-failures.json", "test-successes.json", "test-run.json")
-                          for path in artifacts.rglob(name)})
+    directories = sorted(
+        {
+            path.parent
+            for name in ("test-failures.json", "test-successes.json", "test-run.json")
+            for path in artifacts.rglob(name)
+        }
+    )
     # Diagnostic-only artifacts also indicate a job that produced no test results.
-    directories = sorted(set(directories) | {path for path in artifacts.glob("test-results-*") if path.is_dir()})
+    directories = sorted(
+        set(directories) | {path for path in artifacts.glob("test-results-*") if path.is_dir()}
+    )
     if expected is not None and len(directories) != expected:
         problems.append(f"Expected {expected} test artifacts; found {len(directories)}")
     if not artifacts.is_dir():
         problems.append("Test artifact directory is missing")
 
     for directory in directories:
-        for filename, target in (("test-failures.json", failures), ("test-successes.json", successes)):
+        for filename, target in (
+            ("test-failures.json", failures),
+            ("test-successes.json", successes),
+        ):
             try:
                 target.extend(read_results(directory / filename, filename == "test-failures.json"))
             except (OSError, ValueError) as error:
@@ -78,26 +102,43 @@ def aggregate(artifacts: Path, jobs_file: Path, download_ok: bool = True) -> tup
         except (OSError, ValueError, AttributeError) as error:
             problems.append(f"{directory.name}/test-run.json: {error}")
 
-    status = {"complete": not problems, "expected_artifacts": expected,
-              "received_artifacts": len(directories), "problems": problems}
+    status = {
+        "complete": not problems,
+        "expected_artifacts": expected,
+        "received_artifacts": len(directories),
+        "problems": problems,
+    }
     return failures, successes, status
 
 
 def main():
+    """Merge test result artifacts into a workflow summary."""
     if len(sys.argv) != 6:
         sys.exit("Usage: merge_test_results.py ARTIFACTS FAILURES SUCCESSES JOBS STATUS")
     artifacts, failures_path, successes_path, jobs_path, status_path = map(Path, sys.argv[1:])
-    failures, successes, status = aggregate(artifacts, jobs_path, os.environ.get("ARTIFACT_DOWNLOAD_OUTCOME", "success") == "success")
-    for path, data in ((failures_path, failures), (successes_path, successes), (status_path, status)):
+    failures, successes, status = aggregate(
+        artifacts, jobs_path, os.environ.get("ARTIFACT_DOWNLOAD_OUTCOME", "success") == "success"
+    )
+    for path, data in (
+        (failures_path, failures),
+        (successes_path, successes),
+        (status_path, status),
+    ):
         path.write_text(json.dumps(data, indent=2), encoding="utf-8")
     message = f"Collected {len(failures)} test failures and {len(successes)} explicit passes."
-    message += " Reporting complete." if status["complete"] else " Reporting incomplete; automatic issue closure disabled."
+    message += (
+        " Reporting complete."
+        if status["complete"]
+        else " Reporting incomplete; automatic issue closure disabled."
+    )
     print(message)
     for problem in status["problems"]:
         print(f"  Warning: {problem}")
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
-            summary.write(message + "\n" + "\n".join(f"- {problem}" for problem in status["problems"]) + "\n")
+            summary.write(
+                message + "\n" + "\n".join(f"- {problem}" for problem in status["problems"]) + "\n"
+            )
 
 
 if __name__ == "__main__":

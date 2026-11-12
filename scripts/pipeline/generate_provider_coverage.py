@@ -11,16 +11,18 @@ This script:
 
 import re
 import sys
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass, field
-from collections import defaultdict
-from datetime import datetime, timezone
 
 
 @dataclass
-class ComponentMetadata:
+# Explicit data fields mirror the configuration or external metadata contract.
+class ComponentMetadata:  # pylint: disable=too-many-instance-attributes
     """Metadata for a Terraform component (resource, data source, etc.)"""
+
     name: str
     component_type: str
     subcategory: str
@@ -40,6 +42,7 @@ class ComponentMetadata:
 @dataclass
 class ProjectPaths:
     """Project directory paths."""
+
     repo_root: Path
     templates: Path
     internal: Path
@@ -56,18 +59,18 @@ class ProviderCoverageGenerator:
             templates=repo_root / "templates",
             internal=repo_root / "internal",
             provider=repo_root / "internal" / "provider",
-            services=repo_root / "internal" / "services"
+            services=repo_root / "internal" / "services",
         )
         self.components: List[ComponentMetadata] = []
         self.service_domains: Dict[str, List[ComponentMetadata]] = defaultdict(list)
 
     def parse_template_frontmatter(self, template_path: Path) -> Dict:
         """Extract YAML frontmatter from a template file."""
-        with open(template_path, 'r', encoding='utf-8') as f:
+        with open(template_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Extract frontmatter between --- markers
-        match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
         if not match:
             return {}
 
@@ -76,35 +79,32 @@ class ProviderCoverageGenerator:
         # Handle template variables in frontmatter - extract subcategory directly
         subcategory_match = re.search(r'subcategory:\s*"([^"]+)"', frontmatter_text)
         if subcategory_match:
-            return {'subcategory': subcategory_match.group(1)}
+            return {"subcategory": subcategory_match.group(1)}
 
         return {}
 
     def extract_version_history(
-        self,
-        template_path: Path
+        self, template_path: Path
     ) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         """Extract initial version, last updated version, and status from version history."""
-        with open(template_path, 'r', encoding='utf-8') as f:
+        with open(template_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Find version history section
         version_section = re.search(
-            r'## Version History.*?\n\|.*?\n\|.*?\n((?:\|.*?\n)+)',
-            content,
-            re.DOTALL
+            r"## Version History.*?\n\|.*?\n\|.*?\n((?:\|.*?\n)+)", content, re.DOTALL
         )
 
         if not version_section:
             return None, None, None
 
         # Parse all data rows
-        rows = version_section.group(1).strip().split('\n')
+        rows = version_section.group(1).strip().split("\n")
         if not rows:
             return None, None, None
 
         # First row is the initial version (oldest)
-        first_match = re.match(r'\|\s*([^\|]+?)\s*\|\s*([^\|]+?)\s*\|', rows[0])
+        first_match = re.match(r"\|\s*([^\|]+?)\s*\|\s*([^\|]+?)\s*\|", rows[0])
         if not first_match:
             return None, None, None
 
@@ -114,7 +114,7 @@ class ProviderCoverageGenerator:
         # Last row is the most recent update
         last_updated = None
         if len(rows) > 1:
-            last_match = re.match(r'\|\s*([^\|]+?)\s*\|', rows[-1])
+            last_match = re.match(r"\|\s*([^\|]+?)\s*\|", rows[-1])
             if last_match:
                 last_updated = last_match.group(1).strip()
 
@@ -122,61 +122,54 @@ class ProviderCoverageGenerator:
 
     def extract_permissions(self, template_path: Path) -> Tuple[List[str], List[str]]:
         """Extract required and optional Graph API permissions."""
-        with open(template_path, 'r', encoding='utf-8') as f:
+        with open(template_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         required_perms = []
         optional_perms = []
 
         # Extract required permissions
-        required_match = re.search(
-            r'\*\*Required:\*\*\s*\n((?:- `[^`]+`\s*\n)+)',
-            content
-        )
+        required_match = re.search(r"\*\*Required:\*\*\s*\n((?:- `[^`]+`\s*\n)+)", content)
         if required_match:
-            required_perms = re.findall(r'- `([^`]+)`', required_match.group(1))
+            required_perms = re.findall(r"- `([^`]+)`", required_match.group(1))
 
         # Extract optional permissions
-        optional_match = re.search(
-            r'\*\*Optional:\*\*\s*\n((?:- `[^`]+`\s*\n)+)',
-            content
-        )
+        optional_match = re.search(r"\*\*Optional:\*\*\s*\n((?:- `[^`]+`\s*\n)+)", content)
         if optional_match:
-            optional_perms = re.findall(r'- `([^`]+)`', optional_match.group(1))
+            optional_perms = re.findall(r"- `([^`]+)`", optional_match.group(1))
             # Filter out N/A entries
-            optional_perms = [p for p in optional_perms if p not in ['None', 'N/A']]
+            optional_perms = [p for p in optional_perms if p not in ["None", "N/A"]]
 
         return required_perms, optional_perms
 
     def count_examples(self, template_path: Path) -> int:
         """Count example references in template."""
-        with open(template_path, 'r', encoding='utf-8') as f:
+        with open(template_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Count tffile references - these are validated during doc generation
-        return len(re.findall(r'\{\{ tffile', content))
+        return len(re.findall(r"\{\{ tffile", content))
 
     def extract_ms_doc_links(self, template_path: Path) -> List[str]:
         """Extract Microsoft documentation links."""
-        with open(template_path, 'r', encoding='utf-8') as f:
+        with open(template_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Find Microsoft Documentation section
         doc_section = re.search(
-            r'## Microsoft Documentation\s*\n((?:- \[.*?\]\(.*?\)\s*\n)+)',
-            content
+            r"## Microsoft Documentation\s*\n((?:- \[.*?\]\(.*?\)\s*\n)+)", content
         )
 
         if not doc_section:
             return []
 
         # Extract URLs
-        return re.findall(r'\((https://[^\)]+)\)', doc_section.group(1))
+        return re.findall(r"\((https://[^\)]+)\)", doc_section.group(1))
 
     def get_resource_name_from_template(self, template_filename: str) -> str:
         """Convert template filename to Terraform resource name."""
         # Remove .md.tmpl extension
-        name = template_filename.replace('.md.tmpl', '')
+        name = template_filename.replace(".md.tmpl", "")
 
         # Add microsoft365_ prefix
         return f"microsoft365_{name}"
@@ -184,15 +177,15 @@ class ProviderCoverageGenerator:
     def find_code_path(self, resource_name: str, component_type: str) -> Optional[Path]:
         """Find the code implementation path for a resource."""
         # Remove microsoft365_ prefix
-        name_without_prefix = resource_name.replace('microsoft365_', '')
+        name_without_prefix = resource_name.replace("microsoft365_", "")
 
         # Determine search base
         search_bases = {
-            'resource': self.paths.services / "resources",
-            'data-source': self.paths.services / "datasources",
-            'ephemeral': self.paths.services / "ephemerals",
-            'action': self.paths.services / "actions",
-            'list-resource': self.paths.services / "list-resources"
+            "resource": self.paths.services / "resources",
+            "data-source": self.paths.services / "datasources",
+            "ephemeral": self.paths.services / "ephemerals",
+            "action": self.paths.services / "actions",
+            "list-resource": self.paths.services / "list-resources",
         }
 
         search_base = search_bases.get(component_type)
@@ -201,7 +194,7 @@ class ProviderCoverageGenerator:
 
         # Strategy: Look for directories with resource.go, datasource.go, or list_resource.go
         # Different component types use different file names
-        search_patterns = ['resource.go', 'datasource.go', 'list_resource.go']
+        search_patterns = ["resource.go", "datasource.go", "list_resource.go"]
         for pattern in search_patterns:
             for resource_file in search_base.rglob(pattern):
                 resource_dir = resource_file.parent
@@ -213,15 +206,14 @@ class ProviderCoverageGenerator:
                 # Try different combinations to match
                 # Remove api version directories (graph_beta, graph_v1.0, etc.)
                 filtered_parts = [
-                    p for p in path_parts
-                    if p not in ['graph_beta', 'graph_v1.0', 'graph']
+                    p for p in path_parts if p not in ["graph_beta", "graph_v1.0", "graph"]
                 ]
 
                 # Create potential match strings
                 potential_matches = [
-                    '_'.join(filtered_parts),  # groups_group
-                    '_'.join(path_parts),       # groups_graph_beta_group
-                    path_parts[-1],             # group
+                    "_".join(filtered_parts),  # groups_group
+                    "_".join(path_parts),  # groups_graph_beta_group
+                    path_parts[-1],  # group
                 ]
 
                 # Check if any match the end of our resource name
@@ -237,13 +229,12 @@ class ProviderCoverageGenerator:
             return False, False
 
         # Different component types use different naming conventions
-        if component_type == 'list-resource':
-            has_unit = (
-                (code_path / "list_test.go").exists() or
-                (code_path / "list_resource_test.go").exists()
-            )
+        if component_type == "list-resource":
+            has_unit = (code_path / "list_test.go").exists() or (
+                code_path / "list_resource_test.go"
+            ).exists()
             has_acceptance = (code_path / "list_acceptance_test.go").exists()
-        elif component_type == 'data-source':
+        elif component_type == "data-source":
             has_unit = (code_path / "datasource_test.go").exists()
             has_acceptance = (code_path / "datasource_acceptance_test.go").exists()
         else:
@@ -253,13 +244,11 @@ class ProviderCoverageGenerator:
         return has_unit, has_acceptance
 
     def _create_component_metadata(
-        self,
-        template_file: Path,
-        component_type: str
+        self, template_file: Path, component_type: str
     ) -> ComponentMetadata:
         """Create metadata object from a template file."""
         frontmatter = self.parse_template_frontmatter(template_file)
-        subcategory = frontmatter.get('subcategory', 'Unknown')
+        subcategory = frontmatter.get("subcategory", "Unknown")
 
         initial_version, last_updated, status = self.extract_version_history(template_file)
         required_perms, optional_perms = self.extract_permissions(template_file)
@@ -284,7 +273,7 @@ class ProviderCoverageGenerator:
             has_acceptance_tests=has_acceptance,
             ms_doc_links=ms_doc_links,
             template_path=str(template_file.relative_to(self.paths.repo_root)),
-            code_path=str(code_path.relative_to(self.paths.repo_root)) if code_path else None
+            code_path=str(code_path.relative_to(self.paths.repo_root)) if code_path else None,
         )
 
     def process_templates(self, component_type: str, template_subdir: str):
@@ -313,35 +302,34 @@ class ProviderCoverageGenerator:
         # Process ephemerals from code (only if not already added from templates)
         ephemerals_file = self.paths.provider / "ephemeral_resources.go"
         if ephemerals_file.exists():
-            with open(ephemerals_file, 'r', encoding='utf-8') as f:
+            with open(ephemerals_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Extract ephemeral registrations
-            pattern = r'New(\w+)EphemeralResource'
+            pattern = r"New(\w+)EphemeralResource"
             matches = re.findall(pattern, content)
 
             for func_name in matches:
-                resource_name = re.sub(r'([A-Z])', r'_\1', func_name).lower().strip('_')
+                resource_name = re.sub(r"([A-Z])", r"_\1", func_name).lower().strip("_")
                 full_name = f"microsoft365_graph_beta_{resource_name}"
 
                 # Skip if already added from template
                 if full_name in existing_names:
                     continue
 
-                code_path = self.find_code_path(full_name, 'ephemeral')
-                has_unit, has_acceptance = self.check_tests(code_path, 'ephemeral')
+                code_path = self.find_code_path(full_name, "ephemeral")
+                has_unit, has_acceptance = self.check_tests(code_path, "ephemeral")
 
                 code_path_str = (
-                    str(code_path.relative_to(self.paths.repo_root))
-                    if code_path else None
+                    str(code_path.relative_to(self.paths.repo_root)) if code_path else None
                 )
                 metadata = ComponentMetadata(
                     name=full_name,
-                    component_type='ephemeral',
-                    subcategory='Multitenant Management',
+                    component_type="ephemeral",
+                    subcategory="Multitenant Management",
                     has_unit_tests=has_unit,
                     has_acceptance_tests=has_acceptance,
-                    code_path=code_path_str
+                    code_path=code_path_str,
                 )
 
                 self.components.append(metadata)
@@ -351,32 +339,31 @@ class ProviderCoverageGenerator:
         # Process actions from code (only if not already added from templates)
         actions_file = self.paths.provider / "actions.go"
         if actions_file.exists():
-            with open(actions_file, 'r', encoding='utf-8') as f:
+            with open(actions_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Extract action registrations
-            pattern = r'New(\w+)Action'
+            pattern = r"New(\w+)Action"
             matches = re.findall(pattern, content)
 
             for func_name in matches:
-                resource_name = re.sub(r'([A-Z])', r'_\1', func_name).lower().strip('_')
+                resource_name = re.sub(r"([A-Z])", r"_\1", func_name).lower().strip("_")
                 full_name = f"microsoft365_graph_beta_device_management_{resource_name}"
 
                 # Skip if already added from template
                 if full_name in existing_names:
                     continue
 
-                code_path = self.find_code_path(full_name, 'action')
+                code_path = self.find_code_path(full_name, "action")
 
                 code_path_str = (
-                    str(code_path.relative_to(self.paths.repo_root))
-                    if code_path else None
+                    str(code_path.relative_to(self.paths.repo_root)) if code_path else None
                 )
                 metadata = ComponentMetadata(
                     name=full_name,
-                    component_type='action',
-                    subcategory='Device Management',
-                    code_path=code_path_str
+                    component_type="action",
+                    subcategory="Device Management",
+                    code_path=code_path_str,
                 )
 
                 self.components.append(metadata)
@@ -386,52 +373,52 @@ class ProviderCoverageGenerator:
     def count_provider_components(self) -> Dict[str, int]:
         """Count total components from provider registration files."""
         counts = {
-            'resources': 0,
-            'data_sources': 0,
-            'list_resources': 0,
-            'ephemerals': 0,
-            'actions': 0
+            "resources": 0,
+            "data_sources": 0,
+            "list_resources": 0,
+            "ephemerals": 0,
+            "actions": 0,
         }
 
         # Count resources
         resources_file = self.paths.provider / "resources.go"
         if resources_file.exists():
-            with open(resources_file, 'r', encoding='utf-8') as f:
+            with open(resources_file, "r", encoding="utf-8") as f:
                 content = f.read()
-                matches = re.findall(r'New\w+Resource,', content)
-                counts['resources'] = len(matches)
+                matches = re.findall(r"New\w+Resource,", content)
+                counts["resources"] = len(matches)
 
         # Count data sources
         datasources_file = self.paths.provider / "datasources.go"
         if datasources_file.exists():
-            with open(datasources_file, 'r', encoding='utf-8') as f:
+            with open(datasources_file, "r", encoding="utf-8") as f:
                 content = f.read()
-                matches = re.findall(r'New\w+DataSource,', content)
-                counts['data_sources'] = len(matches)
+                matches = re.findall(r"New\w+DataSource,", content)
+                counts["data_sources"] = len(matches)
 
         # Count list resources
         list_resources_file = self.paths.provider / "list_resources.go"
         if list_resources_file.exists():
-            with open(list_resources_file, 'r', encoding='utf-8') as f:
+            with open(list_resources_file, "r", encoding="utf-8") as f:
                 content = f.read()
-                matches = re.findall(r'New\w+ListResource,', content)
-                counts['list_resources'] = len(matches)
+                matches = re.findall(r"New\w+ListResource,", content)
+                counts["list_resources"] = len(matches)
 
         # Count ephemerals
         ephemerals_file = self.paths.provider / "ephemeral_resources.go"
         if ephemerals_file.exists():
-            with open(ephemerals_file, 'r', encoding='utf-8') as f:
+            with open(ephemerals_file, "r", encoding="utf-8") as f:
                 content = f.read()
-                matches = re.findall(r'New\w+EphemeralResource,', content)
-                counts['ephemerals'] = len(matches)
+                matches = re.findall(r"New\w+EphemeralResource,", content)
+                counts["ephemerals"] = len(matches)
 
         # Count actions
         actions_file = self.paths.provider / "actions.go"
         if actions_file.exists():
-            with open(actions_file, 'r', encoding='utf-8') as f:
+            with open(actions_file, "r", encoding="utf-8") as f:
                 content = f.read()
-                matches = re.findall(r'New\w+Action,', content)
-                counts['actions'] = len(matches)
+                matches = re.findall(r"New\w+Action,", content)
+                counts["actions"] = len(matches)
 
         return counts
 
@@ -446,7 +433,7 @@ class ProviderCoverageGenerator:
             "Terraform components organized by service domain."
         )
         lines.append("")
-        timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         lines.append(f"*Last updated: {timestamp}*")
         lines.append("")
         lines.append("---")
@@ -484,7 +471,7 @@ class ProviderCoverageGenerator:
         for domain_name, components in sorted_domains:
             self._generate_domain_section(lines, domain_name, components)
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     @staticmethod
     def _format_component_row(comp: ComponentMetadata) -> str:
@@ -503,10 +490,7 @@ class ProviderCoverageGenerator:
 
     @staticmethod
     def _add_component_table(
-        lines: List[str],
-        title: str,
-        components: List[ComponentMetadata],
-        name_column: str
+        lines: List[str], title: str, components: List[ComponentMetadata], name_column: str
     ):
         """Add a collapsible component table section to the output."""
         count = len(components)
@@ -518,7 +502,9 @@ class ProviderCoverageGenerator:
             "Examples | Unit Tests | Acceptance Tests |"
         )
         lines.append(
-            "|" + "-" * (len(name_column) + 2) + "|-------------------|--------------|"
+            "|"
+            + "-" * (len(name_column) + 2)
+            + "|-------------------|--------------|"
             "--------|----------|------------|------------------|"
         )
 
@@ -532,22 +518,19 @@ class ProviderCoverageGenerator:
     @staticmethod
     def _pluralize(count: int, singular: str) -> str:
         """Return pluralized string based on count."""
-        plural = 's' if count != 1 else ''
+        plural = "s" if count != 1 else ""
         return f"{count} {singular}{plural}"
 
     def _generate_domain_section(
-        self,
-        lines: List[str],
-        domain_name: str,
-        components: List[ComponentMetadata]
+        self, lines: List[str], domain_name: str, components: List[ComponentMetadata]
     ):
         """Generate a service domain section."""
         # Count by type
-        resources = [c for c in components if c.component_type == 'resource']
-        data_sources = [c for c in components if c.component_type == 'data-source']
-        list_resources = [c for c in components if c.component_type == 'list-resource']
-        ephemerals = [c for c in components if c.component_type == 'ephemeral']
-        actions = [c for c in components if c.component_type == 'action']
+        resources = [c for c in components if c.component_type == "resource"]
+        data_sources = [c for c in components if c.component_type == "data-source"]
+        list_resources = [c for c in components if c.component_type == "list-resource"]
+        ephemerals = [c for c in components if c.component_type == "ephemeral"]
+        actions = [c for c in components if c.component_type == "action"]
 
         # Build header line
         header_parts = []
@@ -575,9 +558,7 @@ class ProviderCoverageGenerator:
             self._add_component_table(lines, "Data Sources", data_sources, "Data Source Name")
 
         if list_resources:
-            self._add_component_table(
-                lines, "List Resources", list_resources, "List Resource Name"
-            )
+            self._add_component_table(lines, "List Resources", list_resources, "List Resource Name")
 
         if ephemerals:
             self._add_component_table(lines, "Ephemerals", ephemerals, "Ephemeral Name")
@@ -604,23 +585,23 @@ class ProviderCoverageGenerator:
 
         # Process resources
         print("  📦 Processing resource templates...")
-        self.process_templates('resource', 'resources')
+        self.process_templates("resource", "resources")
 
         # Process data sources
         print("  📖 Processing data source templates...")
-        self.process_templates('data-source', 'data-sources')
+        self.process_templates("data-source", "data-sources")
 
         # Process list resources
         print("  📋 Processing list resource templates...")
-        self.process_templates('list-resource', 'list-resources')
+        self.process_templates("list-resource", "list-resources")
 
         # Process ephemerals
         print("  ⚡ Processing ephemeral templates...")
-        self.process_templates('ephemeral', 'ephemerals')
+        self.process_templates("ephemeral", "ephemerals")
 
         # Process actions
         print("  🎬 Processing action templates...")
-        self.process_templates('action', 'actions')
+        self.process_templates("action", "actions")
 
         # Add components without templates
         print("  🔧 Adding components without templates...")
@@ -639,7 +620,7 @@ class ProviderCoverageGenerator:
         output_path = self.paths.repo_root / output_dir / "provider_coverage.md"
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'w', encoding='utf-8') as f:
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(markdown)
 
         print(f"✅ Generated: {output_path}")

@@ -14,44 +14,49 @@ from pathlib import Path
 # Add parent directory to path for lib imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Direct script execution requires sibling search paths before these imports.
+# pylint: disable=wrong-import-position
 from lib.git_operations import get_changed_packages, get_merge_base  # noqa: E402
 from lib.github import write_output  # noqa: E402
+
+# pylint: enable=wrong-import-position
 
 
 def main():
     """Detect and output changed Go packages."""
-    parser = argparse.ArgumentParser(description='Detect changed Go packages')
-    parser.add_argument('--base-ref', required=True,
-                        help='Base branch reference (e.g., origin/main)')
-    parser.add_argument('--github-output', default=os.environ.get('GITHUB_OUTPUT'),
-                        help='Path to GITHUB_OUTPUT file')
-    
+    parser = argparse.ArgumentParser(description="Detect changed Go packages")
+    parser.add_argument(
+        "--base-ref", required=True, help="Base branch reference (e.g., origin/main)"
+    )
+    parser.add_argument(
+        "--github-output",
+        default=os.environ.get("GITHUB_OUTPUT"),
+        help="Path to GITHUB_OUTPUT file",
+    )
+
     args = parser.parse_args()
-    
+
     print("📦 Detecting changed Go packages...")
     base_sha = get_merge_base(args.base_ref)
     packages = get_changed_packages(base_sha)
     print(f"Comparison baseline: {base_sha}")
-    
+
     if not packages:
         print("✅ No Go files changed")
-        write_output({
-            "packages": "",
-            "has-changes": "false",
-            "base-sha": base_sha
-        }, args.github_output)
+        write_output(
+            {"packages": "", "has-changes": "false", "base-sha": base_sha}, args.github_output
+        )
         return 0
-    
+
     print(f"📦 Found {len(packages)} changed package(s):")
     for pkg in packages:
         print(f"   - {pkg}")
-    
-    write_output({
-        "packages": ' '.join(packages),
-        "has-changes": "true",
-        "base-sha": base_sha
-    }, args.github_output)
-    
+
+    write_output(
+        {"packages": " ".join(packages), "has-changes": "true", "base-sha": base_sha},
+        args.github_output,
+    )
+
     return 0
 
 

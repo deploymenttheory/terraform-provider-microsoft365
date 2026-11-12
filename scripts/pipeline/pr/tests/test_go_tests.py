@@ -1,7 +1,7 @@
 """Verify package scope, serial execution, acceptance isolation, and failure propagation."""
 
-import os
 import io
+import os
 import subprocess
 import sys
 import unittest
@@ -10,12 +10,21 @@ from pathlib import Path
 from unittest.mock import patch
 
 from support import RepositoryTest
-from lib.go_tests import run_unit_tests, run_race_detection, _run_test_command
+
+# isort: split
+
+from lib.go_tests import _run_test_command, run_race_detection, run_unit_tests
 
 
 class TestOutputTests(unittest.TestCase):
+    """Exercise test output behavior."""
+
     def test_streams_stdout_and_stderr_with_per_line_colour_and_preserves_failure(self):
-        command = [sys.executable, '-c', '''import sys
+        """Verify streams stdout and stderr with per line colour and preserves failure."""
+        command = [
+            sys.executable,
+            "-c",
+            """import sys
 print("=== RUN   TestExample", flush=True)
 print("Error: apply failed", file=sys.stderr, flush=True)
 print("    diagnostic details", flush=True)
@@ -24,105 +33,145 @@ print("=== RUN   TestOther", flush=True)
 print("--- PASS: TestOther (0.01s)", flush=True)
 print("FAIL", flush=True)
 sys.exit(7)
-''']
+""",
+        ]
         output = io.StringIO()
-        environment = {**os.environ, 'GITHUB_ACTIONS': 'true'}
-        environment.pop('NO_COLOR', None)
+        environment = {**os.environ, "GITHUB_ACTIONS": "true"}
+        environment.pop("NO_COLOR", None)
         with patch.dict(os.environ, environment, clear=True), redirect_stdout(output):
             result = _run_test_command(command, env=environment, check=False)
         self.assertEqual(result.returncode, 7)
-        self.assertEqual(output.getvalue().splitlines(), [
-            '\033[32m=== RUN   TestExample\033[0m',
-            '\033[31mError: apply failed\033[0m',
-            '\033[31m    diagnostic details\033[0m',
-            '\033[31m--- FAIL: TestExample (0.01s)\033[0m',
-            '\033[32m=== RUN   TestOther\033[0m',
-            '\033[32m--- PASS: TestOther (0.01s)\033[0m',
-            '\033[31mFAIL\033[0m',
-        ])
+        self.assertEqual(
+            output.getvalue().splitlines(),
+            [
+                "\033[32m=== RUN   TestExample\033[0m",
+                "\033[31mError: apply failed\033[0m",
+                "\033[31m    diagnostic details\033[0m",
+                "\033[31m--- FAIL: TestExample (0.01s)\033[0m",
+                "\033[32m=== RUN   TestOther\033[0m",
+                "\033[32m--- PASS: TestOther (0.01s)\033[0m",
+                "\033[31mFAIL\033[0m",
+            ],
+        )
 
     def test_no_colour_and_nonzero_exit_still_raise(self):
+        """Verify no colour and nonzero exit still raise."""
         output = io.StringIO()
-        command = [sys.executable, '-c', 'print("FAIL"); raise SystemExit(3)']
-        with patch.dict(os.environ, {'GITHUB_ACTIONS': 'true', 'NO_COLOR': '1'}), redirect_stdout(output):
+        command = [sys.executable, "-c", 'print("FAIL"); raise SystemExit(3)']
+        with (
+            patch.dict(os.environ, {"GITHUB_ACTIONS": "true", "NO_COLOR": "1"}),
+            redirect_stdout(output),
+        ):
             with self.assertRaises(subprocess.CalledProcessError) as error:
                 _run_test_command(command, env=os.environ.copy(), check=True)
         self.assertEqual(error.exception.returncode, 3)
-        self.assertEqual(output.getvalue(), 'FAIL\n')
+        self.assertEqual(output.getvalue(), "FAIL\n")
 
 
 class TestRunnerTests(RepositoryTest):
+    """Exercise test runner behavior."""
+
     def test_empty_selections_do_not_execute_go(self):
-        with patch('lib.go_tests._run_test_command') as run:
-            run_unit_tests([], 'coverage')
+        """Verify empty selections do not execute go."""
+        with patch("lib.go_tests._run_test_command") as run:
+            run_unit_tests([], "coverage")
             self.assertEqual(run_race_detection([]), 0)
         run.assert_not_called()
 
     def test_test_and_race_commands_are_serial_and_disable_acceptance(self):
-        with patch.dict(os.environ, {'TF_ACC': '1', 'GOFLAGS': '-p=8', 'GOMAXPROCS': '8'}):
-            with patch('lib.go_tests._run_test_command', return_value=subprocess.CompletedProcess([], 0)) as run:
-                run_unit_tests(['selected'], 'coverage')
-                run_race_detection(['selected'])
+        """Verify test and race commands are serial and disable acceptance."""
+        with patch.dict(os.environ, {"TF_ACC": "1", "GOFLAGS": "-p=8", "GOMAXPROCS": "8"}):
+            with patch(
+                "lib.go_tests._run_test_command", return_value=subprocess.CompletedProcess([], 0)
+            ) as run:
+                run_unit_tests(["selected"], "coverage")
+                run_race_detection(["selected"])
         for call in run.call_args_list:
             command = call.args[0]
-            self.assertEqual(command[-1], './selected')
-            self.assertIn('-p=1', command)
-            self.assertIn('-parallel=1', command)
-            self.assertIn('-skip=^TestAcc', command)
-            self.assertNotIn('./...', command)
-            self.assertEqual(call.kwargs['env']['TF_ACC'], '0')
-            self.assertEqual(call.kwargs['env']['GOMAXPROCS'], '1')
-            self.assertEqual(call.kwargs['env']['GOFLAGS'], '-p=1')
+            self.assertEqual(command[-1], "./selected")
+            self.assertIn("-p=1", command)
+            self.assertIn("-parallel=1", command)
+            self.assertIn("-skip=^TestAcc", command)
+            self.assertNotIn("./...", command)
+            self.assertEqual(call.kwargs["env"]["TF_ACC"], "0")
+            self.assertEqual(call.kwargs["env"]["GOMAXPROCS"], "1")
+            self.assertEqual(call.kwargs["env"]["GOFLAGS"], "-p=1")
 
     def test_failure_is_not_hidden_by_coverage(self):
-        def failed(command, **kwargs):
-            profile = next(arg.split('=', 1)[1] for arg in command if arg.startswith('-coverprofile='))
-            Path(profile).write_text('mode: atomic\nexample.com/selected/value.go:1.1,1.5 1 1\n')
+        """Verify failure is not hidden by coverage."""
+
+        def failed(command, **_kwargs):
+            profile = next(
+                arg.split("=", 1)[1] for arg in command if arg.startswith("-coverprofile=")
+            )
+            Path(profile).write_text(
+                "mode: atomic\nexample.com/selected/value.go:1.1,1.5 1 1\n", encoding="utf-8"
+            )
             raise subprocess.CalledProcessError(1, command)
-        with patch('lib.go_tests._run_test_command', side_effect=failed):
+
+        with patch("lib.go_tests._run_test_command", side_effect=failed):
             with self.assertRaises(subprocess.CalledProcessError):
-                run_unit_tests(['selected'])
-        self.assertIn('example.com/selected', Path('coverage/selected.out').read_text())
-        self.assertFalse(Path('coverage/unit-coverage.txt').exists())
+                run_unit_tests(["selected"])
+        self.assertIn(
+            "example.com/selected", Path("coverage/selected.out").read_text(encoding="utf-8")
+        )
+        self.assertFalse(Path("coverage/unit-coverage.txt").exists())
 
     def test_stale_coverage_is_removed_before_failed_build(self):
-        self.write('coverage/selected.out', 'mode: atomic\nstale.go:1.1,1.5 1 1\n')
-        self.write('coverage/unit-coverage.txt', 'mode: atomic\nstale.go:1.1,1.5 1 1\n')
-        with patch('lib.go_tests._run_test_command', side_effect=subprocess.CalledProcessError(1, ['go', 'test'])):
+        """Verify stale coverage is removed before failed build."""
+        self.write("coverage/selected.out", "mode: atomic\nstale.go:1.1,1.5 1 1\n")
+        self.write("coverage/unit-coverage.txt", "mode: atomic\nstale.go:1.1,1.5 1 1\n")
+        with patch(
+            "lib.go_tests._run_test_command",
+            side_effect=subprocess.CalledProcessError(1, ["go", "test"]),
+        ):
             with self.assertRaises(subprocess.CalledProcessError):
-                run_unit_tests(['selected'])
-        self.assertFalse(Path('coverage/selected.out').exists())
-        self.assertFalse(Path('coverage/unit-coverage.txt').exists())
+                run_unit_tests(["selected"])
+        self.assertFalse(Path("coverage/selected.out").exists())
+        self.assertFalse(Path("coverage/unit-coverage.txt").exists())
 
     def test_success_merges_coverage_from_multiple_packages(self):
+        """Verify success merges coverage from multiple packages."""
+
         def successful(command, *, env, check):
+            self.assertEqual(env["TF_ACC"], "0")
             self.assertTrue(check)
-            profile = next(arg.split('=', 1)[1] for arg in command if arg.startswith('-coverprofile='))
-            Path(profile).write_text('mode: atomic\nexample.go:1.1,2.1 1 1\n')
+            profile = next(
+                arg.split("=", 1)[1] for arg in command if arg.startswith("-coverprofile=")
+            )
+            Path(profile).write_text("mode: atomic\nexample.go:1.1,2.1 1 1\n", encoding="utf-8")
             return subprocess.CompletedProcess(command, 0)
-        with patch('lib.go_tests._run_test_command', side_effect=successful) as run:
-            coverage = run_unit_tests(['first', 'second'])
+
+        with patch("lib.go_tests._run_test_command", side_effect=successful) as run:
+            coverage = run_unit_tests(["first", "second"])
         self.assertEqual(run.call_count, 2)
-        self.assertEqual(coverage.read_text().count('mode: atomic'), 1)
-        self.assertEqual(coverage.read_text().count('example.go:'), 2)
+        self.assertEqual(coverage.read_text(encoding="utf-8").count("mode: atomic"), 1)
+        self.assertEqual(coverage.read_text(encoding="utf-8").count("example.go:"), 2)
 
     def test_failed_or_terminated_test_stops_execution_and_preserves_exit_code(self):
+        """Verify failed or terminated test stops execution and preserves exit code."""
         for returncode in [1, -15]:
             with self.subTest(returncode=returncode):
-                failure = subprocess.CalledProcessError(returncode, ['go', 'test'])
-                with patch('lib.go_tests._run_test_command', side_effect=failure) as run:
+                failure = subprocess.CalledProcessError(returncode, ["go", "test"])
+                with patch("lib.go_tests._run_test_command", side_effect=failure) as run:
                     with self.assertRaises(subprocess.CalledProcessError) as error:
-                        run_unit_tests(['first', 'must-not-run'])
+                        run_unit_tests(["first", "must-not-run"])
                 self.assertEqual(error.exception.returncode, returncode)
                 self.assertEqual(run.call_count, 1)
-                self.assertFalse(Path('coverage/unit-coverage.txt').exists())
+                self.assertFalse(Path("coverage/unit-coverage.txt").exists())
 
     def test_race_failure_propagates(self):
-        with patch('lib.go_tests._run_test_command', return_value=subprocess.CompletedProcess([], 1)):
-            self.assertEqual(run_race_detection(['selected']), 1)
+        """Verify race failure propagates."""
+        with patch(
+            "lib.go_tests._run_test_command", return_value=subprocess.CompletedProcess([], 1)
+        ):
+            self.assertEqual(run_race_detection(["selected"]), 1)
 
     def test_real_go_runs_only_selected_package_and_forces_tf_acc_zero(self):
-        self.write('selected/value_test.go', '''package selected
+        """Verify real go runs only selected package and forces tf acc zero."""
+        self.write(
+            "selected/value_test.go",
+            """package selected
 import ("os"; "testing")
 func TestUnitSelected(t *testing.T) {
  if os.Getenv("TF_ACC") != "0" { t.Fatal("acceptance environment leaked") }
@@ -131,21 +180,29 @@ func TestUnitSelected(t *testing.T) {
 func TestAccSelected(t *testing.T) {
  if os.Getenv("TF_ACC") != "" { t.Fatal("acceptance test must not execute") }
 }
-''')
-        self.write('unrelated/value_test.go', '''package unrelated
+""",
+        )
+        self.write(
+            "unrelated/value_test.go",
+            """package unrelated
 import "testing"
 func TestUnrelated(t *testing.T) { t.Fatal("unrelated tests must not run") }
-''')
-        with patch.dict(os.environ, {'TF_ACC': '1', 'GOTOOLCHAIN': 'local', 'GOPROXY': 'off'}):
-            coverage = run_unit_tests(['selected'])
-        self.assertIn('/selected/', coverage.read_text())
-        self.assertNotIn('/unrelated/', coverage.read_text())
+""",
+        )
+        with patch.dict(os.environ, {"TF_ACC": "1", "GOTOOLCHAIN": "local", "GOPROXY": "off"}):
+            coverage = run_unit_tests(["selected"])
+        self.assertIn("/selected/", coverage.read_text(encoding="utf-8"))
+        self.assertNotIn("/unrelated/", coverage.read_text(encoding="utf-8"))
 
     def test_real_go_failure_reaches_caller(self):
-        self.write('selected/value_test.go', '''package selected
+        """Verify real go failure reaches caller."""
+        self.write(
+            "selected/value_test.go",
+            """package selected
 import "testing"
 func TestFailure(t *testing.T) { t.Fatal("intentional failure") }
-''')
-        with patch.dict(os.environ, {'GOTOOLCHAIN': 'local', 'GOPROXY': 'off'}):
+""",
+        )
+        with patch.dict(os.environ, {"GOTOOLCHAIN": "local", "GOPROXY": "off"}):
             with self.assertRaises(subprocess.CalledProcessError):
-                run_unit_tests(['selected'])
+                run_unit_tests(["selected"])

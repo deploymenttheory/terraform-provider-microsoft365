@@ -11,25 +11,31 @@ from pathlib import Path
 # Add parent directory to path for lib imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Direct script execution requires sibling search paths before these imports.
+# pylint: disable=wrong-import-position
 from lib.go_tests import run_unit_tests  # noqa: E402
+
+# pylint: enable=wrong-import-position
 
 
 def main():
     """Run unit tests with coverage."""
-    parser = argparse.ArgumentParser(description='Run Go unit tests with coverage')
-    parser.add_argument('--packages', required=True,
-                        help='Space-separated list of packages to test')
-    parser.add_argument('--output-dir', default='coverage',
-                        help='Directory for coverage output files')
-    
+    parser = argparse.ArgumentParser(description="Run Go unit tests with coverage")
+    parser.add_argument(
+        "--packages", required=True, help="Space-separated list of packages to test"
+    )
+    parser.add_argument(
+        "--output-dir", default="coverage", help="Directory for coverage output files"
+    )
+
     args = parser.parse_args()
-    
+
     # Parse packages from space-separated string
     packages = args.packages.split()
-    
+
     print(f"🧪 Running unit tests on {len(packages)} package(s)...")
     coverage_file = run_unit_tests(packages, args.output_dir)
-    
+
     print(f"\n✅ Coverage file generated: {coverage_file}")
     return 0
 
