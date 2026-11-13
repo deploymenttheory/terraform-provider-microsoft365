@@ -4,12 +4,14 @@
 Usage: merge_test_results.py ARTIFACTS FAILURES SUCCESSES JOBS STATUS
 
 Always write both result arrays and a completeness report. Valid partial results
-can create incidents, but incomplete reporting disables automatic issue closure.
+can create incidents. Verified passes from completed packages can resolve their
+own incidents even when unrelated jobs are incomplete.
 """
 
 import json
 import os
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 
 TEST_STEPS = {
@@ -42,14 +44,22 @@ def read_results(path: Path, failures: bool) -> list[dict]:
     return results
 
 
-def aggregate(
-    artifacts: Path, jobs_file: Path, download_ok: bool = True
-) -> tuple[list, list, dict]:
-    """Combine package and test results across artifact files."""
-    failures, successes, problems = [], [], []
-    expected = None
-    if not download_ok:
-        problems.append("Artifact download did not succeed")
+@dataclass
+class ArtifactReport:
+    """Keep observed outcomes separate from evidence eligible to resolve incidents."""
+
+    failures: list[dict] = field(default_factory=list)
+    successes: list[dict] = field(default_factory=list)
+    verified_passes: set[tuple[str, str]] = field(default_factory=set)
+    problems: list[str] = field(default_factory=list)
+
+
+class ForeignArtifactError(ValueError):
+    """The manifest explicitly identifies another workflow run or attempt."""
+
+
+def _job_inventory(jobs_file: Path) -> tuple[int | None, list[str]]:
+    """Count executed test jobs only after validating the whole inventory."""
     try:
         jobs = json.loads(jobs_file.read_text(encoding="utf-8"))
         if not isinstance(jobs, list) or not jobs:
@@ -62,10 +72,88 @@ def aggregate(
             )
             for job in jobs
         )
-        if any(job.get("conclusion") in ("failure", "cancelled", "timed_out") for job in jobs):
-            problems.append("Workflow has failed or interrupted jobs")
+        problems = (
+            ["Workflow has failed or interrupted jobs"]
+            if any(job.get("conclusion") in ("failure", "cancelled", "timed_out") for job in jobs)
+            else []
+        )
+        return expected, problems
     except (OSError, ValueError, TypeError, AttributeError) as error:
-        problems.append(f"Workflow job inventory unavailable: {error}")
+        return None, [f"Workflow job inventory unavailable: {error}"]
+
+
+def _read_manifest(path: Path, provenance: dict[str, str]) -> dict:
+    """Validate provenance and the declared execution scope before trusting outcomes."""
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict):
+        raise ValueError("unrecognized test execution manifest")
+    for key, expected in provenance.items():
+        actual = manifest.get(key)
+        if expected and actual is not None and actual != expected:
+            raise ForeignArtifactError(f"artifact belongs to another {key}")
+    for key, expected in provenance.items():
+        if expected and manifest.get(key) != expected:
+            raise ValueError(f"missing artifact {key}")
+    if manifest.get("schema_version") != 1:
+        raise ValueError("unrecognized test execution manifest")
+    expected_packages = manifest.get("expected_packages")
+    completed_packages = manifest.get("completed_packages")
+    if (
+        not isinstance(manifest.get("complete"), bool)
+        or not isinstance(expected_packages, list)
+        or not isinstance(completed_packages, list)
+        or any(
+            not isinstance(item, str) or not item for item in expected_packages + completed_packages
+        )
+        or not set(completed_packages) <= set(expected_packages)
+    ):
+        raise ValueError("missing or invalid package execution scope")
+    return manifest
+
+
+def _artifact_report(
+    directory: Path, provenance: dict[str, str], verify_passes: bool
+) -> ArtifactReport:
+    """Preserve valid partial evidence, but discard explicitly foreign outcomes."""
+    report = ArtifactReport()
+    for filename, target in (
+        ("test-failures.json", report.failures),
+        ("test-successes.json", report.successes),
+    ):
+        try:
+            target.extend(read_results(directory / filename, filename == "test-failures.json"))
+        except (OSError, ValueError) as error:
+            report.problems.append(f"{directory.name}/{filename}: {error}")
+    arrays_valid = not report.problems
+    try:
+        manifest = _read_manifest(directory / "test-run.json", provenance)
+    except ForeignArtifactError as error:
+        report.failures.clear()
+        report.successes.clear()
+        report.problems.append(f"{directory.name}/test-run.json: {error}")
+        return report
+    except (OSError, ValueError) as error:
+        report.problems.append(f"{directory.name}/test-run.json: {error}")
+        return report
+    if any(
+        result["package"] not in manifest["expected_packages"]
+        for result in report.failures + report.successes
+    ):
+        report.problems.append(f"{directory.name}: test result outside declared package scope")
+        return report
+    if not manifest["complete"]:
+        report.problems.append(f"{directory.name}/test-run.json: test execution incomplete")
+    if arrays_valid and verify_passes:
+        report.verified_passes.update(
+            (result["package"], result["test_name"])
+            for result in report.successes
+            if result["package_complete"] and result["package"] in manifest["completed_packages"]
+        )
+    return report
+
+
+def _artifact_directories(artifacts: Path) -> list[Path]:
+    """Include result files and diagnostic-only artifact directories."""
 
     directories = sorted(
         {
@@ -75,40 +163,54 @@ def aggregate(
         }
     )
     # Diagnostic-only artifacts also indicate a job that produced no test results.
-    directories = sorted(
+    return sorted(
         set(directories) | {path for path in artifacts.glob("test-results-*") if path.is_dir()}
     )
+
+
+def aggregate(
+    artifacts: Path, jobs_file: Path, download_ok: bool = True
+) -> tuple[list, list, dict]:
+    """Combine outcomes while independently verifying each completed package's passes."""
+    expected, problems = _job_inventory(jobs_file)
+    provenance = {
+        "run_id": os.environ.get("GITHUB_RUN_ID", ""),
+        "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+    }
+    if not download_ok:
+        problems.append("Artifact download did not succeed")
+    if not all(provenance.values()):
+        problems.append("Current workflow run and attempt provenance is unavailable")
+    directories = _artifact_directories(artifacts)
     if expected is not None and len(directories) != expected:
         problems.append(f"Expected {expected} test artifacts; found {len(directories)}")
     if not artifacts.is_dir():
         problems.append("Test artifact directory is missing")
 
+    combined = ArtifactReport(problems=problems)
+    verify_passes = bool(expected) and download_ok and all(provenance.values())
     for directory in directories:
-        for filename, target in (
-            ("test-failures.json", failures),
-            ("test-successes.json", successes),
-        ):
-            try:
-                target.extend(read_results(directory / filename, filename == "test-failures.json"))
-            except (OSError, ValueError) as error:
-                problems.append(f"{directory.name}/{filename}: {error}")
-        try:
-            manifest = json.loads((directory / "test-run.json").read_text(encoding="utf-8"))
-            if manifest.get("schema_version") != 1 or manifest.get("complete") is not True:
-                raise ValueError("test execution incomplete")
-            for key, env in (("run_id", "GITHUB_RUN_ID"), ("run_attempt", "GITHUB_RUN_ATTEMPT")):
-                if os.environ.get(env) and manifest.get(key) != os.environ[env]:
-                    raise ValueError(f"artifact belongs to another {key}")
-        except (OSError, ValueError, AttributeError) as error:
-            problems.append(f"{directory.name}/test-run.json: {error}")
-
+        report = _artifact_report(directory, provenance, verify_passes)
+        combined.failures.extend(report.failures)
+        combined.successes.extend(report.successes)
+        combined.verified_passes.update(report.verified_passes)
+        combined.problems.extend(report.problems)
+    combined.verified_passes.difference_update(
+        (item["package"], item["test_name"]) for item in combined.failures
+    )
     status = {
-        "complete": not problems,
+        "schema_version": 2,
+        **provenance,
+        "verified_passes": [
+            {"package": package, "test_name": name}
+            for package, name in sorted(combined.verified_passes)
+        ],
+        "complete": not combined.problems,
         "expected_artifacts": expected,
         "received_artifacts": len(directories),
-        "problems": problems,
+        "problems": combined.problems,
     }
-    return failures, successes, status
+    return combined.failures, combined.successes, status
 
 
 def main():
@@ -129,7 +231,7 @@ def main():
     message += (
         " Reporting complete."
         if status["complete"]
-        else " Reporting incomplete; automatic issue closure disabled."
+        else " Reporting incomplete; only independently verified passes can resolve incidents."
     )
     print(message)
     for problem in status["problems"]:

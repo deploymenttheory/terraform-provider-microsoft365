@@ -195,6 +195,9 @@ PACKAGE_FAILURE = re.compile(
     r"^FAIL[ \t]+\S+(?:[ \t]+(?:\d+(?:\.\d+)?s|\[(?:build|setup) failed\]))?[ \t]*$",
     re.MULTILINE,
 )
+RUNTIME_INTERRUPTION = re.compile(
+    r"^(?:panic:|fatal error:|SIGSEGV\b|runtime error:)", re.MULTILINE
+)
 
 
 def _failure_context(content: str, match, test_name: str) -> str:
@@ -299,6 +302,21 @@ def _command_sections(content: str):
     return sections, len(starts)
 
 
+def _package_completed_normally(status: int | None, output: str, failures: list) -> bool:
+    """Separate normal test failures from package termination and runtime interruptions."""
+    if status == 0:
+        return True
+    if status != 1 or not failures or RUNTIME_INTERRUPTION.search(output):
+        return False
+    started = set(re.findall(rf"^=== RUN\s+({TOP_LEVEL_TEST})[ \t]*$", output, re.MULTILINE))
+    finished = set(
+        re.findall(rf"^--- (?:PASS|FAIL|SKIP): ({TOP_LEVEL_TEST})(?=\s)", output, re.MULTILINE)
+    )
+    return started <= finished and not any(
+        item["context"].startswith("[PANIC DETECTED]") for item in failures
+    )
+
+
 def _section_results(sections: list, identity: tuple):
     """Attach package completeness independently from the individual test verdicts."""
     failures, successes, completed = [], [], []
@@ -317,9 +335,10 @@ def _section_results(sections: list, identity: tuple):
         # Exit 1 without a failed test can be a build/vet failure before tests ran.
         if status == 0 or (status == 1 and package_failures):
             completed.append(package)
+        package_complete = _package_completed_normally(status, output, package_failures)
         for result in package_failures + package_successes:
             result["package"] = package
-            result["package_complete"] = status == 0
+            result["package_complete"] = package_complete
         failures.extend(package_failures)
         successes.extend(package_successes)
 
@@ -334,8 +353,9 @@ def parse_test_results(
 ) -> None:
     """Preserve partial results, package identity and command completion separately.
 
-    Only an explicit PASS in a package that exited successfully can resolve an
-    incident. Unframed legacy output is retained for diagnosis without claiming
+    Only an explicit PASS in a normally completed package can resolve an
+    incident. Unrelated test failures do not invalidate that pass.
+    Unframed legacy output is retained without claiming
     package identity or completeness.
     """
     content = Path(output_file).read_text(encoding="utf-8")
@@ -358,8 +378,8 @@ def parse_test_results(
     }
     Path("test-run.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     print(
-        f"Test results: {len(failures)} failures, {len(successes)} successes;"
-        f" complete={manifest['complete']}"
+        f"Test results: {len(failures)} failures, {len(successes)} explicit passes;"
+        f" commands_complete={manifest['complete']}"
     )
 
 
