@@ -120,12 +120,13 @@ func extractPolicyXMLContent(ctx context.Context, data *AppControlForBusinessPol
 
 	xmlContent := stringValue.GetValue()
 	if xmlContent != nil {
-		// Normalize XML content to match what we send to the API
-		normalizedXML := normalize.ReverseNormalizeXML(*xmlContent)
-
-		data.PolicyXML = types.StringValue(normalizedXML)
-		tflog.Debug(ctx, "Successfully extracted and normalized XML policy content", map[string]any{
-			"xmlLength": len(normalizedXML),
+		// Preserve the configured representation only when it matches the submitted XML.
+		if data.PolicyXML.IsNull() || data.PolicyXML.IsUnknown() ||
+			normalize.NormalizeXML(data.PolicyXML.ValueString()) != *xmlContent {
+			data.PolicyXML = types.StringValue(*xmlContent)
+		}
+		tflog.Debug(ctx, "Successfully extracted XML policy content", map[string]any{
+			"xmlLength": len(*xmlContent),
 			"hasBOM":    strings.HasPrefix(*xmlContent, "\ufeff"),
 		})
 	} else {

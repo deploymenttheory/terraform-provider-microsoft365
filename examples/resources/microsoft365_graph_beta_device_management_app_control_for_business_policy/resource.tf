@@ -115,8 +115,8 @@ resource "microsoft365_graph_beta_device_management_app_control_for_business_pol
   name        = "app-control-policy-file"
   description = "app-control-policy-file"
 
-  # XML policy referencing a file
-  policy_xml = file("${path.module}/AllowAll_EnableHVCI.xml")
+  # Remove an optional UTF-8 BOM from XML exported by Windows tools.
+  policy_xml = trimprefix(file("${path.module}/AllowAll_EnableHVCI.xml"), "\ufeff")
 
   role_scope_tag_ids = ["0", "1", "2"]
 
