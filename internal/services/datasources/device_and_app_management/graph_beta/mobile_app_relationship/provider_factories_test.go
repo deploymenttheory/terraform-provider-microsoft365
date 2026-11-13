@@ -5,10 +5,19 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	providercore "github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider/core"
 	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/mobile_app_relationship"
+	testProvider1 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_dependency"
+	testProvider2 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/mobile_app_supersedence"
+	testProvider3 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/win32_app"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var testProviderRegistry = providercore.Registry{
+	Resources: []func() resource.Resource{
+		testProvider1.NewMobileAppDependencyResource,
+		testProvider2.NewMobileAppSupersedenceResource,
+		testProvider3.NewWin32LobAppResource,
+	},
 	DataSources: []func() datasource.DataSource{
 		testProvider0.NewMobileAppRelationshipDataSource,
 	},

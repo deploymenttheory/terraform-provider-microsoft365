@@ -1,21 +1,29 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/intune-apps-mobileapprelationship-list?view=graph-rest-beta
 package graphBetaMobileAppRelationship
 
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	apprelationships "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management/app_relationships"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 )
 
-func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+// Read looks up a single relationship. The root /deviceAppManagement/mobileAppRelationships
+// collection rejects $filter, $skip, $orderby and $count, so every list-based lookup reads
+// the per-app /mobileApps/{source_id}/relationships navigation instead.
+func (d *MobileAppRelationshipDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 	var object MobileAppRelationshipDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
@@ -23,149 +31,119 @@ func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasour
 		return
 	}
 
-	filterType := object.FilterType.ValueString()
-	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s with filter_type: %s", DataSourceName, filterType))
+	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s", DataSourceName))
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Read,
+		ReadTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	var filteredItems []MobileAppRelationshipModel
-	filterValue := object.FilterValue.ValueString()
+	sourceID := object.SourceID.ValueString()
+	targetType := object.TargetType.ValueString()
 
-	if filterType == "id" {
-		// Get a specific mobile app relationship by ID
-		mobileAppRelationship, err := d.client.
-			DeviceAppManagement().
-			MobileAppRelationships().
-			ByMobileAppRelationshipId(filterValue).
-			Get(ctx, nil)
+	var (
+		match    relationshipMatcher
+		filter   string
+		criteria string
+	)
 
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
+	switch determineLookupMethod(object) {
+	case lookupByODataQuery:
+		filter = object.ODataQuery.ValueString()
+		match = matchAll
+		criteria = fmt.Sprintf("odata_query %q on app %s", filter, sourceID)
+	case lookupByTargetId:
+		match = matchTargetId(object.TargetID.ValueString())
+		criteria = fmt.Sprintf("target_id %q on app %s", object.TargetID.ValueString(), sourceID)
+	case lookupByTargetDisplayName:
+		match = matchTargetDisplayName(object.TargetDisplayName.ValueString())
+		criteria = fmt.Sprintf(
+			"target_display_name %q on app %s",
+			object.TargetDisplayName.ValueString(),
+			sourceID,
+		)
+	case lookupByRelationshipId:
+		relationshipID := object.RelationshipID.ValueString()
+		match = matchId(relationshipID)
+		criteria = fmt.Sprintf("relationship_id %q", relationshipID)
+		if sourceID == "" {
+			sourceID = apprelationships.SourceID(relationshipID)
+		}
+		if sourceID == "" {
+			d.readByOpaqueId(ctx, object, resp)
 			return
-		}
-
-		appItem := MapRemoteStateToDataSource(ctx, mobileAppRelationship)
-		filteredItems = append(filteredItems, appItem)
-	} else if filterType == "odata" {
-		// Add "ConsistencyLevel: eventual" header for advanced OData queries
-		headers := abstractions.NewRequestHeaders()
-		headers.Add("ConsistencyLevel", "eventual")
-
-		// Initialize request parameters
-		requestParameters := &deviceappmanagement.MobileAppRelationshipsRequestBuilderGetRequestConfiguration{
-			Headers: headers,
-		}
-
-		if !object.ODataFilter.IsNull() && object.ODataFilter.ValueString() != "" {
-			filter := object.ODataFilter.ValueString()
-			requestParameters.QueryParameters = &deviceappmanagement.MobileAppRelationshipsRequestBuilderGetQueryParameters{
-				Filter: &filter,
-			}
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData filter: %s", filter))
-		}
-
-		if !object.ODataTop.IsNull() {
-			topValue := object.ODataTop.ValueInt32()
-			if requestParameters.QueryParameters == nil {
-				requestParameters.QueryParameters = &deviceappmanagement.MobileAppRelationshipsRequestBuilderGetQueryParameters{}
-			}
-			requestParameters.QueryParameters.Top = &topValue
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData top: %d", topValue))
-		}
-
-		if !object.ODataSkip.IsNull() {
-			skipValue := object.ODataSkip.ValueInt32()
-			if requestParameters.QueryParameters == nil {
-				requestParameters.QueryParameters = &deviceappmanagement.MobileAppRelationshipsRequestBuilderGetQueryParameters{}
-			}
-			requestParameters.QueryParameters.Skip = &skipValue
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData skip: %d", skipValue))
-		}
-
-		if !object.ODataSelect.IsNull() && object.ODataSelect.ValueString() != "" {
-			selectFields := strings.Split(object.ODataSelect.ValueString(), ",")
-			if requestParameters.QueryParameters == nil {
-				requestParameters.QueryParameters = &deviceappmanagement.MobileAppRelationshipsRequestBuilderGetQueryParameters{}
-			}
-			requestParameters.QueryParameters.Select = selectFields
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData select: %v", selectFields))
-		}
-
-		if !object.ODataOrderBy.IsNull() && object.ODataOrderBy.ValueString() != "" {
-			orderbyFields := strings.Split(object.ODataOrderBy.ValueString(), ",")
-			if requestParameters.QueryParameters == nil {
-				requestParameters.QueryParameters = &deviceappmanagement.MobileAppRelationshipsRequestBuilderGetQueryParameters{}
-			}
-			requestParameters.QueryParameters.Orderby = orderbyFields
-			tflog.Debug(ctx, fmt.Sprintf("Setting OData orderby: %v", orderbyFields))
-		}
-
-		respList, err := d.client.
-			DeviceAppManagement().
-			MobileAppRelationships().
-			Get(ctx, requestParameters)
-
-		if err != nil {
-			tflog.Error(ctx, fmt.Sprintf("Error in OData query: %v", err))
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("API returned %d results", len(respList.GetValue())))
-
-		for _, relationship := range respList.GetValue() {
-			appItem := MapRemoteStateToDataSource(ctx, relationship)
-			filteredItems = append(filteredItems, appItem)
-		}
-	} else if filterType == "source_id" || filterType == "target_id" {
-		// Get all relationships and filter by source_id or target_id
-		respList, err := d.client.
-			DeviceAppManagement().
-			MobileAppRelationships().
-			Get(ctx, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		for _, relationship := range respList.GetValue() {
-			if filterType == "source_id" && relationship.GetSourceId() != nil && *relationship.GetSourceId() == filterValue {
-				appItem := MapRemoteStateToDataSource(ctx, relationship)
-				filteredItems = append(filteredItems, appItem)
-			} else if filterType == "target_id" && relationship.GetTargetId() != nil && *relationship.GetTargetId() == filterValue {
-				appItem := MapRemoteStateToDataSource(ctx, relationship)
-				filteredItems = append(filteredItems, appItem)
-			}
-		}
-	} else if filterType == "all" {
-		// Get all relationships
-		respList, err := d.client.
-			DeviceAppManagement().
-			MobileAppRelationships().
-			Get(ctx, nil)
-
-		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
-			return
-		}
-
-		for _, relationship := range respList.GetValue() {
-			appItem := MapRemoteStateToDataSource(ctx, relationship)
-			filteredItems = append(filteredItems, appItem)
 		}
 	}
 
-	object.Items = filteredItems
+	relationships, err := apprelationships.ListFiltered(ctx, d.client, sourceID, filter)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
+		return
+	}
+	tflog.Debug(ctx, fmt.Sprintf("App %s returned %d relationships", sourceID, len(relationships)))
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
+	relationship, err := selectRelationship(relationships, match, targetType, criteria)
+	if err != nil {
+		resp.Diagnostics.AddError("Mobile App Relationship Lookup Failed", err.Error())
 		return
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s, found %d items", DataSourceName, len(filteredItems)))
+	d.setState(ctx, relationship, object, resp)
+}
+
+// readByOpaqueId fetches a relationship whose ID does not encode its source app.
+func (d *MobileAppRelationshipDataSource) readByOpaqueId(
+	ctx context.Context,
+	object MobileAppRelationshipDataSourceModel,
+	resp *datasource.ReadResponse,
+) {
+	relationship, err := d.client.
+		DeviceAppManagement().
+		MobileAppRelationships().
+		ByMobileAppRelationshipId(object.RelationshipID.ValueString()).
+		Get(ctx, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
+		return
+	}
+
+	relationship, err = selectRelationship(
+		[]graphmodels.MobileAppRelationshipable{relationship},
+		matchAll,
+		object.TargetType.ValueString(),
+		fmt.Sprintf("relationship_id %q", object.RelationshipID.ValueString()),
+	)
+	if err != nil {
+		resp.Diagnostics.AddError("Mobile App Relationship Lookup Failed", err.Error())
+		return
+	}
+
+	d.setState(ctx, relationship, object, resp)
+}
+
+func (d *MobileAppRelationshipDataSource) setState(
+	ctx context.Context,
+	relationship graphmodels.MobileAppRelationshipable,
+	object MobileAppRelationshipDataSourceModel,
+	resp *datasource.ReadResponse,
+) {
+	state := MapRemoteStateToDataSource(ctx, relationship, object)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	tflog.Debug(
+		ctx,
+		fmt.Sprintf(
+			"Finished Datasource Read Method: %s (%s)",
+			DataSourceName,
+			state.ID.ValueString(),
+		),
+	)
 }
