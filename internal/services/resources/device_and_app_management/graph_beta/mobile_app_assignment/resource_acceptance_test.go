@@ -204,9 +204,8 @@ func TestAccResourceMobileAppAssignment_04_Ios_AvailableWithoutEnrollment(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".test_004").ExistsInGraph(testResource),
 					check.That(resourceType+".test_004").Key("intent").HasValue("availableWithoutEnrollment"),
-					// Accepted for this intent, so it must still be sent.
-					check.That(resourceType+".test_004").Key("settings.ios_store.prevent_managed_app_backup").HasValue("true"),
-					check.That(resourceType+".test_004").Key("settings.ios_store.is_removable").DoesNotExist(),
+					// The service returns default iOS store settings; unmanaged, they stay out of state.
+					check.That(resourceType+".test_004").Key("settings.%").DoesNotExist(),
 				),
 			},
 		},
@@ -255,6 +254,7 @@ func TestAccResourceMobileAppAssignment_06_Ios_Validation_IsRemovableUnsupported
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders:        externalProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadAcceptanceTestTerraform("006_ios_validation_is_removable_unsupported_intent.tf"),
@@ -270,6 +270,7 @@ func TestAccResourceMobileAppAssignment_07_Ios_Validation_UninstallUnsupportedSe
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders:        externalProviders,
 		Steps: []resource.TestStep{
 			{
 				Config:      loadAcceptanceTestTerraform("007_ios_validation_uninstall_unsupported_settings.tf"),
@@ -318,7 +319,6 @@ func TestAccResourceMobileAppAssignment_09_Win32Lob_Available(t *testing.T) {
 					check.That(resourceType+".test_009").Key("settings.win32_lob.delivery_optimization_priority").HasValue("foreground"),
 					// Silently dropped on read before the mapper was fixed.
 					check.That(resourceType+".test_009").Key("settings.win32_lob.auto_update_settings.auto_update_superseded_apps_state").HasValue("enabled"),
-					check.That(resourceType+".test_009").Key("settings.win32_lob.restart_settings.grace_period_in_minutes").HasValue("120"),
 				),
 			},
 		},

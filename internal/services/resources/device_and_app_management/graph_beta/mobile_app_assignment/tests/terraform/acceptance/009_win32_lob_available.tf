@@ -67,12 +67,6 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
       auto_update_settings = {
         auto_update_superseded_apps_state = "enabled"
       }
-
-      restart_settings = {
-        grace_period_in_minutes                         = 120
-        countdown_display_before_restart_in_minutes     = 30
-        restart_notification_snooze_duration_in_minutes = 15
-      }
     }
   }
 

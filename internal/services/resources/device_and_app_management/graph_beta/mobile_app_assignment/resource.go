@@ -58,6 +58,16 @@ var (
 	// reject uninstall_on_device_removal and prevent_managed_app_backup.
 	intentsRejectingAppleAppSettings = []string{"uninstall"}
 
+	// intentsIgnoringIosStoreBackup are the intents for which the service accepts
+	// preventManagedAppBackup on an iOS store app assignment but silently stores null, which
+	// Terraform then reports as an inconsistent result. Verified against the service:
+	//
+	//	availableWithoutEnrollment -> 201, read back preventManagedAppBackup: null
+	//	available / required       -> 201, read back preventManagedAppBackup: true
+	intentsIgnoringIosStoreBackup = []string{"availableWithoutEnrollment"}
+
+	iosStoreBackupIntentMessage = "`prevent_managed_app_backup` cannot be set when `intent` is `availableWithoutEnrollment`. The Intune service discards this setting for that intent. Remove the attribute, or change the intent."
+
 	isRemovableIntentMessage = "`is_removable` can only be set when `intent` is `required`. The Intune service rejects this setting for every other intent. Remove the attribute, or change the intent."
 
 	// intentsSupportingAutoUpdateSettings are the intents for which the Win32 settings blocks
@@ -388,9 +398,10 @@ func (r *MobileAppAssignmentResource) Schema(ctx context.Context, req resource.S
 							},
 							"prevent_managed_app_backup": schema.BoolAttribute{
 								Optional:            true,
-								MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. Cannot be set when `intent` is `uninstall`. When omitted the setting is not sent and the service default (FALSE) applies.",
+								MarkdownDescription: "When TRUE, indicates that the app should not be backed up to iCloud. When FALSE, indicates that the app may be backed up to iCloud. Cannot be set when `intent` is `uninstall` or `availableWithoutEnrollment`. When omitted the setting is not sent and the service default (FALSE) applies.",
 								Validators: []validator.Bool{
 									validate.BoolUnsupportedWhenStringIn(path.Root("intent"), intentsRejectingAppleAppSettings, unsupportedForIntentMessage("prevent_managed_app_backup")),
+									validate.BoolUnsupportedWhenStringIn(path.Root("intent"), intentsIgnoringIosStoreBackup, iosStoreBackupIntentMessage),
 								},
 							},
 							"uninstall_on_device_removal": schema.BoolAttribute{

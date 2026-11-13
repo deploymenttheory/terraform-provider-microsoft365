@@ -314,8 +314,11 @@ func constructAndroidManagedStoreAppAssignmentSettings(ctx context.Context, data
 
 	settings := graphmodels.NewAndroidManagedStoreAppAssignmentSettings()
 
-	// Set Android Managed Store App Track IDs
-	err := convert.FrameworkToGraphStringList(ctx, data.AndroidManagedStoreAppTrackIds, settings.SetAndroidManagedStoreAppTrackIds)
+	// The service types track IDs as a non-nullable collection and rejects null with a 400,
+	// so send an empty list when none are configured.
+	trackIDs, setTrackIDs := data.AndroidManagedStoreAppTrackIds, settings.SetAndroidManagedStoreAppTrackIds
+	setTrackIDs([]string{})
+	err := convert.FrameworkToGraphStringListOmitUnset(ctx, trackIDs, setTrackIDs)
 	if err != nil {
 		return nil, fmt.Errorf("error setting Android Managed Store App Track IDs: %v", err)
 	}

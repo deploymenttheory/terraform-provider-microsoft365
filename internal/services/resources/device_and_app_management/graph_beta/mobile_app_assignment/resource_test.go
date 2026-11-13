@@ -385,6 +385,10 @@ func TestUnitResourceMobileAppAssignment_11_ValidationErrors(t *testing.T) {
 				ExpectError: diagnosticRegexp("`prevent_managed_app_backup` cannot be set when `intent` is `uninstall`"),
 			},
 			{
+				Config:      loadUnitTestTerraform("011_validation_prevent_managed_app_backup_without_enrollment.tf"),
+				ExpectError: diagnosticRegexp("`prevent_managed_app_backup` cannot be set when `intent` is `availableWithoutEnrollment`"),
+			},
+			{
 				Config:      loadUnitTestTerraform("011_validation_auto_update_settings_required.tf"),
 				ExpectError: diagnosticRegexp("`auto_update_settings` can only be set when `intent` is `available`"),
 			},
@@ -597,6 +601,61 @@ func TestUnitResourceMobileAppAssignment_20_Settings_WindowsUniversalAppX(t *tes
 				Check: resource.ComposeTestCheckFunc(
 					check.That(graphBetaMobileAppAssignment.ResourceName+".test_020").Key("id").Exists(),
 					check.That(graphBetaMobileAppAssignment.ResourceName+".test_020").Key("settings.windows_universal_app_x.use_device_context").HasValue("true"),
+				),
+			},
+		},
+	})
+}
+
+// Test 021: an assignment without settings. The service returns the app type's default
+// settings; they must stay out of state or the apply reports an inconsistent result (#4324).
+func TestUnitResourceMobileAppAssignment_21_Scenario_NoSettings(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, mobileAppAssignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer mobileAppAssignmentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("021_scenario_no_settings.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaMobileAppAssignment.ResourceName+".test_021").Key("id").Exists(),
+					check.That(graphBetaMobileAppAssignment.ResourceName+".test_021").Key("settings.%").DoesNotExist(),
+				),
+			},
+			{Config: loadUnitTestTerraform("021_scenario_no_settings.tf"), PlanOnly: true},
+		},
+	})
+}
+
+// Test 022: android_managed_store without track IDs. The service rejects a null track ID
+// collection with a 400, so an empty list must be sent.
+func TestUnitResourceMobileAppAssignment_22_Settings_AndroidManagedStore_NoTrackIds(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, mobileAppAssignmentMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer mobileAppAssignmentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("022_settings_android_managed_store_no_track_ids.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaMobileAppAssignment.ResourceName+".test_022").Key("settings.android_managed_store.auto_update_mode").HasValue("default"),
+					func(*terraform.State) error {
+						settings, ok := mobileAppAssignmentMock.SettingsSent("androidManagedStore")
+						if !ok {
+							return fmt.Errorf("no android managed store settings were sent")
+						}
+						trackIDs, ok := settings["androidManagedStoreAppTrackIds"].([]any)
+						if !ok || len(trackIDs) != 0 {
+							return fmt.Errorf("androidManagedStoreAppTrackIds sent as %#v, want an empty list", settings["androidManagedStoreAppTrackIds"])
+						}
+						return nil
+					},
 				),
 			},
 		},
