@@ -31,3 +31,21 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_poli
   web_categories = ["AIAgents"]
   session_types  = ["user", "agent"]
 }
+
+resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_policy_rule" "custom_headers" {
+  web_filtering_policy_id = microsoft365_graph_beta_identity_and_access_network_web_filtering_policy.example.id
+
+  name     = "Add Tenant Restriction Header"
+  priority = 300
+  action   = "allow"
+  status   = "enabled"
+
+  urls_or_fqdns = ["example.com", "*.example.com"]
+
+  custom_headers = [
+    {
+      name  = "X-Example-Allowed-Tenant"
+      value = "00000000-0000-0000-0000-000000000000"
+    },
+  ]
+}

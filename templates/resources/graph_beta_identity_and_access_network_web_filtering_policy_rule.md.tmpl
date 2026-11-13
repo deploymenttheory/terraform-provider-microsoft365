@@ -44,7 +44,9 @@ Web category IDs are passed through unchanged. For example, the portal was obser
 - If `http_methods` is omitted, the rule matches all HTTP methods supported by the service. If `session_types` is omitted, the rule is not limited to a specific source session type.
 - Lower `priority` values are evaluated before higher values. Keep priorities unique within a policy to make rule ordering predictable.
 - `action = "allow"` permits matching traffic. `action = "block"` blocks matching traffic.
-- The Entra portal has shown custom header controls in some flows, but successful portal create/update requests captured with Chrome DevTools did not include `headerSettings`, and follow-up GET responses did not return `headerSettings` or `customHeaders`. Explicit `headerSettings` payloads were rejected by Microsoft Graph in tenant testing, so this resource does not expose custom headers until a working API contract is observed.
+- `custom_headers` maps to `action.headerSettings.modifications` (one `headerModificationAdd` per header, order preserved). Header names and values are defined by the destination service; see [Configure custom headers](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-custom-headers). HTTPS destinations need TLS inspection.
+- Graph rejects more than 10 headers, duplicate names (case-insensitive) and empty values with `400 BadRequest`; the provider checks these at plan time.
+- `custom_headers` requires `action = "allow"`, because Graph rejects any `headerSettings` on block rules. Allow rules without headers send `headerSettings: null`, since a PATCH that omits it keeps the existing headers.
 
 ## Microsoft Graph API Permissions
 

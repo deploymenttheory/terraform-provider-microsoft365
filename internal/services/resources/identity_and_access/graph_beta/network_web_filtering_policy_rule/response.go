@@ -1,6 +1,7 @@
 package graphBetaNetworkWebFilteringPolicyRule
 
 import (
+	"fmt"
 	"strings"
 
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
@@ -16,6 +17,7 @@ const (
 	webFilteringActionBlockODataType            = "#microsoft.graph.networkaccess.webFilteringActionBlock"
 	webFilteringURLDestinationODataType         = "#microsoft.graph.networkaccess.webFilteringUrlDestination"
 	webFilteringWebCategoryDestinationODataType = "#microsoft.graph.networkaccess.webFilteringWebCategoryDestination"
+	headerModificationAddODataType              = "#microsoft.graph.networkaccess.headerModificationAdd"
 )
 
 type webFilteringPolicyRuleResponse struct {
@@ -29,6 +31,12 @@ type webFilteringPolicyRuleResponse struct {
 	webCategories []string
 	httpMethods   []string
 	sessionTypes  []string
+	customHeaders []customHeader
+}
+
+type customHeader struct {
+	name  string
+	value string
 }
 
 func newWebFilteringPolicyRuleResponse() *webFilteringPolicyRuleResponse {
@@ -88,6 +96,7 @@ func (r *webFilteringPolicyRuleResponse) GetFieldDeserializers() map[string]func
 			action, ok := value.(*actionResponse)
 			if ok {
 				r.action = terraformAction(action.odataType)
+				r.customHeaders = action.customHeaders
 			}
 			return nil
 		},
@@ -131,7 +140,8 @@ func (r *webFilteringPolicyRuleResponse) GetFieldDeserializers() map[string]func
 }
 
 type actionResponse struct {
-	odataType *string
+	odataType     *string
+	customHeaders []customHeader
 }
 
 func createActionResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
@@ -152,6 +162,91 @@ func (r *actionResponse) GetFieldDeserializers() map[string]func(s.ParseNode) er
 			r.odataType = value
 			return nil
 		},
+		"headerSettings": func(n s.ParseNode) error {
+			value, err := n.GetObjectValue(createHeaderSettingsResponseFromDiscriminatorValue)
+			if err != nil {
+				return fmt.Errorf("failed to parse headerSettings: %w", err)
+			}
+			if settings, ok := value.(*headerSettingsResponse); ok {
+				r.customHeaders = settings.headers
+			}
+			return nil
+		},
+	}
+}
+
+type headerSettingsResponse struct {
+	headers []customHeader
+}
+
+func createHeaderSettingsResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
+	return &headerSettingsResponse{}, nil
+}
+
+func (r *headerSettingsResponse) Serialize(writer s.SerializationWriter) error {
+	return nil
+}
+
+func (r *headerSettingsResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+	return map[string]func(s.ParseNode) error{
+		"modifications": func(n s.ParseNode) error {
+			values, err := n.GetCollectionOfObjectValues(
+				createHeaderModificationResponseFromDiscriminatorValue,
+			)
+			if err != nil {
+				return fmt.Errorf("failed to parse header modifications: %w", err)
+			}
+			for _, value := range values {
+				modification, ok := value.(*headerModificationResponse)
+				// Only headerModificationAdd is known; skip other kinds rather
+				// than mapping them to an add.
+				if !ok || modification.odataType != headerModificationAddODataType {
+					continue
+				}
+				r.headers = append(
+					r.headers,
+					customHeader{name: modification.name, value: modification.value},
+				)
+			}
+			return nil
+		},
+	}
+}
+
+type headerModificationResponse struct {
+	odataType string
+	name      string
+	value     string
+}
+
+func createHeaderModificationResponseFromDiscriminatorValue(
+	parseNode s.ParseNode,
+) (s.Parsable, error) {
+	return &headerModificationResponse{}, nil
+}
+
+func (r *headerModificationResponse) Serialize(writer s.SerializationWriter) error {
+	return nil
+}
+
+func (r *headerModificationResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+	stringField := func(target *string) func(s.ParseNode) error {
+		return func(n s.ParseNode) error {
+			value, err := n.GetStringValue()
+			if err != nil {
+				return fmt.Errorf("failed to parse header modification field: %w", err)
+			}
+			if value != nil {
+				*target = *value
+			}
+			return nil
+		}
+	}
+
+	return map[string]func(s.ParseNode) error{
+		"@odata.type": stringField(&r.odataType),
+		"headerName":  stringField(&r.name),
+		"headerValue": stringField(&r.value),
 	}
 }
 

@@ -2,6 +2,7 @@ package graphBetaNetworkWebFilteringPolicyRule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -20,19 +21,20 @@ import (
 // https://learn.microsoft.com/graph/api/resources/networkaccess-filteringrule
 //
 // The shape below intentionally follows captured portal traffic:
+//
 //   - URL/FQDN and category destinations are sibling entries in
 //     matchingConditions.destinations.targets.
+//
 //   - URL/FQDN destinations are sent to Graph as a values array. The portal
 //     offers a comma-delimited text box for usability, but Terraform keeps the
 //     API shape as set(string).
+//
 //   - HTTP methods and session types are serialized back to comma-separated
 //     strings because that is what the endpoint returns and accepts.
 //
-// The portal UI has shown custom header controls, but DevTools verification of
-// successful create/update requests did not include headerSettings in the Graph
-// payload or response. Explicit headerSettings payloads are rejected by Graph in
-// this tenant, so custom headers are intentionally not exposed until a working
-// portal/API contract is observed.
+//   - Custom headers are sent as action.headerSettings.modifications, one
+//     headerModificationAdd entry per header, in configuration order. Allow
+//     rules without headers send headerSettings: null; block rules omit it.
 func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleResourceModel) (s.Parsable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
@@ -74,8 +76,24 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 		})
 	}
 
+	customHeaders, err := customHeaderValues(ctx, data.CustomHeaders)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read custom_headers: %w", err)
+	}
+
 	action := &actionRequestBody{
-		odataType: graphActionODataType(data.Action.ValueString()),
+		odataType:          graphActionODataType(data.Action.ValueString()),
+		sendHeaderSettings: data.Action.ValueString() == "allow",
+	}
+	if len(customHeaders) > 0 {
+		modifications := make([]s.Parsable, 0, len(customHeaders))
+		for _, header := range customHeaders {
+			modifications = append(modifications, &headerModificationRequestBody{
+				name:  header.Name.ValueString(),
+				value: header.Value.ValueString(),
+			})
+		}
+		action.headerSettings = &headerSettingsRequestBody{modifications: modifications}
 	}
 
 	requestBody := &webFilteringPolicyRuleRequestBody{
@@ -119,6 +137,22 @@ func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
 	diags := value.ElementsAs(ctx, &result, false)
 	if diags.HasError() {
 		return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
+	}
+
+	return result, nil
+}
+
+var errInvalidCustomHeaders = errors.New("invalid custom_headers")
+
+func customHeaderValues(ctx context.Context, value types.List) ([]CustomHeaderModel, error) {
+	if value.IsNull() || value.IsUnknown() {
+		return nil, nil
+	}
+
+	var result []CustomHeaderModel
+	diags := value.ElementsAs(ctx, &result, false)
+	if diags.HasError() {
+		return nil, fmt.Errorf("%w: %s", errInvalidCustomHeaders, diags.Errors()[0].Detail())
 	}
 
 	return result, nil
@@ -174,14 +208,74 @@ func (b *webFilteringPolicyRuleRequestBody) GetFieldDeserializers() map[string]f
 }
 
 type actionRequestBody struct {
-	odataType string
+	odataType          string
+	sendHeaderSettings bool
+	headerSettings     *headerSettingsRequestBody
 }
 
 func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
-	return writer.WriteStringValue("@odata.type", &b.odataType)
+	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
+		return fmt.Errorf("failed to write action @odata.type: %w", err)
+	}
+	// Block actions reject any headerSettings, even null. Allow actions keep
+	// existing headers when it is omitted on PATCH, so send null to clear them.
+	if !b.sendHeaderSettings {
+		return nil
+	}
+	if b.headerSettings == nil {
+		if err := writer.WriteNullValue("headerSettings"); err != nil {
+			return fmt.Errorf("failed to write null headerSettings: %w", err)
+		}
+		return nil
+	}
+	if err := writer.WriteObjectValue("headerSettings", b.headerSettings); err != nil {
+		return fmt.Errorf("failed to write headerSettings: %w", err)
+	}
+
+	return nil
 }
 
 func (b *actionRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+	return map[string]func(s.ParseNode) error{}
+}
+
+type headerSettingsRequestBody struct {
+	modifications []s.Parsable
+}
+
+func (b *headerSettingsRequestBody) Serialize(writer s.SerializationWriter) error {
+	if err := writer.WriteCollectionOfObjectValues("modifications", b.modifications); err != nil {
+		return fmt.Errorf("failed to write header modifications: %w", err)
+	}
+
+	return nil
+}
+
+func (b *headerSettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
+	return map[string]func(s.ParseNode) error{}
+}
+
+type headerModificationRequestBody struct {
+	name  string
+	value string
+}
+
+func (b *headerModificationRequestBody) Serialize(writer s.SerializationWriter) error {
+	odataType := headerModificationAddODataType
+	if err := writer.WriteStringValue("@odata.type", &odataType); err != nil {
+		return fmt.Errorf("failed to write header modification @odata.type: %w", err)
+	}
+	if err := writer.WriteStringValue("headerName", &b.name); err != nil {
+		return fmt.Errorf("failed to write headerName: %w", err)
+	}
+	if err := writer.WriteStringValue("headerValue", &b.value); err != nil {
+		return fmt.Errorf("failed to write headerValue: %w", err)
+	}
+
+	return nil
+}
+
+func (b *headerModificationRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
 
