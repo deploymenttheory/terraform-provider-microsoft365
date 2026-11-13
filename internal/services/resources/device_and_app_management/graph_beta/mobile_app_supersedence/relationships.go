@@ -4,14 +4,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	apprelationships "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management/app_relationships"
+	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
+
+// updateRetryInterval is the wait between attempts after Intune rejects updateRelationships
+// with 412 Precondition Failed.
+const updateRetryInterval = 5 * time.Second
 
 var (
 	errExistingRelationship = errors.New(
@@ -42,10 +51,45 @@ func isIncomingRelationship(relationship graphmodels.MobileAppRelationshipable) 
 }
 
 // changeSupersedence applies one supersedence change while retaining other outgoing relationships.
+//
+// Intune rejects updateRelationships with 412 Precondition Failed while it is still
+// processing an earlier relationship change for the app (for example a delete straight
+// after an update). Each attempt re-reads the collection and rebuilds the request, so a
+// retry never sends a stale collection, and a write that was applied despite the 412 is
+// recognised instead of reported as a conflict. Other errors fail immediately.
 func (r *MobileAppSupersedenceResource) changeSupersedence(
 	ctx context.Context,
 	data *MobileAppSupersedenceResourceModel,
 	operation string,
+) (bool, error) {
+	var changed bool
+	attempt := 0
+	err := crud.PollUntil(ctx, updateRetryInterval, func(ctx context.Context) (bool, error) {
+		attempt++
+		var err error
+		changed, err = r.applySupersedence(ctx, data, operation, attempt > 1)
+		if err == nil {
+			return true, nil
+		}
+		if kiotaerrors.GraphError(ctx, err).StatusCode == http.StatusPreconditionFailed {
+			tflog.Debug(ctx, fmt.Sprintf("updateRelationships 412, attempt %d", attempt))
+			return false, err
+		}
+		return false, &crud.FatalPollError{Err: err}
+	})
+	if err != nil {
+		return false, err //nolint:wrapcheck // already wrapped by applySupersedence
+	}
+	return changed, nil
+}
+
+// applySupersedence makes one read-modify-write attempt against the relationship collection.
+// retrying is set after a 412, when the previous attempt may already have been applied.
+func (r *MobileAppSupersedenceResource) applySupersedence(
+	ctx context.Context,
+	data *MobileAppSupersedenceResourceModel,
+	operation string,
+	retrying bool,
 ) (bool, error) {
 	var replacement graphmodels.MobileAppSupersedenceable
 	if operation != constants.TfOperationDelete {
@@ -71,6 +115,9 @@ func (r *MobileAppSupersedenceResource) changeSupersedence(
 			continue
 		}
 		if operation == constants.TfOperationCreate {
+			if retrying && supersedenceType(relationship) == data.SupersedenceType.ValueString() {
+				return true, nil
+			}
 			return false, errExistingRelationship
 		}
 		if relationship.GetId() == nil || *relationship.GetId() != data.ID.ValueString() {
@@ -107,4 +154,13 @@ func (r *MobileAppSupersedenceResource) changeSupersedence(
 		return false, fmt.Errorf("update app relationships: %w", err)
 	}
 	return true, nil
+}
+
+// supersedenceType returns the relationship's supersedence type, or "" for other relationships.
+func supersedenceType(relationship graphmodels.MobileAppRelationshipable) string {
+	supersedence, ok := relationship.(graphmodels.MobileAppSupersedenceable)
+	if !ok || supersedence.GetSupersedenceType() == nil {
+		return ""
+	}
+	return supersedence.GetSupersedenceType().String()
 }
