@@ -6,19 +6,24 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	apprelationships "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/device_and_app_management/app_relationships"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Read looks up a single relationship. The root /deviceAppManagement/mobileAppRelationships
 // collection rejects $filter, $skip, $orderby and $count, so every list-based lookup reads
 // the per-app /mobileApps/{source_id}/relationships navigation instead.
-func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+func (d *MobileAppRelationshipDataSource) Read(
+	ctx context.Context,
+	req datasource.ReadRequest,
+	resp *datasource.ReadResponse,
+) {
 	var object MobileAppRelationshipDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &object)...)
@@ -28,7 +33,12 @@ func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasour
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting Read method for datasource: %s", DataSourceName))
 
-	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
+	ctx, cancel := crud.HandleTimeout(
+		ctx,
+		object.Timeouts.Read,
+		ReadTimeout*time.Second,
+		&resp.Diagnostics,
+	)
 	if cancel == nil {
 		return
 	}
@@ -53,7 +63,11 @@ func (d *MobileAppRelationshipDataSource) Read(ctx context.Context, req datasour
 		criteria = fmt.Sprintf("target_id %q on app %s", object.TargetID.ValueString(), sourceID)
 	case lookupByTargetDisplayName:
 		match = matchTargetDisplayName(object.TargetDisplayName.ValueString())
-		criteria = fmt.Sprintf("target_display_name %q on app %s", object.TargetDisplayName.ValueString(), sourceID)
+		criteria = fmt.Sprintf(
+			"target_display_name %q on app %s",
+			object.TargetDisplayName.ValueString(),
+			sourceID,
+		)
 	case lookupByRelationshipId:
 		relationshipID := object.RelationshipID.ValueString()
 		match = matchId(relationshipID)
@@ -124,5 +138,12 @@ func (d *MobileAppRelationshipDataSource) setState(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	tflog.Debug(ctx, fmt.Sprintf("Finished Datasource Read Method: %s (%s)", DataSourceName, state.ID.ValueString()))
+	tflog.Debug(
+		ctx,
+		fmt.Sprintf(
+			"Finished Datasource Read Method: %s (%s)",
+			DataSourceName,
+			state.ID.ValueString(),
+		),
+	)
 }

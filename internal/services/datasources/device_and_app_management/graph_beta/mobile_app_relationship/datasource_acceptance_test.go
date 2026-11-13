@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
@@ -12,7 +14,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	win32 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/win32_app"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func loadAcceptanceTestTerraform(filename string) string {
@@ -57,7 +58,10 @@ func TestAccDatasourceMobileAppRelationship_01_Lookups(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(dataSourceType, "01: Creating Win32 app relationships and looking them up")
+					testlog.StepAction(
+						dataSourceType,
+						"01: Creating Win32 app relationships and looking them up",
+					)
 				},
 				Config: loadAcceptanceTestTerraform("01_lookups.tf"),
 				Check: resource.ComposeTestCheckFunc(
@@ -72,32 +76,46 @@ func TestAccDatasourceMobileAppRelationship_01_Lookups(t *testing.T) {
 						MatchesOtherKey(check.That(win32.ResourceName+".runtime").Key("display_name")),
 					check.That(dataSourceType+".by_relationship_id").Key("source_display_name").
 						MatchesOtherKey(check.That(win32.ResourceName+".main").Key("display_name")),
-					check.That(dataSourceType+".by_relationship_id").Key("relationship_type").HasValue("dependency"),
-					check.That(dataSourceType+".by_relationship_id").Key("dependency_type").HasValue("autoInstall"),
-					check.That(dataSourceType+".by_relationship_id").Key("target_type").HasValue("child"),
-
+					check.That(dataSourceType+".by_relationship_id").
+						Key("relationship_type").
+						HasValue("dependency"),
+					check.That(dataSourceType+".by_relationship_id").
+						Key("dependency_type").
+						HasValue("autoInstall"),
+					check.That(dataSourceType+".by_relationship_id").
+						Key("target_type").
+						HasValue("child"),
 					// target_id: from the main app's side the supersedence is incoming.
 					check.That(dataSourceType+".by_target_id").Key("id").Exists(),
-					check.That(dataSourceType+".by_target_id").Key("relationship_type").HasValue("supersedence"),
-					check.That(dataSourceType+".by_target_id").Key("supersedence_type").HasValue("update"),
-					check.That(dataSourceType+".by_target_id").Key("target_type").HasValue("parent"),
-
+					check.That(dataSourceType+".by_target_id").
+						Key("relationship_type").
+						HasValue("supersedence"),
+					check.That(dataSourceType+".by_target_id").
+						Key("supersedence_type").
+						HasValue("update"),
+					check.That(dataSourceType+".by_target_id").
+						Key("target_type").
+						HasValue("parent"),
 					// target_display_name
 					check.That(dataSourceType+".by_target_display_name").Key("id").
 						MatchesOtherKey(check.That(dependency).Key("id")),
 					check.That(dataSourceType+".by_target_display_name").Key("target_id").
 						MatchesOtherKey(check.That(win32.ResourceName+".runtime").Key("id")),
-
 					// odata_query: the main app has two relationships, so this proves Graph applied $filter.
 					check.That(dataSourceType+".by_odata_query").Key("id").
 						MatchesOtherKey(check.That(dependency).Key("id")),
 					check.That(dataSourceType+".by_odata_query").Key("odata_query").
 						HasValue("isof('microsoft.graph.mobileAppDependency')"),
-					check.That(dataSourceType+".by_odata_query").Key("relationship_type").HasValue("dependency"),
-
+					check.That(dataSourceType+".by_odata_query").
+						Key("relationship_type").
+						HasValue("dependency"),
 					// odata_query from the dependent app's side returns the incoming relationship.
-					check.That(dataSourceType+".parent_by_odata_query").Key("target_type").HasValue("parent"),
-					check.That(dataSourceType+".parent_by_odata_query").Key("relationship_type").HasValue("dependency"),
+					check.That(dataSourceType+".parent_by_odata_query").
+						Key("target_type").
+						HasValue("parent"),
+					check.That(dataSourceType+".parent_by_odata_query").
+						Key("relationship_type").
+						HasValue("dependency"),
 					check.That(dataSourceType+".parent_by_odata_query").Key("id").Exists(),
 				),
 			},

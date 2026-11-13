@@ -4,13 +4,14 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/jarcoal/httpmock"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaMobileAppRelationship "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/mobile_app_relationship"
 	relMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/mobile_app_relationship/mocks"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/jarcoal/httpmock"
 )
 
 var dataSourceType = "data." + graphBetaMobileAppRelationship.DataSourceName
@@ -141,7 +142,7 @@ func TestUnitDatasourceMobileAppRelationship_05_TargetTypeMismatch(t *testing.T)
 func TestUnitDatasourceMobileAppRelationship_06_ODataQueryMultipleMatches(t *testing.T) {
 	setupMockEnvironment(t, false)
 	runUnitErrorTest(t, "06_odata_query_multiple_matches.tf",
-		regexp.MustCompile(`found 2 mobile app relationships`))
+		regexp.MustCompile(`must match exactly one mobile app relationship: found 2`))
 }
 
 func TestUnitDatasourceMobileAppRelationship_07_ODataQueryWithTargetType(t *testing.T) {
@@ -165,8 +166,13 @@ func TestUnitDatasourceMobileAppRelationship_08_ByOpaqueRelationshipId(t *testin
 
 func TestUnitDatasourceMobileAppRelationship_09_MissingSourceId(t *testing.T) {
 	setupMockEnvironment(t, false)
-	runUnitErrorTest(t, "09_missing_source_id.tf",
-		regexp.MustCompile(`Attribute "source_id" must be specified when "target_id" is\s+specified`))
+	runUnitErrorTest(
+		t,
+		"09_missing_source_id.tf",
+		regexp.MustCompile(
+			`Attribute "source_id" must be specified when "target_id" is\s+specified`,
+		),
+	)
 }
 
 func TestUnitDatasourceMobileAppRelationship_10_ConflictingLookups(t *testing.T) {

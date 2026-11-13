@@ -4,15 +4,16 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 )
 
 const (
@@ -38,16 +39,29 @@ type MobileAppRelationshipDataSource struct {
 	ReadPermissions []string
 }
 
-func (d *MobileAppRelationshipDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *MobileAppRelationshipDataSource) Metadata(
+	ctx context.Context,
+	req datasource.MetadataRequest,
+	resp *datasource.MetadataResponse,
+) {
 	resp.TypeName = DataSourceName
 }
 
-func (d *MobileAppRelationshipDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *MobileAppRelationshipDataSource) Configure(
+	ctx context.Context,
+	req datasource.ConfigureRequest,
+	resp *datasource.ConfigureResponse,
+) {
 	d.client = client.SetGraphBetaClientForDataSource(ctx, req, resp, DataSourceName)
 }
 
 // lookupAttributes are mutually exclusive; exactly one selects the relationship.
-var lookupAttributes = []string{"relationship_id", "target_id", "target_display_name", "odata_query"}
+var lookupAttributes = []string{
+	"relationship_id",
+	"target_id",
+	"target_display_name",
+	"odata_query",
+}
 
 // lookupValidators returns the exactly-one-of validators for a lookup attribute.
 func lookupValidators(self string) []validator.String {
@@ -70,7 +84,11 @@ func guidValidator() validator.String {
 	)
 }
 
-func (d *MobileAppRelationshipDataSource) Schema(ctx context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *MobileAppRelationshipDataSource) Schema(
+	ctx context.Context,
+	_ datasource.SchemaRequest,
+	resp *datasource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Retrieves a single Intune mobile app relationship (dependency or supersedence) using the " +
 			"`/deviceAppManagement/mobileApps/{id}/relationships` endpoint. Look the relationship up by `relationship_id`, " +

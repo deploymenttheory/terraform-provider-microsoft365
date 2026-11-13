@@ -1,10 +1,18 @@
 package graphBetaMobileAppRelationship
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+)
+
+var (
+	errRelationshipNotFound  = errors.New("no mobile app relationship found")
+	errMultipleRelationships = errors.New(
+		"the lookup must match exactly one mobile app relationship",
+	)
 )
 
 // lookupMethod represents the different ways to look up a relationship.
@@ -79,14 +87,13 @@ func selectRelationship(
 	}
 	switch len(matches) {
 	case 0:
-		return nil, fmt.Errorf("no mobile app relationship found with %s", criteria)
+		return nil, fmt.Errorf("%w with %s", errRelationshipNotFound, criteria)
 	case 1:
 		return matches[0], nil
 	default:
 		return nil, fmt.Errorf(
-			"found %d mobile app relationships with %s. The lookup must match exactly one relationship; "+
-				"narrow it with target_type or a more specific lookup",
-			len(matches), criteria,
+			"%w: found %d with %s; narrow it with target_type or a more specific lookup",
+			errMultipleRelationships, len(matches), criteria,
 		)
 	}
 }

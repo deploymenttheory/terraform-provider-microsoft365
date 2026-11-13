@@ -3,10 +3,11 @@ package graphBetaMobileAppRelationship
 import (
 	"context"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // MapRemoteStateToDataSource maps a Graph relationship onto the data source model,
@@ -21,27 +22,31 @@ func MapRemoteStateToDataSource(
 	})
 
 	state := MobileAppRelationshipDataSourceModel{
-		ID:                         convert.GraphToFrameworkString(data.GetId()),
-		SourceID:                   convert.GraphToFrameworkString(data.GetSourceId()),
-		RelationshipID:             convert.GraphToFrameworkString(data.GetId()),
-		TargetID:                   convert.GraphToFrameworkString(data.GetTargetId()),
-		TargetDisplayName:          convert.GraphToFrameworkString(data.GetTargetDisplayName()),
-		ODataQuery:                 config.ODataQuery,
-		TargetType:                 convert.GraphToFrameworkEnum(data.GetTargetType()),
-		RelationshipType:           types.StringNull(),
-		TargetDisplayVersion:       convert.GraphToFrameworkString(data.GetTargetDisplayVersion()),
-		TargetPublisher:            convert.GraphToFrameworkString(data.GetTargetPublisher()),
-		TargetPublisherDisplayName: convert.GraphToFrameworkString(data.GetTargetPublisherDisplayName()),
-		SourceDisplayName:          convert.GraphToFrameworkString(data.GetSourceDisplayName()),
-		SourceDisplayVersion:       convert.GraphToFrameworkString(data.GetSourceDisplayVersion()),
-		SourcePublisherDisplayName: convert.GraphToFrameworkString(data.GetSourcePublisherDisplayName()),
-		DependencyType:             types.StringNull(),
-		DependentAppCount:          types.Int32Null(),
-		DependsOnAppCount:          types.Int32Null(),
-		SupersedenceType:           types.StringNull(),
-		SupersededAppCount:         types.Int32Null(),
-		SupersedingAppCount:        types.Int32Null(),
-		Timeouts:                   config.Timeouts,
+		ID:                   convert.GraphToFrameworkString(data.GetId()),
+		SourceID:             convert.GraphToFrameworkString(data.GetSourceId()),
+		RelationshipID:       convert.GraphToFrameworkString(data.GetId()),
+		TargetID:             convert.GraphToFrameworkString(data.GetTargetId()),
+		TargetDisplayName:    convert.GraphToFrameworkString(data.GetTargetDisplayName()),
+		ODataQuery:           config.ODataQuery,
+		TargetType:           convert.GraphToFrameworkEnum(data.GetTargetType()),
+		RelationshipType:     types.StringNull(),
+		TargetDisplayVersion: convert.GraphToFrameworkString(data.GetTargetDisplayVersion()),
+		TargetPublisher:      convert.GraphToFrameworkString(data.GetTargetPublisher()),
+		TargetPublisherDisplayName: convert.GraphToFrameworkString(
+			data.GetTargetPublisherDisplayName(),
+		),
+		SourceDisplayName:    convert.GraphToFrameworkString(data.GetSourceDisplayName()),
+		SourceDisplayVersion: convert.GraphToFrameworkString(data.GetSourceDisplayVersion()),
+		SourcePublisherDisplayName: convert.GraphToFrameworkString(
+			data.GetSourcePublisherDisplayName(),
+		),
+		DependencyType:      types.StringNull(),
+		DependentAppCount:   types.Int32Null(),
+		DependsOnAppCount:   types.Int32Null(),
+		SupersedenceType:    types.StringNull(),
+		SupersededAppCount:  types.Int32Null(),
+		SupersedingAppCount: types.Int32Null(),
+		Timeouts:            config.Timeouts,
 	}
 
 	// Configured lookup values must survive verbatim; Graph may return different casing.
@@ -67,8 +72,12 @@ func MapRemoteStateToDataSource(
 	case graphmodels.MobileAppSupersedenceable:
 		state.RelationshipType = types.StringValue("supersedence")
 		state.SupersedenceType = convert.GraphToFrameworkEnum(relationship.GetSupersedenceType())
-		state.SupersededAppCount = convert.GraphToFrameworkInt32(relationship.GetSupersededAppCount())
-		state.SupersedingAppCount = convert.GraphToFrameworkInt32(relationship.GetSupersedingAppCount())
+		state.SupersededAppCount = convert.GraphToFrameworkInt32(
+			relationship.GetSupersededAppCount(),
+		)
+		state.SupersedingAppCount = convert.GraphToFrameworkInt32(
+			relationship.GetSupersedingAppCount(),
+		)
 	}
 
 	return state

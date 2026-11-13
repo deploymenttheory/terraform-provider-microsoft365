@@ -7,9 +7,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/jarcoal/httpmock"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	"github.com/jarcoal/httpmock"
 )
 
 const (
@@ -18,10 +19,16 @@ const (
 )
 
 var (
-	appRelationshipsURL = regexp.MustCompile(`^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/([0-9a-fA-F-]{36})/relationships`)
-	rootRelationshipURL = regexp.MustCompile(`^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileAppRelationships/([^/?]+)$`)
-	targetTypeFilter    = regexp.MustCompile(`^targetType eq '(child|parent)'$`)
-	isofFilter          = regexp.MustCompile(`^isof\('microsoft\.graph\.(mobileAppDependency|mobileAppSupersedence)'\)$`)
+	appRelationshipsURL = regexp.MustCompile(
+		`^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/([0-9a-fA-F-]{36})/relationships`,
+	)
+	rootRelationshipURL = regexp.MustCompile(
+		`^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileAppRelationships/([^/?]+)$`,
+	)
+	targetTypeFilter = regexp.MustCompile(`^targetType eq '(child|parent)'$`)
+	isofFilter       = regexp.MustCompile(
+		`^isof\('microsoft\.graph\.(mobileAppDependency|mobileAppSupersedence)'\)$`,
+	)
 )
 
 func init() {
@@ -45,8 +52,17 @@ func loadJSON(name string) (map[string]any, error) {
 	return obj, nil
 }
 
+// jsonResponse wraps httpmock's constructor so mock failures carry context.
+func jsonResponse(status int, body any) (*http.Response, error) {
+	resp, err := httpmock.NewJsonResponse(status, body)
+	if err != nil {
+		return nil, fmt.Errorf("create mock JSON response: %w", err)
+	}
+	return resp, nil
+}
+
 func graphError(status int, code, message string) (*http.Response, error) {
-	return httpmock.NewJsonResponse(status, map[string]any{
+	return jsonResponse(status, map[string]any{
 		"error": map[string]any{"code": code, "message": message},
 	})
 }
@@ -75,34 +91,42 @@ func applyFilter(items []any, filter string) ([]any, bool) {
 
 func (m *MobileAppRelationshipMock) RegisterMocks() {
 	// GET /deviceAppManagement/mobileApps/{id}/relationships[?$filter=...]
-	httpmock.RegisterRegexpResponder("GET", appRelationshipsURL, func(req *http.Request) (*http.Response, error) {
-		appID := appRelationshipsURL.FindStringSubmatch(req.URL.String())[1]
-		if !strings.EqualFold(appID, SourceAppID) {
-			return httpmock.NewJsonResponse(200, map[string]any{"value": []any{}})
-		}
-		obj, err := loadJSON("get_app_relationships.json")
-		if err != nil {
-			return nil, err
-		}
-		items, ok := applyFilter(obj["value"].([]any), req.URL.Query().Get("$filter"))
-		if !ok {
-			return graphError(400, "BadRequest", "Invalid filter clause")
-		}
-		obj["value"] = items
-		return httpmock.NewJsonResponse(200, obj)
-	})
+	httpmock.RegisterRegexpResponder(
+		"GET",
+		appRelationshipsURL,
+		func(req *http.Request) (*http.Response, error) {
+			appID := appRelationshipsURL.FindStringSubmatch(req.URL.String())[1]
+			if !strings.EqualFold(appID, SourceAppID) {
+				return jsonResponse(200, map[string]any{"value": []any{}})
+			}
+			obj, err := loadJSON("get_app_relationships.json")
+			if err != nil {
+				return nil, err
+			}
+			items, ok := applyFilter(obj["value"].([]any), req.URL.Query().Get("$filter"))
+			if !ok {
+				return graphError(400, "BadRequest", "Invalid filter clause")
+			}
+			obj["value"] = items
+			return jsonResponse(200, obj)
+		},
+	)
 
 	// GET /deviceAppManagement/mobileAppRelationships/{id} for opaque legacy IDs.
-	httpmock.RegisterRegexpResponder("GET", rootRelationshipURL, func(req *http.Request) (*http.Response, error) {
-		if rootRelationshipURL.FindStringSubmatch(req.URL.String())[1] != "legacy-relationship-001" {
-			return graphError(404, "ResourceNotFound", "Resource not found")
-		}
-		obj, err := loadJSON("get_relationship_by_opaque_id.json")
-		if err != nil {
-			return nil, err
-		}
-		return httpmock.NewJsonResponse(200, obj)
-	})
+	httpmock.RegisterRegexpResponder(
+		"GET",
+		rootRelationshipURL,
+		func(req *http.Request) (*http.Response, error) {
+			if rootRelationshipURL.FindStringSubmatch(req.URL.String())[1] != "legacy-relationship-001" {
+				return graphError(404, "ResourceNotFound", "Resource not found")
+			}
+			obj, err := loadJSON("get_relationship_by_opaque_id.json")
+			if err != nil {
+				return nil, err
+			}
+			return jsonResponse(200, obj)
+		},
+	)
 }
 
 func (m *MobileAppRelationshipMock) RegisterErrorMocks() {
