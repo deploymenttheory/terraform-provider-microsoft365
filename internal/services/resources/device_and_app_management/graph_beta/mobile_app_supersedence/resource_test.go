@@ -1,12 +1,14 @@
 package graphBetaMobileAppSupersedence_test
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -184,6 +186,62 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_dependenc
 					HasValue("detect"),
 			},
 			{Config: dependencyConfig, PlanOnly: true},
+		},
+	})
+}
+
+// Intune answers 412 while an earlier relationship change is still processing. The nightly
+// acceptance failure was a destroy straight after a replace-to-update change.
+func TestUnitResourceMobileAppSupersedence_07_RetriesPreconditionFailed(t *testing.T) {
+	mock := setupMockEnvironment(t)
+	mock.FailNextUpdatesWithPreconditionFailed(1)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		CheckDestroy: func(*terraform.State) error {
+			if pending := mock.PendingPreconditionFailures(); pending != 0 {
+				return fmt.Errorf("%d injected 412 responses were not retried", pending)
+			}
+			return nil
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("02_replace.tf"),
+				Check:  check.That(resourceType + ".test").Key("supersedence_type").HasValue("replace"),
+			},
+			{
+				PreConfig: func() { mock.FailNextUpdatesWithPreconditionFailed(2) },
+				Config:    loadUnitTestTerraform("01_update.tf"),
+				Check:     check.That(resourceType + ".test").Key("supersedence_type").HasValue("update"),
+			},
+			{
+				PreConfig: func() { mock.FailNextUpdatesWithPreconditionFailed(1) },
+				Config:    loadUnitTestTerraform("01_update.tf"),
+				Destroy:   true,
+			},
+		},
+	})
+}
+
+// A 412 can arrive after Intune has already stored the change; the retry must adopt the
+// created supersedence instead of failing because it now exists.
+func TestUnitResourceMobileAppSupersedence_08_PreconditionFailedAfterApplying(t *testing.T) {
+	mock := setupMockEnvironment(t)
+	mock.ApplyNextUpdatesThenFailWithPreconditionFailed(1)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("01_update.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("id").IsSet(),
+					check.That(resourceType+".test").Key("supersedence_type").HasValue("update"),
+				),
+			},
+			{
+				PreConfig: func() { mock.ApplyNextUpdatesThenFailWithPreconditionFailed(1) },
+				Config:    loadUnitTestTerraform("01_update.tf"),
+				Destroy:   true,
+			},
 		},
 	})
 }

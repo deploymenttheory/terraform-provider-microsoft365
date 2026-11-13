@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "PreconditionFailed",
+    "message": "A precondition provided in the request (such as an if-match header) doesn't match the resource's current state."
+  }
+}

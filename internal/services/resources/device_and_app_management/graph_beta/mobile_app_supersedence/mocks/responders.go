@@ -18,6 +18,35 @@ import (
 type MobileAppSupersedenceMock struct {
 	mu            sync.Mutex
 	relationships map[string]map[string]any
+	// preconditionFailures is how many upcoming updateRelationships calls return 412,
+	// as Intune does while an earlier relationship change is still processing.
+	preconditionFailures int
+	// applyBeforeFailure stores the update before returning the injected 412.
+	applyBeforeFailure bool
+}
+
+// FailNextUpdatesWithPreconditionFailed makes the next n updateRelationships calls return 412.
+func (m *MobileAppSupersedenceMock) FailNextUpdatesWithPreconditionFailed(n int) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.preconditionFailures = n
+	m.applyBeforeFailure = false
+}
+
+// ApplyNextUpdatesThenFailWithPreconditionFailed stores the next n updates but still
+// answers 412, so callers must recognise a write that landed despite the error.
+func (m *MobileAppSupersedenceMock) ApplyNextUpdatesThenFailWithPreconditionFailed(n int) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.preconditionFailures = n
+	m.applyBeforeFailure = true
+}
+
+// PendingPreconditionFailures reports how many injected 412 responses were not yet consumed.
+func (m *MobileAppSupersedenceMock) PendingPreconditionFailures() int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.preconditionFailures
 }
 
 var _ commonMocks.MockRegistrar = &MobileAppSupersedenceMock{}
@@ -30,6 +59,7 @@ func (m *MobileAppSupersedenceMock) RegisterMocks() {
 	m.CleanupMockState()
 	template := loadResponse("validate_get/get_supersedence.json")
 	badRoute := loadResponse("validate_get/get_supersedence_bad_route.json")
+	preconditionFailed := loadResponse("validate_update/post_update_relationships_412.json")
 	httpmock.RegisterResponder(http.MethodGet,
 		`=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[^/]+/relationships$`,
 		func(req *http.Request) (*http.Response, error) {
@@ -48,6 +78,16 @@ func (m *MobileAppSupersedenceMock) RegisterMocks() {
 		http.MethodPost,
 		`=~^https://graph\.microsoft\.com/beta/deviceAppManagement/mobileApps/[^/]+/updateRelationships$`,
 		func(req *http.Request) (*http.Response, error) {
+			m.mu.Lock()
+			fail := m.preconditionFailures > 0
+			if fail {
+				m.preconditionFailures--
+			}
+			apply := !fail || m.applyBeforeFailure
+			m.mu.Unlock()
+			if !apply {
+				return jsonResponse(http.StatusPreconditionFailed, preconditionFailed)
+			}
 			var body struct {
 				Relationships []map[string]any `json:"relationships"`
 			}
@@ -73,6 +113,9 @@ func (m *MobileAppSupersedenceMock) RegisterMocks() {
 				record["id"], record["sourceId"] = id, sourceID
 				m.relationships[id] = record
 			}
+			if fail {
+				return jsonResponse(http.StatusPreconditionFailed, preconditionFailed)
+			}
 			return httpmock.NewStringResponse(http.StatusNoContent, ""), nil
 		},
 	)
@@ -97,6 +140,8 @@ func (m *MobileAppSupersedenceMock) CleanupMockState() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.relationships = make(map[string]map[string]any)
+	m.preconditionFailures = 0
+	m.applyBeforeFailure = false
 }
 
 func appIDFromRequest(req *http.Request) string {
