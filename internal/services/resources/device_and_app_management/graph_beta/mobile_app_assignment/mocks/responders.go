@@ -74,6 +74,15 @@ func unsupportedSettingForIntent(assignment map[string]any) *http.Response {
 }
 
 // RegisterMocks registers HTTP mock responses for mobile app assignment operations
+// defaultSettings is what the service returns for a Win32 app assignment created without settings.
+func defaultSettings() map[string]any {
+	return map[string]any{
+		"@odata.type":                  "#microsoft.graph.win32LobAppAssignmentSettings",
+		"notifications":                "showAll",
+		"deliveryOptimizationPriority": "notConfigured",
+	}
+}
+
 func (m *MobileAppAssignmentMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.assignments = make(map[string]map[string]any)
@@ -100,6 +109,11 @@ func (m *MobileAppAssignmentMock) RegisterMocks() {
 				assignment["id"] = uuid.New().String()
 			}
 			assignment["@odata.type"] = "#microsoft.graph.mobileAppAssignment"
+			// Like the service, an assignment created without settings reads back with the app
+			// type's defaults rather than null.
+			if assignment["settings"] == nil {
+				assignment["settings"] = defaultSettings()
+			}
 
 			assignmentId := assignment["id"].(string)
 			mockState.Lock()

@@ -17,6 +17,13 @@ func MapRemoteStateToTerraform(ctx context.Context, data MobileAppAssignmentReso
 		return data
 	}
 
+	// The service returns default settings for an assignment created without any (for a
+	// Win32 app: notifications showAll, deliveryOptimizationPriority notConfigured). Keep them
+	// out of state unless the configuration manages settings, otherwise an omitted block reads
+	// back as an object and Terraform reports an inconsistent result. Intent is only null on
+	// import, where the remote settings are all there is to go on.
+	managed := data.Settings != nil || data.Intent.IsNull()
+
 	data.ID = convert.GraphToFrameworkString(assignment.GetId())
 	data.Intent = convert.GraphToFrameworkEnum(assignment.GetIntent())
 	data.Source = convert.GraphToFrameworkEnum(assignment.GetSource())
@@ -26,7 +33,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data MobileAppAssignmentReso
 		data.Target = mapRemoteTargetToTerraform(target)
 	}
 
-	if settings := assignment.GetSettings(); settings != nil {
+	if settings := assignment.GetSettings(); settings != nil && managed {
 		data.Settings = mapRemoteSettingsToTerraform(settings)
 	}
 

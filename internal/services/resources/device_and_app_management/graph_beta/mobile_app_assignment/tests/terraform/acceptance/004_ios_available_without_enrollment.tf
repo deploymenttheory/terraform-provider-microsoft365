@@ -48,8 +48,8 @@ resource "time_sleep" "wait_for_dependencies_004" {
 # Scenario 4: availableWithoutEnrollment intent
 #
 # The user-enrolled (BYOD) case from issue #3692, where pushing an app as
-# required is not appropriate. prevent_managed_app_backup is accepted for this
-# intent and must still be sent.
+# required is not appropriate. No settings are configured: the service discards
+# prevent_managed_app_backup for this intent, so the provider rejects it at plan time.
 # ==============================================================================
 
 resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignment" "test_004" {
@@ -60,12 +60,6 @@ resource "microsoft365_graph_beta_device_and_app_management_mobile_app_assignmen
   target = {
     target_type = "groupAssignment"
     group_id    = microsoft365_graph_beta_groups_group.acc_test_group_004_1.id
-  }
-
-  settings = {
-    ios_store = {
-      prevent_managed_app_backup = true
-    }
   }
 
   timeouts = {
