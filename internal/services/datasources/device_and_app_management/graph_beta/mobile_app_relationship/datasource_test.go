@@ -7,218 +7,182 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaMobileAppRelationship "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/mobile_app_relationship"
 	relMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_and_app_management/graph_beta/mobile_app_relationship/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
 
-const dataSourceType = "data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship"
+var dataSourceType = "data." + graphBetaMobileAppRelationship.DataSourceName
 
-// TestMobileAppRelationshipDataSource_All tests fetching all mobile app relationships
-func TestUnitDatasourceMobileAppRelationship_01_All(t *testing.T) {
+const (
+	sourceID     = relMocks.SourceAppID
+	dependencyID = sourceID + "_22222222-2222-2222-2222-222222222222"
+	supersedesID = sourceID + "_33333333-3333-3333-3333-333333333333"
+	parentID     = "44444444-4444-4444-4444-444444444444_" + sourceID
+)
+
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
+	if err != nil {
+		panic("failed to load unit test config " + filename + ": " + err.Error())
+	}
+	return config
+}
+
+func setupMockEnvironment(t *testing.T, errorMocks bool) {
+	t.Helper()
 	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
+	t.Cleanup(httpmock.DeactivateAndReset)
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-	relMocks.RegisterMobileAppRelationshipMockResponders()
+	relationshipMock := &relMocks.MobileAppRelationshipMock{}
+	if errorMocks {
+		relationshipMock.RegisterErrorMocks()
+	} else {
+		relationshipMock.RegisterMocks()
+	}
+	t.Cleanup(relationshipMock.CleanupMockState)
+}
 
+func runUnitTest(t *testing.T, filename string, checks ...resource.TestCheckFunc) {
+	t.Helper()
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigAll(),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".all").Key("filter_type").HasValue("all"),
-					check.That(dataSourceType+".all").Key("items.#").HasValue("3"),
-
-					// Verify first relationship
-					check.That(dataSourceType+".all").Key("items.0.id").Exists(),
-					check.That(dataSourceType+".all").Key("items.0.id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(dataSourceType+".all").Key("items.0.target_id").Exists(),
-					check.That(dataSourceType+".all").Key("items.0.target_display_name").Exists(),
-					check.That(dataSourceType+".all").Key("items.0.source_id").Exists(),
-					check.That(dataSourceType+".all").Key("items.0.source_display_name").Exists(),
-					check.That(dataSourceType+".all").Key("items.0.target_type").Exists(),
-
-					// Verify specific values from mock data
-					check.That(dataSourceType+".all").Key("items.0.target_display_name").HasValue("Microsoft Edge"),
-					check.That(dataSourceType+".all").Key("items.0.source_display_name").HasValue("Company Portal"),
-					check.That(dataSourceType+".all").Key("items.0.target_type").HasValue("parent"),
-				),
-			},
-		},
+		Steps: []resource.TestStep{{
+			Config: loadUnitTestTerraform(filename),
+			Check:  resource.ComposeTestCheckFunc(checks...),
+		}},
 	})
 }
 
-// TestMobileAppRelationshipDataSource_ById tests fetching a specific mobile app relationship by ID
-func TestUnitDatasourceMobileAppRelationship_02_ById(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	relMocks.RegisterMobileAppRelationshipMockResponders()
-
+func runUnitErrorTest(t *testing.T, filename string, expected *regexp.Regexp) {
+	t.Helper()
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigById(),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".by_id").Key("filter_type").HasValue("id"),
-					check.That(dataSourceType+".by_id").Key("filter_value").HasValue("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-					check.That(dataSourceType+".by_id").Key("items.#").HasValue("1"),
-
-					// Verify the specific relationship
-					check.That(dataSourceType+".by_id").Key("items.0.id").HasValue("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
-					check.That(dataSourceType+".by_id").Key("items.0.target_id").HasValue("app-target-001"),
-					check.That(dataSourceType+".by_id").Key("items.0.target_display_name").HasValue("Microsoft Edge"),
-					check.That(dataSourceType+".by_id").Key("items.0.target_display_version").HasValue("120.0.2210.91"),
-					check.That(dataSourceType+".by_id").Key("items.0.target_publisher").HasValue("Microsoft Corporation"),
-					check.That(dataSourceType+".by_id").Key("items.0.target_publisher_display_name").HasValue("Microsoft"),
-					check.That(dataSourceType+".by_id").Key("items.0.source_id").HasValue("app-source-001"),
-					check.That(dataSourceType+".by_id").Key("items.0.source_display_name").HasValue("Company Portal"),
-					check.That(dataSourceType+".by_id").Key("items.0.source_display_version").HasValue("5.0.5954.0"),
-					check.That(dataSourceType+".by_id").Key("items.0.source_publisher_display_name").HasValue("Microsoft"),
-					check.That(dataSourceType+".by_id").Key("items.0.target_type").HasValue("parent"),
-				),
-			},
-		},
+		Steps: []resource.TestStep{{
+			Config:      loadUnitTestTerraform(filename),
+			ExpectError: expected,
+		}},
 	})
 }
 
-// TestMobileAppRelationshipDataSource_BySourceId tests filtering relationships by source app ID
-func TestUnitDatasourceMobileAppRelationship_03_BySourceId(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	relMocks.RegisterMobileAppRelationshipMockResponders()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigBySourceId(),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".by_source_id").Key("filter_type").HasValue("source_id"),
-					check.That(dataSourceType+".by_source_id").Key("filter_value").HasValue("app-source-001"),
-					check.That(dataSourceType+".by_source_id").Key("items.#").HasValue("1"),
-
-					// Verify the relationship has the correct source_id
-					check.That(dataSourceType+".by_source_id").Key("items.0.id").Exists(),
-					check.That(dataSourceType+".by_source_id").Key("items.0.source_id").HasValue("app-source-001"),
-					check.That(dataSourceType+".by_source_id").Key("items.0.target_display_name").HasValue("Microsoft Edge"),
-					check.That(dataSourceType+".by_source_id").Key("items.0.source_display_name").HasValue("Company Portal"),
-				),
-			},
-		},
-	})
+func TestUnitDatasourceMobileAppRelationship_01_ByRelationshipId(t *testing.T) {
+	setupMockEnvironment(t, false)
+	d := check.That(dataSourceType + ".test")
+	runUnitTest(t, "01_by_relationship_id.tf",
+		d.Key("id").HasValue(dependencyID),
+		d.Key("relationship_id").HasValue(dependencyID),
+		d.Key("source_id").HasValue(sourceID),
+		d.Key("source_display_name").HasValue("Contoso Line of Business App"),
+		d.Key("source_display_version").HasValue("3.2.0"),
+		d.Key("source_publisher_display_name").HasValue("Contoso"),
+		d.Key("target_id").HasValue("22222222-2222-2222-2222-222222222222"),
+		d.Key("target_display_name").HasValue("Microsoft Visual C++ Redistributable"),
+		d.Key("target_display_version").HasValue("14.40.33810"),
+		d.Key("target_publisher").HasValue("Microsoft Corporation"),
+		d.Key("target_publisher_display_name").HasValue("Microsoft"),
+		d.Key("target_type").HasValue("child"),
+		d.Key("relationship_type").HasValue("dependency"),
+		d.Key("dependency_type").HasValue("autoInstall"),
+		d.Key("dependent_app_count").HasValue("1"),
+		d.Key("depends_on_app_count").HasValue("2"),
+		d.Key("supersedence_type").DoesNotExist(),
+		d.Key("superseded_app_count").DoesNotExist(),
+	)
 }
 
-// TestMobileAppRelationshipDataSource_ByTargetId tests filtering relationships by target app ID
-func TestUnitDatasourceMobileAppRelationship_04_ByTargetId(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	relMocks.RegisterMobileAppRelationshipMockResponders()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigByTargetId(),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".by_target_id").Key("filter_type").HasValue("target_id"),
-					check.That(dataSourceType+".by_target_id").Key("filter_value").HasValue("app-target-001"),
-					check.That(dataSourceType+".by_target_id").Key("items.#").HasValue("1"),
-
-					// Verify the relationship has the correct target_id
-					check.That(dataSourceType+".by_target_id").Key("items.0.target_id").HasValue("app-target-001"),
-					check.That(dataSourceType+".by_target_id").Key("items.0.target_display_name").HasValue("Microsoft Edge"),
-					check.That(dataSourceType+".by_target_id").Key("items.0.source_display_name").HasValue("Company Portal"),
-				),
-			},
-		},
-	})
+func TestUnitDatasourceMobileAppRelationship_02_ByTargetId(t *testing.T) {
+	setupMockEnvironment(t, false)
+	d := check.That(dataSourceType + ".test")
+	runUnitTest(t, "02_by_target_id.tf",
+		d.Key("id").HasValue(supersedesID),
+		d.Key("target_id").HasValue("33333333-3333-3333-3333-333333333333"),
+		d.Key("target_display_name").HasValue("Contoso Line of Business App (Legacy)"),
+		d.Key("relationship_type").HasValue("supersedence"),
+		d.Key("supersedence_type").HasValue("update"),
+		d.Key("superseded_app_count").HasValue("1"),
+		d.Key("superseding_app_count").HasValue("0"),
+		d.Key("dependency_type").DoesNotExist(),
+		d.Key("dependent_app_count").DoesNotExist(),
+	)
 }
 
-// TestMobileAppRelationshipDataSource_ODataFilter tests using OData filter queries
-func TestUnitDatasourceMobileAppRelationship_05_ODataFilter(t *testing.T) {
-	mocks.SetupUnitTestEnvironment(t)
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	mockClient := mocks.NewMocks()
-	mockClient.AuthMocks.RegisterMocks()
-	relMocks.RegisterMobileAppRelationshipMockResponders()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigODataFilter(),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(dataSourceType+".odata_filter").Key("filter_type").HasValue("odata"),
-					check.That(dataSourceType+".odata_filter").Key("odata_filter").HasValue("sourceId eq 'app-source-001'"),
-					check.That(dataSourceType+".odata_filter").Key("items.#").HasValue("2"),
-
-					// Verify filtered results
-					check.That(dataSourceType+".odata_filter").Key("items.0.id").Exists(),
-					check.That(dataSourceType+".odata_filter").Key("items.0.source_id").HasValue("app-source-001"),
-					check.That(dataSourceType+".odata_filter").Key("items.0.target_display_name").Exists(),
-					check.That(dataSourceType+".odata_filter").Key("items.0.target_type").Exists(),
-				),
-			},
-		},
-	})
+func TestUnitDatasourceMobileAppRelationship_03_ByTargetDisplayName(t *testing.T) {
+	setupMockEnvironment(t, false)
+	d := check.That(dataSourceType + ".test")
+	runUnitTest(t, "03_by_target_display_name.tf",
+		d.Key("id").HasValue(dependencyID),
+		// The configured value is preserved even though the lookup is case-insensitive.
+		d.Key("target_display_name").HasValue("microsoft visual c++ redistributable"),
+		d.Key("relationship_type").HasValue("dependency"),
+	)
 }
 
-// Helper functions to load test configurations
-func testConfigAll() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/01_all.tf")
-	if err != nil {
-		panic("failed to load 01_all config: " + err.Error())
-	}
-	return unitTestConfig
+func TestUnitDatasourceMobileAppRelationship_04_ByODataQuery(t *testing.T) {
+	setupMockEnvironment(t, false)
+	d := check.That(dataSourceType + ".test")
+	runUnitTest(t, "04_by_odata_query.tf",
+		d.Key("odata_query").HasValue("targetType eq 'parent'"),
+		d.Key("id").HasValue(parentID),
+		d.Key("target_type").HasValue("parent"),
+		d.Key("target_id").HasValue("44444444-4444-4444-4444-444444444444"),
+		d.Key("supersedence_type").HasValue("replace"),
+	)
 }
 
-func testConfigById() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/02_by_id.tf")
-	if err != nil {
-		panic("failed to load 02_by_id config: " + err.Error())
-	}
-	return unitTestConfig
+func TestUnitDatasourceMobileAppRelationship_05_TargetTypeMismatch(t *testing.T) {
+	setupMockEnvironment(t, false)
+	runUnitErrorTest(t, "05_target_type_mismatch.tf",
+		regexp.MustCompile(`no mobile app relationship found with target_id`))
 }
 
-func testConfigBySourceId() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/03_by_source_id.tf")
-	if err != nil {
-		panic("failed to load 03_by_source_id config: " + err.Error())
-	}
-	return unitTestConfig
+func TestUnitDatasourceMobileAppRelationship_06_ODataQueryMultipleMatches(t *testing.T) {
+	setupMockEnvironment(t, false)
+	runUnitErrorTest(t, "06_odata_query_multiple_matches.tf",
+		regexp.MustCompile(`found 2 mobile app relationships`))
 }
 
-func testConfigByTargetId() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/04_by_target_id.tf")
-	if err != nil {
-		panic("failed to load 04_by_target_id config: " + err.Error())
-	}
-	return unitTestConfig
+func TestUnitDatasourceMobileAppRelationship_07_ODataQueryWithTargetType(t *testing.T) {
+	setupMockEnvironment(t, false)
+	d := check.That(dataSourceType + ".test")
+	runUnitTest(t, "07_odata_query_with_target_type.tf",
+		d.Key("id").HasValue(supersedesID),
+		d.Key("target_type").HasValue("child"),
+	)
 }
 
-func testConfigODataFilter() string {
-	unitTestConfig, err := helpers.ParseHCLFile("tests/terraform/unit/05_odata_filter.tf")
-	if err != nil {
-		panic("failed to load 05_odata_filter config: " + err.Error())
-	}
-	return unitTestConfig
+func TestUnitDatasourceMobileAppRelationship_08_ByOpaqueRelationshipId(t *testing.T) {
+	setupMockEnvironment(t, false)
+	d := check.That(dataSourceType + ".test")
+	runUnitTest(t, "08_by_opaque_relationship_id.tf",
+		d.Key("id").HasValue("legacy-relationship-001"),
+		d.Key("source_id").HasValue(sourceID),
+		d.Key("dependency_type").HasValue("detect"),
+	)
+}
+
+func TestUnitDatasourceMobileAppRelationship_09_MissingSourceId(t *testing.T) {
+	setupMockEnvironment(t, false)
+	runUnitErrorTest(t, "09_missing_source_id.tf",
+		regexp.MustCompile(`Attribute "source_id" must be specified when "target_id" is\s+specified`))
+}
+
+func TestUnitDatasourceMobileAppRelationship_10_ConflictingLookups(t *testing.T) {
+	setupMockEnvironment(t, false)
+	runUnitErrorTest(t, "10_conflicting_lookups.tf",
+		regexp.MustCompile(`Invalid Attribute Combination`))
+}
+
+func TestUnitDatasourceMobileAppRelationship_11_NoLookup(t *testing.T) {
+	setupMockEnvironment(t, false)
+	runUnitErrorTest(t, "11_no_lookup.tf",
+		regexp.MustCompile(`Invalid Attribute Combination`))
+}
+
+func TestUnitDatasourceMobileAppRelationship_12_GraphError(t *testing.T) {
+	setupMockEnvironment(t, true)
+	runUnitErrorTest(t, "02_by_target_id.tf",
+		regexp.MustCompile(`(?i)forbidden|insufficient privileges`))
 }

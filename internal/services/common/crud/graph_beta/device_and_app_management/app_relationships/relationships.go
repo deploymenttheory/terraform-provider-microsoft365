@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
@@ -54,8 +55,26 @@ func List(
 	client *msgraphbetasdk.GraphServiceClient,
 	sourceID string,
 ) ([]graphmodels.MobileAppRelationshipable, error) {
+	return ListFiltered(ctx, client, sourceID, "")
+}
+
+// ListFiltered retrieves every page of an app's relationships matching an OData $filter.
+// The per-app navigation accepts $filter; the root mobileAppRelationships collection rejects it.
+func ListFiltered(
+	ctx context.Context,
+	client *msgraphbetasdk.GraphServiceClient,
+	sourceID, filter string,
+) ([]graphmodels.MobileAppRelationshipable, error) {
 	builder := client.DeviceAppManagement().MobileApps().ByMobileAppId(sourceID).Relationships()
-	page, err := builder.Get(ctx, nil)
+	var config *deviceappmanagement.MobileAppsItemRelationshipsRequestBuilderGetRequestConfiguration
+	if filter != "" {
+		config = &deviceappmanagement.MobileAppsItemRelationshipsRequestBuilderGetRequestConfiguration{
+			QueryParameters: &deviceappmanagement.MobileAppsItemRelationshipsRequestBuilderGetQueryParameters{
+				Filter: &filter,
+			},
+		}
+	}
+	page, err := builder.Get(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("list app relationships: %w", err)
 	}

@@ -3,11 +3,11 @@ page_title: "microsoft365_graph_beta_device_and_app_management_mobile_app_relati
 subcategory: "Device and App Management"
 
 description: |-
-  Retrieves mobile app relationships from Microsoft Intune using the /deviceAppManagement/mobileApps/{id}/relationships endpoint. This data source is used to query app dependencies and supersedence relationships for deployment planning.
+  Retrieves a single Intune mobile app relationship (dependency or supersedence) using the /deviceAppManagement/mobileApps/{id}/relationships endpoint. Look the relationship up by relationship_id, or search the relationships of the app named in source_id by target_id, target_display_name, or a custom odata_query. The lookup must match exactly one relationship.
 ---
 # microsoft365_graph_beta_device_and_app_management_mobile_app_relationship (Data Source)
 
-Retrieves mobile app relationships from Microsoft Intune using the `/deviceAppManagement/mobileApps/{id}/relationships` endpoint. This data source is used to query app dependencies and supersedence relationships for deployment planning.
+Retrieves a single Intune mobile app relationship (dependency or supersedence) using the `/deviceAppManagement/mobileApps/{id}/relationships` endpoint. Look the relationship up by `relationship_id`, or search the relationships of the app named in `source_id` by `target_id`, `target_display_name`, or a custom `odata_query`. The lookup must match exactly one relationship.
 
 ## Microsoft Documentation
 
@@ -28,107 +28,94 @@ The following client `application` permissions are needed in order to use this d
 | Version | Status | Notes |
 |---------|--------|-------|
 | v0.14.1-alpha | Experimental | Initial release |
+| v1.5.2 | Experimental | Refactored to a single-relationship lookup by `relationship_id`, `target_id`, `target_display_name` or `odata_query` (scoped to `source_id`), reading the per-app relationships endpoint that supports `$filter`. |
 
 ## Example Usage
 
 ```terraform
-# This example demonstrates how to retrieve information about mobile app relationships in Intune
+# Each lookup must match exactly one relationship (dependency or supersedence).
 
-# Example 1: Retrieve all mobile app relationships
-data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "all" {
-  filter_type = "all"
+# Example 1: Look up a relationship by its ID ({source_id}_{target_id})
+data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "by_relationship_id" {
+  relationship_id = "00000000-0000-0000-0000-000000000001_00000000-0000-0000-0000-000000000002"
 }
 
-# Example 2: Retrieve a specific mobile app relationship by ID
-data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "by_id" {
-  filter_type  = "id"
-  filter_value = "00000000-0000-0000-0000-000000000001_00000000-0000-0000-0000-000000000002" # Replace with a valid relationship ID
+# Example 2: Look up the relationship between a source app and a target app
+data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "by_target_id" {
+  source_id = "00000000-0000-0000-0000-000000000001"
+  target_id = "00000000-0000-0000-0000-000000000002"
 }
 
-# Example 3: Retrieve mobile app relationships by source app ID
-data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "by_source" {
-  filter_type  = "source_id"
-  filter_value = "00000000-0000-0000-0000-000000000001" # Replace with a valid source app ID
+# Example 3: Look up a source app's relationship by the target app's display name
+data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "by_target_display_name" {
+  source_id           = "00000000-0000-0000-0000-000000000001"
+  target_display_name = "Microsoft Visual C++ Redistributable"
 }
 
-# Example 4: Retrieve mobile app relationships by target app ID
-data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "by_target" {
-  filter_type  = "target_id"
-  filter_value = "00000000-0000-0000-0000-000000000002" # Replace with a valid target app ID
+# Example 4: Use an OData filter on the source app's relationships
+data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "dependency" {
+  source_id   = "00000000-0000-0000-0000-000000000001"
+  odata_query = "isof('microsoft.graph.mobileAppDependency')"
 }
 
-# Example 5: Use OData filtering to find relationships where the target is a child
-data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "child_relationships" {
-  filter_type  = "odata"
-  odata_filter = "targetType eq 'child'"
-  odata_top    = 10 # Limit to 10 results
+# Example 5: Find the app that depends on or supersedes this app (an incoming relationship)
+data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "parent" {
+  source_id   = "00000000-0000-0000-0000-000000000002"
+  odata_query = "targetType eq 'parent'"
 }
 
-# Example 6: Use OData filtering to find relationships where the target is a parent
-data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "parent_relationships" {
-  filter_type  = "odata"
-  odata_filter = "targetType eq 'parent'"
-  odata_top    = 10 # Limit to 10 results
+# Example 6: Narrow a lookup with target_type
+data "microsoft365_graph_beta_device_and_app_management_mobile_app_relationship" "child_only" {
+  source_id   = "00000000-0000-0000-0000-000000000001"
+  target_id   = "00000000-0000-0000-0000-000000000002"
+  target_type = "child"
 }
 
-# Example 7: Output information about a specific relationship
 output "relationship_details" {
   value = {
-    id                  = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_id.items[0].id
-    source_id           = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_id.items[0].source_id
-    source_display_name = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_id.items[0].source_display_name
-    target_id           = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_id.items[0].target_id
-    target_display_name = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_id.items[0].target_display_name
-    target_type         = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_id.items[0].target_type
+    id                  = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_target_id.id
+    relationship_type   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_target_id.relationship_type
+    source_display_name = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_target_id.source_display_name
+    target_display_name = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_target_id.target_display_name
+    target_type         = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_target_id.target_type
+    dependency_type     = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_target_id.dependency_type
+    supersedence_type   = data.microsoft365_graph_beta_device_and_app_management_mobile_app_relationship.by_target_id.supersedence_type
   }
 }
 ```
 
-<!-- schema generated by tfplugindocs -->
 ## Schema
-
-### Required
-
-- `filter_type` (String) Type of filter to apply. Valid values are: `all`, `id`, `source_id`, `target_id`, `odata`.
 
 ### Optional
 
-- `filter_value` (String) Value to filter by. Required when filter_type is 'id', 'source_id', or 'target_id'.
-- `odata_filter` (String) OData $filter parameter for filtering results. Only used when filter_type is 'odata'.
-- `odata_orderby` (String) OData $orderby parameter to sort results. Only used when filter_type is 'odata'.
-- `odata_select` (String) OData $select parameter to specify which fields to include. Only used when filter_type is 'odata'.
-- `odata_skip` (Number) OData $skip parameter for pagination. Only used when filter_type is 'odata'.
-- `odata_top` (Number) OData $top parameter to limit the number of results. Only used when filter_type is 'odata'.
+- `odata_query` (String) Custom OData `$filter` applied to the relationships of the `source_id` app. Requires `source_id`. Use this for advanced filtering when the standard lookup attributes don't meet your needs. Example: `targetType eq 'child'`
+- `relationship_id` (String) The ID of the relationship, in the format `{source_id}_{target_id}`. One of `relationship_id`, `target_id`, `target_display_name`, or `odata_query` must be specified.
+- `source_id` (String) The ID of the app whose relationships are searched. Required with `target_id`, `target_display_name`, or `odata_query`. Optional with `relationship_id`, where it is derived from the ID.
+- `target_display_name` (String) The display name of the related app (case-insensitive). Requires `source_id`. One of `relationship_id`, `target_id`, `target_display_name`, or `odata_query` must be specified.
+- `target_id` (String) The ID of the related app. Requires `source_id`. One of `relationship_id`, `target_id`, `target_display_name`, or `odata_query` must be specified.
+- `target_type` (String) Whether the target app is a `child` (the source app depends on or supersedes it) or a `parent` (the target app depends on or supersedes the source app). Can be used as an additional filter when combined with the lookup attributes.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `items` (Attributes List) The list of mobile app relationships that match the filter criteria. (see [below for nested schema](#nestedatt--items))
+- `dependency_type` (String) For dependencies, how the dependency is handled: `detect` or `autoInstall`.
+- `dependent_app_count` (Number) For dependencies, the total number of apps that directly or indirectly depend on the parent app.
+- `depends_on_app_count` (Number) For dependencies, the total number of apps the child app directly or indirectly depends on.
+- `id` (String) The unique identifier of the relationship, in the format `{source_id}_{target_id}`.
+- `relationship_type` (String) The kind of relationship: `dependency` or `supersedence`.
+- `source_display_name` (String) The display name of the source app.
+- `source_display_version` (String) The display version of the source app.
+- `source_publisher_display_name` (String) The publisher display name of the source app.
+- `superseded_app_count` (Number) For supersedences, the total number of apps directly or indirectly superseded by the child app.
+- `supersedence_type` (String) For supersedences, whether the superseded app is `update`d or `replace`d.
+- `superseding_app_count` (Number) For supersedences, the total number of apps directly or indirectly superseding the parent app.
+- `target_display_version` (String) The display version of the target app.
+- `target_publisher` (String) The publisher of the target app.
+- `target_publisher_display_name` (String) The publisher display name of the target app.
 
 <a id="nestedatt--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `create` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-- `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
-- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
-- `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
-
-
-<a id="nestedatt--items"></a>
-### Nested Schema for `items`
-
-Read-Only:
-
-- `id` (String) Key of the entity. This is assigned at MobileAppRelationship entity creation.
-- `source_display_name` (String) The display name of the app that is the source of the mobile app relationship entity.
-- `source_display_version` (String) The display version of the app that is the source of the mobile app relationship entity.
-- `source_id` (String) The unique app identifier of the source of the mobile app relationship entity.
-- `source_publisher_display_name` (String) The publisher display name of the app that is the source of the mobile app relationship entity.
-- `target_display_name` (String) The display name of the app that is the target of the mobile app relationship entity.
-- `target_display_version` (String) The display version of the app that is the target of the mobile app relationship entity.
-- `target_id` (String) The unique app identifier of the target of the mobile app relationship entity.
-- `target_publisher` (String) The publisher of the app that is the target of the mobile app relationship entity.
-- `target_publisher_display_name` (String) The publisher display name of the app that is the target of the mobile app relationship entity.
-- `target_type` (String) The type of relationship indicating whether the target application of a relationship is a parent or child in the relationship. Possible values are: child, parent, unknownFutureValue.
+- `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
