@@ -19,6 +19,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import yaml
+
 # Add parent directory to path for lib imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -29,8 +31,27 @@ from lib.coverage import check_coverage_threshold  # noqa: E402
 from lib.get_codecov_coverage import fetch_codecov_coverage  # noqa: E402
 from lib.git_operations import get_changed_files  # noqa: E402
 from lib.github import write_output  # noqa: E402
+from lib.partitions import production_import_closure  # noqa: E402
 
 # pylint: enable=wrong-import-position
+
+
+def _verify_unreachable_mocks(changed):
+    """Require the existing mocks exclusion and prove these packages cannot run in the provider."""
+    if any(
+        Path(name).parts[0] != "internal" or "mocks" not in Path(name).parts[:-1]
+        for name in changed
+    ):
+        return False
+    policy = yaml.safe_load(Path("codecov.yml").read_text(encoding="utf-8"))
+    if not isinstance(policy, dict) or not isinstance(policy.get("ignore"), list):
+        raise ValueError("Cannot verify the Codecov mocks exclusion")
+    if "**/mocks/**" not in policy["ignore"]:
+        raise ValueError("Codecov does not exclude the mocks namespace")
+    reachable = production_import_closure()
+    return all(
+        Path(name).is_file() and Path(name).parent.as_posix() not in reachable for name in changed
+    )
 
 
 def _verify_test_only_changes(base_ref):
@@ -43,8 +64,17 @@ def _verify_test_only_changes(base_ref):
     except (OSError, subprocess.CalledProcessError) as error:
         print(f"❌ ERROR: Cannot verify changed Go files: {error}")
         return False
-    if any(name.endswith(".go") and not name.endswith("_test.go") for name in changed):
-        print("❌ ERROR: Production Go files changed but Codecov has no executable patch coverage")
+    runtime_candidates = [
+        name for name in changed if name.endswith(".go") and not name.endswith("_test.go")
+    ]
+    try:
+        if runtime_candidates and not _verify_unreachable_mocks(runtime_candidates):
+            print(
+                "❌ ERROR: Production Go files changed but Codecov has no executable patch coverage"
+            )
+            return False
+    except (OSError, ValueError, yaml.YAMLError) as error:
+        print(f"❌ ERROR: Cannot verify test-only mock packages: {error}")
         return False
     return True
 

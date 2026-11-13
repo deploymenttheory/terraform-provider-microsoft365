@@ -19,10 +19,10 @@ FILENAME = "provider_factories_test.go"
 
 
 def without_comments(source):
-    """Remove Go comments without interpreting comment markers inside strings."""
+    """Replace Go comments with whitespace while preserving string literals."""
     return re.sub(
         r'//[^\n]*|/\*[\s\S]*?\*/|"(?:\\.|[^"\\])*"|`[^`]*`',
-        lambda m: m.group() if m.group()[0] in ('"', "`") else "",
+        lambda m: m.group() if m.group()[0] in ('"', "`") else " ",
         source,
     )
 
