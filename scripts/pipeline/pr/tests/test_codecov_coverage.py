@@ -6,10 +6,13 @@ import os
 import subprocess
 import sys
 import unittest
+from contextlib import nullcontext
+from pathlib import Path
 from unittest.mock import patch
 from urllib.error import HTTPError
 
 import support  # pylint: disable=unused-import  # Configures fixture import paths.
+from support import RepositoryTest
 
 # isort: split
 
@@ -27,7 +30,23 @@ class CodecovCoverageTests(unittest.TestCase):
         if base_ref:
             argv.extend(["--base-ref", base_ref])
         responses = iter(response) if isinstance(response, list) else None
-        environment = {} if token is None else {"CODECOV_API_TOKEN": token}
+        environment = {
+            name: os.environ[name]
+            for name in (
+                "PATH",
+                "SYSTEMROOT",
+                "WINDIR",
+                "COMSPEC",
+                "TEMP",
+                "TMP",
+                "TMPDIR",
+                "HOME",
+                "USERPROFILE",
+            )
+            if name in os.environ
+        }
+        if token is not None:
+            environment["CODECOV_API_TOKEN"] = token
         requests = []
 
         def respond(request, **_kwargs):
@@ -45,8 +64,13 @@ class CodecovCoverageTests(unittest.TestCase):
                 with patch("lib.get_codecov_coverage.urllib.request.urlopen", side_effect=respond):
                     with (
                         patch("lib.get_codecov_coverage.time.sleep"),
-                        patch(
-                            "enforce_coverage.get_changed_files", return_value=changed_files or []
+                        (
+                            patch(
+                                "enforce_coverage.get_changed_files",
+                                return_value=changed_files or [],
+                            )
+                            if changed_files is not None
+                            else nullcontext()
                         ),
                         patch("sys.stdout", new_callable=io.StringIO),
                     ):
@@ -239,6 +263,165 @@ class CodecovCoverageTests(unittest.TestCase):
                     result, requests = self.run_gate(error, token)
                     self.assertEqual(result, 1)
                     self.assertEqual(len(requests), 1)
+
+
+class MockOnlyCoverageTests(RepositoryTest):
+    """Use real Git diffs and runtime import graphs before accepting an empty mock patch."""
+
+    def setUp(self):
+        super().setUp()
+        self.module = "github.com/deploymenttheory/terraform-provider-microsoft365"
+        self.mock = "internal/example/mocks/responders.go"
+        self.write("go.mod", f"module {self.module}\n\ngo 1.26.0\n")
+        self.write("main.go", f'package main\nimport "{self.module}/internal/provider"\n')
+        self.write("internal/provider/provider.go", "package provider\n")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 1 }\n")
+        self.write(
+            "internal/example/resource_test.go",
+            f'package example_test\nimport "{self.module}/internal/example/mocks"\n',
+        )
+        self.write("codecov.yml", 'ignore:\n  - "**/mocks/**"\n')
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 2 }\n")
+
+    def empty_gate(self):
+        """Exercise the real gate with a completed Codecov report containing no changed lines."""
+        self.commit()
+        result, _ = CodecovCoverageTests().run_gate(
+            CodecovCoverageTests.comparison_response(None, 0, 0),
+            commit="current-head",
+            base_ref=self.base,
+        )
+        return result
+
+    def test_unreachable_ignored_mock_package_accepts_completed_empty_patch(self):
+        """A test-only mock package is not executable provider runtime code."""
+        self.assertEqual(self.empty_gate(), 0)
+
+    def test_any_runtime_source_change_still_requires_executable_coverage(self):
+        """Changing a real resource alongside its mocks must not bypass coverage."""
+        self.write(
+            "internal/example/resource.go", "package example\nfunc Value() int { return 1 }\n"
+        )
+        self.assertEqual(self.empty_gate(), 1)
+
+    def test_direct_production_import_of_mock_package_rejects_empty_patch(self):
+        """A namespace convention cannot override actual runtime reachability."""
+        self.write(
+            "internal/provider/provider.go",
+            f'package provider\nimport "{self.module}/internal/example/mocks"\n',
+        )
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 3 }\n")
+        self.assertEqual(self.empty_gate(), 1)
+
+    def test_indirect_raw_production_import_rejects_empty_patch(self):
+        """Trace runtime dependencies through raw-string and dot-import declarations."""
+        self.write(
+            "internal/provider/provider.go",
+            f"package provider\nimport `{self.module}/internal/bridge`\n",
+        )
+        self.write(
+            "internal/bridge/bridge.go",
+            f'package bridge\nimport . "{self.module}/internal/example/mocks"\n',
+        )
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 4 }\n")
+        self.assertEqual(self.empty_gate(), 1)
+
+    def test_commented_imports_do_not_make_test_mock_runtime_code(self):
+        """Commented code must not create production graph edges."""
+        self.write(
+            "internal/provider/provider.go",
+            f'package provider\n// import "{self.module}/internal/example/mocks"\n',
+        )
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 5 }\n")
+        self.assertEqual(self.empty_gate(), 0)
+
+    def test_missing_runtime_entry_point_or_coverage_policy_rejects_empty_patch(self):
+        """Missing proof must not authorize an empty-patch exception."""
+        for missing in ("main.go", "internal/provider/provider.go", "codecov.yml"):
+            with self.subTest(missing=missing):
+                original = Path(missing).read_text(encoding="utf-8")
+                self.write(self.mock, "package mocks\nfunc Response() int { return 1 }\n")
+                Path(missing).unlink()
+                self.commit()
+                self.base = self.git("rev-parse", "HEAD")
+                self.write(self.mock, "package mocks\nfunc Response() int { return 2 }\n")
+                self.assertEqual(self.empty_gate(), 1)
+                self.write(missing, original)
+
+    def test_coverage_policy_must_explicitly_ignore_mock_namespace(self):
+        """Reachability proof cannot invent a new coverage exclusion policy."""
+        self.write("codecov.yml", "ignore: []\n")
+        self.assertEqual(self.empty_gate(), 1)
+
+    def test_escaped_runtime_import_rejects_empty_patch(self):
+        """Go string escapes cannot hide a runtime dependency from the verifier."""
+        escaped = self.module.replace("github", r"\x67ithub")
+        self.write(
+            "internal/provider/provider.go",
+            f'package provider\nimport "{escaped}/internal/example/mocks"\n',
+        )
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 6 }\n")
+        self.assertEqual(self.empty_gate(), 1)
+
+    def test_comments_between_import_tokens_cannot_hide_runtime_mock(self):
+        """Go comments act as separators rather than merging the import keyword and alias."""
+        self.write(
+            "internal/provider/provider.go",
+            "package"
+            f' provider\nimport/*separator*/_/*separator*/"{self.module}/internal/example/mocks"\n',
+        )
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 7 }\n")
+        self.assertEqual(self.empty_gate(), 1)
+
+    def test_local_module_alias_to_mock_sources_cannot_bypass_graph_proof(self):
+        """Aliases to sources inside the provider tree require more evidence than import paths."""
+        self.write(
+            "go.mod",
+            f"module {self.module}\n\ngo 1.26.0\nreplace example.com/alias =>"
+            " ./internal/example/mocks\n",
+        )
+        self.assertEqual(self.empty_gate(), 1)
+
+    def test_missing_reachable_package_prevents_runtime_graph_proof(self):
+        """An incomplete runtime import graph must fail closed."""
+        self.write(
+            "internal/provider/provider.go",
+            f'package provider\nimport "{self.module}/internal/missing"\n',
+        )
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 8 }\n")
+        self.assertEqual(self.empty_gate(), 1)
+
+    def test_go_source_text_inside_strings_is_not_a_runtime_import(self):
+        """Embedded sample code must not become an import edge."""
+        self.write(
+            "internal/provider/provider.go",
+            f'package provider\nconst Example = `import "{self.module}/internal/example/mocks"`\n',
+        )
+        self.commit()
+        self.base = self.git("rev-parse", "HEAD")
+        self.write(self.mock, "package mocks\nfunc Response() int { return 9 }\n")
+        self.assertEqual(self.empty_gate(), 0)
+
+    def test_other_uncovered_namespace_cannot_use_mock_exception(self):
+        """Do not turn every ignored fixture or unreachable package into a coverage exemption."""
+        self.write(
+            "internal/example/tests/helper.go", "package tests\nfunc Value() int { return 1 }\n"
+        )
+        self.assertEqual(self.empty_gate(), 1)
 
 
 if __name__ == "__main__":
