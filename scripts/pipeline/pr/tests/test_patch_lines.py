@@ -3,11 +3,13 @@
 import copy
 import io
 import sys
-import urllib.error
 import unittest
+import urllib.error
+from pathlib import Path
 from unittest.mock import patch
 
 import support  # pylint: disable=unused-import
+import yaml
 
 # isort: split
 
@@ -39,6 +41,29 @@ def commit_report(statuses):
 
 class PatchLineTests(unittest.TestCase):
     """Reject missing, stale, inconsistent and partially covered data."""
+
+    def test_workflow_checkouts_all_use_the_exact_coverage_head(self):
+        """Keep planning, compilation, race tests and coverage on one exact PR source revision."""
+        root = Path(__file__).resolve().parents[4]
+        workflow = yaml.safe_load(
+            (root / ".github/workflows/pr-tests.yml").read_text(encoding="utf-8")
+        )
+        verified = []
+        for name, job in workflow["jobs"].items():
+            for step in job.get("steps", []):
+                if not step.get("uses", "").startswith("actions/checkout@"):
+                    continue
+                with self.subTest(job=name):
+                    self.assertEqual(
+                        step["with"]["ref"],
+                        "${{ github.event.pull_request.head.sha || github.sha }}",
+                    )
+                    self.assertEqual(step["with"]["fetch-depth"], 0)
+                verified.append(name)
+        self.assertEqual(
+            set(verified),
+            {"plan-tests", "prepare-build-cache", "unit-test-shards", "unit-tests", "race-shards"},
+        )
 
     def test_partial_and_missed_lines_are_uncovered(self):
         """Verify partial and missed lines are uncovered."""
