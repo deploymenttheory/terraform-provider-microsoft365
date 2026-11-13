@@ -1,12 +1,16 @@
 package graphBetaNetworkForwardingProfile
 
 import (
+	"context"
+	"encoding/json"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 )
 
-func MapRemoteStateToDataSource(profile models.ForwardingProfileable) ForwardingProfileModel {
+func MapRemoteStateToDataSource(ctx context.Context, profile models.ForwardingProfileable) ForwardingProfileModel {
 	if profile == nil {
 		return ForwardingProfileModel{}
 	}
@@ -26,6 +30,7 @@ func MapRemoteStateToDataSource(profile models.ForwardingProfileable) Forwarding
 		ServicePrincipalID:    types.StringNull(),
 		Policies:              make([]ForwardingProfilePolicyLinkModel, 0),
 	}
+	mapV2Settings(ctx, &result, profile.GetAdditionalData())
 
 	if servicePrincipal := profile.GetServicePrincipal(); servicePrincipal != nil {
 		result.ServicePrincipalAppID = convert.GraphToFrameworkString(servicePrincipal.GetAppId())
@@ -75,4 +80,33 @@ func additionalString(values map[string]any, key string) types.String {
 	default:
 		return types.StringNull()
 	}
+}
+
+// mapV2Settings maps the traffic forwarding profile v2 properties, which the
+// SDK model only exposes as additional data.
+func mapV2Settings(ctx context.Context, result *ForwardingProfileModel, values map[string]any) {
+	result.ForwardingSourceMatching = types.ObjectNull(sharedmodels.ForwardingSourceMatchingAttrTypes)
+	result.LocalNetworkSettings = types.ObjectNull(sharedmodels.LocalNetworkSettingsAttrTypes)
+	result.AssignmentRules = types.ObjectNull(sharedmodels.AssignmentRulesAttrTypes)
+	subset := map[string]any{}
+	for _, key := range []string{"forwardingSourceMatching", "localNetworkSettings", "assignmentRules"} {
+		if v, ok := values[key]; ok {
+			subset[key] = v
+		}
+	}
+	raw, err := json.Marshal(subset)
+	if err != nil {
+		return
+	}
+	var wire sharedmodels.ForwardingProfileWire
+	if err := json.Unmarshal(raw, &wire); err != nil {
+		return
+	}
+	settings, diags := sharedmodels.SettingsFromWire(ctx, &wire)
+	if diags.HasError() {
+		return
+	}
+	result.ForwardingSourceMatching = settings.ForwardingSourceMatching
+	result.LocalNetworkSettings = settings.LocalNetworkSettings
+	result.AssignmentRules = settings.AssignmentRules
 }

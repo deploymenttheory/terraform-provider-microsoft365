@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -124,6 +125,31 @@ func (d *NetworkForwardingProfileDataSource) Schema(ctx context.Context, _ datas
 						"client_fallback_action":   schema.StringAttribute{Computed: true, MarkdownDescription: "The client fallback action."},
 						"service_principal_app_id": schema.StringAttribute{Computed: true, MarkdownDescription: "The associated service principal application ID."},
 						"service_principal_id":     schema.StringAttribute{Computed: true, MarkdownDescription: "The associated service principal object ID."},
+						"forwarding_source_matching": schema.SingleNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "Source matching conditions (traffic forwarding profiles v2).",
+							Attributes: map[string]schema.Attribute{
+								"session_type": schema.StringAttribute{Computed: true, MarkdownDescription: "`any` or `agent`."},
+							},
+						},
+						"local_network_settings": schema.SingleNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "Home network support settings (traffic forwarding profiles v2).",
+							Attributes: map[string]schema.Attribute{
+								"allow_local_subnet_bypass": schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether users can bypass Private Access for their directly connected local subnet."},
+							},
+						},
+						"assignment_rules": schema.SingleNestedAttribute{
+							Computed:            true,
+							MarkdownDescription: "User, group, device and platform assignments (traffic forwarding profiles v2).",
+							Attributes: map[string]schema.Attribute{
+								"membership": schema.StringAttribute{Computed: true, MarkdownDescription: "`all`, `enumerated` or `none`."},
+								"user_ids":   schema.SetAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Assigned user object IDs."},
+								"group_ids":  schema.SetAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Assigned group object IDs."},
+								"device_ids": schema.SetAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Assigned device object IDs."},
+								"platforms":  schema.SetAttribute{Computed: true, ElementType: types.StringType, MarkdownDescription: "Device platforms the profile applies to."},
+							},
+						},
 						"policies": schema.ListNestedAttribute{
 							Computed:            true,
 							MarkdownDescription: "Forwarding policy links associated with the profile. `policy_link_id` is the Graph policyLink object ID used by the forwarding profile policies endpoint; `policy_id` is the linked forwarding policy ID.",
