@@ -37,6 +37,7 @@ resource "time_sleep" "wait_for_device_group_ud_min_assign" {
 }
 
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "acc_test_ud_min_assign_device_group_owner" {
+
   group_id          = microsoft365_graph_beta_groups_group.acc_test_ud_min_assign_device_group.id
   owner_id          = data.microsoft365_graph_beta_applications_service_principal.intune_provisioning_client_ud_min_assign.id
   owner_object_type = "ServicePrincipal"

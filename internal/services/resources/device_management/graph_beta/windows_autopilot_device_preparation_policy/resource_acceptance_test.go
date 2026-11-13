@@ -5,6 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
@@ -12,8 +16,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaWindowsAutopilotDevicePreparationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_device_preparation_policy"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 var (
@@ -56,26 +58,41 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_01_AutomaticMinimal(
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Creating automatic mode minimal Windows Autopilot Device Preparation policy")
+					testlog.StepAction(
+						resourceType,
+						"Creating automatic mode minimal Windows Autopilot Device Preparation policy",
+					)
 				},
 				Config: loadAcceptanceTestTerraform("001_scenario_automatic_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("windows autopilot device preparation policy", 30*time.Second)
+						testlog.WaitForConsistency(
+							"windows autopilot device preparation policy",
+							30*time.Second,
+						)
 						time.Sleep(30 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".auto_minimal").ExistsInGraph(testResource),
-					check.That(resourceType+".auto_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".auto_minimal").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-auto-minimal-[a-z0-9]{8}$`)),
-					check.That(resourceType+".auto_minimal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
+					check.That(resourceType+".auto_minimal").
+						Key("id").
+						MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".auto_minimal").
+						Key("name").
+						MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-auto-minimal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".auto_minimal").
+						Key("deployment_settings.deployment_type").
+						HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
 					check.That(resourceType+".auto_minimal").Key("device_security_group").IsSet(),
 					check.That(resourceType+".auto_minimal").Key("allowed_apps.#").HasValue("1"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Importing automatic mode minimal Windows Autopilot Device Preparation policy")
+					testlog.StepAction(
+						resourceType,
+						"Importing automatic mode minimal Windows Autopilot Device Preparation policy",
+					)
 				},
 				ResourceName:            resourceType + ".auto_minimal",
 				ImportState:             true,
@@ -88,6 +105,7 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_01_AutomaticMinimal(
 
 // TestAccResourceWindowsAutopilotDevicePreparationPolicy_02_AutomaticMaximal tests an automatic mode maximal policy.
 func TestAccResourceWindowsAutopilotDevicePreparationPolicy_02_AutomaticMaximal(t *testing.T) {
+	var policyID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -109,23 +127,117 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_02_AutomaticMaximal(
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Creating automatic mode maximal Windows Autopilot Device Preparation policy")
+					testlog.StepAction(
+						resourceType,
+						"Creating automatic mode maximal Windows Autopilot Device Preparation policy",
+					)
 				},
 				Config: loadAcceptanceTestTerraform("002_scenario_automatic_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(
+						resourceType+".auto_maximal",
+						"id",
+						func(value string) error {
+							policyID = value
+							return nil
+						},
+					),
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("windows autopilot device preparation policy", 30*time.Second)
+						testlog.WaitForConsistency(
+							"windows autopilot device preparation policy",
+							30*time.Second,
+						)
 						time.Sleep(30 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".auto_maximal").ExistsInGraph(testResource),
-					check.That(resourceType+".auto_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".auto_maximal").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-auto-maximal-[a-z0-9]{8}$`)),
-					check.That(resourceType+".auto_maximal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
+					check.That(resourceType+".auto_maximal").
+						Key("id").
+						MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".auto_maximal").
+						Key("name").
+						MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-auto-maximal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".auto_maximal").
+						Key("deployment_settings.deployment_type").
+						HasValue("enrollment_autopilot_dpp_deploymenttype_1"),
 					check.That(resourceType+".auto_maximal").Key("device_security_group").IsSet(),
 					check.That(resourceType+".auto_maximal").Key("allowed_apps.#").HasValue("1"),
 					check.That(resourceType+".auto_maximal").Key("allowed_scripts.#").HasValue("1"),
 				),
+			},
+			{
+				ResourceName:            resourceType + ".auto_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(
+						resourceType,
+						"Updating automatic policy to minimal settings",
+					)
+				},
+				Config: loadAcceptanceTestTerraform("002_lifecycle_automatic_minimal.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(
+						resourceType+".auto_maximal",
+						plancheck.ResourceActionUpdate,
+					),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(
+						resourceType+".auto_maximal",
+						"id",
+						&policyID,
+					),
+					check.That(resourceType+".auto_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".auto_maximal").Key("device_security_group").IsSet(),
+					check.That(resourceType+".auto_maximal").Key("allowed_apps.#").HasValue("1"),
+					resource.TestCheckNoResourceAttr(
+						resourceType+".auto_maximal",
+						"allowed_scripts.#",
+					),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".auto_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Restoring automatic policy maximal settings")
+				},
+				Config: loadAcceptanceTestTerraform("002_scenario_automatic_maximal.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(
+						resourceType+".auto_maximal",
+						plancheck.ResourceActionUpdate,
+					),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(
+						resourceType+".auto_maximal",
+						"id",
+						&policyID,
+					),
+					check.That(resourceType+".auto_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".auto_maximal").Key("device_security_group").IsSet(),
+					check.That(resourceType+".auto_maximal").Key("allowed_apps.#").HasValue("1"),
+					check.That(resourceType+".auto_maximal").Key("allowed_scripts.#").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".auto_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				Config:   loadAcceptanceTestTerraform("002_scenario_automatic_maximal.tf"),
+				PlanOnly: true,
 			},
 		},
 	})
@@ -154,28 +266,47 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_03_UserDrivenMinimal
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Creating user-driven mode minimal Windows Autopilot Device Preparation policy")
+					testlog.StepAction(
+						resourceType,
+						"Creating user-driven mode minimal Windows Autopilot Device Preparation policy",
+					)
 				},
 				Config: loadAcceptanceTestTerraform("003_scenario_user_driven_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("windows autopilot device preparation policy", 30*time.Second)
+						testlog.WaitForConsistency(
+							"windows autopilot device preparation policy",
+							30*time.Second,
+						)
 						time.Sleep(30 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".ud_minimal").ExistsInGraph(testResource),
-					check.That(resourceType+".ud_minimal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".ud_minimal").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-minimal-[a-z0-9]{8}$`)),
-					check.That(resourceType+".ud_minimal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
+					check.That(resourceType+".ud_minimal").
+						Key("id").
+						MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ud_minimal").
+						Key("name").
+						MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-minimal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".ud_minimal").
+						Key("deployment_settings.deployment_type").
+						HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
 					check.That(resourceType+".ud_minimal").Key("device_security_group").IsSet(),
-					check.That(resourceType+".ud_minimal").Key("deployment_settings.deployment_mode").HasValue("enrollment_autopilot_dpp_deploymentmode_0"),
-					check.That(resourceType+".ud_minimal").Key("oobe_settings.timeout_in_minutes").HasValue("60"),
+					check.That(resourceType+".ud_minimal").
+						Key("deployment_settings.deployment_mode").
+						HasValue("enrollment_autopilot_dpp_deploymentmode_0"),
+					check.That(resourceType+".ud_minimal").
+						Key("oobe_settings.timeout_in_minutes").
+						HasValue("60"),
 					check.That(resourceType+".ud_minimal").Key("allowed_apps.#").HasValue("1"),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Importing user-driven mode minimal Windows Autopilot Device Preparation policy")
+					testlog.StepAction(
+						resourceType,
+						"Importing user-driven mode minimal Windows Autopilot Device Preparation policy",
+					)
 				},
 				ResourceName:            resourceType + ".ud_minimal",
 				ImportState:             true,
@@ -188,6 +319,7 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_03_UserDrivenMinimal
 
 // TestAccResourceWindowsAutopilotDevicePreparationPolicy_04_UserDrivenMaximal tests a user-driven mode maximal policy.
 func TestAccResourceWindowsAutopilotDevicePreparationPolicy_04_UserDrivenMaximal(t *testing.T) {
+	var policyID string
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -209,31 +341,142 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_04_UserDrivenMaximal
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Creating user-driven mode maximal Windows Autopilot Device Preparation policy")
+					testlog.StepAction(
+						resourceType,
+						"Creating user-driven mode maximal Windows Autopilot Device Preparation policy",
+					)
 				},
 				Config: loadAcceptanceTestTerraform("004_scenario_user_driven_maximal.tf"),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrWith(
+						resourceType+".ud_maximal",
+						"id",
+						func(value string) error {
+							policyID = value
+							return nil
+						},
+					),
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("windows autopilot device preparation policy", 30*time.Second)
+						testlog.WaitForConsistency(
+							"windows autopilot device preparation policy",
+							30*time.Second,
+						)
 						time.Sleep(30 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".ud_maximal").ExistsInGraph(testResource),
-					check.That(resourceType+".ud_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".ud_maximal").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-maximal-[a-z0-9]{8}$`)),
-					check.That(resourceType+".ud_maximal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
-					check.That(resourceType+".ud_maximal").Key("deployment_settings.deployment_mode").HasValue("enrollment_autopilot_dpp_deploymentmode_1"),
-					check.That(resourceType+".ud_maximal").Key("oobe_settings.allow_skip").HasValue("true"),
+					check.That(resourceType+".ud_maximal").
+						Key("id").
+						MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ud_maximal").
+						Key("name").
+						MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-maximal-[a-z0-9]{8}$`)),
+					check.That(resourceType+".ud_maximal").
+						Key("deployment_settings.deployment_type").
+						HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
+					check.That(resourceType+".ud_maximal").
+						Key("deployment_settings.deployment_mode").
+						HasValue("enrollment_autopilot_dpp_deploymentmode_0"),
+					check.That(resourceType+".ud_maximal").
+						Key("oobe_settings.allow_skip").
+						HasValue("true"),
 					check.That(resourceType+".ud_maximal").Key("allowed_apps.#").HasValue("1"),
 					check.That(resourceType+".ud_maximal").Key("allowed_scripts.#").HasValue("1"),
 				),
+			},
+			{
+				ResourceName:            resourceType + ".ud_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(
+						resourceType,
+						"Updating user-driven policy to minimal settings",
+					)
+				},
+				Config: loadAcceptanceTestTerraform("004_lifecycle_user_driven_minimal.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(
+						resourceType+".ud_maximal",
+						plancheck.ResourceActionUpdate,
+					),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".ud_maximal", "id", &policyID),
+					check.That(resourceType+".ud_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".ud_maximal").
+						Key("oobe_settings.timeout_in_minutes").
+						HasValue("60"),
+					check.That(resourceType+".ud_maximal").
+						Key("oobe_settings.allow_skip").
+						HasValue("false"),
+					check.That(resourceType+".ud_maximal").
+						Key("oobe_settings.allow_diagnostics").
+						HasValue("false"),
+					check.That(resourceType+".ud_maximal").Key("allowed_apps.#").HasValue("1"),
+					resource.TestCheckNoResourceAttr(
+						resourceType+".ud_maximal",
+						"allowed_scripts.#",
+					),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".ud_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(
+						resourceType,
+						"Restoring user-driven policy maximal settings",
+					)
+				},
+				Config: loadAcceptanceTestTerraform("004_scenario_user_driven_maximal.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(
+						resourceType+".ud_maximal",
+						plancheck.ResourceActionUpdate,
+					),
+				}},
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPtr(resourceType+".ud_maximal", "id", &policyID),
+					check.That(resourceType+".ud_maximal").ExistsInGraph(testResource),
+					check.That(resourceType+".ud_maximal").
+						Key("oobe_settings.timeout_in_minutes").
+						HasValue("120"),
+					check.That(resourceType+".ud_maximal").
+						Key("oobe_settings.allow_skip").
+						HasValue("true"),
+					check.That(resourceType+".ud_maximal").
+						Key("oobe_settings.allow_diagnostics").
+						HasValue("true"),
+					check.That(resourceType+".ud_maximal").Key("allowed_apps.#").HasValue("1"),
+					check.That(resourceType+".ud_maximal").Key("allowed_scripts.#").HasValue("1"),
+				),
+			},
+			{
+				ResourceName:            resourceType + ".ud_maximal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				Config:   loadAcceptanceTestTerraform("004_scenario_user_driven_maximal.tf"),
+				PlanOnly: true,
 			},
 		},
 	})
 }
 
 // TestAccResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinimalWithMinimalAssignments tests user-driven with minimal assignments.
-func TestAccResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinimalWithMinimalAssignments(t *testing.T) {
+func TestAccResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinimalWithMinimalAssignments(
+	t *testing.T,
+) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -255,19 +498,33 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinimal
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Creating user-driven mode with minimal assignments Windows Autopilot Device Preparation policy")
+					testlog.StepAction(
+						resourceType,
+						"Creating user-driven mode with minimal assignments Windows Autopilot Device Preparation policy",
+					)
 				},
-				Config: loadAcceptanceTestTerraform("005_scenario_user_driven_minimal_with_minimal_assignments.tf"),
+				Config: loadAcceptanceTestTerraform(
+					"005_scenario_user_driven_minimal_with_minimal_assignments.tf",
+				),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("windows autopilot device preparation policy", 30*time.Second)
+						testlog.WaitForConsistency(
+							"windows autopilot device preparation policy",
+							30*time.Second,
+						)
 						time.Sleep(30 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".ud_min_assign").ExistsInGraph(testResource),
-					check.That(resourceType+".ud_min_assign").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".ud_min_assign").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-min-assign-[a-z0-9]{8}$`)),
-					check.That(resourceType+".ud_min_assign").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
+					check.That(resourceType+".ud_min_assign").
+						Key("id").
+						MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ud_min_assign").
+						Key("name").
+						MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-min-assign-[a-z0-9]{8}$`)),
+					check.That(resourceType+".ud_min_assign").
+						Key("deployment_settings.deployment_type").
+						HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
 					check.That(resourceType+".ud_min_assign").Key("assignments.#").HasValue("1"),
 				),
 			},
@@ -276,7 +533,9 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_05_UserDrivenMinimal
 }
 
 // TestAccResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMinimalWithMaximalAssignments tests user-driven with maximal assignments.
-func TestAccResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMinimalWithMaximalAssignments(t *testing.T) {
+func TestAccResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMinimalWithMaximalAssignments(
+	t *testing.T,
+) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -298,19 +557,33 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_06_UserDrivenMinimal
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Creating user-driven mode with maximal assignments Windows Autopilot Device Preparation policy")
+					testlog.StepAction(
+						resourceType,
+						"Creating user-driven mode with maximal assignments Windows Autopilot Device Preparation policy",
+					)
 				},
-				Config: loadAcceptanceTestTerraform("006_scenario_user_driven_minimal_with_maximal_assignments.tf"),
+				Config: loadAcceptanceTestTerraform(
+					"006_scenario_user_driven_minimal_with_maximal_assignments.tf",
+				),
 				Check: resource.ComposeTestCheckFunc(
 					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("windows autopilot device preparation policy", 30*time.Second)
+						testlog.WaitForConsistency(
+							"windows autopilot device preparation policy",
+							30*time.Second,
+						)
 						time.Sleep(30 * time.Second)
 						return nil
 					},
 					check.That(resourceType+".ud_max_assign").ExistsInGraph(testResource),
-					check.That(resourceType+".ud_max_assign").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".ud_max_assign").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-max-assign-[a-z0-9]{8}$`)),
-					check.That(resourceType+".ud_max_assign").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
+					check.That(resourceType+".ud_max_assign").
+						Key("id").
+						MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".ud_max_assign").
+						Key("name").
+						MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-max-assign-[a-z0-9]{8}$`)),
+					check.That(resourceType+".ud_max_assign").
+						Key("deployment_settings.deployment_type").
+						HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
 					check.That(resourceType+".ud_max_assign").Key("assignments.#").HasValue("4"),
 				),
 			},

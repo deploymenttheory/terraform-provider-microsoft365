@@ -1,18 +1,18 @@
 # ==============================================================================
 # User-Driven Mode - Maximal Configuration
 # ==============================================================================
-# This example demonstrates a user-driven deployment with enhanced mode features,
+# This example demonstrates a user-driven deployment with all supported user-driven settings,
 # OOBE settings, apps, and scripts. User-driven mode provides more control and
 # customization options for the end-user experience.
 
 resource "microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy" "ud_maximal" {
   name                  = "Autopilot DPP - User-Driven Maximal"
-  description           = "User-driven mode maximal configuration with enhanced mode features"
+  description           = "User-driven mode maximal configuration with all supported user-driven settings"
   role_scope_tag_ids    = ["0"]
   device_security_group = "12345678-1234-1234-1234-123456789012" # Replace with your device security group ID
 
   deployment_settings = {
-    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_1" # Enhanced
+    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # User-driven
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_0" # User-driven
     account_type    = "enrollment_autopilot_dpp_accountype_1"     # Standard user
   }

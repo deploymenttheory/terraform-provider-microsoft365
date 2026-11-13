@@ -37,27 +37,13 @@ The following client `application` permissions are needed in order to use this r
 | v0.16.0-alpha | Experimental | Initial release |
 | v0.47.0-alpha | Experimental | Added updates for deployment scope filters |
 
-## Known Issues
+## Deployment Modes
 
-### User-Driven Mode Authentication Limitation - 05/03/2026
+Automatic policies use `deployment_type = "enrollment_autopilot_dpp_deploymenttype_1"` and the automatic template for application/script allowlists and an optional enrollment-time device group.
 
-There is currently a breaking bug with the Microsoft Graph API endpoint `POST /deviceManagement/configurationPolicies/{deviceManagementConfigurationPolicyId}/setEnrollmentTimeDeviceMembershipTarget` that affects **user-driven mode** configurations.
+User-driven policies use `deployment_type = "enrollment_autopilot_dpp_deploymenttype_0"` with `deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0"`. The supported deployment mode is **User-driven**; an Enhanced (`deploymentmode_1`) option is not available. User-driven policies also configure account type, OOBE settings, and assignments.
 
-**Issue Summary:**
-- The endpoint returns a `500` error when using application-only authentication (e.g service principal with client credentials)
-- The same endpoint succeeds when using user-delegated authentication (interactive login)
-- This affects the ability to set the device security group for user-driven policies
-- **Automatic mode** configurations work correctly as they do not require this endpoint
-
-**Impact:**
-- User-driven mode policies cannot be created or updated using service principal authentication
-- Automatic mode policies are not affected and work as expected
-
-**Workaround:**
-Currently, the only workaround is to use user-delegated authentication (e.g., `az login` with a service account that has the Intune Administrator role). However, this provider does not currently support Azure CLI authentication.
-
-**Reference:**
-- Test configuration: [003_scenario_user_driven_minimal.tf](https://github.com/deploymenttheory/terraform-provider-microsoft365/blob/main/internal/services/resources/device_management/graph_beta/windows_autopilot_device_preparation_policy/tests/terraform/acceptance/003_scenario_user_driven_minimal.tf)
+Changing `deployment_type` replaces the policy because the two modes use different templates.
 
 ## Example Usage
 
@@ -107,18 +93,18 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
 # ==============================================================================
 # User-Driven Mode - Maximal Configuration
 # ==============================================================================
-# This example demonstrates a user-driven deployment with enhanced mode features,
+# This example demonstrates a user-driven deployment with all supported user-driven settings,
 # OOBE settings, apps, and scripts. User-driven mode provides more control and
 # customization options for the end-user experience.
 
 resource "microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy" "ud_maximal" {
   name                  = "Autopilot DPP - User-Driven Maximal"
-  description           = "User-driven mode maximal configuration with enhanced mode features"
+  description           = "User-driven mode maximal configuration with all supported user-driven settings"
   role_scope_tag_ids    = ["0"]
   device_security_group = "12345678-1234-1234-1234-123456789012" # Replace with your device security group ID
 
   deployment_settings = {
-    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_1" # Enhanced
+    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # User-driven
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_0" # User-driven
     account_type    = "enrollment_autopilot_dpp_accountype_1"     # Standard user
   }
@@ -181,7 +167,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
   device_security_group = "12345678-1234-1234-1234-123456789012" # Replace with your device security group ID
 
   deployment_settings = {
-    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_1" # Enhanced
+    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # User-driven
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_0" # User-driven
     account_type    = "enrollment_autopilot_dpp_accountype_1"     # Standard user
   }
@@ -302,7 +288,7 @@ Required:
 Optional:
 
 - `account_type` (String) The account type for users in the Windows Autopilot Device Preparation policy. Required for user-driven mode (deployment_type_0). Valid values are: 'enrollment_autopilot_dpp_accountype_0' (Administrator) or 'enrollment_autopilot_dpp_accountype_1' (Standard User).
-- `deployment_mode` (String) The deployment mode for the Windows Autopilot Device Preparation policy. Required for user-driven mode (deployment_type_0). Valid values are: 'enrollment_autopilot_dpp_deploymentmode_0' (Standard mode) or 'enrollment_autopilot_dpp_deploymentmode_1' (Enhanced mode).
+- `deployment_mode` (String) The deployment mode for user-driven policies (deployment_type_0). The only supported value is 'enrollment_autopilot_dpp_deploymentmode_0' (User-driven). Automatic policies use their separate template and do not require this field.
 
 Read-Only:
 
