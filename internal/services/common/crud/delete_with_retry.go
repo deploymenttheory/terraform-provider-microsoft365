@@ -2,12 +2,14 @@ package crud
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // DeleteWithRetryOptions configures the retry behavior for delete operations
@@ -35,6 +37,7 @@ func DefaultDeleteWithRetryOptions() DeleteWithRetryOptions {
 
 // DeleteWithRetry executes a delete operation with retry logic within the context timeout
 // It repeatedly calls the provided delete function until success or context timeout
+// The initial attempt is immediate; retry intervals apply only between attempts
 func DeleteWithRetry(
 	ctx context.Context,
 	deleteFunc func(ctx context.Context) error,
@@ -66,19 +69,8 @@ func DeleteWithRetry(
 		opts.Operation = constants.TfOperationDelete
 	}
 
-	deadline, hasDeadline := ctx.Deadline()
-	if !hasDeadline {
+	if _, hasDeadline := ctx.Deadline(); !hasDeadline {
 		return fmt.Errorf("context must have a deadline for retry operations")
-	}
-
-	timeRemaining := time.Until(deadline) - time.Second
-	if timeRemaining <= 0 {
-		return fmt.Errorf("insufficient time remaining in context for retry operation")
-	}
-
-	maxPossibleRetries := int(timeRemaining / opts.RetryInterval)
-	if maxPossibleRetries < opts.MaxRetries {
-		opts.MaxRetries = maxPossibleRetries
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Will attempt up to %d retries with %s intervals", opts.MaxRetries, opts.RetryInterval), map[string]any{
@@ -90,16 +82,12 @@ func DeleteWithRetry(
 	for attempt := 0; attempt <= opts.MaxRetries; attempt++ {
 		select {
 		case <-ctx.Done():
-			return fmt.Errorf("context cancelled during retry attempt %d: %w", attempt, ctx.Err())
+			return fmt.Errorf(
+				"context cancelled during retry attempt %d: %w",
+				attempt,
+				stderrors.Join(ctx.Err(), lastErr),
+			)
 		default:
-		}
-
-		if time.Until(deadline) < opts.RetryInterval {
-			tflog.Debug(ctx, "Insufficient time remaining for another retry attempt", map[string]any{
-				"resource_id":   resourceID,
-				"resource_type": resourceType,
-			})
-			break
 		}
 
 		tflog.Debug(ctx, fmt.Sprintf("Delete retry attempt %d/%d", attempt+1, opts.MaxRetries+1), map[string]any{
@@ -148,7 +136,10 @@ func DeleteWithRetry(
 				select {
 				case <-time.After(opts.RetryInterval):
 				case <-ctx.Done():
-					return fmt.Errorf("context cancelled during retry wait: %w", ctx.Err())
+					return fmt.Errorf(
+						"context cancelled during retry wait: %w",
+						stderrors.Join(ctx.Err(), lastErr),
+					)
 				}
 			} else {
 				tflog.Error(ctx, fmt.Sprintf("Delete failed on final attempt %d", attempt+1), map[string]any{

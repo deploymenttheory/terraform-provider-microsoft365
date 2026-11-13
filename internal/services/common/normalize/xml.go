@@ -5,14 +5,16 @@ import (
 	"strings"
 )
 
-// NormalizeXML normalizes XML content by removing BOM, normalizing whitespace, and unescaping HTML entities
+// NormalizeXML normalizes XML content by removing BOM and decoding fully HTML-escaped XML
 // for create and update constructor operations
 func NormalizeXML(xmlContent string) string {
 	// Remove BOM if present
 	xmlContent = strings.TrimPrefix(xmlContent, "\ufeff")
 
-	// Unescape HTML entities like &lt; &gt;
-	xmlContent = html.UnescapeString(xmlContent)
+	// Decode an escaped XML document without altering entities inside an XML document.
+	if strings.HasPrefix(strings.TrimSpace(xmlContent), "&lt;") {
+		xmlContent = html.UnescapeString(xmlContent)
+	}
 
 	return xmlContent
 }

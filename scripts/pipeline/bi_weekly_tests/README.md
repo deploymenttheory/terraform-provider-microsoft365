@@ -96,17 +96,25 @@ These were compile-only experiments, not live acceptance executions.
 Each `test-results-*-attempt-N` artifact includes `test-failures.json`,
 `test-successes.json`, and `test-run.json`. The runner records package boundaries
 in its output so identical test names in different packages remain distinct.
-The manifest records whether all selected package commands finished. Passes from
-an interrupted or failed package cannot resolve an incident. Skipped tests are
-neither failures nor passes.
+The manifest records the workflow run and attempt, selected packages, and which
+package commands finished. A normally completed package can contain both passing
+and failing tests: an explicit pass can resolve its own incident even when another
+test in that package fails. Panics, incomplete commands, build failures, and tests
+without terminal verdicts prevent that package's passes from proving recovery.
+Skipped tests are neither failures nor passes.
 
 The summary job reads the current run attempt's job inventory and artifacts.
 It always writes result arrays and `merged-status.json`, even when every artifact
-is missing. Missing or corrupt result files, an interrupted manifest, failed
-artifact downloads, failed jobs, and an artifact count that differs from the
-number of executed test jobs disable automatic issue closure. Successful jobs
-whose test step was skipped for missing credentials require no artifact and do
-not create incidents. A failed jobs API query fails visibly and disables closure.
+is missing. The schema-2 status report includes `verified_passes`, keyed by package
+and test, independently of its overall `complete` flag. Verification requires both
+readable result arrays, valid package execution scope, a normally completed package,
+and matching, nonempty workflow run and attempt provenance. A missing or corrupt
+artifact cannot prove recovery; verified passes from other packages remain eligible
+when an unrelated artifact is missing or a job fails or is interrupted. Outcomes
+from a manifest explicitly identifying another run or attempt are discarded entirely,
+so a stale failure cannot override a current recovery. Failed artifact downloads or
+an unavailable or invalid jobs inventory prevent verification. Jobs whose test step
+was skipped for missing credentials require no artifact and do not create incidents.
 
 Only top-level Go tests (`--- FAIL: TestX` at column 0) are incident
 identities. Subtest lines and CheckDestroy helper lines, which embed random
@@ -114,12 +122,18 @@ resource names, belong to the parent test's failure (and its truncated error
 context), so a recurring failure always maps to the same identity.
 
 New test incidents carry a hidden package-and-test identity in their body. An
-incident closes only when that exact identity explicitly passes, its package
-exits successfully, aggregation is complete, and no matching failure exists.
-Legacy incidents without package identity remain open for manual reconciliation;
-a title alone cannot establish which package recovered. A subsequent failure
-creates a package-specific incident if none exists. Valid partial failures can
-still create or update incidents while closure is disabled.
+incident closes only when that exact identity explicitly passes, appears in
+`verified_passes`, and has no matching current failure. Legacy incidents can also
+match one unambiguous pair of exact `**Package:**` and `**Test:**` body fields.
+Missing or ambiguous identity fields and malformed structured markers remain open;
+a title alone cannot establish which package recovered. Valid partial failures
+can still create or update incidents when other evidence is incomplete.
+
+Before closure, the processor reads the selected attempt's `run_started_at` from
+GitHub and checks that the incident was last updated before that attempt began.
+It rechecks `updatedAt` immediately before closing, so an older passing run cannot
+resolve a newer incident observed during reconciliation. Missing freshness data,
+API errors, and mismatched run or attempt metadata leave the incident open.
 
 Job incidents preserve cancelled or timed-out step details. OOM classification
 requires a positive `memory.events` `oom_kill` delta. Runner-loss annotations
@@ -130,14 +144,18 @@ and `checks: read` for annotations. Its `acceptance-report-attempt-N` artifact
 contains the merged arrays, completeness report, job inventory, and classified
 job failures.
 
-Run the aggregation and issue processor together (the latter writes to GitHub):
+Run aggregation and the issue processor with explicit provenance (the latter
+writes to GitHub). GitHub Actions supplies these variables automatically; for a
+manual reconciliation, select the exact run and attempt whose artifacts were downloaded:
 
 ```sh
+export GITHUB_RUN_ID=123456789
+export GITHUB_RUN_ATTEMPT=1
 ./scripts/pipeline/bi_weekly_tests/merge_test_results.py \
   test-artifacts merged-failures.json merged-successes.json \
   workflow-jobs.json merged-status.json
 ./scripts/pipeline/bi_weekly_tests/manage_test_issues.py \
-  OWNER REPO RUN_ID merged-failures.json merged-successes.json merged-status.json
+  OWNER REPO "$GITHUB_RUN_ID" merged-failures.json merged-successes.json merged-status.json
 ```
 
 The regression suite mocks all GitHub writes. It covers package identity,

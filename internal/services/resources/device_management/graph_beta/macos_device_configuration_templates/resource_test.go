@@ -1,7 +1,10 @@
 package graphBetaMacosDeviceConfigurationTemplates_test
 
 import (
+	_ "embed"
+	"encoding/base64"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -11,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/jarcoal/httpmock"
 )
+
+//go:embed tests/terraform/acceptance/MicrosoftRootCertificateAuthority2011.cer
+var trustedRootCertificate []byte
 
 func setupMockEnvironment() (*mocks.Mocks, *macosConfigMocks.MacosDeviceConfigurationTemplatesMock) {
 	httpmock.Activate()
@@ -35,7 +41,11 @@ func loadUnitTestTerraform(filename string) string {
 	if err != nil {
 		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return config
+	return strings.ReplaceAll(
+		config,
+		"CERTIFICATE_BASE64",
+		base64.StdEncoding.EncodeToString(trustedRootCertificate),
+	)
 }
 
 func TestUnitResourceMacosDeviceConfigurationTemplates_01_CustomConfiguration(t *testing.T) {

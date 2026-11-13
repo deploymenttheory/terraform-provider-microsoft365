@@ -5,12 +5,14 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	providercore "github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider/core"
 	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_driver_update_profile"
+	testProvider1 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var testProviderRegistry = providercore.Registry{
 	Resources: []func() resource.Resource{
 		testProvider0.NewWindowsDriverUpdateProfileResource,
+		testProvider1.NewGroupResource,
 	},
 }
 

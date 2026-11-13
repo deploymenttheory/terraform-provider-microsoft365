@@ -37,9 +37,6 @@ var (
 	// Enables import functionality
 	_ resource.ResourceWithImportState = &AppControlForBusinessPolicyResource{}
 
-	// Enables plan modification/diff suppression
-	_ resource.ResourceWithModifyPlan = &AppControlForBusinessPolicyResource{}
-
 	// Enables identity schema for list resource support
 	_ resource.ResourceWithIdentity = &AppControlForBusinessPolicyResource{}
 )

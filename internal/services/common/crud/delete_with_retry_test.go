@@ -7,8 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 )
 
 // Helper functions to create test errors
@@ -216,25 +218,97 @@ func TestDeleteWithRetry_NoDeadline(t *testing.T) {
 	assert.Contains(t, err.Error(), "context must have a deadline")
 }
 
-func TestDeleteWithRetry_InsufficientTime(t *testing.T) {
-	// Context with very short remaining time
+func TestDeleteWithRetry_ShortDeadline(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 
-	// Sleep to reduce remaining time
-	time.Sleep(400 * time.Millisecond)
-
 	opts := DefaultDeleteWithRetryOptions()
-	opts.RetryInterval = 1 * time.Second // Longer than remaining time
-
+	callCount := 0
 	deleteFunc := func(ctx context.Context) error {
+		callCount++
 		return nil
 	}
 
 	err := DeleteWithRetry(ctx, deleteFunc, opts)
 
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "insufficient time remaining")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, callCount, "a live deadline permits the initial DELETE without waiting")
+}
+
+func TestDeleteWithRetry_FinalAttemptBeforeDeadline(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1500*time.Millisecond)
+	defer cancel()
+
+	opts := DefaultDeleteWithRetryOptions()
+	opts.RetryInterval = time.Second
+	graphError := abstractions.NewApiError()
+	graphError.SetStatusCode(500)
+	callCount := 0
+	err := DeleteWithRetry(ctx, func(ctx context.Context) error {
+		callCount++
+		if callCount == 1 {
+			return graphError
+		}
+		return nil
+	}, opts)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 2, callCount, "the final attempt needs only one preceding retry interval")
+}
+
+func TestDeleteWithRetry_CanceledBeforeFirstAttempt(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	cancel()
+	callCount := 0
+	err := DeleteWithRetry(ctx, func(ctx context.Context) error {
+		callCount++
+		return nil
+	}, DefaultDeleteWithRetryOptions())
+
+	assert.ErrorIs(t, err, context.Canceled)
+	assert.Zero(t, callCount, "a canceled context must not make a DELETE request")
+}
+
+func TestDeleteWithRetry_DeadlinePreservesLastGraphError(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1500*time.Millisecond)
+	defer cancel()
+
+	opts := DefaultDeleteWithRetryOptions()
+	opts.RetryInterval = time.Second
+	var firstGraphError, lastGraphError *abstractions.ApiError
+	callCount := 0
+	err := DeleteWithRetry(ctx, func(ctx context.Context) error {
+		callCount++
+		lastGraphError = abstractions.NewApiError()
+		lastGraphError.SetStatusCode(500)
+		if callCount == 1 {
+			firstGraphError = lastGraphError
+		}
+		return lastGraphError
+	}, opts)
+
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
+	assert.ErrorIs(
+		t,
+		err,
+		lastGraphError,
+		"deadline expiry must retain the last structured Graph error",
+	)
+	assert.NotErrorIs(t, err, firstGraphError)
+	assert.Equal(t, 2, callCount)
+}
+
+func TestDeleteWithRetry_ExpiredBeforeFirstAttempt(t *testing.T) {
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
+	defer cancel()
+	callCount := 0
+	err := DeleteWithRetry(ctx, func(ctx context.Context) error {
+		callCount++
+		return nil
+	}, DefaultDeleteWithRetryOptions())
+
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
+	assert.Zero(t, callCount, "an expired context must not make a DELETE request")
 }
 
 func TestDeleteWithRetry_TimeConstrainedRetries(t *testing.T) {

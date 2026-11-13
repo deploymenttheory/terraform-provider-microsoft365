@@ -26,6 +26,11 @@ func TestNormalizeXML(t *testing.T) {
 			expected: "<SiPolicy>",
 		},
 		{
+			name:     "Preserve XML entities",
+			input:    "<SiPolicy><Name>A &amp; B &lt; C</Name></SiPolicy>",
+			expected: "<SiPolicy><Name>A &amp; B &lt; C</Name></SiPolicy>",
+		},
+		{
 			name:     "No changes needed",
 			input:    "<?xml version=\"1.0\"?><SiPolicy>",
 			expected: "<?xml version=\"1.0\"?><SiPolicy>",

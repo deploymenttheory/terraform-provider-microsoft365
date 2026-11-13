@@ -14,6 +14,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaGroupPolicyConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_configuration"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 var testResource = graphBetaGroupPolicyConfiguration.GroupPolicyConfigurationTestResource{}
@@ -25,6 +26,13 @@ func loadAcceptanceTestTerraform(filename string) string {
 		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
 	return acceptance.ConfiguredM365ProviderBlock(config)
+}
+
+// waitForAssignmentGroupPropagation waits for new groups before the post-apply refresh plan.
+func waitForAssignmentGroupPropagation(_ *terraform.State) error {
+	testlog.WaitForConsistency("group policy configuration assignment groups", 30*time.Second)
+	time.Sleep(30 * time.Second)
+	return nil
 }
 
 // TestAccGroupPolicyConfigurationResource_Minimal tests creating a minimal group policy configuration
@@ -177,12 +185,11 @@ func TestAccResourceGroupPolicyConfiguration_04_MaximalAssignment(t *testing.T) 
 					check.That(resourceType+".maximal_assignment").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-004-maximal-assignment-[a-z0-9]{8}$`)),
 					check.That(resourceType+".maximal_assignment").Key("description").HasValue("acc-test-004-maximal-assignment"),
 					check.That(resourceType+".maximal_assignment").Key("assignments.#").HasValue("4"),
+					waitForAssignmentGroupPropagation,
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.WaitForConsistency("group policy configuration assignments", 30*time.Second)
-					time.Sleep(30 * time.Second)
 					testlog.StepAction(resourceType, "Importing group policy configuration with maximal assignments")
 				},
 				ResourceName:            resourceType + ".maximal_assignment",

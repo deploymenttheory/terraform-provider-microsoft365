@@ -1,7 +1,9 @@
 package graphBetaMacosDeviceConfigurationTemplates_test
 
 import (
+	"encoding/base64"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,7 +28,11 @@ func loadAcceptanceTestTerraform(filename string) string {
 	if err != nil {
 		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
-	return config
+	return strings.ReplaceAll(
+		config,
+		"CERTIFICATE_BASE64",
+		base64.StdEncoding.EncodeToString(trustedRootCertificate),
+	)
 }
 
 // Custom Configuration Tests
