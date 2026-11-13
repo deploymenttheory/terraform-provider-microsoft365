@@ -50,10 +50,13 @@ func customHeadersToList(headers []customHeader) types.List {
 
 	elements := make([]attr.Value, 0, len(headers))
 	for _, header := range headers {
-		elements = append(elements, types.ObjectValueMust(customHeaderObjectType().AttrTypes, map[string]attr.Value{
-			"name":  types.StringValue(header.name),
-			"value": types.StringValue(header.value),
-		}))
+		elements = append(
+			elements,
+			types.ObjectValueMust(customHeaderObjectType().AttrTypes, map[string]attr.Value{
+				"name":  types.StringValue(header.name),
+				"value": types.StringValue(header.value),
+			}),
+		)
 	}
 
 	return types.ListValueMust(customHeaderObjectType(), elements)

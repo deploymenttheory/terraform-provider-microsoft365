@@ -23,7 +23,11 @@ func (v uniqueCustomHeaderNamesValidator) MarkdownDescription(ctx context.Contex
 	return v.Description(ctx)
 }
 
-func (v uniqueCustomHeaderNamesValidator) ValidateList(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
+func (v uniqueCustomHeaderNamesValidator) ValidateList(
+	ctx context.Context,
+	req validator.ListRequest,
+	resp *validator.ListResponse,
+) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
@@ -44,7 +48,11 @@ func (v uniqueCustomHeaderNamesValidator) ValidateList(ctx context.Context, req 
 			resp.Diagnostics.AddAttributeError(
 				req.Path.AtListIndex(i).AtName("name"),
 				"Duplicate custom header name",
-				fmt.Sprintf("Header name %q duplicates custom_headers[%d]. Each header name must be unique within a rule (case-insensitive).", header.Name.ValueString(), first),
+				fmt.Sprintf(
+					"Header name %q duplicates custom_headers[%d]. Each header name must be unique within a rule (case-insensitive).",
+					header.Name.ValueString(),
+					first,
+				),
 			)
 			continue
 		}
@@ -66,12 +74,17 @@ func (v customHeadersRequireAllowValidator) MarkdownDescription(ctx context.Cont
 	return "`custom_headers` can only be set when `action` is `allow`"
 }
 
-func (v customHeadersRequireAllowValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+func (v customHeadersRequireAllowValidator) ValidateResource(
+	ctx context.Context,
+	req resource.ValidateConfigRequest,
+	resp *resource.ValidateConfigResponse,
+) {
 	var action types.String
 	var headers types.List
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("action"), &action)...)
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("custom_headers"), &headers)...)
-	if resp.Diagnostics.HasError() || action.IsNull() || action.IsUnknown() || headers.IsNull() || headers.IsUnknown() {
+	if resp.Diagnostics.HasError() || action.IsNull() || action.IsUnknown() || headers.IsNull() ||
+		headers.IsUnknown() {
 		return
 	}
 
@@ -79,7 +92,10 @@ func (v customHeadersRequireAllowValidator) ValidateResource(ctx context.Context
 		resp.Diagnostics.AddAttributeError(
 			path.Root("custom_headers"),
 			"Custom headers require an allow action",
-			fmt.Sprintf("custom_headers can only be set when action is \"allow\", got %q.", action.ValueString()),
+			fmt.Sprintf(
+				"custom_headers can only be set when action is \"allow\", got %q.",
+				action.ValueString(),
+			),
 		)
 	}
 }

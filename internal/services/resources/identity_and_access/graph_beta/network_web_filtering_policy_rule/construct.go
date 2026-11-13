@@ -2,6 +2,7 @@ package graphBetaNetworkWebFilteringPolicyRule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -141,6 +142,8 @@ func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
 	return result, nil
 }
 
+var errInvalidCustomHeaders = errors.New("invalid custom_headers")
+
 func customHeaderValues(ctx context.Context, value types.List) ([]CustomHeaderModel, error) {
 	if value.IsNull() || value.IsUnknown() {
 		return nil, nil
@@ -149,7 +152,7 @@ func customHeaderValues(ctx context.Context, value types.List) ([]CustomHeaderMo
 	var result []CustomHeaderModel
 	diags := value.ElementsAs(ctx, &result, false)
 	if diags.HasError() {
-		return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
+		return nil, fmt.Errorf("%w: %s", errInvalidCustomHeaders, diags.Errors()[0].Detail())
 	}
 
 	return result, nil
@@ -212,7 +215,7 @@ type actionRequestBody struct {
 
 func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
 	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
-		return err
+		return fmt.Errorf("failed to write action @odata.type: %w", err)
 	}
 	// Block actions reject any headerSettings, even null. Allow actions keep
 	// existing headers when it is omitted on PATCH, so send null to clear them.
@@ -220,10 +223,16 @@ func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
 		return nil
 	}
 	if b.headerSettings == nil {
-		return writer.WriteNullValue("headerSettings")
+		if err := writer.WriteNullValue("headerSettings"); err != nil {
+			return fmt.Errorf("failed to write null headerSettings: %w", err)
+		}
+		return nil
+	}
+	if err := writer.WriteObjectValue("headerSettings", b.headerSettings); err != nil {
+		return fmt.Errorf("failed to write headerSettings: %w", err)
 	}
 
-	return writer.WriteObjectValue("headerSettings", b.headerSettings)
+	return nil
 }
 
 func (b *actionRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
@@ -235,7 +244,11 @@ type headerSettingsRequestBody struct {
 }
 
 func (b *headerSettingsRequestBody) Serialize(writer s.SerializationWriter) error {
-	return writer.WriteCollectionOfObjectValues("modifications", b.modifications)
+	if err := writer.WriteCollectionOfObjectValues("modifications", b.modifications); err != nil {
+		return fmt.Errorf("failed to write header modifications: %w", err)
+	}
+
+	return nil
 }
 
 func (b *headerSettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
@@ -250,12 +263,16 @@ type headerModificationRequestBody struct {
 func (b *headerModificationRequestBody) Serialize(writer s.SerializationWriter) error {
 	odataType := headerModificationAddODataType
 	if err := writer.WriteStringValue("@odata.type", &odataType); err != nil {
-		return err
+		return fmt.Errorf("failed to write header modification @odata.type: %w", err)
 	}
 	if err := writer.WriteStringValue("headerName", &b.name); err != nil {
-		return err
+		return fmt.Errorf("failed to write headerName: %w", err)
 	}
-	return writer.WriteStringValue("headerValue", &b.value)
+	if err := writer.WriteStringValue("headerValue", &b.value); err != nil {
+		return fmt.Errorf("failed to write headerValue: %w", err)
+	}
+
+	return nil
 }
 
 func (b *headerModificationRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {

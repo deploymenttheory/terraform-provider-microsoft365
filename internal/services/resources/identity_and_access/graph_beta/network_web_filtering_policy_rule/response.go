@@ -1,6 +1,7 @@
 package graphBetaNetworkWebFilteringPolicyRule
 
 import (
+	"fmt"
 	"strings"
 
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
@@ -164,7 +165,7 @@ func (r *actionResponse) GetFieldDeserializers() map[string]func(s.ParseNode) er
 		"headerSettings": func(n s.ParseNode) error {
 			value, err := n.GetObjectValue(createHeaderSettingsResponseFromDiscriminatorValue)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to parse headerSettings: %w", err)
 			}
 			if settings, ok := value.(*headerSettingsResponse); ok {
 				r.customHeaders = settings.headers
@@ -189,9 +190,11 @@ func (r *headerSettingsResponse) Serialize(writer s.SerializationWriter) error {
 func (r *headerSettingsResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"modifications": func(n s.ParseNode) error {
-			values, err := n.GetCollectionOfObjectValues(createHeaderModificationResponseFromDiscriminatorValue)
+			values, err := n.GetCollectionOfObjectValues(
+				createHeaderModificationResponseFromDiscriminatorValue,
+			)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to parse header modifications: %w", err)
 			}
 			for _, value := range values {
 				modification, ok := value.(*headerModificationResponse)
@@ -200,7 +203,10 @@ func (r *headerSettingsResponse) GetFieldDeserializers() map[string]func(s.Parse
 				if !ok || modification.odataType != headerModificationAddODataType {
 					continue
 				}
-				r.headers = append(r.headers, customHeader{name: modification.name, value: modification.value})
+				r.headers = append(
+					r.headers,
+					customHeader{name: modification.name, value: modification.value},
+				)
 			}
 			return nil
 		},
@@ -213,7 +219,9 @@ type headerModificationResponse struct {
 	value     string
 }
 
-func createHeaderModificationResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
+func createHeaderModificationResponseFromDiscriminatorValue(
+	parseNode s.ParseNode,
+) (s.Parsable, error) {
 	return &headerModificationResponse{}, nil
 }
 
@@ -226,7 +234,7 @@ func (r *headerModificationResponse) GetFieldDeserializers() map[string]func(s.P
 		return func(n s.ParseNode) error {
 			value, err := n.GetStringValue()
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to parse header modification field: %w", err)
 			}
 			if value != nil {
 				*target = *value
