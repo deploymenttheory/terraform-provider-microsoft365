@@ -4,13 +4,15 @@ package graphBetaDeviceAndAppManagementIOSManagedMobileApp_test
 import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	providercore "github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider/core"
-	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_managed_mobile_app"
+	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_managed_app_protection"
+	testProvider1 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_managed_mobile_app"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var testProviderRegistry = providercore.Registry{
 	Resources: []func() resource.Resource{
-		testProvider0.NewIOSManagedMobileAppResource,
+		testProvider1.NewIOSManagedMobileAppResource,
+		testProvider0.NewIosManagedAppProtectionResource,
 	},
 }
 

@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_and_app_management_ios_managed_mobil
 subcategory: "Device and App Management"
 
 description: |-
-  Manages iOS managed mobile apps in Microsoft Intune iOS managed app protection policies. This resource associates iOS apps with iOS managed app protection policies for Mobile Application Management (MAM).
+  Manages iOS managed mobile apps in Microsoft Intune iOS managed app protection policies. This resource associates iOS apps with iOS managed app protection policies for Mobile Application Management (MAM). Intune replaces a policy's whole app list on every change, so writes to the same policy are serialized by the provider.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app (Resource)
 
-Manages iOS managed mobile apps in Microsoft Intune iOS managed app protection policies. This resource associates iOS apps with iOS managed app protection policies for Mobile Application Management (MAM).
+Manages iOS managed mobile apps in Microsoft Intune iOS managed app protection policies. This resource associates iOS apps with iOS managed app protection policies for Mobile Application Management (MAM). Intune replaces a policy's whole app list on every change, so writes to the same policy are serialized by the provider.
 
 ## Microsoft Documentation
 
@@ -33,6 +33,7 @@ The following client `application` permissions are needed in order to use this r
 | Version | Status | Notes |
 |---------|--------|-------|
 | v1.0.0 | Stable | Initial release |
+| v1.5.2 | Stable | `version` is now read-only (Intune assigns it), changing `bundle_id` replaces the resource, and writes to the same policy are serialized so sibling apps are no longer dropped. |
 
 ## Example Usage
 
@@ -43,7 +44,7 @@ The following client `application` permissions are needed in order to use this r
 
 # Resource for adding Microsoft Outlook to an iOS managed app protection policy
 resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app" "outlook" {
-  managed_app_protection_id = "00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
+  managed_app_protection_id = "T_00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
 
   mobile_app_identifier = {
     bundle_id = "com.microsoft.Office.Outlook"
@@ -59,7 +60,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_a
 
 # Resource for adding Microsoft Teams to an iOS managed app protection policy
 resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app" "teams" {
-  managed_app_protection_id = "00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
+  managed_app_protection_id = "T_00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
 
   mobile_app_identifier = {
     bundle_id = "com.microsoft.teamsmobile"
@@ -75,7 +76,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_a
 
 # Resource for adding Microsoft OneDrive to an iOS managed app protection policy
 resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app" "onedrive" {
-  managed_app_protection_id = "00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
+  managed_app_protection_id = "T_00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
 
   mobile_app_identifier = {
     bundle_id = "com.microsoft.OneDrive"
@@ -91,7 +92,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_a
 
 # Resource for adding Microsoft Word to an iOS managed app protection policy
 resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app" "word" {
-  managed_app_protection_id = "00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
+  managed_app_protection_id = "T_00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
 
   mobile_app_identifier = {
     bundle_id = "com.microsoft.Office.Word"
@@ -107,7 +108,7 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_a
 
 # Resource for adding Microsoft Excel to an iOS managed app protection policy
 resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app" "excel" {
-  managed_app_protection_id = "00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
+  managed_app_protection_id = "T_00000000-0000-0000-0000-000000000001" # Replace with your iOS managed app protection policy ID
 
   mobile_app_identifier = {
     bundle_id = "com.microsoft.Office.Excel"
@@ -133,18 +134,18 @@ resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_a
 ### Optional
 
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `version` (String) The version of the managed mobile app
 
 ### Read-Only
 
-- `id` (String) The unique identifier for this iOS managed mobile app
+- `id` (String) The unique identifier for this iOS managed mobile app, assigned by Intune as `{bundle_id}.ios`.
+- `version` (String) The version of the managed mobile app entry. Intune assigns this value; it cannot be configured.
 
 <a id="nestedatt--mobile_app_identifier"></a>
 ### Nested Schema for `mobile_app_identifier`
 
 Required:
 
-- `bundle_id` (String) The iOS bundle identifier (e.g., com.company.myapp)
+- `bundle_id` (String) The iOS bundle identifier (e.g., com.company.myapp). Changing it targets a different app, so the resource is replaced.
 
 
 <a id="nestedatt--timeouts"></a>
@@ -163,6 +164,7 @@ Import is supported using the following syntax:
 
 ```shell
 #!/bin/bash
-# Import using composite ID format: {managed_app_protection_id}/{mobile_app_identifier}
-terraform import microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.example 00000000-0000-0000-0000-000000000000/00000000-0000-0000-0000-000000000000
+# Import using composite ID format: {managed_app_protection_id}/{app_id}
+# The app ID is assigned by Intune as {bundle_id}.ios
+terraform import microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.example T_00000000-0000-0000-0000-000000000001/com.microsoft.Office.Outlook.ios
 ```
