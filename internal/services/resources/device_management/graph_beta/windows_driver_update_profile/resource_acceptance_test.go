@@ -91,19 +91,11 @@ func TestAccResourceWindowsDriverUpdateProfile_02_Assignments(t *testing.T) {
 }
 
 func testAccWindowsDriverUpdateProfileConfig_withAssignments() string {
-	groups, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/groups.tf")
-	if err != nil {
-		log.Fatalf("Failed to load groups config: %v", err)
-	}
-	roleScopeTags, err := helpers.ParseHCLFile("../../../../../acceptance/terraform_dependancies/device_management/role_scope_tags.tf")
-	if err != nil {
-		log.Fatalf("Failed to load role scope tags config: %v", err)
-	}
 	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource_with_assignments.tf")
 	if err != nil {
 		log.Fatalf("Failed to load assignments test config: %v", err)
 	}
-	return acceptance.ConfiguredM365ProviderBlock(groups + "\n" + roleScopeTags + "\n" + accTestConfig)
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
 }
 
 func testAccWindowsDriverUpdateProfileConfig_manual() string {
