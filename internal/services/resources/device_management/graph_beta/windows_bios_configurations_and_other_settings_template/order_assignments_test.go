@@ -9,8 +9,15 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/kiota-abstractions-go/authentication"
 	msgraph "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
@@ -173,6 +180,150 @@ func TestUnitOrderAssignmentsByFilterCreationTime(t *testing.T) {
 			readsMu.Unlock()
 			if count != test.wantReads {
 				t.Errorf("metadata reads = %d, want %d", count, test.wantReads)
+			}
+		})
+	}
+}
+
+func TestUnitWriteValidatesFilterMetadataBeforePolicyMutation(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		update    bool
+		status    int
+		body      string
+		wantError string
+	}{
+		{
+			name: "inaccessible metadata", status: http.StatusForbidden,
+			body:      `{"error":{"code":"Forbidden","message":"Filter metadata denied"}}`,
+			wantError: "could not read assignment filter",
+		},
+		{
+			name: "missing creation time", status: http.StatusOK,
+			body:      `{"id":"11111111-1111-1111-1111-111111111111"}`,
+			wantError: "missing assignment filter createdDateTime",
+		},
+		{
+			name: "update inaccessible metadata", update: true, status: http.StatusForbidden,
+			body:      `{"error":{"code":"Forbidden","message":"Filter metadata denied"}}`,
+			wantError: "could not read assignment filter",
+		},
+		{
+			name: "update missing creation time", update: true, status: http.StatusOK,
+			body:      `{"id":"11111111-1111-1111-1111-111111111111"}`,
+			wantError: "missing assignment filter createdDateTime",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var policyWrites atomic.Int32
+			server := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+					w.Header().Set("Content-Type", "application/json")
+					if (req.Method == http.MethodPost &&
+						req.URL.Path == "/beta/deviceManagement/hardwareConfigurations") ||
+						(req.Method == http.MethodPatch && req.URL.Path == "/beta/deviceManagement/hardwareConfigurations/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa") {
+						policyWrites.Add(1)
+						if req.Method == http.MethodPost {
+							w.WriteHeader(http.StatusCreated)
+						}
+						fmt.Fprint(w, `{"id":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"}`)
+						return
+					}
+					if req.Method == http.MethodGet &&
+						strings.HasPrefix(
+							req.URL.Path,
+							"/beta/deviceManagement/assignmentFilters/",
+						) {
+						w.WriteHeader(test.status)
+						fmt.Fprint(w, test.body)
+						return
+					}
+					t.Errorf("unexpected API request: %s %s", req.Method, req.URL.Path)
+					w.WriteHeader(http.StatusBadRequest)
+				}),
+			)
+			t.Cleanup(server.Close)
+			adapter, err := msgraph.NewGraphRequestAdapter(
+				&authentication.AnonymousAuthenticationProvider{},
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+			adapter.SetBaseUrl(server.URL + "/beta")
+			r := NewWindowsBiosConfigurationsAndOtherSettingsTemplateResource().(*WindowsBiosConfigurationsAndOtherSettingsTemplateResource)
+			r.client = msgraph.NewGraphServiceClient(adapter)
+			var schema resource.SchemaResponse
+			r.Schema(context.Background(), resource.SchemaRequest{}, &schema)
+			model := WindowsBiosConfigurationsAndOtherSettingsTemplateResourceModel{
+				ID:          types.StringUnknown(),
+				DisplayName: types.StringValue("metadata-preflight"),
+				Description: types.StringNull(),
+				FileName:    types.StringValue("preflight.cctk"),
+				ConfigurationFileContent: types.StringValue(
+					"W2NjdGtdClNlY3VyZUJvb3Q9RW5hYmxlZAo=",
+				),
+				HardwareConfigurationFormat: types.StringValue("dell"),
+				PerDevicePasswordDisabled:   types.BoolValue(false),
+				RoleScopeTagIds: types.SetValueMust(
+					types.StringType,
+					[]attr.Value{types.StringValue("0")},
+				),
+				Version:              types.Int32Unknown(),
+				CreatedDateTime:      types.StringUnknown(),
+				LastModifiedDateTime: types.StringUnknown(),
+				Assignments: assignmentSet(
+					t,
+					assignment(
+						"groupAssignmentTarget",
+						"33333333-3333-3333-3333-333333333333",
+						"11111111-1111-1111-1111-111111111111",
+						"include",
+					),
+					assignment(
+						"groupAssignmentTarget",
+						"44444444-4444-4444-4444-444444444444",
+						"99999999-9999-9999-9999-999999999999",
+						"exclude",
+					),
+				),
+				Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{
+					"create": types.StringType, "read": types.StringType,
+					"update": types.StringType, "delete": types.StringType,
+				})},
+			}
+			if test.update {
+				model.ID = types.StringValue("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+			}
+			state := tfsdk.State{Schema: schema.Schema}
+			if diags := state.Set(context.Background(), &model); diags.HasError() {
+				t.Fatalf("could not build resource plan: %v", diags)
+			}
+			var diagnostics diag.Diagnostics
+			if test.update {
+				response := resource.UpdateResponse{State: state}
+				r.Update(context.Background(), resource.UpdateRequest{
+					Plan: tfsdk.Plan{Schema: schema.Schema, Raw: state.Raw}, State: state,
+				}, &response)
+				diagnostics = response.Diagnostics
+			} else {
+				response := resource.CreateResponse{State: tfsdk.State{Schema: schema.Schema}}
+				r.Create(context.Background(), resource.CreateRequest{
+					Plan: tfsdk.Plan{Schema: schema.Schema, Raw: state.Raw},
+				}, &response)
+				diagnostics = response.Diagnostics
+			}
+			if !diagnostics.HasError() {
+				t.Fatal("metadata failure must remain a resource error")
+			}
+			var details []string
+			for _, diagnostic := range diagnostics {
+				details = append(details, diagnostic.Detail())
+			}
+			if !strings.Contains(strings.Join(details, "\n"), test.wantError) {
+				t.Errorf("metadata error lost: %v", diagnostics)
+			}
+			if count := policyWrites.Load(); count != 0 {
+				t.Errorf("policy writes = %d, want zero when filter metadata is unavailable", count)
 			}
 		})
 	}
