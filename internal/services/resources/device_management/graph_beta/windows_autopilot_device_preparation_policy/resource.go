@@ -278,11 +278,10 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Schema(
 				Attributes: map[string]schema.Attribute{
 					"deployment_mode": schema.StringAttribute{
 						Optional:            true,
-						MarkdownDescription: "The deployment mode for the Windows Autopilot Device Preparation policy. Required for user-driven mode (deployment_type_0). Valid values are: 'enrollment_autopilot_dpp_deploymentmode_0' (Standard mode) or 'enrollment_autopilot_dpp_deploymentmode_1' (Enhanced mode).",
+						MarkdownDescription: "The deployment mode for user-driven policies (deployment_type_0). The only supported value is 'enrollment_autopilot_dpp_deploymentmode_0' (User-driven). Automatic policies use their separate template and do not require this field.",
 						Validators: []validator.String{
 							stringvalidator.OneOf(
-								"enrollment_autopilot_dpp_deploymentmode_0", // Standard mode
-								"enrollment_autopilot_dpp_deploymentmode_1", // Enhanced mode
+								"enrollment_autopilot_dpp_deploymentmode_0", // User-driven
 							),
 						},
 						PlanModifiers: []planmodifier.String{

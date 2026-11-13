@@ -2,12 +2,14 @@ package graphBetaWindowsAutopilotDevicePreparationPolicy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -274,6 +276,46 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(
 	}
 
 	mapAssignmentsToState(ctx, &object, assignmentsResponse)
+
+	var membershipTargetBody json.RawMessage
+	err = customrequest.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.GET,
+		"/deviceManagement/configurationPolicies('{policyId}')/retrieveEnrollmentTimeDeviceMembershipTarget",
+		map[string]string{"policyId": object.ID.ValueString()},
+		nil,
+		&membershipTargetBody,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphErrorWithOptions(
+			ctx,
+			err,
+			resp,
+			operation,
+			r.ReadPermissions,
+			errors.GraphErrorOptions{
+				PreserveStateOnReadNotFound:   true,
+				PreserveStateOnReadBadRequest: true,
+			},
+		)
+		return
+	}
+	if err := mapEnrollmentTimeDeviceMembershipTargetToState(
+		ctx,
+		&object,
+		membershipTargetBody,
+	); err != nil {
+		resp.Diagnostics.AddError(
+			"Error mapping enrollment-time device membership target",
+			fmt.Sprintf(
+				"Could not map device security group for policy %s: %s",
+				object.ID.ValueString(),
+				err,
+			),
+		)
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {

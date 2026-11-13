@@ -12,7 +12,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
   device_security_group = "12345678-1234-1234-1234-123456789012" # Replace with your device security group ID
 
   deployment_settings = {
-    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_1" # Enhanced
+    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0" # User-driven
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_0" # User-driven
     account_type    = "enrollment_autopilot_dpp_accountype_1"     # Standard user
   }
