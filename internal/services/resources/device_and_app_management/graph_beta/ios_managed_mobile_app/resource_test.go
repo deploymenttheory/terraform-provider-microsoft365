@@ -2,387 +2,231 @@ package graphBetaDeviceAndAppManagementIOSManagedMobileApp_test
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
+	"slices"
 	"testing"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	localMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_managed_mobile_app/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaIOSManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_managed_mobile_app"
+	appMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/ios_managed_mobile_app/mocks"
 )
 
-// Helper functions to return the test configurations by reading from files
-func testConfigMinimal() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_minimal.tf"))
+var resourceType = graphBetaIOSManagedMobileApp.ResourceName
+
+func loadUnitTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {
-		return ""
+		panic("failed to load unit test config " + filename + ": " + err.Error())
 	}
-	return string(content)
+	return config
 }
 
-func testConfigMaximal() string {
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-	return string(content)
-}
-
-func testConfigMinimalToMaximal() string {
-	// For minimal to maximal test, we need to use the maximal config
-	// but with the minimal resource name and managed_app_protection_id to simulate an update
-
-	// Read the maximal config
-	maximalContent, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
-	if err != nil {
-		return ""
-	}
-
-	// Replace the resource name to match the minimal one
-	updatedMaximal := strings.Replace(string(maximalContent), "maximal", "minimal", 1)
-
-	// Replace the managed_app_protection_id to match the minimal one
-	updatedMaximal = strings.Replace(updatedMaximal, "00000000-0000-0000-0000-000000000003", "00000000-0000-0000-0000-000000000002", 1)
-
-	return updatedMaximal
-}
-
-func testConfigError() string {
-	// Create an error configuration with invalid managed_app_protection_id
-	return `
-resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app" "error" {
-  managed_app_protection_id = "invalid-id"
-  mobile_app_identifier = {
-    bundle_id = "com.example.testapp"
-  }
-}
-`
-}
-
-// Helper function to set up the test environment
-func setupTestEnvironment(t *testing.T) {
-	// Set environment variables for testing
-	os.Setenv("TF_ACC", "0")
-	os.Setenv("MS365_TEST_MODE", "true")
-}
-
-// Helper function to set up the mock environment
-func setupMockEnvironment() (*mocks.Mocks, *localMocks.IOSManagedMobileAppMock) {
-	// Activate httpmock
+func setupMockEnvironment(t *testing.T, errorMocks bool) {
+	t.Helper()
+	mocks.SetupUnitTestEnvironment(t)
 	httpmock.Activate()
-
-	// Create a new Mocks instance and register authentication mocks
+	t.Cleanup(httpmock.DeactivateAndReset)
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
-
-	// Register local mocks directly
-	managedAppMock := &localMocks.IOSManagedMobileAppMock{}
-	managedAppMock.RegisterMocks()
-
-	return mockClient, managedAppMock
+	appMock := &appMocks.IOSManagedMobileAppMock{}
+	if errorMocks {
+		appMock.RegisterErrorMocks()
+	} else {
+		appMock.RegisterMocks()
+	}
+	t.Cleanup(appMock.CleanupMockState)
 }
 
-// Helper function to check if a resource exists
-func testCheckExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("resource not found: %s", resourceName)
+// checkPolicyApps asserts the mock policy targets exactly the given bundles.
+func checkPolicyApps(bundles ...string) resource.TestCheckFunc {
+	return func(*terraform.State) error {
+		want := make([]string, 0, len(bundles))
+		for _, pkg := range bundles {
+			want = append(want, appMocks.AppID(pkg))
 		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("resource ID not set")
+		slices.Sort(want)
+		got := appMocks.PolicyAppIDs(appMocks.PolicyID)
+		if !slices.Equal(got, want) {
+			return fmt.Errorf("policy targets %v, want %v", got, want)
 		}
-
 		return nil
 	}
 }
 
-// Helper function to get maximal config with a custom resource name
-func testConfigMaximalWithResourceName(resourceName string) string {
-	// Read the maximal config
-	content, err := os.ReadFile(filepath.Join("mocks", "terraform", "resource_maximal.tf"))
-	if err != nil {
-		return ""
+func TestUnitResourceIOSManagedMobileApp_01_Lifecycle_Minimal(t *testing.T) {
+	setupMockEnvironment(t, false)
+	r := check.That(resourceType + ".test")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		CheckDestroy:             checkPolicyApps(),
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("01_minimal.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					r.Key("id").HasValue("com.example.testapp.ios"),
+					r.Key("managed_app_protection_id").HasValue(appMocks.PolicyID),
+					r.Key("mobile_app_identifier.bundle_id").HasValue("com.example.testapp"),
+					r.Key("version").MatchesRegex(regexp.MustCompile(`^-?\d+$`)),
+					checkPolicyApps("com.example.testapp"),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".test",
+				ImportState:       true,
+				ImportStateId:     appMocks.PolicyID + "/com.example.testapp.ios",
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"timeouts",
+				},
+			},
+		},
+	})
+}
+
+// Two resources on the same policy apply concurrently; the per-policy lock must
+// stop either full-list targetApps write from dropping the other app.
+func TestUnitResourceIOSManagedMobileApp_02_TwoAppsSamePolicy(t *testing.T) {
+	setupMockEnvironment(t, false)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		CheckDestroy:             checkPolicyApps(),
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("02_two_apps_same_policy.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".first").
+						Key("id").
+						HasValue("com.example.first.ios"),
+					check.That(resourceType+".second").
+						Key("id").
+						HasValue("com.example.second.ios"),
+					checkPolicyApps("com.example.first", "com.example.second"),
+				),
+			},
+			{
+				// Removing one resource must leave the other app targeted.
+				Config: loadUnitTestTerraform("03_two_apps_remove_one.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".first").
+						Key("id").
+						HasValue("com.example.first.ios"),
+					checkPolicyApps("com.example.first"),
+				),
+			},
+		},
+	})
+}
+
+func TestUnitResourceIOSManagedMobileApp_03_BundleChangeReplaces(t *testing.T) {
+	setupMockEnvironment(t, false)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		CheckDestroy:             checkPolicyApps(),
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("04_bundle_change_step1.tf"),
+				Check:  checkPolicyApps("com.example.testapp"),
+			},
+			{
+				Config: loadUnitTestTerraform("04_bundle_change_step2.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(
+							resourceType+".test",
+							plancheck.ResourceActionDestroyBeforeCreate,
+						),
+					},
+				},
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").
+						Key("id").
+						HasValue("com.example.renamed.ios"),
+					checkPolicyApps("com.example.renamed"),
+				),
+			},
+		},
+	})
+}
+
+// Apps already targeted outside Terraform are left alone and must be imported.
+func TestUnitResourceIOSManagedMobileApp_04_AlreadyTargeted(t *testing.T) {
+	setupMockEnvironment(t, false)
+	appMocks.SeedApps(appMocks.PolicyID, "com.example.existing")
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("05_already_targeted.tf"),
+				ExpectError: regexp.MustCompile(
+					`already targeted by this policy[\s\S]*Import it with ID`,
+				),
+			},
+		},
+	})
+	if err := checkPolicyApps("com.example.existing")(nil); err != nil {
+		t.Fatal(err)
 	}
-
-	// Replace the resource name
-	updated := strings.Replace(string(content), "maximal", resourceName, 1)
-
-	return updated
 }
 
-// Helper function to get minimal config with a custom resource name
-func testConfigMinimalWithResourceName(resourceName string) string {
-	return fmt.Sprintf(`resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app" "%s" {
-  managed_app_protection_id = "00000000-0000-0000-0000-000000000003"
-  mobile_app_identifier = {
-    bundle_id = "com.example.testapp"
-  }
-}`, resourceName)
-}
-
-// TestUnitIOSManagedMobileAppResource_Create_Minimal tests the creation of an iOS managed mobile app with minimal configuration
-func TestUnitResourceIOSManagedMobileApp_01_Create_Minimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
+func TestUnitResourceIOSManagedMobileApp_05_VersionNotConfigurable(t *testing.T) {
+	setupMockEnvironment(t, false)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal", "managed_app_protection_id", "00000000-0000-0000-0000-000000000002"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal", "mobile_app_identifier.bundle_id", "com.example.testapp"),
-				),
+				Config:      loadUnitTestTerraform("06_version_not_configurable.tf"),
+				ExpectError: regexp.MustCompile(`Invalid Configuration for Read-Only Attribute`),
 			},
 		},
 	})
 }
 
-// TestUnitIOSManagedMobileAppResource_Create_Maximal tests the creation of an iOS managed mobile app with maximal configuration
-func TestUnitResourceIOSManagedMobileApp_02_Create_Maximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
+func TestUnitResourceIOSManagedMobileApp_06_MissingPolicy(t *testing.T) {
+	setupMockEnvironment(t, false)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.maximal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.maximal", "managed_app_protection_id", "00000000-0000-0000-0000-000000000003"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.maximal", "mobile_app_identifier.bundle_id", "com.example.complexapp"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.maximal", "version", "1.5"),
-				),
+				Config:      loadUnitTestTerraform("07_missing_policy.tf"),
+				ExpectError: regexp.MustCompile(`(?i)not found`),
 			},
 		},
 	})
 }
 
-// TestUnitIOSManagedMobileAppResource_Update_MinimalToMaximal tests updating from minimal to maximal configuration
-func TestUnitResourceIOSManagedMobileApp_03_Update_MinimalToMaximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
+func TestUnitResourceIOSManagedMobileApp_07_GraphError(t *testing.T) {
+	setupMockEnvironment(t, true)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Start with minimal configuration
 			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal", "managed_app_protection_id", "00000000-0000-0000-0000-000000000002"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal", "mobile_app_identifier.bundle_id", "com.example.testapp"),
-				),
-			},
-			// Update to maximal configuration (with the same resource name)
-			{
-				Config: testConfigMinimalToMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal", "managed_app_protection_id", "00000000-0000-0000-0000-000000000002"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal", "mobile_app_identifier.bundle_id", "com.example.complexapp"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal", "version", "1.5"),
-				),
+				Config:      loadUnitTestTerraform("01_minimal.tf"),
+				ExpectError: regexp.MustCompile(`(?i)forbidden|insufficient privileges`),
 			},
 		},
 	})
 }
 
-// TestUnitIOSManagedMobileAppResource_Update_MaximalToMinimal tests updating from maximal to minimal configuration
-func TestUnitResourceIOSManagedMobileApp_04_Update_MaximalToMinimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
+func TestUnitResourceIOSManagedMobileApp_08_InvalidImportID(t *testing.T) {
+	setupMockEnvironment(t, false)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			// Start with maximal configuration
 			{
-				Config: testConfigMaximalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.test", "version", "1.5"),
-				),
-			},
-			// Update to minimal configuration (with the same resource name)
-			{
-				Config: testConfigMinimalWithResourceName("test"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.test"),
-					resource.TestCheckResourceAttr("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.test", "mobile_app_identifier.bundle_id", "com.example.testapp"),
-				),
-			},
-		},
-	})
-}
-
-// TestUnitIOSManagedMobileAppResource_Delete_Minimal tests deleting an iOS managed mobile app with minimal configuration
-func TestUnitResourceIOSManagedMobileApp_05_Delete_Minimal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create the resource
-			{
-				Config: testConfigMinimal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal"),
-				),
-			},
-			// Delete the resource (by providing empty config)
-			{
-				Config: `# Empty config for deletion test`,
-				Check: func(s *terraform.State) error {
-					// The resource should be gone
-					_, exists := s.RootModule().Resources["microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.minimal"]
-					if exists {
-						return fmt.Errorf("resource still exists after deletion")
-					}
-					return nil
-				},
-			},
-		},
-	})
-}
-
-// TestUnitIOSManagedMobileAppResource_Delete_Maximal tests deleting an iOS managed mobile app with maximal configuration
-func TestUnitResourceIOSManagedMobileApp_06_Delete_Maximal(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Create the resource
-			{
-				Config: testConfigMaximal(),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckExists("microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.maximal"),
-				),
-			},
-			// Delete the resource (by providing empty config)
-			{
-				Config: `# Empty config for deletion test`,
-				Check: func(s *terraform.State) error {
-					// The resource should be gone
-					_, exists := s.RootModule().Resources["microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.maximal"]
-					if exists {
-						return fmt.Errorf("resource still exists after deletion")
-					}
-					return nil
-				},
-			},
-		},
-	})
-}
-
-// TestUnitIOSManagedMobileAppResource_Import tests importing a resource
-func TestUnitResourceIOSManagedMobileApp_07_Import(t *testing.T) {
-	// Set up mock environment
-	_, _ = setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Use a pre-existing app ID that exists in the mock
-	importConfig := `
-resource "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app" "import_test" {
-  managed_app_protection_id = "00000000-0000-0000-0000-000000000002"
-  mobile_app_identifier = {
-    bundle_id = "com.example.testapp"
-  }
-}
-`
-
-	// Run the test
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Import using the composite ID format: managedAppProtectionId/appId
-			{
-				Config:        importConfig,
-				ResourceName:  "microsoft365_graph_beta_device_and_app_management_ios_managed_mobile_app.import_test",
+				Config:        loadUnitTestTerraform("01_minimal.tf"),
+				ResourceName:  resourceType + ".test",
 				ImportState:   true,
-				ImportStateId: "00000000-0000-0000-0000-000000000002/00000000-0000-0000-0000-000000000001",
-				ImportStateCheck: func(state []*terraform.InstanceState) error {
-					if len(state) != 1 {
-						return fmt.Errorf("expected 1 state, got %d", len(state))
-					}
-					if state[0].ID != "00000000-0000-0000-0000-000000000001" {
-						return fmt.Errorf("expected ID '00000000-0000-0000-0000-000000000001', got '%s'", state[0].ID)
-					}
-					if state[0].Attributes["managed_app_protection_id"] != "00000000-0000-0000-0000-000000000002" {
-						return fmt.Errorf("expected managed_app_protection_id '00000000-0000-0000-0000-000000000002', got '%s'", state[0].Attributes["managed_app_protection_id"])
-					}
-					return nil
-				},
-			},
-		},
-	})
-}
-
-// TestUnitIOSManagedMobileAppResource_Error tests error handling
-func TestUnitResourceIOSManagedMobileApp_08_Error(t *testing.T) {
-	// Set up mock environment
-	_, managedAppMock := setupMockEnvironment()
-	defer httpmock.DeactivateAndReset()
-
-	// Register error mocks
-	managedAppMock.RegisterErrorMocks()
-
-	// Set up the test environment
-	setupTestEnvironment(t)
-
-	// Run the test with an error case
-	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      testConfigError(),
-				ExpectError: regexp.MustCompile("Error creating iOS managed mobile app"),
+				ImportStateId: "com.example.testapp.ios",
+				ExpectError: regexp.MustCompile(
+					`Expected import ID in format 'managedAppProtectionId/appId'`,
+				),
 			},
 		},
 	})
