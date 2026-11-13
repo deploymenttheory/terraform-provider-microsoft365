@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
-
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 )
 
 const (
@@ -64,21 +64,36 @@ type AndroidManagedMobileAppResource struct {
 	ResourcePath     string
 }
 
-func (r *AndroidManagedMobileAppResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *AndroidManagedMobileAppResource) Metadata(
+	ctx context.Context,
+	req resource.MetadataRequest,
+	resp *resource.MetadataResponse,
+) {
 	resp.TypeName = ResourceName
 }
 
-func (r *AndroidManagedMobileAppResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *AndroidManagedMobileAppResource) Configure(
+	ctx context.Context,
+	req resource.ConfigureRequest,
+	resp *resource.ConfigureResponse,
+) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
-func (r *AndroidManagedMobileAppResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *AndroidManagedMobileAppResource) ImportState(
+	ctx context.Context,
+	req resource.ImportStateRequest,
+	resp *resource.ImportStateResponse,
+) {
 	// The import ID is expected to be in the format "managedAppProtectionId/appId"
 	idParts := strings.Split(req.ID, "/")
-	if len(idParts) != 2 {
+	if len(idParts) != 2 || idParts[0] == "" || idParts[1] == "" {
 		resp.Diagnostics.AddError(
 			"Invalid Import ID",
-			fmt.Sprintf("Expected import ID in format 'managedAppProtectionId/appId', got: %s", req.ID),
+			fmt.Sprintf(
+				"Expected import ID in format 'managedAppProtectionId/appId', got: %s",
+				req.ID,
+			),
 		)
 		return
 	}
@@ -86,12 +101,21 @@ func (r *AndroidManagedMobileAppResource) ImportState(ctx context.Context, req r
 	managedAppProtectionId := idParts[0]
 	appId := idParts[1]
 
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("managed_app_protection_id"), managedAppProtectionId)...)
+	resp.Diagnostics.Append(
+		resp.State.SetAttribute(
+			ctx,
+			path.Root("managed_app_protection_id"),
+			managedAppProtectionId,
+		)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), appId)...)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
-func (r *AndroidManagedMobileAppResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
+func (r *AndroidManagedMobileAppResource) IdentitySchema(
+	ctx context.Context,
+	req resource.IdentitySchemaRequest,
+	resp *resource.IdentitySchemaResponse,
+) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
 			"id": identityschema.StringAttribute{
@@ -101,24 +125,28 @@ func (r *AndroidManagedMobileAppResource) IdentitySchema(ctx context.Context, re
 	}
 }
 
-func (r *AndroidManagedMobileAppResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *AndroidManagedMobileAppResource) Schema(
+	ctx context.Context,
+	req resource.SchemaRequest,
+	resp *resource.SchemaResponse,
+) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Manages Android managed mobile apps in Microsoft Intune Android managed app protection policies. This resource associates Android apps with Android managed app protection policies for Mobile Application Management (MAM).",
+		MarkdownDescription: "Manages Android managed mobile apps in Microsoft Intune Android managed app protection policies. This resource associates Android apps with Android managed app protection policies for Mobile Application Management (MAM). " +
+			"Intune replaces a policy's whole app list on every change, so writes to the same policy are serialized by the provider.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					planmodifiers.UseStateForUnknownString(),
 				},
-				MarkdownDescription: "The unique identifier for this Android managed mobile app",
+				MarkdownDescription: "The unique identifier for this Android managed mobile app, assigned by Intune as `{package_id}.android`.",
 			},
 			"version": schema.StringAttribute{
-				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
-				MarkdownDescription: "The version of the managed mobile app",
+				MarkdownDescription: "The version of the managed mobile app entry. Intune assigns this value; it cannot be configured.",
 			},
 			"managed_app_protection_id": schema.StringAttribute{
 				Required: true,
@@ -132,8 +160,11 @@ func (r *AndroidManagedMobileAppResource) Schema(ctx context.Context, req resour
 				MarkdownDescription: "The Android app identifier information",
 				Attributes: map[string]schema.Attribute{
 					"package_id": schema.StringAttribute{
-						Required:            true,
-						MarkdownDescription: "The Android package identifier (e.g., com.company.myapp)",
+						Required: true,
+						PlanModifiers: []planmodifier.String{
+							stringplanmodifier.RequiresReplace(),
+						},
+						MarkdownDescription: "The Android package identifier (e.g., com.company.myapp). Changing it targets a different app, so the resource is replaced.",
 					},
 				},
 			},

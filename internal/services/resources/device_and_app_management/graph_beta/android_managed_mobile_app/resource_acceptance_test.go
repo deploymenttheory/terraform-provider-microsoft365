@@ -1,362 +1,175 @@
 package graphBetaDeviceAndAppManagementAndroidManagedMobileApp_test
 
 import (
+	"context"
 	"fmt"
-	"os"
+	"regexp"
+	"slices"
 	"testing"
+	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaAndroidManagedAppProtection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_app_protection"
+	graphBetaAndroidManagedMobileApp "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/android_managed_mobile_app"
 )
 
-// TestAccAndroidManagedMobileAppResource_Create_Minimal tests creating an Android managed mobile app with minimal configuration
-func TestAccResourceAndroidManagedMobileApp_01_Create_Minimal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
+var (
+	accTestResource = graphBetaAndroidManagedMobileApp.AndroidManagedMobileAppTestResource{}
+	policyResource  = graphBetaAndroidManagedAppProtection.ResourceName + ".test"
+)
+
+func loadAcceptanceTestTerraform(filename string) string {
+	config, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		panic("failed to load acceptance config " + filename + ": " + err.Error())
 	}
-
-	// Get test managed app protection ID from environment variable or skip
-	testManagedAppProtectionID1 := os.Getenv("TEST_MANAGED_APP_PROTECTION_ID_1")
-	if testManagedAppProtectionID1 == "" {
-		t.Skip("TEST_MANAGED_APP_PROTECTION_ID_1 environment variable must be set for acceptance tests")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.minimal"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
-		Steps: []resource.TestStep{
-			// Create with minimal configuration
-			{
-				Config: testAccConfigMinimal(testManagedAppProtectionID1),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_app_protection_id", testManagedAppProtectionID1),
-					resource.TestCheckResourceAttr(resourceName, "mobile_app_identifier.package_id", "com.example.testapp"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-				),
-			},
-		},
-	})
+	return acceptance.ConfiguredM365ProviderBlock(config)
 }
 
-// TestAccAndroidManagedMobileAppResource_Create_Maximal tests creating an Android managed mobile app with maximal configuration
-func TestAccResourceAndroidManagedMobileApp_02_Create_Maximal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	// Get test managed app protection ID from environment variable or skip
-	testManagedAppProtectionID2 := os.Getenv("TEST_MANAGED_APP_PROTECTION_ID_2")
-	if testManagedAppProtectionID2 == "" {
-		t.Skip("TEST_MANAGED_APP_PROTECTION_ID_2 environment variable must be set for acceptance tests")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.maximal"
-
-	resource.Test(t, resource.TestCase{
+func accTestCase(t *testing.T, steps []resource.TestStep) resource.TestCase {
+	return resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
-		Steps: []resource.TestStep{
-			// Create with maximal configuration
-			{
-				Config: testAccConfigMaximal(testManagedAppProtectionID2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_app_protection_id", testManagedAppProtectionID2),
-					resource.TestCheckResourceAttr(resourceName, "mobile_app_identifier.package_id", "com.example.complexapp"),
-					resource.TestCheckResourceAttr(resourceName, "version", "1.5"),
-					resource.TestCheckResourceAttrSet(resourceName, "id"),
-				),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-	})
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: accTestResource},
+			destroy.ResourceTypeMapping{
+				ResourceType: graphBetaAndroidManagedAppProtection.ResourceName,
+				TestResource: graphBetaAndroidManagedAppProtection.AndroidManagedAppProtectionTestResource{},
+			},
+		),
+		Steps: steps,
+	}
 }
 
-// TestAccAndroidManagedMobileAppResource_Update_MinimalToMaximal tests updating from minimal to maximal config
-func TestAccResourceAndroidManagedMobileApp_03_Update_MinimalToMaximal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	// Get test managed app protection ID from environment variable or skip
-	testManagedAppProtectionID1 := os.Getenv("TEST_MANAGED_APP_PROTECTION_ID_1")
-	if testManagedAppProtectionID1 == "" {
-		t.Skip("TEST_MANAGED_APP_PROTECTION_ID_1 environment variable must be set for acceptance tests")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
-		Steps: []resource.TestStep{
-			// Start with minimal configuration
-			{
-				Config: testAccConfigMinimalNamed("test", testManagedAppProtectionID1),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_app_protection_id", testManagedAppProtectionID1),
-					resource.TestCheckResourceAttr(resourceName, "mobile_app_identifier.package_id", "com.example.testapp"),
-				),
-			},
-			// Update to maximal configuration
-			{
-				Config: testAccConfigMaximalNamed("test", testManagedAppProtectionID1),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_app_protection_id", testManagedAppProtectionID1),
-					resource.TestCheckResourceAttr(resourceName, "mobile_app_identifier.package_id", "com.example.complexapp"),
-					resource.TestCheckResourceAttr(resourceName, "version", "1.5"),
-				),
-			},
-		},
-	})
-}
-
-// TestAccAndroidManagedMobileAppResource_Update_MaximalToMinimal tests updating from maximal to minimal config
-func TestAccResourceAndroidManagedMobileApp_04_Update_MaximalToMinimal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	// Get test managed app protection ID from environment variable or skip
-	testManagedAppProtectionID2 := os.Getenv("TEST_MANAGED_APP_PROTECTION_ID_2")
-	if testManagedAppProtectionID2 == "" {
-		t.Skip("TEST_MANAGED_APP_PROTECTION_ID_2 environment variable must be set for acceptance tests")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
-		Steps: []resource.TestStep{
-			// Start with maximal configuration
-			{
-				Config: testAccConfigMaximalNamed("test", testManagedAppProtectionID2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_app_protection_id", testManagedAppProtectionID2),
-					resource.TestCheckResourceAttr(resourceName, "version", "1.5"),
-				),
-			},
-			// Update to minimal configuration
-			{
-				Config: testAccConfigMinimalNamed("test", testManagedAppProtectionID2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "managed_app_protection_id", testManagedAppProtectionID2),
-					resource.TestCheckResourceAttr(resourceName, "mobile_app_identifier.package_id", "com.example.testapp"),
-				),
-			},
-		},
-	})
-}
-
-// TestAccAndroidManagedMobileAppResource_Delete_Minimal tests deleting an Android managed mobile app with minimal configuration
-func TestAccResourceAndroidManagedMobileApp_05_Delete_Minimal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	// Get test managed app protection ID from environment variable or skip
-	testManagedAppProtectionID1 := os.Getenv("TEST_MANAGED_APP_PROTECTION_ID_1")
-	if testManagedAppProtectionID1 == "" {
-		t.Skip("TEST_MANAGED_APP_PROTECTION_ID_1 environment variable must be set for acceptance tests")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.minimal"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
-		Steps: []resource.TestStep{
-			// Create the resource
-			{
-				Config: testAccConfigMinimal(testManagedAppProtectionID1),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-				),
-			},
-			// Delete the resource (by providing empty config)
-			{
-				Config: `# Empty config for deletion test`,
-				Check: func(s *terraform.State) error {
-					// The resource should be gone
-					_, exists := s.RootModule().Resources[resourceName]
-					if exists {
-						return fmt.Errorf("resource %s still exists after deletion", resourceName)
-					}
-					return nil
-				},
-			},
-		},
-	})
-}
-
-// TestAccAndroidManagedMobileAppResource_Delete_Maximal tests deleting an Android managed mobile app with maximal configuration
-func TestAccResourceAndroidManagedMobileApp_06_Delete_Maximal(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	// Get test managed app protection ID from environment variable or skip
-	testManagedAppProtectionID2 := os.Getenv("TEST_MANAGED_APP_PROTECTION_ID_2")
-	if testManagedAppProtectionID2 == "" {
-		t.Skip("TEST_MANAGED_APP_PROTECTION_ID_2 environment variable must be set for acceptance tests")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.maximal"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
-		Steps: []resource.TestStep{
-			// Create the resource
-			{
-				Config: testAccConfigMaximal(testManagedAppProtectionID2),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-				),
-			},
-			// Delete the resource (by providing empty config)
-			{
-				Config: `# Empty config for deletion test`,
-				Check: func(s *terraform.State) error {
-					// The resource should be gone
-					_, exists := s.RootModule().Resources[resourceName]
-					if exists {
-						return fmt.Errorf("resource %s still exists after deletion", resourceName)
-					}
-					return nil
-				},
-			},
-		},
-	})
-}
-
-// TestAccAndroidManagedMobileAppResource_Import tests importing a resource
-func TestAccResourceAndroidManagedMobileApp_07_Import(t *testing.T) {
-	// Skip if not running acceptance tests
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("Acceptance tests skipped unless TF_ACC=1")
-	}
-
-	// Get test managed app protection ID from environment variable or skip
-	testManagedAppProtectionID1 := os.Getenv("TEST_MANAGED_APP_PROTECTION_ID_1")
-	if testManagedAppProtectionID1 == "" {
-		t.Skip("TEST_MANAGED_APP_PROTECTION_ID_1 environment variable must be set for acceptance tests")
-	}
-
-	resourceName := "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app.minimal"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckAndroidManagedMobileAppDestroy,
-		Steps: []resource.TestStep{
-			// Create
-			{
-				Config: testAccConfigMinimal(testManagedAppProtectionID1),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAndroidManagedMobileAppExists(resourceName),
-				),
-			},
-			// Import
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func testAccCheckAndroidManagedMobileAppExists(resourceName string) resource.TestCheckFunc {
+// checkGraphPolicyApps asserts the live policy targets exactly the given packages,
+// catching apps dropped or left behind by full-list targetApps writes.
+func checkGraphPolicyApps(packages ...string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
+		policy, ok := s.RootModule().Resources[policyResource]
 		if !ok {
-			return fmt.Errorf("resource not found: %s", resourceName)
+			return fmt.Errorf("%s not found in state", policyResource)
 		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("resource ID not set")
+		client, err := acceptance.TestGraphClient()
+		if err != nil {
+			return fmt.Errorf("create Graph client: %w", err)
 		}
-
+		response, err := client.
+			DeviceAppManagement().
+			AndroidManagedAppProtections().
+			ByAndroidManagedAppProtectionId(policy.Primary.ID).
+			Apps().
+			Get(context.Background(), nil)
+		if err != nil {
+			return fmt.Errorf("list policy apps: %w", err)
+		}
+		got := make([]string, 0, len(response.GetValue()))
+		for _, app := range response.GetValue() {
+			if app.GetId() != nil {
+				got = append(got, *app.GetId())
+			}
+		}
+		want := make([]string, 0, len(packages))
+		for _, pkg := range packages {
+			want = append(want, pkg+".android")
+		}
+		slices.Sort(got)
+		slices.Sort(want)
+		if !slices.Equal(got, want) {
+			return fmt.Errorf("policy %s targets %v, want %v", policy.Primary.ID, got, want)
+		}
 		return nil
 	}
 }
 
-func testAccCheckAndroidManagedMobileAppDestroy(s *terraform.State) error {
-	// In a real test, we would verify the Android managed mobile app is removed
-	// For this resource, we don't need to check anything special since removing
-	// the resource will remove the managed mobile app
-	return nil
+func importID(resourceName string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return "", fmt.Errorf("%s not found in state", resourceName)
+		}
+		return rs.Primary.Attributes["managed_app_protection_id"] + "/" + rs.Primary.ID, nil
+	}
 }
 
-// Test configurations
+func TestAccResourceAndroidManagedMobileApp_01_Lifecycle(t *testing.T) {
+	r := check.That(resourceType + ".test")
+	resource.Test(t, accTestCase(t, []resource.TestStep{
+		{
+			PreConfig: func() { testlog.StepAction(resourceType, "01: Targeting one app on a new policy") },
+			Config:    loadAcceptanceTestTerraform("01_lifecycle_step1.tf"),
+			Check: resource.ComposeTestCheckFunc(
+				r.ExistsInGraph(accTestResource),
+				r.Key("id").HasValue("com.example.acctest.lifecycle.android"),
+				r.Key("managed_app_protection_id").
+					MatchesOtherKey(check.That(policyResource).Key("id")),
+				r.Key("mobile_app_identifier.package_id").HasValue("com.example.acctest.lifecycle"),
+				r.Key("version").MatchesRegex(regexp.MustCompile(`^\d+$`)),
+				checkGraphPolicyApps("com.example.acctest.lifecycle"),
+			),
+		},
+		{
+			PreConfig:               func() { testlog.StepAction(resourceType, "01: Importing the app") },
+			ResourceName:            resourceType + ".test",
+			ImportState:             true,
+			ImportStateIdFunc:       importID(resourceType + ".test"),
+			ImportStateVerify:       true,
+			ImportStateVerifyIgnore: []string{"timeouts"},
+		},
+		{
+			PreConfig: func() { testlog.StepAction(resourceType, "01: Changing the package replaces the app") },
+			Config:    loadAcceptanceTestTerraform("01_lifecycle_step2.tf"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(
+						resourceType+".test",
+						plancheck.ResourceActionDestroyBeforeCreate,
+					),
+				},
+			},
+			Check: resource.ComposeTestCheckFunc(
+				r.ExistsInGraph(accTestResource),
+				r.Key("id").HasValue("com.example.acctest.renamed.android"),
+				checkGraphPolicyApps("com.example.acctest.renamed"),
+			),
+		},
+	}))
+}
 
-// Minimal configuration with default resource name
-func testAccConfigMinimal(managedAppProtectionID string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app" "minimal" {
-  managed_app_protection_id = "%s"
-  mobile_app_identifier = {
-    package_id = "com.example.testapp"
-  }
-}
-`, managedAppProtectionID)
-}
-
-// Minimal configuration with custom resource name
-func testAccConfigMinimalNamed(resourceName string, managedAppProtectionID string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app" "%s" {
-  managed_app_protection_id = "%s"
-  mobile_app_identifier = {
-    package_id = "com.example.testapp"
-  }
-}
-`, resourceName, managedAppProtectionID)
-}
-
-// Maximal configuration with default resource name
-func testAccConfigMaximal(managedAppProtectionID string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app" "maximal" {
-  managed_app_protection_id = "%s"
-  mobile_app_identifier = {
-    package_id = "com.example.complexapp"
-  }
-  version = "1.5"
-}
-`, managedAppProtectionID)
-}
-
-// Maximal configuration with custom resource name
-func testAccConfigMaximalNamed(resourceName string, managedAppProtectionID string) string {
-	return fmt.Sprintf(`
-resource "microsoft365_graph_beta_device_and_app_management_android_managed_mobile_app" "%s" {
-  managed_app_protection_id = "%s"
-  mobile_app_identifier = {
-    package_id = "com.example.complexapp"
-  }
-  version = "1.5"
-}
-`, resourceName, managedAppProtectionID)
+func TestAccResourceAndroidManagedMobileApp_02_SiblingsOnOnePolicy(t *testing.T) {
+	resource.Test(t, accTestCase(t, []resource.TestStep{
+		{
+			PreConfig: func() { testlog.StepAction(resourceType, "02: Targeting two apps on one policy concurrently") },
+			Config:    loadAcceptanceTestTerraform("02_siblings_step1.tf"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(resourceType+".first").ExistsInGraph(accTestResource),
+				check.That(resourceType+".second").ExistsInGraph(accTestResource),
+				checkGraphPolicyApps("com.example.acctest.first", "com.example.acctest.second"),
+			),
+		},
+		{
+			PreConfig: func() { testlog.StepAction(resourceType, "02: Removing one app keeps its sibling") },
+			Config:    loadAcceptanceTestTerraform("02_siblings_step2.tf"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(resourceType+".first").ExistsInGraph(accTestResource),
+				checkGraphPolicyApps("com.example.acctest.first"),
+			),
+		},
+	}))
 }

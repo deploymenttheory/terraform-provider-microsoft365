@@ -3,122 +3,191 @@ package mocks
 import (
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"net/http"
+	"regexp"
+	"sort"
 	"strings"
 	"sync"
 
-	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 )
 
-// mockState tracks app collections independently for each protection policy.
-var mockState struct {
-	sync.Mutex
-	apps map[string]map[string]map[string]any
+const (
+	// PolicyID is the app protection policy every unit test targets.
+	PolicyID = "T_00000000-0000-0000-0000-000000000001"
+	// MissingPolicyID returns 404 like a deleted policy.
+	MissingPolicyID = "T_00000000-0000-0000-0000-000000000404"
+)
+
+var (
+	policyAppsURL = regexp.MustCompile(
+		`^https://graph\.microsoft\.com/beta/deviceAppManagement/androidManagedAppProtections/([^/?]+)/apps(\?.*)?$`,
+	)
+	targetAppsURL = regexp.MustCompile(
+		`^https://graph\.microsoft\.com/beta/deviceAppManagement/managedAppPolicies/([^/?]+)/targetApps$`,
+	)
+	errNotAndroid = fmt.Errorf("targetApps entry is not an Android app")
+	mockState     = struct {
+		sync.Mutex
+		policies map[string][]string // policy ID -> targeted package IDs
+	}{policies: map[string][]string{}}
+)
+
+func init() {
+	mocks.GlobalRegistry.Register("android_managed_mobile_app", &AndroidManagedMobileAppMock{})
 }
 
-// AndroidManagedMobileAppMock provides mock responses for Android managed mobile app operations.
+// AndroidManagedMobileAppMock mirrors the live API: per-app routes do not exist,
+// targetApps replaces the whole list, and Intune assigns each entry's id and version.
 type AndroidManagedMobileAppMock struct{}
 
-// RegisterMocks registers collection reads and full-list targetApps replacements.
-func (m *AndroidManagedMobileAppMock) RegisterMocks() {
+var _ mocks.MockRegistrar = (*AndroidManagedMobileAppMock)(nil)
+
+// AppID is the identifier Intune assigns to an Android package entry.
+func AppID(pkg string) string { return pkg + ".android" }
+
+// version imitates the server-assigned version: stable per package, never client-set.
+func version(pkg string) string {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(pkg))
+	return fmt.Sprintf("%d", h.Sum32())
+}
+
+// SeedApps sets the packages a policy targets before a test runs.
+func SeedApps(policyID string, packages ...string) {
 	mockState.Lock()
-	mockState.apps = make(map[string]map[string]map[string]any)
-	mockState.Unlock()
-	registerTestApps()
-	httpmock.RegisterResponder(
+	defer mockState.Unlock()
+	mockState.policies[policyID] = append([]string(nil), packages...)
+}
+
+// PolicyAppIDs returns the app IDs the policy currently targets, sorted.
+func PolicyAppIDs(policyID string) []string {
+	mockState.Lock()
+	defer mockState.Unlock()
+	ids := make([]string, 0, len(mockState.policies[policyID]))
+	for _, pkg := range mockState.policies[policyID] {
+		ids = append(ids, AppID(pkg))
+	}
+	sort.Strings(ids)
+	return ids
+}
+
+func jsonResponse(status int, body any) (*http.Response, error) {
+	resp, err := httpmock.NewJsonResponse(status, body)
+	if err != nil {
+		return nil, fmt.Errorf("create mock JSON response: %w", err)
+	}
+	return resp, nil
+}
+
+func graphError(status int, code, message string) (*http.Response, error) {
+	return jsonResponse(
+		status,
+		map[string]any{"error": map[string]any{"code": code, "message": message}},
+	)
+}
+
+func appEntry(pkg string) map[string]any {
+	return map[string]any{
+		"id":      AppID(pkg),
+		"version": version(pkg),
+		"mobileAppIdentifier": map[string]any{
+			"@odata.type": "#microsoft.graph.androidMobileAppIdentifier",
+			"packageId":   pkg,
+		},
+	}
+}
+
+func decodePackages(req *http.Request) ([]string, error) {
+	var payload struct {
+		Apps []map[string]any `json:"apps"`
+	}
+	if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+		return nil, fmt.Errorf("decode targetApps request: %w", err)
+	}
+	packages := make([]string, 0, len(payload.Apps))
+	for _, app := range payload.Apps {
+		identifier, _ := app["mobileAppIdentifier"].(map[string]any)
+		odataType, _ := identifier["@odata.type"].(string)
+		pkg, _ := identifier["packageId"].(string)
+		if odataType != "#microsoft.graph.androidMobileAppIdentifier" || pkg == "" {
+			return nil, errNotAndroid
+		}
+		packages = append(packages, pkg)
+	}
+	return packages, nil
+}
+
+func (m *AndroidManagedMobileAppMock) RegisterMocks() {
+	m.CleanupMockState()
+
+	// GET /deviceAppManagement/androidManagedAppProtections/{id}/apps
+	httpmock.RegisterRegexpResponder(
 		"GET",
-		`=~^https://graph.microsoft.com/beta/deviceAppManagement/androidManagedAppProtections/[^/]+/apps(\?.+)?$`,
+		policyAppsURL,
 		func(req *http.Request) (*http.Response, error) {
-			policyID := strings.Split(req.URL.Path, "/")[4]
-			mockState.Lock()
-			defer mockState.Unlock()
-			apps := make([]map[string]any, 0, len(mockState.apps[policyID]))
-			for _, app := range mockState.apps[policyID] {
-				apps = append(apps, app)
+			policyID := policyAppsURL.FindStringSubmatch(req.URL.String())[1]
+			if policyID == MissingPolicyID {
+				return graphError(http.StatusNotFound, "ResourceNotFound", "Resource not found")
 			}
-			return httpmock.NewJsonResponse(http.StatusOK, map[string]any{"value": apps})
+			mockState.Lock()
+			packages := append([]string(nil), mockState.policies[policyID]...)
+			mockState.Unlock()
+			apps := make([]map[string]any, 0, len(packages))
+			for _, pkg := range packages {
+				apps = append(apps, appEntry(pkg))
+			}
+			return jsonResponse(http.StatusOK, map[string]any{"value": apps})
 		},
 	)
-	httpmock.RegisterResponder(
+
+	// POST /deviceAppManagement/managedAppPolicies/{id}/targetApps replaces the list.
+	httpmock.RegisterRegexpResponder(
 		"POST",
-		`=~^https://graph.microsoft.com/beta/deviceAppManagement/managedAppPolicies/[^/]+/targetApps$`,
+		targetAppsURL,
 		func(req *http.Request) (*http.Response, error) {
-			var payload struct {
-				Apps []map[string]any `json:"apps"`
+			policyID := targetAppsURL.FindStringSubmatch(req.URL.String())[1]
+			if policyID == MissingPolicyID {
+				return graphError(http.StatusNotFound, "ResourceNotFound", "Resource not found")
 			}
-			if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
-				return nil, fmt.Errorf("decode targetApps request: %w", err)
+			packages, err := decodePackages(req)
+			if err != nil {
+				return graphError(http.StatusBadRequest, "BadRequest", err.Error())
 			}
-			apps := make(map[string]map[string]any, len(payload.Apps))
-			for _, app := range payload.Apps {
-				id, ok := app["id"].(string)
-				if !ok || id == "" {
-					id = uuid.NewString()
-					app["id"] = id
+			seen := map[string]bool{}
+			unique := make([]string, 0, len(packages))
+			for _, pkg := range packages {
+				if !seen[strings.ToLower(pkg)] {
+					seen[strings.ToLower(pkg)] = true
+					unique = append(unique, pkg)
 				}
-				if app["version"] == nil {
-					app["version"] = "1.0"
-				}
-				apps[id] = app
 			}
-			policyID := strings.Split(req.URL.Path, "/")[4]
 			mockState.Lock()
-			mockState.apps[policyID] = apps
+			mockState.policies[policyID] = unique
 			mockState.Unlock()
 			return httpmock.NewStringResponse(http.StatusNoContent, ""), nil
 		},
 	)
 }
 
-// RegisterErrorMocks registers the targetApps failure used by error lifecycle tests.
 func (m *AndroidManagedMobileAppMock) RegisterErrorMocks() {
-	httpmock.RegisterResponder(
-		"POST",
-		`=~^https://graph.microsoft.com/beta/deviceAppManagement/managedAppPolicies/[^/]+/targetApps$`,
-		factories.ErrorResponse(400, "BadRequest", "Error creating Android managed mobile app"),
-	)
+	m.CleanupMockState()
+	forbidden := func(*http.Request) (*http.Response, error) {
+		return graphError(
+			http.StatusForbidden,
+			"Forbidden",
+			"Insufficient privileges to complete the operation.",
+		)
+	}
+	httpmock.RegisterRegexpResponder("GET", policyAppsURL, forbidden)
+	httpmock.RegisterRegexpResponder("POST", targetAppsURL, forbidden)
 }
 
-// registerTestApps registers predefined test apps
-func registerTestApps() {
-	// Minimal app with only required attributes
-	minimalAppId := "00000000-0000-0000-0000-000000000001"
-	minimalAppData := map[string]any{
-		"id":      minimalAppId,
-		"version": "1.0",
-		"mobileAppIdentifier": map[string]any{
-			"@odata.type": "#microsoft.graph.androidMobileAppIdentifier",
-			"packageId":   "com.example.testapp",
-		},
-		"@odata.context":  "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/androidManagedAppProtections('00000000-0000-0000-0000-000000000002')/apps/$entity",
-		"@odata.type":     "#microsoft.graph.managedMobileApp",
-		"createdDateTime": "2023-01-01T00:00:00Z",
-	}
-
-	// Maximal app with all attributes
-	maximalAppId := "00000000-0000-0000-0000-000000000002"
-	maximalAppData := map[string]any{
-		"id":      maximalAppId,
-		"version": "1.5",
-		"mobileAppIdentifier": map[string]any{
-			"@odata.type": "#microsoft.graph.androidMobileAppIdentifier",
-			"packageId":   "com.example.complexapp",
-		},
-		"@odata.context":  "https://graph.microsoft.com/beta/$metadata#deviceAppManagement/androidManagedAppProtections('00000000-0000-0000-0000-000000000003')/apps/$entity",
-		"@odata.type":     "#microsoft.graph.managedMobileApp",
-		"createdDateTime": "2023-01-01T00:00:00Z",
-	}
-
-	// Store apps in mock state
+func (m *AndroidManagedMobileAppMock) CleanupMockState() {
 	mockState.Lock()
-	mockState.apps["00000000-0000-0000-0000-000000000002"] = map[string]map[string]any{
-		minimalAppId: minimalAppData,
-	}
-	mockState.apps["00000000-0000-0000-0000-000000000003"] = map[string]map[string]any{
-		maximalAppId: maximalAppData,
-	}
-	mockState.Unlock()
+	defer mockState.Unlock()
+	mockState.policies = map[string][]string{}
 }
