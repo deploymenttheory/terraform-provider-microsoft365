@@ -7,7 +7,6 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -48,9 +47,19 @@ def issue(number=1, package="./internal/one", name="TestSame"):
     """Issue."""
     return {
         "number": number,
+        "updatedAt": "2020-01-01T00:00:00Z",
         "title": f"Bug: {name} Failing",
         "body": f"<!-- acceptance-test: {json.dumps({'package': package, 'test_name': name})} -->",
     }
+
+
+def github_response(args):
+    """Supply workflow and issue freshness without making external requests."""
+    if args[0] == "api":
+        return json.dumps({"id": 1, "run_attempt": 1, "run_started_at": "2026-11-12T00:00:00Z"})
+    if args[:2] == ["issue", "view"]:
+        return "2020-01-01T00:00:00Z"
+    return "url"
 
 
 def job(conclusion="failure", step="cancelled"):
@@ -95,6 +104,9 @@ class TemporaryTests(TemporaryDirectoryTestCase):
         super().setUp()
         self.change_directory()
         self.resources.enter_context(contextlib.redirect_stdout(io.StringIO()))
+        self.resources.enter_context(
+            patch.dict(os.environ, {"GITHUB_RUN_ID": "1", "GITHUB_RUN_ATTEMPT": "1"})
+        )
 
     def write(self, path, data):
         """Write a UTF-8 file into the temporary fixture repository."""
@@ -127,6 +139,30 @@ class ParserTests(TemporaryTests):
         )
         self.assertEqual(successes[0]["package"], "./one")
         self.assertTrue(manifest["complete"])
+
+    def test_completed_failure_does_not_invalidate_another_test_pass(self):
+        """A normally completed failing package can still prove another test recovered."""
+        body = (
+            "=== RUN   TestRecovered\n--- PASS: TestRecovered (0.1s)\n"
+            "=== RUN   TestOther\n--- FAIL: TestOther (0.1s)\nFAIL\n"
+        )
+        failures, successes, manifest = self.parse(output("./one", body, 1), ["./one"])
+        self.assertEqual([item["test_name"] for item in failures], ["TestOther"])
+        self.assertEqual([item["test_name"] for item in successes], ["TestRecovered"])
+        self.assertTrue(successes[0]["package_complete"])
+        self.assertTrue(manifest["complete"])
+
+    def test_panic_after_finished_tests_does_not_prove_recovery(self):
+        """A late runtime interruption invalidates package verification despite verdict lines."""
+        for interruption in ("panic: background worker failed", "fatal error: runtime failure"):
+            with self.subTest(interruption=interruption):
+                body = (
+                    "=== RUN   TestRecovered\n--- PASS: TestRecovered (0.1s)\n"
+                    "=== RUN   TestOther\n--- FAIL: TestOther (0.1s)\n"
+                    f"{interruption}\nFAIL example.org/project/one\n"
+                )
+                _, successes, _ = self.parse(output("./one", body, 1), ["./one"])
+                self.assertFalse(successes[0]["package_complete"])
 
     def test_panic_context_ends_at_go_package_failure_trailers(self):
         """Keep panic details and exclude trailers for any Go module host."""
@@ -267,6 +303,8 @@ class MergeTests(TemporaryTests):
                 "complete": True,
                 "run_id": os.environ.get("GITHUB_RUN_ID", ""),
                 "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+                "expected_packages": ["./internal/one"],
+                "completed_packages": ["./internal/one"],
             },
         )
 
@@ -347,18 +385,135 @@ class MergeTests(TemporaryTests):
         self.write("jobs.json", [job()])
         self.assertFalse(self.aggregate()[2]["complete"])
 
+    def test_unrelated_missing_artifact_keeps_verified_package_passes(self):
+        """A missing shard must not erase the verified recovery in another shard."""
+        self.artifact_files()
+        self.write("jobs.json", [job("success", "success"), job()])
+        _, _, status = self.aggregate()
+        self.assertFalse(status["complete"])
+        self.assertEqual(
+            status.get("verified_passes"),
+            [{"package": "./internal/one", "test_name": "TestSame"}],
+        )
+
+    def test_corrupt_failure_array_cannot_prove_a_package_recovered(self):
+        """The matching failure evidence must be readable before a pass is eligible."""
+        self.artifact_files()
+        (self.artifact / "test-failures.json").write_text("{", encoding="utf-8")
+        self.assertEqual(self.aggregate()[2].get("verified_passes", []), [])
+
+    def test_stale_artifact_cannot_supply_verified_passes(self):
+        """A previous run attempt cannot resolve a current incident."""
+        self.artifact_files()
+        with patch.dict(os.environ, {"GITHUB_RUN_ID": "new", "GITHUB_RUN_ATTEMPT": "2"}):
+            self.assertEqual(self.aggregate()[2].get("verified_passes", []), [])
+
+    def test_stale_failure_does_not_override_a_current_verified_pass(self):
+        """Known foreign outcomes cannot create incidents or suppress current recoveries."""
+        self.artifact_files()
+        stale = Path("artifacts/test-results-stale")
+        self.write(stale / "test-failures.json", [result(context="old attempt failure")])
+        self.write(stale / "test-successes.json", [])
+        for provenance in (
+            {"schema_version": 1, "run_id": "1", "run_attempt": "old"},
+            {"schema_version": 0, "run_id": "old", "run_attempt": "1"},
+            {"schema_version": 1, "run_attempt": "old"},
+        ):
+            with self.subTest(provenance=provenance):
+                self.write(
+                    stale / "test-run.json",
+                    {
+                        **provenance,
+                        "complete": True,
+                        "expected_packages": ["./internal/one"],
+                        "completed_packages": ["./internal/one"],
+                    },
+                )
+                failures, _, status = self.aggregate()
+                self.assertEqual(failures, [])
+                self.assertEqual(
+                    status["verified_passes"],
+                    [{"package": "./internal/one", "test_name": "TestSame"}],
+                )
+
+    def test_malformed_inventory_cannot_authorize_recovery(self):
+        """A partially parsed jobs response must not become verification evidence."""
+        self.artifact_files()
+        for inventory in ([42], [{"steps": None}], [{"steps": [None]}]):
+            with self.subTest(inventory=inventory):
+                self.write("jobs.json", inventory)
+                self.assertEqual(self.aggregate()[2]["verified_passes"], [])
+
+    def test_missing_or_corrupt_manifest_cannot_prove_recovery(self):
+        """Readable outcome files do not substitute for their execution manifest."""
+        for manifest in (None, "{", "[]", "null"):
+            with self.subTest(manifest=manifest):
+                self.artifact_files()
+                path = self.artifact / "test-run.json"
+                if manifest is None:
+                    path.unlink()
+                else:
+                    path.write_text(manifest, encoding="utf-8")
+                self.assertEqual(self.aggregate()[2]["verified_passes"], [])
+
+    def test_missing_current_attempt_provenance_cannot_prove_recovery(self):
+        """Manual runs must explicitly identify the workflow attempt they are reconciling."""
+        self.artifact_files()
+        with patch.dict(os.environ, {"GITHUB_RUN_ID": "", "GITHUB_RUN_ATTEMPT": ""}):
+            self.assertEqual(self.aggregate()[2]["verified_passes"], [])
+
+    def test_completed_package_in_an_interrupted_artifact_can_prove_recovery(self):
+        """Completion evidence is scoped to each package rather than the whole shard."""
+        self.artifact_files()
+        manifest = json.loads((self.artifact / "test-run.json").read_text(encoding="utf-8"))
+        manifest.update(complete=False, expected_packages=["./internal/one", "./internal/two"])
+        self.write(self.artifact / "test-run.json", manifest)
+        _, _, status = self.aggregate()
+        self.assertFalse(status["complete"])
+        self.assertEqual(
+            status["verified_passes"], [{"package": "./internal/one", "test_name": "TestSame"}]
+        )
+
+    def test_out_of_scope_results_cannot_prove_recovery(self):
+        """A corrupt artifact cannot validate its other entries by mixing execution scopes."""
+        self.artifact_files()
+        self.write(self.artifact / "test-successes.json", [result(), result(package="./outside")])
+        self.assertEqual(self.aggregate()[2]["verified_passes"], [])
+
+    def test_artifact_for_an_unexecuted_job_cannot_prove_recovery(self):
+        """A credential skip does not provide execution evidence for a stray artifact."""
+        self.artifact_files()
+        self.write("jobs.json", [job("success", "skipped")])
+        self.assertEqual(self.aggregate()[2]["verified_passes"], [])
+
 
 class IssueTests(TemporaryTests):
     """Exercise issue behavior."""
 
-    def process(self, failures, successes, open_issues, complete=True):
+    def process(self, failures, successes, open_issues, complete=True, verified_passes=None):
         """Process."""
         self.write("failures.json", failures)
         self.write("successes.json", successes)
-        self.write("status.json", {"complete": complete})
+        self.write(
+            "status.json",
+            {
+                "schema_version": 2,
+                "run_id": "1",
+                "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT", ""),
+                "complete": complete,
+                "verified_passes": (
+                    [
+                        {"package": item["package"], "test_name": item["test_name"]}
+                        for item in successes
+                    ]
+                    if complete and verified_passes is None
+                    else verified_passes
+                ),
+            },
+        )
         with (
             patch.object(issues, "get_all_open_test_issues", return_value=open_issues),
-            patch.object(issues, "run_gh_command", return_value="url") as gh,
+            patch.object(issues, "run_gh_command", side_effect=github_response) as gh,
             patch.object(issues.time, "sleep"),
         ):
             issues.process_test_failures(
@@ -375,11 +530,135 @@ class IssueTests(TemporaryTests):
         )
         self.assertEqual([c[2] for c in calls if c[:2] == ["issue", "close"]], ["1"])
 
+    def test_verified_recovery_closes_when_unrelated_job_is_incomplete(self):
+        """Resolve only the proven package/test despite an unrelated interrupted job."""
+        calls = self.process(
+            [],
+            [result()],
+            [issue(1), issue(2, package="./internal/unrun")],
+            complete=False,
+            verified_passes=[{"package": "./internal/one", "test_name": "TestSame"}],
+        )
+        self.assertEqual([c[2] for c in calls if c[:2] == ["issue", "close"]], ["1"])
+
+    def test_older_passing_run_does_not_close_a_newer_incident(self):
+        """A more recent failure or issue update takes precedence over an older run."""
+        newer = issue()
+        newer["updatedAt"] = "2027-01-01T00:00:00Z"
+        calls = self.process([], [result()], [newer])
+        self.assertFalse(any(call[:2] == ["issue", "close"] for call in calls))
+
+    def test_unavailable_or_mismatched_run_freshness_never_closes(self):
+        """API errors, missing timestamps and another attempt must all fail closed."""
+        for response in (
+            subprocess.CalledProcessError(1, "gh"),
+            OSError("GitHub CLI unavailable"),
+            {"id": 1, "run_attempt": 2, "run_started_at": "2026-11-12T00:00:00Z"},
+            {"id": 2, "run_attempt": 1, "run_started_at": "2026-11-12T00:00:00Z"},
+            {"id": 1, "run_attempt": 1},
+            {"id": 1, "run_attempt": 1, "run_started_at": "invalid"},
+        ):
+            with self.subTest(response=response):
+
+                def respond(_args, fixture=response):
+                    if isinstance(fixture, Exception):
+                        raise fixture
+                    return json.dumps(fixture)
+
+                with patch(f"{__name__}.github_response", side_effect=respond):
+                    calls = self.process([], [result()], [issue()])
+                self.assertFalse(any(call[0] == "issue" for call in calls))
+
+    def test_issue_updated_during_reconciliation_stays_open(self):
+        """Recheck the issue immediately before closing after the initial list response."""
+        original_response = github_response
+
+        def respond(args):
+            if args[:2] == ["issue", "view"]:
+                return "2026-11-12T00:01:00Z"
+            return original_response(args)
+
+        with patch(f"{__name__}.github_response", side_effect=respond):
+            calls = self.process([], [result()], [issue()])
+        self.assertTrue(any(call[:2] == ["issue", "view"] for call in calls))
+        self.assertFalse(any(call[:2] == ["issue", "close"] for call in calls))
+
+    def test_issue_freshness_api_failure_stays_open(self):
+        """A successful run lookup cannot replace the final issue freshness check."""
+        original_response = github_response
+
+        def respond(args):
+            if args[:2] == ["issue", "view"]:
+                raise subprocess.CalledProcessError(1, "gh")
+            return original_response(args)
+
+        with patch(f"{__name__}.github_response", side_effect=respond):
+            calls = self.process([], [result()], [issue()])
+        self.assertFalse(any(call[:2] == ["issue", "close"] for call in calls))
+
     def test_legacy_title_without_package_is_not_closed(self):
         """Verify legacy title without package is not closed."""
         self.assertEqual(
             self.process([], [result()], [{"number": 1, "title": "Bug: TestSame Failing"}]), []
         )
+
+    def test_legacy_body_with_exact_package_and_test_can_resolve(self):
+        """Old incidents with explicit package/test fields need no age-based workaround."""
+        legacy = issue()
+        legacy["body"] = "**Test:** `TestSame`\n**Package:** `./internal/one`<br>\n"
+        calls = self.process([], [result()], [legacy])
+        self.assertEqual([call[2] for call in calls if call[:2] == ["issue", "close"]], ["1"])
+
+    def test_ambiguous_legacy_or_corrupt_structured_identity_stays_open(self):
+        """Duplicate body fields and malformed explicit identities cannot match a pass."""
+        for body in (
+            "**Test:** `TestSame`\n**Package:** `./internal/one`\n**Package:** `./other`\n",
+            (
+                "<!-- acceptance-test: invalid -->\n**Test:** `TestSame`\n**Package:**"
+                " `./internal/one`"
+            ),
+            "<!-- acceptance-test: incomplete\n**Test:** `TestSame`\n**Package:** `./internal/one`",
+            issue()["body"] + "\n" + issue(package="./other")["body"],
+        ):
+            with self.subTest(body=body):
+                incident = issue()
+                incident["body"] = body
+                self.assertEqual(self.process([], [result()], [incident]), [])
+
+    def test_intermittent_failure_then_verified_pass_resolves_the_incident(self):
+        """A real later pass closes the prior failure without creating another issue."""
+        incident = issue(7)
+        original_response = github_response
+
+        def respond(args):
+            if args[:3] == ["issue", "comment", "7"]:
+                incident["updatedAt"] = "2026-11-12T00:01:00Z"
+            if args[0] == "api":
+                attempt = int(os.environ["GITHUB_RUN_ATTEMPT"])
+                return json.dumps(
+                    {"id": 1, "run_attempt": attempt, "run_started_at": "2026-11-12T00:02:00Z"}
+                )
+            if args[:2] == ["issue", "view"]:
+                return incident["updatedAt"]
+            if args[:3] == ["issue", "close", "7"]:
+                incident["state"] = "CLOSED"
+            return original_response(args)
+
+        with patch(f"{__name__}.github_response", side_effect=respond):
+            failed_calls = self.process([result(context="intermittent failure")], [], [incident])
+            with patch.dict(os.environ, {"GITHUB_RUN_ATTEMPT": "2"}):
+                passed_calls = self.process([], [result()], [incident])
+        self.assertTrue(any(call[:3] == ["issue", "comment", "7"] for call in failed_calls))
+        self.assertFalse(any(call[:2] == ["issue", "close"] for call in failed_calls))
+        self.assertTrue(any(call[:3] == ["issue", "close", "7"] for call in passed_calls))
+        self.assertFalse(any(call[:2] == ["issue", "create"] for call in passed_calls))
+        self.assertEqual(incident["state"], "CLOSED")
+        self.assertTrue(any("/attempts/2" in call[1] for call in passed_calls if call[0] == "api"))
+
+    def test_missing_selected_attempt_cannot_close(self):
+        """A manual invocation without explicit attempt provenance performs no closure."""
+        with patch.dict(os.environ, {"GITHUB_RUN_ATTEMPT": ""}):
+            self.assertEqual(self.process([], [result()], [issue()]), [])
 
     def test_incomplete_reporting_or_package_cannot_close(self):
         """Verify incomplete reporting or package cannot close."""
@@ -417,23 +696,27 @@ class IssueTests(TemporaryTests):
 class ReportingIntegrationTests(TemporaryTests):
     """Exercise reporting integration behavior."""
 
-    def test_parser_to_aggregation_to_issue_updates(self):
-        """Verify parser to aggregation to issue updates."""
+    def parse_artifact(self, content, packages):
+        """Produce real runner artifacts before exercising aggregation and mocked issue writes."""
         artifact = Path("artifacts/test-results-example")
         artifact.mkdir(parents=True)
         previous = Path.cwd()
         os.chdir(artifact)
         try:
-            content = output("./one", "=== RUN   TestSame\n--- PASS: TestSame (0.1s)\n")
-            content += output(
-                "./two",
-                "=== RUN   TestSame\n    example_test.go:7: broken\n--- FAIL: TestSame (0.1s)\n",
-                1,
-            )
             Path("output.log").write_text(content, encoding="utf-8")
-            runner.parse_test_results("output.log", "resources", "example", ["./one", "./two"])
+            runner.parse_test_results("output.log", "resources", "example", packages)
         finally:
             os.chdir(previous)
+
+    def test_parser_to_aggregation_to_issue_updates(self):
+        """Verify parser to aggregation to issue updates."""
+        content = output("./one", "=== RUN   TestSame\n--- PASS: TestSame (0.1s)\n")
+        content += output(
+            "./two",
+            "=== RUN   TestSame\n    example_test.go:7: broken\n--- FAIL: TestSame (0.1s)\n",
+            1,
+        )
+        self.parse_artifact(content, ["./one", "./two"])
         self.write("jobs.json", [job("success", "failure"), job("success", "skipped")])
         failures, successes, status = merger.aggregate(Path("artifacts"), Path("jobs.json"))
         self.assertTrue(status["complete"], status)
@@ -445,7 +728,7 @@ class ReportingIntegrationTests(TemporaryTests):
                 "get_all_open_test_issues",
                 return_value=[issue(1, "./one"), issue(2, "./two"), issue(3, "./unrun")],
             ),
-            patch.object(issues, "run_gh_command", return_value="url") as gh,
+            patch.object(issues, "run_gh_command", side_effect=github_response) as gh,
             patch.object(issues.time, "sleep"),
         ):
             issues.process_test_failures(
@@ -454,6 +737,42 @@ class ReportingIntegrationTests(TemporaryTests):
         calls = [call.args[0] for call in gh.call_args_list]
         self.assertEqual([call[2] for call in calls if call[:2] == ["issue", "close"]], ["1"])
         self.assertEqual([call[2] for call in calls if call[:2] == ["issue", "comment"]], ["2"])
+
+    def test_mixed_package_failure_and_unrelated_missing_artifact_keeps_recovery(self):
+        """Close the recovered test despite another failure in its package and a lost shard."""
+        body = (
+            "=== RUN   TestRecovered\n--- PASS: TestRecovered (0.1s)\n"
+            "=== RUN   TestBroken\n--- FAIL: TestBroken (0.1s)\nFAIL\n"
+        )
+        self.parse_artifact(output("./one", body, 1), ["./one"])
+        self.write("jobs.json", [job("failure", "failure"), job("cancelled", "cancelled")])
+        failures, successes, status = merger.aggregate(Path("artifacts"), Path("jobs.json"))
+        self.assertFalse(status["complete"])
+        self.assertEqual(
+            status["verified_passes"], [{"package": "./one", "test_name": "TestRecovered"}]
+        )
+        for name, data in (("failures", failures), ("successes", successes), ("status", status)):
+            self.write(f"{name}.json", data)
+        with (
+            patch.object(
+                issues,
+                "get_all_open_test_issues",
+                return_value=[
+                    issue(1, "./one", "TestRecovered"),
+                    issue(2, "./one", "TestBroken"),
+                    issue(3, "./unrun"),
+                ],
+            ),
+            patch.object(issues, "run_gh_command", side_effect=github_response) as gh,
+            patch.object(issues.time, "sleep"),
+        ):
+            issues.process_test_failures(
+                "o", "r", "1", "failures.json", "successes.json", "status.json"
+            )
+        calls = [call.args[0] for call in gh.call_args_list]
+        self.assertEqual([call[2] for call in calls if call[:2] == ["issue", "close"]], ["1"])
+        self.assertEqual([call[2] for call in calls if call[:2] == ["issue", "comment"]], ["2"])
+        self.assertFalse(any(call[:2] == ["issue", "create"] for call in calls))
 
     def test_recurring_check_destroy_failure_updates_instead_of_creating(self):
         """Verify recurring check destroy failure updates instead of creating."""
@@ -471,7 +790,7 @@ class ReportingIntegrationTests(TemporaryTests):
                 patch.object(
                     issues, "get_all_open_test_issues", return_value=[issue(7, "./one", "TestAccX")]
                 ),
-                patch.object(issues, "run_gh_command", return_value="url") as gh,
+                patch.object(issues, "run_gh_command", side_effect=github_response) as gh,
                 patch.object(issues.time, "sleep"),
             ):
                 issues.process_test_failures(
