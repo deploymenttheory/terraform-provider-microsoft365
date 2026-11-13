@@ -492,7 +492,7 @@ func (r *LinuxDeviceCompliancePolicyResource) Update(ctx context.Context, req re
 //
 //   - Retrieves the current state from the delete request
 //   - Validates the state data and timeout configuration
-//   - Sends DELETE request to remove the resource from the API
+//   - Sends DELETE requests with shared retry handling for transient Graph errors
 //   - Cleans up by removing the resource from Terraform state
 //
 // All assignments and settings associated with the resource are automatically removed as part of the deletion.
@@ -512,11 +512,17 @@ func (r *LinuxDeviceCompliancePolicyResource) Delete(ctx context.Context, req re
 	}
 	defer cancel()
 
-	err := r.client.
-		DeviceManagement().
-		CompliancePolicies().
-		ByDeviceManagementCompliancePolicyId(object.ID.ValueString()).
-		Delete(ctx, nil)
+	deleteOptions := crud.DefaultDeleteWithRetryOptions()
+	deleteOptions.ResourceTypeName = ResourceName
+	deleteOptions.ResourceID = object.ID.ValueString()
+
+	err := crud.DeleteWithRetry(ctx, func(ctx context.Context) error {
+		return r.client.
+			DeviceManagement().
+			CompliancePolicies().
+			ByDeviceManagementCompliancePolicyId(object.ID.ValueString()).
+			Delete(ctx, nil)
+	}, deleteOptions)
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
