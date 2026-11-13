@@ -683,3 +683,77 @@ func TestUnitResourceWin32App_14_RejectPasswordProtectedZip(t *testing.T) {
 	require.ErrorContains(t, err, "encrypted")
 	assert.Nil(t, installer)
 }
+
+// Azure can reject a freshly issued SAS URI with 403 "SAS identifier cannot be found". Every
+// retry of that URI fails, so the upload must ask Intune for a new URI with renewUpload.
+func TestUnitResourceWin32App_15_RenewRejectedUploadURI(t *testing.T) {
+	metadata := validIntuneWinMetadata()
+	installer, err := extractIntuneWinPackage(writeIntuneWinFixture(t, metadata, map[string][]byte{
+		"IntuneWinPackage/Contents/" + metadata.FileName: []byte("payload uploaded after renewal"),
+	}))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, installer.cleanup()) })
+	encryptedContent, err := os.ReadFile(installer.encryptedFilePath)
+	require.NoError(t, err)
+
+	const appID = "existing-application-id"
+	const sasRejected = `<?xml version="1.0" encoding="utf-8"?><Error><Code>AuthenticationFailed</Code><AuthenticationErrorDetail>SAS identifier cannot be found for specified signed identifier</AuthenticationErrorDetail></Error>`
+	renewed, fileCommitted := false, false
+	var uploadedContent []byte
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+		versionPath := "/deviceAppManagement/mobileApps/" + appID + "/graph.win32LobApp/contentVersions"
+		filePath := versionPath + "/2/files/file-id"
+		switch {
+		case request.Method == http.MethodPost && request.URL.Path == versionPath:
+			require.NoError(t, json.NewEncoder(writer).Encode(map[string]any{"id": "2"}))
+		case request.Method == http.MethodPost && request.URL.Path == versionPath+"/2/files":
+			require.NoError(t, json.NewEncoder(writer).Encode(map[string]any{"id": "file-id"}))
+		case request.Method == http.MethodGet && request.URL.Path == filePath:
+			state, uri := "azureStorageUriRequestSuccess", server.URL+"/rejected?sig=test"
+			if renewed {
+				state, uri = "azureStorageUriRenewalSuccess", server.URL+"/renewed?sig=test"
+			}
+			if fileCommitted {
+				state = "commitFileSuccess"
+			}
+			require.NoError(t, json.NewEncoder(writer).Encode(map[string]any{"id": "file-id", "uploadState": state, "azureStorageUri": uri}))
+		case request.Method == http.MethodPost && request.URL.Path == filePath+"/renewUpload":
+			renewed = true
+			writer.WriteHeader(http.StatusNoContent)
+		case request.Method == http.MethodPut && request.URL.Path == "/rejected":
+			writer.Header().Set("Content-Type", "application/xml")
+			writer.WriteHeader(http.StatusForbidden)
+			_, _ = writer.Write([]byte(sasRejected))
+		case request.Method == http.MethodPut && request.URL.Path == "/renewed":
+			if request.URL.Query().Get("comp") == "block" {
+				uploadedContent, err = io.ReadAll(request.Body)
+				require.NoError(t, err)
+			}
+			writer.WriteHeader(http.StatusCreated)
+		case request.Method == http.MethodPost && request.URL.Path == filePath+"/commit":
+			fileCommitted = true
+			writer.WriteHeader(http.StatusNoContent)
+		case request.Method == http.MethodPatch && request.URL.Path == "/deviceAppManagement/mobileApps/"+appID:
+			require.NoError(t, json.NewEncoder(writer).Encode(map[string]any{"@odata.type": "#microsoft.graph.win32LobApp", "id": appID}))
+		default:
+			t.Errorf("unexpected Graph operation: %s %s", request.Method, request.URL.Path)
+			writer.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	adapter, err := kiotahttp.NewNetHttpRequestAdapter(&authentication.AnonymousAuthenticationProvider{})
+	require.NoError(t, err)
+	adapter.SetBaseUrl(server.URL)
+	resourceUnderTest := &Win32LobAppResource{client: msgraphbetasdk.NewGraphServiceClient(adapter)}
+	response := &resource.UpdateResponse{}
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
+
+	assert.True(t, resourceUnderTest.publishContentVersion(ctx, appID, installer, response, constants.TfOperationUpdate))
+	assert.False(t, response.Diagnostics.HasError(), "%v", response.Diagnostics)
+	assert.True(t, renewed, "the rejected SAS URI must be renewed")
+	assert.Equal(t, encryptedContent, uploadedContent)
+}
