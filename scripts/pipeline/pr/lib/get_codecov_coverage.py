@@ -99,6 +99,13 @@ def _execute_request(request: urllib.request.Request, timeout: int = 30) -> Dict
 # ============================================================================
 
 
+def fetch_commit_report(repo_slug, commit, token=None):
+    """Fetch the exact-head file report when Codecov has not computed PR diff totals."""
+    owner, repo = _parse_repo_slug(repo_slug)
+    url = f"https://api.codecov.io/api/v2/github/{owner}/repos/{repo}/commits/{commit}/"
+    return _execute_request(_build_request(url, token))
+
+
 def _parse_coverage_response(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Extract patch coverage statistics from Codecov API response.
 
