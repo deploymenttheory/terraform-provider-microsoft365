@@ -130,10 +130,13 @@ formatters:
     - gofumpt     # strict Go formatting (superset of gofmt)
     - goimports   # fixes imports (add/remove/sort)
     - gci         # groups & sorts import blocks
-    - golines     # wraps long lines to a max length (e.g. 120 chars)
+    - golines     # wraps long lines to a max length (see settings.golines.max-len)
 
   # Per‐formatter settings (optional—only if you need to tweak defaults)
   settings:
+    golines:
+      # Maximum line length before golines reports a formatting issue (default 100).
+      max-len: 180
     gci:
       # customize your import sections order: standard, external, project
       sections:
