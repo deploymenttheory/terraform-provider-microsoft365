@@ -128,6 +128,11 @@ func (m *MacosDeviceConfigurationTemplatesMock) RegisterMocks() {
 		if description, ok := requestBody["description"]; ok {
 			responseObj["description"] = description
 		}
+		for _, field := range []string{"payload", "configurationXml"} {
+			if value, ok := requestBody[field]; ok {
+				responseObj[field] = value
+			}
+		}
 
 		// Store in mock state
 		mockState.Lock()

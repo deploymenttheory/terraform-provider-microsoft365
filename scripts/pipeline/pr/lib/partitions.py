@@ -1,12 +1,15 @@
 """Partition Go jobs using the acceptance pipeline's bounded Rendezvous sharder."""
 
+import ast
 import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "bi_weekly_tests"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 # Direct script execution requires sibling search paths before these imports.
 # pylint: disable=wrong-import-position
+from generate_test_factories import without_comments
 from generate_test_matrix import RENDEZVOUS_SEED, calculate_shard_count, distribute_rendezvous
 
 # pylint: enable=wrong-import-position
@@ -14,12 +17,32 @@ from generate_test_matrix import RENDEZVOUS_SEED, calculate_shard_count, distrib
 MODULE = "github.com/deploymenttheory/terraform-provider-microsoft365"
 
 
+def _go_import_paths(source):
+    """Read Go import literals after removing comments without joining adjacent tokens."""
+    literal = r'"(?:\\.|[^"\\\n])*"|`[^`]*`'
+    block = rf'\((?:{literal}|[^()"`])*\)'
+    declarations = re.finditer(
+        rf"(?:{literal})|\bimport\s*(?P<imports>{block}|(?:(?:\w+|\.)\s*)?(?:{literal}))",
+        without_comments(source),
+    )
+    for match in declarations:
+        declaration = match.group("imports")
+        if declaration is None:
+            continue
+        for value in re.findall(literal, declaration):
+            try:
+                yield value[1:-1].replace("\r", "") if value[0] == "`" else ast.literal_eval(value)
+            except (ValueError, SyntaxError) as error:
+                raise ValueError("Cannot verify a Go import literal") from error
+
+
 def _local_import_graph(root):
     """Read production and test imports without executing or compiling the provider."""
     imports = {}
     test_imports = {}
     tests = set()
-    for directory in sorted({path.parent for path in (root / "internal").rglob("*.go")}):
+    source_files = list(root.glob("*.go")) + list((root / "internal").rglob("*.go"))
+    for directory in sorted({path.parent for path in source_files}):
         package = directory.relative_to(root).as_posix()
         sources = list(directory.glob("*.go"))
         if any(path.name.endswith("_test.go") for path in sources):
@@ -28,14 +51,45 @@ def _local_import_graph(root):
         test_imports[package] = set()
         for path in sources:
             source = path.read_text(encoding="utf-8")
-            for declaration in re.findall(
-                r'\bimport\s*(\([\s\S]*?\)|(?:\w+\s+)?"[^"\n]+")', source
-            ):
-                target = test_imports if path.name.endswith("_test.go") else imports
-                target[package].update(
-                    re.findall('"' + re.escape(MODULE) + r'/([^"\n]+)"', declaration)
-                )
+            target = test_imports if path.name.endswith("_test.go") else imports
+            target[package].update(
+                "." if name == MODULE else name.removeprefix(MODULE + "/")
+                for name in _go_import_paths(source)
+                if name == MODULE or name.startswith(MODULE + "/")
+            )
     return imports, test_imports, tests
+
+
+def production_import_closure(root=Path(".")):
+    """Prove which local packages are reachable from the provider's runtime entry points."""
+    root = root.resolve()
+    module = (root / "go.mod").read_text(encoding="utf-8")
+    if not re.search(r"(?m)^module\s+" + re.escape(MODULE) + r"\s*$", module):
+        raise ValueError("Cannot verify the provider module identity")
+    if not (root / "main.go").is_file():
+        raise ValueError("Provider main entry point is missing")
+    if not any(
+        not path.name.endswith("_test.go") for path in (root / "internal/provider").glob("*.go")
+    ):
+        raise ValueError("Provider runtime registry is missing")
+    for target in re.findall(r'=>\s*("[^"\n]+"|\S+)', without_comments(module)):
+        target = target.strip('"')
+        if (target.startswith((".", "/", "\\")) or Path(target).is_absolute()) and (
+            root / target
+        ).resolve().is_relative_to(root):
+            raise ValueError("Cannot verify local module replacements inside the provider tree")
+    imports, _, _ = _local_import_graph(root)
+    pending = [".", "internal/provider"]
+    reachable = set()
+    while pending:
+        package = pending.pop()
+        if package in reachable:
+            continue
+        if package not in imports:
+            raise ValueError(f"Missing runtime package import evidence: {package}")
+        reachable.add(package)
+        pending.extend(imports[package] - reachable)
+    return reachable
 
 
 def affected_test_packages(changed, root=Path("."), production_changed=None):
