@@ -1,6 +1,7 @@
 package graphBetaGroupPolicyDefinition_test
 
 import (
+	"regexp"
 	"testing"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaGroupPolicyConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_configuration"
 	graphBetaGroupPolicyDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_definition"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
@@ -434,8 +436,62 @@ func TestAccResourceGroupPolicyDefinition_07_Lifecycle_TypeTransitions(t *testin
 	})
 }
 
-// Test 008: Error Scenarios - placeholder for error validation tests
-// TODO: Implement error scenario tests
+// Test 008: Error Scenarios - validate errors against the live policy catalog
 func TestAccResourceGroupPolicyDefinition_08_ErrorScenarios(t *testing.T) {
-	t.Skip("Error scenario tests not yet implemented")
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			graphBetaGroupPolicyConfiguration.GroupPolicyConfigurationTestResource{},
+			graphBetaGroupPolicyConfiguration.ResourceName,
+			30*time.Second,
+		),
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaGroupPolicyDefinition.ResourceName, "Creating parent configuration for error scenarios")
+				},
+				Config: loadAcceptanceTestTerraform("008_error_parent.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaGroupPolicyConfiguration.ResourceName + ".test_008").Key("id").Exists(),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaGroupPolicyDefinition.ResourceName, "Rejecting a policy missing from the live catalog")
+				},
+				Config:      loadAcceptanceTestTerraform("008_error_policy_not_found.tf"),
+				ExpectError: regexp.MustCompile(`no\s+group\s+policy\s+definition\s+found`),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaGroupPolicyDefinition.ResourceName, "Rejecting a label missing from the live policy")
+				},
+				Config:      loadAcceptanceTestTerraform("008_error_invalid_label.tf"),
+				ExpectError: regexp.MustCompile(`label\s+not\s+found`),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaGroupPolicyDefinition.ResourceName, "Rejecting a non-boolean checkbox value")
+				},
+				Config:      loadAcceptanceTestTerraform("008_error_invalid_boolean.tf"),
+				ExpectError: regexp.MustCompile(`requires\s+a\s+boolean\s+value`),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(graphBetaGroupPolicyDefinition.ResourceName, "Verifying the parent remains managed after validation failures")
+				},
+				Config: loadAcceptanceTestTerraform("008_error_parent.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(graphBetaGroupPolicyConfiguration.ResourceName + ".test_008").Key("id").Exists(),
+				),
+			},
+		},
+	})
 }
