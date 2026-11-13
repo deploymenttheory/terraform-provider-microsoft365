@@ -51,6 +51,20 @@ func (r *WindowsBiosConfigurationsAndOtherSettingsTemplateResource) Create(
 		return
 	}
 
+	requestAssignment, err := constructAssignment(ctx, &object)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for create method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	if err := r.orderAssignmentsByFilterCreationTime(ctx, requestAssignment); err != nil {
+		resp.Diagnostics.AddError("Error ordering assignments", err.Error())
+		return
+	}
+
 	requestResource, err := r.client.
 		DeviceManagement().
 		HardwareConfigurations().
@@ -67,15 +81,6 @@ func (r *WindowsBiosConfigurationsAndOtherSettingsTemplateResource) Create(
 	}
 
 	object.ID = types.StringValue(*requestResource.GetId())
-
-	requestAssignment, err := constructAssignment(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for create method",
-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
 
 	_, err = r.client.
 		DeviceManagement().
@@ -243,6 +248,21 @@ func (r *WindowsBiosConfigurationsAndOtherSettingsTemplateResource) Update(
 		return
 	}
 
+	// Always handle assignments - either update with new assignments or remove all assignments if nil
+	requestAssignment, err := constructAssignment(ctx, &plan)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error constructing assignment for update method",
+			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
+		)
+		return
+	}
+
+	if err := r.orderAssignmentsByFilterCreationTime(ctx, requestAssignment); err != nil {
+		resp.Diagnostics.AddError("Error ordering assignments", err.Error())
+		return
+	}
+
 	_, err = r.client.
 		DeviceManagement().
 		HardwareConfigurations().
@@ -255,16 +275,6 @@ func (r *WindowsBiosConfigurationsAndOtherSettingsTemplateResource) Update(
 			resp,
 			constants.TfOperationUpdate,
 			r.WritePermissions,
-		)
-		return
-	}
-
-	// Always handle assignments - either update with new assignments or remove all assignments if nil
-	requestAssignment, err := constructAssignment(ctx, &plan)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing assignment for update method",
-			fmt.Sprintf("Could not construct assignment: %s: %s", ResourceName, err.Error()),
 		)
 		return
 	}

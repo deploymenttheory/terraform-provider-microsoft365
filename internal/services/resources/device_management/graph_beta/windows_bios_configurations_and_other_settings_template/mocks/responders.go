@@ -80,6 +80,20 @@ func (m *WindowsBiosConfigurationsAndOtherSettingsTemplateMock) RegisterMocks() 
 	mockState.hardwareConfigurations = make(map[string]map[string]any)
 	mockState.Unlock()
 
+	for filterID, created := range map[string]string{
+		"44444444-4444-4444-4444-444444444444": "2026-01-02T00:00:00Z",
+		"55555555-5555-5555-5555-555555555555": "2026-01-01T00:00:00Z",
+	} {
+		httpmock.RegisterResponder("GET",
+			"https://graph.microsoft.com/beta/deviceManagement/assignmentFilters/"+filterID,
+			func(_ *http.Request) (*http.Response, error) {
+				return httpmock.NewJsonResponse(200, map[string]string{
+					"id": filterID, "createdDateTime": created,
+				})
+			},
+		)
+	}
+
 	httpmock.RegisterResponder("GET", collectionURL,
 		func(req *http.Request) (*http.Response, error) {
 			mockState.Lock()
@@ -215,6 +229,27 @@ func (m *WindowsBiosConfigurationsAndOtherSettingsTemplateMock) RegisterMocks() 
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
 				return fixtureResponse(400, errorFixture)
+			}
+
+			// The live hardware endpoint validates distinct filters in creation order.
+			var lastFilter string
+			for _, value := range sliceValue(body, "hardwareConfigurationAssignments") {
+				assignment, _ := value.(map[string]any)
+				target, _ := assignment["target"].(map[string]any)
+				filterID, _ := target["deviceAndAppManagementAssignmentFilterId"].(string)
+				if filterID == "55555555-5555-5555-5555-555555555555" &&
+					lastFilter == "44444444-4444-4444-4444-444444444444" {
+					return httpmock.NewJsonResponse(400, map[string]any{
+						"error": map[string]string{
+							"code":    "BadRequest",
+							"message": "Scope Tags validation failed: filters are not in creation order",
+						},
+					})
+				}
+				if filterID == "44444444-4444-4444-4444-444444444444" ||
+					filterID == "55555555-5555-5555-5555-555555555555" {
+					lastFilter = filterID
+				}
 			}
 
 			mockState.Lock()

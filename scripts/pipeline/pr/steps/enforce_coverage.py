@@ -14,9 +14,11 @@ Exit codes:
 """
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+import urllib.error
 from pathlib import Path
 
 import yaml
@@ -28,10 +30,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # pylint: disable=wrong-import-position
 from lib.common import load_pr_checks_config  # noqa: E402
 from lib.coverage import check_coverage_threshold  # noqa: E402
-from lib.get_codecov_coverage import fetch_codecov_coverage  # noqa: E402
+from lib.get_codecov_coverage import fetch_codecov_coverage, fetch_commit_report  # noqa: E402
 from lib.git_operations import get_changed_files  # noqa: E402
 from lib.github import write_output  # noqa: E402
 from lib.partitions import production_import_closure  # noqa: E402
+from lib.patch_lines import added_go_lines, measure_patch  # noqa: E402
 
 # pylint: enable=wrong-import-position
 
@@ -69,14 +72,37 @@ def _verify_test_only_changes(base_ref):
     ]
     try:
         if runtime_candidates and not _verify_unreachable_mocks(runtime_candidates):
-            print(
-                "❌ ERROR: Production Go files changed but Codecov has no executable patch coverage"
-            )
+            print("ℹ️ Production Go files changed; verifying exact-head executable line coverage")
             return False
     except (OSError, ValueError, yaml.YAMLError) as error:
         print(f"❌ ERROR: Cannot verify test-only mock packages: {error}")
         return False
     return True
+
+
+def _recover_patch_coverage(args):
+    """Use exact-head executable line data and the real PR diff when aggregate totals are empty."""
+    try:
+        added = added_go_lines(args.base_ref, args.commit_sha)
+        mocks = [name for name in added if "mocks" in Path(name).parts[:-1]]
+        if mocks and not _verify_unreachable_mocks(mocks):
+            raise ValueError("Cannot verify changed mocks are excluded from runtime")
+        runtime = {name: lines for name, lines in added.items() if name not in mocks}
+        report = fetch_commit_report(args.repo_slug, args.commit_sha, args.codecov_token)
+        stats = measure_patch(report, runtime, args.commit_sha)
+        print("📊 Reconstructed PR patch coverage from exact-head Codecov executable lines")
+        return stats
+    except (
+        OSError,
+        ValueError,
+        TypeError,
+        subprocess.CalledProcessError,
+        urllib.error.URLError,
+        json.JSONDecodeError,
+        yaml.YAMLError,
+    ) as error:
+        print(f"❌ ERROR: Cannot verify PR executable line coverage: {error}")
+        return None
 
 
 def main():
@@ -119,7 +145,10 @@ def main():
 
     no_executable_changes = stats.get("no_executable_changes", False)
     if no_executable_changes and not _verify_test_only_changes(args.base_ref):
-        return 1
+        stats = _recover_patch_coverage(args)
+        if stats is None:
+            return 1
+        no_executable_changes = stats.get("no_executable_changes", False)
     coverage_pct = "N/A" if no_executable_changes else stats["coverage_pct"]
 
     print(f"\n{'='*60}")
