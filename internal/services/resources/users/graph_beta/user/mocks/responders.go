@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -135,6 +136,9 @@ func (m *UserMock) RegisterMocks() {
 				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
 				return httpmock.NewStringResponse(400, errorResp), nil
 			}
+			if resp := nullCollectionResponse(userData); resp != nil {
+				return resp, nil
+			}
 
 			// Determine which fixture to use based on displayName
 			var fixtureData map[string]any
@@ -230,6 +234,9 @@ func (m *UserMock) RegisterMocks() {
 			if err != nil {
 				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
 				return httpmock.NewStringResponse(400, errorResp), nil
+			}
+			if resp := nullCollectionResponse(updateData); resp != nil {
+				return resp, nil
 			}
 
 			// Determine fixture to use based on displayName in update
@@ -454,6 +461,18 @@ func loadFixture(filename string) (map[string]any, error) {
 	}
 
 	return result, nil
+}
+
+// nullCollectionResponse mirrors Graph, which rejects null for these non-nullable string collections.
+func nullCollectionResponse(body map[string]any) *http.Response {
+	for _, field := range []string{"businessPhones", "otherMails", "proxyAddresses"} {
+		if value, ok := body[field]; ok && value == nil {
+			message := fmt.Sprintf("A null value was found for the property named '%s', which has the expected type 'Collection(Edm.String)[Nullable=False]'. The expected type 'Collection(Edm.String)[Nullable=False]' does not allow null values.", field)
+			resp, _ := httpmock.NewJsonResponse(400, map[string]any{"error": map[string]any{"code": "Request_BadRequest", "message": message}})
+			return resp
+		}
+	}
+	return nil
 }
 
 // registerTestUsers registers predefined test users from JSON fixtures
