@@ -408,19 +408,19 @@ func constructLocations(ctx context.Context, data *ConditionalAccessLocations) (
 func constructDevices(ctx context.Context, data *ConditionalAccessDevices) (graphmodels.ConditionalAccessDevicesable, error) {
 	devices := graphmodels.NewConditionalAccessDevices()
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeDevices, devices.SetIncludeDevices); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.IncludeDevices, devices.SetIncludeDevices); err != nil {
 		return nil, fmt.Errorf("failed to convert include devices: %w", err)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeDevices, devices.SetExcludeDevices); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.ExcludeDevices, devices.SetExcludeDevices); err != nil {
 		return nil, fmt.Errorf("failed to convert exclude devices: %w", err)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.IncludeDeviceStates, devices.SetIncludeDeviceStates); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.IncludeDeviceStates, devices.SetIncludeDeviceStates); err != nil {
 		return nil, fmt.Errorf("failed to convert include device states: %w", err)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.ExcludeDeviceStates, devices.SetExcludeDeviceStates); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.ExcludeDeviceStates, devices.SetExcludeDeviceStates); err != nil {
 		return nil, fmt.Errorf("failed to convert exclude device states: %w", err)
 	}
 

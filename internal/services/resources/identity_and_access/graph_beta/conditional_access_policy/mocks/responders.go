@@ -58,6 +58,24 @@ func getJSONFileForDisplayName(displayName string) string {
 	return fmt.Sprintf("post_conditional_access_policy_%s_success.json", policyPrefix)
 }
 
+var deviceListFields = []string{"includeDevices", "excludeDevices", "includeDeviceStates", "excludeDeviceStates"}
+
+const malformedMessage = "The server could not process the request because it is malformed or incorrect."
+
+// nullDeviceListResponse mirrors Graph, which rejects a policy whose device lists are null.
+func nullDeviceListResponse(request map[string]any) *http.Response {
+	conditions, _ := request["conditions"].(map[string]any)
+	devices, _ := conditions["devices"].(map[string]any)
+	for _, field := range deviceListFields {
+		if value, ok := devices[field]; ok && value == nil {
+			graphError := map[string]any{"code": "BadRequest", "message": malformedMessage}
+			resp, _ := httpmock.NewJsonResponse(400, map[string]any{"error": graphError})
+			return resp
+		}
+	}
+	return nil
+}
+
 // deduplicateArraysInResponse recursively deduplicates arrays in a map to match Terraform's Set behavior
 func deduplicateArraysInResponse(obj map[string]any) {
 	for key, value := range obj {
@@ -125,6 +143,9 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
 		}
+		if resp := nullDeviceListResponse(requestBody); resp != nil {
+			return resp, nil
+		}
 
 		// Determine which JSON file to load based on displayName
 		displayName, ok := requestBody["displayName"].(string)
@@ -190,6 +211,9 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 		var requestBody map[string]any
 		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid request body"}}`), nil
+		}
+		if resp := nullDeviceListResponse(requestBody); resp != nil {
+			return resp, nil
 		}
 
 		mockState.Lock()
