@@ -1,0 +1,94 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Lifecycle workflows documentation](https://learn.microsoft.com/en-us/entra/id-governance/what-are-lifecycle-workflows)
+- [workflow resource type](https://learn.microsoft.com/en-us/graph/api/resources/identitygovernance-workflow?view=graph-rest-beta)
+- [Create workflow](https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecycleworkflowscontainer-post-workflows?view=graph-rest-beta)
+- [Get workflow](https://learn.microsoft.com/en-us/graph/api/identitygovernance-workflow-get?view=graph-rest-beta)
+- [Update workflow](https://learn.microsoft.com/en-us/graph/api/identitygovernance-workflow-update?view=graph-rest-beta)
+- [workflow: createNewVersion](https://learn.microsoft.com/en-us/graph/api/identitygovernance-workflow-createnewversion?view=graph-rest-beta)
+- [Delete workflow](https://learn.microsoft.com/en-us/graph/api/identitygovernance-workflow-delete?view=graph-rest-beta)
+- [Permanently delete a deleted workflow](https://learn.microsoft.com/en-us/graph/api/identitygovernance-deleteditemcontainer-delete?view=graph-rest-beta)
+- [Lifecycle workflow built-in tasks](https://learn.microsoft.com/en-us/entra/id-governance/lifecycle-workflow-tasks)
+- [List taskDefinitions](https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecycleworkflowscontainer-list-taskdefinitions?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `LifecycleWorkflows-Workflow.Read.All`
+- `LifecycleWorkflows-Workflow.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+`LifecycleWorkflows-Workflow.ReadBasic.All` is listed as the least privileged read permission in Graph metadata, but it only allows listing workflows; reading a workflow's tasks needs `LifecycleWorkflows-Workflow.Read.All`.
+
+Lifecycle workflows require a Microsoft Entra ID Governance license in the tenant.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Preview | Initial release |
+
+## Example Usage
+
+### Joiner: pre-hire onboarding
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow/resource_joiner_pre_hire.tf" }}
+
+### Mover: attribute change
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow/resource_mover_attribute_change.tf" }}
+
+### Mover: group membership change
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow/resource_mover_group_membership.tf" }}
+
+### Leaver: last day
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow/resource_leaver_last_day.tf" }}
+
+### On-demand workflow
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow/resource_on_demand_minimal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Updates and versions
+- `display_name`, `description`, `is_enabled` and `is_scheduling_enabled` are updated with `PATCH`. The workflow version does not change.
+- Changing `category`, `execution_conditions` or `tasks` calls `createNewVersion`. The workflow keeps its ID, `version` increases by one and Graph assigns new task IDs. The resource is never replaced.
+
+### Execution conditions
+- Set `on_demand_execution_only = true` for a workflow that only runs when started on demand. `scope` and `trigger` must then be omitted.
+- Otherwise set both `scope` and `trigger`. `scope` takes either a `rule` (for example `(department eq 'Marketing')`) or `group_ids`.
+- `attribute_change` accepts a single attribute; Graph rejects more than one trigger attribute.
+- `membership_change` requires `scope.group_ids`.
+
+### Tasks
+- Tasks run in list order; `execution_sequence` is set from the position in `tasks`.
+- `task_definition_id` must be a built-in task definition. Custom task extensions are not supported by this resource.
+- Arguments must match the task definition's parameters. Graph validates argument values, for example user or group IDs must exist.
+
+### Deletion
+- Destroy deletes the workflow and then permanently removes it from `/identityGovernance/lifecycleWorkflows/deletedItems/workflows`. Deleted workflows otherwise stay restorable for 30 days and count toward the tenant's workflow limit. A workflow destroyed by Terraform cannot be restored.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow/import.sh" }}
