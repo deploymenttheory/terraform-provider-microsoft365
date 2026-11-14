@@ -1,0 +1,19 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identityGovernance/entitlementManagement/connectedOrganizations/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "unit-test-connected-organization-external-domain-federation",
+  "description": "Connected organization for a SAML/WS-Fed federated domain",
+  "createdBy": "unit-test-app",
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "modifiedBy": "unit-test-app",
+  "modifiedDateTime": "2026-01-01T00:00:00Z",
+  "state": "configured",
+  "identitySources": [
+    {
+      "@odata.type": "#microsoft.graph.externalDomainFederation",
+      "domainName": "fabrikam.example",
+      "displayName": "Fabrikam",
+      "issuerUri": "https://idp.fabrikam.example/saml"
+    }
+  ]
+}
