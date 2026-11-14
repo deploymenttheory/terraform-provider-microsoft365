@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -135,6 +136,9 @@ func (m *UserMock) RegisterMocks() {
 				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
 				return httpmock.NewStringResponse(400, errorResp), nil
 			}
+			if resp := nullCollectionResponse(userData); resp != nil {
+				return resp, nil
+			}
 
 			// Determine which fixture to use based on displayName
 			var fixtureData map[string]any
@@ -230,6 +234,9 @@ func (m *UserMock) RegisterMocks() {
 			if err != nil {
 				errorResp, _ := helpers.ParseJSONFile("../tests/responses/error_bad_request.json")
 				return httpmock.NewStringResponse(400, errorResp), nil
+			}
+			if resp := nullCollectionResponse(updateData); resp != nil {
+				return resp, nil
 			}
 
 			// Determine fixture to use based on displayName in update
@@ -454,6 +461,19 @@ func loadFixture(filename string) (map[string]any, error) {
 	}
 
 	return result, nil
+}
+
+// nullCollectionResponse mirrors Graph, which rejects null for these string collections.
+func nullCollectionResponse(request map[string]any) *http.Response {
+	for _, field := range []string{"businessPhones", "otherMails", "proxyAddresses"} {
+		if value, ok := request[field]; ok && value == nil {
+			message := fmt.Sprintf("A null value was found for the property named '%s'.", field)
+			graphError := map[string]any{"code": "Request_BadRequest", "message": message}
+			resp, _ := httpmock.NewJsonResponse(400, map[string]any{"error": graphError})
+			return resp
+		}
+	}
+	return nil
 }
 
 // registerTestUsers registers predefined test users from JSON fixtures

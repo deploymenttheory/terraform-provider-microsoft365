@@ -72,15 +72,15 @@ func constructResource(ctx context.Context, data *UserResourceModel) (graphmodel
 	convert.FrameworkToGraphString(data.UsageLocation, user.SetUsageLocation)
 	convert.FrameworkToGraphString(data.UserType, user.SetUserType)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.BusinessPhones, user.SetBusinessPhones); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.BusinessPhones, user.SetBusinessPhones); err != nil {
 		return nil, fmt.Errorf("error converting business phones: %v", err)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.OtherMails, user.SetOtherMails); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.OtherMails, user.SetOtherMails); err != nil {
 		return nil, fmt.Errorf("error converting other mails: %v", err)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.ProxyAddresses, user.SetProxyAddresses); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.ProxyAddresses, user.SetProxyAddresses); err != nil {
 		return nil, fmt.Errorf("error converting proxy addresses: %v", err)
 	}
 
