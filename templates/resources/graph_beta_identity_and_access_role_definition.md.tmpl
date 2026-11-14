@@ -1,0 +1,84 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Create and assign a custom role in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/custom-create)
+- [unifiedRoleDefinition resource type](https://learn.microsoft.com/en-us/graph/api/resources/unifiedroledefinition?view=graph-rest-beta)
+- [Create roleDefinitions](https://learn.microsoft.com/en-us/graph/api/rbacapplication-post-roledefinitions?view=graph-rest-beta)
+- [Update unifiedRoleDefinition](https://learn.microsoft.com/en-us/graph/api/unifiedroledefinition-update?view=graph-rest-beta)
+- [Delete unifiedRoleDefinition](https://learn.microsoft.com/en-us/graph/api/unifiedroledefinition-delete?view=graph-rest-beta)
+- [List resourceActions](https://learn.microsoft.com/en-us/graph/api/unifiedrbacresourcenamespace-list-resourceactions?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `RoleManagement.Read.Directory`
+- `RoleManagement.ReadWrite.Directory`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_role_definition/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_role_definition/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Custom Roles Only
+
+- This resource manages custom Microsoft Entra directory roles. Built-in roles cannot be imported or managed; read them with the role definitions data source instead.
+- Custom directory roles require a Microsoft Entra ID P1 or P2 licence.
+
+### Resource Actions
+
+- Every action must belong to the `microsoft.directory` namespace, for example `microsoft.directory/applications/standard/read`.
+- Actions are checked against the live `microsoft.directory` action catalogue before any write. Microsoft Entra silently rewrites some unknown actions (for example `applications/basic/read` becomes `applications/standard/read`), which would cause permanent drift, so unknown actions are rejected with an error.
+- List the valid actions with `GET /roleManagement/directory/resourceNamespaces/microsoft.directory/resourceActions`.
+
+### Template ID
+
+- When `template_id` is set, Microsoft Entra uses it as the role definition ID. Changing it forces a new role.
+- When it is not set, Microsoft Entra generates one and it matches `id`.
+
+### Clearing Optional Values
+
+- Removing `description` or `version` from configuration clears them in Microsoft Entra.
+
+### Eventual Consistency
+
+- A new role can return 404 for several seconds after creation, and reads can be stale after an update. The provider retries reads until the written values are returned.
+
+### Deletion
+
+- Deleting a custom role is permanent; it is not moved to deleted items.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_role_definition/import.sh" }}

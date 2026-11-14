@@ -1,0 +1,18 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions/$entity",
+  "id": "62e90394-69f5-4237-9190-012177145e10",
+  "description": "Can read everything that a Global Administrator can, but not update anything.",
+  "displayName": "Global Reader",
+  "isBuiltIn": true,
+  "isEnabled": true,
+  "isPrivileged": true,
+  "resourceScopes": ["/"],
+  "templateId": "62e90394-69f5-4237-9190-012177145e10",
+  "version": "1",
+  "rolePermissions": [
+    {
+      "allowedResourceActions": ["microsoft.directory/applications/standard/read"],
+      "condition": null
+    }
+  ]
+}

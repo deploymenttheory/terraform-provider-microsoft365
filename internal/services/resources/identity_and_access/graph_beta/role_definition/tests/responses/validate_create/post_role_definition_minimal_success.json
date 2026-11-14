@@ -1,0 +1,22 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#roleManagement/directory/roleDefinitions/$entity",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "deletedDateTime": null,
+  "assignmentMode": "allowed",
+  "categories": null,
+  "description": null,
+  "displayName": "unit-test-role-definition-minimal",
+  "isBuiltIn": false,
+  "isEnabled": true,
+  "isPrivileged": false,
+  "resourceScopes": ["/"],
+  "richDescription": null,
+  "templateId": "11111111-1111-1111-1111-111111111111",
+  "version": null,
+  "rolePermissions": [
+    {
+      "allowedResourceActions": ["microsoft.directory/applications/standard/read"],
+      "condition": null
+    }
+  ]
+}
