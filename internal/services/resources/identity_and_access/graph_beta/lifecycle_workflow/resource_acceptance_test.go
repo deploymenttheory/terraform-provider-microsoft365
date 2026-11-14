@@ -30,6 +30,10 @@ var (
 			Source:            "hashicorp/random",
 			VersionConstraint: constants.ExternalProviderRandomVersion,
 		},
+		"time": {
+			Source:            "hashicorp/time",
+			VersionConstraint: constants.ExternalProviderTimeVersion,
+		},
 	}
 )
 

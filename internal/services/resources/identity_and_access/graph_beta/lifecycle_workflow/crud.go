@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/identitygovernance"
+	identitygovernancemodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models/identitygovernance"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -53,11 +54,16 @@ func (r *LifecycleWorkflowResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	createdResource, err := r.client.
-		IdentityGovernance().
-		LifecycleWorkflows().
-		Workflows().
-		Post(ctx, requestBody, nil)
+	var createdResource identitygovernancemodels.Workflowable
+	err = writeWithTaskArgumentRetry(ctx, func(ctx context.Context) error {
+		var postErr error
+		createdResource, postErr = r.client.
+			IdentityGovernance().
+			LifecycleWorkflows().
+			Workflows().
+			Post(ctx, requestBody, nil)
+		return postErr //nolint:wrapcheck // passed unchanged to HandleKiotaGraphError
+	})
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -217,13 +223,16 @@ func (r *LifecycleWorkflowResource) Update(ctx context.Context, req resource.Upd
 
 		tflog.Debug(ctx, fmt.Sprintf("Creating new version of %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-		_, err = r.client.
-			IdentityGovernance().
-			LifecycleWorkflows().
-			Workflows().
-			ByWorkflowId(state.ID.ValueString()).
-			MicrosoftGraphIdentityGovernanceCreateNewVersion().
-			Post(ctx, requestBody, nil)
+		err = writeWithTaskArgumentRetry(ctx, func(ctx context.Context) error {
+			_, postErr := r.client.
+				IdentityGovernance().
+				LifecycleWorkflows().
+				Workflows().
+				ByWorkflowId(state.ID.ValueString()).
+				MicrosoftGraphIdentityGovernanceCreateNewVersion().
+				Post(ctx, requestBody, nil)
+			return postErr //nolint:wrapcheck // passed unchanged to HandleKiotaGraphError
+		})
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return

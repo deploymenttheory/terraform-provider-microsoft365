@@ -22,6 +22,12 @@ resource "microsoft365_graph_beta_groups_group" "lw005_scope" {
   hard_delete      = true
 }
 
+# A new group is not resolvable by Graph straight away; wait before the workflow references it
+resource "time_sleep" "wait_for_group" {
+  depends_on      = [microsoft365_graph_beta_groups_group.lw005_scope]
+  create_duration = "30s"
+}
+
 # ==============================================================================
 # Lifecycle Workflow
 # ==============================================================================
@@ -78,4 +84,6 @@ resource "microsoft365_graph_beta_identity_and_access_lifecycle_workflow" "lw005
       ]
     }
   ]
+
+  depends_on = [time_sleep.wait_for_group]
 }
