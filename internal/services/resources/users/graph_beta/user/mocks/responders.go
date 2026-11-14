@@ -463,12 +463,13 @@ func loadFixture(filename string) (map[string]any, error) {
 	return result, nil
 }
 
-// nullCollectionResponse mirrors Graph, which rejects null for these non-nullable string collections.
-func nullCollectionResponse(body map[string]any) *http.Response {
+// nullCollectionResponse mirrors Graph, which rejects null for these string collections.
+func nullCollectionResponse(request map[string]any) *http.Response {
 	for _, field := range []string{"businessPhones", "otherMails", "proxyAddresses"} {
-		if value, ok := body[field]; ok && value == nil {
-			message := fmt.Sprintf("A null value was found for the property named '%s', which has the expected type 'Collection(Edm.String)[Nullable=False]'. The expected type 'Collection(Edm.String)[Nullable=False]' does not allow null values.", field)
-			resp, _ := httpmock.NewJsonResponse(400, map[string]any{"error": map[string]any{"code": "Request_BadRequest", "message": message}})
+		if value, ok := request[field]; ok && value == nil {
+			message := fmt.Sprintf("A null value was found for the property named '%s'.", field)
+			graphError := map[string]any{"code": "Request_BadRequest", "message": message}
+			resp, _ := httpmock.NewJsonResponse(400, map[string]any{"error": graphError})
 			return resp
 		}
 	}
