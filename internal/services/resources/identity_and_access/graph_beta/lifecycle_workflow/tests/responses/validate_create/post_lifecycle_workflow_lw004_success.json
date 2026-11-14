@@ -1,0 +1,37 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identityGovernance/lifecycleWorkflows/workflows/$entity",
+  "category": "leaver",
+  "description": "",
+  "displayName": "unit-test-lw004: minimal on demand",
+  "isEnabled": false,
+  "isSchedulingEnabled": false,
+  "lastModifiedDateTime": "2026-01-01T00:00:00.0000000Z",
+  "targetSubjectType": "user",
+  "createdDateTime": "2026-01-01T00:00:00.0000000Z",
+  "deletedDateTime": null,
+  "id": "00000000-0000-0000-0000-000000000000",
+  "nextScheduleRunDateTime": null,
+  "version": 1,
+  "executionConditions": {
+    "@odata.type": "#microsoft.graph.identityGovernance.onDemandExecutionOnly"
+  },
+  "quarantineDetails": {
+    "quarantinedDateTime": null,
+    "quarantineType": "notQuarantined",
+    "quarantineReason": null
+  },
+  "settings": {
+    "quarantineConfiguration": {
+      "matchMode": "any",
+      "conditions": []
+    }
+  },
+  "lastModifiedBy": {
+    "id": "f86e75c6-5ab2-474e-ba44-3cfe24569ee5"
+  },
+  "tasks": [],
+  "administrationScopeTargets": [],
+  "createdBy": {
+    "id": "f86e75c6-5ab2-474e-ba44-3cfe24569ee5"
+  }
+}
