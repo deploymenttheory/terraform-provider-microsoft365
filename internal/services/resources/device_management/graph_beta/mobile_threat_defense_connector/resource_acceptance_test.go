@@ -43,7 +43,7 @@ func loadAcceptanceTestTerraform(filename string) string {
 }
 
 // preCheckConnectorAbsent stops the test when the partner already has a connector in the tenant.
-// Graph treats create as an upsert, so running against an existing connector would overwrite and then delete it.
+// Create already refuses an existing connector; this check also keeps the test from deleting a connector it did not create.
 func preCheckConnectorAbsent(t *testing.T, partnerId string) {
 	t.Helper()
 	graphClient, err := acceptance.TestGraphClient()

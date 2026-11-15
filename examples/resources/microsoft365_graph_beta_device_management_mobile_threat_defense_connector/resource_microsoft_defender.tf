@@ -1,8 +1,8 @@
 # Microsoft Defender for Endpoint connector.
 # The connector ID is the fixed partner ID of Microsoft Defender for Endpoint.
 # If the tenant already has this connector (the "Microsoft Intune connection" is
-# turned on in the Microsoft Defender portal), import it first so Terraform
-# manages the existing settings instead of replacing them on create.
+# turned on in the Microsoft Defender portal), import it first: create fails
+# for a partner that already has a connector rather than overwriting it.
 resource "microsoft365_graph_beta_device_management_mobile_threat_defense_connector" "microsoft_defender" {
   id = "fc780465-2017-40d4-a0c5-307022471b92"
 

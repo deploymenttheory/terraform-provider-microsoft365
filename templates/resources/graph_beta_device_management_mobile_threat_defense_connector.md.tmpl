@@ -57,8 +57,8 @@ The following client `application` permissions are needed in order to use this {
 
 ### Create, Adopt and Delete
 
-- Graph treats the create request as an upsert keyed on the partner ID. Creating this resource for a partner that already has a connector replaces that connector's settings with the configured values, including the defaults for any setting left unset.
-- To bring an existing connector under management without changing it first, import it and copy its current settings into the configuration.
+- Graph treats the create request as an upsert keyed on the partner ID, so a create would silently replace an existing connector's settings. To prevent this, the provider looks up the partner ID before creating and fails with an error if the partner already has a connector.
+- Existing connectors, such as the Microsoft Defender for Endpoint connector created by the "Microsoft Intune connection" setting in the Microsoft Defender portal, must be imported (see [Import](#import)) before Terraform can manage them. After importing, copy the connector's current settings into the configuration so the first apply does not change them unexpectedly.
 - Destroying the resource deletes the connector. For Microsoft Defender for Endpoint this removes the Intune side of the Defender connection; turning the "Microsoft Intune connection" setting off and on again in the Microsoft Defender portal recreates it with default settings. Remove the resource from state instead (`terraform state rm` or a `removed` block) if the connector must stay in the tenant.
 - Graph returns success when deleting a connector that does not exist.
 

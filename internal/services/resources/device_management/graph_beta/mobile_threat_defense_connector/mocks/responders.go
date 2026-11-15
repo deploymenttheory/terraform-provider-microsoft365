@@ -19,6 +19,8 @@ const (
 	InvalidPartnerId = "00000000-0000-0000-0000-000000000400"
 	// ForbiddenPartnerId is a partner ID the mock answers with a permission error.
 	ForbiddenPartnerId = "00000000-0000-0000-0000-000000000403"
+	// LookupErrorPartnerId is a partner ID whose existence lookup fails with a permission error.
+	LookupErrorPartnerId = "00000000-0000-0000-0000-000000004030"
 
 	microsoftDefenderForEndpointPartnerId = "fc780465-2017-40d4-a0c5-307022471b92"
 	connectorsUrl                         = "https://graph.microsoft.com/beta/deviceManagement/mobileThreatDefenseConnectors"
@@ -158,6 +160,9 @@ func (m *MobileThreatDefenseConnectorMock) RegisterMocks() {
 	// Get connector - GET /deviceManagement/mobileThreatDefenseConnectors/{id}
 	httpmock.RegisterResponder("GET", connectorByIdPattern, func(req *http.Request) (*http.Response, error) {
 		id := connectorIdFromRequest(req)
+		if id == LookupErrorPartnerId {
+			return graphError(403, "Forbidden", "Application is not authorized to read this connector.")
+		}
 
 		mockState.Lock()
 		connector, exists := mockState.connectors[id]
@@ -212,6 +217,21 @@ func (m *MobileThreatDefenseConnectorMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("GET", connectorByIdPattern, httpmock.NewStringResponder(404, notFoundBody))
 	httpmock.RegisterResponder("PATCH", connectorByIdPattern, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
 	httpmock.RegisterResponder("DELETE", connectorByIdPattern, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
+}
+
+// SeedConnector adds a connector with default settings to the mock state to simulate a connector that already exists in the tenant.
+func (m *MobileThreatDefenseConnectorMock) SeedConnector(id string) error {
+	connector, err := loadBaseConnector()
+	if err != nil {
+		return err
+	}
+	connector["id"] = id
+
+	mockState.Lock()
+	mockState.connectors[id] = connector
+	mockState.Unlock()
+
+	return nil
 }
 
 // RemoveConnector deletes a connector from the mock state to simulate an out-of-band deletion.

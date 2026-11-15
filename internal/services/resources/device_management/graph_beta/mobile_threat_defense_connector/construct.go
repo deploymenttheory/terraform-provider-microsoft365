@@ -14,13 +14,18 @@ import (
 
 // constructResource converts the Terraform resource model to a Kiota SDK model
 // Returns a MobileThreatDefenseConnector that can be serialized by Kiota.
-// The connector body needs no lookups, so the client is accepted only to keep the CRUD call shape consistent.
+// On create it first looks up the partner ID, because Graph's POST is an upsert that would overwrite an existing connector.
 func constructResource(
 	ctx context.Context,
-	_ *msgraphbetasdk.GraphServiceClient,
+	client *msgraphbetasdk.GraphServiceClient,
 	data *MobileThreatDefenseConnectorResourceModel,
+	isCreate bool,
 ) (graphmodels.MobileThreatDefenseConnectorable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+
+	if err := validateRequest(ctx, client, data, isCreate); err != nil {
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
 
 	requestBody := constructRequestBody(data)
 

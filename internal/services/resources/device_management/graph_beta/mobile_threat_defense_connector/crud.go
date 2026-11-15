@@ -22,7 +22,7 @@ import (
 //   - POST /deviceManagement/mobileThreatDefenseConnectors
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-onboarding-mobilethreatdefenseconnector-create?view=graph-rest-beta
-// Note: Graph treats the POST as an upsert keyed on the partner ID. Posting to a partner that already has a connector replaces its settings.
+// Note: Graph treats the POST as an upsert keyed on the partner ID, so constructResource refuses to create a connector that already exists.
 func (r *MobileThreatDefenseConnectorResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object MobileThreatDefenseConnectorResourceModel
 
@@ -39,7 +39,7 @@ func (r *MobileThreatDefenseConnectorResource) Create(ctx context.Context, req r
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.client, &object)
+	requestBody, err := constructResource(ctx, r.client, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -180,7 +180,7 @@ func (r *MobileThreatDefenseConnectorResource) Update(ctx context.Context, req r
 	}
 	defer cancel()
 
-	requestBody, err := constructResource(ctx, r.client, &plan)
+	requestBody, err := constructResource(ctx, r.client, &plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",

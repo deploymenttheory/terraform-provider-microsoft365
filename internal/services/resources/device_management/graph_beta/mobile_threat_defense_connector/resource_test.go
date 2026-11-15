@@ -332,3 +332,43 @@ func TestUnitResourceMobileThreatDefenseConnector_10_DefenderAttachOnOtherPartne
 		},
 	})
 }
+
+// Graph's POST is an upsert, so create must refuse a partner that already has a connector instead of overwriting it.
+func TestUnitResourceMobileThreatDefenseConnector_11_CreateWhenConnectorExists(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, connectorMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer connectorMock.CleanupMockState()
+
+	if err := connectorMock.SeedConnector(unitPartnerId); err != nil {
+		t.Fatalf("failed to seed connector: %v", err)
+	}
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("resource_minimal.tf"),
+				ExpectError: regexp.MustCompile(`(?s)already\s+exists.*terraform\s+import`),
+			},
+		},
+	})
+}
+
+// A lookup error other than 404 is returned instead of being treated as "connector absent".
+func TestUnitResourceMobileThreatDefenseConnector_12_CreateLookupError(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, connectorMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer connectorMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("resource_error_lookup_failed.tf"),
+				ExpectError: regexp.MustCompile(`(?s)could not check whether mobile threat defense\s+connector`),
+			},
+		},
+	})
+}

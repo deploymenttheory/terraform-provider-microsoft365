@@ -2,12 +2,12 @@
 page_title: "microsoft365_graph_beta_device_management_mobile_threat_defense_connector Resource - terraform-provider-microsoft365"
 subcategory: "Device Management"
 description: |-
-  Manages an Intune Mobile Threat Defense partner connector using the /deviceManagement/mobileThreatDefenseConnectors endpoint. The connector ID is the fixed partner ID of the Mobile Threat Defense partner (for example fc780465-2017-40d4-a0c5-307022471b92 for Microsoft Defender for Endpoint). Creating the resource posts the full connector configuration for that partner, which replaces any settings already present for the partner, and destroying it deletes the connector.
+  Manages an Intune Mobile Threat Defense partner connector using the /deviceManagement/mobileThreatDefenseConnectors endpoint. The connector ID is the fixed partner ID of the Mobile Threat Defense partner (for example fc780465-2017-40d4-a0c5-307022471b92 for Microsoft Defender for Endpoint). Creating the resource fails if the partner already has a connector, which must be imported instead, and destroying it deletes the connector.
 ---
 
 # microsoft365_graph_beta_device_management_mobile_threat_defense_connector (Resource)
 
-Manages an Intune Mobile Threat Defense partner connector using the `/deviceManagement/mobileThreatDefenseConnectors` endpoint. The connector ID is the fixed partner ID of the Mobile Threat Defense partner (for example `fc780465-2017-40d4-a0c5-307022471b92` for Microsoft Defender for Endpoint). Creating the resource posts the full connector configuration for that partner, which replaces any settings already present for the partner, and destroying it deletes the connector.
+Manages an Intune Mobile Threat Defense partner connector using the `/deviceManagement/mobileThreatDefenseConnectors` endpoint. The connector ID is the fixed partner ID of the Mobile Threat Defense partner (for example `fc780465-2017-40d4-a0c5-307022471b92` for Microsoft Defender for Endpoint). Creating the resource fails if the partner already has a connector, which must be imported instead, and destroying it deletes the connector.
 
 ## Microsoft Documentation
 
@@ -43,8 +43,8 @@ The following client `application` permissions are needed in order to use this r
 # Microsoft Defender for Endpoint connector.
 # The connector ID is the fixed partner ID of Microsoft Defender for Endpoint.
 # If the tenant already has this connector (the "Microsoft Intune connection" is
-# turned on in the Microsoft Defender portal), import it first so Terraform
-# manages the existing settings instead of replacing them on create.
+# turned on in the Microsoft Defender portal), import it first: create fails
+# for a partner that already has a connector rather than overwriting it.
 resource "microsoft365_graph_beta_device_management_mobile_threat_defense_connector" "microsoft_defender" {
   id = "fc780465-2017-40d4-a0c5-307022471b92"
 
@@ -166,8 +166,8 @@ Optional:
 
 ### Create, Adopt and Delete
 
-- Graph treats the create request as an upsert keyed on the partner ID. Creating this resource for a partner that already has a connector replaces that connector's settings with the configured values, including the defaults for any setting left unset.
-- To bring an existing connector under management without changing it first, import it and copy its current settings into the configuration.
+- Graph treats the create request as an upsert keyed on the partner ID, so a create would silently replace an existing connector's settings. To prevent this, the provider looks up the partner ID before creating and fails with an error if the partner already has a connector.
+- Existing connectors, such as the Microsoft Defender for Endpoint connector created by the "Microsoft Intune connection" setting in the Microsoft Defender portal, must be imported (see [Import](#import)) before Terraform can manage them. After importing, copy the connector's current settings into the configuration so the first apply does not change them unexpectedly.
 - Destroying the resource deletes the connector. For Microsoft Defender for Endpoint this removes the Intune side of the Defender connection; turning the "Microsoft Intune connection" setting off and on again in the Microsoft Defender portal recreates it with default settings. Remove the resource from state instead (`terraform state rm` or a `removed` block) if the connector must stay in the tenant.
 - Graph returns success when deleting a connector that does not exist.
 

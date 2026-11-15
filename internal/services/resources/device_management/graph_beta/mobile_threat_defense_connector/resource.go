@@ -103,7 +103,7 @@ func (r *MobileThreatDefenseConnectorResource) Schema(ctx context.Context, req r
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages an Intune Mobile Threat Defense partner connector using the `/deviceManagement/mobileThreatDefenseConnectors` endpoint. " +
 			"The connector ID is the fixed partner ID of the Mobile Threat Defense partner (for example `" + MicrosoftDefenderForEndpointPartnerId + "` for Microsoft Defender for Endpoint). " +
-			"Creating the resource posts the full connector configuration for that partner, which replaces any settings already present for the partner, and destroying it deletes the connector.",
+			"Creating the resource fails if the partner already has a connector, which must be imported instead, and destroying it deletes the connector.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The partner ID that identifies the Mobile Threat Defense connector. Each partner has a fixed ID that is the same in every tenant, " +
