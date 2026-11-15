@@ -20,12 +20,14 @@ var (
 )
 
 // createdLookupAttemptsFor polls longest after errors that can hide a
-// successful create: network errors, gateway failures and non-Graph 500s. A
+// successful create: transport errors, gateway failures and non-Graph 500s.
+// GraphError reports most transport errors as 400 "URLError" and others
+// (timeouts, refused connections) as 503 or 504. A
 // 400 or 409 gets a few checks, since a retried POST fails as a duplicate of
 // the one that timed out. Anything else gets one check.
 func createdLookupAttemptsFor(info kiotaerrors.GraphErrorInfo) int {
 	switch {
-	case info.Category == kiotaerrors.CategoryNetwork,
+	case info.ErrorCode == "URLError",
 		info.StatusCode == 502, info.StatusCode == 503, info.StatusCode == 504,
 		info.StatusCode == 500 && !info.IsODataError:
 		return createdLookupAttempts
