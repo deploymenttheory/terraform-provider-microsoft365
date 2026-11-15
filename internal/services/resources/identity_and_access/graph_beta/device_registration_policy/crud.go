@@ -43,16 +43,7 @@ func (r *DeviceRegistrationPolicyResource) Create(ctx context.Context, req resou
 	}
 	defer cancel()
 
-	remoteResource, err := r.client.
-		Policies().
-		DeviceRegistrationPolicy().
-		Get(ctx, nil)
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
-		return
-	}
-
-	requestBody, err := constructResource(ctx, &object, remoteResource)
+	requestBody, err := constructResource(ctx, r.client, &object)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -83,7 +74,6 @@ func (r *DeviceRegistrationPolicyResource) Create(ctx context.Context, req resou
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = deviceRegistrationPolicyConsistencyPredicate(MapRemoteResourceStateToTerraform(ctx, object, requestBody))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -184,16 +174,7 @@ func (r *DeviceRegistrationPolicyResource) Update(ctx context.Context, req resou
 	}
 	defer cancel()
 
-	remoteResource, err := r.client.
-		Policies().
-		DeviceRegistrationPolicy().
-		Get(ctx, nil)
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
-		return
-	}
-
-	requestBody, err := constructResource(ctx, &plan, remoteResource)
+	requestBody, err := constructResource(ctx, r.client, &plan)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource",
@@ -205,12 +186,6 @@ func (r *DeviceRegistrationPolicyResource) Update(ctx context.Context, req resou
 	err = r.putDeviceRegistrationPolicy(ctx, requestBody)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
-		return
-	}
-
-	plan.ID = types.StringValue(singletonID)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
 		return
 	}
 

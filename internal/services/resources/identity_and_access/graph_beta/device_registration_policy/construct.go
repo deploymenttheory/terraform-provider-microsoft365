@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
@@ -14,18 +15,31 @@ import (
 )
 
 // constructResource converts the Terraform resource model to a Kiota SDK model for the full-replace PUT.
-//
-// PUT /policies/deviceRegistrationPolicy replaces the whole policy and requires every updatable property,
-// so each value that is unknown or null in the plan (not configured) is taken from remoteResource, the
-// policy read immediately before the write. Fresh SDK objects are built for every value so the Kiota
-// backing store serializes all of them, including values copied unchanged from the remote policy.
+// PUT /policies/deviceRegistrationPolicy requires every updatable property, so the current policy is read first
+// and values not configured in the plan are copied from it.
 func constructResource(
+	ctx context.Context,
+	client *msgraphbetasdk.GraphServiceClient,
+	data *DeviceRegistrationPolicyResourceModel,
+) (graphmodels.DeviceRegistrationPolicyable, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
+
+	remoteResource, err := client.Policies().DeviceRegistrationPolicy().Get(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read current %s before replacing it: %w", ResourceName, err)
+	}
+
+	return constructRequestBody(ctx, data, remoteResource)
+}
+
+// constructRequestBody builds the full-replace request body without calling Graph.
+// Each value that is unknown or null in the plan (not configured) is taken from remoteResource. Fresh SDK objects
+// are built for every value so the Kiota backing store serializes all of them, including values copied unchanged.
+func constructRequestBody(
 	ctx context.Context,
 	data *DeviceRegistrationPolicyResourceModel,
 	remoteResource graphmodels.DeviceRegistrationPolicyable,
 ) (graphmodels.DeviceRegistrationPolicyable, error) {
-	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
-
 	if remoteResource == nil {
 		return nil, errRemotePolicyRequired
 	}

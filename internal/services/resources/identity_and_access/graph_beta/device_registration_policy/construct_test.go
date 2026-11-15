@@ -89,7 +89,7 @@ func serialize(t *testing.T, body graphmodels.DeviceRegistrationPolicyable) map[
 
 // An empty plan must send every updatable property back with its current value (full-replace PUT).
 func TestUnitConstructResourceCopiesUnconfiguredValuesFromRemote(t *testing.T) {
-	body, err := constructResource(context.Background(), unknownModel(), remotePolicy())
+	body, err := constructRequestBody(context.Background(), unknownModel(), remotePolicy())
 	if err != nil {
 		t.Fatalf("constructResource returned error: %v", err)
 	}
@@ -137,7 +137,7 @@ func TestUnitConstructResourceAppliesConfiguredValues(t *testing.T) {
 		"local_admins":          types.ObjectUnknown(localAdminsAttrTypes),
 	})
 
-	body, err := constructResource(context.Background(), data, remotePolicy())
+	body, err := constructRequestBody(context.Background(), data, remotePolicy())
 	if err != nil {
 		t.Fatalf("constructResource returned error: %v", err)
 	}
@@ -196,7 +196,7 @@ func TestUnitConstructResourceRejectsRegistrationChangeWhenNotAdminConfigurable(
 		"allowed_to_register":   membershipObject(membershipTypeNone, types.SetNull(types.StringType), types.SetNull(types.StringType)),
 	})
 
-	_, err := constructResource(context.Background(), data, remotePolicy())
+	_, err := constructRequestBody(context.Background(), data, remotePolicy())
 	if err == nil || !strings.Contains(err.Error(), "isAdminConfigurable = false") {
 		t.Fatalf("expected isAdminConfigurable error, got %v", err)
 	}
@@ -206,7 +206,7 @@ func TestUnitConstructResourceRejectsRegistrationChangeWhenNotAdminConfigurable(
 		"is_admin_configurable": types.BoolUnknown(),
 		"allowed_to_register":   membershipObject(membershipTypeAll, types.SetNull(types.StringType), types.SetNull(types.StringType)),
 	})
-	if _, err := constructResource(context.Background(), data, remotePolicy()); err != nil {
+	if _, err := constructRequestBody(context.Background(), data, remotePolicy()); err != nil {
 		t.Fatalf("expected unchanged registration to be accepted, got %v", err)
 	}
 }
@@ -219,14 +219,14 @@ func TestUnitConstructResourceRejectsUsersOnNonEnumeratedMembership(t *testing.T
 		"local_admins":          types.ObjectUnknown(localAdminsAttrTypes),
 	})
 
-	_, err := constructResource(context.Background(), data, remotePolicy())
+	_, err := constructRequestBody(context.Background(), data, remotePolicy())
 	if err == nil || !strings.Contains(err.Error(), `users can only be set when type is "enumerated"`) {
 		t.Fatalf("expected users validation error, got %v", err)
 	}
 }
 
 func TestUnitConstructResourceRequiresRemotePolicy(t *testing.T) {
-	if _, err := constructResource(context.Background(), unknownModel(), nil); err == nil {
+	if _, err := constructRequestBody(context.Background(), unknownModel(), nil); err == nil {
 		t.Fatal("expected an error without the current policy")
 	}
 }
