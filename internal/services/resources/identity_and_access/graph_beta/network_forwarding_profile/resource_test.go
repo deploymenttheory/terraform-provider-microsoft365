@@ -194,6 +194,25 @@ func TestUnitResourceNetworkForwardingProfile_03c_DoesNotAdoptExistingProfile(t 
 	require.Zero(t, m.Deletes, "the pre-existing profile must not be adopted and destroyed")
 }
 
+// If the profiles cannot be listed before the POST, a failed create is reported
+// rather than adopting a match that might have existed already.
+func TestUnitResourceNetworkForwardingProfile_03d_NoAdoptionWithoutPriorList(t *testing.T) {
+	m := setup(t)
+	t.Cleanup(target.ShortenCreatedLookup())
+	m.ListFailures = 1
+	m.PostFailures = 1
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      hcl(t, "resource_minimal.tf"),
+				ExpectError: regexp.MustCompile(`504`),
+			},
+		},
+	})
+	require.Len(t, m.Posts, 1)
+}
+
 func TestUnitResourceNetworkForwardingProfile_04_ValidationErrors(t *testing.T) {
 	setup(t)
 	resource.UnitTest(t, resource.TestCase{

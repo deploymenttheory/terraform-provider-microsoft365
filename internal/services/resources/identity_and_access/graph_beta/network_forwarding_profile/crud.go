@@ -52,7 +52,9 @@ func (r *NetworkForwardingProfileResource) Create(
 		})
 	}
 	remote, err := r.create(ctx, body)
-	if err != nil {
+	// Without the list, a match could be a profile that already existed, so
+	// report the error instead of adopting.
+	if err != nil && listErr == nil {
 		info := errors.GraphError(ctx, err)
 		if created := r.waitForCreated(ctx, plan, existing, createdLookupAttemptsFor(info)); created != nil {
 			tflog.Warn(

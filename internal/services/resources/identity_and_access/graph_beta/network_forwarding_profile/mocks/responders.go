@@ -38,6 +38,8 @@ type Mock struct {
 	// Existing is a custom profile that is already in the tenant. A POST with
 	// its priority fails with 400 and creates nothing.
 	Existing map[string]any
+	// ListFailures makes the next profile list calls return 503.
+	ListFailures int
 }
 
 var _ common.MockRegistrar = (*Mock)(nil)
@@ -93,6 +95,13 @@ func (m *Mock) RegisterMocks() {
 	httpmock.RegisterResponder("GET", endpoint, func(q *http.Request) (*http.Response, error) {
 		m.Lock()
 		defer m.Unlock()
+		if m.ListFailures > 0 {
+			m.ListFailures--
+			return httpmock.NewStringResponse(
+				503,
+				`{"error":{"code":"ServiceUnavailable","message":"Service Unavailable"}}`,
+			), nil
+		}
 		value := []any{defaultProfile()}
 		if m.Existing != nil {
 			value = append(value, m.Existing)
@@ -197,4 +206,5 @@ func (m *Mock) CleanupMockState() {
 	m.PostFailures = 0
 	m.PostDuplicates = 0
 	m.Existing = nil
+	m.ListFailures = 0
 }

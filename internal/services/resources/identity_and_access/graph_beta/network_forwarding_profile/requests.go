@@ -19,15 +19,18 @@ var (
 	errProfileNotCreated      = stderrors.New("forwarding profile not found after failed create")
 )
 
-// createdLookupAttemptsFor polls only after errors that can hide a successful
-// create: gateway failures and transport errors. Anything else gets one check,
-// which still catches a retried POST that failed as a duplicate.
+// createdLookupAttemptsFor polls longest after errors that can hide a
+// successful create: network errors, gateway failures and non-Graph 500s. A
+// 400 or 409 gets a few checks, since a retried POST fails as a duplicate of
+// the one that timed out. Anything else gets one check.
 func createdLookupAttemptsFor(info kiotaerrors.GraphErrorInfo) int {
 	switch {
-	case info.StatusCode == 0,
+	case info.Category == kiotaerrors.CategoryNetwork,
 		info.StatusCode == 502, info.StatusCode == 503, info.StatusCode == 504,
 		info.StatusCode == 500 && !info.IsODataError:
 		return createdLookupAttempts
+	case info.StatusCode == 400, info.StatusCode == 409:
+		return duplicateLookupAttempts
 	default:
 		return 1
 	}
@@ -35,8 +38,9 @@ func createdLookupAttemptsFor(info kiotaerrors.GraphErrorInfo) int {
 
 // Variables so unit tests can shorten the wait.
 var (
-	createdLookupAttempts = 12
-	createdLookupInterval = 5 * time.Second
+	createdLookupAttempts   = 12
+	duplicateLookupAttempts = 3
+	createdLookupInterval   = 5 * time.Second
 )
 
 // The v2 profile properties are missing from the generated SDK models, so the
