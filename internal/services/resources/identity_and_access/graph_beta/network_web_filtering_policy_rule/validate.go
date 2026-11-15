@@ -3,12 +3,20 @@ package graphBetaNetworkWebFilteringPolicyRule
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// Header name and value rules mirror the Entra portal's custom header form:
+// names are RFC 7230 tokens and values are printable ASCII.
+var (
+	headerNameRegex  = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$")
+	headerValueRegex = regexp.MustCompile(`^[\x20-\x7E]+$`)
 )
 
 // uniqueCustomHeaderNamesValidator catches at plan time what Graph rejects with
@@ -32,7 +40,9 @@ func (v uniqueCustomHeaderNamesValidator) ValidateList(
 		return
 	}
 
-	var headers []CustomHeaderModel
+	// Decode into objects: an element built from a computed value is unknown as
+	// a whole and cannot be decoded into CustomHeaderModel.
+	var headers []types.Object
 	resp.Diagnostics.Append(req.ConfigValue.ElementsAs(ctx, &headers, false)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -40,17 +50,21 @@ func (v uniqueCustomHeaderNamesValidator) ValidateList(
 
 	seen := make(map[string]int, len(headers))
 	for i, header := range headers {
-		if header.Name.IsNull() || header.Name.IsUnknown() {
+		if header.IsNull() || header.IsUnknown() {
 			continue
 		}
-		key := strings.ToLower(header.Name.ValueString())
+		name, ok := header.Attributes()["name"].(types.String)
+		if !ok || name.IsNull() || name.IsUnknown() {
+			continue
+		}
+		key := strings.ToLower(name.ValueString())
 		if first, ok := seen[key]; ok {
 			resp.Diagnostics.AddAttributeError(
 				req.Path.AtListIndex(i).AtName("name"),
 				"Duplicate custom header name",
 				fmt.Sprintf(
 					"Header name %q duplicates custom_headers[%d]. Each header name must be unique within a rule (case-insensitive).",
-					header.Name.ValueString(),
+					name.ValueString(),
 					first,
 				),
 			)

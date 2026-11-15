@@ -3,9 +3,11 @@ package graphBetaNetworkWebFilteringPolicyRule
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -417,6 +419,40 @@ func TestUniqueCustomHeaderNamesValidator(t *testing.T) {
 	}
 }
 
+func TestUniqueCustomHeaderNamesValidatorSkipsUnknownElements(t *testing.T) {
+	ctx := context.Background()
+	objectType := customHeaderObjectType()
+	known := func(name string) attr.Value {
+		return types.ObjectValueMust(objectType.AttrTypes, map[string]attr.Value{
+			"name":  types.StringValue(name),
+			"value": types.StringValue("v"),
+		})
+	}
+	// e.g. custom_headers = [local.hdr, ...] where local.hdr is computed.
+	list := types.ListValueMust(objectType, []attr.Value{
+		types.ObjectUnknown(objectType.AttrTypes),
+		known("X-Test"),
+		types.ObjectValueMust(objectType.AttrTypes, map[string]attr.Value{
+			"name":  types.StringUnknown(),
+			"value": types.StringValue("v"),
+		}),
+		known("x-test"),
+	})
+
+	resp := &validator.ListResponse{}
+	uniqueCustomHeaderNamesValidator{}.ValidateList(ctx, validator.ListRequest{
+		Path:        path.Root("custom_headers"),
+		ConfigValue: list,
+	}, resp)
+
+	if got := resp.Diagnostics.ErrorsCount(); got != 1 {
+		t.Fatalf("errors = %d, expected 1 duplicate and no decode error: %v", got, resp.Diagnostics)
+	}
+	if resp.Diagnostics.Errors()[0].Summary() != "Duplicate custom header name" {
+		t.Fatalf("unexpected error: %v", resp.Diagnostics)
+	}
+}
+
 func TestConstructResourceOmitsHeaderSettingsForBlock(t *testing.T) {
 	ctx := context.Background()
 	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AlcoholAndTobacco"})
@@ -479,5 +515,116 @@ func TestCustomHeadersRequireAllowValidatorSkipsUnknown(t *testing.T) {
 				t.Fatalf("HasError = %v, expected %v: %v", resp.Diagnostics.HasError(), tc.wantErr, resp.Diagnostics)
 			}
 		})
+	}
+}
+
+func TestConstructResourceRejectsCustomHeadersOnBlock(t *testing.T) {
+	ctx := context.Background()
+	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AlcoholAndTobacco"})
+	if diags.HasError() {
+		t.Fatalf("failed to build web_categories set: %s", diags.Errors()[0].Detail())
+	}
+	headers, diags := types.ListValueFrom(ctx, customHeaderObjectType(), []CustomHeaderModel{
+		{Name: types.StringValue("X-Example"), Value: types.StringValue("v")},
+	})
+	if diags.HasError() {
+		t.Fatalf("failed to build custom_headers list: %s", diags.Errors()[0].Detail())
+	}
+
+	// action can resolve to block after the plan-time validator skipped it as unknown.
+	_, err := constructResource(ctx, &NetworkWebFilteringPolicyRuleResourceModel{
+		Name:          types.StringValue("block"),
+		Action:        types.StringValue("block"),
+		Priority:      types.Int64Value(100),
+		Status:        types.StringValue("enabled"),
+		WebCategories: webCategories,
+		CustomHeaders: headers,
+	})
+	if !errors.Is(err, errInvalidCustomHeaders) {
+		t.Fatalf("constructResource error = %v, expected errInvalidCustomHeaders", err)
+	}
+}
+
+// Update sends the full constructed body as a PATCH. Removing headers must
+// clear them: allow rules send headerSettings null (Graph keeps headers when it
+// is omitted) and block rules omit it (Graph rejects it, and drops headers).
+func TestUpdatePatchClearsCustomHeaders(t *testing.T) {
+	ctx := context.Background()
+	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AlcoholAndTobacco"})
+	if diags.HasError() {
+		t.Fatalf("failed to build web_categories set: %s", diags.Errors()[0].Detail())
+	}
+
+	cases := map[string]struct {
+		action   string
+		wantNull bool
+	}{
+		"allow with headers to allow without": {action: "allow", wantNull: true},
+		"allow with headers to block":         {action: "block"},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			body, err := constructResource(ctx, &NetworkWebFilteringPolicyRuleResourceModel{
+				Name:          types.StringValue("rule"),
+				Action:        types.StringValue(tc.action),
+				Priority:      types.Int64Value(100),
+				Status:        types.StringValue("enabled"),
+				WebCategories: webCategories,
+				CustomHeaders: types.ListNull(customHeaderObjectType()),
+			})
+			if err != nil {
+				t.Fatalf("constructResource returned error: %v", err)
+			}
+			requestInfo, err := newWebFilteringPolicyRuleRequestInformation(
+				ctx,
+				webFilteringPolicyRuleTestRequestAdapter{},
+				abstractions.PATCH,
+				"05bd8400-14ae-4eb0-b7d7-339cd312d8f2",
+				"rule",
+				body,
+			)
+			if err != nil {
+				t.Fatalf("newWebFilteringPolicyRuleRequestInformation returned error: %v", err)
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(requestInfo.Content, &payload); err != nil {
+				t.Fatalf("failed to unmarshal request content: %v", err)
+			}
+			headerSettings, present := payload["action"].(map[string]any)["headerSettings"]
+			if tc.wantNull && (!present || headerSettings != nil) {
+				t.Fatalf("action = %#v, expected explicit null headerSettings", payload["action"])
+			}
+			if !tc.wantNull && present {
+				t.Fatalf("action = %#v, expected no headerSettings", payload["action"])
+			}
+		})
+	}
+}
+
+func TestCustomHeaderNameAndValueRegex(t *testing.T) {
+	names := map[string]bool{
+		"X-Example-Tenant": true,
+		"x_custom.v1~":     true,
+		"X Bad":            false,
+		"X-Bad:Header":     false,
+		" X-Space":         false,
+		"X-Ünicode":        false,
+	}
+	for name, want := range names {
+		if got := headerNameRegex.MatchString(name); got != want {
+			t.Errorf("headerNameRegex(%q) = %v, expected %v", name, got, want)
+		}
+	}
+	values := map[string]bool{
+		"tenant-id:policy-id": true,
+		" ":                   true,
+		"a\r\nb":              false,
+		"héllo":               false,
+		"tab\there":           false,
+	}
+	for value, want := range values {
+		if got := headerValueRegex.MatchString(value); got != want {
+			t.Errorf("headerValueRegex(%q) = %v, expected %v", value, got, want)
+		}
 	}
 }

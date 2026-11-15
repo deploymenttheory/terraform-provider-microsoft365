@@ -80,10 +80,18 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 	if err != nil {
 		return nil, fmt.Errorf("failed to read custom_headers: %w", err)
 	}
+	// The config validator skips an action unknown at plan time; headers on a
+	// block rule would otherwise be dropped silently.
+	if len(customHeaders) > 0 && data.Action.ValueString() != "allow" {
+		return nil, fmt.Errorf(
+			"%w: custom_headers can only be set when action is \"allow\", got %q",
+			errInvalidCustomHeaders,
+			data.Action.ValueString(),
+		)
+	}
 
 	action := &actionRequestBody{
-		odataType:          graphActionODataType(data.Action.ValueString()),
-		sendHeaderSettings: data.Action.ValueString() == "allow",
+		odataType: graphActionODataType(data.Action.ValueString()),
 	}
 	if len(customHeaders) > 0 {
 		modifications := make([]s.Parsable, 0, len(customHeaders))
@@ -208,9 +216,8 @@ func (b *webFilteringPolicyRuleRequestBody) GetFieldDeserializers() map[string]f
 }
 
 type actionRequestBody struct {
-	odataType          string
-	sendHeaderSettings bool
-	headerSettings     *headerSettingsRequestBody
+	odataType      string
+	headerSettings *headerSettingsRequestBody
 }
 
 func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
@@ -219,7 +226,7 @@ func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
 	}
 	// Block actions reject any headerSettings, even null. Allow actions keep
 	// existing headers when it is omitted on PATCH, so send null to clear them.
-	if !b.sendHeaderSettings {
+	if b.odataType != webFilteringActionAllowODataType {
 		return nil
 	}
 	if b.headerSettings == nil {
