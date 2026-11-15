@@ -1,0 +1,23 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identityGovernance/entitlementManagement/connectedOrganizations/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "unit-test-connected-organization-multiple-identity-sources",
+  "description": null,
+  "createdBy": "unit-test-app",
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "modifiedBy": "unit-test-app",
+  "modifiedDateTime": "2026-01-01T00:00:00Z",
+  "state": "proposed",
+  "identitySources": [
+    {
+      "@odata.type": "#microsoft.graph.domainIdentitySource",
+      "domainName": "example.net",
+      "displayName": "example.net"
+    },
+    {
+      "@odata.type": "#microsoft.graph.domainIdentitySource",
+      "domainName": "example.org",
+      "displayName": "example.org"
+    }
+  ]
+}
