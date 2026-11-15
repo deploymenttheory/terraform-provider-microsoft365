@@ -1,0 +1,81 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Mobile Threat Defense integration with Intune](https://learn.microsoft.com/en-us/intune/intune-service/protect/mobile-threat-defense)
+- [mobileThreatDefenseConnector resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-onboarding-mobilethreatdefenseconnector?view=graph-rest-beta)
+- [Create mobileThreatDefenseConnector](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-mobilethreatdefenseconnector-create?view=graph-rest-beta)
+- [Get mobileThreatDefenseConnector](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-mobilethreatdefenseconnector-get?view=graph-rest-beta)
+- [Update mobileThreatDefenseConnector](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-mobilethreatdefenseconnector-update?view=graph-rest-beta)
+- [Delete mobileThreatDefenseConnector](https://learn.microsoft.com/en-us/graph/api/intune-onboarding-mobilethreatdefenseconnector-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `DeviceManagementServiceConfig.Read.All`
+- `DeviceManagementServiceConfig.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Microsoft Defender for Endpoint
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_mobile_threat_defense_connector/resource_microsoft_defender.tf" }}
+
+### Third-Party Partner
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_mobile_threat_defense_connector/resource_third_party_partner.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Connector IDs
+
+- The connector ID is the partner ID. Each Mobile Threat Defense partner has a fixed ID that is the same in every tenant, and Graph rejects IDs that do not belong to a supported partner.
+- Microsoft Defender for Endpoint uses `fc780465-2017-40d4-a0c5-307022471b92`.
+- Changing `id` replaces the resource: the old partner's connector is deleted and a connector for the new partner is created.
+
+### Create, Adopt and Delete
+
+- Graph treats the create request as an upsert keyed on the partner ID, so a create would silently replace an existing connector's settings. To prevent this, the provider looks up the partner ID before creating and fails with an error if the partner already has a connector.
+- Existing connectors, such as the Microsoft Defender for Endpoint connector created by the "Microsoft Intune connection" setting in the Microsoft Defender portal, must be imported (see [Import](#import)) before Terraform can manage them. After importing, copy the connector's current settings into the configuration so the first apply does not change them unexpectedly.
+- Destroying the resource deletes the connector. For Microsoft Defender for Endpoint this removes the Intune side of the Defender connection; turning the "Microsoft Intune connection" setting off and on again in the Microsoft Defender portal recreates it with default settings. Remove the resource from state instead (`terraform state rm` or a `removed` block) if the connector must stay in the tenant.
+- Graph returns success when deleting a connector that does not exist.
+
+### Read-Only Settings
+
+- `android_device_blocked_on_missing_partner_data`, `ios_device_blocked_on_missing_partner_data`, `mac_device_blocked_on_missing_partner_data` and `windows_device_blocked_on_missing_partner_data` are derived by Graph from the matching `*_enabled` setting and ignore writes, so they are read-only.
+- `partner_state` and `last_heartbeat_date_time` are set by the service. A connector created for a partner that has not completed its connection from the partner console reports `partner_state = "notSetUp"` and no heartbeat.
+- The `partner_*` capability attributes (supported MAM platforms and minimum OS versions) are reported by the service for the partner.
+
+### Partner-Specific Settings
+
+- `microsoft_defender_for_endpoint_attach_enabled` only applies to the Microsoft Defender for Endpoint connector. Graph returns `false` for other partners, so setting it to `true` for another partner produces an inconsistent result error.
+- `launch_mobile_threat_defense_partner_on_setup_enabled` is ignored by partners that do not support it.
+- Only one partner per platform may be enabled for Mobile Application Management (MAM) evaluation. Check the other connectors in the tenant before enabling `*_mobile_application_management_enabled`.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_mobile_threat_defense_connector/import.sh" }}
