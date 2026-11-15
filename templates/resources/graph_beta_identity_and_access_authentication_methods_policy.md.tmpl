@@ -1,0 +1,71 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Manage authentication methods for Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-methods-manage)
+- [authenticationMethodsPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/authenticationmethodspolicy?view=graph-rest-beta)
+- [Get authenticationMethodsPolicy](https://learn.microsoft.com/en-us/graph/api/authenticationmethodspolicy-get?view=graph-rest-beta)
+- [Update authenticationMethodsPolicy](https://learn.microsoft.com/en-us/graph/api/authenticationmethodspolicy-update?view=graph-rest-beta)
+- [Update authenticationMethodConfiguration](https://learn.microsoft.com/en-us/graph/api/authenticationmethodconfiguration-update?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+
+- `Policy.Read.AuthenticationMethod`
+- `Policy.ReadWrite.AuthenticationMethod`
+
+**Optional:**
+
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Adopt the Policy Without Changes
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_authentication_methods_policy/resource.tf" }}
+
+### Target Email One-Time Passcodes at a Group
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_authentication_methods_policy/resource_email.tf" }}
+
+### Complete Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_authentication_methods_policy/resource_complete.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Singleton Resource**: One authentication methods policy exists per tenant. Manage one instance per tenant across all Terraform states. The ID is always `authenticationMethodsPolicy`.
+- **Create and Update Behavior**: Create adopts the existing tenant policy. Policy-level settings are sent in one PATCH to `/policies/authenticationMethodsPolicy`. Each method configuration is sent in its own PATCH to `/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/{id}` with its `@odata.type`. Only settings and method blocks that are configured and changed are written.
+- **Destroy Behavior**: Destroy only removes the resource from Terraform state. The tenant policy and its method configurations are left unchanged; they are not reset to defaults.
+- **Unconfigured Settings**: Every setting and every method block is optional and computed. A setting or block that is not configured keeps its current tenant value, is shown in state after refresh, and is never written. Removing a block from the configuration stops managing it without changing the tenant.
+- **Clearing Targets**: An unset `include_targets` or `exclude_targets` is omitted from the request, because Graph rejects null target lists. Set the attribute to `[]` to clear it.
+- **Target IDs**: Targets accept a user or group object ID, or `all_users` for every user. Graph does not validate that a target group exists.
+- **Policy-Level Blocks**: Inside a configured policy-level block, nested attributes that are not configured are omitted from the request on create. Configure every attribute of a policy-level block that you want to control.
+- **Managed Method Configurations**: This version manages `email`, `temporary_access_pass`, `sms`, `software_oath` and `hardware_oath`. The `Fido2`, `MicrosoftAuthenticator`, `Voice`, `X509Certificate`, `QRCodePin`, `Password`, `VerifiableCredentials`, `FederatedIdentityCredential` and external method configurations are not managed and are never changed by this resource.
+- **Voice**: The `Voice` method is not managed because its include targets carry a `verificationMode` that the Graph beta SDK model does not expose, so a PATCH could reset it.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_authentication_methods_policy/import.sh" }}

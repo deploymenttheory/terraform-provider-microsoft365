@@ -1,0 +1,2 @@
+# The authentication methods policy is a tenant singleton. Import it with the literal ID authenticationMethodsPolicy.
+terraform import microsoft365_graph_beta_identity_and_access_authentication_methods_policy.this authenticationMethodsPolicy
