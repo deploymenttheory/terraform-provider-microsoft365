@@ -15,8 +15,10 @@ import (
 // Header name and value rules mirror Graph's validation: names are RFC 7230
 // tokens and values are printable ASCII.
 var (
-	headerNameRegex  = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$")
-	headerValueRegex = regexp.MustCompile(`^[\x20-\x7E]+$`)
+	// The length validators enforce the minimum, so an empty string reports
+	// one error rather than two.
+	headerNameRegex  = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]*$")
+	headerValueRegex = regexp.MustCompile(`^[\x20-\x7E]*$`)
 )
 
 // uniqueCustomHeaderNamesValidator catches at plan time what Graph rejects with
@@ -40,17 +42,13 @@ func (v uniqueCustomHeaderNamesValidator) ValidateList(
 		return
 	}
 
-	// Decode into objects: an element built from a computed value is unknown as
-	// a whole and cannot be decoded into CustomHeaderModel.
-	var headers []types.Object
-	resp.Diagnostics.Append(req.ConfigValue.ElementsAs(ctx, &headers, false)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	seen := make(map[string]int, len(headers))
-	for i, header := range headers {
-		if header.IsNull() || header.IsUnknown() {
+	// Inspect elements as objects: one built from a computed value is unknown
+	// as a whole and cannot be decoded into CustomHeaderModel.
+	elements := req.ConfigValue.Elements()
+	seen := make(map[string]int, len(elements))
+	for i, element := range elements {
+		header, ok := element.(types.Object)
+		if !ok || header.IsNull() || header.IsUnknown() {
 			continue
 		}
 		name, ok := header.Attributes()["name"].(types.String)

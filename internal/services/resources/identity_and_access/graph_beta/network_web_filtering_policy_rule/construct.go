@@ -80,18 +80,13 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 	if err != nil {
 		return nil, fmt.Errorf("failed to read custom_headers: %w", err)
 	}
-	// Fail before calling Graph; the config validator skips an action unknown
-	// at plan time.
-	if len(customHeaders) > 0 && data.Action.ValueString() != "allow" {
-		return nil, fmt.Errorf(
-			"%w: custom_headers can only be set when action is \"allow\", got %q",
-			errInvalidCustomHeaders,
-			data.Action.ValueString(),
-		)
-	}
-
 	action := &actionRequestBody{
 		odataType: graphActionODataType(data.Action.ValueString()),
+	}
+	// Fail before calling Graph; the config validator skips an action unknown
+	// at plan time.
+	if len(customHeaders) > 0 && action.odataType != webFilteringActionAllowODataType {
+		return nil, fmt.Errorf("%w, got %q", errCustomHeadersRequireAllow, data.Action.ValueString())
 	}
 	if len(customHeaders) > 0 {
 		modifications := make([]s.Parsable, 0, len(customHeaders))
@@ -150,7 +145,10 @@ func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
 	return result, nil
 }
 
-var errInvalidCustomHeaders = errors.New("invalid custom_headers")
+var (
+	errInvalidCustomHeaders      = errors.New("invalid custom_headers")
+	errCustomHeadersRequireAllow = errors.New(`custom_headers can only be set when action is "allow"`)
+)
 
 func customHeaderValues(ctx context.Context, value types.List) ([]CustomHeaderModel, error) {
 	if value.IsNull() || value.IsUnknown() {

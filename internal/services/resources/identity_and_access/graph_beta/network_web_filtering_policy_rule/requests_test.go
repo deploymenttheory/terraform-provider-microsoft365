@@ -542,15 +542,16 @@ func TestConstructResourceRejectsCustomHeadersOnBlock(t *testing.T) {
 		WebCategories: webCategories,
 		CustomHeaders: headers,
 	})
-	if !errors.Is(err, errInvalidCustomHeaders) {
-		t.Fatalf("constructResource error = %v, expected errInvalidCustomHeaders", err)
+	if !errors.Is(err, errCustomHeadersRequireAllow) {
+		t.Fatalf("constructResource error = %v, expected errCustomHeadersRequireAllow", err)
 	}
 }
 
-// Update sends the full constructed body as a PATCH. Removing headers must
-// clear them: allow rules send headerSettings null (Graph keeps headers when it
-// is omitted) and block rules omit it (Graph rejects it, and drops headers).
-func TestUpdatePatchClearsCustomHeaders(t *testing.T) {
+// Update builds its PATCH from the plan alone, so prior state cannot leak
+// headers back in. A plan without headers must clear them: allow rules send
+// headerSettings null (Graph keeps headers when it is omitted) and block rules
+// omit it (Graph rejects it, and drops headers on the switch to block).
+func TestPatchWithoutCustomHeadersClearsThem(t *testing.T) {
 	ctx := context.Background()
 	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AlcoholAndTobacco"})
 	if diags.HasError() {
@@ -561,8 +562,8 @@ func TestUpdatePatchClearsCustomHeaders(t *testing.T) {
 		action   string
 		wantNull bool
 	}{
-		"allow with headers to allow without": {action: "allow", wantNull: true},
-		"allow with headers to block":         {action: "block"},
+		"allow": {action: "allow", wantNull: true},
+		"block": {action: "block"},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -612,7 +613,6 @@ func TestCustomHeaderNameAndValueRegex(t *testing.T) {
 		" X-Space":         false,
 		"X-Ünicode":        false,
 		"X-Name\n":         false,
-		"":                 false,
 	}
 	for name, want := range names {
 		if got := headerNameRegex.MatchString(name); got != want {
@@ -627,7 +627,6 @@ func TestCustomHeaderNameAndValueRegex(t *testing.T) {
 		"tab\there":           false,
 		"v\n":                 false,
 		"del\x7f":             false,
-		"":                    false,
 	}
 	for value, want := range values {
 		if got := headerValueRegex.MatchString(value); got != want {
@@ -650,6 +649,7 @@ func TestCustomHeaderSchemaValidators(t *testing.T) {
 		{"name", types.StringValue(strings.Repeat("a", 128)), false},
 		{"name", types.StringValue(strings.Repeat("a", 129)), true},
 		{"name", types.StringValue("X Bad"), true},
+		{"name", types.StringValue(""), true},
 		{"name", types.StringUnknown(), false},
 		{"value", types.StringValue(strings.Repeat("a", 2048)), false},
 		{"value", types.StringValue(strings.Repeat("a", 2049)), true},
@@ -658,9 +658,9 @@ func TestCustomHeaderSchemaValidators(t *testing.T) {
 		{"value", types.StringUnknown(), false},
 	}
 	for _, tc := range cases {
-		attr := headers.NestedObject.Attributes[tc.attr].(schema.StringAttribute)
+		attribute := headers.NestedObject.Attributes[tc.attr].(schema.StringAttribute)
 		var diags diag.Diagnostics
-		for _, v := range attr.Validators {
+		for _, v := range attribute.Validators {
 			r := &validator.StringResponse{}
 			v.ValidateString(ctx, validator.StringRequest{
 				Path:        path.Root("custom_headers").AtListIndex(0).AtName(tc.attr),
@@ -670,6 +670,9 @@ func TestCustomHeaderSchemaValidators(t *testing.T) {
 		}
 		if diags.HasError() != tc.wantErr {
 			t.Errorf("%s=%s: HasError = %v, expected %v: %v", tc.attr, tc.value, diags.HasError(), tc.wantErr, diags)
+		}
+		if tc.value.Equal(types.StringValue("")) && diags.ErrorsCount() != 1 {
+			t.Errorf("%s=\"\": %d errors, expected exactly 1: %v", tc.attr, diags.ErrorsCount(), diags)
 		}
 	}
 }
