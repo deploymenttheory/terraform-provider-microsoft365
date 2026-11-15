@@ -1,0 +1,75 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Lifecycle workflows documentation](https://learn.microsoft.com/en-us/entra/id-governance/what-are-lifecycle-workflows)
+- [lifecycleManagementSettings resource type](https://learn.microsoft.com/en-us/graph/api/resources/identitygovernance-lifecyclemanagementsettings?view=graph-rest-beta)
+- [Get lifecycleManagementSettings](https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecyclemanagementsettings-get?view=graph-rest-beta)
+- [Update lifecycleManagementSettings](https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecyclemanagementsettings-update?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `LifecycleWorkflows.Read.All`
+- `LifecycleWorkflows.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Schedule Interval Only
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow_settings/resource.tf" }}
+
+### Complete Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow_settings/resource_complete.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Singleton Resource
+- One lifecycle workflow settings object exists per tenant. It cannot be created or deleted.
+- `create` adopts the existing settings and applies the configured values with `PATCH`.
+- `destroy` only removes the resource from Terraform state; the tenant settings keep their current values.
+- Manage only one instance per tenant across all Terraform states.
+
+### Unconfigured Values
+- `workflow_schedule_interval_in_hours`, `email_settings`, `email_settings.sender_domain` and `email_settings.use_company_branding` are all optional.
+- A value that is not configured keeps its current tenant value and is not sent to Graph.
+- When a configuration stops managing a value, the value that was last applied stays in place.
+
+### Schedule Interval
+- `workflow_schedule_interval_in_hours` sets how often all scheduled workflows run and must be between `1` and `24`. Graph rejects other values.
+
+### Sender Domain
+- `microsoft.com` is the default sender domain and sends notifications from the Microsoft sender.
+- Any other `sender_domain` must be a verified domain of the tenant. Graph compares the value case-sensitively with the tenant domain list, so write it exactly as it appears there (for example `Contoso.onmicrosoft.com`), otherwise Graph returns `400 Provided domain is not verified for tenant or is not an eligible domain`.
+
+### Not Managed
+- `quarantineConfiguration` is returned by Graph but is not managed by this resource and is left unchanged.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow_settings/import.sh" }}

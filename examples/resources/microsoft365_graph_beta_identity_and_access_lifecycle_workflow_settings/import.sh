@@ -1,0 +1,2 @@
+# Import the tenant-wide lifecycle workflow settings using their fixed singleton ID.
+terraform import microsoft365_graph_beta_identity_and_access_lifecycle_workflow_settings.example lifecycleWorkflowSettings
