@@ -14,8 +14,11 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
   name      = "Example Internet Access FQDN rule"
   action    = "forward"
   rule_type = "fqdn"
-  ports     = ["80", "443"]
+  ports     = ["80", "443", "8000-8100"]
   protocol  = "tcp"
+
+  # Set only on create; changing it replaces the rule.
+  client_fallback_action = "block"
 
   destinations = [
     {
