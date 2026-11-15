@@ -213,6 +213,27 @@ func TestUnitResourceNetworkForwardingProfile_03d_NoAdoptionWithoutPriorList(t *
 	require.Len(t, m.Posts, 1)
 }
 
+// A transport error while listing after the failed POST does not stop the
+// search for the profile the POST created.
+func TestUnitResourceNetworkForwardingProfile_03e_KeepsPollingAfterListTransportError(
+	t *testing.T,
+) {
+	m := setup(t)
+	t.Cleanup(target.ShortenCreatedLookup())
+	m.PostFailures = 1
+	m.ListResetsAfterCreate = 1
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: hcl(t, "resource_minimal.tf"),
+				Check:  check.That(resourceType + ".test").Key("id").HasValue(testmocks.ProfileID),
+			},
+		},
+	})
+	require.Equal(t, 1, m.Deletes)
+}
+
 func TestUnitResourceNetworkForwardingProfile_04_ValidationErrors(t *testing.T) {
 	setup(t)
 	resource.UnitTest(t, resource.TestCase{

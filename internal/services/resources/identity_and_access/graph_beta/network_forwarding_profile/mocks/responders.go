@@ -3,6 +3,7 @@ package mocks
 import (
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"maps"
@@ -20,6 +21,8 @@ const (
 	ProfileID = "11111111-2222-3333-4444-555555555555"
 	DefaultID = "cccccccc-3333-4333-8333-333333333333"
 )
+
+var errConnectionReset = errors.New("read: connection reset by peer")
 
 // Mock emulates the Graph behaviors observed on a live tenant: empty member
 // lists are returned for enumerated assignments and platform names are
@@ -40,6 +43,9 @@ type Mock struct {
 	Existing map[string]any
 	// ListFailures makes the next profile list calls return 503.
 	ListFailures int
+	// ListResetsAfterCreate makes the next list calls fail at the transport
+	// level once a profile has been created.
+	ListResetsAfterCreate int
 }
 
 var _ common.MockRegistrar = (*Mock)(nil)
@@ -95,6 +101,10 @@ func (m *Mock) RegisterMocks() {
 	httpmock.RegisterResponder("GET", endpoint, func(q *http.Request) (*http.Response, error) {
 		m.Lock()
 		defer m.Unlock()
+		if m.State != nil && m.ListResetsAfterCreate > 0 {
+			m.ListResetsAfterCreate--
+			return nil, errConnectionReset
+		}
 		if m.ListFailures > 0 {
 			m.ListFailures--
 			return httpmock.NewStringResponse(
@@ -207,4 +217,5 @@ func (m *Mock) CleanupMockState() {
 	m.PostDuplicates = 0
 	m.Existing = nil
 	m.ListFailures = 0
+	m.ListResetsAfterCreate = 0
 }

@@ -174,9 +174,12 @@ func (r *NetworkForwardingProfileResource) waitForCreated(
 		if err == nil && created != nil {
 			return created
 		}
-		// Stop on list errors that will not go away, such as 403.
+		// Stop on list errors that will not go away, such as 403. Transport
+		// errors are reported as 400 "URLError" but can clear on the next try.
 		if err != nil && !stderrors.Is(err, errProfileNotCreated) {
-			if status := kiotaerrors.GraphError(ctx, err).StatusCode; status >= 400 && status < 500 && status != 429 {
+			info := kiotaerrors.GraphError(ctx, err)
+			if info.StatusCode >= 400 && info.StatusCode < 500 && info.StatusCode != 429 &&
+				info.ErrorCode != "URLError" {
 				return nil
 			}
 		}
