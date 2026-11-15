@@ -1,0 +1,58 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [What is Global Secure Access?](https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access)
+- [Traffic forwarding profiles](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding)
+- [Private Access traffic forwarding profile](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-private-access-profile)
+- [forwardingPolicyLink resource type](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-forwardingpolicylink?view=graph-rest-beta)
+
+## Microsoft Graph API
+
+This resource uses Microsoft Graph beta:
+
+- Read: `GET /networkAccess/forwardingProfiles/{id}?$expand=policies($expand=policy)` (or `/networkAccess/deviceForwardingProfiles/{id}` when `profile_type = "device"`).
+- Create and destroy: `PATCH` the same profile with a `policies@delta` entry that adds the link, or removes it with `@removed`.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Behavior Notes
+
+- Graph only supports adding and removing forwarding policy links. Updating a link's `priority` or `state` is rejected, so every argument forces replacement.
+- When a new custom user forwarding profile is created, Microsoft automatically links the tenant's existing Private Access app policies (priority `65000`, `enabled`). If the configured policy is already linked with the configured `state` and `priority` (or `priority` is omitted), create adopts that link without writing. Otherwise the existing link is removed and re-added with the configured values. Removed automatic links are not recreated by Microsoft. Device forwarding profiles start with no links.
+- Graph rejects removing and re-adding the same policy in one request, so replacement uses two `PATCH` requests and waits for the removal to propagate in between. A new `policy_link_id` is issued each time.
+- If the link is re-added outside Terraform, the resource finds it again by `forwarding_policy_id` and updates `policy_link_id`.
+- Links are eventually consistent; create and destroy wait for three consecutive matching reads.
+- The Entra admin center offers priorities 100-64999. Graph also accepts other values up to `65000`.
+- `config_type = "dnsPolicy"` sends the same payload as `appPolicy` but has not been verified against a live tenant.
+- Do not manage the same link with both this resource and `microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link`. That resource adopts Microsoft-created links and only toggles `state`; destroying it does not remove the link.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_forwarding_profile_private_access_policy_link/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_forwarding_profile_private_access_policy_link/import.sh" }}
