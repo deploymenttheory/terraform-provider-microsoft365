@@ -1,0 +1,67 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Manage device identities](https://learn.microsoft.com/en-us/entra/identity/devices/manage-device-identities)
+- [deviceRegistrationPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/deviceregistrationpolicy?view=graph-rest-beta)
+- [Get deviceRegistrationPolicy](https://learn.microsoft.com/en-us/graph/api/deviceregistrationpolicy-get?view=graph-rest-beta)
+- [Update deviceRegistrationPolicy](https://learn.microsoft.com/en-us/graph/api/deviceregistrationpolicy-update?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+
+- `Policy.Read.DeviceConfiguration`
+- `Policy.ReadWrite.DeviceConfiguration`
+
+**Optional:**
+
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Preview | Initial release |
+
+## Example Usage
+
+### Minimal Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_device_registration_policy/resource.tf" }}
+
+### Complete Configuration
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_device_registration_policy/resource_complete.tf" }}
+
+### Restrict Microsoft Entra Join to a Group
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_device_registration_policy/resource_join_group.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- **Singleton Resource**: One device registration policy exists per tenant. Manage one instance per tenant across all Terraform states. The ID is always `deviceRegistrationPolicy`.
+- **Create and Update Behavior**: Create adopts the existing tenant policy. Both create and update read the current policy and then replace it with a full PUT, because Graph requires every updatable property on PUT.
+- **Destroy Behavior**: Destroy only removes the resource from Terraform state. The tenant device registration policy is left unchanged; it is not reset to defaults.
+- **Unconfigured Settings**: Every setting is optional. Settings that are not configured keep their current tenant values, which are read before every PUT and sent back unchanged.
+- **Memberships**: `allowed_to_register`, `allowed_to_join` and `registering_users` take a `type` of `all`, `none` or `enumerated`. `users` and `groups` are only valid with `enumerated`; an unset list is omitted from the request.
+- **Intune and Microsoft Entra registration**: When Microsoft Intune is enabled in the tenant, Graph reports `azure_ad_registration.is_admin_configurable = false` and ignores changes to `allowed_to_register`. The provider sends the current value back and returns an error if the configuration asks for a different value.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_device_registration_policy/import.sh" }}
