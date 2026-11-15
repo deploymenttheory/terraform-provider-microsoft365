@@ -198,8 +198,9 @@ func (r *headerSettingsResponse) GetFieldDeserializers() map[string]func(s.Parse
 			}
 			for _, value := range values {
 				modification, ok := value.(*headerModificationResponse)
-				// Only headerModificationAdd is known; skip other kinds rather
-				// than mapping them to an add.
+				// Graph rejects writes of any other modification kind, so only
+				// headerModificationAdd is expected; skip anything else rather
+				// than mapping it to an add.
 				if !ok || modification.odataType != headerModificationAddODataType {
 					continue
 				}

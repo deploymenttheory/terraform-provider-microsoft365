@@ -3,12 +3,22 @@ package graphBetaNetworkWebFilteringPolicyRule
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// Header name and value rules mirror Graph's validation: names are RFC 7230
+// tokens and values are printable ASCII.
+var (
+	// The length validators enforce the minimum, so an empty string reports
+	// one error rather than two.
+	headerNameRegex  = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]*$")
+	headerValueRegex = regexp.MustCompile(`^[\x20-\x7E]*$`)
 )
 
 // uniqueCustomHeaderNamesValidator catches at plan time what Graph rejects with
@@ -32,25 +42,27 @@ func (v uniqueCustomHeaderNamesValidator) ValidateList(
 		return
 	}
 
-	var headers []CustomHeaderModel
-	resp.Diagnostics.Append(req.ConfigValue.ElementsAs(ctx, &headers, false)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	seen := make(map[string]int, len(headers))
-	for i, header := range headers {
-		if header.Name.IsNull() || header.Name.IsUnknown() {
+	// Inspect elements as objects: one built from a computed value is unknown
+	// as a whole and cannot be decoded into CustomHeaderModel.
+	elements := req.ConfigValue.Elements()
+	seen := make(map[string]int, len(elements))
+	for i, element := range elements {
+		header, ok := element.(types.Object)
+		if !ok || header.IsNull() || header.IsUnknown() {
 			continue
 		}
-		key := strings.ToLower(header.Name.ValueString())
+		name, ok := header.Attributes()["name"].(types.String)
+		if !ok || name.IsNull() || name.IsUnknown() {
+			continue
+		}
+		key := strings.ToLower(name.ValueString())
 		if first, ok := seen[key]; ok {
 			resp.Diagnostics.AddAttributeError(
 				req.Path.AtListIndex(i).AtName("name"),
 				"Duplicate custom header name",
 				fmt.Sprintf(
 					"Header name %q duplicates custom_headers[%d]. Each header name must be unique within a rule (case-insensitive).",
-					header.Name.ValueString(),
+					name.ValueString(),
 					first,
 				),
 			)

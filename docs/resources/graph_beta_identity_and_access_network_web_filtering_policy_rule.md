@@ -145,8 +145,8 @@ resource "microsoft365_graph_beta_identity_and_access_network_web_filtering_poli
 
 Required:
 
-- `name` (String) The header name. Must be unique within the rule (case-insensitive).
-- `value` (String) The header value. Must not be empty.
+- `name` (String) The header name: an HTTP token of at most 128 characters. Must be unique within the rule (case-insensitive). Graph also rejects reserved names such as `host` and `authorization`, and the `x-ms-` and `x-azure-` prefixes.
+- `value` (String) The header value: 1 to 2048 printable ASCII characters. Shown in plan output and stored in state as plain text; wrap it with `sensitive()` to hide it from plan output.
 
 
 <a id="nestedatt--timeouts"></a>

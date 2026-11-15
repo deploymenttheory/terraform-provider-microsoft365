@@ -80,10 +80,13 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 	if err != nil {
 		return nil, fmt.Errorf("failed to read custom_headers: %w", err)
 	}
-
 	action := &actionRequestBody{
-		odataType:          graphActionODataType(data.Action.ValueString()),
-		sendHeaderSettings: data.Action.ValueString() == "allow",
+		odataType: graphActionODataType(data.Action.ValueString()),
+	}
+	// Fail before calling Graph; the config validator skips an action unknown
+	// at plan time.
+	if len(customHeaders) > 0 && action.odataType != webFilteringActionAllowODataType {
+		return nil, fmt.Errorf("%w, got %q", errCustomHeadersRequireAllow, data.Action.ValueString())
 	}
 	if len(customHeaders) > 0 {
 		modifications := make([]s.Parsable, 0, len(customHeaders))
@@ -142,7 +145,10 @@ func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
 	return result, nil
 }
 
-var errInvalidCustomHeaders = errors.New("invalid custom_headers")
+var (
+	errInvalidCustomHeaders      = errors.New("invalid custom_headers")
+	errCustomHeadersRequireAllow = errors.New(`custom_headers can only be set when action is "allow"`)
+)
 
 func customHeaderValues(ctx context.Context, value types.List) ([]CustomHeaderModel, error) {
 	if value.IsNull() || value.IsUnknown() {
@@ -208,9 +214,8 @@ func (b *webFilteringPolicyRuleRequestBody) GetFieldDeserializers() map[string]f
 }
 
 type actionRequestBody struct {
-	odataType          string
-	sendHeaderSettings bool
-	headerSettings     *headerSettingsRequestBody
+	odataType      string
+	headerSettings *headerSettingsRequestBody
 }
 
 func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
@@ -219,7 +224,7 @@ func (b *actionRequestBody) Serialize(writer s.SerializationWriter) error {
 	}
 	// Block actions reject any headerSettings, even null. Allow actions keep
 	// existing headers when it is omitted on PATCH, so send null to clear them.
-	if !b.sendHeaderSettings {
+	if b.odataType != webFilteringActionAllowODataType {
 		return nil
 	}
 	if b.headerSettings == nil {
