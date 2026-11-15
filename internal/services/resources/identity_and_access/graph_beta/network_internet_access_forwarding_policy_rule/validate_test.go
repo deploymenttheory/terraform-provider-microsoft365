@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -236,4 +238,64 @@ func TestDestinationsValidatorSkipsUnknownValues(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Pins the client_fallback_action modifiers: an unknown config value must stay
+// unknown and force replacement, and a removed value must keep state.
+func TestClientFallbackActionPlanModifiers(t *testing.T) {
+	ctx := context.Background()
+	schemaResp := &resource.SchemaResponse{}
+	(&NetworkInternetAccessForwardingPolicyRuleResource{}).Schema(ctx, resource.SchemaRequest{}, schemaResp)
+	attribute := schemaResp.Schema.Attributes["client_fallback_action"].(schema.StringAttribute)
+	raw := nonNullObjectForTest(ctx, schemaResp)
+
+	cases := map[string]struct {
+		config      types.String
+		wantPlan    types.String
+		wantReplace bool
+	}{
+		"unknown config forces replacement": {types.StringUnknown(), types.StringUnknown(), true},
+		"removed keeps state":               {types.StringNull(), types.StringValue("block"), false},
+		"same value":                        {types.StringValue("block"), types.StringValue("block"), false},
+		"new value forces replacement":      {types.StringValue("bypass"), types.StringValue("bypass"), true},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			planValue := tc.config
+			if tc.config.IsNull() {
+				planValue = types.StringUnknown() // Optional+Computed: core plans unknown.
+			}
+			replace := false
+			for _, m := range attribute.PlanModifiers {
+				resp := &planmodifier.StringResponse{PlanValue: planValue}
+				m.PlanModifyString(ctx, planmodifier.StringRequest{
+					Path:        path.Root("client_fallback_action"),
+					ConfigValue: tc.config,
+					StateValue:  types.StringValue("block"),
+					PlanValue:   planValue,
+					Config:      tfsdk.Config{Schema: schemaResp.Schema, Raw: raw},
+					Plan:        tfsdk.Plan{Schema: schemaResp.Schema, Raw: raw},
+					State:       tfsdk.State{Schema: schemaResp.Schema, Raw: raw},
+				}, resp)
+				if resp.Diagnostics.HasError() {
+					t.Fatalf("modifier error: %v", resp.Diagnostics)
+				}
+				planValue = resp.PlanValue
+				replace = replace || resp.RequiresReplace
+			}
+			if !planValue.Equal(tc.wantPlan) || replace != tc.wantReplace {
+				t.Fatalf("plan = %s, replace = %v; expected %s, %v", planValue, replace, tc.wantPlan, tc.wantReplace)
+			}
+		})
+	}
+}
+
+func nonNullObjectForTest(ctx context.Context, schemaResp *resource.SchemaResponse) tftypes.Value {
+	objectType := schemaResp.Schema.Type().TerraformType(ctx).(tftypes.Object)
+	values := make(map[string]tftypes.Value, len(objectType.AttributeTypes))
+	for name, attrType := range objectType.AttributeTypes {
+		values[name] = tftypes.NewValue(attrType, nil)
+	}
+
+	return tftypes.NewValue(objectType, values)
 }

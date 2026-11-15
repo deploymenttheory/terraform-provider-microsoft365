@@ -23,7 +23,7 @@ var portRegex = regexp.MustCompile(`^(0|[1-9]\d{0,4})(?:-(0|[1-9]\d{0,4}))?$`)
 type portValidator struct{}
 
 func (v portValidator) Description(ctx context.Context) string {
-	return `must be a port such as "443" or a range such as "1000-2000", between 0 and 65535`
+	return `must be a port such as "443" or a range such as "1000-2000", between 0 and 65535, with no spaces or leading zeros`
 }
 
 func (v portValidator) MarkdownDescription(ctx context.Context) string {

@@ -155,7 +155,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Schema(ctx context.C
 				},
 			},
 			"ports": schema.SetAttribute{
-				MarkdownDescription: "Network ports matched by the rule. Each entry is a single port such as `443` or an inclusive range such as `1000-2000`, between 0 and 65535.",
+				MarkdownDescription: "Network ports matched by the rule. Each entry is a single port such as `443` or an inclusive range such as `1000-2000`, between 0 and 65535, with no spaces or leading zeros.",
 				Required:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.Set{
