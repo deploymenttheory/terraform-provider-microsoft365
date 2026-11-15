@@ -1,0 +1,12 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identityGovernance/lifecycleWorkflows/settings/$entity",
+  "workflowScheduleIntervalInHours": 3,
+  "emailSettings": {
+    "senderDomain": "microsoft.com",
+    "useCompanyBranding": false
+  },
+  "quarantineConfiguration": {
+    "matchMode": "any",
+    "conditions": []
+  }
+}
