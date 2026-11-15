@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
@@ -41,6 +42,8 @@ var (
 	_ resource.ResourceWithConfigure   = &NetworkInternetAccessForwardingPolicyRuleResource{}
 	_ resource.ResourceWithImportState = &NetworkInternetAccessForwardingPolicyRuleResource{}
 	_ resource.ResourceWithIdentity    = &NetworkInternetAccessForwardingPolicyRuleResource{}
+
+	_ resource.ResourceWithConfigValidators = &NetworkInternetAccessForwardingPolicyRuleResource{}
 )
 
 func NewNetworkInternetAccessForwardingPolicyRuleResource() resource.Resource {
@@ -86,6 +89,10 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) IdentitySchema(ctx c
 			"id": identityschema.StringAttribute{RequiredForImport: true},
 		},
 	}
+}
+
+func (r *NetworkInternetAccessForwardingPolicyRuleResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{destinationsValidator{}}
 }
 
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -134,26 +141,37 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Schema(ctx context.C
 				},
 			},
 			"client_fallback_action": schema.StringAttribute{
-				MarkdownDescription: "The Graph-computed client fallback action.",
+				MarkdownDescription: "What the client does with matching traffic when it cannot reach Global Secure Access. Possible values are `default`, `bypass`, and `block`. When omitted on create, Graph sets `default`; removing it later keeps the existing value. Graph does not allow updating it after creation, so changing it requires replacement.",
+				Optional:            true,
 				Computed:            true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("default", "bypass", "block"),
+				},
+				// The framework's UseStateForUnknown leaves a value that is unknown in
+				// config alone, so RequiresReplaceIfConfigured still sees the change.
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+					stringplanmodifier.RequiresReplaceIfConfigured(),
+				},
 			},
 			"ports": schema.SetAttribute{
-				MarkdownDescription: "Network ports matched by the rule. Observed Internet Access rules use values such as `80` and `443`.",
+				MarkdownDescription: "Network ports matched by the rule. Each entry is a single port such as `443` or an inclusive range such as `1000-2000`, between 0 and 65535, with no spaces or leading zeros.",
 				Required:            true,
 				ElementType:         types.StringType,
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
+					setvalidator.ValueStringsAre(portValidator{}),
 				},
 			},
 			"protocol": schema.StringAttribute{
-				MarkdownDescription: "Network protocol. Validated values are `tcp` and `udp` until additional Graph contract probing confirms more values.",
+				MarkdownDescription: "Network protocol. Possible values are `tcp` and `udp`; a rule matches one protocol.",
 				Required:            true,
 				Validators: []validator.String{
 					stringvalidator.OneOf("tcp", "udp"),
 				},
 			},
 			"destinations": schema.ListNestedAttribute{
-				MarkdownDescription: "Destinations for the rule. FQDN, IP address, IP range, and CIDR/IP subnet shapes are supported.",
+				MarkdownDescription: "Destinations for the rule. Every destination must have the same `type` as `rule_type`. IP addresses, ranges and subnets must be IPv4; Graph rejects IPv6 for Internet Access rules.",
 				Required:            true,
 				Validators: []validator.List{
 					listvalidator.SizeAtLeast(1),
@@ -168,15 +186,15 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Schema(ctx context.C
 							},
 						},
 						"value": schema.StringAttribute{
-							MarkdownDescription: "Destination value for `fqdn`, `ip_address`, and `ip_subnet`. Use CIDR notation for `ip_subnet`.",
+							MarkdownDescription: "Destination value for `fqdn`, `ip_address`, and `ip_subnet`. Use CIDR notation for `ip_subnet`. Not used for `ip_range`.",
 							Optional:            true,
 						},
 						"begin_address": schema.StringAttribute{
-							MarkdownDescription: "Beginning IP address for `ip_range`.",
+							MarkdownDescription: "Beginning IPv4 address for `ip_range`.",
 							Optional:            true,
 						},
 						"end_address": schema.StringAttribute{
-							MarkdownDescription: "Ending IP address for `ip_range`.",
+							MarkdownDescription: "Ending IPv4 address for `ip_range`. Must not be lower than `begin_address`.",
 							Optional:            true,
 						},
 					},

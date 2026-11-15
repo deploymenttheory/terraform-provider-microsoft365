@@ -45,6 +45,10 @@ func constructResource(ctx context.Context, data *NetworkInternetAccessForwardin
 	if !includeID {
 		body.Name = data.Name.ValueString()
 		body.Action = data.Action.ValueString()
+		// Graph accepts clientFallbackAction only on create.
+		if !data.ClientFallbackAction.IsNull() && !data.ClientFallbackAction.IsUnknown() {
+			body.ClientFallbackAction = data.ClientFallbackAction.ValueString()
+		}
 	}
 	return body, nil
 }
@@ -157,14 +161,16 @@ func terraformRuleType(value string) string {
 }
 
 type internetAccessForwardingRuleRequestBody struct {
-	ODataType    string
-	ID           string
-	Name         string
-	RuleType     string
-	Action       string
-	Ports        []string
-	Protocol     string
-	Destinations []s.Parsable
+	ODataType string
+	ID        string
+	Name      string
+	RuleType  string
+	Action    string
+	// ClientFallbackAction is sent on create only.
+	ClientFallbackAction string
+	Ports                []string
+	Protocol             string
+	Destinations         []s.Parsable
 }
 
 func (b *internetAccessForwardingRuleRequestBody) Serialize(writer s.SerializationWriter) error {
@@ -186,6 +192,11 @@ func (b *internetAccessForwardingRuleRequestBody) Serialize(writer s.Serializati
 	if b.Action != "" {
 		if err := writer.WriteStringValue("action", &b.Action); err != nil {
 			return err
+		}
+	}
+	if b.ClientFallbackAction != "" {
+		if err := writer.WriteStringValue("clientFallbackAction", &b.ClientFallbackAction); err != nil {
+			return fmt.Errorf("failed to write clientFallbackAction: %w", err)
 		}
 	}
 	if b.RuleType != "" {

@@ -39,9 +39,10 @@ The following client `application` permissions are needed in order to use this {
 
 - Use the forwarding policy `policy_id` from the forwarding profile data source as `forwarding_policy_id`.
 - `action` supports `forward` and `bypass`. Graph requires `forward` rules on acquire policies such as `Custom Acquire`, and `bypass` rules on bypass policies such as `Custom bypass`.
-- `name` and `action` are create-time values for this Graph resource. Changing either value requires Terraform to replace the rule.
-- `protocol` supports `tcp` and `udp` until additional Graph contract probing confirms other values.
-- Destination `type` supports `fqdn`, `ip_address`, `ip_range`, and `ip_subnet`. Use CIDR notation in `value` for `ip_subnet`.
+- `name`, `action` and `client_fallback_action` are create-time values for this Graph resource. Changing any of them requires Terraform to replace the rule. `ports`, `protocol` and `destinations` are updated in place.
+- `protocol` supports `tcp` and `udp`. To match both, create one rule per protocol.
+- `ports` entries are single ports (`443`) or inclusive ranges (`1000-2000`) between 0 and 65535, with no spaces or leading zeros.
+- Destination `type` supports `fqdn`, `ip_address`, `ip_range`, and `ip_subnet`, and must equal `rule_type`. Use CIDR notation in `value` for `ip_subnet`. Graph accepts only IPv4 addresses, ranges and subnets for Internet Access rules.
 - The generated Microsoft Graph beta Go SDK exposes policy rule builders, but this resource uses Kiota `RequestInformation` and custom `Parsable` request/response types for the observed polymorphic Internet Access payload.
 
 ## Example Usage

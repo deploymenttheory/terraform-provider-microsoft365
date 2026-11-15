@@ -39,9 +39,10 @@ The following client `application` permissions are needed in order to use this r
 
 - Use the forwarding policy `policy_id` from the forwarding profile data source as `forwarding_policy_id`.
 - `action` supports `forward` and `bypass`. Graph requires `forward` rules on acquire policies such as `Custom Acquire`, and `bypass` rules on bypass policies such as `Custom bypass`.
-- `name` and `action` are create-time values for this Graph resource. Changing either value requires Terraform to replace the rule.
-- `protocol` supports `tcp` and `udp` until additional Graph contract probing confirms other values.
-- Destination `type` supports `fqdn`, `ip_address`, `ip_range`, and `ip_subnet`. Use CIDR notation in `value` for `ip_subnet`.
+- `name`, `action` and `client_fallback_action` are create-time values for this Graph resource. Changing any of them requires Terraform to replace the rule. `ports`, `protocol` and `destinations` are updated in place.
+- `protocol` supports `tcp` and `udp`. To match both, create one rule per protocol.
+- `ports` entries are single ports (`443`) or inclusive ranges (`1000-2000`) between 0 and 65535, with no spaces or leading zeros.
+- Destination `type` supports `fqdn`, `ip_address`, `ip_range`, and `ip_subnet`, and must equal `rule_type`. Use CIDR notation in `value` for `ip_subnet`. Graph accepts only IPv4 addresses, ranges and subnets for Internet Access rules.
 - The generated Microsoft Graph beta Go SDK exposes policy rule builders, but this resource uses Kiota `RequestInformation` and custom `Parsable` request/response types for the observed polymorphic Internet Access payload.
 
 ## Example Usage
@@ -63,8 +64,11 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
   name      = "Example Internet Access FQDN rule"
   action    = "forward"
   rule_type = "fqdn"
-  ports     = ["80", "443"]
+  ports     = ["80", "443", "8000-8100"]
   protocol  = "tcp"
+
+  # Set only on create; changing it replaces the rule.
+  client_fallback_action = "block"
 
   destinations = [
     {
@@ -116,20 +120,20 @@ resource "microsoft365_graph_beta_identity_and_access_network_internet_access_fo
 ### Required
 
 - `action` (String) The forwarding action. Possible values are `forward` and `bypass`. Graph requires `forward` for acquire policies and `bypass` for bypass policies; changing this value requires replacement.
-- `destinations` (Attributes List) Destinations for the rule. FQDN, IP address, IP range, and CIDR/IP subnet shapes are supported. (see [below for nested schema](#nestedatt--destinations))
+- `destinations` (Attributes List) Destinations for the rule. Every destination must have the same `type` as `rule_type`. IP addresses, ranges and subnets must be IPv4; Graph rejects IPv6 for Internet Access rules. (see [below for nested schema](#nestedatt--destinations))
 - `forwarding_policy_id` (String) The forwarding policy ID that owns this rule.
 - `name` (String) The rule name. Graph does not allow updating this value after creation; changing it requires replacement.
-- `ports` (Set of String) Network ports matched by the rule. Observed Internet Access rules use values such as `80` and `443`.
-- `protocol` (String) Network protocol. Validated values are `tcp` and `udp` until additional Graph contract probing confirms more values.
+- `ports` (Set of String) Network ports matched by the rule. Each entry is a single port such as `443` or an inclusive range such as `1000-2000`, between 0 and 65535, with no spaces or leading zeros.
+- `protocol` (String) Network protocol. Possible values are `tcp` and `udp`; a rule matches one protocol.
 - `rule_type` (String) The destination rule type. Possible values are `fqdn`, `ip_address`, `ip_range`, and `ip_subnet`.
 
 ### Optional
 
+- `client_fallback_action` (String) What the client does with matching traffic when it cannot reach Global Secure Access. Possible values are `default`, `bypass`, and `block`. When omitted on create, Graph sets `default`; removing it later keeps the existing value. Graph does not allow updating it after creation, so changing it requires replacement.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
-- `client_fallback_action` (String) The Graph-computed client fallback action.
 - `id` (String) The forwarding policy rule ID.
 
 <a id="nestedatt--destinations"></a>
@@ -141,9 +145,9 @@ Required:
 
 Optional:
 
-- `begin_address` (String) Beginning IP address for `ip_range`.
-- `end_address` (String) Ending IP address for `ip_range`.
-- `value` (String) Destination value for `fqdn`, `ip_address`, and `ip_subnet`. Use CIDR notation for `ip_subnet`.
+- `begin_address` (String) Beginning IPv4 address for `ip_range`.
+- `end_address` (String) Ending IPv4 address for `ip_range`. Must not be lower than `begin_address`.
+- `value` (String) Destination value for `fqdn`, `ip_address`, and `ip_subnet`. Use CIDR notation for `ip_subnet`. Not used for `ip_range`.
 
 
 <a id="nestedatt--timeouts"></a>
