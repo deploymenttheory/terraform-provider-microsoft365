@@ -253,11 +253,14 @@ func TestClientFallbackActionPlanModifiers(t *testing.T) {
 		config      types.String
 		wantPlan    types.String
 		wantReplace bool
+		create      bool
 	}{
-		"unknown config forces replacement": {types.StringUnknown(), types.StringUnknown(), true},
-		"removed keeps state":               {types.StringNull(), types.StringValue("block"), false},
-		"same value":                        {types.StringValue("block"), types.StringValue("block"), false},
-		"new value forces replacement":      {types.StringValue("bypass"), types.StringValue("bypass"), true},
+		"unknown config forces replacement": {types.StringUnknown(), types.StringUnknown(), true, false},
+		"removed keeps state":               {types.StringNull(), types.StringValue("block"), false, false},
+		"same value":                        {types.StringValue("block"), types.StringValue("block"), false, false},
+		"new value forces replacement":      {types.StringValue("bypass"), types.StringValue("bypass"), true, false},
+		"create leaves unset value unknown": {types.StringNull(), types.StringUnknown(), false, true},
+		"create with unknown value":         {types.StringUnknown(), types.StringUnknown(), false, true},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -265,17 +268,22 @@ func TestClientFallbackActionPlanModifiers(t *testing.T) {
 			if tc.config.IsNull() {
 				planValue = types.StringUnknown() // Optional+Computed: core plans unknown.
 			}
+			state, stateRaw := types.StringValue("block"), raw
+			if tc.create {
+				state = types.StringNull()
+				stateRaw = tftypes.NewValue(schemaResp.Schema.Type().TerraformType(ctx), nil)
+			}
 			replace := false
 			for _, m := range attribute.PlanModifiers {
 				resp := &planmodifier.StringResponse{PlanValue: planValue}
 				m.PlanModifyString(ctx, planmodifier.StringRequest{
 					Path:        path.Root("client_fallback_action"),
 					ConfigValue: tc.config,
-					StateValue:  types.StringValue("block"),
+					StateValue:  state,
 					PlanValue:   planValue,
 					Config:      tfsdk.Config{Schema: schemaResp.Schema, Raw: raw},
 					Plan:        tfsdk.Plan{Schema: schemaResp.Schema, Raw: raw},
-					State:       tfsdk.State{Schema: schemaResp.Schema, Raw: raw},
+					State:       tfsdk.State{Schema: schemaResp.Schema, Raw: stateRaw},
 				}, resp)
 				if resp.Diagnostics.HasError() {
 					t.Fatalf("modifier error: %v", resp.Diagnostics)
