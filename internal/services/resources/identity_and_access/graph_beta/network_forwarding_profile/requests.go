@@ -2,7 +2,7 @@ package graphBetaNetworkForwardingProfile
 
 import (
 	"context"
-	"errors"
+	stderrors "errors"
 	"fmt"
 	"time"
 
@@ -10,13 +10,28 @@ import (
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
 var (
-	errInvalidProfileResponse = errors.New("graph returned a forwarding profile without an ID")
-	errProfileNotCreated      = errors.New("forwarding profile not found after failed create")
+	errInvalidProfileResponse = stderrors.New("graph returned a forwarding profile without an ID")
+	errProfileNotCreated      = stderrors.New("forwarding profile not found after failed create")
 )
+
+// createdLookupAttemptsFor polls only after errors that can hide a successful
+// create: gateway failures and transport errors. Anything else gets one check,
+// which still catches a retried POST that failed as a duplicate.
+func createdLookupAttemptsFor(info kiotaerrors.GraphErrorInfo) int {
+	switch {
+	case info.StatusCode == 0,
+		info.StatusCode == 502, info.StatusCode == 503, info.StatusCode == 504,
+		info.StatusCode == 500 && !info.IsODataError:
+		return createdLookupAttempts
+	default:
+		return 1
+	}
+}
 
 // Variables so unit tests can shorten the wait.
 var (
@@ -83,12 +98,9 @@ func (r *NetworkForwardingProfileResource) create(
 	return &response, nil
 }
 
-// findCreated returns the custom profile matching the plan's name, traffic type
-// and priority, or errProfileNotCreated when none exists.
-func (r *NetworkForwardingProfileResource) findCreated(
+func (r *NetworkForwardingProfileResource) list(
 	ctx context.Context,
-	plan NetworkForwardingProfileResourceModel,
-) (*sharedmodels.ForwardingProfileWire, error) {
+) ([]sharedmodels.ForwardingProfileWire, error) {
 	var response struct {
 		Value []sharedmodels.ForwardingProfileWire `json:"value"`
 	}
@@ -103,26 +115,67 @@ func (r *NetworkForwardingProfileResource) findCreated(
 	); err != nil {
 		return nil, fmt.Errorf("list forwarding profiles: %w", err)
 	}
-	for i, p := range response.Value {
-		if p.ID != nil && p.IsCustomProfile != nil && *p.IsCustomProfile &&
+	return response.Value, nil
+}
+
+// customProfileIDs returns the IDs of the custom profiles that exist now.
+func (r *NetworkForwardingProfileResource) customProfileIDs(ctx context.Context) (map[string]bool, error) {
+	profiles, err := r.list(ctx)
+	if err != nil {
+		return nil, err
+	}
+	ids := make(map[string]bool, len(profiles))
+	for _, p := range profiles {
+		if p.ID != nil && p.IsCustomProfile != nil && *p.IsCustomProfile {
+			ids[*p.ID] = true
+		}
+	}
+	return ids, nil
+}
+
+// findCreated returns the custom profile matching the plan's name, traffic type
+// and priority that is not in existing, or errProfileNotCreated when none is.
+func (r *NetworkForwardingProfileResource) findCreated(
+	ctx context.Context,
+	plan NetworkForwardingProfileResourceModel,
+	existing map[string]bool,
+) (*sharedmodels.ForwardingProfileWire, error) {
+	profiles, err := r.list(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for i, p := range profiles {
+		if p.ID != nil && !existing[*p.ID] && p.IsCustomProfile != nil && *p.IsCustomProfile &&
 			p.Name != nil && *p.Name == plan.Name.ValueString() &&
 			p.TrafficForwardingType != nil && *p.TrafficForwardingType == plan.TrafficForwardingType.ValueString() &&
 			p.Priority != nil && *p.Priority == plan.Priority.ValueInt32() {
-			return &response.Value[i], nil
+			return &profiles[i], nil
 		}
 	}
 	return nil, errProfileNotCreated
 }
 
-// waitForCreated polls for a profile created by a request that failed on the
-// gateway; it can take a while to appear in the list.
+// waitForCreated looks for a profile created by a request that failed; after a
+// gateway error it can take a while to appear in the list.
 func (r *NetworkForwardingProfileResource) waitForCreated(
 	ctx context.Context,
 	plan NetworkForwardingProfileResourceModel,
+	existing map[string]bool,
+	attempts int,
 ) *sharedmodels.ForwardingProfileWire {
-	for range createdLookupAttempts {
-		if created, err := r.findCreated(ctx, plan); err == nil && created != nil {
+	for attempt := 1; attempt <= attempts; attempt++ {
+		created, err := r.findCreated(ctx, plan, existing)
+		if err == nil && created != nil {
 			return created
+		}
+		// Stop on list errors that will not go away, such as 403.
+		if err != nil && !stderrors.Is(err, errProfileNotCreated) {
+			if status := kiotaerrors.GraphError(ctx, err).StatusCode; status >= 400 && status < 500 && status != 429 {
+				return nil
+			}
+		}
+		if attempt == attempts {
+			return nil
 		}
 		select {
 		case <-ctx.Done():

@@ -41,7 +41,7 @@ func TestUnitResourceNetworkDefaultForwardingProfile_01_Lifecycle(t *testing.T) 
 	updated := hcl(t, "resource_updated.tf")
 	addr := resourceType + ".test"
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: initial,
@@ -101,7 +101,7 @@ func TestUnitResourceNetworkDefaultForwardingProfile_02_RejectsLocalNetworkOnInt
 ) {
 	setup(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      hcl(t, "resource_invalid.tf"),
@@ -114,7 +114,7 @@ func TestUnitResourceNetworkDefaultForwardingProfile_02_RejectsLocalNetworkOnInt
 func TestUnitResourceNetworkDefaultForwardingProfile_03_RejectsCustomProfileImport(t *testing.T) {
 	setup(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:        hcl(t, "resource.tf"),

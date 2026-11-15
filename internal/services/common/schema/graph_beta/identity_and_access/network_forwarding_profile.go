@@ -17,9 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
+
+var lowercaseGUID = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
 // ForwardingProfileSettingsAttributes returns the writable traffic forwarding
 // profile v2 settings shared by custom and default profiles.
@@ -29,15 +30,17 @@ func ForwardingProfileSettingsAttributes() map[string]schema.Attribute {
 			ElementType: types.StringType,
 			Optional:    true,
 			MarkdownDescription: fmt.Sprintf(
-				"Microsoft Entra %s object IDs. Allowed only when `membership` is `enumerated`.",
+				"Microsoft Entra %s object IDs, in lowercase. Allowed only when `membership` is `enumerated`.",
 				kind,
 			),
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
+				// State keeps the IDs Graph returns, so an uppercase ID would
+				// read back differently from the plan.
 				setvalidator.ValueStringsAre(
 					stringvalidator.RegexMatches(
-						regexp.MustCompile(constants.GuidRegex),
-						"must be a valid GUID",
+						lowercaseGUID,
+						"must be a lowercase GUID",
 					),
 				),
 			},
@@ -153,7 +156,7 @@ func ValidateForwardingProfileSettings(
 	}
 	if m.Membership.ValueString() != sharedmodels.MembershipEnumerated {
 		for name, set := range sets {
-			if !set.IsNull() {
+			if !set.IsNull() && !set.IsUnknown() {
 				diags.AddAttributeError(
 					path.Root("assignment_rules").AtName(name),
 					"Unexpected assignment IDs",

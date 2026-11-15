@@ -96,9 +96,9 @@ Required:
 
 Optional:
 
-- `device_ids` (Set of String) Microsoft Entra device object IDs. Allowed only when `membership` is `enumerated`.
-- `group_ids` (Set of String) Microsoft Entra security group object IDs. Allowed only when `membership` is `enumerated`.
-- `user_ids` (Set of String) Microsoft Entra user object IDs. Allowed only when `membership` is `enumerated`.
+- `device_ids` (Set of String) Microsoft Entra device object IDs, in lowercase. Allowed only when `membership` is `enumerated`.
+- `group_ids` (Set of String) Microsoft Entra security group object IDs, in lowercase. Allowed only when `membership` is `enumerated`.
+- `user_ids` (Set of String) Microsoft Entra user object IDs, in lowercase. Allowed only when `membership` is `enumerated`.
 
 
 <a id="nestedatt--forwarding_source_matching"></a>

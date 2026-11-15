@@ -28,7 +28,7 @@ func TestMapRemoteStateToDataSourceForwardingProfileV2(t *testing.T) {
 	    "assignments": {
 	      "@odata.type": "#microsoft.graph.networkaccess.forwardingProfileAssignmentsEnumeratedMembership",
 	      "users": [],
-	      "groups": [{"id": "a6ed41d3-45ac-4e12-8601-bdb56216e84e"}],
+	      "groups": [{"id": "aaaaaaaa-1111-4111-8111-111111111111"}],
 	      "devices": []
 	    },
 	    "devicePropertyFilters": {"platforms": "windows,macOS"}

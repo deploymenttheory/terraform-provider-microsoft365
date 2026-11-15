@@ -18,7 +18,7 @@ import (
 const (
 	endpoint  = "https://graph.microsoft.com/beta/networkaccess/forwardingProfiles"
 	ProfileID = "11111111-2222-3333-4444-555555555555"
-	DefaultID = "6e6a0de4-9100-4499-be13-9e9d72da9df0"
+	DefaultID = "cccccccc-3333-4333-8333-333333333333"
 )
 
 // Mock emulates the Graph behaviors observed on a live tenant: empty member
@@ -32,6 +32,12 @@ type Mock struct {
 	Deletes int
 	// PostFailures makes the next POSTs return 504 after storing the profile.
 	PostFailures int
+	// PostDuplicates makes the next POSTs store the profile and return 400, as
+	// a retried POST does when the first attempt timed out after creating it.
+	PostDuplicates int
+	// Existing is a custom profile that is already in the tenant. A POST with
+	// its priority fails with 400 and creates nothing.
+	Existing map[string]any
 }
 
 var _ common.MockRegistrar = (*Mock)(nil)
@@ -88,6 +94,9 @@ func (m *Mock) RegisterMocks() {
 		m.Lock()
 		defer m.Unlock()
 		value := []any{defaultProfile()}
+		if m.Existing != nil {
+			value = append(value, m.Existing)
+		}
 		if m.State != nil {
 			value = append(value, m.State)
 		}
@@ -119,6 +128,9 @@ func (m *Mock) RegisterMocks() {
 		m.Lock()
 		defer m.Unlock()
 		m.Posts = append(m.Posts, maps.Clone(body))
+		if m.Existing != nil && fmt.Sprint(m.Existing["priority"]) == fmt.Sprint(body["priority"]) {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"A profile with this priority already exists."}}`), nil
+		}
 		body["id"] = ProfileID
 		body["version"] = "1.0.0"
 		if _, ok := body["clientFallbackAction"]; !ok {
@@ -134,6 +146,10 @@ func (m *Mock) RegisterMocks() {
 		}
 		normalize(body)
 		m.State = body
+		if m.PostDuplicates > 0 {
+			m.PostDuplicates--
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"A profile with this priority already exists."}}`), nil
+		}
 		if m.PostFailures > 0 {
 			m.PostFailures--
 			return httpmock.NewStringResponse(
@@ -179,4 +195,6 @@ func (m *Mock) CleanupMockState() {
 	m.Patches = nil
 	m.Deletes = 0
 	m.PostFailures = 0
+	m.PostDuplicates = 0
+	m.Existing = nil
 }

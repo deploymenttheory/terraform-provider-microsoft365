@@ -34,7 +34,7 @@ func TestAccResourceNetworkForwardingProfile_01_Lifecycle(t *testing.T) {
 	)
 	addr := resourceType + ".test"
 	resource.Test(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestAccProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",

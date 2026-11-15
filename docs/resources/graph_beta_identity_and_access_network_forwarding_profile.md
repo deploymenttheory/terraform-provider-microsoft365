@@ -16,7 +16,7 @@ The tenant must use traffic forwarding profiles v2 (Global Secure Access > Conne
 ## Considerations
 
 - Graph currently allows custom profiles only for `private` traffic. `internet` and `m365` return an error until Microsoft enables multiple profiles for the tenant.
-- Custom private profiles use priorities 101-200 and every priority must be unique in the tenant. The default private profile uses 200. Up to 10 custom private profiles are supported during preview.
+- Graph accepts priorities 101-200 for custom private profiles, and every priority must be unique in the tenant. The default private profile already holds 200, so custom profiles can use 101-199. Up to 10 custom private profiles are supported during preview.
 - `local_network_settings` enables [home network support](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-home-network-support) (preview). It applies to directly connected IPv4 RFC 1918 subnets only and is not supported on mobile clients.
 - `assignment_rules` replaces all assignments. Graph rejects device IDs passed as users or groups (and vice versa), and returns HTTP 500 for IDs that do not exist.
 - Graph can return HTTP 504 after it has created a profile. The resource then adopts the custom profile with the planned name, type and priority instead of failing.
@@ -70,7 +70,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_forwarding_profile
 ### Required
 
 - `name` (String) Profile name.
-- `priority` (Number) Profile priority; lower numbers win when several profiles apply. Must be unique per tenant. Graph accepts 101-200 for `private` custom profiles (the default private profile uses 200).
+- `priority` (Number) Profile priority; lower numbers win when several profiles apply. Must be unique per tenant. Graph accepts 101-200 for `private` custom profiles, but the default private profile already holds 200, so custom profiles can use 101-199.
 - `state` (String) Whether the profile is enabled. Values: `enabled`, `disabled`.
 - `traffic_forwarding_type` (String) Traffic type. Values: `private`, `internet`, `m365`. Graph currently allows custom profiles for `private` only; `internet` and `m365` fail unless Microsoft enables multiple profiles for the tenant. Changing it replaces the profile.
 
@@ -98,9 +98,9 @@ Required:
 
 Optional:
 
-- `device_ids` (Set of String) Microsoft Entra device object IDs. Allowed only when `membership` is `enumerated`.
-- `group_ids` (Set of String) Microsoft Entra security group object IDs. Allowed only when `membership` is `enumerated`.
-- `user_ids` (Set of String) Microsoft Entra user object IDs. Allowed only when `membership` is `enumerated`.
+- `device_ids` (Set of String) Microsoft Entra device object IDs, in lowercase. Allowed only when `membership` is `enumerated`.
+- `group_ids` (Set of String) Microsoft Entra security group object IDs, in lowercase. Allowed only when `membership` is `enumerated`.
+- `user_ids` (Set of String) Microsoft Entra user object IDs, in lowercase. Allowed only when `membership` is `enumerated`.
 
 
 <a id="nestedatt--forwarding_source_matching"></a>

@@ -41,23 +41,28 @@ func (r *NetworkForwardingProfileResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	// Graph can time out (504) after it has created the profile, and the retry
+	// handler may then resend the POST and get a 4xx for the duplicate. Note
+	// the existing profiles so only one created by this request is adopted.
+	existing, listErr := r.customProfileIDs(ctx)
+	if listErr != nil {
+		tflog.Warn(ctx, "Could not list forwarding profiles before create", map[string]any{
+			"error": listErr.Error(),
+		})
+	}
 	remote, err := r.create(ctx, body)
 	if err != nil {
-		// Graph can time out (504) after it has created the profile. Priorities
-		// are unique per tenant, so a custom profile with the planned name,
-		// type and priority is the one this request created.
-		if status := errors.GraphError(ctx, err).StatusCode; status == 0 || status >= 500 {
-			if created := r.waitForCreated(ctx, plan); created != nil {
-				tflog.Warn(
-					ctx,
-					"Forwarding profile create returned an error but the profile exists; adopting it",
-					map[string]any{
-						"status": status,
-						"id":     *created.ID,
-					},
-				)
-				remote, err = created, nil
-			}
+		info := errors.GraphError(ctx, err)
+		if created := r.waitForCreated(ctx, plan, existing, createdLookupAttemptsFor(info)); created != nil {
+			tflog.Warn(
+				ctx,
+				"Forwarding profile create returned an error but the profile exists; adopting it",
+				map[string]any{
+					"status": info.StatusCode,
+					"id":     *created.ID,
+				},
+			)
+			remote, err = created, nil
 		}
 	}
 	if err != nil {

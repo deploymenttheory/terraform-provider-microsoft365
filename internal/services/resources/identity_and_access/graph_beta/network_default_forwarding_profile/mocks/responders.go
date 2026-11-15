@@ -16,7 +16,7 @@ import (
 
 const (
 	endpoint   = "https://graph.microsoft.com/beta/networkaccess/forwardingProfiles"
-	InternetID = "72661c0d-027e-4dff-8c76-af103f200903"
+	InternetID = "bbbbbbbb-2222-4222-8222-222222222222"
 	CustomID   = "11111111-2222-3333-4444-555555555555"
 )
 
@@ -67,7 +67,7 @@ func initialInternet() map[string]any {
 			"assignments": map[string]any{
 				"@odata.type": "#microsoft.graph.networkaccess.forwardingProfileAssignmentsEnumeratedMembership",
 				"users":       []any{},
-				"groups":      []any{map[string]any{"id": "a6ed41d3-45ac-4e12-8601-bdb56216e84e"}},
+				"groups":      []any{map[string]any{"id": "aaaaaaaa-1111-4111-8111-111111111111"}},
 				"devices":     []any{},
 			},
 			"devicePropertyFilters": map[string]any{"platforms": "windows,macOS,android,iOS"},

@@ -41,7 +41,7 @@ func TestUnitResourceNetworkForwardingProfile_01_Lifecycle(t *testing.T) {
 	updated := hcl(t, "resource_updated.tf")
 	addr := resourceType + ".test"
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: initial,
@@ -86,7 +86,7 @@ func TestUnitResourceNetworkForwardingProfile_01_Lifecycle(t *testing.T) {
 		"assignments": map[string]any{
 			"@odata.type": "#microsoft.graph.networkaccess.forwardingProfileAssignmentsEnumeratedMembership",
 			"users":       []any{},
-			"groups":      []any{map[string]any{"id": "a6ed41d3-45ac-4e12-8601-bdb56216e84e"}},
+			"groups":      []any{map[string]any{"id": "aaaaaaaa-1111-4111-8111-111111111111"}},
 			"devices":     []any{},
 		},
 		"devicePropertyFilters": map[string]any{"platforms": "windows,macOS"},
@@ -108,7 +108,7 @@ func TestUnitResourceNetworkForwardingProfile_02_MinimalKeepsServerDefaults(t *t
 	minimal := hcl(t, "resource_minimal.tf")
 	addr := resourceType + ".test"
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: minimal,
@@ -137,7 +137,7 @@ func TestUnitResourceNetworkForwardingProfile_03_AdoptsProfileCreatedBeforeGatew
 	m.PostFailures = 1
 	minimal := hcl(t, "resource_minimal.tf")
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: minimal,
@@ -149,10 +149,55 @@ func TestUnitResourceNetworkForwardingProfile_03_AdoptsProfileCreatedBeforeGatew
 	require.Equal(t, 1, m.Deletes)
 }
 
+// With retries on, the POST that timed out after creating the profile is resent
+// and fails as a duplicate; the profile it created is still adopted.
+func TestUnitResourceNetworkForwardingProfile_03b_AdoptsProfileAfterRetriedPostFails(
+	t *testing.T,
+) {
+	m := setup(t)
+	t.Cleanup(target.ShortenCreatedLookup())
+	m.PostDuplicates = 1
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: hcl(t, "resource_minimal.tf"),
+				Check:  check.That(resourceType + ".test").Key("id").HasValue(testmocks.ProfileID),
+			},
+		},
+	})
+	require.Equal(t, 1, m.Deletes)
+}
+
+// A profile that existed before the POST is never adopted, even when it has
+// the planned name, type and priority.
+func TestUnitResourceNetworkForwardingProfile_03c_DoesNotAdoptExistingProfile(t *testing.T) {
+	m := setup(t)
+	t.Cleanup(target.ShortenCreatedLookup())
+	m.Existing = map[string]any{
+		"id":                    "99999999-8888-7777-6666-555555555555",
+		"name":                  "unit-minimal",
+		"trafficForwardingType": "private",
+		"priority":              150,
+		"isCustomProfile":       true,
+		"state":                 "disabled",
+	}
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      hcl(t, "resource_minimal.tf"),
+				ExpectError: regexp.MustCompile(`Bad Request - 400`),
+			},
+		},
+	})
+	require.Zero(t, m.Deletes, "the pre-existing profile must not be adopted and destroyed")
+}
+
 func TestUnitResourceNetworkForwardingProfile_04_ValidationErrors(t *testing.T) {
 	setup(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: hcl(t, "resource_invalid.tf"),
@@ -167,7 +212,7 @@ func TestUnitResourceNetworkForwardingProfile_04_ValidationErrors(t *testing.T) 
 func TestUnitResourceNetworkForwardingProfile_05_RejectsDefaultProfileImport(t *testing.T) {
 	setup(t)
 	resource.UnitTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: mocks.TestUnitTestProtoV6ProviderFactories,
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:        hcl(t, "resource_minimal.tf"),

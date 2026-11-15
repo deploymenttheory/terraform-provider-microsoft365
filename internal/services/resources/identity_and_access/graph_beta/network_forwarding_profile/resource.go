@@ -130,7 +130,7 @@ func (r *NetworkForwardingProfileResource) Schema(
 		},
 		"priority": schema.Int32Attribute{
 			Required:            true,
-			MarkdownDescription: "Profile priority; lower numbers win when several profiles apply. Must be unique per tenant. Graph accepts 101-200 for `private` custom profiles (the default private profile uses 200).",
+			MarkdownDescription: "Profile priority; lower numbers win when several profiles apply. Must be unique per tenant. Graph accepts 101-200 for `private` custom profiles, but the default private profile already holds 200, so custom profiles can use 101-199.",
 			Validators:          []validator.Int32{int32validator.AtLeast(1)},
 		},
 		"version": schema.StringAttribute{

@@ -15,7 +15,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_forwarding_profile
 
   assignment_rules = {
     membership = "enumerated"
-    group_ids  = ["a6ed41d3-45ac-4e12-8601-bdb56216e84e"]
+    group_ids  = ["aaaaaaaa-1111-4111-8111-111111111111"]
     platforms  = ["windows", "macOS"]
   }
 }

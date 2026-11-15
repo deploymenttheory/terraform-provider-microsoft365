@@ -136,7 +136,10 @@ func (d *NetworkForwardingProfileDataSource) Schema(ctx context.Context, _ datas
 							Computed:            true,
 							MarkdownDescription: "Home network support settings (traffic forwarding profiles v2).",
 							Attributes: map[string]schema.Attribute{
-								"allow_local_subnet_bypass": schema.BoolAttribute{Computed: true, MarkdownDescription: "Whether users can bypass Private Access for their directly connected local subnet."},
+								"allow_local_subnet_bypass": schema.BoolAttribute{
+									Computed:            true,
+									MarkdownDescription: "Whether users can bypass Private Access for their directly connected local subnet.",
+								},
 							},
 						},
 						"assignment_rules": schema.SingleNestedAttribute{
