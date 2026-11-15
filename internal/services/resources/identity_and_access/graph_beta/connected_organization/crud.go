@@ -202,13 +202,6 @@ func (r *ConnectedOrganizationResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	// Seed state from the plan so values Graph does not return (timeouts) follow the configuration.
-	plan.ID = state.ID
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 

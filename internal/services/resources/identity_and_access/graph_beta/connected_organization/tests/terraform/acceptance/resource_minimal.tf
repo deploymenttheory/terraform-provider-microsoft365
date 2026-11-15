@@ -26,4 +26,11 @@ resource "microsoft365_graph_beta_identity_and_access_connected_organization" "t
       domain_name  = "fabrikam.com"
     }
   ]
+
+  timeouts = {
+    create = "180s"
+    read   = "180s"
+    update = "180s"
+    delete = "180s"
+  }
 }
