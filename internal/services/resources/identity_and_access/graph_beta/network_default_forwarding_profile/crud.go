@@ -199,7 +199,7 @@ func readbackOptions(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = operation
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, s tfsdk.State) bool {
+	opts.ConsistencyPredicate = sharedmodels.RequireStableReads(func(ctx context.Context, s tfsdk.State) bool {
 		var actual NetworkDefaultForwardingProfileResourceModel
 		if s.Get(ctx, &actual).HasError() {
 			return false
@@ -209,7 +209,7 @@ func readbackOptions(
 			matches(plan.ForwardingSourceMatching, actual.ForwardingSourceMatching) &&
 			matches(plan.LocalNetworkSettings, actual.LocalNetworkSettings) &&
 			matches(plan.AssignmentRules, actual.AssignmentRules)
-	}
+	})
 	return opts
 }
 

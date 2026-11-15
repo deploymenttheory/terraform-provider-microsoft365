@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -323,4 +324,25 @@ func canonicalPlatform(p string) string {
 		}
 	}
 	return p
+}
+
+// StableReads is how many consecutive reads must match a write before it is
+// treated as applied. Graph can return the old assignments from some reads
+// after another read has already returned the new ones.
+const StableReads = 3
+
+// RequireStableReads wraps a readback predicate so it holds only after
+// StableReads consecutive matching reads; a mismatch resets the count.
+func RequireStableReads(
+	predicate func(context.Context, tfsdk.State) bool,
+) func(context.Context, tfsdk.State) bool {
+	matched := 0
+	return func(ctx context.Context, s tfsdk.State) bool {
+		if !predicate(ctx, s) {
+			matched = 0
+			return false
+		}
+		matched++
+		return matched >= StableReads
+	}
 }

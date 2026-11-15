@@ -13,6 +13,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
 func (r *NetworkForwardingProfileResource) Create(
@@ -221,7 +222,7 @@ func readbackOptions(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = operation
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, s tfsdk.State) bool {
+	opts.ConsistencyPredicate = sharedmodels.RequireStableReads(func(ctx context.Context, s tfsdk.State) bool {
 		var actual NetworkForwardingProfileResourceModel
 		if s.Get(ctx, &actual).HasError() {
 			return false
@@ -233,7 +234,7 @@ func readbackOptions(
 			matches(plan.ForwardingSourceMatching, actual.ForwardingSourceMatching) &&
 			matches(plan.LocalNetworkSettings, actual.LocalNetworkSettings) &&
 			matches(plan.AssignmentRules, actual.AssignmentRules)
-	}
+	})
 	return opts
 }
 

@@ -3,9 +3,11 @@ package sharedmodels
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/require"
@@ -165,4 +167,23 @@ func TestSettingsFromWireUnknownAssignmentType(t *testing.T) {
 	}}
 	_, d := SettingsFromWire(context.Background(), &w)
 	require.True(t, d.HasError())
+}
+
+func TestRequireStableReads(t *testing.T) {
+	reads := []bool{true, false, true, true, true}
+	i := 0
+	pred := RequireStableReads(func(context.Context, tfsdk.State) bool {
+		ok := reads[i]
+		i++
+		return ok
+	})
+	var got []bool
+	for range reads {
+		got = append(got, pred(context.Background(), tfsdk.State{}))
+	}
+	// A stale read resets the count; only the third match in a row passes.
+	want := []bool{false, false, false, false, true}
+	if !slices.Equal(got, want) {
+		t.Fatalf("results = %v, expected %v", got, want)
+	}
 }
