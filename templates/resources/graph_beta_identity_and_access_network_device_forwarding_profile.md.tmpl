@@ -1,0 +1,38 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Prerequisites
+
+The tenant must use traffic forwarding profiles v2. Pre-logon profiles are in preview and need a Global Secure Access client that supports pre-logon connectivity.
+
+## Considerations
+
+- Graph does not enforce unique priorities between pre-logon profiles. Profile names must be unique.
+- The Microsoft Entra admin center offers only the `windows` platform; Graph also accepts the others.
+- Assignment changes are eventually consistent. Create and update wait until three consecutive reads match the plan.
+
+## Microsoft Graph API Permissions
+
+- Read / Write (application): `NetworkAccess.ReadWrite.All`, verified in live testing.
+
+`/networkaccess/deviceForwardingProfiles` is not documented in the Microsoft Graph reference. The request shapes follow the Microsoft Entra admin center.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_device_forwarding_profile/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_device_forwarding_profile/import.sh" }}
