@@ -379,7 +379,7 @@ Optional:
 - Tasks run in list order; `execution_sequence` is set from the position in `tasks`.
 - `task_definition_id` must be a built-in task definition. Custom task extensions are not supported by this resource.
 - Arguments must match the task definition's parameters. Graph validates argument values, for example user or group IDs must exist.
-- Graph rejects an argument that references a user or group created moments earlier until it has replicated. Create and new-version writes rejected with "Task arguments missing or invalid" are retried for up to 90 seconds, so a genuinely invalid argument is reported after that wait.
+- Graph rejects an argument that references a user or group created moments earlier ("Task arguments missing or invalid") until it has replicated, which takes about 10 seconds. When the workflow and the group or user are created in the same apply, add a wait between them, for example with `time_sleep`.
 
 ### Deletion
 - Destroy deletes the workflow and then permanently removes it from `/identityGovernance/lifecycleWorkflows/deletedItems/workflows`. Deleted workflows otherwise stay restorable for 30 days and count toward the tenant's workflow limit. A workflow destroyed by Terraform cannot be restored.

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/identitygovernance"
-	identitygovernancemodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models/identitygovernance"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -54,16 +53,11 @@ func (r *LifecycleWorkflowResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
-	var createdResource identitygovernancemodels.Workflowable
-	err = writeWithTaskArgumentRetry(ctx, func(ctx context.Context) error {
-		var postErr error
-		createdResource, postErr = r.client.
-			IdentityGovernance().
-			LifecycleWorkflows().
-			Workflows().
-			Post(ctx, requestBody, nil)
-		return postErr //nolint:wrapcheck // passed unchanged to HandleKiotaGraphError
-	})
+	createdResource, err := r.client.
+		IdentityGovernance().
+		LifecycleWorkflows().
+		Workflows().
+		Post(ctx, requestBody, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -92,7 +86,6 @@ func (r *LifecycleWorkflowResource) Create(ctx context.Context, req resource.Cre
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = lifecycleWorkflowConsistencyPredicate(types.StringNull(), types.Int64Null())
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -223,16 +216,13 @@ func (r *LifecycleWorkflowResource) Update(ctx context.Context, req resource.Upd
 
 		tflog.Debug(ctx, fmt.Sprintf("Creating new version of %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-		err = writeWithTaskArgumentRetry(ctx, func(ctx context.Context) error {
-			_, postErr := r.client.
-				IdentityGovernance().
-				LifecycleWorkflows().
-				Workflows().
-				ByWorkflowId(state.ID.ValueString()).
-				MicrosoftGraphIdentityGovernanceCreateNewVersion().
-				Post(ctx, requestBody, nil)
-			return postErr //nolint:wrapcheck // passed unchanged to HandleKiotaGraphError
-		})
+		_, err = r.client.
+			IdentityGovernance().
+			LifecycleWorkflows().
+			Workflows().
+			ByWorkflowId(state.ID.ValueString()).
+			MicrosoftGraphIdentityGovernanceCreateNewVersion().
+			Post(ctx, requestBody, nil)
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
@@ -264,11 +254,6 @@ func (r *LifecycleWorkflowResource) Update(ctx context.Context, req resource.Upd
 		prevModified = state.LastModifiedDateTime
 	default:
 		tflog.Debug(ctx, "No Graph properties changed, skipping write")
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}

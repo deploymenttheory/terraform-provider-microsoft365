@@ -2,63 +2,13 @@ package graphBetaIdentityAndAccessLifecycleWorkflow
 
 import (
 	"context"
-	"net/http"
-	"strings"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
-
-// taskArgumentsInvalidMessage is the Graph error returned when a task argument references an
-// object Graph cannot resolve. It is also returned for a directory object created moments
-// earlier (for example a group used as a groupID argument) until it has replicated.
-const taskArgumentsInvalidMessage = "task arguments missing or invalid"
-
-// taskArgumentRetryTimeout bounds how long a write is retried while task argument references replicate.
-// Probes against a tenant showed a new group is accepted about 10 seconds after creation.
-const taskArgumentRetryTimeout = 90 * time.Second
-
-// taskArgumentRetryInterval is the wait between retries of a write rejected for task arguments.
-const taskArgumentRetryInterval = 5 * time.Second
-
-// writeWithTaskArgumentRetry runs a workflow write (POST or createNewVersion) and retries it while
-// Graph rejects it with "Task arguments missing or invalid". Any other error is returned at once.
-// When the retry window ends, the last Graph error is returned unchanged so it can be passed to
-// HandleKiotaGraphError.
-func writeWithTaskArgumentRetry(ctx context.Context, write func(ctx context.Context) error) error {
-	var lastErr error
-
-	retryCtx, cancel := context.WithTimeout(ctx, taskArgumentRetryTimeout)
-	defer cancel()
-
-	pollErr := crud.PollUntil(retryCtx, taskArgumentRetryInterval, func(ctx context.Context) (bool, error) {
-		err := write(ctx)
-		if err == nil {
-			return true, nil
-		}
-		info := errors.GraphError(ctx, err)
-		if info.StatusCode == http.StatusBadRequest && strings.Contains(strings.ToLower(info.ErrorMessage), taskArgumentsInvalidMessage) {
-			tflog.Debug(ctx, "Graph rejected task arguments, retrying in case a referenced object has not replicated yet", map[string]any{"error": info.ErrorMessage})
-			lastErr = err
-			return false, err
-		}
-		return false, &crud.FatalPollError{Err: err}
-	})
-
-	if pollErr != nil && lastErr != nil && retryCtx.Err() != nil {
-		return lastErr
-	}
-
-	return pollErr //nolint:wrapcheck // a fatal Graph error is passed unchanged to HandleKiotaGraphError
-}
 
 // versionedAttributes can only be changed with createNewVersion; PATCH rejects them.
 var versionedAttributes = []string{"category", "execution_conditions", "tasks"}
