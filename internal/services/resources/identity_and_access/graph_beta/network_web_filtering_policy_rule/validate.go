@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Header name and value rules mirror the Entra portal's custom header form:
-// names are RFC 7230 tokens and values are printable ASCII.
+// Header name and value rules mirror Graph's validation: names are RFC 7230
+// tokens and values are printable ASCII.
 var (
 	headerNameRegex  = regexp.MustCompile("^[!#$%&'*+\\-.^_`|~0-9A-Za-z]+$")
 	headerValueRegex = regexp.MustCompile(`^[\x20-\x7E]+$`)

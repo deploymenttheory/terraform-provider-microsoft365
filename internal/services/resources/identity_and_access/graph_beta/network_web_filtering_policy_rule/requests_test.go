@@ -8,8 +8,10 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -609,6 +611,8 @@ func TestCustomHeaderNameAndValueRegex(t *testing.T) {
 		"X-Bad:Header":     false,
 		" X-Space":         false,
 		"X-Ünicode":        false,
+		"X-Name\n":         false,
+		"":                 false,
 	}
 	for name, want := range names {
 		if got := headerNameRegex.MatchString(name); got != want {
@@ -621,10 +625,51 @@ func TestCustomHeaderNameAndValueRegex(t *testing.T) {
 		"a\r\nb":              false,
 		"héllo":               false,
 		"tab\there":           false,
+		"v\n":                 false,
+		"del\x7f":             false,
+		"":                    false,
 	}
 	for value, want := range values {
 		if got := headerValueRegex.MatchString(value); got != want {
 			t.Errorf("headerValueRegex(%q) = %v, expected %v", value, got, want)
+		}
+	}
+}
+
+func TestCustomHeaderSchemaValidators(t *testing.T) {
+	ctx := context.Background()
+	resp := &resource.SchemaResponse{}
+	(&NetworkWebFilteringPolicyRuleResource{}).Schema(ctx, resource.SchemaRequest{}, resp)
+	headers := resp.Schema.Attributes["custom_headers"].(schema.ListNestedAttribute)
+
+	cases := []struct {
+		attr    string
+		value   types.String
+		wantErr bool
+	}{
+		{"name", types.StringValue(strings.Repeat("a", 128)), false},
+		{"name", types.StringValue(strings.Repeat("a", 129)), true},
+		{"name", types.StringValue("X Bad"), true},
+		{"name", types.StringUnknown(), false},
+		{"value", types.StringValue(strings.Repeat("a", 2048)), false},
+		{"value", types.StringValue(strings.Repeat("a", 2049)), true},
+		{"value", types.StringValue(""), true},
+		{"value", types.StringValue("héllo"), true},
+		{"value", types.StringUnknown(), false},
+	}
+	for _, tc := range cases {
+		attr := headers.NestedObject.Attributes[tc.attr].(schema.StringAttribute)
+		var diags diag.Diagnostics
+		for _, v := range attr.Validators {
+			r := &validator.StringResponse{}
+			v.ValidateString(ctx, validator.StringRequest{
+				Path:        path.Root("custom_headers").AtListIndex(0).AtName(tc.attr),
+				ConfigValue: tc.value,
+			}, r)
+			diags.Append(r.Diagnostics...)
+		}
+		if diags.HasError() != tc.wantErr {
+			t.Errorf("%s=%s: HasError = %v, expected %v: %v", tc.attr, tc.value, diags.HasError(), tc.wantErr, diags)
 		}
 	}
 }

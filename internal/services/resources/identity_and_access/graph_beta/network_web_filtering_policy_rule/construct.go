@@ -80,8 +80,8 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 	if err != nil {
 		return nil, fmt.Errorf("failed to read custom_headers: %w", err)
 	}
-	// The config validator skips an action unknown at plan time; headers on a
-	// block rule would otherwise be dropped silently.
+	// Fail before calling Graph; the config validator skips an action unknown
+	// at plan time.
 	if len(customHeaders) > 0 && data.Action.ValueString() != "allow" {
 		return nil, fmt.Errorf(
 			"%w: custom_headers can only be set when action is \"allow\", got %q",

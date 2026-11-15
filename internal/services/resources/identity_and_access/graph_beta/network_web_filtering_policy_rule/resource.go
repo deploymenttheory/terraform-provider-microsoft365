@@ -192,7 +192,7 @@ func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req 
 				},
 				NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
 					"name": schema.StringAttribute{
-						MarkdownDescription: "The header name: an HTTP token of at most 128 characters. Must be unique within the rule (case-insensitive).",
+						MarkdownDescription: "The header name: an HTTP token of at most 128 characters. Must be unique within the rule (case-insensitive). Graph also rejects reserved names such as `host` and `authorization`, and the `x-ms-` and `x-azure-` prefixes.",
 						Required:            true,
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 128),
@@ -203,7 +203,7 @@ func (r *NetworkWebFilteringPolicyRuleResource) Schema(ctx context.Context, req 
 						},
 					},
 					"value": schema.StringAttribute{
-						MarkdownDescription: "The header value: 1 to 2048 printable ASCII characters. Shown in plan output; wrap it with `sensitive()` if it is secret.",
+						MarkdownDescription: "The header value: 1 to 2048 printable ASCII characters. Shown in plan output and stored in state as plain text; wrap it with `sensitive()` to hide it from plan output.",
 						Required:            true,
 						Validators: []validator.String{
 							stringvalidator.LengthBetween(1, 2048),
