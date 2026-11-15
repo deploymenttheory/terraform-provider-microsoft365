@@ -22,7 +22,7 @@ import (
 //   - POST /roleManagement/directory/roleDefinitions
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/rbacapplication-post-roledefinitions?view=graph-rest-beta
-// Note: a new role is not readable on every replica for several seconds, so the read-back uses ReadWithRetry with a consistency predicate.
+// Note: a new role can return 404 for several seconds; ReadWithRetry retries until it is readable.
 func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object RoleDefinitionResourceModel
 
@@ -81,7 +81,6 @@ func (r *RoleDefinitionResource) Create(ctx context.Context, req resource.Create
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = roleDefinitionConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
