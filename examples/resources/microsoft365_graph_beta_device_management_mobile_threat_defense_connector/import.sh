@@ -1,0 +1,2 @@
+# Import an existing connector by its partner ID
+terraform import microsoft365_graph_beta_device_management_mobile_threat_defense_connector.microsoft_defender fc780465-2017-40d4-a0c5-307022471b92
