@@ -1,0 +1,89 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Configure Microsoft Entra role settings in PIM](https://learn.microsoft.com/en-us/entra/id-governance/privileged-identity-management/pim-how-to-change-default-settings)
+- [Overview of role management policies in PIM APIs](https://learn.microsoft.com/en-us/graph/identity-governance-pim-rules-overview)
+- [unifiedRoleManagementPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/unifiedrolemanagementpolicy?view=graph-rest-beta)
+- [Get unifiedRoleManagementPolicy](https://learn.microsoft.com/en-us/graph/api/unifiedrolemanagementpolicy-get?view=graph-rest-beta)
+- [Update unifiedRoleManagementPolicy](https://learn.microsoft.com/en-us/graph/api/unifiedrolemanagementpolicy-update?view=graph-rest-beta)
+- [List roleManagementPolicyAssignments](https://learn.microsoft.com/en-us/graph/api/policyroot-list-rolemanagementpolicyassignments?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `RoleManagementPolicy.Read.Directory`
+- `RoleManagementPolicy.ReadWrite.Directory`
+
+**Optional:**
+- `RoleManagementPolicy.Read.AzureADGroup` (PIM for Groups policies, `scope_type = "Group"`)
+- `RoleManagementPolicy.ReadWrite.AzureADGroup` (PIM for Groups policies, `scope_type = "Group"`)
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Limit the duration of active assignments
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_role_management_policy/resource_minimal.tf" }}
+
+### Harden role activation
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_role_management_policy/resource_activation.tf" }}
+
+### Adopt a policy by policy ID
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_role_management_policy/resource_by_policy_id.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Adopting an existing policy
+- Microsoft Entra creates one role management policy for every role and scope. Policies cannot be created or deleted, so this resource adopts the existing policy and updates its rules.
+- Identify the policy with `role_definition_id` (and optionally `scope_id` and `scope_type`, which default to `/` and `DirectoryRole`), or with `policy_id`. The policy is found through `GET /policies/roleManagementPolicyAssignments`, filtered on `scopeId`, `scopeType` and `roleDefinitionId`.
+- The policy ID does not always end with the role definition ID, so look it up rather than building it.
+- Changing `policy_id`, `role_definition_id`, `scope_id` or `scope_type` adopts a different policy. The previous policy keeps the rules last applied to it.
+- Manage each policy from one resource only.
+
+### Rules
+- Rules are configured in one map per rule type, keyed by rule ID, for example `Expiration_EndUser_Assignment`. Each rule ID must exist on the policy with the matching type; otherwise the apply fails and lists the rules the policy has.
+- Only the configured rules are sent to Graph, in a single `PATCH /policies/roleManagementPolicies/{id}`. Rules that are not configured are never changed or tracked.
+- Removing a rule from the configuration stops managing it; the rule keeps its current values in Microsoft Entra.
+- Rule IDs for Microsoft Entra roles follow the pattern `{Type}_{Caller}_{Level}`, where the caller is `Admin` (assignments made by administrators) or `EndUser` (activations), and the level is `Eligibility` or `Assignment`. Notification rule IDs also include the recipient type (`Admin`, `Requestor` or `Approver`).
+- Notification rules take their `notificationType` and `recipientType` from the existing rule, because Graph requires them on every update and they are fixed by the rule ID.
+- An authentication context rule needs `claim_value` when `is_enabled` is `true`. Graph clears the claim value of a disabled rule, so omit it when `is_enabled` is `false`. Graph does not check that the authentication context exists.
+- `maximum_duration` takes an ISO 8601 duration of days, hours, minutes and seconds. Graph rejects week durations (`P2W`) and normalises equivalent values, for example `PT24H` to `P1D`; the configured spelling is kept in state.
+
+### Not supported in this version
+- Approval rules (`unifiedRoleManagementPolicyApprovalRule`), including approval stages and approvers.
+- Custom extension rules and the `target` of each rule, which Microsoft Entra fixes for role management policies.
+- PIM for Groups policies (`scope_type = "Group"`) are supported by the schema but have not been acceptance tested.
+
+### Import and destroy
+- Import by policy ID. After an import, every expiration, enablement, notification and authentication context rule of the policy is tracked in state. Configure all of them to get an empty plan; rules left out of the configuration drop out of state on the next apply without being changed.
+- Destroying the resource only removes it from Terraform state. The policy keeps the rules last applied to it. To return rules to their previous values, apply those values before destroying.
+
+### Consistency
+- Reads of role management policies are eventually consistent. After an update, the provider re-reads the policy until every configured rule shows the applied values.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_role_management_policy/import.sh" }}

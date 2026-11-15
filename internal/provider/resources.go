@@ -193,6 +193,7 @@ import (
 	graphBetaIdentityAndAccessNetworkTLSInspectionPolicyRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_tls_inspection_policy_rule"
 	graphBetaIdentityAndAccessNetworkWebFilteringPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_web_filtering_policy"
 	graphBetaIdentityAndAccessNetworkWebFilteringPolicyRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_web_filtering_policy_rule"
+	graphBetaIdentityAndAccessRoleManagementPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/role_management_policy"
 
 	// Graph v1.0 - Identity and Access resources
 	graphIdentityAndAccessConditionalAccessTermsOfUse "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_v1.0/conditional_access_terms_of_use"
@@ -439,6 +440,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessNetworkWebFilteringPolicy.NewNetworkWebFilteringPolicyResource,
 		graphBetaIdentityAndAccessNetworkWebFilteringPolicyRule.NewNetworkWebFilteringPolicyRuleResource,
 		graphBetaIdentityAndAccessNamedLocation.NewNamedLocationResource,
+		graphBetaIdentityAndAccessRoleManagementPolicy.NewRoleManagementPolicyResource,
 
 		// Graph Beta - User resources
 		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,
