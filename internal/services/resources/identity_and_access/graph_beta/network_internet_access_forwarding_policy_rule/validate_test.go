@@ -240,8 +240,9 @@ func TestDestinationsValidatorSkipsUnknownValues(t *testing.T) {
 	}
 }
 
-// Pins the client_fallback_action modifiers: an unknown config value must stay
-// unknown and force replacement, and a removed value must keep state.
+// Pins the client_fallback_action modifiers. On update, an unknown config value
+// must stay unknown and force replacement, and a removed value must keep state.
+// On create, nothing is replaced and an unset value is left for Graph to fill.
 func TestClientFallbackActionPlanModifiers(t *testing.T) {
 	ctx := context.Background()
 	schemaResp := &resource.SchemaResponse{}
@@ -261,6 +262,7 @@ func TestClientFallbackActionPlanModifiers(t *testing.T) {
 		"new value forces replacement":      {types.StringValue("bypass"), types.StringValue("bypass"), true, false},
 		"create leaves unset value unknown": {types.StringNull(), types.StringUnknown(), false, true},
 		"create with unknown value":         {types.StringUnknown(), types.StringUnknown(), false, true},
+		"create with a value":               {types.StringValue("block"), types.StringValue("block"), false, true},
 	}
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
