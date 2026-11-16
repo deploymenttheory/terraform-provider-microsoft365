@@ -1,0 +1,12 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/mobileDeviceManagementPolicies/$entity",
+  "id": "0000000a-0000-0000-c000-000000000000",
+  "appliesTo": "none",
+  "complianceUrl": "https://portal.manage.microsoft.com/?portalAction=Compliance",
+  "description": "",
+  "discoveryUrl": "https://enrollment.manage.microsoft.com/enrollmentserver/discovery.svc",
+  "displayName": "Microsoft Intune",
+  "isValid": true,
+  "termsOfUseUrl": "https://portal.manage.microsoft.com/TermsofUse.aspx",
+  "isMdmEnrollmentDuringRegistrationDisabled": false
+}

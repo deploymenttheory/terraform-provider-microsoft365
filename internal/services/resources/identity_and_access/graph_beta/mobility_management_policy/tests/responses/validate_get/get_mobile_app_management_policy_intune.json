@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#policies/mobileAppManagementPolicies/$entity",
+  "id": "0000000a-0000-0000-c000-000000000000",
+  "appliesTo": "none",
+  "complianceUrl": "",
+  "description": "",
+  "discoveryUrl": "https://wip.mam.manage.microsoft.com/Enroll",
+  "displayName": "Microsoft Intune",
+  "isValid": true,
+  "termsOfUseUrl": ""
+}
