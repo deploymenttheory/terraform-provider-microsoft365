@@ -1,0 +1,78 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "M365 Admin"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Add or remove custom attributes on a profile card using the profile card API](https://learn.microsoft.com/en-us/graph/add-properties-profilecard)
+- [profileCardProperty resource type](https://learn.microsoft.com/en-us/graph/api/resources/profilecardproperty?view=graph-rest-beta)
+- [Create profileCardProperty](https://learn.microsoft.com/en-us/graph/api/peopleadminsettings-post-profilecardproperties?view=graph-rest-beta)
+- [Get profileCardProperty](https://learn.microsoft.com/en-us/graph/api/profilecardproperty-get?view=graph-rest-beta)
+- [Update profileCardProperty](https://learn.microsoft.com/en-us/graph/api/profilecardproperty-update?view=graph-rest-beta)
+- [Delete profileCardProperty](https://learn.microsoft.com/en-us/graph/api/profilecardproperty-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `PeopleSettings.Read.All`
+- `PeopleSettings.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+Microsoft Learn currently lists only the delegated `PeopleSettings.ReadWrite.All` permission (with the People Administrator role) for create, update and delete. The application permission `PeopleSettings.ReadWrite.All` works with client credentials in practice and is what the provider's acceptance tests use.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_m365_admin_profile_card_property/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_m365_admin_profile_card_property/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Directory Property Name
+
+- Each profile card property is identified by its `directory_property_name`, which is also the resource ID. Only one resource can manage a given attribute.
+- Allowed values are `UserPrincipalName`, `Fax`, `StreetAddress`, `PostalCode`, `StateOrProvince`, `Alias` and `CustomAttribute1` to `CustomAttribute15`.
+- Microsoft Graph stores the name exactly as sent and addresses it case-sensitively: `customAttribute1` and `CustomAttribute1` are different properties. Use the same casing as any existing property you import.
+- Changing `directory_property_name` replaces the property.
+
+### Labels
+
+- `annotations` sets a custom label for the attribute, and `localizations` sets labels for other languages.
+- Removing all `annotations` from configuration clears the labels in Microsoft Graph.
+
+### Propagation to Clients
+
+- Changes are returned by Microsoft Graph immediately, but can take up to 24 hours to appear on profile cards in Outlook, Teams and other Microsoft 365 apps.
+
+### Deletion
+
+- Deleting the resource removes the attribute and its labels from the profile card only. The Microsoft Entra attribute and its values are not changed.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_m365_admin_profile_card_property/import.sh" }}
