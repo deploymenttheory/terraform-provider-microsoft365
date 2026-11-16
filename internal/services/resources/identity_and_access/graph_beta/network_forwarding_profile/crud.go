@@ -42,9 +42,8 @@ func (r *NetworkForwardingProfileResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// Graph can time out (504) after it has created the profile, and the retry
-	// handler may then resend the POST and get a 4xx for the duplicate. Note
-	// the existing profiles so only one created by this request is adopted.
+	// POST can return 504 after creating the profile, and a retried POST then fails
+	// as a duplicate. List first so only a profile created by this request is adopted.
 	existing, listErr := r.customProfileIDs(ctx)
 	if listErr != nil {
 		tflog.Warn(ctx, "Could not list forwarding profiles before create", map[string]any{
@@ -52,8 +51,7 @@ func (r *NetworkForwardingProfileResource) Create(
 		})
 	}
 	remote, err := r.create(ctx, body)
-	// Without the list, a match could be a profile that already existed, so
-	// report the error instead of adopting.
+	// Without the list a match may be pre-existing, so report the error.
 	if err != nil && listErr == nil {
 		info := errors.GraphError(ctx, err)
 		if created := r.waitForCreated(ctx, plan, existing, createdLookupAttemptsFor(info)); created != nil {
@@ -85,8 +83,7 @@ func (r *NetworkForwardingProfileResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	// Graph applies assignments asynchronously; the POST response can still show
-	// the previous assignments, so wait until GET reflects the plan.
+	// Assignments apply asynchronously; wait until GET reflects the plan.
 	if err := crud.ReadWithRetry(
 		ctx,
 		r.Read,

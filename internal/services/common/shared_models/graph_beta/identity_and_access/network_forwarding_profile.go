@@ -13,8 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// Graph beta forwarding profile v2 properties. They are not in the public
-// $metadata or the generated SDK; shapes follow Entra portal traffic.
+// Forwarding profile v2 properties. Not in $metadata or the SDK; shapes follow the portal.
 const (
 	odataAssignmentsAll        = "#microsoft.graph.networkaccess.forwardingProfileAssignmentsAllMembership"
 	odataAssignmentsEnumerated = "#microsoft.graph.networkaccess.forwardingProfileAssignmentsEnumeratedMembership"
@@ -24,8 +23,7 @@ const (
 	MembershipEnumerated = "enumerated"
 	MembershipNone       = "none"
 
-	// platformsNone is what Graph returns when no platform is selected. Graph
-	// rejects it on PATCH, so it is only ever read.
+	// platformsNone is returned when no platform is selected; PATCH rejects it.
 	platformsNone = "none"
 )
 
@@ -121,9 +119,8 @@ type ForwardingProfileSettings struct {
 
 func known(v attr.Value) bool { return !v.IsNull() && !v.IsUnknown() }
 
-// SettingsPatch adds the settings that are configured and differ from state to
-// body. A nil state treats every configured value as changed. Graph replaces
-// assignmentRules as a whole, so it is always sent complete.
+// SettingsPatch adds configured settings that differ from state (all of them
+// when state is nil). assignmentRules is replaced as a whole, so it is sent complete.
 func SettingsPatch(
 	ctx context.Context,
 	body map[string]any,
@@ -326,13 +323,11 @@ func canonicalPlatform(p string) string {
 	return p
 }
 
-// StableReads is how many consecutive reads must match a write before it is
-// treated as applied. Graph can return the old assignments from some reads
-// after another read has already returned the new ones.
+// StableReads is how many matching reads in a row confirm a write. A stale read
+// can follow a fresh one.
 const StableReads = 3
 
-// RequireStableReads wraps a readback predicate so it holds only after
-// StableReads consecutive matching reads; a mismatch resets the count.
+// RequireStableReads holds only after StableReads matching reads in a row.
 func RequireStableReads(
 	predicate func(context.Context, tfsdk.State) bool,
 ) func(context.Context, tfsdk.State) bool {

@@ -24,9 +24,7 @@ const (
 
 var errConnectionReset = errors.New("read: connection reset by peer")
 
-// Mock emulates the Graph behaviors observed on a live tenant: empty member
-// lists are returned for enumerated assignments and platform names are
-// normalized to Graph casing.
+// Mock returns empty member lists and Graph platform casing, as the live API does.
 type Mock struct {
 	sync.Mutex
 	State   map[string]any
@@ -35,16 +33,13 @@ type Mock struct {
 	Deletes int
 	// PostFailures makes the next POSTs return 504 after storing the profile.
 	PostFailures int
-	// PostDuplicates makes the next POSTs store the profile and return 400, as
-	// a retried POST does when the first attempt timed out after creating it.
+	// PostDuplicates makes the next POSTs store the profile and return 400 (a retried POST).
 	PostDuplicates int
-	// Existing is a custom profile that is already in the tenant. A POST with
-	// its priority fails with 400 and creates nothing.
+	// Existing is a pre-existing profile; a POST with its priority fails with 400.
 	Existing map[string]any
 	// ListFailures makes the next profile list calls return 503.
 	ListFailures int
-	// ListResetsAfterCreate makes the next list calls fail at the transport
-	// level once a profile has been created.
+	// ListResetsAfterCreate makes list calls fail at the transport level after a create.
 	ListResetsAfterCreate int
 }
 

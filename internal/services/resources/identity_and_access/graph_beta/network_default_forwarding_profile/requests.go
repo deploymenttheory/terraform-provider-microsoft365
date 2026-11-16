@@ -17,8 +17,7 @@ var errDefaultProfileNotFound = errors.New(
 	"default forwarding profile not found; the tenant must be onboarded to Global Secure Access and use traffic forwarding profiles v2",
 )
 
-// findDefault returns the built-in profile for a traffic type. Its ID differs
-// per tenant, so it is looked up instead of configured.
+// findDefault looks up the built-in profile for a traffic type; its ID varies by tenant.
 func (r *NetworkDefaultForwardingProfileResource) findDefault(
 	ctx context.Context,
 	trafficType string,

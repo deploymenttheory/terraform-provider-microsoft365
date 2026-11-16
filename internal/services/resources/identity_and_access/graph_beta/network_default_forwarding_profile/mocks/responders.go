@@ -20,8 +20,7 @@ const (
 	CustomID   = "11111111-2222-3333-4444-555555555555"
 )
 
-// Mock serves one default internet profile and one custom profile. Default
-// profiles cannot be created or deleted, so POST and DELETE fail the test.
+// Mock serves one default and one custom profile; POST and DELETE fail the test.
 type Mock struct {
 	sync.Mutex
 	Internet map[string]any

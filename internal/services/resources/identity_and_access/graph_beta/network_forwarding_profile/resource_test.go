@@ -150,8 +150,7 @@ func TestUnitResourceNetworkForwardingProfile_03_AdoptsProfileCreatedBeforeGatew
 	require.Equal(t, 1, m.Deletes)
 }
 
-// With retries on, the POST that timed out after creating the profile is resent
-// and fails as a duplicate; the profile it created is still adopted.
+// A retried POST fails as a duplicate; the profile the first one created is adopted.
 func TestUnitResourceNetworkForwardingProfile_03b_AdoptsProfileAfterRetriedPostFails(
 	t *testing.T,
 ) {
@@ -170,8 +169,7 @@ func TestUnitResourceNetworkForwardingProfile_03b_AdoptsProfileAfterRetriedPostF
 	require.Equal(t, 1, m.Deletes)
 }
 
-// A profile that existed before the POST is never adopted, even when it has
-// the planned name, type and priority.
+// A profile that existed before the POST is never adopted.
 func TestUnitResourceNetworkForwardingProfile_03c_DoesNotAdoptExistingProfile(t *testing.T) {
 	m := setup(t)
 	t.Cleanup(target.ShortenCreatedLookup())
@@ -195,8 +193,7 @@ func TestUnitResourceNetworkForwardingProfile_03c_DoesNotAdoptExistingProfile(t 
 	require.Zero(t, m.Deletes, "the pre-existing profile must not be adopted and destroyed")
 }
 
-// A profile that another resource in the same apply created is not adopted
-// when this resource's POST fails as a duplicate.
+// A profile another resource created in the same apply is not adopted.
 func TestUnitResourceNetworkForwardingProfile_03f_DoesNotAdoptProfileClaimedInSameApply(t *testing.T) {
 	m := setup(t)
 	t.Cleanup(target.ShortenCreatedLookup())
@@ -213,8 +210,7 @@ func TestUnitResourceNetworkForwardingProfile_03f_DoesNotAdoptProfileClaimedInSa
 	})
 }
 
-// If the profiles cannot be listed before the POST, a failed create is reported
-// rather than adopting a match that might have existed already.
+// Without the list before the POST, a failed create is reported, not adopted.
 func TestUnitResourceNetworkForwardingProfile_03d_NoAdoptionWithoutPriorList(t *testing.T) {
 	m := setup(t)
 	t.Cleanup(target.ShortenCreatedLookup())
@@ -232,8 +228,7 @@ func TestUnitResourceNetworkForwardingProfile_03d_NoAdoptionWithoutPriorList(t *
 	require.Len(t, m.Posts, 1)
 }
 
-// A transport error while listing after the failed POST does not stop the
-// search for the profile the POST created.
+// A transport error while listing does not stop the search.
 func TestUnitResourceNetworkForwardingProfile_03e_KeepsPollingAfterListTransportError(
 	t *testing.T,
 ) {

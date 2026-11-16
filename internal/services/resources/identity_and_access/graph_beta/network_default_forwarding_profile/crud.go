@@ -182,8 +182,7 @@ func (r *NetworkDefaultForwardingProfileResource) Update(
 	}
 }
 
-// Delete only removes state. Disabling or resetting a default profile on
-// destroy would change traffic handling for the whole tenant.
+// Delete only removes state; changing a default profile affects the whole tenant.
 func (r *NetworkDefaultForwardingProfileResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,

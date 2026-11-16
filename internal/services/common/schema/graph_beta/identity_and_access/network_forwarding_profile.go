@@ -35,8 +35,7 @@ func ForwardingProfileSettingsAttributes() map[string]schema.Attribute {
 			),
 			Validators: []validator.Set{
 				setvalidator.SizeAtLeast(1),
-				// State keeps the IDs Graph returns, so an uppercase ID would
-				// read back differently from the plan.
+				// Graph returns lowercase IDs; an uppercase one would not match the plan.
 				setvalidator.ValueStringsAre(
 					stringvalidator.RegexMatches(
 						lowercaseGUID,
@@ -118,8 +117,8 @@ func ForwardingProfileSettingsAttributes() map[string]schema.Attribute {
 	}
 }
 
-// ValidateForwardingProfileSettings checks cross-attribute rules that Graph
-// would otherwise reject or silently rewrite. trafficType may be unknown.
+// ValidateForwardingProfileSettings checks rules Graph would reject or rewrite.
+// trafficType may be unknown.
 func ValidateForwardingProfileSettings(
 	ctx context.Context,
 	trafficType types.String,

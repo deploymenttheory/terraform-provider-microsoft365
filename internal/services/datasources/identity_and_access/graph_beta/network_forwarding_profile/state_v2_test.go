@@ -12,8 +12,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
-// The v2 properties are absent from the SDK model, so they must survive the
-// SDK's additional-data deserialization.
+// The v2 properties must survive the SDK's additional-data deserialization.
 func TestMapRemoteStateToDataSourceForwardingProfileV2(t *testing.T) {
 	raw := `{
 	  "id": "5cbd52ab-66d6-4e65-a4af-f11efdffe4c8",

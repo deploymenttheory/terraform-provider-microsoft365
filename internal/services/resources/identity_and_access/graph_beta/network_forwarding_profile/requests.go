@@ -21,12 +21,10 @@ var (
 	errProfileNotCreated      = stderrors.New("forwarding profile not found after failed create")
 )
 
-// createdLookupAttemptsFor polls longest after errors that can hide a
-// successful create: transport errors, gateway failures and non-Graph 500s.
-// GraphError reports most transport errors as 400 "URLError" and others
-// (timeouts, refused connections) as 503 or 504. A
-// 400 or 409 gets a few checks, since a retried POST fails as a duplicate of
-// the one that timed out. Anything else gets one check.
+// createdLookupAttemptsFor polls longest after errors that can hide a create
+// (transport errors, which GraphError reports as 400 "URLError", 503 or 504;
+// gateway failures; non-Graph 500s). 400/409 get a few checks (a retried POST
+// fails as a duplicate); anything else gets one.
 func createdLookupAttemptsFor(info kiotaerrors.GraphErrorInfo) int {
 	switch {
 	case info.ErrorCode == "URLError",
@@ -40,10 +38,8 @@ func createdLookupAttemptsFor(info kiotaerrors.GraphErrorInfo) int {
 	}
 }
 
-// claimedProfiles holds the IDs that resources in this provider process have
-// created or adopted. Two resources with the same name and priority in one
-// apply would otherwise both claim one profile: the second POST fails as a
-// duplicate, and the profile created by the first is new to its list.
+// claimedProfiles holds IDs already created or adopted in this process, so two
+// resources with the same name and priority cannot both adopt one profile.
 var claimedProfiles sync.Map
 
 func claimProfile(id string) { claimedProfiles.Store(strings.ToLower(id), struct{}{}) }
@@ -60,8 +56,7 @@ var (
 	createdLookupInterval   = 5 * time.Second
 )
 
-// The v2 profile properties are missing from the generated SDK models, so the
-// resource sends JSON matching the Entra portal requests.
+// The SDK lacks the v2 properties, so requests are raw JSON in the portal's shape.
 func requestBody(
 	ctx context.Context,
 	plan NetworkForwardingProfileResourceModel,
@@ -176,8 +171,7 @@ func (r *NetworkForwardingProfileResource) findCreated(
 	return nil, errProfileNotCreated
 }
 
-// waitForCreated looks for a profile created by a request that failed; after a
-// gateway error it can take a while to appear in the list.
+// waitForCreated looks for a profile created by a failed request; it can appear late.
 func (r *NetworkForwardingProfileResource) waitForCreated(
 	ctx context.Context,
 	plan NetworkForwardingProfileResourceModel,
@@ -189,8 +183,7 @@ func (r *NetworkForwardingProfileResource) waitForCreated(
 		if err == nil && created != nil {
 			return created
 		}
-		// Stop on list errors that will not go away, such as 403. Transport
-		// errors are reported as 400 "URLError" but can clear on the next try.
+		// Stop on lasting errors such as 403; transport errors (400 "URLError") can clear.
 		if err != nil && !stderrors.Is(err, errProfileNotCreated) {
 			info := kiotaerrors.GraphError(ctx, err)
 			if info.StatusCode >= 400 && info.StatusCode < 500 && info.StatusCode != 429 &&

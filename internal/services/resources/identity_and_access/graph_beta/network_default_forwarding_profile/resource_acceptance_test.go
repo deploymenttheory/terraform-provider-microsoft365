@@ -18,9 +18,8 @@ import (
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 )
 
-// TestAccResourceNetworkDefaultForwardingProfile_01_Lifecycle changes the
-// tenant's default private profile and restores it afterwards; it requires
-// explicit approval for the tenant.
+// TestAccResourceNetworkDefaultForwardingProfile_01_Lifecycle changes and then
+// restores the tenant's default private profile; run it only with approval.
 func TestAccResourceNetworkDefaultForwardingProfile_01_Lifecycle(t *testing.T) {
 	if os.Getenv("TF_ACC") != "1" {
 		t.Skip("TF_ACC=1 and approved tenant required")

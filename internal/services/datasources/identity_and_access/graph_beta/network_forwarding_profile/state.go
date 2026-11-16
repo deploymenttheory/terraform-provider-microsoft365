@@ -82,8 +82,7 @@ func additionalString(values map[string]any, key string) types.String {
 	}
 }
 
-// mapV2Settings maps the traffic forwarding profile v2 properties, which the
-// SDK model only exposes as additional data.
+// mapV2Settings maps the v2 properties, which the SDK only keeps as additional data.
 func mapV2Settings(ctx context.Context, result *ForwardingProfileModel, values map[string]any) {
 	result.ForwardingSourceMatching = types.ObjectNull(sharedmodels.ForwardingSourceMatchingAttrTypes)
 	result.LocalNetworkSettings = types.ObjectNull(sharedmodels.LocalNetworkSettingsAttrTypes)
