@@ -203,6 +203,7 @@ import (
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site_list"
 	graphDeviceM365AdminM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/m365_apps_installation_options"
+	graphBetaM365AdminProfileCardProperty "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/profile_card_property"
 
 	// PowerShell - Microsoft Teams
 	powershellMicrosoftTeamsTeamsCallingPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/microsoft_teams/teams_calling_policy"
@@ -464,6 +465,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - M365 Admin Centre
 		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListResource,
+		graphBetaM365AdminProfileCardProperty.NewProfileCardPropertyResource,
 
 		// Graph Beta - Windows 365 resources
 		graphBetaWindows365CloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,
