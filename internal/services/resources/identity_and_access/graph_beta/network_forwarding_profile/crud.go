@@ -212,6 +212,8 @@ func (r *NetworkForwardingProfileResource) Delete(
 		)
 		return
 	}
+	// A stale list could still show it; never adopt it on a re-create.
+	claimProfile(state.ID.ValueString())
 	resp.State.RemoveResource(ctx)
 }
 

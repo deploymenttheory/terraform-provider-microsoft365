@@ -44,9 +44,10 @@ var claimedProfiles sync.Map
 
 func claimProfile(id string) { claimedProfiles.Store(strings.ToLower(id), struct{}{}) }
 
-func profileClaimed(id string) bool {
-	_, ok := claimedProfiles.Load(strings.ToLower(id))
-	return ok
+// tryClaim claims id atomically and reports whether this caller got it.
+func tryClaim(id string) bool {
+	_, loaded := claimedProfiles.LoadOrStore(strings.ToLower(id), struct{}{})
+	return !loaded
 }
 
 // Variables so unit tests can shorten the wait.
@@ -161,10 +162,13 @@ func (r *NetworkForwardingProfileResource) findCreated(
 		return nil, err
 	}
 	for i, p := range profiles {
-		if p.ID != nil && !existing[*p.ID] && !profileClaimed(*p.ID) && p.IsCustomProfile != nil && *p.IsCustomProfile &&
+		if p.ID != nil && !existing[*p.ID] && p.IsCustomProfile != nil && *p.IsCustomProfile &&
 			p.Name != nil && *p.Name == plan.Name.ValueString() &&
 			p.TrafficForwardingType != nil && *p.TrafficForwardingType == plan.TrafficForwardingType.ValueString() &&
 			p.Priority != nil && *p.Priority == plan.Priority.ValueInt32() {
+			if !tryClaim(*p.ID) {
+				continue
+			}
 			return &profiles[i], nil
 		}
 	}

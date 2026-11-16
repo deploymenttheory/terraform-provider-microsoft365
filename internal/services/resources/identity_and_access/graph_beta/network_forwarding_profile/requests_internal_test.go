@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -35,5 +38,29 @@ func TestCreatedLookupAttemptsFor(t *testing.T) {
 			t.Errorf("%s: attempts = %d (status %d, code %q), expected %d",
 				name, got, tc.info.StatusCode, tc.info.ErrorCode, tc.want)
 		}
+	}
+}
+
+// Only one of several concurrent callers can claim a profile.
+func TestTryClaimIsExclusive(t *testing.T) {
+	id := "ABCDEF00-0000-0000-0000-000000000001"
+	t.Cleanup(func() { claimedProfiles.Delete(strings.ToLower(id)) })
+	var wins atomic.Int32
+	var wg sync.WaitGroup
+	for range 8 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if tryClaim(id) {
+				wins.Add(1)
+			}
+		}()
+	}
+	wg.Wait()
+	if wins.Load() != 1 {
+		t.Fatalf("expected exactly one claim, got %d", wins.Load())
+	}
+	if tryClaim(strings.ToLower(id)) {
+		t.Fatal("claim must ignore ID case")
 	}
 }
