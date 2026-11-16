@@ -48,6 +48,8 @@ type Mock struct {
 	Patches  []map[string]any
 	// StaleReads makes the next N profile GETs after each write return the pre-write links.
 	StaleReads int
+	// FailAdds makes the next N PATCHes that add a link fail with 400.
+	FailAdds   int
 	stale      map[string][]Link
 	staleLeft  int
 	nextLinkID int
@@ -219,6 +221,10 @@ func (m *Mock) patch(q *http.Request) (*http.Response, error) {
 		if id != "" {
 			return graphError(400, "BadRequest",
 				"Updating a PolicyLink is not supported. Only Deleting or Adding policy links are currently supported")
+		}
+		if m.FailAdds > 0 {
+			m.FailAdds--
+			return graphError(400, "BadRequest", "Simulated add failure")
 		}
 		policy, _ := entry["policy"].(map[string]any)
 		policyID, _ := policy["id"].(string)

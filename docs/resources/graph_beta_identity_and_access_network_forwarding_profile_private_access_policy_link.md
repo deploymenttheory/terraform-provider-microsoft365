@@ -37,7 +37,7 @@ The following client `application` permissions are needed in order to use this r
 ## Behavior Notes
 
 - Graph only supports adding and removing forwarding policy links. Updating a link's `priority` or `state` is rejected, so every argument forces replacement.
-- When a new custom user forwarding profile is created, Microsoft automatically links the tenant's existing Private Access app policies (priority `65000`, `enabled`). If the configured policy is already linked with the configured `state` and `priority` (or `priority` is omitted), create adopts that link without writing. Otherwise the existing link is removed and re-added with the configured values. Removed automatic links are not recreated by Microsoft. Device forwarding profiles start with no links.
+- When a new custom user forwarding profile is created, Microsoft automatically links the tenant's existing Private Access app policies (priority `65000`, `enabled`). If the configured policy is already linked with the configured `state` and `priority` (or `priority` is omitted), create adopts that link without writing. Otherwise the existing link is removed and re-added with the configured values; if the re-add fails, the provider restores the previous link. Create fails without writing if the existing link has a different `config_type`. Removed automatic links are not recreated by Microsoft. Device forwarding profiles start with no links.
 - Graph rejects removing and re-adding the same policy in one request, so replacement uses two `PATCH` requests and waits for the removal to propagate in between. A new `policy_link_id` is issued each time.
 - If the link is re-added outside Terraform, the resource finds it again by `forwarding_policy_id` and updates `policy_link_id`.
 - Links are eventually consistent; create and destroy wait for three consecutive matching reads.
@@ -82,7 +82,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_forwarding_profile
 
 ### Optional
 
-- `priority` (Number) Link priority. The Entra admin center offers 100-64999; Graph also accepts other values up to 65000, which is what automatically created links receive. When omitted, Graph assigns it.
+- `priority` (Number) Link priority. The Entra admin center offers 100-64999; Graph also accepts other values up to 65000, which is what automatically created links receive. When omitted, the link has no priority (Graph returns null), or keeps 65000 when an existing automatic link is adopted.
 - `profile_type` (String) Forwarding profile kind. `user` (default) targets `/networkAccess/forwardingProfiles`; `device` targets the pre-logon `/networkAccess/deviceForwardingProfiles`.
 - `state` (String) Link state. Possible values are `enabled` (default) and `disabled`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))

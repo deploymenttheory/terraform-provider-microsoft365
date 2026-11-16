@@ -3,6 +3,7 @@ package graphBetaNetworkForwardingProfilePrivateAccessPolicyLink_test
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -313,6 +314,61 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_10_InvalidI
 				ImportState:   true,
 				ImportStateId: "tenant/" + testmocks.UserProfileID + "/bbbbbbbb-0000-0000-0000-000000000001",
 				ExpectError:   regexp.MustCompile(`Invalid import ID`),
+			},
+		},
+	})
+}
+
+// If the add fails after Create removed a mismatched link, the old link is
+// re-added so the policy does not stay unlinked.
+func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_11_RestoresLinkWhenAddFails(t *testing.T) {
+	m := setup(t)
+	m.FailAdds = 1
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      config(t, "replace_auto_link"),
+				ExpectError: regexp.MustCompile(`Simulated add failure`),
+			},
+		},
+	})
+	links := m.Profiles[testmocks.Key(testmocks.UserCollection, testmocks.UserProfileID)]
+	require.Len(t, links, 1)
+	require.Equal(t, testmocks.AutoLinkedPolicyID, links[0].PolicyID)
+	require.Equal(t, int64(65000), links[0].Priority)
+	require.Equal(t, "enabled", links[0].State)
+}
+
+// A link with a different config type is reported, not removed.
+func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_12_ConfigTypeMismatch(t *testing.T) {
+	m := setup(t)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      config(t, "auto_link_config_type_mismatch"),
+				ExpectError: regexp.MustCompile(`already linked with a different config type`),
+			},
+		},
+	})
+	require.Empty(t, m.Patches)
+}
+
+// Import IDs are lowercased to match Graph.
+func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_13_ImportLowercasesIDs(t *testing.T) {
+	setup(t)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config(t, "adopt_auto_link")},
+			{
+				Config:                  config(t, "adopt_auto_link"),
+				ResourceName:            resourceAddress,
+				ImportState:             true,
+				ImportStateId:           strings.ToUpper(testmocks.UserProfileID + "/" + testmocks.AutoLinkID),
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})

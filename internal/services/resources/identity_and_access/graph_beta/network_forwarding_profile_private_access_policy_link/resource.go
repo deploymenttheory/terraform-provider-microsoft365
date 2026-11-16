@@ -118,7 +118,8 @@ func parseImportID(id string) (profileType, profileID, linkID string, ok bool) {
 	if !guidPattern.MatchString(profileID) || !guidPattern.MatchString(linkID) {
 		return "", "", "", false
 	}
-	return profileType, profileID, linkID, true
+	// Graph IDs are lowercase; an uppercase import would otherwise force a replacement.
+	return profileType, strings.ToLower(profileID), strings.ToLower(linkID), true
 }
 
 func compositeID(profileID, linkID string) types.String {
@@ -178,7 +179,8 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Schema(
 				Optional: true,
 				Computed: true,
 				MarkdownDescription: "Link priority. The Entra admin center offers 100-64999; Graph also accepts other " +
-					"values up to 65000, which is what automatically created links receive. When omitted, Graph assigns it.",
+					"values up to 65000, which is what automatically created links receive. When omitted, the link has no " +
+					"priority (Graph returns null), or keeps 65000 when an existing automatic link is adopted.",
 				Validators: []validator.Int64{int64validator.Between(1, 65000)},
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),

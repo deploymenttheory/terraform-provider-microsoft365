@@ -2,6 +2,7 @@ package graphBetaNetworkForwardingProfilePrivateAccessPolicyLink
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -33,6 +34,8 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 
 	profileType := plan.ProfileType.ValueString()
 	profileID := plan.ForwardingProfileID.ValueString()
+	unlock := lockProfile(profileType, profileID)
+	defer unlock()
 	profile, err := r.getProfile(ctx, profileType, profileID)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
@@ -41,6 +44,17 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 
 	existing := findLink(profile.Policies, "", plan.ForwardingPolicyID.ValueString())
 	switch {
+	case existing != nil && existing.ConfigType != "" &&
+		!strings.EqualFold(existing.ConfigType, plan.ConfigType.ValueString()):
+		// Replacing would remove a link that the new config type may never be
+		// able to re-add, so leave it in place.
+		resp.Diagnostics.AddError(
+			"Forwarding policy is already linked with a different config type",
+			fmt.Sprintf("Policy %s is linked to profile %s as %q (link %s), not %q. Check config_type.",
+				plan.ForwardingPolicyID.ValueString(), profileID, existing.ConfigType, existing.ID,
+				plan.ConfigType.ValueString()),
+		)
+		return
 	case existing != nil && linkMatchesPlan(existing, &plan):
 		// New user profiles auto-link every existing private app policy, so adopting
 		// avoids a spurious "already linked" failure.
@@ -64,6 +78,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 		}
 		if err := r.addLink(ctx, &plan); err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+			r.restoreLink(ctx, profileType, profileID, existing, resp)
 			return
 		}
 	default:
@@ -172,6 +187,8 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Delete(
 
 	profileType := state.ProfileType.ValueString()
 	profileID := state.ForwardingProfileID.ValueString()
+	unlock := lockProfile(profileType, profileID)
+	defer unlock()
 	profile, err := r.getProfile(ctx, profileType, profileID)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
@@ -201,8 +218,36 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Delete(
 	resp.State.RemoveResource(ctx)
 }
 
-func isNotFound(ctx context.Context, err error) bool {
-	return errors.GraphError(ctx, err).StatusCode == 404
+// restoreLink re-adds a link that Create removed before its own add failed, so
+// a failed replacement does not leave the policy unlinked. Microsoft does not
+// recreate removed auto-links.
+func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) restoreLink(
+	ctx context.Context,
+	profileType, profileID string,
+	previous *policyLink,
+	resp *resource.CreateResponse,
+) {
+	restore := NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel{
+		ProfileType:         types.StringValue(profileType),
+		ForwardingProfileID: types.StringValue(profileID),
+		ForwardingPolicyID:  types.StringValue(previous.Policy.ID),
+		ConfigType:          types.StringValue(previous.ConfigType),
+		State:               types.StringValue(strings.ToLower(previous.State)),
+		Priority:            types.Int64PointerValue(previous.Priority),
+	}
+	if err := r.addLink(ctx, &restore); err != nil {
+		resp.Diagnostics.AddError(
+			"Previous forwarding policy link was removed and could not be restored",
+			fmt.Sprintf("Create removed link %s from profile %s before its add failed, and re-adding it failed: %s",
+				previous.ID, profileID, err.Error()),
+		)
+		return
+	}
+	resp.Diagnostics.AddWarning(
+		"Previous forwarding policy link restored",
+		fmt.Sprintf("The add failed, so the link that Create removed from profile %s was re-added with its "+
+			"previous state and priority. Graph gives it a new link ID.", profileID),
+	)
 }
 
 func linkMatchesPlan(link *policyLink, plan *NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel) bool {

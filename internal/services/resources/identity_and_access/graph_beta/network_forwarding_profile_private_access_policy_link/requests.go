@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
 const (
@@ -24,6 +26,19 @@ const (
 var readbackInterval = 2 * time.Second
 
 var errWaitTimedOut = errors.New("timed out waiting for forwarding policy link change to propagate")
+
+// profileLocks serialises link writes to one profile within this provider
+// process. Each write is a read-modify-write of the profile's policies, and
+// Terraform runs sibling link resources in parallel.
+var profileLocks sync.Map
+
+func lockProfile(profileType, profileID string) (unlock func()) {
+	key := profileType + "/" + strings.ToLower(profileID)
+	mu, _ := profileLocks.LoadOrStore(key, &sync.Mutex{})
+	m, _ := mu.(*sync.Mutex)
+	m.Lock()
+	return m.Unlock
+}
 
 func profileTemplate(profileType string) string {
 	if profileType == profileTypeDevice {
@@ -165,10 +180,15 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) waitForLinkRem
 	return waitUntil(ctx, func(ctx context.Context) (bool, error) {
 		profile, err := r.getProfile(ctx, profileType, profileID)
 		if err != nil {
-			if isNotFound(ctx, err) {
+			switch kiotaerrors.GraphError(ctx, err).StatusCode {
+			case 404:
 				return true, nil
+			case 401, 403:
+				return false, err
 			}
-			return false, err
+			// The removal already succeeded; keep polling through throttling,
+			// server and transport errors.
+			return false, nil
 		}
 		return findLink(profile.Policies, linkID, "") == nil, nil
 	})
