@@ -1,0 +1,80 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [mobilityManagementPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/mobilitymanagementpolicy?view=graph-rest-beta)
+- [Get mobileDeviceManagementPolicy](https://learn.microsoft.com/en-us/graph/api/mobiledevicemanagementpolicies-get?view=graph-rest-beta)
+- [Update mobileDeviceManagementPolicy](https://learn.microsoft.com/en-us/graph/api/mobiledevicemanagementpolicies-update?view=graph-rest-beta)
+- [Add includedGroups](https://learn.microsoft.com/en-us/graph/api/mobiledevicemanagementpolicies-post-includedgroups?view=graph-rest-beta)
+- [Remove includedGroups](https://learn.microsoft.com/en-us/graph/api/mobiledevicemanagementpolicies-delete-includedgroups?view=graph-rest-beta)
+- [Get mobileAppManagementPolicy](https://learn.microsoft.com/en-us/graph/api/mobileappmanagementpolicies-get?view=graph-rest-beta)
+- [Update mobileAppManagementPolicy](https://learn.microsoft.com/en-us/graph/api/mobileappmanagementpolicies-update?view=graph-rest-beta)
+- [Set up automatic enrollment for Windows devices](https://learn.microsoft.com/en-us/intune/intune-service/enrollment/windows-enroll)
+
+## Microsoft Graph API Permissions
+
+Microsoft Graph does **not** support application permissions for these endpoints. The following **delegated** (work or school account) permissions are needed in order to use this {{.Type | lower}}, and the signed-in user needs a Microsoft Entra role such as Cloud Device Administrator:
+
+**Required:**
+- `Policy.Read.All`
+- `Policy.ReadWrite.MobilityManagement`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_mobility_management_policy/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_mobility_management_policy/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Service-Created Policies
+
+- Mobility management policies are created by the service when a mobility management application such as Microsoft Intune is added to the tenant. This resource adopts an existing policy; it never creates one.
+- `policy_type = "device"` manages the MDM user scope and `policy_type = "app"` manages the MAM user scope of the same application.
+- Manage each policy from only one Terraform resource across all states.
+
+### Scope
+
+- `applies_to = "all"` puts every user in scope for automatic enrollment. Review the impact before applying it.
+- `applies_to` cannot be sent with other properties, so the provider writes it in its own request.
+- `selected` is applied by adding group references. Only the group references that differ from the tenant are added or removed.
+- `none` and `all` remove every included group.
+- When `applies_to` is not configured, the scope and included groups are left as they are.
+
+### Unconfigured Settings
+
+- URL settings and `is_mdm_enrollment_during_registration_disabled` that are not configured keep their current tenant value and are never written.
+
+### Destroy
+
+- Destroy only removes the resource from Terraform state. The policy, its scope and its included groups are left unchanged, because resetting the scope would silently stop automatic enrollment for users.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_mobility_management_policy/import.sh" }}
