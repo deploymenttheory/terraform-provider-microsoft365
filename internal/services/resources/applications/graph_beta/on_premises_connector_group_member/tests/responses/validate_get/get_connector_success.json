@@ -1,0 +1,8 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#onPremisesPublishingProfiles('applicationProxy')/connectors/$entity",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "machineName": "unit-test-connector-01.contoso.local",
+  "externalIp": "203.0.113.10",
+  "status": "active",
+  "version": "1.5.3437.0"
+}

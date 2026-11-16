@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "Authorization_RequestDenied",
+    "message": "Insufficient privileges to complete the operation."
+  }
+}

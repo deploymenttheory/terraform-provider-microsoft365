@@ -1,0 +1,26 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#onPremisesPublishingProfiles('applicationProxy')/connectorGroups",
+  "value": [
+    {
+      "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+      "name": "Default",
+      "connectorGroupType": "applicationProxy",
+      "isDefault": true,
+      "region": "eur"
+    },
+    {
+      "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "name": "Unit Test Connector Group A",
+      "connectorGroupType": "applicationProxy",
+      "isDefault": false,
+      "region": "eur"
+    },
+    {
+      "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "name": "Unit Test Connector Group B",
+      "connectorGroupType": "applicationProxy",
+      "isDefault": false,
+      "region": "eur"
+    }
+  ]
+}
