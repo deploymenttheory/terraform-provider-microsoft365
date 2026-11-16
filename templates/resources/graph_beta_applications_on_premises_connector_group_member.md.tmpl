@@ -1,0 +1,81 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [connector resource type](https://learn.microsoft.com/en-us/graph/api/resources/connector?view=graph-rest-beta)
+- [Add a connector to a connectorGroup](https://learn.microsoft.com/en-us/graph/api/connector-post-memberof?view=graph-rest-beta)
+- [Get connector](https://learn.microsoft.com/en-us/graph/api/connector-get?view=graph-rest-beta)
+- [List memberOf](https://learn.microsoft.com/en-us/graph/api/connector-list-memberof?view=graph-rest-beta)
+- [List connectorGroups](https://learn.microsoft.com/en-us/graph/api/connectorgroup-list?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+Microsoft Learn documents the following delegated permission for this {{.Type | lower}}:
+
+**Required:**
+- `Directory.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+Microsoft Learn lists application permissions for these APIs as `Not supported`.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_on_premises_connector_group_member/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_on_premises_connector_group_member/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Prerequisites
+
+- The connector must already be installed and registered in the tenant. Microsoft Graph cannot create connectors; install the private network connector agent on a server first.
+
+### One Group Per Connector
+
+- A connector always belongs to exactly one connector group. Creating this resource moves the connector out of its current group into `connector_group_id`.
+- The resource ID is the connector ID. Manage each connector with a single instance of this resource.
+- Changing `connector_group_id` moves the connector to the new group in place. Changing `connector_id` replaces the resource.
+- Moving a connector changes which published applications it serves. Applications assigned to the old group lose this connector.
+
+### Drift
+
+- If the connector is moved to another group outside Terraform, the next plan shows `connector_group_id` changing back to the configured group.
+
+### Deletion
+
+- Microsoft Learn documents no call to remove a connector from a group, and a connector cannot be left without one. Deleting this resource moves the connector back to the tenant's default connector group.
+- Terraform refreshes before destroying, so if the connector was moved to another group outside Terraform, deletion moves it from that group back to the default group.
+- If the managed group is the default group, deletion only removes the resource from state. If the connector's current group no longer matches state (for example with `-refresh=false`), deletion also only removes the resource from state and does not move the connector.
+
+### Eventual Consistency
+
+- After a move, Microsoft Graph can briefly report the previous group. The provider retries the read until the new group is returned.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_on_premises_connector_group_member/import.sh" }}
