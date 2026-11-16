@@ -164,6 +164,7 @@ import (
 	graphBetaIdentityAndAccessExternalIdentitiesPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/external_identities_policy"
 	graphBetaIdentityAndAccessLifecycleWorkflow "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/lifecycle_workflow"
 	graphBetaIdentityAndAccessLifecycleWorkflowSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/lifecycle_workflow_settings"
+	graphBetaIdentityAndAccessMobilityManagementPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/mobility_management_policy"
 
 	// graphBetaIdentityAndAccessDirectorySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/directory_settings"
 	graphBetaIdentityAndAccessNamedLocation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/named_location"
@@ -414,6 +415,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessExternalIdentitiesPolicy.NewExternalIdentitiesPolicyResource,
 		graphBetaIdentityAndAccessLifecycleWorkflow.NewLifecycleWorkflowResource,
 		graphBetaIdentityAndAccessLifecycleWorkflowSettings.NewLifecycleWorkflowSettingsResource,
+		graphBetaIdentityAndAccessMobilityManagementPolicy.NewMobilityManagementPolicyResource,
 		// graphBetaIdentityAndAccessDirectorySettings.NewDirectorySettingsResource,
 		graphBetaIdentityAndAccessNetworkConditionalAccessSettings.NewNetworkConditionalAccessSettingsResource,
 		graphBetaIdentityAndAccessNetworkThreatIntelligencePolicy.NewNetworkThreatIntelligencePolicyResource,
