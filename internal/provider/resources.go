@@ -162,6 +162,7 @@ import (
 	graphBetaIdentityAndAccessCustomSecurityAttributeDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/custom_security_attribute_definition"
 	graphBetaIdentityAndAccessDeviceRegistrationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/device_registration_policy"
 	graphBetaIdentityAndAccessExternalIdentitiesPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/external_identities_policy"
+	graphBetaIdentityAndAccessLifecycleWorkflow "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/lifecycle_workflow"
 	graphBetaIdentityAndAccessLifecycleWorkflowSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/lifecycle_workflow_settings"
 
 	// graphBetaIdentityAndAccessDirectorySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/directory_settings"
@@ -411,6 +412,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessCrossTenantAccessPolicy.NewCrossTenantAccessPolicyResource,
 		graphBetaIdentityAndAccessDeviceRegistrationPolicy.NewDeviceRegistrationPolicyResource,
 		graphBetaIdentityAndAccessExternalIdentitiesPolicy.NewExternalIdentitiesPolicyResource,
+		graphBetaIdentityAndAccessLifecycleWorkflow.NewLifecycleWorkflowResource,
 		graphBetaIdentityAndAccessLifecycleWorkflowSettings.NewLifecycleWorkflowSettingsResource,
 		// graphBetaIdentityAndAccessDirectorySettings.NewDirectorySettingsResource,
 		graphBetaIdentityAndAccessNetworkConditionalAccessSettings.NewNetworkConditionalAccessSettingsResource,
