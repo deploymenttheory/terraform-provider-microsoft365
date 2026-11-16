@@ -4,12 +4,6 @@ resource "microsoft365_graph_beta_identity_and_access_network_forwarding_profile
   forwarding_policy_id  = "00000000-0000-0000-0000-000000000002"
   config_type           = "appPolicy"
   priority              = 120
-  state                 = "enabled"
-
-  timeouts = {
-    create = "5m"
-    delete = "5m"
-  }
 }
 
 # Link a Private Access app policy to a pre-logon (device) forwarding profile.

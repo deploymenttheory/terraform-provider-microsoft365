@@ -372,3 +372,30 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_13_ImportLo
 		},
 	})
 }
+
+// Under create_before_destroy, deleting the deposed link must not remove the
+// replacement's link for the same policy.
+func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_14_CreateBeforeDestroy(t *testing.T) {
+	m := setup(t)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: config(t, "user_app_policy_cbd")},
+			{
+				Config: config(t, "user_app_policy_updated_cbd"),
+				Check: func(*terraform.State) error {
+					var app []testmocks.Link
+					for _, l := range m.Links(testmocks.UserCollection, testmocks.UserProfileID) {
+						if l.PolicyID == testmocks.AppPolicyID {
+							app = append(app, l)
+						}
+					}
+					if len(app) != 1 || app[0].Priority != 99 {
+						return fmt.Errorf("expected one app link at priority 99, got %v", app)
+					}
+					return nil
+				},
+			},
+		},
+	})
+}

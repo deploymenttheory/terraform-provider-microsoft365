@@ -178,9 +178,8 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Schema(
 			"priority": schema.Int64Attribute{
 				Optional: true,
 				Computed: true,
-				MarkdownDescription: "Link priority. The Entra admin center offers 100-64999; Graph also accepts other " +
-					"values up to 65000, which is what automatically created links receive. When omitted, the link has no " +
-					"priority (Graph returns null), or keeps 65000 when an existing automatic link is adopted.",
+				MarkdownDescription: "Link priority, 1-65000 (the Entra admin center offers 100-64999). If omitted, an " +
+					"adopted automatic link keeps `65000` and a new link has none.",
 				Validators: []validator.Int64{int64validator.Between(1, 65000)},
 				PlanModifiers: []planmodifier.Int64{
 					int64planmodifier.UseStateForUnknown(),

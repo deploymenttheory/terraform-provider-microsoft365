@@ -26,16 +26,17 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	// Lock first so the timeout does not run while queued behind sibling links.
+	profileType := plan.ProfileType.ValueString()
+	profileID := plan.ForwardingProfileID.ValueString()
+	unlock := lockProfile(profileType, profileID)
+	defer unlock()
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	profileType := plan.ProfileType.ValueString()
-	profileID := plan.ForwardingProfileID.ValueString()
-	unlock := lockProfile(profileType, profileID)
-	defer unlock()
 	profile, err := r.getProfile(ctx, profileType, profileID)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
@@ -71,12 +72,13 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 			return
 		}
 		if err := r.waitForLinkRemoved(ctx, profileType, profileID, existing.ID); err != nil {
-			resp.Diagnostics.AddError("Error waiting for existing forwarding policy link removal", err.Error())
+			resp.Diagnostics.AddError("Error waiting for existing forwarding policy link removal",
+				fmt.Sprintf("Link %s was removed; the next apply re-adds the policy. %s", existing.ID, err.Error()))
 			return
 		}
 		if err := r.addLink(ctx, &plan); err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
-			r.restoreLink(ctx, profileType, profileID, existing, resp)
+			r.restoreLink(ctx, profileType, profileID, existing, plan.ConfigType.ValueString(), resp)
 			return
 		}
 	default:
@@ -176,16 +178,16 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Delete(
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	profileType := state.ProfileType.ValueString()
+	profileID := state.ForwardingProfileID.ValueString()
+	unlock := lockProfile(profileType, profileID)
+	defer unlock()
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	profileType := state.ProfileType.ValueString()
-	profileID := state.ForwardingProfileID.ValueString()
-	unlock := lockProfile(profileType, profileID)
-	defer unlock()
 	profile, err := r.getProfile(ctx, profileType, profileID)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
@@ -195,7 +197,13 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Delete(
 		return
 	}
 
-	link := findLink(profile.Policies, state.PolicyLinkID.ValueString(), state.ForwardingPolicyID.ValueString())
+	// Match by policy only when the link ID was never stored (failed read-back).
+	// Otherwise the policy's link may belong to a create_before_destroy replacement.
+	policyID := ""
+	if state.PolicyLinkID.ValueString() == "" {
+		policyID = state.ForwardingPolicyID.ValueString()
+	}
+	link := findLink(profile.Policies, state.PolicyLinkID.ValueString(), policyID)
 	if link == nil {
 		resp.State.RemoveResource(ctx)
 		return
@@ -221,13 +229,18 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) restoreLink(
 	ctx context.Context,
 	profileType, profileID string,
 	previous *policyLink,
+	fallbackConfigType string,
 	resp *resource.CreateResponse,
 ) {
+	configType := previous.ConfigType
+	if configType == "" {
+		configType = fallbackConfigType
+	}
 	restore := NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel{
 		ProfileType:         types.StringValue(profileType),
 		ForwardingProfileID: types.StringValue(profileID),
 		ForwardingPolicyID:  types.StringValue(previous.Policy.ID),
-		ConfigType:          types.StringValue(previous.ConfigType),
+		ConfigType:          types.StringValue(configType),
 		State:               types.StringValue(strings.ToLower(previous.State)),
 		Priority:            types.Int64PointerValue(previous.Priority),
 	}

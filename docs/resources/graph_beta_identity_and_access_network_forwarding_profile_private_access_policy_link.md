@@ -36,14 +36,12 @@ The following client `application` permissions are needed in order to use this r
 
 ## Behavior Notes
 
-- Graph only supports adding and removing forwarding policy links. Updating a link's `priority` or `state` is rejected, so every argument forces replacement.
-- When a new custom user forwarding profile is created, Microsoft automatically links the tenant's existing Private Access app policies (priority `65000`, `enabled`). If the configured policy is already linked with the configured `state` and `priority` (or `priority` is omitted), create adopts that link without writing. Otherwise the existing link is removed and re-added with the configured values; if the re-add fails, the provider restores the previous link. Create fails without writing if the existing link has a different `config_type`. Removed automatic links are not recreated by Microsoft. Device forwarding profiles start with no links.
-- Graph rejects removing and re-adding the same policy in one request, so replacement uses two `PATCH` requests and waits for the removal to propagate in between. A new `policy_link_id` is issued each time.
-- If the link is re-added outside Terraform, the resource finds it again by `forwarding_policy_id` and updates `policy_link_id`.
+- Graph cannot update a link, so every argument forces replacement. Replacement removes the link, waits for the removal to propagate, then adds it again with a new `policy_link_id`.
+- New custom user profiles are linked automatically to every Private Access app policy (priority `65000`). Create adopts that link when it matches, and otherwise replaces it, restoring the old link if the add fails. If the `config_type` differs, create fails without writing. Microsoft does not recreate removed automatic links.
+- Changing `config_type` does not work with `create_before_destroy`, because the old link is still in place when the new one is created.
+- If the link is re-added outside Terraform, refresh finds it again by `forwarding_policy_id`.
 - Links are eventually consistent; create and destroy wait for three consecutive matching reads.
-- The Entra admin center offers priorities 100-64999. Graph also accepts other values up to `65000`.
-- `config_type = "dnsPolicy"` sends the same payload as `appPolicy` but has not been verified against a live tenant.
-- Do not manage the same link with both this resource and `microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link`. That resource adopts Microsoft-created links and only toggles `state`; destroying it does not remove the link.
+- Do not manage the same link with `microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link` too. That resource only toggles `state`, and destroying it does not remove the link.
 
 ## Example Usage
 
@@ -54,12 +52,6 @@ resource "microsoft365_graph_beta_identity_and_access_network_forwarding_profile
   forwarding_policy_id  = "00000000-0000-0000-0000-000000000002"
   config_type           = "appPolicy"
   priority              = 120
-  state                 = "enabled"
-
-  timeouts = {
-    create = "5m"
-    delete = "5m"
-  }
 }
 
 # Link a Private Access app policy to a pre-logon (device) forwarding profile.
@@ -82,7 +74,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_forwarding_profile
 
 ### Optional
 
-- `priority` (Number) Link priority. The Entra admin center offers 100-64999; Graph also accepts other values up to 65000, which is what automatically created links receive. When omitted, the link has no priority (Graph returns null), or keeps 65000 when an existing automatic link is adopted.
+- `priority` (Number) Link priority, 1-65000 (the Entra admin center offers 100-64999). If omitted, an adopted automatic link keeps `65000` and a new link has none.
 - `profile_type` (String) Forwarding profile kind. `user` (default) targets `/networkAccess/forwardingProfiles`; `device` targets the pre-logon `/networkAccess/deviceForwardingProfiles`.
 - `state` (String) Link state. Possible values are `enabled` (default) and `disabled`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
