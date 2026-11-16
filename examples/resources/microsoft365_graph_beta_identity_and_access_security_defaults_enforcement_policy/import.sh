@@ -1,0 +1,2 @@
+# Import the tenant-wide security defaults enforcement policy using its fixed singleton ID.
+terraform import microsoft365_graph_beta_identity_and_access_security_defaults_enforcement_policy.example identitySecurityDefaultsEnforcementPolicy

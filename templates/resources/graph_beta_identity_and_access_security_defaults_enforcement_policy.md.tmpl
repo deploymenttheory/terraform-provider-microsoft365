@@ -1,0 +1,71 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Security defaults in Microsoft Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/security-defaults)
+- [identitySecurityDefaultsEnforcementPolicy resource type](https://learn.microsoft.com/en-us/graph/api/resources/identitysecuritydefaultsenforcementpolicy?view=graph-rest-beta)
+- [Get identitySecurityDefaultsEnforcementPolicy](https://learn.microsoft.com/en-us/graph/api/identitysecuritydefaultsenforcementpolicy-get?view=graph-rest-beta)
+- [Update identitySecurityDefaultsEnforcementPolicy](https://learn.microsoft.com/en-us/graph/api/identitysecuritydefaultsenforcementpolicy-update?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Policy.Read.All`
+- `Policy.ReadWrite.ConditionalAccess`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_security_defaults_enforcement_policy/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_security_defaults_enforcement_policy/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Singleton Resource
+- One security defaults enforcement policy exists per tenant. It cannot be created or deleted.
+- `create` adopts the existing policy and applies `is_enabled` with `PATCH`.
+- `destroy` only removes the resource from Terraform state; security defaults keep their current setting. Destroying the resource never enables or disables security defaults.
+- Manage only one instance per tenant across all Terraform states.
+
+### Impact of Enabling Security Defaults
+- `is_enabled = true` enforces security defaults for every user in the tenant, including mandatory MFA registration, MFA for administrators and blocking legacy authentication.
+- Review the impact on all users and service accounts before enabling security defaults.
+
+### Conditional Access
+- Security defaults and Conditional Access are mutually exclusive. Microsoft Entra ID rejects enabling security defaults while Conditional Access policies are enabled in the tenant.
+- When Graph rejects the request, the provider shows Graph's error together with an explanation. Disable or delete the enabled Conditional Access policies first, or keep `is_enabled = false`.
+
+### Read-Only Attributes
+- `display_name` and `description` are set by Microsoft Entra ID and are never sent to Graph.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_security_defaults_enforcement_policy/import.sh" }}
