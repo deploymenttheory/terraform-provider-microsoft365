@@ -6,8 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// requiredConsecutiveMatches guards against replica lag: one matching read can be followed by
-// a stale one, so a write is trusted only after several matching reads in a row.
+// requiredConsecutiveMatches: a matching read can be followed by a stale one.
 const requiredConsecutiveMatches = 3
 
 // stableConsistencyPredicate waits for consecutive reads that match the planned configuration.

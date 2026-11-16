@@ -56,11 +56,9 @@ type Request struct {
 	Body   map[string]any
 }
 
-// RemoteNetworkMock is a stateful mock enforcing the live-verified Graph rules for remote networks.
-// After each write, the next GET returns the pre-write snapshot to simulate replica lag.
-//
-// DELETE is asynchronous, as in Graph: the next DeletionGets GETs return 404 "on deletion
-// process", and until then POST rejects the name with 409.
+// RemoteNetworkMock follows the live Graph rules. After a write, the next GET is stale.
+// DELETE is asynchronous: DeletionGets GETs return 404 "on deletion process",
+// and POST rejects the name with 409 until then.
 type RemoteNetworkMock struct {
 	sync.Mutex
 	networks     map[string]*remoteNetwork
@@ -71,8 +69,7 @@ type RemoteNetworkMock struct {
 	DeletionGets int
 	// DeletionErrors makes the next GETs of a deleting network return 503.
 	DeletionErrors int
-	// DeleteReportsDeleting makes DELETE start the deletion but return 404
-	// "on deletion process", as after an earlier interrupted destroy.
+	// DeleteReportsDeleting makes DELETE return 404 "on deletion process".
 	DeleteReportsDeleting bool
 }
 

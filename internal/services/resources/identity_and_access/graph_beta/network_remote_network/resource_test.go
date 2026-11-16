@@ -150,8 +150,7 @@ func TestUnitResourceNetworkRemoteNetwork_03_RegionForcesReplace(t *testing.T) {
 		},
 	})
 
-	// The replacement reuses the name, which Graph rejects until the old network's
-	// asynchronous deletion finishes, so Delete must wait for it.
+	// The replacement reuses the name, so Delete must wait for the old network.
 	require.Len(t, m.WritesTo("POST", "/remoteNetworks"), 2)
 }
 
@@ -305,8 +304,7 @@ func TestUnitResourceNetworkRemoteNetwork_10_TimeoutsOnlyUpdate(t *testing.T) {
 	require.Empty(t, m.WritesTo("PATCH", ""))
 }
 
-// The deletion wait keeps polling through a transient error, and still waits
-// when DELETE reports that the deletion is already in progress.
+// The deletion wait survives a transient error and a 404 from DELETE.
 func TestUnitResourceNetworkRemoteNetwork_11_DeletionWaitEdgeCases(t *testing.T) {
 	for name, configure := range map[string]func(*remoteNetworkMocks.RemoteNetworkMock){
 		"transient error":            func(m *remoteNetworkMocks.RemoteNetworkMock) { m.DeletionErrors = 1 },

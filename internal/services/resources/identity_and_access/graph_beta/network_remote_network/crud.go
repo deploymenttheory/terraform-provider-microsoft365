@@ -83,7 +83,7 @@ func (r *NetworkRemoteNetworkResource) Create(ctx context.Context, req resource.
 func (r *NetworkRemoteNetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state NetworkRemoteNetworkResourceModel
 
-	// During post-write read-back a 404 is replica lag and must be retried, not treated as a deletion.
+	// During read-back a 404 is replica lag, not a deletion.
 	operation := constants.TfOperationRead
 	if ctxOp, ok := ctx.Value("retry_operation").(string); ok && ctxOp != "" {
 		operation = ctxOp
@@ -157,8 +157,7 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 		}
 	}
 
-	// Read keeps the model it is given, so carry the planned timeouts into it;
-	// otherwise a timeouts change makes the result inconsistent with the plan.
+	// Read keeps the model it is given, so it needs the planned timeouts.
 	state.Timeouts = plan.Timeouts
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -182,8 +181,7 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, id))
 }
 
-// handleUpdateError reports a failed write and keeps the prior state, so the next plan retries
-// the change instead of trusting the planned values that were never applied.
+// handleUpdateError keeps the prior state so the next plan retries the change.
 func (r *NetworkRemoteNetworkResource) handleUpdateError(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse, err error) {
 	errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 	resp.State.Raw = req.State.Raw.Copy()
@@ -211,8 +209,7 @@ func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.
 	defer cancel()
 
 	if err := r.delete(ctx, state.ID.ValueString()); err != nil {
-		// A 404 can mean an earlier destroy started the deletion, which must
-		// still finish before the name can be reused.
+		// An earlier destroy may have started the deletion; wait for it anyway.
 		if errors.GraphError(ctx, err).StatusCode != 404 {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 			return

@@ -56,8 +56,8 @@ func (r *NetworkRemoteNetworkResource) create(ctx context.Context, name, region 
 	return &response, nil
 }
 
-// get reads the remote network. The item GET returns forwardingProfiles inline, whereas the
-// forwardingProfiles navigation property GET returns an empty collection even when associated.
+// get uses the item GET because the forwardingProfiles navigation GET returns
+// an empty collection even when profiles are associated.
 func (r *NetworkRemoteNetworkResource) get(ctx context.Context, id string) (*remoteNetworkResponse, error) {
 	var response remoteNetworkResponse
 	if err := customrequests.JSONRequest(
@@ -77,9 +77,9 @@ func (r *NetworkRemoteNetworkResource) updateName(ctx context.Context, id, name 
 	return nil
 }
 
-// updateForwardingProfiles replaces this remote network's profile associations with a $delta
-// PATCH carrying the full desired set. Graph rejects forwardingProfiles on the entity PATCH, and
-// writing the profile-side associations would clobber other remote networks.
+// updateForwardingProfiles sends the full set as a $delta PATCH. The entity PATCH
+// rejects forwardingProfiles, and the profile-side associations would overwrite
+// other remote networks.
 func (r *NetworkRemoteNetworkResource) updateForwardingProfiles(ctx context.Context, id string, profileIDs []string) error {
 	if len(profileIDs) == 0 {
 		return errNoForwardingProfiles
@@ -105,10 +105,8 @@ func (r *NetworkRemoteNetworkResource) delete(ctx context.Context, id string) er
 	return nil
 }
 
-// waitForDeletion polls until Graph has finished deleting the remote network.
-// DELETE returns before the deletion completes (about 100s live). Until then,
-// GET returns 404 "... is on deletion process." and the name cannot be reused,
-// so a replacement that keeps the name would fail with 409.
+// waitForDeletion waits for the asynchronous delete. Until it finishes, GET returns
+// 404 "... is on deletion process." and the name cannot be reused (409).
 func (r *NetworkRemoteNetworkResource) waitForDeletion(ctx context.Context, id string) error {
 	for {
 		_, err := r.get(ctx, id)
@@ -125,8 +123,7 @@ func (r *NetworkRemoteNetworkResource) waitForDeletion(ctx context.Context, id s
 			case 401, 403:
 				return err
 			}
-			// DELETE already succeeded, so keep polling through throttling,
-			// server and transport errors.
+			// DELETE succeeded; keep polling through transient errors.
 		}
 		select {
 		case <-ctx.Done():
