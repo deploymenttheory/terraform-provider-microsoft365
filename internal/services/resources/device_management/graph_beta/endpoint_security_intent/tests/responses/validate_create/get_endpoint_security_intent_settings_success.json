@@ -1,0 +1,58 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/intents('00000000-0000-0000-0000-000000000000')/settings",
+  "value": [
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementComplexSettingInstance",
+      "id": "8f4a0028-72f2-45fd-8157-3d448dfeeaa4",
+      "definitionId": "deviceConfiguration--windows10EndpointProtectionConfiguration_bitLockerRemovableDrivePolicy",
+      "valueJson": "null"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementBooleanSettingInstance",
+      "id": "6b48cefa-6aa8-40cc-952f-5aee332bfa09",
+      "definitionId": "deviceConfiguration--windows10EndpointProtectionConfiguration_bitLockerEncryptDevice",
+      "valueJson": "false",
+      "value": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementBooleanSettingInstance",
+      "id": "dd4ad93b-19fc-48a0-bb87-5d6107697a06",
+      "definitionId": "deviceConfiguration--windows10EndpointProtectionConfiguration_bitLockerDisableWarningForOtherDiskEncryption",
+      "valueJson": "false",
+      "value": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementComplexSettingInstance",
+      "id": "dc0b33d7-066c-42f0-8d0e-614d6c87ffd4",
+      "definitionId": "deviceConfiguration--windows10EndpointProtectionConfiguration_bitLockerSystemDrivePolicy",
+      "valueJson": "null"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementBooleanSettingInstance",
+      "id": "26ce352b-6043-4b82-b576-83f3bdfae818",
+      "definitionId": "deviceConfiguration--windows10EndpointProtectionConfiguration_bitLockerEnableStorageCardEncryptionOnMobile",
+      "valueJson": "false",
+      "value": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementComplexSettingInstance",
+      "id": "ec3ab049-172c-4ac0-a619-864ce17b0f59",
+      "definitionId": "deviceConfiguration--windows10EndpointProtectionConfiguration_bitLockerFixedDrivePolicy",
+      "valueJson": "null"
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementBooleanSettingInstance",
+      "id": "c4c4368d-7b0b-4c35-94ec-94673c1adea3",
+      "definitionId": "deviceConfiguration--windows10EndpointProtectionConfiguration_bitLockerAllowStandardUserEncryption",
+      "valueJson": "false",
+      "value": false
+    },
+    {
+      "@odata.type": "#microsoft.graph.deviceManagementStringSettingInstance",
+      "id": "b217d7a2-ac84-4eef-972f-cc66dae2af65",
+      "definitionId": "deviceConfiguration--windows10EndpointProtectionConfiguration_bitLockerRecoveryPasswordRotation",
+      "valueJson": "\"notConfigured\"",
+      "value": "notConfigured"
+    }
+  ]
+}
