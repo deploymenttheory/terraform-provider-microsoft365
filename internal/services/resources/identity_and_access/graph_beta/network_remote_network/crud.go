@@ -185,6 +185,7 @@ func (r *NetworkRemoteNetworkResource) handleUpdateError(ctx context.Context, re
 //
 // API Calls:
 //   - DELETE /networkaccess/connectivity/remoteNetworks/{id}
+//   - GET /networkaccess/connectivity/remoteNetworks/{id} (until the deletion finishes)
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-connectivity-delete-remotenetworks?view=graph-rest-beta
 func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -203,6 +204,11 @@ func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.
 
 	if err := r.delete(ctx, state.ID.ValueString()); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+
+	if err := r.waitForDeletion(ctx, state.ID.ValueString()); err != nil {
+		resp.Diagnostics.AddError("Error waiting for remote network deletion", err.Error())
 		return
 	}
 

@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
 const (
@@ -20,7 +23,11 @@ var (
 	errMissingID            = errors.New("graph did not return an ID for the created remote network")
 	errInvalidResponse      = errors.New("graph omitted required remote network fields")
 	errNoForwardingProfiles = errors.New("at least one forwarding profile ID is required")
+	errDeletionTimedOut     = errors.New("timed out waiting for remote network deletion to finish")
 )
+
+// deletionPollInterval is a variable so unit tests can shorten it.
+var deletionPollInterval = 5 * time.Second
 
 func profileRefs(ids []string) []map[string]string {
 	refs := make([]map[string]string, 0, len(ids))
@@ -96,4 +103,28 @@ func (r *NetworkRemoteNetworkResource) delete(ctx context.Context, id string) er
 		return fmt.Errorf("delete remote network: %w", err)
 	}
 	return nil
+}
+
+// waitForDeletion polls until Graph has finished deleting the remote network.
+// DELETE returns before the deletion completes (about 100s live). Until then,
+// GET returns 404 "... is on deletion process." and the name cannot be reused,
+// so a replacement that keeps the name would fail with 409.
+func (r *NetworkRemoteNetworkResource) waitForDeletion(ctx context.Context, id string) error {
+	for {
+		_, err := r.get(ctx, id)
+		if err != nil {
+			info := kiotaerrors.GraphError(ctx, err)
+			if info.StatusCode != 404 {
+				return err
+			}
+			if !strings.Contains(strings.ToLower(info.ErrorMessage), "deletion process") {
+				return nil
+			}
+		}
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("%w: %w", errDeletionTimedOut, ctx.Err())
+		case <-time.After(deletionPollInterval):
+		}
+	}
 }

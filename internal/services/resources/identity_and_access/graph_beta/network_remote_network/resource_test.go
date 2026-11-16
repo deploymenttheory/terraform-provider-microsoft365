@@ -3,6 +3,7 @@ package graphBetaIdentityAndAccessNetworkRemoteNetwork_test
 import (
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -25,7 +26,9 @@ func setupMock(t *testing.T) *remoteNetworkMocks.RemoteNetworkMock {
 	mocks.NewMocks().AuthMocks.RegisterMocks()
 	m := &remoteNetworkMocks.RemoteNetworkMock{}
 	m.RegisterMocks()
+	restore := target.SetDeletionPollInterval(10 * time.Millisecond)
 	t.Cleanup(func() {
+		restore()
 		httpmock.DeactivateAndReset()
 		m.CleanupMockState()
 	})
@@ -147,6 +150,8 @@ func TestUnitResourceNetworkRemoteNetwork_03_RegionForcesReplace(t *testing.T) {
 		},
 	})
 
+	// The replacement reuses the name, which Graph rejects until the old network's
+	// asynchronous deletion finishes, so Delete must wait for it.
 	require.Len(t, m.WritesTo("POST", "/remoteNetworks"), 2)
 }
 

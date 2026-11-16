@@ -27,7 +27,7 @@ const (
 	CreateTimeout = 180
 	ReadTimeout   = 180
 	UpdateTimeout = 180
-	DeleteTimeout = 180
+	DeleteTimeout = 300
 )
 
 // regions is the microsoft.graph.networkaccess.region enum, excluding unknownFutureValue.

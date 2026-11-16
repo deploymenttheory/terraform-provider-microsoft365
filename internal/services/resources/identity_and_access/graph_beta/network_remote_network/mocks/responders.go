@@ -58,13 +58,26 @@ type Request struct {
 
 // RemoteNetworkMock is a stateful mock enforcing the live-verified Graph rules for remote networks.
 // After each write, the next GET returns the pre-write snapshot to simulate replica lag.
+//
+// DELETE is asynchronous, as in Graph: the next DeletionGets GETs return 404 "on deletion
+// process", and until then POST rejects the name with 409.
 type RemoteNetworkMock struct {
 	sync.Mutex
-	networks  map[string]*remoteNetwork
-	stale     map[string]*remoteNetwork
-	Requests  []Request
-	StaleGets int
+	networks     map[string]*remoteNetwork
+	stale        map[string]*remoteNetwork
+	deleting     map[string]*deletingNetwork
+	Requests     []Request
+	StaleGets    int
+	DeletionGets int
 }
+
+type deletingNetwork struct {
+	name     string
+	getsLeft int
+}
+
+// defaultDeletionGets is how many GETs see a deleted network as still being deleted.
+const defaultDeletionGets = 2
 
 var _ common.MockRegistrar = (*RemoteNetworkMock)(nil)
 
@@ -178,6 +191,10 @@ func (m *RemoteNetworkMock) RegisterMocks() {
 		if errResp != nil {
 			return errResp, nil
 		}
+		if m.nameInUse(name) {
+			return jsonError(409, fmt.Sprintf(
+				`{"error":{"code":"Conflict","message":"A branch with the same name of %s already exists."}}`, name)), nil
+		}
 
 		id := uuid.New().String()
 		network := &remoteNetwork{name: name, region: region, profileIDs: ids}
@@ -193,6 +210,14 @@ func (m *RemoteNetworkMock) RegisterMocks() {
 		id := lastSegment(req.URL.Path, 0)
 		m.Lock()
 		defer m.Unlock()
+		if d, ok := m.deleting[id]; ok {
+			d.getsLeft--
+			if d.getsLeft <= 0 {
+				delete(m.deleting, id)
+			}
+			return jsonError(404, fmt.Sprintf(
+				`{"error":{"code":"NotFound","message":"The requested remote network %s is on deletion process."}}`, id)), nil
+		}
 		if snapshot, lagging := m.stale[id]; lagging {
 			delete(m.stale, id)
 			m.StaleGets++
@@ -268,11 +293,15 @@ func (m *RemoteNetworkMock) RegisterMocks() {
 		m.Lock()
 		defer m.Unlock()
 		m.record(req, nil)
-		if _, ok := m.networks[id]; !ok {
+		network, ok := m.networks[id]
+		if !ok {
 			return httpmock.NewStringResponse(404, notFoundBody), nil
 		}
 		delete(m.networks, id)
 		delete(m.stale, id)
+		if m.DeletionGets > 0 {
+			m.deleting[id] = &deletingNetwork{name: network.name, getsLeft: m.DeletionGets}
+		}
 		return httpmock.NewStringResponse(200, ""), nil
 	})
 }
@@ -291,8 +320,32 @@ func (m *RemoteNetworkMock) CleanupMockState() {
 	defer m.Unlock()
 	m.networks = make(map[string]*remoteNetwork)
 	m.stale = make(map[string]*remoteNetwork)
+	m.deleting = make(map[string]*deletingNetwork)
 	m.Requests = nil
 	m.StaleGets = 0
+	m.DeletionGets = defaultDeletionGets
+}
+
+// jsonError returns a Graph error with a JSON content type so Kiota parses the message.
+func jsonError(status int, body string) *http.Response {
+	resp := httpmock.NewStringResponse(status, body)
+	resp.Header.Set("Content-Type", "application/json")
+	return resp
+}
+
+// nameInUse reports whether a live or still-deleting network has the name.
+func (m *RemoteNetworkMock) nameInUse(name string) bool {
+	for _, n := range m.networks {
+		if n.name == name {
+			return true
+		}
+	}
+	for _, d := range m.deleting {
+		if d.name == name {
+			return true
+		}
+	}
+	return false
 }
 
 // DeleteAll removes every remote network, simulating deletion outside Terraform.
