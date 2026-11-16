@@ -27,7 +27,7 @@ The following client `application` permissions are needed in order to use this r
 - `forwarding_profile_ids` accepts only the default Microsoft 365 and Internet Access forwarding profiles, and each must be enabled. Graph rejects a disabled profile (`Can't assign forwarding profile ... as it is disabled`) and the Private Access profile (`... is not allowed to be assigned to a remote network`). At least one profile is required.
 - Associations are managed on the remote network side: changes send the full desired set to `/remoteNetworks/{id}/forwardingProfiles`. The forwarding profiles' own `associations` are never written, so associations of other remote networks are left untouched.
 - Changing `region` destroys and recreates the remote network.
-- Graph deletes remote networks asynchronously (about 100 seconds in testing), and the name stays reserved until the deletion finishes. Destroy therefore waits for it, so a replacement can reuse the name. `create_before_destroy` does not work unless the name also changes.
+- Graph deletes remote networks asynchronously (100-145 seconds in testing), and the name stays reserved until the deletion finishes. Destroy therefore waits for it, so a replacement can reuse the name. `create_before_destroy` does not work unless the name also changes.
 - Device links (`deviceLinks`) and connectivity configuration are not managed by this resource.
 - Reads after a write are eventually consistent. Create and update wait until several consecutive reads match the configuration.
 
@@ -66,7 +66,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_remote_network" "e
 
 ### Required
 
-- `forwarding_profile_ids` (Set of String) IDs of the forwarding profiles associated with the remote network. At least one is required. Only the Microsoft 365 and Internet Access default forwarding profiles can be assigned, and they must be enabled.
+- `forwarding_profile_ids` (Set of String) Lowercase IDs of the forwarding profiles associated with the remote network. At least one is required. Only the Microsoft 365 and Internet Access default forwarding profiles can be assigned, and they must be enabled.
 - `name` (String) The name of the remote network.
 - `region` (String) The Azure region of the remote network. Changing this forces a new remote network to be created. Possible values are: `eastUS`, `eastUS2`, `westUS`, `westUS2`, `westUS3`, `centralUS`, `northCentralUS`, `southCentralUS`, `northEurope`, `westEurope`, `franceCentral`, `germanyWestCentral`, `switzerlandNorth`, `ukSouth`, `canadaEast`, `canadaCentral`, `southAfricaWest`, `southAfricaNorth`, `uaeNorth`, `australiaEast`, `westCentralUS`, `centralIndia`, `southEastAsia`, `swedenCentral`, `southIndia`, `australiaSouthEast`, `koreaCentral`, `polandCentral`, `brazilSouth`, `japanEast`, `japanWest`, `koreaSouth`, `italyNorth`, `franceSouth`, `israelCentral`, `taiwanNorth`, `mexicoCentral`, `spainCentral`, `jioIndiaCentral`, `brazilSouthEast`.
 

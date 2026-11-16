@@ -232,7 +232,11 @@ func TestUnitResourceNetworkRemoteNetwork_07_Validation(t *testing.T) {
 			},
 			{
 				Config:      loadConfig(t, "resource_invalid_guid.tf"),
-				ExpectError: regexp.MustCompile(`must be a valid GUID`),
+				ExpectError: regexp.MustCompile(`must\s+be\s+a\s+lowercase\s+GUID`),
+			},
+			{
+				Config:      loadConfig(t, "resource_invalid_uppercase_guid.tf"),
+				ExpectError: regexp.MustCompile(`must\s+be\s+a\s+lowercase\s+GUID`),
 			},
 		},
 	})
@@ -276,4 +280,49 @@ func TestUnitResourceNetworkRemoteNetwork_09_ErrorHandling(t *testing.T) {
 			},
 		},
 	})
+}
+
+// Changing only timeouts updates state without calling Graph.
+func TestUnitResourceNetworkRemoteNetwork_10_TimeoutsOnlyUpdate(t *testing.T) {
+	m := setupMock(t)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: loadConfig(t, "resource_minimal.tf")},
+			{
+				Config: loadConfig(t, "resource_timeouts_changed.tf"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{
+						plancheck.ExpectResourceAction(resourceAddress, plancheck.ResourceActionUpdate),
+					},
+				},
+				Check: check.That(resourceAddress).Key("timeouts.delete").HasValue("240s"),
+			},
+		},
+	})
+
+	require.Empty(t, m.WritesTo("PATCH", ""))
+}
+
+// The deletion wait keeps polling through a transient error, and still waits
+// when DELETE reports that the deletion is already in progress.
+func TestUnitResourceNetworkRemoteNetwork_11_DeletionWaitEdgeCases(t *testing.T) {
+	for name, configure := range map[string]func(*remoteNetworkMocks.RemoteNetworkMock){
+		"transient error":            func(m *remoteNetworkMocks.RemoteNetworkMock) { m.DeletionErrors = 1 },
+		"delete reports in progress": func(m *remoteNetworkMocks.RemoteNetworkMock) { m.DeleteReportsDeleting = true },
+	} {
+		t.Run(name, func(t *testing.T) {
+			m := setupMock(t)
+			configure(m)
+			resource.UnitTest(t, resource.TestCase{
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{Config: loadConfig(t, "resource_minimal.tf")},
+					{Config: loadConfig(t, "resource_region_changed.tf")},
+				},
+			})
+			require.Len(t, m.WritesTo("POST", "/remoteNetworks"), 2)
+		})
+	}
 }

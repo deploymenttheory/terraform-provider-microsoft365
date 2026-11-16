@@ -18,7 +18,6 @@ import (
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 )
 
@@ -103,14 +102,15 @@ func (r *NetworkRemoteNetworkResource) Schema(ctx context.Context, req resource.
 			"forwarding_profile_ids": schema.SetAttribute{
 				Required:    true,
 				ElementType: types.StringType,
-				MarkdownDescription: "IDs of the forwarding profiles associated with the remote network. At least one is required. " +
+				MarkdownDescription: "Lowercase IDs of the forwarding profiles associated with the remote network. At least one is required. " +
 					"Only the Microsoft 365 and Internet Access default forwarding profiles can be assigned, and they must be enabled.",
 				Validators: []validator.Set{
 					setvalidator.SizeAtLeast(1),
 					setvalidator.ValueStringsAre(
+						// Graph returns lowercase IDs, and the read-back compares them exactly.
 						stringvalidator.RegexMatches(
-							regexp.MustCompile(constants.GuidRegex),
-							"must be a valid GUID in the format '00000000-0000-0000-0000-000000000000'",
+							regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`),
+							"must be a lowercase GUID in the format '00000000-0000-0000-0000-000000000000'",
 						),
 					),
 				},

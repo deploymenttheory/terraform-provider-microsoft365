@@ -157,6 +157,14 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 		}
 	}
 
+	// Read keeps the model it is given, so carry the planned timeouts into it;
+	// otherwise a timeouts change makes the result inconsistent with the plan.
+	state.Timeouts = plan.Timeouts
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	if err := crud.ReadWithRetry(
 		ctx,
 		r.Read,
@@ -203,8 +211,12 @@ func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.
 	defer cancel()
 
 	if err := r.delete(ctx, state.ID.ValueString()); err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
-		return
+		// A 404 can mean an earlier destroy started the deletion, which must
+		// still finish before the name can be reused.
+		if errors.GraphError(ctx, err).StatusCode != 404 {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+			return
+		}
 	}
 
 	if err := r.waitForDeletion(ctx, state.ID.ValueString()); err != nil {

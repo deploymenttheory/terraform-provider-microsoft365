@@ -69,6 +69,11 @@ type RemoteNetworkMock struct {
 	Requests     []Request
 	StaleGets    int
 	DeletionGets int
+	// DeletionErrors makes the next GETs of a deleting network return 503.
+	DeletionErrors int
+	// DeleteReportsDeleting makes DELETE start the deletion but return 404
+	// "on deletion process", as after an earlier interrupted destroy.
+	DeleteReportsDeleting bool
 }
 
 type deletingNetwork struct {
@@ -211,6 +216,10 @@ func (m *RemoteNetworkMock) RegisterMocks() {
 		m.Lock()
 		defer m.Unlock()
 		if d, ok := m.deleting[id]; ok {
+			if m.DeletionErrors > 0 {
+				m.DeletionErrors--
+				return jsonError(503, `{"error":{"code":"ServiceUnavailable","message":"Service unavailable."}}`), nil
+			}
 			d.getsLeft--
 			if d.getsLeft <= 0 {
 				delete(m.deleting, id)
@@ -302,6 +311,10 @@ func (m *RemoteNetworkMock) RegisterMocks() {
 		if m.DeletionGets > 0 {
 			m.deleting[id] = &deletingNetwork{name: network.name, getsLeft: m.DeletionGets}
 		}
+		if m.DeleteReportsDeleting {
+			return jsonError(404, fmt.Sprintf(
+				`{"error":{"code":"NotFound","message":"The requested remote network %s is on deletion process."}}`, id)), nil
+		}
 		return httpmock.NewStringResponse(200, ""), nil
 	})
 }
@@ -324,6 +337,8 @@ func (m *RemoteNetworkMock) CleanupMockState() {
 	m.Requests = nil
 	m.StaleGets = 0
 	m.DeletionGets = defaultDeletionGets
+	m.DeletionErrors = 0
+	m.DeleteReportsDeleting = false
 }
 
 // jsonError returns a Graph error with a JSON content type so Kiota parses the message.

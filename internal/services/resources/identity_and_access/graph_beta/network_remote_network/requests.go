@@ -112,14 +112,21 @@ func (r *NetworkRemoteNetworkResource) delete(ctx context.Context, id string) er
 func (r *NetworkRemoteNetworkResource) waitForDeletion(ctx context.Context, id string) error {
 	for {
 		_, err := r.get(ctx, id)
+		if ctx.Err() != nil {
+			return fmt.Errorf("%w: %w", errDeletionTimedOut, ctx.Err())
+		}
 		if err != nil {
 			info := kiotaerrors.GraphError(ctx, err)
-			if info.StatusCode != 404 {
+			switch info.StatusCode {
+			case 404:
+				if !strings.Contains(strings.ToLower(info.ErrorMessage), "deletion process") {
+					return nil
+				}
+			case 401, 403:
 				return err
 			}
-			if !strings.Contains(strings.ToLower(info.ErrorMessage), "deletion process") {
-				return nil
-			}
+			// DELETE already succeeded, so keep polling through throttling,
+			// server and transport errors.
 		}
 		select {
 		case <-ctx.Done():
