@@ -8,11 +8,11 @@ import (
 
 // ProfileCardPropertyResourceModel represents the schema for the profile card property resource
 type ProfileCardPropertyResourceModel struct {
-	ID                    types.String                `tfsdk:"id"`
-	DirectoryPropertyName types.String                `tfsdk:"directory_property_name"`
-	IsVisible             types.Bool                  `tfsdk:"is_visible"`
+	ID                    types.String                 `tfsdk:"id"`
+	DirectoryPropertyName types.String                 `tfsdk:"directory_property_name"`
+	IsVisible             types.Bool                   `tfsdk:"is_visible"`
 	Annotations           []ProfileCardAnnotationModel `tfsdk:"annotations"`
-	Timeouts              timeouts.Value              `tfsdk:"timeouts"`
+	Timeouts              timeouts.Value               `tfsdk:"timeouts"`
 }
 
 // ProfileCardAnnotationModel represents one profileCardAnnotation (a custom label for the attribute)

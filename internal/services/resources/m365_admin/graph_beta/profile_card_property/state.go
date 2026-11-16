@@ -10,7 +10,11 @@ import (
 )
 
 // MapRemoteResourceStateToTerraform maps the remote profile card property from Kiota SDK to Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data ProfileCardPropertyResourceModel, remoteResource graphmodels.ProfileCardPropertyable) ProfileCardPropertyResourceModel {
+func MapRemoteResourceStateToTerraform(
+	ctx context.Context,
+	data ProfileCardPropertyResourceModel,
+	remoteResource graphmodels.ProfileCardPropertyable,
+) ProfileCardPropertyResourceModel {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return data
