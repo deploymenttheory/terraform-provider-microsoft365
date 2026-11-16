@@ -24,6 +24,7 @@ func setup(t *testing.T) *testmocks.Mock {
 	mocks.NewMocks().AuthMocks.RegisterMocks()
 	m := &testmocks.Mock{}
 	m.RegisterMocks()
+	target.ResetClaimedProfiles()
 	t.Cleanup(func() { httpmock.DeactivateAndReset(); m.CleanupMockState() })
 	return m
 }
@@ -192,6 +193,24 @@ func TestUnitResourceNetworkForwardingProfile_03c_DoesNotAdoptExistingProfile(t 
 		},
 	})
 	require.Zero(t, m.Deletes, "the pre-existing profile must not be adopted and destroyed")
+}
+
+// A profile that another resource in the same apply created is not adopted
+// when this resource's POST fails as a duplicate.
+func TestUnitResourceNetworkForwardingProfile_03f_DoesNotAdoptProfileClaimedInSameApply(t *testing.T) {
+	m := setup(t)
+	t.Cleanup(target.ShortenCreatedLookup())
+	target.ClaimProfile(testmocks.ProfileID)
+	m.PostDuplicates = 1
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      hcl(t, "resource_minimal.tf"),
+				ExpectError: regexp.MustCompile(`Bad Request - 400`),
+			},
+		},
+	})
 }
 
 // If the profiles cannot be listed before the POST, a failed create is reported

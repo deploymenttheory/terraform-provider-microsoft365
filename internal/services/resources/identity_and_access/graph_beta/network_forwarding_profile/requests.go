@@ -4,6 +4,8 @@ import (
 	"context"
 	stderrors "errors"
 	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -36,6 +38,19 @@ func createdLookupAttemptsFor(info kiotaerrors.GraphErrorInfo) int {
 	default:
 		return 1
 	}
+}
+
+// claimedProfiles holds the IDs that resources in this provider process have
+// created or adopted. Two resources with the same name and priority in one
+// apply would otherwise both claim one profile: the second POST fails as a
+// duplicate, and the profile created by the first is new to its list.
+var claimedProfiles sync.Map
+
+func claimProfile(id string) { claimedProfiles.Store(strings.ToLower(id), struct{}{}) }
+
+func profileClaimed(id string) bool {
+	_, ok := claimedProfiles.Load(strings.ToLower(id))
+	return ok
 }
 
 // Variables so unit tests can shorten the wait.
@@ -151,7 +166,7 @@ func (r *NetworkForwardingProfileResource) findCreated(
 		return nil, err
 	}
 	for i, p := range profiles {
-		if p.ID != nil && !existing[*p.ID] && p.IsCustomProfile != nil && *p.IsCustomProfile &&
+		if p.ID != nil && !existing[*p.ID] && !profileClaimed(*p.ID) && p.IsCustomProfile != nil && *p.IsCustomProfile &&
 			p.Name != nil && *p.Name == plan.Name.ValueString() &&
 			p.TrafficForwardingType != nil && *p.TrafficForwardingType == plan.TrafficForwardingType.ValueString() &&
 			p.Priority != nil && *p.Priority == plan.Priority.ValueInt32() {

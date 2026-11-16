@@ -78,6 +78,7 @@ func (r *NetworkForwardingProfileResource) Create(
 		)
 		return
 	}
+	claimProfile(*remote.ID)
 	// Persist the ID before reading back so a failed read still allows cleanup.
 	plan.ID = types.StringPointerValue(remote.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -230,6 +231,7 @@ func readbackOptions(
 			return false
 		}
 		return matches(plan.Name, actual.Name) &&
+			matches(plan.Description, actual.Description) &&
 			matches(plan.Priority, actual.Priority) &&
 			matches(plan.State, actual.State) &&
 			matches(plan.ClientFallbackAction, actual.ClientFallbackAction) &&
