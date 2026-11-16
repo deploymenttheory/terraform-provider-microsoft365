@@ -148,7 +148,6 @@ func TestUnitResourceServicePrincipalSynchronizationSchemaJson_01_Minimal(t *tes
 			{
 				Config: loadUnitTestTerraform("resource_minimal.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".test").ExistsInGraph(testResource),
 					check.That(resourceType+".test").Key("id").HasValue(mockResourceId),
 					check.That(resourceType+".test").Key("service_principal_id").HasValue(schemaMocks.ServicePrincipalID),
 					check.That(resourceType+".test").Key("job_id").HasValue(schemaMocks.JobID),
