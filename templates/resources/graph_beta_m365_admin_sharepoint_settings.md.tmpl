@@ -1,0 +1,80 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "M365 Admin"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [SharePoint admin center settings](https://learn.microsoft.com/en-us/sharepoint/sharepoint-admin-role)
+- [sharepointSettings resource type](https://learn.microsoft.com/en-us/graph/api/resources/sharepointsettings?view=graph-rest-beta)
+- [Get sharepointSettings](https://learn.microsoft.com/en-us/graph/api/sharepointsettings-get?view=graph-rest-beta)
+- [Update sharepointSettings](https://learn.microsoft.com/en-us/graph/api/sharepointsettings-update?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `SharePointTenantSettings.Read.All`
+- `SharePointTenantSettings.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_m365_admin_sharepoint_settings/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_m365_admin_sharepoint_settings/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Singleton Resource
+- One SharePoint settings object exists per tenant. It cannot be created or deleted.
+- `create` adopts the existing settings and applies the configured values with `PATCH`.
+- `destroy` only removes the resource from Terraform state; the tenant settings keep their current values. Nothing is reset to a default.
+- Manage only one instance per tenant across all Terraform states.
+
+### Unconfigured Values
+- Every setting is optional. A setting that is not configured keeps its current tenant value and is not sent to Graph.
+- When a configuration stops managing a setting, the value that was last applied stays in place.
+- Collections (`allowed_domain_guids_for_sync_app`, `excluded_file_extensions_for_sync_app`, `sharing_allowed_domain_list` and `sharing_blocked_domain_list`) are only sent when configured. Set a collection to `[]` to clear it.
+- Inside `idle_session_sign_out`, only the configured values are sent.
+- `available_managed_paths_for_site_creation` is read-only.
+
+### High-Impact Settings
+- `sharing_capability`, the sharing domain lists, `is_resharing_by_external_users_enabled` and `is_require_accepting_user_to_match_invited_user_enabled` control what can be shared outside the organization.
+- `is_legacy_auth_protocols_enabled` allows clients that cannot enforce conditional access.
+- `is_unmanaged_sync_app_for_tenant_restricted` with `allowed_domain_guids_for_sync_app` limits which PCs can sync OneDrive files.
+- `idle_session_sign_out` signs users out of SharePoint and OneDrive on unmanaged devices after inactivity.
+- Review these settings carefully, because they apply to every user in the tenant.
+
+### Value Formats
+- `allowed_domain_guids_for_sync_app` must contain lower-case GUIDs, as Graph returns them.
+- `deleted_user_personal_site_retention_period_in_days` must be between `30` and `3650`.
+- `idle_session_sign_out.warn_after_in_seconds` must be less than `sign_out_after_in_seconds`.
+- `is_require_accepting_user_to_match_invited_user_enabled` is not returned by Graph in some tenants; it is then null in state until it is configured.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_m365_admin_sharepoint_settings/import.sh" }}
