@@ -42,7 +42,9 @@ func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req r
 		return
 	}
 
+	// Save the ID and computed values now, so a failure below leaves no unknowns.
 	object.ID = types.StringValue(*created.id)
+	mapComputed(ctx, &object, created)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -64,6 +66,23 @@ func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req r
 		}
 
 		settled, err := r.waitForManagedTLSCertificateStatus(ctx, object.ID.ValueString(), true)
+		if err != nil && stillActivating(ctx, settled) {
+			// An error would taint the resource, and replacing it issues a new root
+			// CA that every client must trust again. Activation is still running,
+			// so keep the certificate and let a later refresh see it become active.
+			mapComputed(ctx, &object, settled)
+			resp.Diagnostics.AddWarning(
+				"Microsoft-managed TLS certificate is still activating",
+				fmt.Sprintf("Certificate %s was enabled but is still %q after the create timeout. "+
+					"Graph keeps activating it; a later refresh shows the final status. "+
+					"Raise timeouts.create to wait longer.", object.ID.ValueString(), object.Status.ValueString()),
+			)
+			resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+			if resp.Identity != nil {
+				resp.Diagnostics.Append(resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{ID: object.ID.ValueString()})...)
+			}
+			return
+		}
 		if err != nil {
 			resp.Diagnostics.AddError("Error waiting for Microsoft-managed TLS certificate activation", err.Error())
 			return
@@ -145,6 +164,18 @@ func (r *NetworkManagedTLSCertificateResource) Update(ctx context.Context, req r
 		}
 
 		settled, err := r.waitForManagedTLSCertificateStatus(ctx, state.ID.ValueString(), plan.Enabled.ValueBool())
+		if err != nil && plan.Enabled.ValueBool() && stillActivating(ctx, settled) {
+			plan.ID = state.ID
+			mapComputed(ctx, &plan, settled)
+			resp.Diagnostics.AddWarning(
+				"Microsoft-managed TLS certificate is still activating",
+				fmt.Sprintf("Certificate %s was enabled but is still %q after the update timeout. "+
+					"Graph keeps activating it; a later refresh shows the final status. "+
+					"Raise timeouts.update to wait longer.", state.ID.ValueString(), plan.Status.ValueString()),
+			)
+			resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+			return
+		}
 		if err != nil {
 			resp.Diagnostics.AddError("Error waiting for Microsoft-managed TLS certificate status update", err.Error())
 			return
@@ -183,4 +214,26 @@ func (r *NetworkManagedTLSCertificateResource) Delete(ctx context.Context, req r
 		return
 	}
 	resp.State.RemoveResource(ctx)
+}
+
+// mapComputed copies the computed values from a response, leaving configured
+// attributes as planned, and replaces any value Graph did not return with null.
+func mapComputed(ctx context.Context, object *NetworkManagedTLSCertificateResourceModel, remote *managedTLSCertificateResponse) {
+	if remote != nil {
+		remoteState := *object
+		MapRemoteStateToTerraform(ctx, &remoteState, remote)
+		object.Status = remoteState.Status
+		object.CreatedDateTime = remoteState.CreatedDateTime
+		object.ValidityStartDateTime = remoteState.ValidityStartDateTime
+		object.ValidityEndDateTime = remoteState.ValidityEndDateTime
+		object.Certificate = remoteState.Certificate
+	}
+	for _, v := range []*types.String{
+		&object.Status, &object.CreatedDateTime, &object.ValidityStartDateTime,
+		&object.ValidityEndDateTime, &object.Certificate,
+	} {
+		if v.IsUnknown() {
+			*v = types.StringNull()
+		}
+	}
 }

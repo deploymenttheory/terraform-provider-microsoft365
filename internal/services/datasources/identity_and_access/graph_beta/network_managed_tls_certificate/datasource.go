@@ -72,7 +72,7 @@ func (d *NetworkManagedTLSCertificateDataSource) Schema(ctx context.Context, _ d
 			},
 			"status": schema.StringAttribute{
 				Computed:            true,
-				MarkdownDescription: "The lifecycle status reported by Microsoft Graph, such as `unknownFutureValue` immediately after a disabled create, `disabled`, `enrolling`, or `active`.",
+				MarkdownDescription: "The lifecycle status reported by Microsoft Graph, such as `disabled`, `enrolling` or `active`.",
 			},
 			"created_date_time": schema.StringAttribute{
 				Computed:            true,

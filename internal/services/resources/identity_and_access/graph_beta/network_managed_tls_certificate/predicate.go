@@ -41,7 +41,8 @@ func (r *NetworkManagedTLSCertificateResource) waitForManagedTLSCertificateStatu
 			}
 		}
 
-		if status == "disabled" {
+		// unknownfuturevalue is how Graph reports disabled if the Prefer header is dropped.
+		if status == "disabled" || status == "unknownfuturevalue" {
 			return true, nil
 		}
 		if status == "expired" || status == "revoked" {
@@ -50,7 +51,15 @@ func (r *NetworkManagedTLSCertificateResource) waitForManagedTLSCertificateStatu
 		return false, fmt.Errorf("certificate deactivation is still pending with status %q", status)
 	})
 	if err != nil {
-		return nil, err
+		// latest is returned with the error so callers can report the last status seen.
+		return latest, fmt.Errorf("wait for certificate status: %w", err)
 	}
 	return latest, nil
+}
+
+// stillActivating reports whether a failed activation wait only ran out of time
+// while Graph was still enrolling the certificate.
+func stillActivating(ctx context.Context, latest *managedTLSCertificateResponse) bool {
+	return ctx.Err() != nil && latest != nil && latest.status != nil &&
+		strings.EqualFold(*latest.status, "enrolling")
 }

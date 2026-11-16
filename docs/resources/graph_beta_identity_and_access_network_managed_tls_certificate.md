@@ -23,6 +23,8 @@ Creation uses `POST /beta/networkaccess/tls/managedCertificateAuthorityCertifica
 - A newly created certificate is disabled by default. The provider does not send an immediate `status = "disabled"` PATCH because Microsoft Graph rejects that command while the certificate is provisioning.
 - `enabled` represents the desired Terraform state, while `status` exposes the lifecycle state reported by Microsoft Graph.
 - The provider uses the individual certificate GET endpoint to populate the root CA certificate.
+- A tenant can hold two Microsoft-managed certificates, and only one can be active. Enabling one disables the certificate that was active before.
+- Activation (`enrolling` to `active`) took up to about five minutes in testing. Create and update wait up to 10 minutes by default. If the wait runs out while the certificate is still `enrolling`, apply finishes with a warning instead of an error, because tainting the resource would replace the root CA.
 
 ## Microsoft Graph API Permissions
 
@@ -62,7 +64,7 @@ resource "microsoft365_graph_beta_identity_and_access_network_managed_tls_certif
 - `certificate` (String) The Microsoft-managed root CA certificate returned by Microsoft Graph.
 - `created_date_time` (String) The date and time when the certificate authority was created.
 - `id` (String) The unique identifier for the Microsoft-managed TLS certificate authority.
-- `status` (String) The lifecycle status reported by Microsoft Graph, such as `unknownFutureValue` immediately after a disabled create, `creating`, `enrolling`, `disabled`, or `active`. This differs from the command value sent when enabling the certificate authority.
+- `status` (String) The lifecycle status reported by Microsoft Graph, such as `disabled`, `enrolling` or `active`. This differs from the command value sent when enabling the certificate authority.
 - `validity_end_date_time` (String) The end of the root certificate validity period.
 - `validity_start_date_time` (String) The start of the root certificate validity period.
 

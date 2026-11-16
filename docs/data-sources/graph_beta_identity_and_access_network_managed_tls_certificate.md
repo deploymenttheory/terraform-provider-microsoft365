@@ -53,7 +53,7 @@ data "microsoft365_graph_beta_identity_and_access_network_managed_tls_certificat
 - `created_date_time` (String) The date and time when the certificate authority was created.
 - `name` (String) The internal certificate authority name.
 - `organization_name` (String) The organization name of the Microsoft-managed root certificate authority.
-- `status` (String) The lifecycle status reported by Microsoft Graph, such as `unknownFutureValue` immediately after a disabled create, `disabled`, `enrolling`, or `active`.
+- `status` (String) The lifecycle status reported by Microsoft Graph, such as `disabled`, `enrolling` or `active`.
 - `validity_end_date_time` (String) The end of the root certificate validity period.
 - `validity_months` (Number) The configured root certificate validity period in months.
 - `validity_start_date_time` (String) The start of the root certificate validity period.

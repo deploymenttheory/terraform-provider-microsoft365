@@ -55,9 +55,7 @@ func TestAccResourceNetworkManagedTLSCertificate_01_Lifecycle(t *testing.T) {
 					check.That(resourceType+".test").Key("id").Exists(),
 					check.That(resourceType+".test").Key("name").MatchesRegex(regexp.MustCompile(`^M-TLSi-[0-9a-z]{5}$`)),
 					check.That(resourceType+".test").Key("enabled").HasValue("false"),
-					// Graph currently reports unknownFutureValue immediately after a
-					// disabled create, while some tenants return disabled directly.
-					check.That(resourceType+".test").Key("status").MatchesRegex(regexp.MustCompile(`^(disabled|unknownFutureValue)$`)),
+					check.That(resourceType+".test").Key("status").HasValue("disabled"),
 				),
 			},
 			{

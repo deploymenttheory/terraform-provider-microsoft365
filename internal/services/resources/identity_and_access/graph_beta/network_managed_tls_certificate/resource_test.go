@@ -110,6 +110,56 @@ func TestUnitResourceNetworkManagedTLSCertificate_03_CreateError(t *testing.T) {
 	})
 }
 
+// A create whose activation outlasts the timeout keeps the certificate instead
+// of tainting it (a replacement would issue a new root CA).
+func TestUnitResourceNetworkManagedTLSCertificate_04_CreateActivationTimeout(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, certificateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer certificateMock.CleanupMockState()
+	certificateMock.SetActivationStuck(true)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigHelper("resource_enabled_short_timeout.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(unitTestResourceType+".test").Key("enabled").HasValue("true"),
+					check.That(unitTestResourceType+".test").Key("status").HasValue("enrolling"),
+					check.That(unitTestResourceType+".test").Key("common_name").HasValue("Terraform TLS Inspection Root CA"),
+				),
+			},
+			{Config: testConfigHelper("resource_enabled_short_timeout.tf"), PlanOnly: true},
+		},
+	})
+}
+
+// Enabling an existing certificate that outlasts the timeout is recorded as
+// enabled, so the next plan does not send the PATCH again.
+func TestUnitResourceNetworkManagedTLSCertificate_05_UpdateActivationTimeout(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, certificateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer certificateMock.CleanupMockState()
+	certificateMock.SetActivationStuck(true)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: testConfigHelper("resource_disabled_short_timeout.tf")},
+			{
+				Config: testConfigHelper("resource_enabled_short_timeout.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(unitTestResourceType+".test").Key("enabled").HasValue("true"),
+					check.That(unitTestResourceType+".test").Key("status").HasValue("enrolling"),
+				),
+			},
+			{Config: testConfigHelper("resource_enabled_short_timeout.tf"), PlanOnly: true},
+		},
+	})
+}
+
 func testConfigHelper(filename string) string {
 	config, err := helpers.ParseHCLFile("tests/terraform/unit/" + filename)
 	if err != nil {

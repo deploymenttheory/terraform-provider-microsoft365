@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
@@ -17,6 +18,8 @@ const managedTLSCertificateID = "00000000-0000-0000-0000-000000000301"
 var mockState struct {
 	sync.Mutex
 	certificates map[string]map[string]any
+	// stuck keeps an enabled certificate in enrolling, as a slow activation does.
+	stuck bool
 }
 
 func init() {
@@ -46,6 +49,14 @@ func (m *ManagedTLSCertificateMock) CleanupMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
 	mockState.certificates = make(map[string]map[string]any)
+	mockState.stuck = false
+}
+
+// SetActivationStuck makes enabling leave the certificate in enrolling.
+func (m *ManagedTLSCertificateMock) SetActivationStuck(stuck bool) {
+	mockState.Lock()
+	defer mockState.Unlock()
+	mockState.stuck = stuck
 }
 
 func (m *ManagedTLSCertificateMock) createResponder() httpmock.Responder {
@@ -84,7 +95,12 @@ func (m *ManagedTLSCertificateMock) getResponder() httpmock.Responder {
 		if !exists {
 			return jsonFixtureResponse(req, 404, filepath.Join("..", "tests", "responses", "validate_delete", "get_managed_tls_certificate_not_found.json"))
 		}
-		return factories.SuccessResponse(200, cloneMap(certificate))(req)
+		response := cloneMap(certificate)
+		// Like Graph, hide evolvable enum members unless the client opts in.
+		if response["status"] == "disabled" && !strings.Contains(req.Header.Get("Prefer"), "include-unknown-enum-members") {
+			response["status"] = "unknownFutureValue"
+		}
+		return factories.SuccessResponse(200, response)(req)
 	}
 }
 
@@ -103,9 +119,12 @@ func (m *ManagedTLSCertificateMock) updateResponder() httpmock.Responder {
 			return jsonFixtureResponse(req, 404, filepath.Join("..", "tests", "responses", "validate_delete", "get_managed_tls_certificate_not_found.json"))
 		}
 		if status, ok := requestBody["status"]; ok {
-			if status == "enabled" {
+			switch {
+			case status == "enabled" && mockState.stuck:
+				certificate["status"] = "enrolling"
+			case status == "enabled":
 				certificate["status"] = "active"
-			} else {
+			default:
 				certificate["status"] = status
 			}
 		}
