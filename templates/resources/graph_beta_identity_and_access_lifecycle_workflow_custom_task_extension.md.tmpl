@@ -1,0 +1,80 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Lifecycle workflow custom task extensions](https://learn.microsoft.com/en-us/entra/id-governance/lifecycle-workflow-extensibility)
+- [customTaskExtension resource type](https://learn.microsoft.com/en-us/graph/api/resources/identitygovernance-customtaskextension?view=graph-rest-beta)
+- [Create customTaskExtension](https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecycleworkflowscontainer-post-customtaskextensions?view=graph-rest-beta)
+- [Get customTaskExtension](https://learn.microsoft.com/en-us/graph/api/identitygovernance-customtaskextension-get?view=graph-rest-beta)
+- [Update customTaskExtension](https://learn.microsoft.com/en-us/graph/api/identitygovernance-customtaskextension-update?view=graph-rest-beta)
+- [Delete customTaskExtension](https://learn.microsoft.com/en-us/graph/api/identitygovernance-customtaskextension-delete?view=graph-rest-beta)
+- [logicAppTriggerEndpointConfiguration resource type](https://learn.microsoft.com/en-us/graph/api/resources/logicapptriggerendpointconfiguration?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `LifecycleWorkflows-CustomExt.Read.All`
+- `LifecycleWorkflows-CustomExt.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+`LifecycleWorkflows.ReadWrite.All` also grants access. Lifecycle workflows require a Microsoft Entra ID Governance license in the tenant.
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow_custom_task_extension/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow_custom_task_extension/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Logic App
+
+- Graph does not check that the subscription, resource group or Logic App in `endpoint_configuration` exist. A wrong value only fails when a workflow runs the task.
+- When the provider authenticates as an application (client credentials), Graph requires `endpoint_configuration.url` and rejects the create with `Custom task extensions missing url` without it. Use the Logic App HTTP trigger URL without its query string signature, for example `https://prod-00.westeurope.logic.azure.com:443/workflows/<id>/triggers/manual/paths/invoke?api-version=2016-10-01`.
+- The Logic App must be set up to accept calls from lifecycle workflows (its authorization policy and, for a callback, its managed identity). See the Microsoft documentation linked above.
+
+### Reply mode and callback
+
+- Without `callback_configuration` the workflow calls the Logic App and continues (`reply_mode = "none"`).
+- With `callback_configuration` the workflow waits for the Logic App to resume the task (`reply_mode = "callback"`). `timeout_duration` must be between five minutes and three hours.
+- Removing `callback_configuration` clears it in Microsoft Entra and switches `reply_mode` back to `none`.
+
+### Authentication
+
+- `azureAdPopTokenAuthentication` sends a Proof of Possession token and is the Microsoft Entra admin center default.
+- `azureAdTokenAuthentication` sends a normal access token for the application in `resource_id`.
+
+### Eventual Consistency
+
+- For several seconds after an update, reads alternate between the new and the previous values. The provider retries the read until several reads in a row return the updated `last_modified_date_time`, so an update takes a few seconds longer than the PATCH itself.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_lifecycle_workflow_custom_task_extension/import.sh" }}
