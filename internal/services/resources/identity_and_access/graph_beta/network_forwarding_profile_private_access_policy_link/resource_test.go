@@ -319,8 +319,7 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_10_InvalidI
 	})
 }
 
-// If the add fails after Create removed a mismatched link, the old link is
-// re-added so the policy does not stay unlinked.
+// A failed add after removing a mismatched link restores the old link.
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_11_RestoresLinkWhenAddFails(t *testing.T) {
 	m := setup(t)
 	m.FailAdds = 1

@@ -17,8 +17,7 @@ import (
 const (
 	forwardingPolicyLinkODataType = "#microsoft.graph.networkaccess.forwardingPolicyLink"
 	forwardingPolicyODataType     = "#microsoft.graph.networkaccess.forwardingPolicy"
-	// Links are eventually consistent; a single matching read can come from a fresh replica
-	// followed by a stale one.
+	// A matching read can be followed by a stale one.
 	stableReads = 3
 )
 
@@ -27,9 +26,8 @@ var readbackInterval = 2 * time.Second
 
 var errWaitTimedOut = errors.New("timed out waiting for forwarding policy link change to propagate")
 
-// profileLocks serialises link writes to one profile within this provider
-// process. Each write is a read-modify-write of the profile's policies, and
-// Terraform runs sibling link resources in parallel.
+// profileLocks serialises writes to one profile: each is a read-modify-write,
+// and Terraform runs sibling links in parallel.
 var profileLocks sync.Map
 
 func lockProfile(profileType, profileID string) (unlock func()) {
@@ -115,9 +113,8 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) removeLink(
 	})
 }
 
-// removedLink is a struct, not a map, because Graph rejects the removal with
-// "Invalid request parameters" unless @removed precedes @odata.type, and
-// json.Marshal sorts map keys.
+// removedLink is a struct because Graph needs @removed before @odata.type
+// ("Invalid request parameters" otherwise) and json.Marshal sorts map keys.
 type removedLink struct {
 	Removed   removedReason `json:"@removed"`
 	ODataType string        `json:"@odata.type"` //nolint:tagliatelle // Graph requires the literal OData key.
@@ -128,8 +125,7 @@ type removedReason struct {
 	Reason string `json:"reason"`
 }
 
-// findLink prefers the link ID and falls back to the policy ID because Graph
-// assigns a new link ID whenever a policy is removed and re-added.
+// findLink falls back to the policy ID because a re-added link gets a new ID.
 func findLink(links []policyLink, linkID, policyID string) *policyLink {
 	if linkID != "" {
 		for i := range links {
@@ -186,8 +182,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) waitForLinkRem
 			case 401, 403:
 				return false, err
 			}
-			// The removal already succeeded; keep polling through throttling,
-			// server and transport errors.
+			// The removal succeeded; keep polling through transient errors.
 			return false, nil
 		}
 		return findLink(profile.Policies, linkID, "") == nil, nil

@@ -46,8 +46,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 	switch {
 	case existing != nil && existing.ConfigType != "" &&
 		!strings.EqualFold(existing.ConfigType, plan.ConfigType.ValueString()):
-		// Replacing would remove a link that the new config type may never be
-		// able to re-add, so leave it in place.
+		// Replacing could leave the policy unlinked, so leave it in place.
 		resp.Diagnostics.AddError(
 			"Forwarding policy is already linked with a different config type",
 			fmt.Sprintf("Policy %s is linked to profile %s as %q (link %s), not %q. Check config_type.",
@@ -56,8 +55,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 		)
 		return
 	case existing != nil && linkMatchesPlan(existing, &plan):
-		// New user profiles auto-link every existing private app policy, so adopting
-		// avoids a spurious "already linked" failure.
+		// New user profiles auto-link every private app policy; adopt it instead of failing.
 		tflog.Warn(ctx, "Adopting existing forwarding policy link that already matches the configuration", map[string]any{
 			"forwarding_profile_id": profileID,
 			"policy_link_id":        existing.ID,
@@ -154,8 +152,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Update only persists plan-only changes such as timeouts; every remote attribute
-// forces replacement because Graph rejects link updates.
+// Update only stores plan-only changes such as timeouts; everything else forces replacement.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
@@ -218,9 +215,8 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Delete(
 	resp.State.RemoveResource(ctx)
 }
 
-// restoreLink re-adds a link that Create removed before its own add failed, so
-// a failed replacement does not leave the policy unlinked. Microsoft does not
-// recreate removed auto-links.
+// restoreLink re-adds the link Create removed when the new add fails.
+// Microsoft does not recreate removed auto-links.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) restoreLink(
 	ctx context.Context,
 	profileType, profileID string,

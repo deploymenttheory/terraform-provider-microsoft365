@@ -40,8 +40,7 @@ type Link struct {
 	Priority   int64
 }
 
-// Mock simulates a private forwarding profile's policies collection, including the
-// add/remove-only delta semantics observed live.
+// Mock models a profile's policies with the live add/remove-only delta rules.
 type Mock struct {
 	sync.Mutex
 	Profiles map[string][]Link
