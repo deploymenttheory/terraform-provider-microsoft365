@@ -1,0 +1,76 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Device Management"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [deviceManagementIntent resource type](https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceintent-devicemanagementintent?view=graph-rest-beta)
+- [createInstance action](https://learn.microsoft.com/en-us/graph/api/intune-deviceintent-devicemanagementtemplate-createinstance?view=graph-rest-beta)
+- [updateSettings action](https://learn.microsoft.com/en-us/graph/api/intune-deviceintent-devicemanagementintent-updatesettings?view=graph-rest-beta)
+- [assign action](https://learn.microsoft.com/en-us/graph/api/intune-deviceintent-devicemanagementintent-assign?view=graph-rest-beta)
+- [Update deviceManagementIntent](https://learn.microsoft.com/en-us/graph/api/intune-deviceintent-devicemanagementintent-update?view=graph-rest-beta)
+- [Delete deviceManagementIntent](https://learn.microsoft.com/en-us/graph/api/intune-deviceintent-devicemanagementintent-delete?view=graph-rest-beta)
+- [Manage endpoint security in Microsoft Intune](https://learn.microsoft.com/en-us/intune/intune-service/protect/endpoint-security)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `DeviceManagementConfiguration.Read.All`
+- `DeviceManagementConfiguration.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_endpoint_security_intent/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_device_management_endpoint_security_intent/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Legacy Templates
+
+- Intents are the template-based endpoint security policies. Microsoft is moving these templates to settings catalog configuration policies, which are managed with the settings catalog resources. Use this resource to manage existing intents, or templates that have not been migrated yet.
+- List the templates available in a tenant with `GET /deviceManagement/templates`. The BitLocker template `d1174162-1dd2-4976-affc-6667049ab0ae` still accepted new intents when this resource was released.
+- Changing `template_id` creates a new intent.
+
+### Settings
+
+- A new intent receives every setting of its template with the template default value. The resource only writes and tracks the settings listed in `settings`.
+- `setting_type` must match the setting instance type Graph returns for the definition. Graph rejects the update when the generic setting type is sent.
+- Find the definition IDs and types of a template by creating an intent in the Intune admin center and reading `GET /deviceManagement/intents/{id}/settings`.
+- Settings changes are written with `updateSettings` and never recreate the intent.
+- Removing a setting from `settings` stops managing it but does not reset it; it keeps its current value in Intune.
+- `value_json` values that differ from Graph only in JSON formatting are not reported as drift.
+
+### Assignments
+
+- Assignments are replaced in full with the `assign` action. Removing the `assignments` attribute removes every assignment from the intent.
+
+## Import
+
+Import is supported using the following syntax. Add a slash and a comma-separated list of setting definition IDs to import the settings you want to manage, so the plan after import is empty:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_device_management_endpoint_security_intent/import.sh" }}
