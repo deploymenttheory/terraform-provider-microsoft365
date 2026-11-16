@@ -1,0 +1,80 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [synchronizationSchema resource type](https://learn.microsoft.com/en-us/graph/api/resources/synchronization-synchronizationschema?view=graph-rest-beta)
+- [Get synchronizationSchema](https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationschema-get?view=graph-rest-beta)
+- [Update synchronizationSchema](https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationschema-update?view=graph-rest-beta)
+- [Delete synchronizationSchema](https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationschema-delete?view=graph-rest-beta)
+- [Configure synchronization with directory extension attributes](https://learn.microsoft.com/en-us/graph/synchronization-configure-with-directory-extension-attributes)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `Synchronization.Read.All`
+- `Application.ReadWrite.OwnedBy` (the calling application must own the service principal) or `Synchronization.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Version History
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| v1.7.0 | Experimental | Initial release |
+
+## Example Usage
+
+### Minimal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_synchronization_schema_json/resource_minimal.tf" }}
+
+### Maximal
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_synchronization_schema_json/resource_maximal.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+### Existing Synchronization Job
+
+- The resource manages the schema of an existing synchronization (provisioning) job. Create the job first, for example in the Microsoft Entra admin center or with `POST /servicePrincipals/{id}/synchronization/jobs`.
+- The schema always exists while the job exists, so creating the resource replaces the job's current schema.
+
+### Full Replacement
+
+- Every create and update sends the complete schema with `PUT`. Configure the complete `synchronizationRules` and `directories` collections, not only the parts you change.
+- The easiest starting point is the job's current schema from `GET /servicePrincipals/{id}/synchronization/jobs/{jobId}/schema`, edited with `jsondecode()` and `jsonencode()` as in the maximal example.
+
+### Semantic Comparison
+
+- The JSON values are compared semantically. Whitespace and property order are ignored.
+- Microsoft Graph changes every directory `version` on each schema change and sets the `Unsynchronized` object mapping metadata from the mapping's `enabled` flag. These values are ignored, so they never cause drift.
+- Array order is significant, because the order of expression parameters matters.
+- Changing only the formatting of the JSON plans a one-time update that sends the same schema again.
+
+### Import
+
+- After an import, state holds the schema as returned by Microsoft Graph, encoded like `jsonencode()`. Unless the configuration produces exactly the same string, the first plan shows an in-place update that sends the configured schema once.
+
+### Deletion
+
+- Destroying the resource calls `DELETE` on the schema, which resets it to the default schema of the job's synchronization template. The job itself is not deleted.
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_service_principal_synchronization_schema_json/import.sh" }}
