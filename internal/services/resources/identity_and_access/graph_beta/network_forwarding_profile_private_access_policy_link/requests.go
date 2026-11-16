@@ -54,7 +54,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) getProfile(
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) patchPolicies(
 	ctx context.Context,
 	profileType, profileID string,
-	delta map[string]any,
+	delta any,
 ) error {
 	if err := customrequests.JSONRequest(
 		ctx,
@@ -62,7 +62,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) patchPolicies(
 		abstractions.PATCH,
 		profileTemplate(profileType),
 		map[string]string{"forwardingProfileId": profileID},
-		map[string]any{"policies@delta": []map[string]any{delta}},
+		map[string]any{"policies@delta": []any{delta}},
 		nil,
 	); err != nil {
 		return fmt.Errorf("patch forwarding profile %s policies: %w", profileID, err)
@@ -93,11 +93,24 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) removeLink(
 	ctx context.Context,
 	profileType, profileID, linkID string,
 ) error {
-	return r.patchPolicies(ctx, profileType, profileID, map[string]any{
-		"@removed":    map[string]any{"reason": "deleted"},
-		"@odata.type": forwardingPolicyLinkODataType,
-		"id":          linkID,
+	return r.patchPolicies(ctx, profileType, profileID, removedLink{
+		Removed:   removedReason{Reason: "deleted"},
+		ODataType: forwardingPolicyLinkODataType,
+		ID:        linkID,
 	})
+}
+
+// removedLink is a struct, not a map, because Graph rejects the removal with
+// "Invalid request parameters" unless @removed precedes @odata.type, and
+// json.Marshal sorts map keys.
+type removedLink struct {
+	Removed   removedReason `json:"@removed"`
+	ODataType string        `json:"@odata.type"` //nolint:tagliatelle // Graph requires the literal OData key.
+	ID        string        `json:"id"`
+}
+
+type removedReason struct {
+	Reason string `json:"reason"`
 }
 
 // findLink prefers the link ID and falls back to the policy ID because Graph

@@ -83,11 +83,25 @@ func decode(q *http.Request) (map[string]any, error) {
 		defer gz.Close()
 		reader = gz
 	}
+	raw, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, fmt.Errorf("read request: %w", err)
+	}
 	var body map[string]any
-	if err := json.NewDecoder(reader).Decode(&body); err != nil {
+	if err := json.Unmarshal(raw, &body); err != nil {
 		return nil, fmt.Errorf("decode request: %w", err)
 	}
+	body[rawBodyKey] = string(raw)
 	return body, nil
+}
+
+// rawBodyKey keeps the request bytes so patch can check key order.
+const rawBodyKey = "__raw"
+
+// removedFirst reports whether every delta entry carrying @removed has it as
+// its first key; Graph rejects the removal otherwise.
+func removedFirst(raw string) bool {
+	return strings.Count(raw, `"@removed"`) == strings.Count(raw, `{"@removed"`)
 }
 
 func jsonResponse(status int, body any) (*http.Response, error) {
@@ -175,6 +189,8 @@ func (m *Mock) patch(q *http.Request) (*http.Response, error) {
 	}
 	m.Lock()
 	defer m.Unlock()
+	raw, _ := body[rawBodyKey].(string)
+	delete(body, rawBodyKey)
 	m.Patches = append(m.Patches, body)
 	links, ok := m.Profiles[key]
 	if !ok {
@@ -183,6 +199,9 @@ func (m *Mock) patch(q *http.Request) (*http.Response, error) {
 	delta, _ := body["policies@delta"].([]any)
 	if len(delta) == 0 {
 		return graphError(400, "BadRequest", "policies@delta is required")
+	}
+	if !removedFirst(raw) {
+		return graphError(400, "UnknownError", `{"error":"Invalid request parameters"}`)
 	}
 
 	next := append([]Link(nil), links...)
