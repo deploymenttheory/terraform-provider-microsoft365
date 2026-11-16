@@ -1,0 +1,6 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/people/profileCardProperties/$entity",
+  "directoryPropertyName": "CustomAttribute1",
+  "isVisible": true,
+  "annotations": []
+}
