@@ -23,7 +23,7 @@ var (
 	errMissingID            = errors.New("graph did not return an ID for the created remote network")
 	errInvalidResponse      = errors.New("graph omitted required remote network fields")
 	errNoForwardingProfiles = errors.New("at least one forwarding profile ID is required")
-	errDeletionTimedOut     = errors.New("timed out waiting for remote network deletion to finish")
+	errDeletionTimedOut     = errors.New("stopped waiting for remote network deletion to finish")
 )
 
 // deletionPollInterval is a variable so unit tests can shorten it.

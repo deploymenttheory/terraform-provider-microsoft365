@@ -9,7 +9,6 @@ import (
 // requiredConsecutiveMatches: a matching read can be followed by a stale one.
 const requiredConsecutiveMatches = 3
 
-// stableConsistencyPredicate waits for consecutive reads that match the planned configuration.
 func stableConsistencyPredicate(expected NetworkRemoteNetworkResourceModel) func(context.Context, tfsdk.State) bool {
 	consecutive := 0
 	return func(ctx context.Context, state tfsdk.State) bool {

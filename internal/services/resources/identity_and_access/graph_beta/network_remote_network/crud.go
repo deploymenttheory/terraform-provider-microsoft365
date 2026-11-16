@@ -140,7 +140,7 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 
 	if !plan.Name.Equal(state.Name) {
 		if err := r.updateName(ctx, id, plan.Name.ValueString()); err != nil {
-			r.handleUpdateError(ctx, req, resp, err)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	}
@@ -152,7 +152,7 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 			return
 		}
 		if err := r.updateForwardingProfiles(ctx, id, profileIDs); err != nil {
-			r.handleUpdateError(ctx, req, resp, err)
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	}
@@ -179,12 +179,6 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, id))
-}
-
-// handleUpdateError keeps the prior state so the next plan retries the change.
-func (r *NetworkRemoteNetworkResource) handleUpdateError(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse, err error) {
-	errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
-	resp.State.Raw = req.State.Raw.Copy()
 }
 
 // Delete handles the Delete operation.
@@ -229,6 +223,7 @@ func readbackOptions(plan NetworkRemoteNetworkResourceModel, operation string) c
 	opts.Operation = operation
 	opts.ResourceTypeName = ResourceName
 	opts.ConsistencyPredicate = stableConsistencyPredicate(plan)
+	opts.MaxRetries = 1000 // Bounded by the operation timeout instead.
 	return opts
 }
 

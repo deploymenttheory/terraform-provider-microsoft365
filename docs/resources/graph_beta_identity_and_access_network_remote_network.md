@@ -24,11 +24,9 @@ The following client `application` permissions are needed in order to use this r
 
 ## Behavior Notes
 
-- `forwarding_profile_ids` accepts only the default Microsoft 365 and Internet Access forwarding profiles, and each must be enabled. Graph rejects a disabled profile (`Can't assign forwarding profile ... as it is disabled`) and the Private Access profile (`... is not allowed to be assigned to a remote network`). At least one profile is required.
+- `forwarding_profile_ids` accepts only the default Microsoft 365 and Internet Access forwarding profiles, and each must be enabled. Graph rejects a disabled profile (`Can't assign forwarding profile ... as it is disabled`) and the Private Access profile (`... is not allowed to be assigned to a remote network`).
 - Associations are managed on the remote network side: changes send the full desired set to `/remoteNetworks/{id}/forwardingProfiles`. The forwarding profiles' own `associations` are never written, so associations of other remote networks are left untouched.
-- Changing `region` destroys and recreates the remote network.
 - Graph deletes remote networks asynchronously (100-145 seconds in testing), and the name stays reserved until the deletion finishes. Destroy therefore waits for it, so a replacement can reuse the name. `create_before_destroy` does not work unless the name also changes.
-- Device links (`deviceLinks`) and connectivity configuration are not managed by this resource.
 - Reads after a write are eventually consistent. Create and update wait until several consecutive reads match the configuration.
 
 ## Example Usage
@@ -46,18 +44,10 @@ resource "microsoft365_graph_beta_identity_and_access_network_remote_network" "e
   name   = "example-branch-office"
   region = "eastUS"
 
-  # Only the default Microsoft 365 and Internet Access profiles can be assigned, and they must be enabled.
   forwarding_profile_ids = [
     data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile.m365.items[0].id,
     data.microsoft365_graph_beta_identity_and_access_network_forwarding_profile.internet.items[0].id,
   ]
-
-  timeouts = {
-    create = "3m"
-    read   = "3m"
-    update = "3m"
-    delete = "3m"
-  }
 }
 ```
 
