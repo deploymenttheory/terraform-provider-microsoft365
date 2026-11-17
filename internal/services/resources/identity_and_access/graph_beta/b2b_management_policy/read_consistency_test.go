@@ -2,17 +2,22 @@ package graphBetaIdentityAndAccessB2bManagementPolicy
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"testing"
 	"testing/synctest"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/require"
 
 	providerclient "github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	apierrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
 func TestUnitResourceB2bManagementPolicy_25_ExistsAfterTransientNotFound(t *testing.T) {
@@ -84,16 +89,33 @@ func TestUnitResourceB2bManagementPolicy_27_DeleteOutcomes(t *testing.T) {
 					ctx, stop = context.WithTimeout(ctx, test.deadline)
 					defer stop()
 				}
-				err := reader.deletePolicy(ctx, "11111111-1111-1111-1111-111111111111")
+				model := B2bManagementPolicyResourceModel{
+					ID: types.StringValue("11111111-1111-1111-1111-111111111111"), DisplayName: types.StringValue("Inactive B2B policy"),
+					Definition:            types.ListValueMust(types.StringType, []attr.Value{types.StringValue(`{"B2BManagementPolicy":{}}`)}),
+					IsOrganizationDefault: types.BoolValue(false),
+					Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{
+						"create": types.StringType, "read": types.StringType, "update": types.StringType, "delete": types.StringType,
+					})},
+				}
+				var schema resource.SchemaResponse
+				reader.Schema(ctx, resource.SchemaRequest{}, &schema)
+				state := tfsdk.State{Schema: schema.Schema}
+				require.False(t, state.Set(ctx, model).HasError())
+				response := resource.DeleteResponse{State: state}
+				reader.Delete(ctx, resource.DeleteRequest{State: state}, &response)
 				switch {
 				case test.deadline > 0:
-					require.ErrorIs(t, err, context.DeadlineExceeded)
+					require.True(t, response.Diagnostics.HasError())
+					require.Contains(t, fmt.Sprint(response.Diagnostics.Errors()), context.DeadlineExceeded.Error())
 				case test.wantStatus > 0:
-					require.Error(t, err)
-					require.Equal(t, test.wantStatus, apierrors.GraphError(ctx, err).StatusCode)
+					require.True(t, response.Diagnostics.HasError())
 				default:
-					require.NoError(t, err)
+					require.False(t, response.Diagnostics.HasError(), "%v", response.Diagnostics)
+					require.True(t, response.State.Raw.IsNull())
 					require.Greater(t, getCalls, 1, "one GET 404 is insufficient to confirm absence")
+				}
+				if test.wantStatus > 0 || test.deadline > 0 {
+					require.True(t, response.State.Raw.Equal(state.Raw), "failed deletion must preserve the complete resource state")
 				}
 				require.Equal(t, 1, deleteCalls, "authorization failures and cancellation must not trigger another DELETE")
 				if test.deleteStatus == http.StatusForbidden {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -137,7 +138,24 @@ func (r *B2bManagementPolicyResource) Read(ctx context.Context, req resource.Rea
 		}
 	}
 
-	policy, err := r.getPolicy(ctx, object.ID.ValueString(), operation == constants.TfOperationRead)
+	policy, err := r.client.
+		Policies().
+		B2bManagementPolicies().
+		ByB2bManagementPolicyId(object.ID.ValueString()).
+		Get(ctx, nil)
+	if err != nil && operation == constants.TfOperationRead && errors.GraphError(ctx, err).StatusCode == 404 {
+		policy, err = confirmPolicyNotFound(ctx, object.ID.ValueString(), err, func(ctx context.Context) (graphmodels.B2bManagementPolicyable, error) {
+			policy, readErr := r.client.
+				Policies().
+				B2bManagementPolicies().
+				ByB2bManagementPolicyId(object.ID.ValueString()).
+				Get(ctx, nil)
+			if readErr != nil {
+				return nil, fmt.Errorf("reading B2B management policy %s: %w", object.ID.ValueString(), readErr)
+			}
+			return policy, nil
+		})
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -248,21 +266,20 @@ func (r *B2bManagementPolicyResource) Delete(ctx context.Context, req resource.D
 	}
 	defer cancel()
 
-	err := r.deletePolicy(ctx, object.ID.ValueString())
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
-		return
+	id := object.ID.ValueString()
+	// Keep the Graph calls in Delete; a replica 404 needs confirmation before state is removed.
+	getPolicy := func(ctx context.Context) (graphmodels.B2bManagementPolicyable, error) {
+		policy, err := r.client.
+			Policies().
+			B2bManagementPolicies().
+			ByB2bManagementPolicyId(id).
+			Get(ctx, nil)
+		if err != nil {
+			return nil, fmt.Errorf("reading B2B management policy %s: %w", id, err)
+		}
+		return policy, nil
 	}
 
-	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
-	resp.State.RemoveResource(ctx)
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
-}
-
-// deletePolicy confirms a DELETE 404 before treating the policy as absent. A stale replica
-// can reject DELETE while another still returns the policy; retry instead of leaking it.
-func (r *B2bManagementPolicyResource) deletePolicy(ctx context.Context, id string) error {
 	err := crud.PollUntil(ctx, policyRetryInterval, func(ctx context.Context) (bool, error) {
 		if err := ctx.Err(); err != nil {
 			return false, &crud.FatalPollError{Err: err}
@@ -279,7 +296,10 @@ func (r *B2bManagementPolicyResource) deletePolicy(ctx context.Context, id strin
 			return false, &crud.FatalPollError{Err: err}
 		}
 
-		_, getErr := r.getPolicy(ctx, id, true)
+		_, getErr := getPolicy(ctx)
+		if getErr != nil && errors.GraphError(ctx, getErr).StatusCode == 404 {
+			_, getErr = confirmPolicyNotFound(ctx, id, getErr, getPolicy)
+		}
 		if getErr == nil {
 			return false, fmt.Errorf("B2B management policy %s is still readable after DELETE returned 404: %w", id, err)
 		}
@@ -291,10 +311,15 @@ func (r *B2bManagementPolicyResource) deletePolicy(ctx context.Context, id strin
 	// PollUntil wraps the last API error on timeout. Returning that 404 would make the
 	// shared delete error handler drop state even though deletion was never confirmed.
 	if ctx.Err() != nil {
-		return fmt.Errorf("deleting B2B management policy %s: %w", id, ctx.Err())
+		err = ctx.Err()
 	}
 	if err != nil {
-		return fmt.Errorf("deleting B2B management policy %s: %w", id, err)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
 	}
-	return nil
+
+	tflog.Debug(ctx, fmt.Sprintf("Removing %s from Terraform state", ResourceName))
+	resp.State.RemoveResource(ctx)
+
+	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }
