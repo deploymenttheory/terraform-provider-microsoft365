@@ -38,7 +38,7 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		return nil, err
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.Tags, requestBody.SetTags); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.Tags, requestBody.SetTags); err != nil {
 		return nil, fmt.Errorf("failed to set tags: %w", err)
 	}
 
