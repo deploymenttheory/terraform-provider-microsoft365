@@ -3,6 +3,8 @@ package graphBetaConditionalAccessTemplate
 import (
 	"context"
 	"fmt"
+	"strings"
+	"unicode"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -22,6 +24,17 @@ func MapRemoteStateToDataSource(ctx context.Context, data graphmodels.Conditiona
 	details := data.GetDetails()
 	if details != nil {
 		model.Details = stateDetails(ctx, details)
+	}
+	if response, ok := data.(*templateResponse); ok {
+		if response.scenarios != nil {
+			scenarios := strings.FieldsFunc(*response.scenarios, func(r rune) bool {
+				return r == ',' || unicode.IsSpace(r)
+			})
+			model.Scenarios = convert.GraphToFrameworkStringSet(ctx, scenarios)
+		}
+		if model.Details != nil && model.Details.GrantControls != nil {
+			model.Details.GrantControls.BuiltInControls = mapStringCollectionToList(response.builtInControls)
+		}
 	}
 
 	return model
@@ -332,15 +345,14 @@ func mapEnumCollectionToList[T fmt.Stringer](ctx context.Context, enums []T) typ
 		values[i] = enum.String()
 	}
 
-	elemType := types.StringType
-	if len(values) == 0 {
-		return types.ListValueMust(elemType, []attr.Value{})
-	}
+	return mapStringCollectionToList(values)
+}
 
+func mapStringCollectionToList(values []string) types.List {
 	elements := make([]attr.Value, len(values))
 	for i, v := range values {
 		elements[i] = types.StringValue(v)
 	}
 
-	return types.ListValueMust(elemType, elements)
+	return types.ListValueMust(types.StringType, elements)
 }

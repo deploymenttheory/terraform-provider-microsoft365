@@ -31,6 +31,12 @@ This data source supports filtering using the following attributes:
 - `template_id` (Optional): The unique identifier (GUID) of the conditional access template. Exactly one of `template_id` or `name` must be specified.
 - `name` (Optional): The name of the conditional access template. Exactly one of `template_id` or `name` must be specified.
 
+Microsoft can rename templates and update their settings. Use `template_id` when the lookup should follow a template's identifier across name changes.
+
+## Template discovery and policy creation
+
+Reading a template does not create a policy. Creating a policy from its details also requires write permissions, applicable tenant licences, and a payload accepted by the policy API. Preview templates can appear in the catalogue before their settings can be used in a particular tenant. The account-recovery and agent-identity examples demonstrate template discovery independently of policy creation.
+
 ## Version History
 
 | Version | Status | Notes |
@@ -47,7 +53,7 @@ This data source supports filtering using the following attributes:
 # Useful when you know the template ID and need to retrieve its configuration details
 
 data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "by_id" {
-  template_id = "c7503427-338e-4c5e-902d-abe252abfb43" # Require multifactor authentication for admins
+  template_id = "c7503427-338e-4c5e-902d-abe252abfb43" # Require multifactor authentication for select admins
 
   timeouts = {
     read = "1m"
@@ -74,7 +80,7 @@ output "template_by_id" {
 # Useful when you know the template name and need to find its ID or configuration details
 
 data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "by_name" {
-  name = "Require multifactor authentication for admins"
+  name = "Require multifactor authentication for select admins"
 
   timeouts = {
     read = "1m"
@@ -139,11 +145,11 @@ output "template_conditions" {
 }
 ```
 
-### Example 4: Create policy from template - Require MFA for admins
+### Example 4: Create policy from template - Require MFA for select admins
 
 ```terraform
 # Test 04: Create a conditional access policy from template - 
-# Require multifactor authentication for admins
+# Require multifactor authentication for select admins
 
 # ==============================================================================
 # Random Suffix for Unique Resource Names
@@ -160,7 +166,7 @@ resource "random_string" "suffix" {
 # ==============================================================================
 
 data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "mfa_admins" {
-  name = "Require multifactor authentication for admins"
+  name = "Require multifactor authentication for select admins"
 }
 
 # ==============================================================================
@@ -188,7 +194,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       include_roles  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.include_roles
       exclude_roles  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.exclude_roles
       include_users  = []
-      exclude_users  = []
+      exclude_users  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.exclude_users
       include_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.include_groups
       exclude_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.exclude_groups
     }
@@ -592,11 +598,11 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 }
 ```
 
-### Example 11: Create policy from template - Require password change for high-risk users
+### Example 11: Create policy from template - Require risk remediation for high-risk users
 
 ```terraform
 # Test 11: Create a conditional access policy from template - 
-# Require password change for high-risk users
+# Require risk remediation for high-risk users
 
 # ==============================================================================
 # Random Suffix for Unique Resource Names
@@ -613,7 +619,7 @@ resource "random_string" "suffix" {
 # ==============================================================================
 
 data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "password_change_high_risk" {
-  name = "Require password change for high-risk users"
+  name = "Require risk remediation for high-risk users"
 }
 
 # ==============================================================================
@@ -639,7 +645,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     users = {
       include_users  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.include_users
-      exclude_users  = []
+      exclude_users  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.exclude_users
       include_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.include_groups
       exclude_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.exclude_groups
       include_roles  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.include_roles
@@ -652,6 +658,17 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.grant_controls.built_in_controls
     custom_authentication_factors = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.grant_controls.custom_authentication_factors
     terms_of_use                  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.grant_controls.terms_of_use
+    authentication_strength = {
+      id = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.grant_controls.authentication_strength.id
+    }
+  }
+
+  session_controls = {
+    sign_in_frequency = {
+      is_enabled          = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.session_controls.sign_in_frequency.is_enabled
+      authentication_type = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.session_controls.sign_in_frequency.authentication_type
+      frequency_interval  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.session_controls.sign_in_frequency.frequency_interval
+    }
   }
 }
 ```
@@ -1126,76 +1143,31 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 }
 ```
 
-### Example 21: Create policy from template - Block high-risk agent identities
+### Example 20: Get the account-recovery template
 
 ```terraform
-# Test 21: Create a conditional access policy from template - 
+# Secure account recovery with identity verification (Preview)
+# Template discovery is independent of policy creation and its tenant prerequisites.
+data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "secure_account_recovery" {
+  template_id = "6acdf4c3-6815-485c-a57d-2c349d517ba0"
+}
+
+output "secure_account_recovery_details" {
+  value = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.secure_account_recovery.details
+}
+```
+
+### Example 21: Get the high-risk agent identity template
+
+```terraform
 # Block high risk agent identities from accessing resources
-
-# ==============================================================================
-# Random Suffix for Unique Resource Names
-# ==============================================================================
-
-resource "random_string" "suffix" {
-  length  = 8
-  special = false
-  upper   = false
-}
-
-# ==============================================================================
-# Datasource
-# ==============================================================================
-
+# Template discovery is independent of policy creation and its tenant prerequisites.
 data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "block_high_risk_agents" {
-  name = "Block high risk agent identities from accessing resources"
+  template_id = "6bdcbbb7-ebd1-4f8f-a02f-652db0e3665d"
 }
 
-# ==============================================================================
-# Validation
-# ==============================================================================
-
-resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy" "from_template_block_high_risk_agents" {
-  display_name = "acc-test-ca-policy-template-block-high-risk-agent-identities-${random_string.suffix.result}"
-  state        = "enabledForReportingButNotEnforced"
-
-  conditions = {
-    client_app_types              = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.client_app_types
-    user_risk_levels              = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.user_risk_levels
-    sign_in_risk_levels           = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.sign_in_risk_levels
-    service_principal_risk_levels = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.service_principal_risk_levels
-    agent_id_risk_levels          = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.agent_id_risk_levels
-    insider_risk_levels           = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.insider_risk_levels
-
-    applications = {
-      include_applications                            = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.applications.include_applications
-      exclude_applications                            = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.applications.exclude_applications
-      include_user_actions                            = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.applications.include_user_actions
-      include_authentication_context_class_references = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.applications.include_authentication_context_class_references
-    }
-
-    users = {
-      include_users  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.users.include_users
-      exclude_users  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.users.exclude_users
-      include_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.users.include_groups
-      exclude_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.users.exclude_groups
-      include_roles  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.users.include_roles
-      exclude_roles  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.users.exclude_roles
-    }
-
-    client_applications = {
-      include_service_principals          = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.client_applications.include_service_principals
-      include_agent_id_service_principals = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.client_applications.include_agent_id_service_principals
-      exclude_service_principals          = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.client_applications.exclude_service_principals
-      exclude_agent_id_service_principals = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.conditions.client_applications.exclude_agent_id_service_principals
-    }
-  }
-
-  grant_controls = {
-    operator                      = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.grant_controls.operator
-    built_in_controls             = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.grant_controls.built_in_controls
-    custom_authentication_factors = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.grant_controls.custom_authentication_factors
-    terms_of_use                  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details.grant_controls.terms_of_use
-  }
+output "block_high_risk_agents_details" {
+  value = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.block_high_risk_agents.details
 }
 ```
 

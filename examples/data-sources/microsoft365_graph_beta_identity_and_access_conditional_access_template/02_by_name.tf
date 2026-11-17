@@ -3,7 +3,7 @@
 # Useful when you know the template name and need to find its ID or configuration details
 
 data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "by_name" {
-  name = "Require multifactor authentication for admins"
+  name = "Require multifactor authentication for select admins"
 
   timeouts = {
     read = "1m"
