@@ -142,8 +142,8 @@ func (m *Mock) RegisterMocks() {
 		m.Lock()
 		defer m.Unlock()
 		m.Posts = append(m.Posts, maps.Clone(body))
-		if m.Existing != nil && fmt.Sprint(m.Existing["priority"]) == fmt.Sprint(body["priority"]) {
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"A profile with this priority already exists."}}`), nil
+		if m.Existing != nil && fmt.Sprint(m.Existing["name"]) == fmt.Sprint(body["name"]) {
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"A profile with this name already exists."}}`), nil
 		}
 		body["id"] = ProfileID
 		body["version"] = "1.0.0"
@@ -162,7 +162,7 @@ func (m *Mock) RegisterMocks() {
 		m.State = body
 		if m.PostDuplicates > 0 {
 			m.PostDuplicates--
-			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"A profile with this priority already exists."}}`), nil
+			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"A profile with this name already exists."}}`), nil
 		}
 		if m.PostFailures > 0 {
 			m.PostFailures--

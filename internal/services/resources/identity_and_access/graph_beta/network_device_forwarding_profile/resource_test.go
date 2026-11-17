@@ -259,3 +259,19 @@ func TestUnitResourceNetworkDeviceForwardingProfile_04_ValidationErrors(t *testi
 		},
 	})
 }
+
+func TestUnitResourceNetworkDeviceForwardingProfile_05_RejectsBuiltInProfileImport(t *testing.T) {
+	setup(t)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:        hcl(t, "resource_minimal.tf"),
+				ResourceName:  resourceType + ".test",
+				ImportState:   true,
+				ImportStateId: testmocks.DefaultID,
+				ExpectError:   regexp.MustCompile(`Not a custom forwarding profile`),
+			},
+		},
+	})
+}

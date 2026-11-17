@@ -15,6 +15,13 @@ func mapRemoteStateToTerraform(
 	remote *sharedmodels.ForwardingProfileWire,
 ) diag.Diagnostics {
 	var diags diag.Diagnostics
+	if remote.IsCustomProfile != nil && !*remote.IsCustomProfile {
+		diags.AddError(
+			"Not a custom forwarding profile",
+			"This profile is a built-in pre-logon profile and cannot be managed by this resource.",
+		)
+		return diags
+	}
 	state.ID = types.StringPointerValue(remote.ID)
 	state.Name = types.StringPointerValue(remote.Name)
 	state.Description = types.StringPointerValue(remote.Description)
