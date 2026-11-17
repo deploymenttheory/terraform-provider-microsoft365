@@ -59,7 +59,7 @@ func (d *NetworkForwardingProfileDataSource) Read(ctx context.Context, req datas
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 			return
 		}
-		items = append(items, MapRemoteStateToDataSource(profile))
+		items = append(items, MapRemoteStateToDataSource(ctx, profile))
 	} else {
 		profiles, err := d.client.NetworkAccess().ForwardingProfiles().Get(ctx, &networkaccess.ForwardingProfilesRequestBuilderGetRequestConfiguration{
 			QueryParameters: &networkaccess.ForwardingProfilesRequestBuilderGetQueryParameters{Expand: expand},
@@ -69,7 +69,7 @@ func (d *NetworkForwardingProfileDataSource) Read(ctx context.Context, req datas
 			return
 		}
 		for _, profile := range profiles.GetValue() {
-			mapped := MapRemoteStateToDataSource(profile)
+			mapped := MapRemoteStateToDataSource(ctx, profile)
 			switch method {
 			case lookupListAll:
 				items = append(items, mapped)

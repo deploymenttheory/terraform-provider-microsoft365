@@ -128,11 +128,14 @@ Optional:
 
 Read-Only:
 
+- `assignment_rules` (Attributes) User, group, device and platform assignments (traffic forwarding profiles v2). (see [below for nested schema](#nestedatt--items--assignment_rules))
 - `client_fallback_action` (String) The client fallback action.
 - `description` (String) The forwarding profile description.
+- `forwarding_source_matching` (Attributes) Source matching conditions (traffic forwarding profiles v2). (see [below for nested schema](#nestedatt--items--forwarding_source_matching))
 - `id` (String) The forwarding profile ID.
 - `is_custom_profile` (Boolean) Whether this is a custom forwarding profile.
 - `last_modified_date_time` (String) The last modified timestamp.
+- `local_network_settings` (Attributes) Home network support settings (traffic forwarding profiles v2). (see [below for nested schema](#nestedatt--items--local_network_settings))
 - `name` (String) The forwarding profile name.
 - `policies` (Attributes List) Forwarding policy links associated with the profile. `policy_link_id` is the Graph policyLink object ID used by the forwarding profile policies endpoint; `policy_id` is the linked forwarding policy ID. (see [below for nested schema](#nestedatt--items--policies))
 - `priority` (Number) The forwarding profile priority.
@@ -141,6 +144,34 @@ Read-Only:
 - `state` (String) The forwarding profile state.
 - `traffic_forwarding_type` (String) The traffic forwarding type, such as `internet`, `m365`, or `private`.
 - `version` (String) The forwarding profile version.
+
+<a id="nestedatt--items--assignment_rules"></a>
+### Nested Schema for `items.assignment_rules`
+
+Read-Only:
+
+- `device_ids` (Set of String) Assigned device object IDs.
+- `group_ids` (Set of String) Assigned group object IDs.
+- `membership` (String) `all`, `enumerated` or `none`.
+- `platforms` (Set of String) Device platforms the profile applies to.
+- `user_ids` (Set of String) Assigned user object IDs.
+
+
+<a id="nestedatt--items--forwarding_source_matching"></a>
+### Nested Schema for `items.forwarding_source_matching`
+
+Read-Only:
+
+- `session_type` (String) `any` or `agent`.
+
+
+<a id="nestedatt--items--local_network_settings"></a>
+### Nested Schema for `items.local_network_settings`
+
+Read-Only:
+
+- `allow_local_subnet_bypass` (Boolean) Whether users can bypass Private Access for their directly connected local subnet.
+
 
 <a id="nestedatt--items--policies"></a>
 ### Nested Schema for `items.policies`
