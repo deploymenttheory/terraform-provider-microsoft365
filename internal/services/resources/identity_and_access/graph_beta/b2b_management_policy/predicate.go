@@ -2,12 +2,29 @@ package graphBetaIdentityAndAccessB2bManagementPolicy
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
-// b2bManagementPolicyConsistencyPredicate accepts a read only once it reflects the written values;
-// for several seconds after a write, Entra replicas alternate between the old and new values.
+var policyRetryInterval = 5 * time.Second
+
+// stableConsistencyPredicate requires four matching reads, spanning at least 15 seconds at
+// the normal retry interval. Curl probes showed two current reads followed by old values again.
+func stableConsistencyPredicate(expected *B2bManagementPolicyResourceModel) func(context.Context, tfsdk.State) bool {
+	matches := b2bManagementPolicyConsistencyPredicate(expected)
+	consecutive := 0
+	return func(ctx context.Context, state tfsdk.State) bool {
+		if !matches(ctx, state) {
+			consecutive = 0
+			return false
+		}
+		consecutive++
+		return consecutive >= 4
+	}
+}
+
+// b2bManagementPolicyConsistencyPredicate compares a read with the written values.
 func b2bManagementPolicyConsistencyPredicate(expected *B2bManagementPolicyResourceModel) func(ctx context.Context, state tfsdk.State) bool {
 	return func(ctx context.Context, state tfsdk.State) bool {
 		if state.Raw.IsNull() {

@@ -213,9 +213,20 @@ func (m *B2bManagementPolicyMock) deleteB2bManagementPolicyResponder() httpmock.
 // RegisterEventualConsistencyMocks makes the first staleReadCount GETs after each PATCH return the
 // previous values. Call after RegisterMocks.
 func (m *B2bManagementPolicyMock) RegisterEventualConsistencyMocks(staleReadCount int) {
+	sequence := make([]bool, staleReadCount)
+	for i := range sequence {
+		sequence[i] = true
+	}
+	m.RegisterReadSequenceAfterUpdate(sequence)
+}
+
+// RegisterReadSequenceAfterUpdate selects stale (true) or current (false) values
+// for each GET following PATCH, then returns current values thereafter.
+func (m *B2bManagementPolicyMock) RegisterReadSequenceAfterUpdate(sequence []bool) {
 	var mu sync.Mutex
 	previous := map[string]map[string]any{}
-	staleRemaining := map[string]int{}
+	nextRead := map[string]int{}
+	sequence = append([]bool(nil), sequence...)
 
 	get := m.getB2bManagementPolicyResponder()
 	patch := m.updateB2bManagementPolicyResponder()
@@ -235,7 +246,7 @@ func (m *B2bManagementPolicyMock) RegisterEventualConsistencyMocks(staleReadCoun
 			if err == nil && resp.StatusCode == http.StatusNoContent {
 				mu.Lock()
 				previous[id] = snapshot
-				staleRemaining[id] = staleReadCount
+				nextRead[id] = 0
 				mu.Unlock()
 			}
 			return resp, err
@@ -250,17 +261,39 @@ func (m *B2bManagementPolicyMock) RegisterEventualConsistencyMocks(staleReadCoun
 			id := pathParts[len(pathParts)-1]
 
 			mu.Lock()
-			if staleRemaining[id] > 0 {
-				staleRemaining[id]--
+			index, updated := nextRead[id]
+			if updated && index < len(sequence) {
+				nextRead[id]++
 				stale := maps.Clone(previous[id])
 				mu.Unlock()
-				stale["@odata.context"] = "https://graph.microsoft.com/beta/$metadata#policies/b2bManagementPolicies/$entity"
-				return factories.SuccessResponse(200, stale)(req)
+				if sequence[index] {
+					stale["@odata.context"] = "https://graph.microsoft.com/beta/$metadata#policies/b2bManagementPolicies/$entity"
+					return factories.SuccessResponse(200, stale)(req)
+				}
+				return get(req)
 			}
 			mu.Unlock()
 			return get(req)
 		},
 	)
+}
+
+// RegisterStaleDeleteNotFoundMocks returns transient 404s without deleting the
+// stored policy, reproducing a DELETE routed to an unready replica.
+func (m *B2bManagementPolicyMock) RegisterStaleDeleteNotFoundMocks(count int) {
+	var mu sync.Mutex
+	remaining := count
+	remove := m.deleteB2bManagementPolicyResponder()
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/policies/b2bManagementPolicies/[0-9a-fA-F-]+$`, func(req *http.Request) (*http.Response, error) {
+		mu.Lock()
+		if remaining > 0 {
+			remaining--
+			mu.Unlock()
+			return httpmock.NewStringResponse(404, `{"error":{"code":"Request_ResourceNotFound","message":"Resource not found"}}`), nil
+		}
+		mu.Unlock()
+		return remove(req)
+	})
 }
 
 // RegisterStaleNotFoundMocks makes the next notFoundCount GETs return a stale-replica 404.

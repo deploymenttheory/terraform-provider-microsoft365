@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
 // Variables so unit tests can shorten them (export_test.go).
@@ -63,6 +64,8 @@ func (r *B2bManagementPolicyResource) getPolicy(ctx context.Context, id string, 
 		return policy, nil
 	case pollCtx.Err() != nil && ctx.Err() == nil:
 		return nil, err
+	case ctx.Err() != nil:
+		return nil, fmt.Errorf("confirming B2B management policy %s absence: %w", id, ctx.Err())
 	default:
 		return nil, pollErr
 	}

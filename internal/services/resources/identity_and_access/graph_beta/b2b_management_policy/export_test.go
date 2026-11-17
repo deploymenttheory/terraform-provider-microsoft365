@@ -2,6 +2,15 @@ package graphBetaIdentityAndAccessB2bManagementPolicy
 
 import "time"
 
+// SetRetryIntervalForTesting overrides the retry interval and returns a restore func.
+func SetRetryIntervalForTesting(interval time.Duration) (restore func()) {
+	previousInterval := policyRetryInterval
+	policyRetryInterval = interval
+	return func() {
+		policyRetryInterval = previousInterval
+	}
+}
+
 // SetNotFoundConfirmationForTesting overrides the not-found confirmation timing and returns a restore func.
 func SetNotFoundConfirmationForTesting(window, interval time.Duration) (restore func()) {
 	previousWindow, previousInterval := notFoundConfirmationWindow, notFoundConfirmationInterval

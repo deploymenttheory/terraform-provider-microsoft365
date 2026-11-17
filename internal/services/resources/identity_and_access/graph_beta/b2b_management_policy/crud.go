@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Create handles the Create operation for B2B Management Policy resources.
@@ -50,7 +51,6 @@ func (r *B2bManagementPolicyResource) Create(ctx context.Context, req resource.C
 		Policies().
 		B2bManagementPolicies().
 		Post(ctx, requestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -80,8 +80,8 @@ func (r *B2bManagementPolicyResource) Create(ctx context.Context, req resource.C
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60
-	opts.RetryInterval = 5 * time.Second
-	opts.ConsistencyPredicate = b2bManagementPolicyConsistencyPredicate(&object)
+	opts.RetryInterval = policyRetryInterval
+	opts.ConsistencyPredicate = stableConsistencyPredicate(&object)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -138,7 +138,6 @@ func (r *B2bManagementPolicyResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	policy, err := r.getPolicy(ctx, object.ID.ValueString(), operation == constants.TfOperationRead)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -192,7 +191,6 @@ func (r *B2bManagementPolicyResource) Update(ctx context.Context, req resource.U
 		B2bManagementPolicies().
 		ByB2bManagementPolicyId(state.ID.ValueString()).
 		Patch(ctx, requestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
@@ -212,8 +210,8 @@ func (r *B2bManagementPolicyResource) Update(ctx context.Context, req resource.U
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60
-	opts.RetryInterval = 5 * time.Second
-	opts.ConsistencyPredicate = b2bManagementPolicyConsistencyPredicate(&plan)
+	opts.RetryInterval = policyRetryInterval
+	opts.ConsistencyPredicate = stableConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -250,12 +248,7 @@ func (r *B2bManagementPolicyResource) Delete(ctx context.Context, req resource.D
 	}
 	defer cancel()
 
-	err := r.client.
-		Policies().
-		B2bManagementPolicies().
-		ByB2bManagementPolicyId(object.ID.ValueString()).
-		Delete(ctx, nil)
-
+	err := r.deletePolicy(ctx, object.ID.ValueString())
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
@@ -265,4 +258,43 @@ func (r *B2bManagementPolicyResource) Delete(ctx context.Context, req resource.D
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+// deletePolicy confirms a DELETE 404 before treating the policy as absent. A stale replica
+// can reject DELETE while another still returns the policy; retry instead of leaking it.
+func (r *B2bManagementPolicyResource) deletePolicy(ctx context.Context, id string) error {
+	err := crud.PollUntil(ctx, policyRetryInterval, func(ctx context.Context) (bool, error) {
+		if err := ctx.Err(); err != nil {
+			return false, &crud.FatalPollError{Err: err}
+		}
+		err := r.client.
+			Policies().
+			B2bManagementPolicies().
+			ByB2bManagementPolicyId(id).
+			Delete(ctx, nil)
+		if err == nil {
+			return true, nil
+		}
+		if errors.GraphError(ctx, err).StatusCode != 404 {
+			return false, &crud.FatalPollError{Err: err}
+		}
+
+		_, getErr := r.getPolicy(ctx, id, true)
+		if getErr == nil {
+			return false, fmt.Errorf("B2B management policy %s is still readable after DELETE returned 404: %w", id, err)
+		}
+		if errors.GraphError(ctx, getErr).StatusCode == 404 {
+			return true, nil
+		}
+		return false, &crud.FatalPollError{Err: getErr}
+	})
+	// PollUntil wraps the last API error on timeout. Returning that 404 would make the
+	// shared delete error handler drop state even though deletion was never confirmed.
+	if ctx.Err() != nil {
+		return fmt.Errorf("deleting B2B management policy %s: %w", id, ctx.Err())
+	}
+	if err != nil {
+		return fmt.Errorf("deleting B2B management policy %s: %w", id, err)
+	}
+	return nil
 }

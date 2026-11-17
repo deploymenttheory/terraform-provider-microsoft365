@@ -1,7 +1,9 @@
 package graphBetaIdentityAndAccessB2bManagementPolicy_test
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"testing"
 	"time"
@@ -12,15 +14,19 @@ import (
 	"github.com/jarcoal/httpmock"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	providerclient "github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	apierrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	graphBetaB2bManagementPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/b2b_management_policy"
 	b2bManagementPolicyMocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/b2b_management_policy/mocks"
 )
 
 var resourceType = "microsoft365_graph_beta_identity_and_access_b2b_management_policy"
 
-func setupMockEnvironment() (*mocks.Mocks, *b2bManagementPolicyMocks.B2bManagementPolicyMock) {
+func setupMockEnvironment(t *testing.T) (*mocks.Mocks, *b2bManagementPolicyMocks.B2bManagementPolicyMock) {
+	t.Helper()
+	t.Cleanup(graphBetaB2bManagementPolicy.SetRetryIntervalForTesting(5 * time.Millisecond))
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
@@ -29,10 +35,57 @@ func setupMockEnvironment() (*mocks.Mocks, *b2bManagementPolicyMocks.B2bManageme
 	return mockClient, policyMock
 }
 
+func TestUnitResourceB2bManagementPolicy_24_CurrentThenStaleUpdate(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment(t)
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+	policyMock.RegisterReadSequenceAfterUpdate([]bool{false, false, true, true, false})
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: testConfig("tests/terraform/unit/resource_minimal.tf")},
+			{Config: testConfig("tests/terraform/unit/resource_minimal_updated.tf")},
+		},
+	})
+}
+
+func TestUnitResourceB2bManagementPolicy_26_DeleteAfterTransientNotFound(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, policyMock := setupMockEnvironment(t)
+	defer httpmock.DeactivateAndReset()
+	defer policyMock.CleanupMockState()
+	policyMock.RegisterStaleDeleteNotFoundMocks(1)
+	client := providerclient.NewMockGraphClients(http.DefaultClient).MockBetaClient
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		CheckDestroy: func(state *terraform.State) error {
+			for _, stored := range state.RootModule().Resources {
+				if stored.Type != resourceType {
+					continue
+				}
+				_, err := client.Policies().B2bManagementPolicies().ByB2bManagementPolicyId(stored.Primary.ID).Get(context.Background(), nil)
+				if err == nil {
+					return fmt.Errorf("B2B policy %s still exists after DELETE returned a transient 404", stored.Primary.ID)
+				}
+				if apierrors.GraphError(context.Background(), err).StatusCode != http.StatusNotFound {
+					return err
+				}
+			}
+			return nil
+		},
+		Steps: []resource.TestStep{{
+			Config: testConfig("tests/terraform/unit/resource_minimal.tf"),
+		}},
+	})
+}
+
 // The mock rejects description with Graph's 404, so this also guards against sending it.
 func TestUnitResourceB2bManagementPolicy_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 
@@ -79,7 +132,7 @@ func TestUnitResourceB2bManagementPolicy_01_Minimal(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 
@@ -113,7 +166,7 @@ func TestUnitResourceB2bManagementPolicy_02_Maximal(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 
@@ -152,7 +205,7 @@ func TestUnitResourceB2bManagementPolicy_03_Update(t *testing.T) {
 // Replicas return the pre-PATCH values for a few reads; the consistency predicate must wait them out.
 func TestUnitResourceB2bManagementPolicy_04_EventualConsistency(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 
@@ -180,7 +233,7 @@ func TestUnitResourceB2bManagementPolicy_04_EventualConsistency(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_05_InvalidDefinition(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 
@@ -197,7 +250,7 @@ func TestUnitResourceB2bManagementPolicy_05_InvalidDefinition(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_06_CreateError(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 
@@ -217,7 +270,7 @@ func TestUnitResourceB2bManagementPolicy_06_CreateError(t *testing.T) {
 // A stale-replica 404 on refresh must not drop the policy from state (seen live: duplicate create).
 func TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 
@@ -241,7 +294,7 @@ func TestUnitResourceB2bManagementPolicy_07_StaleNotFoundOnRefresh(t *testing.T)
 // A policy that is really gone is dropped once the confirmation window elapses.
 func TestUnitResourceB2bManagementPolicy_08_DeletedOutOfBand(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 	defer graphBetaB2bManagementPolicy.SetNotFoundConfirmationForTesting(
@@ -270,7 +323,7 @@ func TestUnitResourceB2bManagementPolicy_08_DeletedOutOfBand(t *testing.T) {
 // Graph returns 500 for any change to isOrganizationDefault, so it must force replacement.
 func TestUnitResourceB2bManagementPolicy_09_OrganizationDefaultRequiresReplace(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 
@@ -312,7 +365,7 @@ func testConfig(path string) string {
 
 func TestUnitResourceB2bManagementPolicy_10_AllowDomains(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -355,7 +408,7 @@ func TestUnitResourceB2bManagementPolicy_10_AllowDomains(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_11_BlockDomains(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -398,7 +451,7 @@ func TestUnitResourceB2bManagementPolicy_11_BlockDomains(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_12_AnyDomain(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -441,7 +494,7 @@ func TestUnitResourceB2bManagementPolicy_12_AnyDomain(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_13_AllowToBlock(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -508,7 +561,7 @@ func TestUnitResourceB2bManagementPolicy_13_AllowToBlock(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_14_BlockToAllow(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -575,7 +628,7 @@ func TestUnitResourceB2bManagementPolicy_14_BlockToAllow(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_15_RestrictedToAny(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -642,7 +695,7 @@ func TestUnitResourceB2bManagementPolicy_15_RestrictedToAny(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_16_AnyToRestricted(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -709,7 +762,7 @@ func TestUnitResourceB2bManagementPolicy_16_AnyToRestricted(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_17_MinimalToMaximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -776,7 +829,7 @@ func TestUnitResourceB2bManagementPolicy_17_MinimalToMaximal(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_18_MaximalToMinimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -843,7 +896,7 @@ func TestUnitResourceB2bManagementPolicy_18_MaximalToMinimal(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_19_OtherSettings(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -886,7 +939,7 @@ func TestUnitResourceB2bManagementPolicy_19_OtherSettings(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_20_Rename(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, mock := setupMockEnvironment()
+	_, mock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer mock.CleanupMockState()
 	var id string
@@ -956,7 +1009,7 @@ func TestUnitResourceB2bManagementPolicy_20_Rename(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_21_FormattedJSON(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
@@ -979,7 +1032,7 @@ func TestUnitResourceB2bManagementPolicy_21_FormattedJSON(t *testing.T) {
 
 func TestUnitResourceB2bManagementPolicy_22_DomainDrift(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
@@ -1004,7 +1057,7 @@ func TestUnitResourceB2bManagementPolicy_22_DomainDrift(t *testing.T) {
 // Deactivating a default policy also requires replacement; cover the reverse transition.
 func TestUnitResourceB2bManagementPolicy_23_DefaultToNonDefaultRequiresReplace(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
-	_, policyMock := setupMockEnvironment()
+	_, policyMock := setupMockEnvironment(t)
 	defer httpmock.DeactivateAndReset()
 	defer policyMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
