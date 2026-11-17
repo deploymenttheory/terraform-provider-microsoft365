@@ -2,6 +2,7 @@ package graphBetaApplicationPasswordCredential
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
@@ -95,8 +96,17 @@ func TestUnitResourceApplicationPasswordCredential_03_CreateAfterTransientParent
 		const endpoint = "https://graph.microsoft.com/beta/applications/11111111-1111-1111-1111-111111111111"
 		const keyID = "22222222-2222-2222-2222-222222222222"
 		calls := 0
-		transport.RegisterResponder("POST", endpoint+"/addPassword", func(_ *http.Request) (*http.Response, error) {
+		var originalPayload map[string]any
+		transport.RegisterResponder("POST", endpoint+"/addPassword", func(req *http.Request) (*http.Response, error) {
 			calls++
+			var payload map[string]any
+			require.NoError(t, json.NewDecoder(req.Body).Decode(&payload))
+			if calls == 1 {
+				originalPayload = payload
+				require.Contains(t, originalPayload, "passwordCredential")
+			} else {
+				require.Equal(t, originalPayload, payload, "a rejected request must retain its planned credential settings when retried")
+			}
 			if calls == 1 {
 				return httpmock.NewJsonResponse(404, map[string]any{"error": map[string]string{"code": "Request_ResourceNotFound", "message": "Resource does not exist"}})
 			}
