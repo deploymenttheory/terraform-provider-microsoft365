@@ -23,6 +23,8 @@ func (d *NetworkManagedTLSCertificateDataSource) getManagedTLSCertificate(ctx co
 		},
 	)
 	requestInfo.Headers.TryAdd("Accept", "application/json")
+	// Without this header Graph returns status "disabled" as "unknownFutureValue".
+	requestInfo.Headers.TryAdd("Prefer", "include-unknown-enum-members")
 
 	result, err := adapter.Send(ctx, requestInfo, createManagedTLSCertificateResponseFromDiscriminatorValue, managedTLSCertificateErrorMapping)
 	if err != nil {

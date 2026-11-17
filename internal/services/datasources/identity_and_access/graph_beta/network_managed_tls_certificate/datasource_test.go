@@ -3,6 +3,7 @@ package graphBetaNetworkManagedTLSCertificate_test
 import (
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -63,6 +64,40 @@ func TestUnitDatasourceNetworkManagedTLSCertificate_02_NotFound(t *testing.T) {
 		Steps: []resource.TestStep{{
 			Config:      dataSourceTestConfig(t),
 			ExpectError: regexp.MustCompile(`Not Found - 404`),
+		}},
+	})
+}
+
+// Graph reports a disabled certificate as unknownFutureValue unless the client
+// sends Prefer: include-unknown-enum-members.
+func TestUnitDatasourceNetworkManagedTLSCertificate_03_DisabledStatus(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	mockClient := mocks.NewMocks()
+	mockClient.AuthMocks.RegisterMocks()
+	httpmock.RegisterResponder(
+		"GET",
+		"https://graph.microsoft.com/beta/networkaccess/tls/managedCertificateAuthorityCertificates/00000000-0000-0000-0000-000000000301",
+		func(req *http.Request) (*http.Response, error) {
+			status := "unknownFutureValue"
+			if strings.Contains(req.Header.Get("Prefer"), "include-unknown-enum-members") {
+				status = "disabled"
+			}
+			resp := httpmock.NewStringResponse(200,
+				`{"id":"00000000-0000-0000-0000-000000000301","name":"M-TLSi-unit","status":"`+status+`"}`)
+			resp.Header.Set("Content-Type", "application/json")
+			return resp, nil
+		},
+	)
+
+	dataSourceType := graphBetaNetworkManagedTLSCertificate.DataSourceName
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{{
+			Config: dataSourceTestConfig(t),
+			Check:  check.That("data."+dataSourceType+".test").Key("status").HasValue("disabled"),
 		}},
 	})
 }

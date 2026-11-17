@@ -23,9 +23,11 @@ import (
 )
 
 const (
-	ResourceName  = "microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate"
-	CreateTimeout = 180
-	UpdateTimeout = 180
+	ResourceName = "microsoft365_graph_beta_identity_and_access_network_managed_tls_certificate"
+	// Activation (enrolling -> active) took 33-172s in nightly runs and
+	// sometimes longer, so leave room beyond the observed maximum.
+	CreateTimeout = 600
+	UpdateTimeout = 600
 	ReadTimeout   = 180
 	DeleteTimeout = 180
 )
@@ -120,7 +122,7 @@ func (r *NetworkManagedTLSCertificateResource) Schema(ctx context.Context, req r
 				Default:             booldefault.StaticBool(false),
 			},
 			"status": schema.StringAttribute{
-				MarkdownDescription: "The lifecycle status reported by Microsoft Graph, such as `unknownFutureValue` immediately after a disabled create, `creating`, `enrolling`, `disabled`, or `active`. This differs from the command value sent when enabling the certificate authority.",
+				MarkdownDescription: "The lifecycle status reported by Microsoft Graph, such as `disabled`, `enrolling` or `active`. This differs from the command value sent when enabling the certificate authority.",
 				Computed:            true,
 			},
 			"created_date_time": schema.StringAttribute{

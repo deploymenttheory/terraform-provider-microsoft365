@@ -78,7 +78,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_02_CreateEnabledThenDisable(t 
 				Check: resource.ComposeTestCheckFunc(
 					check.That(unitTestResourceType+".test").Key("name").HasValue("M-TLSi-unit-enabled"),
 					check.That(unitTestResourceType+".test").Key("common_name").HasValue("Terraform TLS Inspection Root CA"),
-					check.That(unitTestResourceType+".test").Key("organization_name").HasValue("Contoso"),
+					check.That(unitTestResourceType+".test").Key("organization_name").HasValue("Example"),
 					check.That(unitTestResourceType+".test").Key("validity_months").HasValue("60"),
 					check.That(unitTestResourceType+".test").Key("enabled").HasValue("true"),
 					check.That(unitTestResourceType+".test").Key("status").HasValue("active"),
@@ -106,6 +106,73 @@ func TestUnitResourceNetworkManagedTLSCertificate_03_CreateError(t *testing.T) {
 		Steps: []resource.TestStep{{
 			Config:      testConfigHelper("resource_minimal.tf"),
 			ExpectError: regexp.MustCompile(`Bad Request - 400`),
+		}},
+	})
+}
+
+// A create whose activation outlasts the timeout keeps the certificate instead
+// of tainting it (a replacement would issue a new root CA).
+func TestUnitResourceNetworkManagedTLSCertificate_04_CreateActivationTimeout(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, certificateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer certificateMock.CleanupMockState()
+	certificateMock.SetEnabledStatus("enrolling")
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigHelper("resource_enabled_short_timeout.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(unitTestResourceType+".test").Key("enabled").HasValue("true"),
+					check.That(unitTestResourceType+".test").Key("status").HasValue("enrolling"),
+					check.That(unitTestResourceType+".test").Key("common_name").HasValue("Terraform TLS Inspection Root CA"),
+				),
+			},
+			{Config: testConfigHelper("resource_enabled_short_timeout.tf"), PlanOnly: true},
+		},
+	})
+}
+
+// Enabling an existing certificate that outlasts the timeout is recorded as
+// enabled, so the next plan does not send the PATCH again.
+func TestUnitResourceNetworkManagedTLSCertificate_05_UpdateActivationTimeout(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, certificateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer certificateMock.CleanupMockState()
+	certificateMock.SetEnabledStatus("enrolling")
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{Config: testConfigHelper("resource_disabled_short_timeout.tf")},
+			{
+				Config: testConfigHelper("resource_enabled_short_timeout.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(unitTestResourceType+".test").Key("enabled").HasValue("true"),
+					check.That(unitTestResourceType+".test").Key("status").HasValue("enrolling"),
+				),
+			},
+			{Config: testConfigHelper("resource_enabled_short_timeout.tf"), PlanOnly: true},
+		},
+	})
+}
+
+// A terminal status during activation still fails create.
+func TestUnitResourceNetworkManagedTLSCertificate_06_TerminalStatusFails(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, certificateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer certificateMock.CleanupMockState()
+	certificateMock.SetEnabledStatus("expired")
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{{
+			Config:      testConfigHelper("resource_enabled_short_timeout.tf"),
+			ExpectError: regexp.MustCompile(`terminal status`),
 		}},
 	})
 }

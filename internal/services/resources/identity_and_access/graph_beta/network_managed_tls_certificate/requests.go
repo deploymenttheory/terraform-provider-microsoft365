@@ -79,6 +79,9 @@ func newManagedTLSCertificateRequestInformation(ctx context.Context, adapter abs
 
 	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
 	requestInfo.Headers.TryAdd("Accept", "application/json")
+	// status values such as "disabled" are evolvable enum members; without this
+	// header Graph returns them as "unknownFutureValue".
+	requestInfo.Headers.TryAdd("Prefer", "include-unknown-enum-members")
 	if requestBody != nil {
 		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
 			return nil, fmt.Errorf("set Microsoft-managed TLS certificate request content: %w", err)

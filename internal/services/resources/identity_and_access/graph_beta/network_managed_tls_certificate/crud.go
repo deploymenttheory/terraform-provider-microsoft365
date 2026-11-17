@@ -2,15 +2,18 @@ package graphBetaNetworkManagedTLSCertificate
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -42,7 +45,9 @@ func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req r
 		return
 	}
 
+	// Save the ID and computed values now, so a failure below leaves no unknowns.
 	object.ID = types.StringValue(*created.id)
+	mapComputed(ctx, &object, created)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -64,6 +69,14 @@ func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req r
 		}
 
 		settled, err := r.waitForManagedTLSCertificateStatus(ctx, object.ID.ValueString(), true)
+		if err != nil && keepAfterWaitError(err) {
+			keepPlanned(ctx, &object, settled, err, &resp.Diagnostics)
+			resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+			if resp.Identity != nil {
+				resp.Diagnostics.Append(resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{ID: object.ID.ValueString()})...)
+			}
+			return
+		}
 		if err != nil {
 			resp.Diagnostics.AddError("Error waiting for Microsoft-managed TLS certificate activation", err.Error())
 			return
@@ -145,6 +158,12 @@ func (r *NetworkManagedTLSCertificateResource) Update(ctx context.Context, req r
 		}
 
 		settled, err := r.waitForManagedTLSCertificateStatus(ctx, state.ID.ValueString(), plan.Enabled.ValueBool())
+		if err != nil && keepAfterWaitError(err) {
+			plan.ID = state.ID
+			keepPlanned(ctx, &plan, settled, err, &resp.Diagnostics)
+			resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+			return
+		}
 		if err != nil {
 			resp.Diagnostics.AddError("Error waiting for Microsoft-managed TLS certificate status update", err.Error())
 			return
@@ -183,4 +202,48 @@ func (r *NetworkManagedTLSCertificateResource) Delete(ctx context.Context, req r
 		return
 	}
 	resp.State.RemoveResource(ctx)
+}
+
+// keepAfterWaitError reports whether a failed status wait should keep the
+// certificate. Only a terminal status is fatal. After a timeout, cancel or
+// transient error Graph may still finish, and failing Create would taint the
+// resource, whose replacement issues a new root CA.
+func keepAfterWaitError(err error) bool {
+	return !stderrors.Is(err, errTerminalStatus)
+}
+
+// keepPlanned records the planned enabled value with the last status seen and
+// warns that the change has not finished. The next refresh reads the actual
+// status, and the next apply retries if it differs.
+func keepPlanned(ctx context.Context, object *NetworkManagedTLSCertificateResourceModel, latest *managedTLSCertificateResponse, err error, diags *diag.Diagnostics) {
+	mapComputed(ctx, object, latest)
+	diags.AddWarning(
+		"Microsoft-managed TLS certificate status change has not finished",
+		fmt.Sprintf("Certificate %s was set to enabled = %t, but apply stopped waiting before Graph finished (last status %q): %s. "+
+			"The next refresh shows the actual status, and the next apply retries if needed. "+
+			"Raise timeouts.create or timeouts.update to wait longer.",
+			object.ID.ValueString(), object.Enabled.ValueBool(), object.Status.ValueString(), err),
+	)
+}
+
+// mapComputed copies the computed values from a response, leaving configured
+// attributes as planned, and replaces any value Graph did not return with null.
+func mapComputed(ctx context.Context, object *NetworkManagedTLSCertificateResourceModel, remote *managedTLSCertificateResponse) {
+	if remote != nil {
+		remoteState := *object
+		MapRemoteStateToTerraform(ctx, &remoteState, remote)
+		object.Status = remoteState.Status
+		object.CreatedDateTime = remoteState.CreatedDateTime
+		object.ValidityStartDateTime = remoteState.ValidityStartDateTime
+		object.ValidityEndDateTime = remoteState.ValidityEndDateTime
+		object.Certificate = remoteState.Certificate
+	}
+	for _, v := range []*types.String{
+		&object.Status, &object.CreatedDateTime, &object.ValidityStartDateTime,
+		&object.ValidityEndDateTime, &object.Certificate,
+	} {
+		if v.IsUnknown() {
+			*v = types.StringNull()
+		}
+	}
 }

@@ -2,6 +2,7 @@ package graphBetaNetworkManagedTLSCertificate
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"strings"
 	"time"
@@ -11,6 +12,13 @@ import (
 )
 
 const managedTLSCertificateStatusPollInterval = 5 * time.Second
+
+var (
+	// errTerminalStatus marks a certificate that can no longer reach the requested status.
+	errTerminalStatus = stderrors.New("certificate entered a terminal status")
+	errPendingEnable  = stderrors.New("certificate activation is still pending")
+	errPendingDisable = stderrors.New("certificate deactivation is still pending")
+)
 
 func (r *NetworkManagedTLSCertificateResource) waitForManagedTLSCertificateStatus(ctx context.Context, certificateID string, enabled bool) (*managedTLSCertificateResponse, error) {
 	var latest *managedTLSCertificateResponse
@@ -30,27 +38,22 @@ func (r *NetworkManagedTLSCertificateResource) waitForManagedTLSCertificateStatu
 		}
 
 		status := strings.ToLower(*certificate.status)
-		if enabled {
-			switch status {
-			case "active", "expiring":
-				return true, nil
-			case "expired", "revoked":
-				return false, &crud.FatalPollError{Err: fmt.Errorf("certificate entered terminal status %q while enabling", status)}
-			default:
-				return false, fmt.Errorf("certificate activation is still pending with status %q", status)
-			}
-		}
-
-		if status == "disabled" {
+		switch {
+		case status == "expired" || status == "revoked":
+			return false, &crud.FatalPollError{Err: fmt.Errorf("%w: %q", errTerminalStatus, status)}
+		case enabled && (status == "active" || status == "expiring"):
 			return true, nil
+		case !enabled && status == "disabled":
+			return true, nil
+		case enabled:
+			return false, fmt.Errorf("%w with status %q", errPendingEnable, status)
+		default:
+			return false, fmt.Errorf("%w with status %q", errPendingDisable, status)
 		}
-		if status == "expired" || status == "revoked" {
-			return false, &crud.FatalPollError{Err: fmt.Errorf("certificate entered terminal status %q while disabling", status)}
-		}
-		return false, fmt.Errorf("certificate deactivation is still pending with status %q", status)
 	})
 	if err != nil {
-		return nil, err
+		// latest is returned with the error so callers can report the last status seen.
+		return latest, fmt.Errorf("wait for certificate status: %w", err)
 	}
 	return latest, nil
 }
