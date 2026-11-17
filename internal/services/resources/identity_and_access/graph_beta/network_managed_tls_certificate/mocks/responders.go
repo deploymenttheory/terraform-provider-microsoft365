@@ -7,10 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jarcoal/httpmock"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks/factories"
-	"github.com/jarcoal/httpmock"
 )
 
 const managedTLSCertificateID = "00000000-0000-0000-0000-000000000301"
@@ -18,8 +19,9 @@ const managedTLSCertificateID = "00000000-0000-0000-0000-000000000301"
 var mockState struct {
 	sync.Mutex
 	certificates map[string]map[string]any
-	// stuck keeps an enabled certificate in enrolling, as a slow activation does.
-	stuck bool
+	// enabledStatus, when set, is the status an enable request leaves behind
+	// instead of active (for example enrolling for a slow activation).
+	enabledStatus string
 }
 
 func init() {
@@ -40,23 +42,35 @@ func (m *ManagedTLSCertificateMock) RegisterMocks() {
 }
 
 func (m *ManagedTLSCertificateMock) RegisterErrorMocks() {
-	httpmock.RegisterResponder("POST", "https://graph.microsoft.com/beta/networkaccess/tls/managedCertificateAuthorityCertificates", func(req *http.Request) (*http.Response, error) {
-		return jsonFixtureResponse(req, 400, filepath.Join("..", "tests", "responses", "validate_create", "post_managed_tls_certificate_error.json"))
-	})
+	httpmock.RegisterResponder(
+		"POST",
+		"https://graph.microsoft.com/beta/networkaccess/tls/managedCertificateAuthorityCertificates",
+		func(req *http.Request) (*http.Response, error) {
+			return jsonFixtureResponse(req, 400, filepath.Join("..", "tests", "responses", "validate_create", "post_managed_tls_certificate_error.json"))
+		},
+	)
 }
 
 func (m *ManagedTLSCertificateMock) CleanupMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
 	mockState.certificates = make(map[string]map[string]any)
-	mockState.stuck = false
+	mockState.enabledStatus = ""
 }
 
-// SetActivationStuck makes enabling leave the certificate in enrolling.
-func (m *ManagedTLSCertificateMock) SetActivationStuck(stuck bool) {
+// SetEnabledStatus makes enabling leave the certificate in status, such as
+// enrolling (slow activation) or expired (terminal). Empty restores active.
+func (m *ManagedTLSCertificateMock) SetEnabledStatus(status string) {
 	mockState.Lock()
 	defer mockState.Unlock()
-	mockState.stuck = stuck
+	mockState.enabledStatus = status
+}
+
+// maskEnums hides evolvable enum members unless the client opts in, as Graph does.
+func maskEnums(req *http.Request, response map[string]any) {
+	if response["status"] == "disabled" && !strings.Contains(req.Header.Get("Prefer"), "include-unknown-enum-members") {
+		response["status"] = "unknownFutureValue"
+	}
 }
 
 func (m *ManagedTLSCertificateMock) createResponder() httpmock.Responder {
@@ -82,7 +96,9 @@ func (m *ManagedTLSCertificateMock) createResponder() httpmock.Responder {
 		mockState.Lock()
 		mockState.certificates[managedTLSCertificateID] = response
 		mockState.Unlock()
-		return factories.SuccessResponse(201, response)(req)
+		created := cloneMap(response)
+		maskEnums(req, created)
+		return factories.SuccessResponse(201, created)(req)
 	}
 }
 
@@ -96,10 +112,7 @@ func (m *ManagedTLSCertificateMock) getResponder() httpmock.Responder {
 			return jsonFixtureResponse(req, 404, filepath.Join("..", "tests", "responses", "validate_delete", "get_managed_tls_certificate_not_found.json"))
 		}
 		response := cloneMap(certificate)
-		// Like Graph, hide evolvable enum members unless the client opts in.
-		if response["status"] == "disabled" && !strings.Contains(req.Header.Get("Prefer"), "include-unknown-enum-members") {
-			response["status"] = "unknownFutureValue"
-		}
+		maskEnums(req, response)
 		return factories.SuccessResponse(200, response)(req)
 	}
 }
@@ -120,8 +133,8 @@ func (m *ManagedTLSCertificateMock) updateResponder() httpmock.Responder {
 		}
 		if status, ok := requestBody["status"]; ok {
 			switch {
-			case status == "enabled" && mockState.stuck:
-				certificate["status"] = "enrolling"
+			case status == "enabled" && mockState.enabledStatus != "":
+				certificate["status"] = mockState.enabledStatus
 			case status == "enabled":
 				certificate["status"] = "active"
 			default:

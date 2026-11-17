@@ -78,7 +78,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_02_CreateEnabledThenDisable(t 
 				Check: resource.ComposeTestCheckFunc(
 					check.That(unitTestResourceType+".test").Key("name").HasValue("M-TLSi-unit-enabled"),
 					check.That(unitTestResourceType+".test").Key("common_name").HasValue("Terraform TLS Inspection Root CA"),
-					check.That(unitTestResourceType+".test").Key("organization_name").HasValue("Contoso"),
+					check.That(unitTestResourceType+".test").Key("organization_name").HasValue("Example"),
 					check.That(unitTestResourceType+".test").Key("validity_months").HasValue("60"),
 					check.That(unitTestResourceType+".test").Key("enabled").HasValue("true"),
 					check.That(unitTestResourceType+".test").Key("status").HasValue("active"),
@@ -117,7 +117,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_04_CreateActivationTimeout(t *
 	_, certificateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer certificateMock.CleanupMockState()
-	certificateMock.SetActivationStuck(true)
+	certificateMock.SetEnabledStatus("enrolling")
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -142,7 +142,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_05_UpdateActivationTimeout(t *
 	_, certificateMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer certificateMock.CleanupMockState()
-	certificateMock.SetActivationStuck(true)
+	certificateMock.SetEnabledStatus("enrolling")
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -157,6 +157,23 @@ func TestUnitResourceNetworkManagedTLSCertificate_05_UpdateActivationTimeout(t *
 			},
 			{Config: testConfigHelper("resource_enabled_short_timeout.tf"), PlanOnly: true},
 		},
+	})
+}
+
+// A terminal status during activation still fails create.
+func TestUnitResourceNetworkManagedTLSCertificate_06_TerminalStatusFails(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, certificateMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer certificateMock.CleanupMockState()
+	certificateMock.SetEnabledStatus("expired")
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{{
+			Config:      testConfigHelper("resource_enabled_short_timeout.tf"),
+			ExpectError: regexp.MustCompile(`terminal status`),
+		}},
 	})
 }
 

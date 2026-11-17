@@ -23,8 +23,8 @@ Creation uses `POST /beta/networkaccess/tls/managedCertificateAuthorityCertifica
 - A newly created certificate is disabled by default. The provider does not send an immediate `status = "disabled"` PATCH because Microsoft Graph rejects that command while the certificate is provisioning.
 - `enabled` represents the desired Terraform state, while `status` exposes the lifecycle state reported by Microsoft Graph.
 - The provider uses the individual certificate GET endpoint to populate the root CA certificate.
-- A tenant can hold two Microsoft-managed certificates, and only one can be active. Enabling one disables the certificate that was active before.
-- Activation (`enrolling` to `active`) took up to about five minutes in testing. Create and update wait up to 10 minutes by default. If the wait runs out while the certificate is still `enrolling`, apply finishes with a warning instead of an error, because tainting the resource would replace the root CA.
+- A tenant can hold two Microsoft-managed certificates, and only one can be active. Enabling one disables the certificate that was active before, so set `enabled = true` on at most one of them; otherwise each apply re-enables one and disables the other.
+- Activation (`enrolling` to `active`) took up to about five minutes in testing. Create and update wait up to 10 minutes by default. If the wait stops before Graph finishes (other than a terminal status such as `expired`), apply finishes with a warning instead of an error, because tainting the resource would replace the root CA. The next refresh shows the actual status.
 
 ## Microsoft Graph API Permissions
 

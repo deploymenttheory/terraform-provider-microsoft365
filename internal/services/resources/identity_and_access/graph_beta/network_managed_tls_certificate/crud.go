@@ -2,15 +2,18 @@ package graphBetaNetworkManagedTLSCertificate
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -66,17 +69,8 @@ func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req r
 		}
 
 		settled, err := r.waitForManagedTLSCertificateStatus(ctx, object.ID.ValueString(), true)
-		if err != nil && stillActivating(ctx, settled) {
-			// An error would taint the resource, and replacing it issues a new root
-			// CA that every client must trust again. Activation is still running,
-			// so keep the certificate and let a later refresh see it become active.
-			mapComputed(ctx, &object, settled)
-			resp.Diagnostics.AddWarning(
-				"Microsoft-managed TLS certificate is still activating",
-				fmt.Sprintf("Certificate %s was enabled but is still %q after the create timeout. "+
-					"Graph keeps activating it; a later refresh shows the final status. "+
-					"Raise timeouts.create to wait longer.", object.ID.ValueString(), object.Status.ValueString()),
-			)
+		if err != nil && keepAfterWaitError(err) {
+			keepPlanned(ctx, &object, settled, err, &resp.Diagnostics)
 			resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 			if resp.Identity != nil {
 				resp.Diagnostics.Append(resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{ID: object.ID.ValueString()})...)
@@ -164,15 +158,9 @@ func (r *NetworkManagedTLSCertificateResource) Update(ctx context.Context, req r
 		}
 
 		settled, err := r.waitForManagedTLSCertificateStatus(ctx, state.ID.ValueString(), plan.Enabled.ValueBool())
-		if err != nil && plan.Enabled.ValueBool() && stillActivating(ctx, settled) {
+		if err != nil && keepAfterWaitError(err) {
 			plan.ID = state.ID
-			mapComputed(ctx, &plan, settled)
-			resp.Diagnostics.AddWarning(
-				"Microsoft-managed TLS certificate is still activating",
-				fmt.Sprintf("Certificate %s was enabled but is still %q after the update timeout. "+
-					"Graph keeps activating it; a later refresh shows the final status. "+
-					"Raise timeouts.update to wait longer.", state.ID.ValueString(), plan.Status.ValueString()),
-			)
+			keepPlanned(ctx, &plan, settled, err, &resp.Diagnostics)
 			resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 			return
 		}
@@ -214,6 +202,28 @@ func (r *NetworkManagedTLSCertificateResource) Delete(ctx context.Context, req r
 		return
 	}
 	resp.State.RemoveResource(ctx)
+}
+
+// keepAfterWaitError reports whether a failed status wait should keep the
+// certificate. Only a terminal status is fatal. After a timeout, cancel or
+// transient error Graph may still finish, and failing Create would taint the
+// resource, whose replacement issues a new root CA.
+func keepAfterWaitError(err error) bool {
+	return !stderrors.Is(err, errTerminalStatus)
+}
+
+// keepPlanned records the planned enabled value with the last status seen and
+// warns that the change has not finished. The next refresh reads the actual
+// status, and the next apply retries if it differs.
+func keepPlanned(ctx context.Context, object *NetworkManagedTLSCertificateResourceModel, latest *managedTLSCertificateResponse, err error, diags *diag.Diagnostics) {
+	mapComputed(ctx, object, latest)
+	diags.AddWarning(
+		"Microsoft-managed TLS certificate status change has not finished",
+		fmt.Sprintf("Certificate %s was set to enabled = %t, but apply stopped waiting before Graph finished (last status %q): %s. "+
+			"The next refresh shows the actual status, and the next apply retries if needed. "+
+			"Raise timeouts.create or timeouts.update to wait longer.",
+			object.ID.ValueString(), object.Enabled.ValueBool(), object.Status.ValueString(), err),
+	)
 }
 
 // mapComputed copies the computed values from a response, leaving configured
