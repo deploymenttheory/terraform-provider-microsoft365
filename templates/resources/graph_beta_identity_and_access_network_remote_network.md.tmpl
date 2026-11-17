@@ -1,0 +1,42 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Remote network connectivity](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-remote-network-connectivity)
+- [remoteNetwork resource type](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-remotenetwork?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+## Behavior Notes
+
+- `forwarding_profile_ids` accepts only the default Microsoft 365 and Internet Access forwarding profiles, and each must be enabled. Graph rejects a disabled profile (`Can't assign forwarding profile ... as it is disabled`) and the Private Access profile (`... is not allowed to be assigned to a remote network`).
+- Associations are managed on the remote network side: changes send the full desired set to `/remoteNetworks/{id}/forwardingProfiles`. The forwarding profiles' own `associations` are never written, so associations of other remote networks are left untouched.
+- Graph deletes remote networks asynchronously (100-145 seconds in testing), and the name stays reserved until the deletion finishes. Destroy therefore waits for it, so a replacement can reuse the name. `create_before_destroy` does not work unless the name also changes.
+- Reads after a write are eventually consistent. Create and update wait until several consecutive reads match the configuration.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_remote_network/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_remote_network/import.sh" }}
