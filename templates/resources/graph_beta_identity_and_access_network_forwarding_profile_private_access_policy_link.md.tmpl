@@ -1,0 +1,56 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [What is Global Secure Access?](https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access)
+- [Traffic forwarding profiles](https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding)
+- [Private Access traffic forwarding profile](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-private-access-profile)
+- [forwardingPolicyLink resource type](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-forwardingpolicylink?view=graph-rest-beta)
+
+## Microsoft Graph API
+
+This resource uses Microsoft Graph beta:
+
+- Read: `GET /networkAccess/forwardingProfiles/{id}?$expand=policies($expand=policy)` (or `/networkAccess/deviceForwardingProfiles/{id}` when `profile_type = "device"`).
+- Create and destroy: `PATCH` the same profile with a `policies@delta` entry that adds the link, or removes it with `@removed`.
+
+## Microsoft Graph API Permissions
+
+The following client `application` permissions are needed in order to use this {{.Type | lower}}:
+
+**Required:**
+- `NetworkAccess.Read.All`
+- `NetworkAccess.ReadWrite.All`
+
+**Optional:**
+- `None` `[N/A]`
+
+## Behavior Notes
+
+- Graph cannot update a link, so every argument forces replacement. Replacement removes the link, waits for the removal to propagate, then adds it again with a new `policy_link_id`.
+- New custom user profiles are linked automatically to every Private Access app policy (priority `65000`). Create adopts that link when it matches, and otherwise replaces it, restoring the old link if the add fails. If the `config_type` differs, create fails without writing. Microsoft does not recreate removed automatic links.
+- Changing `config_type` does not work with `create_before_destroy`, because the old link is still in place when the new one is created.
+- If the link is re-added outside Terraform, refresh finds it again by `forwarding_policy_id`.
+- Links are eventually consistent; create and destroy wait for three consecutive matching reads.
+- Do not manage the same link with `microsoft365_graph_beta_identity_and_access_network_forwarding_profile_policy_link` too. That resource only toggles `state`, and destroying it does not remove the link.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_network_forwarding_profile_private_access_policy_link/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Import is supported using the following syntax:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_network_forwarding_profile_private_access_policy_link/import.sh" }}
