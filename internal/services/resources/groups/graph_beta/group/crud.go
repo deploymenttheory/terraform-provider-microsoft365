@@ -3,17 +3,24 @@ package graphBetaGroup
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	graphBetaDirectory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/directory"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
+)
+
+const (
+	groupReadNotFoundMaxAttempts   = 10
+	groupReadNotFoundRetryInterval = 2 * time.Second
 )
 
 // Create handles the Create operation for Group resources.
@@ -51,7 +58,6 @@ func (r *GroupResource) Create(ctx context.Context, req resource.CreateRequest, 
 	groupObject, err := r.client.
 		Groups().
 		Post(ctx, requestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -146,10 +152,25 @@ func (r *GroupResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		},
 	}
 
-	groupObject, err := r.client.
-		Groups().
-		ByGroupId(groupId).
-		Get(ctx, requestConfig)
+	groupRequest := r.client.Groups().ByGroupId(groupId)
+	groupObject, err := groupRequest.Get(ctx, requestConfig)
+	// Directory replicas can return 404 even after a successful read. Confirm a
+	// normal refresh's missing group before allowing the error handler to remove
+	// it from state. Create/update read-backs already have their own retry loop.
+	for attempt := 1; err != nil && operation == constants.TfOperationRead && attempt < groupReadNotFoundMaxAttempts; attempt++ {
+		if errors.GraphError(ctx, err).StatusCode != http.StatusNotFound {
+			break
+		}
+		timer := time.NewTimer(groupReadNotFoundRetryInterval)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			resp.Diagnostics.AddError("Error reading group", fmt.Sprintf("Could not confirm group availability: %s", ctx.Err()))
+			return
+		case <-timer.C:
+		}
+		groupObject, err = groupRequest.Get(ctx, requestConfig)
+	}
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -206,7 +227,6 @@ func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		Groups().
 		ByGroupId(groupId).
 		Patch(ctx, requestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
@@ -278,7 +298,6 @@ func (r *GroupResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 				Select: []string{"id", "assignedLicenses"},
 			},
 		})
-
 		if err != nil {
 			tflog.Debug(ctx, "Group not found during license check, proceeding with cleanup")
 			break
@@ -293,7 +312,11 @@ func (r *GroupResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		if i == maxRetries-1 {
 			resp.Diagnostics.AddError(
 				"Delete Failed",
-				fmt.Sprintf("Cannot delete group %s: group still has %d active license(s) assigned. Please remove all licenses before deleting the group.", groupId, len(assignedLicenses)),
+				fmt.Sprintf(
+					"Cannot delete group %s: group still has %d active license(s) assigned. Please remove all licenses before deleting the group.",
+					groupId,
+					len(assignedLicenses),
+				),
 			)
 			return
 		}
@@ -324,7 +347,6 @@ func (r *GroupResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 		object.HardDelete.ValueBool(),
 		deleteOpts,
 	)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Delete Failed",
