@@ -35,6 +35,7 @@ from lib.git_operations import get_changed_files  # noqa: E402
 from lib.github import write_output  # noqa: E402
 from lib.partitions import production_import_closure  # noqa: E402
 from lib.patch_lines import added_go_lines, measure_patch  # noqa: E402
+from lib.registry_changes import verified_declaration_only_files, verified_registry_additions  # noqa: E402
 
 # pylint: enable=wrong-import-position
 
@@ -51,6 +52,23 @@ def _verify_unreachable_mocks(changed):
         raise ValueError("Cannot verify the Codecov mocks exclusion")
     if "**/mocks/**" not in policy["ignore"]:
         raise ValueError("Codecov does not exclude the mocks namespace")
+    reachable = production_import_closure()
+    return all(
+        Path(name).is_file() and Path(name).parent.as_posix() not in reachable for name in changed
+    )
+
+
+def _verify_unreachable_tools(changed):
+    """Honor the existing scripts exclusion only for CI tools proven outside provider runtime."""
+    if any(not name.startswith("scripts/pipeline/pr/tools/") for name in changed):
+        return False
+    policy = yaml.safe_load(Path("codecov.yml").read_text(encoding="utf-8"))
+    if (
+        not isinstance(policy, dict)
+        or not isinstance(policy.get("ignore"), list)
+        or "scripts/" not in policy["ignore"]
+    ):
+        raise ValueError("Cannot verify the Codecov scripts exclusion")
     reachable = production_import_closure()
     return all(
         Path(name).is_file() and Path(name).parent.as_posix() not in reachable for name in changed
@@ -87,8 +105,26 @@ def _recover_patch_coverage(args):
         mocks = [name for name in added if "mocks" in Path(name).parts[:-1]]
         if mocks and not _verify_unreachable_mocks(mocks):
             raise ValueError("Cannot verify changed mocks are excluded from runtime")
-        runtime = {name: lines for name, lines in added.items() if name not in mocks}
+        tools = [name for name in added if name.startswith("scripts/pipeline/pr/tools/")]
+        if tools and not _verify_unreachable_tools(tools):
+            raise ValueError("Cannot verify changed CI tools are excluded from runtime")
+        registries = verified_registry_additions(added, args.base_ref, args.commit_sha)
+        runtime = {
+            name: lines for name, lines in added.items()
+            if name not in mocks and name not in registries and name not in tools
+        }
+        if registries:
+            print("Verified declarative constructor additions: " + ", ".join(sorted(registries)))
         report = fetch_commit_report(args.repo_slug, args.commit_sha, args.codecov_token)
+        if isinstance(report, dict) and isinstance(report.get("report"), dict):
+            files = report["report"].get("files")
+            if isinstance(files, list) and all(isinstance(item, dict) for item in files):
+                present = {item.get("name") for item in files}
+                missing = {name: lines for name, lines in runtime.items() if name not in present}
+                declarations = verified_declaration_only_files(missing, args.commit_sha)
+                runtime = {name: lines for name, lines in runtime.items() if name not in declarations}
+                if declarations:
+                    print("Verified declaration-only Go files: " + ", ".join(sorted(declarations)))
         stats = measure_patch(report, runtime, args.commit_sha)
         print("📊 Reconstructed PR patch coverage from exact-head Codecov executable lines")
         return stats

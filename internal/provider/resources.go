@@ -207,6 +207,7 @@ import (
 	graphBetaM365AdminBrowserSite "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site"
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site_list"
 	graphDeviceM365AdminM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/m365_apps_installation_options"
+	graphBetaM365AdminProfileCardProperty "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/profile_card_property"
 	graphBetaM365AdminSharepointSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/sharepoint_settings"
 
 	// PowerShell - Microsoft Teams
@@ -473,6 +474,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		// Graph Beta - M365 Admin Centre
 		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListResource,
+		graphBetaM365AdminProfileCardProperty.NewProfileCardPropertyResource,
 		graphBetaM365AdminSharepointSettings.NewSharepointSettingsResource,
 
 		// Graph Beta - Windows 365 resources

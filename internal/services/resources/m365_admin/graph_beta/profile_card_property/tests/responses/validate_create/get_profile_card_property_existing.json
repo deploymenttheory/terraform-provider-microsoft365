@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#admin/people/profileCardProperties/$entity",
+  "directoryPropertyName": "customAttribute9",
+  "isVisible": true,
+  "annotations": [
+    {
+      "displayName": "Department Code",
+      "localizations": []
+    }
+  ]
+}
