@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for application password credential resources.
@@ -51,11 +52,27 @@ func (r *ApplicationPasswordCredentialResource) Create(ctx context.Context, req 
 
 	tflog.Debug(ctx, fmt.Sprintf("Calling addPassword for application_id: %s", applicationID))
 
-	createdCredential, err := r.client.
-		Applications().
-		ByApplicationId(applicationID).
-		AddPassword().
-		Post(ctx, requestBody, nil)
+	// A new application's GET can succeed before addPassword reaches a ready replica.
+	// Retry only 404: retrying an uncertain write could lose the creation-only secret.
+	var createdCredential graphmodels.PasswordCredentialable
+	err = crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
+		var createErr error
+		createdCredential, createErr = r.client.
+			Applications().
+			ByApplicationId(applicationID).
+			AddPassword().
+			Post(ctx, requestBody, nil)
+		if createErr == nil {
+			return true, nil
+		}
+		if errors.GraphError(ctx, createErr).StatusCode == 404 {
+			return false, fmt.Errorf("application %s is not visible to addPassword yet: %w", applicationID, createErr)
+		}
+		return false, &crud.FatalPollError{Err: createErr}
+	})
+	if ctx.Err() != nil {
+		err = ctx.Err()
+	}
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
@@ -146,7 +163,6 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 		Applications().
 		ByApplicationId(applicationID).
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -181,7 +197,10 @@ func (r *ApplicationPasswordCredentialResource) Read(ctx context.Context, req re
 	}
 
 	if foundCredential == nil {
-		tflog.Error(ctx, fmt.Sprintf("Password credential with key_id %s not found on application %s after checking %d credentials", keyID, applicationID, len(passwordCredentials)))
+		tflog.Error(
+			ctx,
+			fmt.Sprintf("Password credential with key_id %s not found on application %s after checking %d credentials", keyID, applicationID, len(passwordCredentials)),
+		)
 		resp.Diagnostics.AddError(
 			"Password credential not found",
 			fmt.Sprintf("Password credential with key_id %s not found on application %s", keyID, applicationID),
@@ -249,7 +268,6 @@ func (r *ApplicationPasswordCredentialResource) Update(ctx context.Context, req 
 		ByApplicationId(applicationID).
 		RemovePassword().
 		Post(ctx, removeRequestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
@@ -272,7 +290,6 @@ func (r *ApplicationPasswordCredentialResource) Update(ctx context.Context, req 
 		ByApplicationId(applicationID).
 		AddPassword().
 		Post(ctx, addRequestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
@@ -348,7 +365,6 @@ func (r *ApplicationPasswordCredentialResource) Delete(ctx context.Context, req 
 		ByApplicationId(applicationID).
 		RemovePassword().
 		Post(ctx, removeRequestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
