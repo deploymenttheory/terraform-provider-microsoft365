@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphadmin "github.com/microsoftgraph/msgraph-beta-sdk-go/admin"
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 )
 
 func constructResource(ctx context.Context, _ *WindowsUpdatesAutopatchUpdatableAssetGroupResourceModel) (graphmodelswindowsupdates.UpdatableAssetGroupable, error) {
@@ -26,7 +27,10 @@ func constructResource(ctx context.Context, _ *WindowsUpdatesAutopatchUpdatableA
 	return requestBody, nil
 }
 
-func constructAddMembersRequest(ctx context.Context, deviceObjectIDs []string) (graphadmin.WindowsUpdatesUpdatableAssetsItemMicrosoftGraphWindowsUpdatesAddMembersByIdAddMembersByIdPostRequestBodyable, error) {
+func constructAddMembersRequest(
+	ctx context.Context,
+	deviceObjectIDs []string,
+) (graphadmin.WindowsUpdatesUpdatableAssetsItemMicrosoftGraphWindowsUpdatesAddMembersByIdAddMembersByIdPostRequestBodyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing addMembersById request for %s resource", ResourceName))
 
 	requestBody := graphadmin.NewWindowsUpdatesUpdatableAssetsItemMicrosoftGraphWindowsUpdatesAddMembersByIdAddMembersByIdPostRequestBody()
@@ -44,7 +48,10 @@ func constructAddMembersRequest(ctx context.Context, deviceObjectIDs []string) (
 	return requestBody, nil
 }
 
-func constructRemoveMembersRequest(ctx context.Context, deviceObjectIDs []string) (graphadmin.WindowsUpdatesUpdatableAssetsItemMicrosoftGraphWindowsUpdatesRemoveMembersByIdRemoveMembersByIdPostRequestBodyable, error) {
+func constructRemoveMembersRequest(
+	ctx context.Context,
+	deviceObjectIDs []string,
+) (graphadmin.WindowsUpdatesUpdatableAssetsItemMicrosoftGraphWindowsUpdatesRemoveMembersByIdRemoveMembersByIdPostRequestBodyable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing removeMembersById request for %s resource", ResourceName))
 
 	requestBody := graphadmin.NewWindowsUpdatesUpdatableAssetsItemMicrosoftGraphWindowsUpdatesRemoveMembersByIdRemoveMembersByIdPostRequestBody()

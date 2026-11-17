@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	sdkdevices "github.com/microsoftgraph/msgraph-beta-sdk-go/devices"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 )
 
 // validateRequest performs pre-flight validation before creating or updating the
-// updatable asset group. It verifies that every device object ID in entra_device_object_ids
-// resolves to a real Entra ID device object.
+// updatable asset group. It verifies that every deviceId in entra_device_object_ids
+// resolves to a real Entra ID device.
 func validateRequest(
 	ctx context.Context,
 	client *msgraphbetasdk.GraphServiceClient,
@@ -32,7 +33,7 @@ func validateRequest(
 	return nil
 }
 
-// validateDeviceObjectIds verifies that all supplied Entra ID device object IDs exist by
+// validateDeviceObjectIds verifies that all supplied Entra ID deviceId values exist by
 // querying the /devices endpoint individually for each ID using a deviceId eq filter.
 // A single error is returned listing any IDs that could not be found.
 func validateDeviceObjectIds(

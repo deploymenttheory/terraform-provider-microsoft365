@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodelswindowsupdates "github.com/microsoftgraph/msgraph-beta-sdk-go/models/windowsupdates"
 	graphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
 // Create handles the Create operation for Windows Updates autopatch updatable asset group resources.
@@ -67,7 +68,6 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Create(ctx context.
 		Updates().
 		UpdatableAssets().
 		Post(ctx, requestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -94,7 +94,6 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Create(ctx context.
 			ByUpdatableAssetId(object.ID.ValueString()).
 			MicrosoftGraphWindowsUpdatesAddMembersById().
 			Post(ctx, addRequest, nil)
-
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
@@ -171,7 +170,6 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Read(ctx context.Co
 		UpdatableAssets().
 		ByUpdatableAssetId(groupID).
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -189,7 +187,6 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Read(ctx context.Co
 	membersResponse, err := r.client.Admin().Windows().Updates().UpdatableAssets().
 		WithUrl(membersURL).
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -309,7 +306,6 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Update(ctx context.
 			ByUpdatableAssetId(groupID).
 			MicrosoftGraphWindowsUpdatesAddMembersById().
 			Post(ctx, addRequest, nil)
-
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
@@ -334,7 +330,6 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Update(ctx context.
 			ByUpdatableAssetId(groupID).
 			MicrosoftGraphWindowsUpdatesRemoveMembersById().
 			Post(ctx, removeRequest, nil)
-
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
@@ -399,7 +394,6 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Delete(ctx context.
 		UpdatableAssets().
 		ByUpdatableAssetId(object.ID.ValueString()).
 		Delete(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return

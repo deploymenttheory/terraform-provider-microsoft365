@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_g
 subcategory: "Windows Updates"
 
 description: |-
-  Manages a Windows Autopatch updatable asset group and its Entra ID device membership using the /admin/windows/updates/updatableAssets endpoint. Creating the resource provisions an empty group container. The optional entra_device_object_ids attribute manages which Entra ID devices (by object ID) are members of the group. Membership changes are diff-based: on update only the delta is applied via addMembersById and removeMembersById. Deleting the resource permanently removes the group and all its memberships.
+  Manages a Windows Autopatch updatable asset group and its Entra ID device membership using the /admin/windows/updates/updatableAssets endpoint. Creating the resource provisions an empty group container. The optional entra_device_object_ids attribute manages which Entra ID devices (by deviceId, not directory object ID) are members of the group. Membership changes are diff-based: on update only the delta is applied via addMembersById and removeMembersById. Deleting the resource permanently removes the group and all its memberships.
 ---
 
 # microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group (Resource)
 
-Manages a Windows Autopatch updatable asset group and its Entra ID device membership using the `/admin/windows/updates/updatableAssets` endpoint. Creating the resource provisions an empty group container. The optional `entra_device_object_ids` attribute manages which Entra ID devices (by object ID) are members of the group. Membership changes are diff-based: on update only the delta is applied via `addMembersById` and `removeMembersById`. Deleting the resource permanently removes the group and all its memberships.
+Manages a Windows Autopatch updatable asset group and its Entra ID device membership using the `/admin/windows/updates/updatableAssets` endpoint. Creating the resource provisions an empty group container. The optional `entra_device_object_ids` attribute manages which Entra ID devices (by deviceId, not directory object ID) are members of the group. Membership changes are diff-based: on update only the delta is applied via `addMembersById` and `removeMembersById`. Deleting the resource permanently removes the group and all its memberships.
 
 ## Microsoft Documentation
 
@@ -33,7 +33,7 @@ The following client `application` permissions are needed in order to use this r
 
 ## Dependency Notes
 
-Device membership is managed in-place via `entra_device_object_ids`. Devices can be added or removed without replacing the group. The Entra device object IDs must correspond to devices already enrolled in Windows Autopatch.
+Device membership is managed in-place via `entra_device_object_ids`. Supply the Entra device's `deviceId` property, not its directory object `id`. Devices can be added or removed without replacing the group. Intune enrollment is not required for group membership. Enrolling a device for update management is a separate operation.
 
 ## Field Mutability
 
@@ -70,11 +70,9 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_grou
 ### With Members
 
 ```terraform
-# Example with device members — uses a managed device data source to enrol a single device
-# into the updatable asset group via its Entra device object ID.
-
-data "microsoft365_graph_beta_device_management_managed_device" "devices" {
-  list_all = true
+# Autopatch membership uses Entra deviceId values and does not require Intune enrollment.
+data "microsoft365_graph_beta_identity_and_access_device" "devices" {
+  odata_query = "operatingSystem eq 'Windows' and accountEnabled eq true"
 
   timeouts = {
     read = "30s"
@@ -82,14 +80,19 @@ data "microsoft365_graph_beta_device_management_managed_device" "devices" {
 }
 
 resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group" "example" {
-  entra_device_object_ids = [
-    data.microsoft365_graph_beta_device_management_managed_device.devices.items[0].azure_active_directory_device_id
-  ]
+  entra_device_object_ids = data.microsoft365_graph_beta_identity_and_access_device.devices.items[*].device_id
+
+  lifecycle {
+    precondition {
+      condition     = length(data.microsoft365_graph_beta_identity_and_access_device.devices.items) > 0
+      error_message = "At least one enabled Windows Entra device is required. Intune enrollment is not required."
+    }
+  }
 
   timeouts = {
-    create = "60s"
+    create = "180s"
     read   = "30s"
-    update = "60s"
+    update = "180s"
     delete = "60s"
   }
 }
@@ -99,7 +102,7 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_grou
 
 ```terraform
 # Multiple devices — assigns multiple devices to an updatable asset group using
-# known Entra device object IDs. Devices can be added or removed in-place without
+# known Entra deviceId values (not directory object IDs). Devices can be added or removed in-place without
 # replacing the group.
 
 resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group" "example" {
@@ -123,7 +126,7 @@ resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_grou
 
 ### Optional
 
-- `entra_device_object_ids` (Set of String) Set of Entra ID device object IDs to add as members of the updatable asset group. Omit or leave empty to create a group with no initial members.
+- `entra_device_object_ids` (Set of String) Set of Entra ID deviceId values (not directory object IDs) to add as members of the updatable asset group. Omit or leave empty to create a group with no initial members.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only

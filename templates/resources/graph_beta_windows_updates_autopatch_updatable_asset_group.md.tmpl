@@ -33,7 +33,7 @@ The following client `application` permissions are needed in order to use this {
 
 ## Dependency Notes
 
-Device membership is managed in-place via `entra_device_object_ids`. Devices can be added or removed without replacing the group. The Entra device object IDs must correspond to devices already enrolled in Windows Autopatch.
+Device membership is managed in-place via `entra_device_object_ids`. Supply the Entra device's `deviceId` property, not its directory object `id`. Devices can be added or removed without replacing the group. Intune enrollment is not required for group membership. Enrolling a device for update management is a separate operation.
 
 ## Field Mutability
 

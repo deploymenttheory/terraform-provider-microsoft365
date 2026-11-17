@@ -1,15 +1,5 @@
-data "microsoft365_graph_beta_device_management_managed_device" "test_devices" {
-  list_all = true
-
-  timeouts = {
-    read = "30s"
-  }
-}
-
 resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group" "test" {
-  entra_device_object_ids = toset(compact([
-    data.microsoft365_graph_beta_device_management_managed_device.test_devices.items[0].azure_active_directory_device_id,
-  ]))
+  entra_device_object_ids = []
 
   timeouts = {
     create = "60s"

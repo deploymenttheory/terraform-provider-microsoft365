@@ -5,14 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/testlog"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/graph_beta/autopatch_updatable_asset_group"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 var testResource = graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup.WindowsUpdatesAutopatchUpdatableAssetGroupTestResource{}
@@ -61,7 +61,7 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_01_CreateEmpty(t 
 				ResourceName:            resourceType + ".test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"timeouts", "entra_device_object_ids"},
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
@@ -88,17 +88,17 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_02_WithMembers(t 
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 1: Creating updatable asset group with 1 device member")
+					testlog.StepAction(resourceType, "Step 1: Creating updatable asset group with Entra Windows device members")
 				},
 				Config: loadAcceptanceTestTerraform("02_with_members.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					func(s *terraform.State) error {
-						testlog.WaitForConsistency("asset group members", 30*time.Second)
-						time.Sleep(30 * time.Second)
-						return nil
-					},
 					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("1"),
+					resource.TestCheckResourceAttrPair(
+						resourceType+".test",
+						"entra_device_object_ids.#",
+						"data.microsoft365_graph_beta_identity_and_access_device.test_devices",
+						"items.#",
+					),
 				),
 			},
 			{
@@ -108,15 +108,15 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_02_WithMembers(t 
 				ResourceName:            resourceType + ".test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"timeouts", "entra_device_object_ids"},
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
 // TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMember tests the
-// diff-based update path for adding a member: starting from an empty group and adding one
-// device via addMembersById through the Update function.
+// diff-based update path for adding a member: starting from an empty group and adding Entra Windows
+// devices via addMembersById through the Update function.
 //
 // API calls exercised (step 1):
 //   - POST /admin/windows/updates/updatableAssets
@@ -149,16 +149,16 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMe
 			},
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 2: Adding one device member via diff-based addMembersById")
+					testlog.StepAction(resourceType, "Step 2: Adding device members via diff-based addMembersById")
 				},
 				Config: loadAcceptanceTestTerraform("03_lifecycle_add_step1.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					func(s *terraform.State) error {
-						testlog.WaitForConsistency("asset group members", 30*time.Second)
-						time.Sleep(30 * time.Second)
-						return nil
-					},
-					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("1"),
+					resource.TestCheckResourceAttrPair(
+						resourceType+".test",
+						"entra_device_object_ids.#",
+						"data.microsoft365_graph_beta_identity_and_access_device.test_devices",
+						"items.#",
+					),
 				),
 			},
 			{
@@ -168,14 +168,14 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_03_LifecycleAddMe
 				ResourceName:            resourceType + ".test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"timeouts", "entra_device_object_ids"},
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
 }
 
 // TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_04_LifecycleRemoveMember tests the
-// diff-based update path for removing a member: starting with 1 device and removing it via
+// diff-based update path for removing a member: starting with Entra Windows devices and removing them via
 // removeMembersById through the Update function, leaving the group empty.
 //
 // API calls exercised (step 1):
@@ -200,31 +200,26 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_04_LifecycleRemov
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 1: Creating asset group with 1 device member")
+					testlog.StepAction(resourceType, "Step 1: Creating asset group with Entra Windows device members")
 				},
-				Config: loadAcceptanceTestTerraform("03_lifecycle_add_step1.tf"),
+				Config: loadAcceptanceTestTerraform("04_lifecycle_remove_step1.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					func(s *terraform.State) error {
-						testlog.WaitForConsistency("asset group members", 30*time.Second)
-						time.Sleep(30 * time.Second)
-						return nil
-					},
 					check.That(resourceType+".test").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
-					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("1"),
+					resource.TestCheckResourceAttrPair(
+						resourceType+".test",
+						"entra_device_object_ids.#",
+						"data.microsoft365_graph_beta_identity_and_access_device.test_devices",
+						"items.#",
+					),
 				),
 			},
 			{
 				PreConfig: func() {
-					testlog.StepAction(resourceType, "Step 2: Removing device member via diff-based removeMembersById")
+					testlog.StepAction(resourceType, "Step 2: Removing all device members via diff-based removeMembersById")
 				},
-				Config: loadAcceptanceTestTerraform("01_create_empty.tf"),
+				Config: loadAcceptanceTestTerraform("04_lifecycle_remove_step2.tf"),
 				Check: resource.ComposeTestCheckFunc(
-					func(s *terraform.State) error {
-						testlog.WaitForConsistency("asset group members", 30*time.Second)
-						time.Sleep(30 * time.Second)
-						return nil
-					},
-					check.That(resourceType+".test").Key("entra_device_object_ids.#").HasValue("0"),
+					check.That(resourceType + ".test").Key("entra_device_object_ids.#").HasValue("0"),
 				),
 			},
 			{
@@ -234,7 +229,7 @@ func TestAccResourceWindowsUpdatesAutopatchUpdatableAssetGroup_04_LifecycleRemov
 				ResourceName:            resourceType + ".test",
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"timeouts", "entra_device_object_ids"},
+				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 		},
 	})
