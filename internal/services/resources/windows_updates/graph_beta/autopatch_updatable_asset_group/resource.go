@@ -4,10 +4,6 @@ import (
 	"context"
 	"regexp"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -17,6 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 )
 
 const (
@@ -69,7 +70,7 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Schema(ctx context.
 		MarkdownDescription: "Manages a Windows Autopatch updatable asset group and its Entra ID device membership using the " +
 			"`/admin/windows/updates/updatableAssets` endpoint. " +
 			"Creating the resource provisions an empty group container. The optional `entra_device_object_ids` attribute " +
-			"manages which Entra ID devices (by object ID) are members of the group. " +
+			"manages which Entra ID devices (by deviceId, not directory object ID) are members of the group. " +
 			"Membership changes are diff-based: on update only the delta is applied via `addMembersById` and `removeMembersById`. " +
 			"Deleting the resource permanently removes the group and all its memberships.",
 		Attributes: map[string]schema.Attribute{
@@ -81,9 +82,9 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Schema(ctx context.
 				MarkdownDescription: "The unique identifier for the updatable asset group.",
 			},
 			"entra_device_object_ids": schema.SetAttribute{
-				ElementType:         types.StringType,
-				Optional:            true,
-				MarkdownDescription: "Set of Entra ID device object IDs to add as members of the updatable asset group. " +
+				ElementType: types.StringType,
+				Optional:    true,
+				MarkdownDescription: "Set of Entra ID deviceId values (not directory object IDs) to add as members of the updatable asset group. " +
 					"Omit or leave empty to create a group with no initial members.",
 				Validators: []validator.Set{
 					setvalidator.ValueStringsAre(

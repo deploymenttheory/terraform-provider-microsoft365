@@ -4,7 +4,7 @@ package graphBetaWindowsUpdatesAutopatchUpdatableAssetGroup_test
 import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	providercore "github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider/core"
-	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/managed_device"
+	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/identity_and_access/graph_beta/device"
 	testProvider1 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/windows_updates/graph_beta/autopatch_updatable_asset_group"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -15,7 +15,7 @@ var testProviderRegistry = providercore.Registry{
 		testProvider1.NewWindowsUpdatesAutopatchUpdatableAssetGroupResource,
 	},
 	DataSources: []func() datasource.DataSource{
-		testProvider0.NewManagedDeviceDataSource,
+		testProvider0.NewDeviceDataSource,
 	},
 }
 

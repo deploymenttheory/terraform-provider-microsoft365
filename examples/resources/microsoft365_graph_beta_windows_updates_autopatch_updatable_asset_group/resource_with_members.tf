@@ -1,8 +1,6 @@
-# Example with device members — uses a managed device data source to enrol a single device
-# into the updatable asset group via its Entra device object ID.
-
-data "microsoft365_graph_beta_device_management_managed_device" "devices" {
-  list_all = true
+# Autopatch membership uses Entra deviceId values and does not require Intune enrollment.
+data "microsoft365_graph_beta_identity_and_access_device" "devices" {
+  odata_query = "operatingSystem eq 'Windows' and accountEnabled eq true"
 
   timeouts = {
     read = "30s"
@@ -10,14 +8,19 @@ data "microsoft365_graph_beta_device_management_managed_device" "devices" {
 }
 
 resource "microsoft365_graph_beta_windows_updates_autopatch_updatable_asset_group" "example" {
-  entra_device_object_ids = [
-    data.microsoft365_graph_beta_device_management_managed_device.devices.items[0].azure_active_directory_device_id
-  ]
+  entra_device_object_ids = data.microsoft365_graph_beta_identity_and_access_device.devices.items[*].device_id
+
+  lifecycle {
+    precondition {
+      condition     = length(data.microsoft365_graph_beta_identity_and_access_device.devices.items) > 0
+      error_message = "At least one enabled Windows Entra device is required. Intune enrollment is not required."
+    }
+  }
 
   timeouts = {
-    create = "60s"
+    create = "180s"
     read   = "30s"
-    update = "60s"
+    update = "180s"
     delete = "60s"
   }
 }
