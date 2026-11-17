@@ -91,7 +91,7 @@ func TestAccDatasourceConditionalAccessTemplate_02_ByName(t *testing.T) {
 				Config: loadAccTestTerraform("02_by_name.tf"),
 				Check: resource.ComposeTestCheckFunc(
 					// Top level attributes
-					check.That("data."+dataSourceType+".by_name").Key("name").HasValue("Require multifactor authentication for admins"),
+					check.That("data."+dataSourceType+".by_name").Key("name").HasValue("Require multifactor authentication for select admins"),
 					check.That("data."+dataSourceType+".by_name").Key("template_id").IsSet(),
 					check.That("data."+dataSourceType+".by_name").Key("description").IsSet(),
 					check.That("data."+dataSourceType+".by_name").Key("scenarios.#").IsSet(),
@@ -173,7 +173,7 @@ func TestAccDatasourceConditionalAccessTemplate_04_MFAAdmins(t *testing.T) {
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That("data."+dataSourceType+".mfa_admins").Key("name").HasValue("Require multifactor authentication for admins"),
+					check.That("data."+dataSourceType+".mfa_admins").Key("name").HasValue("Require multifactor authentication for select admins"),
 					check.That("data."+dataSourceType+".mfa_admins").Key("template_id").IsSet(),
 					check.That(policyResourceType+".from_template_mfa_admins").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-ca-policy-template-require-mfa-for-admins-[a-z0-9]{8}$`)),
 					check.That(policyResourceType+".from_template_mfa_admins").Key("state").HasValue("enabledForReportingButNotEnforced"),
@@ -439,7 +439,7 @@ func TestAccDatasourceConditionalAccessTemplate_11_PasswordChangeHighRisk(t *tes
 						time.Sleep(30 * time.Second)
 						return nil
 					},
-					check.That("data."+dataSourceType+".password_change_high_risk").Key("name").HasValue("Require password change for high-risk users"),
+					check.That("data."+dataSourceType+".password_change_high_risk").Key("name").HasValue("Require risk remediation for high-risk users"),
 					check.That("data."+dataSourceType+".password_change_high_risk").Key("template_id").IsSet(),
 					check.That(policyResourceType+".from_template_password_change_high_risk").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-ca-policy-template-require-password-change-for-high-risk-users-[a-z0-9]{8}$`)),
 					check.That(policyResourceType+".from_template_password_change_high_risk").Key("state").HasValue("enabledForReportingButNotEnforced"),
@@ -719,41 +719,28 @@ func TestAccDatasourceConditionalAccessTemplate_19_RequireMDMCompliantDevice(t *
 	})
 }
 
+// Preview templates can be discovered without policy creation prerequisites.
 func TestAccDatasourceConditionalAccessTemplate_20_SecureAccountRecoveryIdentityVerification(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			policyResourceType,
-			30*time.Second,
-		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		Steps: []resource.TestStep{
-			{
-				PreConfig: func() {
-					testlog.StepAction(policyResourceType, "Creating conditional access policy from secure account recovery with identity verification template")
-				},
-				Config: loadAccTestTerraform("20_secure_account_recovery_identity_verification.tf"),
-				Check: resource.ComposeTestCheckFunc(
-					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
-						time.Sleep(30 * time.Second)
-						return nil
-					},
-					check.That("data."+dataSourceType+".secure_account_recovery").Key("name").HasValue("Secure account recovery with identity verification (Preview)"),
-					check.That("data."+dataSourceType+".secure_account_recovery").Key("template_id").IsSet(),
-					check.That(policyResourceType+".from_template_secure_account_recovery").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-ca-policy-template-secure-account-recovery-identity-verification-[a-z0-9]{8}$`)),
-					check.That(policyResourceType+".from_template_secure_account_recovery").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(policyResourceType+".from_template_secure_account_recovery").Key("id").IsSet(),
-				),
-			},
-		},
+		Steps: []resource.TestStep{{
+			Config: loadAccTestTerraform("20_secure_account_recovery_identity_verification.tf"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("data."+dataSourceType+".secure_account_recovery").Key("name").HasValue("Secure account recovery with identity verification (Preview)"),
+				check.That("data."+dataSourceType+".secure_account_recovery").Key("template_id").HasValue("6acdf4c3-6815-485c-a57d-2c349d517ba0"),
+				check.That("data."+dataSourceType+".secure_account_recovery").Key("id").IsSet(),
+				check.That("data."+dataSourceType+".secure_account_recovery").Key("details.conditions.applications.include_user_actions.0").HasValue("urn:user:accountrecovery"),
+				check.That("data."+dataSourceType+".secure_account_recovery").Key("details.conditions.users.exclude_guests_or_external_users.external_tenants.membership_kind").HasValue("all"),
+				check.That("data."+dataSourceType+".secure_account_recovery").Key("details.grant_controls.built_in_controls.0").HasValue("verifiedID"),
+			),
+		}},
 	})
 }
 
@@ -761,37 +748,24 @@ func TestAccDatasourceConditionalAccessTemplate_21_BlockHighRiskAgentIdentities(
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		CheckDestroy: destroy.CheckDestroyedAllFunc(
-			testResource,
-			policyResourceType,
-			30*time.Second,
-		),
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
-		Steps: []resource.TestStep{
-			{
-				PreConfig: func() {
-					testlog.StepAction(policyResourceType, "Creating conditional access policy from block high risk agent identities template")
-				},
-				Config: loadAccTestTerraform("21_block_high_risk_agent_identities.tf"),
-				Check: resource.ComposeTestCheckFunc(
-					func(_ *terraform.State) error {
-						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
-						time.Sleep(30 * time.Second)
-						return nil
-					},
-					check.That("data."+dataSourceType+".block_high_risk_agents").Key("name").HasValue("Block high risk agent identities from accessing resources"),
-					check.That("data."+dataSourceType+".block_high_risk_agents").Key("template_id").IsSet(),
-					check.That(policyResourceType+".from_template_block_high_risk_agents").Key("display_name").MatchesRegex(regexp.MustCompile(`^acc-test-ca-policy-template-block-high-risk-agent-identities-[a-z0-9]{8}$`)),
-					check.That(policyResourceType+".from_template_block_high_risk_agents").Key("state").HasValue("enabledForReportingButNotEnforced"),
-					check.That(policyResourceType+".from_template_block_high_risk_agents").Key("id").IsSet(),
-				),
-			},
-		},
+		Steps: []resource.TestStep{{
+			Config: loadAccTestTerraform("21_block_high_risk_agent_identities.tf"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That("data."+dataSourceType+".block_high_risk_agents").Key("name").HasValue("Block high risk agent identities from accessing resources"),
+				check.That("data."+dataSourceType+".block_high_risk_agents").Key("template_id").HasValue("6bdcbbb7-ebd1-4f8f-a02f-652db0e3665d"),
+				check.That("data."+dataSourceType+".block_high_risk_agents").Key("id").IsSet(),
+				check.That("data."+dataSourceType+".block_high_risk_agents").Key("scenarios.0").HasValue("aiAgents"),
+				check.That("data."+dataSourceType+".block_high_risk_agents").Key("details.conditions.agent_id_risk_levels.0").HasValue("high"),
+				check.That("data."+dataSourceType+".block_high_risk_agents").Key("details.conditions.client_applications.include_agent_id_service_principals.0").HasValue("All"),
+				check.That("data."+dataSourceType+".block_high_risk_agents").Key("details.grant_controls.built_in_controls.0").HasValue("block"),
+			),
+		}},
 	})
 }
 

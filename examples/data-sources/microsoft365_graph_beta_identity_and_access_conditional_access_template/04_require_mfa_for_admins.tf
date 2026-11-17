@@ -1,5 +1,5 @@
 # Test 04: Create a conditional access policy from template - 
-# Require multifactor authentication for admins
+# Require multifactor authentication for select admins
 
 # ==============================================================================
 # Random Suffix for Unique Resource Names
@@ -16,7 +16,7 @@ resource "random_string" "suffix" {
 # ==============================================================================
 
 data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "mfa_admins" {
-  name = "Require multifactor authentication for admins"
+  name = "Require multifactor authentication for select admins"
 }
 
 # ==============================================================================
@@ -44,7 +44,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       include_roles  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.include_roles
       exclude_roles  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.exclude_roles
       include_users  = []
-      exclude_users  = []
+      exclude_users  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.exclude_users
       include_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.include_groups
       exclude_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.mfa_admins.details.conditions.users.exclude_groups
     }

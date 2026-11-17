@@ -1,5 +1,5 @@
 # Test 11: Create a conditional access policy from template - 
-# Require password change for high-risk users
+# Require risk remediation for high-risk users
 
 # ==============================================================================
 # Random Suffix for Unique Resource Names
@@ -16,7 +16,7 @@ resource "random_string" "suffix" {
 # ==============================================================================
 
 data "microsoft365_graph_beta_identity_and_access_conditional_access_template" "password_change_high_risk" {
-  name = "Require password change for high-risk users"
+  name = "Require risk remediation for high-risk users"
 }
 
 # ==============================================================================
@@ -42,7 +42,7 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
 
     users = {
       include_users  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.include_users
-      exclude_users  = []
+      exclude_users  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.exclude_users
       include_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.include_groups
       exclude_groups = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.exclude_groups
       include_roles  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.conditions.users.include_roles
@@ -55,5 +55,16 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     built_in_controls             = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.grant_controls.built_in_controls
     custom_authentication_factors = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.grant_controls.custom_authentication_factors
     terms_of_use                  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.grant_controls.terms_of_use
+    authentication_strength = {
+      id = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.grant_controls.authentication_strength.id
+    }
+  }
+
+  session_controls = {
+    sign_in_frequency = {
+      is_enabled          = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.session_controls.sign_in_frequency.is_enabled
+      authentication_type = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.session_controls.sign_in_frequency.authentication_type
+      frequency_interval  = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.password_change_high_risk.details.session_controls.sign_in_frequency.frequency_interval
+    }
   }
 }

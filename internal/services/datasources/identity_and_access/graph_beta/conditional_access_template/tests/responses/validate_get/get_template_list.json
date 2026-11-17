@@ -1,10 +1,10 @@
 
 {
-  "@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates",
-  "@odata.count": 21,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates",
+  "@odata.count": 23,
   "value": [
       {
-          "name": "Require multifactor authentication for admins",
+          "name": "Require multifactor authentication for select admins",
           "description": "Require multifactor authentication for privileged administrative accounts to reduce risk of compromise. This policy will target the same roles as security defaults.",
           "id": "c7503427-338e-4c5e-902d-abe252abfb43",
           "scenarios": "secureFoundation,zeroTrust,protectAdmins",
@@ -19,6 +19,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -27,12 +29,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -40,9 +47,7 @@
                   },
                   "users": {
                       "includeUsers": [],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [
@@ -73,7 +78,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('c7503427-338e-4c5e-902d-abe252abfb43')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('c7503427-338e-4c5e-902d-abe252abfb43')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -94,6 +99,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "times": null,
@@ -101,12 +108,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [],
                       "excludeApplications": [],
                       "includeUserActions": [
                           "urn:user:registersecurityinfo"
                       ],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -117,8 +129,7 @@
                           "All"
                       ],
                       "excludeUsers": [
-                          "GuestsOrExternalUsers",
-                          "Current administrator will be excluded"
+                          "GuestsOrExternalUsers"
                       ],
                       "includeGroups": [],
                       "excludeGroups": [],
@@ -145,7 +156,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('b8bda7f8-6584-4446-bce9-d871480e53fa')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('b8bda7f8-6584-4446-bce9-d871480e53fa')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -167,6 +178,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -175,12 +188,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -190,9 +208,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -208,7 +224,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('0b2282f9-2862-4178-88b5-d79340b36cb8')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('0b2282f9-2862-4178-88b5-d79340b36cb8')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -229,6 +245,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -237,12 +255,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -252,9 +275,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -272,7 +293,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('a3d0a415-b068-4326-9251-f9cdf9feeb64')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('a3d0a415-b068-4326-9251-f9cdf9feeb64')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -293,6 +314,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -301,12 +324,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -316,9 +344,7 @@
                       "includeUsers": [
                           "GuestsOrExternalUsers"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -334,7 +360,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('a4072ac0-722b-4991-981b-7f9755daef14')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('a4072ac0-722b-4991-981b-7f9755daef14')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -355,6 +381,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -363,12 +391,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "797f4846-ba00-4fd7-ba43-dac1f8f63013"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -378,9 +411,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -396,7 +427,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('d8c51a9a-e6b1-454d-86af-554e7872e2c1')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('d8c51a9a-e6b1-454d-86af-554e7872e2c1')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -419,6 +450,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -427,12 +460,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -442,9 +480,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -460,7 +496,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('6b619f55-792e-45dc-9711-d83ec9d7ae90')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('6b619f55-792e-45dc-9711-d83ec9d7ae90')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               },
               "sessionControls": {
@@ -472,6 +508,8 @@
                   "secureSignInSession": null,
                   "networkAccessSecurity": null,
                   "globalSecureAccessFilteringProfile": null,
+                  "blockSensitiveActions": null,
+                  "humanApproval": null,
                   "signInFrequency": {
                       "value": null,
                       "type": null,
@@ -483,8 +521,8 @@
           }
       },
       {
-          "name": "Require password change for high-risk users",
-          "description": "Require the user to change their password if the user risk is detected to be high. (Requires a Microsoft Entra ID P2 license)",
+          "name": "Require risk remediation for high-risk users",
+          "description": "Require high-risk users to perform risk remediation, such as a secure password change and/or session revocation, before they can access resources. (Requires a Microsoft Entra ID P2 license)",
           "id": "634b6de7-c38d-4357-a2c7-3842706eedd7",
           "scenarios": "zeroTrust,remoteWork",
           "details": {
@@ -499,6 +537,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -507,12 +547,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -522,9 +567,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -536,13 +579,43 @@
               "grantControls": {
                   "operator": "AND",
                   "builtInControls": [
-                      "mfa",
-                      "passwordChange"
+                      "riskRemediation"
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('634b6de7-c38d-4357-a2c7-3842706eedd7')/details/grantControls/authenticationStrength/$entity",
-                  "authenticationStrength": null
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('634b6de7-c38d-4357-a2c7-3842706eedd7')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength": {
+                      "id": "00000000-0000-0000-0000-000000000002",
+                      "createdDateTime": "2021-12-01T08:00:00Z",
+                      "modifiedDateTime": "2021-12-01T08:00:00Z",
+                      "displayName": "Multifactor authentication",
+                      "description": "Combinations of methods that satisfy strong authentication, such as a password + SMS",
+                      "policyType": "builtIn",
+                      "requirementsSatisfied": "mfa",
+                      "allowedCombinations": [
+                          "windowsHelloForBusiness",
+                          "fido2",
+                          "x509CertificateMultiFactor",
+                          "deviceBasedPush",
+                          "temporaryAccessPassOneTime",
+                          "temporaryAccessPassMultiUse",
+                          "password,microsoftAuthenticatorPush",
+                          "password,softwareOath",
+                          "password,hardwareOath",
+                          "password,x509CertificateSingleFactor",
+                          "password,x509CertificateMultiFactor",
+                          "password,sms",
+                          "password,voice",
+                          "federatedMultiFactor",
+                          "microsoftAuthenticatorPush,federatedSingleFactor",
+                          "softwareOath,federatedSingleFactor",
+                          "hardwareOath,federatedSingleFactor",
+                          "sms,federatedSingleFactor",
+                          "voice,federatedSingleFactor"
+                      ],
+                      "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('634b6de7-c38d-4357-a2c7-3842706eedd7')/details/grantControls/authenticationStrength/combinationConfigurations",
+                      "combinationConfigurations": []
+                  }
               },
               "sessionControls": {
                   "disableResilienceDefaults": null,
@@ -553,6 +626,8 @@
                   "secureSignInSession": null,
                   "networkAccessSecurity": null,
                   "globalSecureAccessFilteringProfile": null,
+                  "blockSensitiveActions": null,
+                  "humanApproval": null,
                   "signInFrequency": {
                       "value": null,
                       "type": null,
@@ -579,6 +654,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -587,12 +664,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -602,9 +684,7 @@
                       "includeUsers": [
                           "None"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [
@@ -636,7 +716,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('c26a510a-3b8b-4023-8c44-d4f4c854e9f9')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('c26a510a-3b8b-4023-8c44-d4f4c854e9f9')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -657,6 +737,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "locations": null,
                   "times": null,
@@ -664,12 +746,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -679,9 +766,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -710,7 +795,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('4e39a309-931e-4cb1-a371-e2beea168002')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('4e39a309-931e-4cb1-a371-e2beea168002')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -731,6 +816,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -738,12 +825,17 @@
                   "deviceStates": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -753,9 +845,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -782,6 +872,8 @@
                   "secureSignInSession": null,
                   "networkAccessSecurity": null,
                   "globalSecureAccessFilteringProfile": null,
+                  "blockSensitiveActions": null,
+                  "humanApproval": null,
                   "signInFrequency": {
                       "value": 1,
                       "type": "hours",
@@ -812,6 +904,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -820,12 +914,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -835,9 +934,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -857,7 +954,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('927c884e-7888-4e81-abc4-bd56ded28985')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('927c884e-7888-4e81-abc4-bd56ded28985')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -878,6 +975,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -886,12 +985,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "Office365"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -901,9 +1005,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -921,6 +1023,8 @@
                   "secureSignInSession": null,
                   "networkAccessSecurity": null,
                   "globalSecureAccessFilteringProfile": null,
+                  "blockSensitiveActions": null,
+                  "humanApproval": null,
                   "applicationEnforcedRestrictions": {
                       "isEnabled": true
                   }
@@ -943,6 +1047,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -951,12 +1057,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -964,9 +1075,7 @@
                   },
                   "users": {
                       "includeUsers": [],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [
@@ -1000,7 +1109,7 @@
                   "builtInControls": [],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('76c03f19-ea37-4656-a772-a183b4ddb81d')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('76c03f19-ea37-4656-a772-a183b4ddb81d')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": {
                       "id": "00000000-0000-0000-0000-000000000004",
                       "createdDateTime": "2021-12-01T08:00:00Z",
@@ -1014,7 +1123,7 @@
                           "fido2",
                           "x509CertificateMultiFactor"
                       ],
-                      "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('76c03f19-ea37-4656-a772-a183b4ddb81d')/details/grantControls/authenticationStrength/combinationConfigurations",
+                      "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('76c03f19-ea37-4656-a772-a183b4ddb81d')/details/grantControls/authenticationStrength/combinationConfigurations",
                       "combinationConfigurations": []
                   }
               }
@@ -1036,6 +1145,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -1044,12 +1155,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "MicrosoftAdminPortals"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -1057,9 +1173,7 @@
                   },
                   "users": {
                       "includeUsers": [],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [
@@ -1088,7 +1202,7 @@
                   "builtInControls": [],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('6364131e-bc4a-47c4-a20b-33492d1fff6c')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('6364131e-bc4a-47c4-a20b-33492d1fff6c')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": {
                       "id": "00000000-0000-0000-0000-000000000002",
                       "createdDateTime": "2021-12-01T08:00:00Z",
@@ -1118,7 +1232,7 @@
                           "sms,federatedSingleFactor",
                           "voice,federatedSingleFactor"
                       ],
-                      "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('6364131e-bc4a-47c4-a20b-33492d1fff6c')/details/grantControls/authenticationStrength/combinationConfigurations",
+                      "combinationConfigurations@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('6364131e-bc4a-47c4-a20b-33492d1fff6c')/details/grantControls/authenticationStrength/combinationConfigurations",
                       "combinationConfigurations": []
                   }
               }
@@ -1140,6 +1254,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": "elevated",
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -1148,12 +1264,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "Office365"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -1163,9 +1284,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -1184,7 +1303,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('16aaa400-bfdf-4756-a420-ad2245d4cde8')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('16aaa400-bfdf-4756-a420-ad2245d4cde8')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -1205,6 +1324,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -1213,12 +1334,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -1228,9 +1354,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -1248,7 +1372,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('a297dd1a-21fe-4016-99a0-ba43ba64378c')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('a297dd1a-21fe-4016-99a0-ba43ba64378c')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -1264,11 +1388,14 @@
                   "userRiskLevels": [],
                   "signInRiskLevels": [],
                   "clientAppTypes": [
-                      "all"
+                      "browser",
+                      "mobileAppsAndDesktopClients"
                   ],
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -1277,12 +1404,17 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [],
                       "excludeApplications": [],
                       "includeUserActions": [
                           "urn:user:accountrecovery"
                       ],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -1292,9 +1424,7 @@
                       "includeUsers": [
                           "All"
                       ],
-                      "excludeUsers": [
-                          "Current administrator will be excluded"
-                      ],
+                      "excludeUsers": [],
                       "includeGroups": [],
                       "excludeGroups": [],
                       "includeRoles": [],
@@ -1316,7 +1446,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('6acdf4c3-6815-485c-a57d-2c349d517ba0')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('6acdf4c3-6815-485c-a57d-2c349d517ba0')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -1337,6 +1467,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": "high",
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -1344,12 +1476,17 @@
                   "deviceStates": null,
                   "devices": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -1385,7 +1522,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('6bdcbbb7-ebd1-4f8f-a02f-652db0e3665d')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('6bdcbbb7-ebd1-4f8f-a02f-652db0e3665d')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -1406,6 +1543,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -1413,12 +1552,17 @@
                   "deviceStates": null,
                   "devices": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -1454,7 +1598,7 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('c5bf9137-a43c-48e1-9d13-8258b31b855d')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('c5bf9137-a43c-48e1-9d13-8258b31b855d')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }
@@ -1475,6 +1619,8 @@
                   "servicePrincipalRiskLevels": [],
                   "agentIdRiskLevels": null,
                   "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
                   "clients": null,
                   "platforms": null,
                   "locations": null,
@@ -1483,12 +1629,16 @@
                   "devices": null,
                   "clientApplications": null,
                   "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
                   "applications": {
                       "includeApplications": [
                           "All"
                       ],
                       "excludeApplications": [],
                       "includeUserActions": [],
+                      "includeAgentActions": [],
                       "includeAuthenticationContextClassReferences": [],
                       "applicationFilter": null,
                       "networkAccess": null,
@@ -1496,7 +1646,7 @@
                   },
                   "users": {
                       "includeUsers": [
-                          "AllAgentIdUsers"
+                          "None"
                       ],
                       "excludeUsers": [],
                       "includeGroups": [],
@@ -1505,6 +1655,13 @@
                       "excludeRoles": [],
                       "includeGuestsOrExternalUsers": null,
                       "excludeGuestsOrExternalUsers": null
+                  },
+                  "agents": {
+                      "includeAgentUsers": [
+                          "All"
+                      ],
+                      "excludeAgentUsers": [],
+                      "agentFilter": null
                   }
               },
               "grantControls": {
@@ -1514,7 +1671,152 @@
                   ],
                   "customAuthenticationFactors": [],
                   "termsOfUse": [],
-                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#conditionalAccess/templates('376d9923-7f15-40c2-830b-3312120f1eed')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('376d9923-7f15-40c2-830b-3312120f1eed')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength": null
+              }
+          }
+      },
+      {
+          "name": "Block agent users with high risk",
+          "description": "This policy blocks agent users with a high risk level from accessing resources in your tenant.",
+          "id": "a1b2c3d4-1111-4aaa-bbbb-000000000001",
+          "scenarios": "aiAgents",
+          "details": {
+              "sessionControls": null,
+              "conditions": {
+                  "userRiskLevels": [],
+                  "signInRiskLevels": [],
+                  "clientAppTypes": [
+                      "all"
+                  ],
+                  "servicePrincipalRiskLevels": [],
+                  "agentIdRiskLevels": "high",
+                  "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": null,
+                  "clients": null,
+                  "platforms": null,
+                  "locations": null,
+                  "times": null,
+                  "deviceStates": null,
+                  "devices": null,
+                  "clientApplications": null,
+                  "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agentContext": null,
+                  "actionsAndDestinations": null,
+                  "applications": {
+                      "includeApplications": [
+                          "All"
+                      ],
+                      "excludeApplications": [],
+                      "includeUserActions": [],
+                      "includeAgentActions": [],
+                      "includeAuthenticationContextClassReferences": [],
+                      "applicationFilter": null,
+                      "networkAccess": null,
+                      "globalSecureAccess": null
+                  },
+                  "users": {
+                      "includeUsers": [
+                          "None"
+                      ],
+                      "excludeUsers": [],
+                      "includeGroups": [],
+                      "excludeGroups": [],
+                      "includeRoles": [],
+                      "excludeRoles": [],
+                      "includeGuestsOrExternalUsers": null,
+                      "excludeGuestsOrExternalUsers": null
+                  },
+                  "agents": {
+                      "includeAgentUsers": [
+                          "All"
+                      ],
+                      "excludeAgentUsers": [],
+                      "agentFilter": null
+                  }
+              },
+              "grantControls": {
+                  "operator": "OR",
+                  "builtInControls": [
+                      "block"
+                  ],
+                  "customAuthenticationFactors": [],
+                  "termsOfUse": [],
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('a1b2c3d4-1111-4aaa-bbbb-000000000001')/details/grantControls/authenticationStrength/$entity",
+                  "authenticationStrength": null
+              }
+          }
+      },
+      {
+          "name": "Block assistive agent flows with high risk",
+          "description": "This policy blocks all assistive agents flows with a high risk level from accessing resources in your tenant.",
+          "id": "a1b2c3d4-2222-4bbb-cccc-000000000002",
+          "scenarios": "aiAgents",
+          "details": {
+              "sessionControls": null,
+              "conditions": {
+                  "userRiskLevels": [],
+                  "signInRiskLevels": [],
+                  "clientAppTypes": [
+                      "all"
+                  ],
+                  "servicePrincipalRiskLevels": [],
+                  "agentIdRiskLevels": null,
+                  "insiderRiskLevels": null,
+                  "purviewDataLossPreventionRules": null,
+                  "agentSessionRiskLevels": "high",
+                  "clients": null,
+                  "platforms": null,
+                  "locations": null,
+                  "times": null,
+                  "deviceStates": null,
+                  "devices": null,
+                  "clientApplications": null,
+                  "authenticationFlows": null,
+                  "federatedTokens": null,
+                  "agents": null,
+                  "actionsAndDestinations": null,
+                  "applications": {
+                      "includeApplications": [
+                          "All"
+                      ],
+                      "excludeApplications": [],
+                      "includeUserActions": [],
+                      "includeAgentActions": [],
+                      "includeAuthenticationContextClassReferences": [],
+                      "applicationFilter": null,
+                      "networkAccess": null,
+                      "globalSecureAccess": null
+                  },
+                  "users": {
+                      "includeUsers": [
+                          "All"
+                      ],
+                      "excludeUsers": [],
+                      "includeGroups": [],
+                      "excludeGroups": [],
+                      "includeRoles": [],
+                      "excludeRoles": [],
+                      "includeGuestsOrExternalUsers": null,
+                      "excludeGuestsOrExternalUsers": null
+                  },
+                  "agentContext": {
+                      "includeAgentContexts": [
+                          "allAgentAssistedFlows"
+                      ],
+                      "excludeAgentContexts": []
+                  }
+              },
+              "grantControls": {
+                  "operator": "OR",
+                  "builtInControls": [
+                      "block"
+                  ],
+                  "customAuthenticationFactors": [],
+                  "termsOfUse": [],
+                  "authenticationStrength@odata.context": "https://graph.microsoft.com/beta/$metadata#identity/conditionalAccess/templates('a1b2c3d4-2222-4bbb-cccc-000000000002')/details/grantControls/authenticationStrength/$entity",
                   "authenticationStrength": null
               }
           }

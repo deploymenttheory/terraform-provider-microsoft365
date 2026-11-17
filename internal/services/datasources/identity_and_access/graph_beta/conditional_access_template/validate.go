@@ -8,17 +8,20 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/lithammer/fuzzysearch/fuzzy"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 )
 
 // validateRequest validates that the provided template_id or name exists in the available templates.
 // If not found, it returns an error with suggestions for similar valid values using fuzzy matching.
 func (d *ConditionalAccessTemplateDataSource) validateRequest(ctx context.Context, templateID, name string, resp *datasource.ReadResponse) (graphmodels.ConditionalAccessTemplateable, bool) {
-	templates, err := d.client.
-		Identity().
-		ConditionalAccess().
-		Templates().
-		Get(ctx, nil)
+	var templates struct {
+		Value []*templateResponse `json:"value"`
+	}
+	err := customrequests.JSONRequest(ctx, d.client.GetAdapter(), abstractions.GET,
+		"/identity/conditionalAccess/templates", nil, nil, &templates)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -28,7 +31,7 @@ func (d *ConditionalAccessTemplateDataSource) validateRequest(ctx context.Contex
 		return nil, false
 	}
 
-	if templates == nil || templates.GetValue() == nil || len(templates.GetValue()) == 0 {
+	if len(templates.Value) == 0 {
 		resp.Diagnostics.AddError(
 			"No Templates Found",
 			"The API returned no conditional access templates",
@@ -36,7 +39,7 @@ func (d *ConditionalAccessTemplateDataSource) validateRequest(ctx context.Contex
 		return nil, false
 	}
 
-	templateList := templates.GetValue()
+	templateList := templates.Value
 
 	// Build lists of all valid IDs and names for error messaging
 	var validIDs []string
@@ -45,6 +48,9 @@ func (d *ConditionalAccessTemplateDataSource) validateRequest(ctx context.Contex
 	nameToTemplate := make(map[string]graphmodels.ConditionalAccessTemplateable)
 
 	for _, template := range templateList {
+		if template == nil {
+			continue
+		}
 		if id := template.GetId(); id != nil && *id != "" {
 			validIDs = append(validIDs, *id)
 			idToTemplate[*id] = template

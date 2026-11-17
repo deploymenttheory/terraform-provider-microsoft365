@@ -31,6 +31,12 @@ This data source supports filtering using the following attributes:
 - `template_id` (Optional): The unique identifier (GUID) of the conditional access template. Exactly one of `template_id` or `name` must be specified.
 - `name` (Optional): The name of the conditional access template. Exactly one of `template_id` or `name` must be specified.
 
+Microsoft can rename templates and update their settings. Use `template_id` when the lookup should follow a template's identifier across name changes.
+
+## Template discovery and policy creation
+
+Reading a template does not create a policy. Creating a policy from its details also requires write permissions, applicable tenant licences, and a payload accepted by the policy API. Preview templates can appear in the catalogue before their settings can be used in a particular tenant. The account-recovery and agent-identity examples demonstrate template discovery independently of policy creation.
+
 ## Version History
 
 | Version | Status | Notes |
@@ -51,7 +57,7 @@ This data source supports filtering using the following attributes:
 
 {{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/03_detailed_template.tf" }}
 
-### Example 4: Create policy from template - Require MFA for admins
+### Example 4: Create policy from template - Require MFA for select admins
 
 {{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/04_require_mfa_for_admins.tf" }}
 
@@ -79,7 +85,7 @@ This data source supports filtering using the following attributes:
 
 {{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/10_require_mfa_for_risky_signins.tf" }}
 
-### Example 11: Create policy from template - Require password change for high-risk users
+### Example 11: Create policy from template - Require risk remediation for high-risk users
 
 {{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/11_require_password_change_high_risk_users.tf" }}
 
@@ -111,7 +117,11 @@ This data source supports filtering using the following attributes:
 
 {{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/19_require_mdm_enrolled_compliant_device.tf" }}
 
-### Example 21: Create policy from template - Block high-risk agent identities
+### Example 20: Get the account-recovery template
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/20_secure_account_recovery_identity_verification.tf" }}
+
+### Example 21: Get the high-risk agent identity template
 
 {{ tffile "examples/data-sources/microsoft365_graph_beta_identity_and_access_conditional_access_template/21_block_high_risk_agent_identities.tf" }}
 
