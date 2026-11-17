@@ -48,5 +48,9 @@
   "userPauseAccess": "notConfigured",
   "userWindowsUpdateScanAccess": "notConfigured",
   "updateNotificationLevel": "notConfigured",
-  "allowWindows11Upgrade": false
+  "allowWindows11Upgrade": false,
+  "deadlineGracePeriodForFeatureUpdatesInDays": null,
+  "deadlineGracePeriodForQualityUpdatesInDays": null,
+  "postponeRebootUntilAfterDeadlineForFeatureUpdates": "notConfigured",
+  "postponeRebootUntilAfterDeadlineForQualityUpdates": "notConfigured"
 }
