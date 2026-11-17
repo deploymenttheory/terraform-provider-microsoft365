@@ -10,9 +10,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/jarcoal/httpmock"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	"github.com/jarcoal/httpmock"
 )
 
 var mockState struct {
@@ -114,7 +115,9 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetUpdatableAssetGroupRes
 }
 
 func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetGroupMembersResponder() {
-	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.updatableAssetGroup/members`,
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.updatableAssetGroup/members`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
 			// path: .../updatableAssets/{groupId}/microsoft.graph.windowsUpdates.updatableAssetGroup/members
@@ -163,11 +166,14 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerGetGroupMembersResponder(
 				return nil, fmt.Errorf("failed to create mock JSON response: %w", err)
 			}
 			return resp, nil
-		})
+		},
+	)
 }
 
 func (m *WindowsUpdateUpdatableAssetGroupMock) registerAddMembersByIdResponder() {
-	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.addMembersById$`,
+	httpmock.RegisterResponder(
+		"POST",
+		`=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.addMembersById$`,
 		func(req *http.Request) (*http.Response, error) {
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
@@ -197,11 +203,14 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerAddMembersByIdResponder()
 			mockState.Unlock()
 
 			return httpmock.NewStringResponse(204, ""), nil
-		})
+		},
+	)
 }
 
 func (m *WindowsUpdateUpdatableAssetGroupMock) registerRemoveMembersByIdResponder() {
-	httpmock.RegisterResponder("POST", `=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.removeMembersById$`,
+	httpmock.RegisterResponder(
+		"POST",
+		`=~^https://graph\.microsoft\.com/beta/admin/windows/updates/updatableAssets/[0-9a-fA-F-]+/microsoft\.graph\.windowsUpdates\.removeMembersById$`,
 		func(req *http.Request) (*http.Response, error) {
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
@@ -227,7 +236,8 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerRemoveMembersByIdResponde
 			mockState.Unlock()
 
 			return httpmock.NewStringResponse(204, ""), nil
-		})
+		},
+	)
 }
 
 func (m *WindowsUpdateUpdatableAssetGroupMock) registerDeleteUpdatableAssetGroupResponder() {
@@ -248,8 +258,17 @@ func (m *WindowsUpdateUpdatableAssetGroupMock) registerListDevicesResponder() {
 	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/devices\?`,
 		func(req *http.Request) (*http.Response, error) {
 			devices := []map[string]any{
-				{"id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "deviceId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"},
-				{"id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "deviceId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"},
+				{"id": "11111111-1111-1111-1111-111111111111", "deviceId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "operatingSystem": "Windows", "accountEnabled": true},
+				{"id": "22222222-2222-2222-2222-222222222222", "deviceId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "operatingSystem": "Windows", "accountEnabled": true},
+			}
+			if filter := req.URL.Query().Get("$filter"); strings.HasPrefix(filter, "deviceId eq '") {
+				filtered := make([]map[string]any, 0, 1)
+				for _, device := range devices {
+					if filter == fmt.Sprintf("deviceId eq '%s'", device["deviceId"]) {
+						filtered = append(filtered, device)
+					}
+				}
+				devices = filtered
 			}
 			resp, err := httpmock.NewJsonResponse(200, map[string]any{
 				"@odata.context": "https://graph.microsoft.com/beta/$metadata#devices",

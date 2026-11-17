@@ -33,6 +33,7 @@ import (
 	graphBetaApplicationsServicePrincipalAppRoleAssignedTo "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_app_role_assigned_to"
 	graphBetaServicePrincipalOwner "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_owner"
 	graphBetaServicePrincipalPreferredTokenSigningKeyThumbprint "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_preferred_token_signing_key_thumbprint"
+	graphBetaServicePrincipalSynchronizationSchemaJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_synchronization_schema_json"
 	graphBetaApplicationsServicePrincipalTokenLifetimePolicyAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_token_lifetime_policy_assignment"
 	graphBetaServicePrincipalTokenSigningCertificate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/service_principal_token_signing_certificate"
 	graphBetaApplicationsTokenLifetimePolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/applications/graph_beta/token_lifetime_policy"
@@ -78,6 +79,7 @@ import (
 	graphBetaDeviceManagementDeviceEnrollmentLimitConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/device_enrollment_limit_configuration"
 	graphBetaDeviceManagementDeviceEnrollmentNotification "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/device_enrollment_notification"
 	graphBetaDeviceManagementEndpointPrivilegeManagementJson "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/endpoint_privilege_management_json"
+	graphBetaDeviceManagementEndpointSecurityIntent "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/endpoint_security_intent"
 	graphBetaDeviceManagementGroupPolicyConfiguration "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_configuration"
 	graphBetaDeviceManagementGroupPolicyDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_definition"
 	graphBetaDeviceManagementGroupPolicyUploadedDefinitionFiles "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/group_policy_uploaded_definition_files"
@@ -163,6 +165,7 @@ import (
 	graphBetaIdentityAndAccessDeviceRegistrationPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/device_registration_policy"
 	graphBetaIdentityAndAccessExternalIdentitiesPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/external_identities_policy"
 	graphBetaIdentityAndAccessLifecycleWorkflow "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/lifecycle_workflow"
+	graphBetaIdentityAndAccessLifecycleWorkflowCustomTaskExtension "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/lifecycle_workflow_custom_task_extension"
 	graphBetaIdentityAndAccessLifecycleWorkflowSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/lifecycle_workflow_settings"
 
 	// graphBetaIdentityAndAccessDirectorySettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/directory_settings"
@@ -196,6 +199,7 @@ import (
 	graphBetaIdentityAndAccessNetworkWebFilteringPolicyRule "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_web_filtering_policy_rule"
 	graphBetaIdentityAndAccessRoleDefinition "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/role_definition"
 	graphBetaIdentityAndAccessRoleManagementPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/role_management_policy"
+	graphBetaIdentityAndAccessSecurityDefaultsEnforcementPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/security_defaults_enforcement_policy"
 
 	// Graph v1.0 - Identity and Access resources
 	graphIdentityAndAccessConditionalAccessTermsOfUse "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_v1.0/conditional_access_terms_of_use"
@@ -204,6 +208,7 @@ import (
 	graphBetaM365AdminBrowserSiteList "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/browser_site_list"
 	graphDeviceM365AdminM365AppsInstallationOptions "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/m365_apps_installation_options"
 	graphBetaM365AdminProfileCardProperty "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/profile_card_property"
+	graphBetaM365AdminSharepointSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/m365_admin/graph_beta/sharepoint_settings"
 
 	// PowerShell - Microsoft Teams
 	powershellMicrosoftTeamsTeamsCallingPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/microsoft_teams/teams_calling_policy"
@@ -269,6 +274,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaApplicationsServicePrincipalAppRoleAssignedTo.NewServicePrincipalAppRoleAssignedToResource,
 		graphBetaServicePrincipalOwner.NewServicePrincipalOwnerResource,
 		graphBetaServicePrincipalPreferredTokenSigningKeyThumbprint.NewServicePrincipalPreferredTokenSigningKeyThumbprintResource,
+		graphBetaServicePrincipalSynchronizationSchemaJson.NewServicePrincipalSynchronizationSchemaJsonResource,
 		graphBetaServicePrincipalTokenSigningCertificate.NewServicePrincipalTokenSigningCertificateResource,
 		graphBetaApplicationsTokenLifetimePolicy.NewTokenLifetimePolicyResource,
 		graphBetaApplicationsServicePrincipalTokenLifetimePolicyAssignment.NewServicePrincipalTokenLifetimePolicyAssignmentResource,
@@ -332,6 +338,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaDeviceManagementDeviceEnrollmentLimitConfiguration.NewDeviceEnrollmentLimitConfigurationResource,
 		graphBetaDeviceManagementDeviceEnrollmentNotification.NewDeviceEnrollmentNotificationResource,
 		graphBetaDeviceManagementEndpointPrivilegeManagementJson.NewEndpointPrivilegeManagementResource,
+		graphBetaDeviceManagementEndpointSecurityIntent.NewEndpointSecurityIntentResource,
 		graphBetaDeviceManagementGroupPolicyConfiguration.NewGroupPolicyConfigurationResource,
 		graphBetaDeviceManagementGroupPolicyDefinition.NewGroupPolicyDefinitionResource,
 		graphBetaDeviceManagementGroupPolicyUploadedDefinitionFiles.NewGroupPolicyUploadedDefinitionFileResource,
@@ -414,6 +421,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessDeviceRegistrationPolicy.NewDeviceRegistrationPolicyResource,
 		graphBetaIdentityAndAccessExternalIdentitiesPolicy.NewExternalIdentitiesPolicyResource,
 		graphBetaIdentityAndAccessLifecycleWorkflow.NewLifecycleWorkflowResource,
+		graphBetaIdentityAndAccessLifecycleWorkflowCustomTaskExtension.NewLifecycleWorkflowCustomTaskExtensionResource,
 		graphBetaIdentityAndAccessLifecycleWorkflowSettings.NewLifecycleWorkflowSettingsResource,
 		// graphBetaIdentityAndAccessDirectorySettings.NewDirectorySettingsResource,
 		graphBetaIdentityAndAccessNetworkConditionalAccessSettings.NewNetworkConditionalAccessSettingsResource,
@@ -446,6 +454,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessNamedLocation.NewNamedLocationResource,
 		graphBetaIdentityAndAccessRoleDefinition.NewRoleDefinitionResource,
 		graphBetaIdentityAndAccessRoleManagementPolicy.NewRoleManagementPolicyResource,
+		graphBetaIdentityAndAccessSecurityDefaultsEnforcementPolicy.NewSecurityDefaultsEnforcementPolicyResource,
 
 		// Graph Beta - User resources
 		graphBetaUsersUserLicenseAssignment.NewUserLicenseAssignmentResource,
@@ -466,6 +475,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaM365AdminBrowserSite.NewBrowserSiteResource,
 		graphBetaM365AdminBrowserSiteList.NewBrowserSiteListResource,
 		graphBetaM365AdminProfileCardProperty.NewProfileCardPropertyResource,
+		graphBetaM365AdminSharepointSettings.NewSharepointSettingsResource,
 
 		// Graph Beta - Windows 365 resources
 		graphBetaWindows365CloudPcProvisioningPolicy.NewCloudPcProvisioningPolicyResource,

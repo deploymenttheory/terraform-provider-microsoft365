@@ -1,0 +1,16 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#identityGovernance/lifecycleWorkflows/customTaskExtensions/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "",
+  "description": "",
+  "createdDateTime": "2026-01-01T00:00:00.0000000Z",
+  "lastModifiedDateTime": "2026-01-01T00:00:00.0000000Z",
+  "replyMode": "none",
+  "callbackConfiguration": null,
+  "createdBy": {
+    "id": "f86e75c6-5ab2-474e-ba44-3cfe24569ee5"
+  },
+  "lastModifiedBy": {
+    "id": "f86e75c6-5ab2-474e-ba44-3cfe24569ee5"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#microsoft.graph.deviceManagementIntent",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "displayName": "",
+  "description": "",
+  "isAssigned": false,
+  "isMigratingToConfigurationPolicy": null,
+  "lastModifiedDateTime": "2026-11-16T06:10:25.8995267Z",
+  "templateId": "d1174162-1dd2-4976-affc-6667049ab0ae",
+  "roleScopeTagIds": ["0"]
+}
