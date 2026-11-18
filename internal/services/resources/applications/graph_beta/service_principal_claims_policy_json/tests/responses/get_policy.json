@@ -1,0 +1,20 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#claimsPolicy",
+  "id": "22222222-2222-4222-8222-222222222222",
+  "includeBasicClaimSet": true,
+  "includeApplicationIdInIssuer": false,
+  "audienceOverride": null,
+  "groupFilter": null,
+  "claims": [{
+    "@odata.type": "#microsoft.graph.customClaim",
+    "name": "codex4894",
+    "namespace": "urn:codex:4894",
+    "tokenFormat": ["saml"],
+    "samlAttributeNameFormat": "basic",
+    "configurations": [{
+      "condition": null,
+      "attribute": {"@odata.type": "#microsoft.graph.valueBasedAttribute", "value": "fixture-value-1"},
+      "transformations": []
+    }]
+  }]
+}
