@@ -63,7 +63,6 @@ var deviceListFields = []string{"includeDevices", "excludeDevices", "includeDevi
 
 const malformedMessage = "The server could not process the request because it is malformed or incorrect."
 
-// nullDeviceListResponse mirrors Graph, which rejects a policy whose device lists are null.
 // emptyGrantControls reports whether a grant controls payload configures no control.
 func emptyGrantControls(grantControls map[string]any) bool {
 	for _, key := range []string{"builtInControls", "customAuthenticationFactors", "termsOfUse"} {
@@ -74,6 +73,7 @@ func emptyGrantControls(grantControls map[string]any) bool {
 	return grantControls["authenticationStrength"] == nil
 }
 
+// nullDeviceListResponse mirrors Graph, which rejects a policy whose device lists are null.
 func nullDeviceListResponse(request map[string]any) *http.Response {
 	conditions, _ := request["conditions"].(map[string]any)
 	devices, _ := conditions["devices"].(map[string]any)

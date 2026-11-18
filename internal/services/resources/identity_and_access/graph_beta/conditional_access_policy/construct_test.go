@@ -118,6 +118,10 @@ func TestValidateSessionControlsEveryTimeRules(t *testing.T) {
 			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue("everyTime"), AuthenticationType: types.StringValue("secondaryAuthentication")},
 			want:            sentinels.ErrFrequencyIntervalEveryTimeAuthenticationType,
 		},
+		"everyTimeStrict with secondaryAuthentication": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), AuthenticationType: types.StringValue("secondaryAuthentication")},
+			want:            sentinels.ErrFrequencyIntervalEveryTimeAuthenticationType,
+		},
 		"everyTimeStrict with primaryAndSecondaryAuthentication": {
 			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), AuthenticationType: types.StringValue("primaryAndSecondaryAuthentication")},
 		},
