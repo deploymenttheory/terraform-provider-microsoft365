@@ -106,4 +106,32 @@ func TestUnitApplicationAPIConsistencyIgnoresUnconfiguredScalars(t *testing.T) {
 	parentalAttributes["legal_age_group_rule"] = types.StringValue("BlockMinors")
 	expected.ParentalControlSettings = types.ObjectValueMust(ApplicationParentalControlSettingsAttrTypes, parentalAttributes)
 	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "known nested values must still trigger a retry when stale")
+
+	implicitGrant := types.ObjectValueMust(ImplicitGrantSettingsAttrTypes, map[string]attr.Value{
+		"enable_access_token_issuance": types.BoolValue(false), "enable_id_token_issuance": types.BoolValue(false),
+	})
+	actual.Web = types.ObjectValueMust(ApplicationWebAttrTypes, map[string]attr.Value{
+		"home_page_url": types.StringValue("https://example.com"), "logout_url": types.StringNull(),
+		"redirect_uris": types.SetNull(types.StringType), "implicit_grant_settings": implicitGrant,
+	})
+	require.False(t, state.Set(ctx, &actual).HasError())
+	expected = actual
+	webAttributes := actual.Web.Attributes()
+	grantAttributes := implicitGrant.Attributes()
+	grantAttributes["enable_id_token_issuance"] = types.BoolUnknown()
+	webAttributes["implicit_grant_settings"] = types.ObjectValueMust(ImplicitGrantSettingsAttrTypes, grantAttributes)
+	expected.Web = types.ObjectValueMust(ApplicationWebAttrTypes, webAttributes)
+	require.True(t, applicationConsistencyPredicate(&expected)(ctx, state), "a computed field inside a nested object must not block consistency")
+	grantAttributes["enable_access_token_issuance"] = types.BoolValue(true)
+	webAttributes["implicit_grant_settings"] = types.ObjectValueMust(ImplicitGrantSettingsAttrTypes, grantAttributes)
+	expected.Web = types.ObjectValueMust(ApplicationWebAttrTypes, webAttributes)
+	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "a stale known field inside a nested object must trigger a retry")
+	missingWebAttributes := actual.Web.Attributes()
+	missingWebAttributes["implicit_grant_settings"] = types.ObjectNull(ImplicitGrantSettingsAttrTypes)
+	actual.Web = types.ObjectValueMust(ApplicationWebAttrTypes, missingWebAttributes)
+	require.False(t, state.Set(ctx, &actual).HasError())
+	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "a missing nested object must trigger a retry")
+	actual.Web = types.ObjectNull(ApplicationWebAttrTypes)
+	require.False(t, state.Set(ctx, &actual).HasError())
+	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "a missing configured object must trigger a retry")
 }
