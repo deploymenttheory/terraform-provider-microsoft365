@@ -115,17 +115,27 @@ func TestAtLeastOneOfNonEmpty(t *testing.T) {
 	attrTypes := map[string]attr.Type{
 		"operator":          types.StringType,
 		"built_in_controls": types.SetType{ElemType: types.StringType},
+		"names":             types.ListType{ElemType: types.StringType},
+		"tags":              types.MapType{ElemType: types.StringType},
 		"strength":          strengthType,
 	}
 	emptySet := types.SetValueMust(types.StringType, []attr.Value{})
-	object := func(controls types.Set, strength types.Object) types.Object {
-		return types.ObjectValueMust(attrTypes, map[string]attr.Value{
-			"operator":          types.StringValue("OR"),
-			"built_in_controls": controls,
-			"strength":          strength,
-		})
-	}
+	emptyList := types.ListValueMust(types.StringType, []attr.Value{})
+	emptyMap := types.MapValueMust(types.StringType, map[string]attr.Value{})
 	noStrength := types.ObjectNull(strengthType.AttrTypes)
+	object := func(values map[string]attr.Value) types.Object {
+		all := map[string]attr.Value{
+			"operator":          types.StringValue("OR"),
+			"built_in_controls": types.SetNull(types.StringType),
+			"names":             types.ListNull(types.StringType),
+			"tags":              types.MapNull(types.StringType),
+			"strength":          noStrength,
+		}
+		for name, value := range values {
+			all[name] = value
+		}
+		return types.ObjectValueMust(attrTypes, all)
+	}
 
 	for name, tc := range map[string]struct {
 		value     types.Object
@@ -133,21 +143,32 @@ func TestAtLeastOneOfNonEmpty(t *testing.T) {
 	}{
 		"null object":    {value: types.ObjectNull(attrTypes)},
 		"unknown object": {value: types.ObjectUnknown(attrTypes)},
-		"empty set":      {value: object(emptySet, noStrength), wantError: true},
-		"null set":       {value: object(types.SetNull(types.StringType), noStrength), wantError: true},
-		"unknown set":    {value: object(types.SetUnknown(types.StringType), noStrength)},
+		"nothing set":    {value: object(nil), wantError: true},
+		"empty collections": {
+			value:     object(map[string]attr.Value{"built_in_controls": emptySet, "names": emptyList, "tags": emptyMap}),
+			wantError: true,
+		},
+		"unknown after empty": {
+			value: object(map[string]attr.Value{"built_in_controls": emptySet, "names": types.ListUnknown(types.StringType)}),
+		},
 		"non-empty set": {
-			value: object(types.SetValueMust(types.StringType, []attr.Value{types.StringValue("mfa")}), noStrength),
+			value: object(map[string]attr.Value{"built_in_controls": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("mfa")})}),
+		},
+		"non-empty list": {
+			value: object(map[string]attr.Value{"names": types.ListValueMust(types.StringType, []attr.Value{types.StringValue("a")})}),
 		},
 		"nested object": {
-			value: object(emptySet, types.ObjectValueMust(strengthType.AttrTypes, map[string]attr.Value{"id": types.StringValue("x")})),
+			value: object(map[string]attr.Value{
+				"built_in_controls": emptySet,
+				"strength":          types.ObjectValueMust(strengthType.AttrTypes, map[string]attr.Value{"id": types.StringValue("x")}),
+			}),
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			resp := &validator.ObjectResponse{}
-			AtLeastOneOfNonEmpty("built_in_controls", "strength").ValidateObject(
+			AtLeastOneOfNonEmpty("built_in_controls", "names", "tags", "strength").ValidateObject(
 				context.Background(),
 				validator.ObjectRequest{Path: path.Root("test"), ConfigValue: tc.value},
 				resp,

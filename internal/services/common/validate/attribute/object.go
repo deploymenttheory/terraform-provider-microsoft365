@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -244,7 +245,7 @@ func ObjectSupportedOnlyWhenStringIn(dependentPath path.Path, values []string, v
 }
 
 // atLeastOneOfNonEmptyValidator validates that a nested object sets at least one of the given
-// attributes. An empty set or list doesn't count as set.
+// attributes. An empty collection (set, list or map) doesn't count as set.
 type atLeastOneOfNonEmptyValidator struct {
 	attributeNames []string
 }
@@ -275,15 +276,8 @@ func (v atLeastOneOfNonEmptyValidator) ValidateObject(_ context.Context, req val
 		if value.IsUnknown() {
 			return
 		}
-		switch collection := value.(type) {
-		case basetypes.SetValue:
-			if len(collection.Elements()) == 0 {
-				continue
-			}
-		case basetypes.ListValue:
-			if len(collection.Elements()) == 0 {
-				continue
-			}
+		if emptyCollection(value) {
+			continue
 		}
 		return
 	}
@@ -296,8 +290,19 @@ func (v atLeastOneOfNonEmptyValidator) ValidateObject(_ context.Context, req val
 	)
 }
 
+// emptyCollection reports whether value is a set, list or map without elements.
+func emptyCollection(value attr.Value) bool {
+	switch collection := value.(type) {
+	case interface{ Elements() []attr.Value }:
+		return len(collection.Elements()) == 0
+	case interface{ Elements() map[string]attr.Value }:
+		return len(collection.Elements()) == 0
+	}
+	return false
+}
+
 // AtLeastOneOfNonEmpty returns a validator that ensures a nested object sets at least one of the
-// given attributes, treating empty sets and lists as unset.
+// given attributes, treating empty collections as unset.
 //
 // Example usage in a schema:
 //

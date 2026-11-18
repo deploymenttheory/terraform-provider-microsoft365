@@ -62,7 +62,8 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data ConditionalAcce
 	}
 
 	// Map grant controls
-	if grantControls := remoteResource.GetGrantControls(); grantControls != nil {
+	// A grant without controls can't be configured, so it maps to no block like a null one.
+	if grantControls := remoteResource.GetGrantControls(); hasGrantControl(grantControls) {
 		tflog.Debug(ctx, "Mapping grantControls")
 		data.GrantControls = mapGrantControls(ctx, grantControls)
 	} else {
@@ -385,6 +386,17 @@ func stateAuthenticationFlows(ctx context.Context, authenticationFlows graphmode
 	result.TransferMethods = convert.GraphToFrameworkEnum(authenticationFlows.GetTransferMethods())
 
 	return result
+}
+
+// hasGrantControl reports whether grant controls set at least one control.
+func hasGrantControl(grantControls graphmodels.ConditionalAccessGrantControlsable) bool {
+	if grantControls == nil {
+		return false
+	}
+	return len(grantControls.GetBuiltInControls()) > 0 ||
+		len(grantControls.GetCustomAuthenticationFactors()) > 0 ||
+		len(grantControls.GetTermsOfUse()) > 0 ||
+		grantControls.GetAuthenticationStrength() != nil
 }
 
 func mapGrantControls(ctx context.Context, grantControls graphmodels.ConditionalAccessGrantControlsable) *ConditionalAccessGrantControls {
