@@ -122,11 +122,11 @@ func mapAssignments(ctx context.Context, current types.Set, remoteAssignments []
 	return types.SetValueMust(assignmentType, elements)
 }
 
-// mapAssignmentTarget maps one assignment target. Targets without a filter map to the schema defaults for filter_id and filter_type.
+// mapAssignmentTarget maps one assignment target. Unfiltered targets have a null filter_id and filter_type none.
 func mapAssignmentTarget(target graphmodels.DeviceAndAppManagementAssignmentTargetable) (attr.Value, bool) {
 	values := map[string]attr.Value{
 		"group_id":    types.StringNull(),
-		"filter_id":   types.StringValue(noFilterId),
+		"filter_id":   types.StringNull(),
 		"filter_type": types.StringValue("none"),
 	}
 
@@ -145,7 +145,7 @@ func mapAssignmentTarget(target graphmodels.DeviceAndAppManagementAssignmentTarg
 		return nil, false
 	}
 
-	if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" {
+	if filterId := target.GetDeviceAndAppManagementAssignmentFilterId(); filterId != nil && *filterId != "" && *filterId != noFilterId {
 		values["filter_id"] = types.StringValue(*filterId)
 	}
 	if filterType := target.GetDeviceAndAppManagementAssignmentFilterType(); filterType != nil {

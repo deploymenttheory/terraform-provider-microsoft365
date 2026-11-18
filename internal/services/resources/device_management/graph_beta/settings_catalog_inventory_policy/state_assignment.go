@@ -93,7 +93,7 @@ func MapAssignmentsToTerraform(ctx context.Context, data *InventoryPolicyResourc
 		if filterID != nil && *filterID != "" && *filterID != "00000000-0000-0000-0000-000000000000" {
 			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
 		} else {
-			assignmentObj["filter_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+			assignmentObj["filter_id"] = types.StringNull()
 		}
 
 		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()

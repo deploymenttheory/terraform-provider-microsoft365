@@ -94,12 +94,6 @@ func (r *SettingsCatalogJsonResource) IdentitySchema(ctx context.Context, req re
 
 // Function to create the full device management configuration policy schema
 func (r *SettingsCatalogJsonResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
-	assignments := commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema()
-	filterID := assignments.NestedObject.Attributes["filter_id"].(schema.StringAttribute)
-	filterID.Computed = false
-	filterID.Default = nil
-	assignments.NestedObject.Attributes["filter_id"] = filterID
-
 	resp.Schema = schema.Schema{
 		Description: "Manages a Settings Catalog policy in Microsoft Intune for Windows, macOS, iOS/iPadOS and Android.",
 		Attributes: map[string]schema.Attribute{
@@ -249,7 +243,7 @@ func (r *SettingsCatalogJsonResource) Schema(ctx context.Context, req resource.S
 				Computed:            true,
 				MarkdownDescription: "Indicates if the policy is assigned to any scope",
 			},
-			"assignments": assignments,
+			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
 			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}

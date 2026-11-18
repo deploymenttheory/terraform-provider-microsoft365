@@ -98,10 +98,6 @@ func (r *DeviceConfigurationTemplatesJsonResource) Schema(
 	resp *resource.SchemaResponse,
 ) {
 	assignments := assignmentschema.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema()
-	filterID := assignments.NestedObject.Attributes["filter_id"].(schema.StringAttribute)
-	filterID.Computed = false
-	filterID.Default = nil
-	assignments.NestedObject.Attributes["filter_id"] = filterID
 	assignments.MarkdownDescription = "Assignments owned by this profile. Removing all entries unassigns the profile. Do not manage its assignments with another resource."
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages cross-platform Microsoft Intune device configuration templates through `/deviceManagement/deviceConfigurations`. " +

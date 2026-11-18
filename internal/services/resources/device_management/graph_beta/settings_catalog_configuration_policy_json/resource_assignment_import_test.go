@@ -3,11 +3,12 @@ package graphBetaSettingsCatalogConfigurationPolicyJson_test
 import (
 	"testing"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/jarcoal/httpmock"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 )
 
 func TestUnitAssignmentGeneratedImport(t *testing.T) {

@@ -46,10 +46,7 @@ func DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema() schema.SetNeste
 				// Assignment filter fields
 				"filter_id": schema.StringAttribute{
 					Optional:            true,
-					Computed:            true,
 					MarkdownDescription: "ID of the filter to apply to the assignment. Required when filter_type is 'include' or 'exclude'. Should be omitted when filter_type is 'none'.",
-					// Have to set a default value here to satify the set hash calculation behaviour.
-					Default: stringdefault.StaticString("00000000-0000-0000-0000-000000000000"),
 					Validators: []validator.String{
 						stringvalidator.RegexMatches(
 							regexp.MustCompile(constants.GuidRegex),
