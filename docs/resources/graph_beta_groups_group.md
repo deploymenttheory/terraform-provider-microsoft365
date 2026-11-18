@@ -168,11 +168,11 @@ resource "microsoft365_graph_beta_groups_group" "m365_role_assignable" {
 - `group_owners` (Set of String) The owners of the group at creation time. A maximum of 20 relationships, such as owners and members, can be added as part of group creation. Specify the user IDs (GUIDs) of the users who should be owners of the group. Note: A non-admin user cannot add themselves to the group owners collection. Owners can be added after creation using the `/groups/{id}/owners/$ref` endpoint.
 - `group_types` (Set of String) Specifies the group type and its membership. If the collection contains 'Unified', the group is a Microsoft 365 group; otherwise, it's either a security group or a distribution group. If the collection includes 'DynamicMembership', the group has dynamic membership; otherwise, membership is static.
 - `hard_delete` (Boolean) When `true`, the group will be permanently deleted (hard delete) during destroy. When `false` (default), the group will only be soft deleted and moved to the deleted items container where it can be restored within 30 days. Note: This field defaults to `false` on import since the API does not return this value.
-- `is_assignable_to_role` (Boolean) Indicates whether this group can be assigned to a Microsoft Entra role. This property can only be set while creating the group and is immutable. If set to true, the securityEnabled property must also be set to true, visibility must be Hidden, and the group can't be a dynamic group. Default is false.
+- `is_assignable_to_role` (Boolean) Indicates whether this group can be assigned to a Microsoft Entra role. This property can only be set while creating the group and is immutable. If set to true, security_enabled must also be true, visibility must be Private, and the group can't be a dynamic group. When omitted for a new group, the provider uses false. For existing or imported groups, omission preserves the remote value, including null.
 - `membership_rule` (String) The rule that determines members for this group if the group is a dynamic group (groupTypes contains DynamicMembership). For more information about the syntax of the membership rule, see Membership Rules syntax.
 - `membership_rule_processing_state` (String) Indicates whether the dynamic membership processing is on or paused. Possible values are 'On' or 'Paused'. Only applicable for dynamic groups (when groupTypes contains DynamicMembership).
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
-- `visibility` (String) Specifies the group join policy and group content visibility for groups. Possible values are: `Private`, `Public`, or `HiddenMembership`. `HiddenMembership` can be set only for Microsoft 365 groups when the groups are created and cannot be updated later. Other values of visibility can be updated after group creation. If visibility value is not specified during group creation, a security group is created as `Private` by default, and a Microsoft 365 group is `Public`. Groups assignable to roles are always `Private`. Returned by default. Nullable.
+- `visibility` (String) Specifies the group join policy and group content visibility for groups. Possible values are: `Private`, `Public`, or `HiddenMembership`. `HiddenMembership` can be set only for Microsoft 365 groups when the groups are created and cannot be updated later. Other values of visibility can be updated after group creation. When omitted for a new group, the provider uses `Private`. For existing or imported groups, omission preserves the remote value, including null. Groups assignable to roles are always `Private`. Returned by default. Nullable.
 
 ### Read-Only
 
@@ -220,4 +220,4 @@ terraform import microsoft365_graph_beta_groups_group.example 00000000-0000-0000
 
 # Import with hard_delete enabled (permanently deletes on terraform destroy)
 terraform import microsoft365_graph_beta_groups_group.example "00000000-0000-0000-0000-000000000000:hard_delete=true"
-``` 
+```

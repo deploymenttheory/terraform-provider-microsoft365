@@ -6,10 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
-	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,11 +14,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 )
 
 const (
@@ -195,22 +195,26 @@ func (r *GroupResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 			"visibility": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  stringdefault.StaticString("Private"),
+				PlanModifiers: []planmodifier.String{
+					planmodifiers.UseStateForUnknownString(),
+				},
 				MarkdownDescription: "Specifies the group join policy and group content visibility for groups. " +
 					"Possible values are: `Private`, `Public`, or `HiddenMembership`. `HiddenMembership` can be set " +
 					"only for Microsoft 365 groups when the groups are created and cannot be updated later. Other values " +
-					"of visibility can be updated after group creation. If visibility value is not specified during group " +
-					"creation, a security group is created as `Private` by default, and a Microsoft 365 group is `Public`. " +
+					"of visibility can be updated after group creation. When omitted for a new group, the provider uses `Private`. " +
+					"For existing or imported groups, omission preserves the remote value, including null. " +
 					"Groups assignable to roles are always `Private`. Returned by default. Nullable.",
 				Validators: []validator.String{
 					stringvalidator.OneOf("Private", "Public", "HiddenMembership"),
 				},
 			},
 			"is_assignable_to_role": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				MarkdownDescription: "Indicates whether this group can be assigned to a Microsoft Entra role. This property can only be set while creating the group and is immutable. If set to true, the securityEnabled property must also be set to true, visibility must be Hidden, and the group can't be a dynamic group. Default is false.",
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					planmodifiers.UseStateForUnknownBool(),
+				},
+				MarkdownDescription: "Indicates whether this group can be assigned to a Microsoft Entra role. This property can only be set while creating the group and is immutable. If set to true, security_enabled must also be true, visibility must be Private, and the group can't be a dynamic group. When omitted for a new group, the provider uses false. For existing or imported groups, omission preserves the remote value, including null.",
 			},
 			"membership_rule": schema.StringAttribute{
 				Optional:            true,

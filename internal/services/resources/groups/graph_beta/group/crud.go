@@ -223,7 +223,7 @@ func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	groupId := state.ID.ValueString()
 
-	updatedResource, err := r.client.
+	_, err = r.client.
 		Groups().
 		ByGroupId(groupId).
 		Patch(ctx, requestBody, nil)
@@ -232,7 +232,7 @@ func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	plan.ID = types.StringValue(*updatedResource.GetId())
+	plan.ID = state.ID
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -245,6 +245,7 @@ func (r *GroupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = groupConsistencyPredicate(&plan)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
