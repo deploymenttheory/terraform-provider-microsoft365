@@ -120,7 +120,9 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"is_featured": schema.BoolAttribute{
 				Optional:            true,
-				MarkdownDescription: "The value indicating whether the app is marked as featured by the admin.",
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				MarkdownDescription: "The value indicating whether the app is marked as featured by the admin. Defaults to `false`.",
 			},
 			"privacy_information_url": schema.StringAttribute{
 				Optional:            true,
