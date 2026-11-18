@@ -2,6 +2,7 @@ package graphBetaMacOSPKGApp
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -16,8 +17,14 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// constructResource maps the Terraform schema to the SDK model, using the provided installer path
-func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, installerSourcePath string) (graphmodels.MobileAppable, error) {
+var (
+	errInstallerRequired        = errors.New("installer source path is empty; a valid file path is required")
+	errInstallerMetadataMissing = errors.New("no Info.plist files found in the PKG installer")
+	errIncludedAppsInvalid      = errors.New("failed to read included apps")
+)
+
+// constructResource maps metadata for both operations and extracts installer metadata only on Create.
+func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, installerSourcePath string, isUpdate bool) (graphmodels.MobileAppable, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
 	requestBody := graphmodels.NewMacOSPkgApp()
@@ -52,66 +59,82 @@ func constructResource(ctx context.Context, data *MacOSPKGAppResourceModel, inst
 		requestBody.SetLargeIcon(largeIcon)
 	}
 
-	// For creating resources, we need the installer file to extract metadata
-	// Verify the installer path is provided and the file exists
-	if installerSourcePath == "" {
-		return nil, fmt.Errorf("installer source path is empty; a valid file path is required")
-	}
+	if !isUpdate {
+		// For creating resources, we need the installer file to extract metadata
+		// Verify the installer path is provided and the file exists
+		if installerSourcePath == "" {
+			return nil, errInstallerRequired
+		}
 
-	if _, err := os.Stat(installerSourcePath); err != nil {
-		return nil, fmt.Errorf("installer file not found at path %s: %w", installerSourcePath, err)
-	}
+		if _, err := os.Stat(installerSourcePath); err != nil {
+			return nil, fmt.Errorf("installer file not found at path %s: %w", installerSourcePath, err)
+		}
 
-	filename := filepath.Base(installerSourcePath)
-	tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
-	convert.FrameworkToGraphString(types.StringValue(filename), requestBody.SetFileName)
+		filename := filepath.Base(installerSourcePath)
+		tflog.Debug(ctx, fmt.Sprintf("Using filename from installer path: %s", filename))
+		convert.FrameworkToGraphString(types.StringValue(filename), requestBody.SetFileName)
 
-	// Extract fields from all Info.plist files in the package using the resolved path
-	fields := []utility.Field{
-		{Key: "CFBundleIdentifier", Required: true},
-		{Key: "CFBundleShortVersionString", Required: true},
-	}
+		// Extract fields from all Info.plist files in the package using the resolved path
+		fields := []utility.Field{
+			{Key: "CFBundleIdentifier", Required: true},
+			{Key: "CFBundleShortVersionString", Required: true},
+		}
 
-	tflog.Debug(ctx, fmt.Sprintf("Extracting metadata from PKG file: %s", installerSourcePath))
-	extractedFields, err := utility.ExtractFieldsFromPKGFile(
-		ctx,
-		installerSourcePath,
-		"Info.plist",
-		fields,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to extract metadata from pkg file: %w", err)
-	}
-
-	if len(extractedFields) == 0 {
-		return nil, fmt.Errorf("no Info.plist files found in the PKG installer at %s", installerSourcePath)
-	}
-
-	// First Info.plist becomes primary bundle
-	primaryBundleId := extractedFields[0].Values["CFBundleIdentifier"]
-	primaryBundleVersion := extractedFields[0].Values["CFBundleShortVersionString"]
-
-	tflog.Debug(ctx, fmt.Sprintf("Setting primary bundle ID: %s, version: %s", primaryBundleId, primaryBundleVersion))
-	convert.FrameworkToGraphString(types.StringValue(primaryBundleId), requestBody.SetPrimaryBundleId)
-	convert.FrameworkToGraphString(types.StringValue(primaryBundleVersion), requestBody.SetPrimaryBundleVersion)
-
-	// All entries are set as included apps (including primary)
-	var includedApps []graphmodels.MacOSIncludedAppable
-	for _, fields := range extractedFields {
-		includedApp := graphmodels.NewMacOSIncludedApp()
-		convert.FrameworkToGraphString(
-			types.StringValue(fields.Values["CFBundleIdentifier"]),
-			includedApp.SetBundleId,
+		tflog.Debug(ctx, fmt.Sprintf("Extracting metadata from PKG file: %s", installerSourcePath))
+		extractedFields, err := utility.ExtractFieldsFromPKGFile(
+			ctx,
+			installerSourcePath,
+			"Info.plist",
+			fields,
 		)
-		convert.FrameworkToGraphString(
-			types.StringValue(fields.Values["CFBundleShortVersionString"]),
-			includedApp.SetBundleVersion,
-		)
-		includedApps = append(includedApps, includedApp)
-	}
+		if err != nil {
+			return nil, fmt.Errorf("failed to extract metadata from pkg file: %w", err)
+		}
 
-	requestBody.SetIncludedApps(includedApps)
-	tflog.Debug(ctx, fmt.Sprintf("Added %d included apps from PKG metadata", len(includedApps)))
+		if len(extractedFields) == 0 {
+			return nil, fmt.Errorf("%w at %s", errInstallerMetadataMissing, installerSourcePath)
+		}
+
+		// First Info.plist becomes primary bundle
+		primaryBundleId := extractedFields[0].Values["CFBundleIdentifier"]
+		primaryBundleVersion := extractedFields[0].Values["CFBundleShortVersionString"]
+
+		tflog.Debug(ctx, fmt.Sprintf("Setting primary bundle ID: %s, version: %s", primaryBundleId, primaryBundleVersion))
+		convert.FrameworkToGraphString(types.StringValue(primaryBundleId), requestBody.SetPrimaryBundleId)
+		convert.FrameworkToGraphString(types.StringValue(primaryBundleVersion), requestBody.SetPrimaryBundleVersion)
+
+		// All entries are set as included apps (including primary)
+		var includedApps []graphmodels.MacOSIncludedAppable
+		for _, fields := range extractedFields {
+			includedApp := graphmodels.NewMacOSIncludedApp()
+			convert.FrameworkToGraphString(
+				types.StringValue(fields.Values["CFBundleIdentifier"]),
+				includedApp.SetBundleId,
+			)
+			convert.FrameworkToGraphString(
+				types.StringValue(fields.Values["CFBundleShortVersionString"]),
+				includedApp.SetBundleVersion,
+			)
+			includedApps = append(includedApps, includedApp)
+		}
+
+		requestBody.SetIncludedApps(includedApps)
+		tflog.Debug(ctx, fmt.Sprintf("Added %d included apps from PKG metadata", len(includedApps)))
+
+	} else if !data.MacOSPkgApp.IncludedApps.IsNull() && !data.MacOSPkgApp.IncludedApps.IsUnknown() {
+		var includedApps []MacOSIncludedAppResourceModel
+		if diags := data.MacOSPkgApp.IncludedApps.ElementsAs(ctx, &includedApps, false); diags.HasError() {
+			return nil, fmt.Errorf("%w: %s", errIncludedAppsInvalid, diags)
+		}
+		apps := make([]graphmodels.MacOSIncludedAppable, 0, len(includedApps))
+		for _, app := range includedApps {
+			includedApp := graphmodels.NewMacOSIncludedApp()
+			convert.FrameworkToGraphString(app.BundleId, includedApp.SetBundleId)
+			convert.FrameworkToGraphString(app.BundleVersion, includedApp.SetBundleVersion)
+			apps = append(apps, includedApp)
+		}
+		requestBody.SetIncludedApps(apps)
+	}
 
 	convert.FrameworkToGraphBool(data.MacOSPkgApp.IgnoreVersionDetection, requestBody.SetIgnoreVersionDetection)
 

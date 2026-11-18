@@ -3,12 +3,12 @@ page_title: "microsoft365_graph_beta_device_and_app_management_macos_pkg_app Res
 subcategory: "Device and App Management"
 
 description: |-
-  Manages macOS PKG app deployments using the /deviceAppManagement/mobileApps endpoint. This resource is used to pKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.
+  Manages macOS PKG app deployments using the /deviceAppManagement/mobileApps endpoint, including pre- and post-installation scripts. Metadata-only updates reuse the committed app content without accessing the original installer. Changing the installer source replaces the app.
 ---
 
 # microsoft365_graph_beta_device_and_app_management_macos_pkg_app (Resource)
 
-Manages macOS PKG app deployments using the `/deviceAppManagement/mobileApps` endpoint. This resource is used to pKG files are installer packages that deploy applications, system components, or configuration files to managed macOS devices through the Intune management agent with support for pre/post-installation scripts.
+Manages macOS PKG app deployments using the `/deviceAppManagement/mobileApps` endpoint, including pre- and post-installation scripts. Metadata-only updates reuse the committed app content without accessing the original installer. Changing the installer source replaces the app.
 
 ## Microsoft Documentation
 
