@@ -63,16 +63,6 @@ var deviceListFields = []string{"includeDevices", "excludeDevices", "includeDevi
 
 const malformedMessage = "The server could not process the request because it is malformed or incorrect."
 
-// emptyGrantControls reports whether a grant controls payload configures no control.
-func emptyGrantControls(grantControls map[string]any) bool {
-	for _, key := range []string{"builtInControls", "customAuthenticationFactors", "termsOfUse"} {
-		if values, ok := grantControls[key].([]any); ok && len(values) > 0 {
-			return false
-		}
-	}
-	return grantControls["authenticationStrength"] == nil
-}
-
 // nullDeviceListResponse mirrors Graph, which rejects a policy whose device lists are null.
 func nullDeviceListResponse(request map[string]any) *http.Response {
 	conditions, _ := request["conditions"].(map[string]any)
@@ -237,10 +227,6 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 		// Update fields from request
 		for key, value := range requestBody {
 			policy[key] = value
-		}
-		// Graph stores an empty grant controls block as null
-		if grantControls, ok := policy["grantControls"].(map[string]any); ok && emptyGrantControls(grantControls) {
-			policy["grantControls"] = nil
 		}
 		// Advance a whole second per update so the post-update consistency predicate sees a new version
 		modified, err := time.Parse(time.RFC3339, fmt.Sprint(policy["modifiedDateTime"]))

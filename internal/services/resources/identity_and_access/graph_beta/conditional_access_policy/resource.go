@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	customvalidator "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -874,8 +875,17 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"grant_controls": schema.SingleNestedAttribute{
-				MarkdownDescription: "Controls for granting access. Either `grant_controls` or `session_controls` or both must be specified.",
-				Optional:            true,
+				MarkdownDescription: "Controls for granting access. Either `grant_controls` or `session_controls` or both must be specified. " +
+					"Set at least one control; omit this block for a policy that only uses session controls.",
+				Optional: true,
+				Validators: []validator.Object{
+					customvalidator.AtLeastOneOfNonEmpty(
+						"built_in_controls",
+						"custom_authentication_factors",
+						"terms_of_use",
+						"authentication_strength",
+					),
+				},
 				Attributes: map[string]schema.Attribute{
 					"operator": schema.StringAttribute{
 						MarkdownDescription: "Operator to apply to the controls. Possible values are: AND, OR. When setting a singular operator, use 'OR'.",

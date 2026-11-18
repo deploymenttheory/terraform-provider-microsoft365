@@ -373,7 +373,7 @@ func TestUnitResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("session_controls.application_enforced_restrictions.is_enabled").HasValue("true"),
 
 					// Grant Controls
-					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -434,7 +434,7 @@ func TestUnitResourceConditionalAccessPolicy_07_CAD007(t *testing.T) {
 					check.That(resourceType+".cad007_mobile_signin_frequency").Key("session_controls.sign_in_frequency.is_enabled").HasValue("true"),
 
 					// Grant Controls
-					check.That(resourceType+".cad007_mobile_signin_frequency").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cad007_mobile_signin_frequency").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -490,7 +490,7 @@ func TestUnitResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("session_controls.sign_in_frequency.is_enabled").HasValue("true"),
 
 					// Grant Controls
-					check.That(resourceType+".cad008_browser_signin_frequency").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cad008_browser_signin_frequency").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -543,7 +543,7 @@ func TestUnitResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("session_controls.persistent_browser.is_enabled").HasValue("true"),
 
 					// Grant Controls
-					check.That(resourceType+".cad009_disable_browser_persistence").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cad009_disable_browser_persistence").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -2370,7 +2370,7 @@ func TestUnitResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("session_controls.sign_in_frequency.type").HasValue("hours"),
 
 					// Grant Controls (no built-in controls for session-only policy)
-					check.That(resourceType+".cau017_admin_signin_frequency").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cau017_admin_signin_frequency").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -2415,7 +2415,7 @@ func TestUnitResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("session_controls.persistent_browser.mode").HasValue("never"),
 
 					// Grant Controls (no built-in controls for session-only policy)
-					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -2501,10 +2501,14 @@ func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
 				),
 			},
 			{
-				// Graph returns null for an empty grant block; the configured block must survive the update.
-				Config: cau021Config(`grant_controls = { operator = "AND" }`, "everyTime"),
+				// Graph stores a grant block without controls as null, so it's rejected at plan time.
+				Config:      cau021Config(`grant_controls = { operator = "AND" }`, "everyTimeStrict"),
+				ExpectError: regexp.MustCompile(`At least one of these attributes must be set to a non-empty value`),
+			},
+			{
+				Config: cau021Config("", "everyTime"),
 				Check: resource.ComposeTestCheckFunc(
-					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").HasValue("AND"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").DoesNotExist(),
 					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("everyTime"),
 				),
 			},

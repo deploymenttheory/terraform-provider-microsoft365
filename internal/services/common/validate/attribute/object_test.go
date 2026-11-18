@@ -107,3 +107,54 @@ func TestExactlyOneOfMixedTypes_EmptyAttributes(t *testing.T) {
 		t.Errorf("Expected description %q, got %q", expected, desc)
 	}
 }
+
+func TestAtLeastOneOfNonEmpty(t *testing.T) {
+	t.Parallel()
+
+	strengthType := types.ObjectType{AttrTypes: map[string]attr.Type{"id": types.StringType}}
+	attrTypes := map[string]attr.Type{
+		"operator":          types.StringType,
+		"built_in_controls": types.SetType{ElemType: types.StringType},
+		"strength":          strengthType,
+	}
+	emptySet := types.SetValueMust(types.StringType, []attr.Value{})
+	object := func(controls types.Set, strength types.Object) types.Object {
+		return types.ObjectValueMust(attrTypes, map[string]attr.Value{
+			"operator":          types.StringValue("OR"),
+			"built_in_controls": controls,
+			"strength":          strength,
+		})
+	}
+	noStrength := types.ObjectNull(strengthType.AttrTypes)
+
+	for name, tc := range map[string]struct {
+		value     types.Object
+		wantError bool
+	}{
+		"null object":    {value: types.ObjectNull(attrTypes)},
+		"unknown object": {value: types.ObjectUnknown(attrTypes)},
+		"empty set":      {value: object(emptySet, noStrength), wantError: true},
+		"null set":       {value: object(types.SetNull(types.StringType), noStrength), wantError: true},
+		"unknown set":    {value: object(types.SetUnknown(types.StringType), noStrength)},
+		"non-empty set": {
+			value: object(types.SetValueMust(types.StringType, []attr.Value{types.StringValue("mfa")}), noStrength),
+		},
+		"nested object": {
+			value: object(emptySet, types.ObjectValueMust(strengthType.AttrTypes, map[string]attr.Value{"id": types.StringValue("x")})),
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			resp := &validator.ObjectResponse{}
+			AtLeastOneOfNonEmpty("built_in_controls", "strength").ValidateObject(
+				context.Background(),
+				validator.ObjectRequest{Path: path.Root("test"), ConfigValue: tc.value},
+				resp,
+			)
+			if resp.Diagnostics.HasError() != tc.wantError {
+				t.Fatalf("expected error %v, got %v", tc.wantError, resp.Diagnostics)
+			}
+		})
+	}
+}
