@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // applicationConsistencyPredicate returns a consistency predicate for ReadWithRetry that verifies
@@ -89,7 +90,7 @@ func applicationConsistencyPredicate(expected *ApplicationResourceModel) func(ct
 		}
 		// Optional+Computed object fields: only compare if explicitly set in the plan.
 		if !expected.Api.IsNull() && !expected.Api.IsUnknown() {
-			if !actual.Api.Equal(expected.Api) {
+			if !applicationObjectMatchesKnownFields(actual.Api, expected.Api) {
 				return false
 			}
 		}
@@ -99,22 +100,22 @@ func applicationConsistencyPredicate(expected *ApplicationResourceModel) func(ct
 			}
 		}
 		if !expected.Info.IsNull() && !expected.Info.IsUnknown() {
-			if !actual.Info.Equal(expected.Info) {
+			if !applicationObjectMatchesKnownFields(actual.Info, expected.Info) {
 				return false
 			}
 		}
 		if !expected.OptionalClaims.IsNull() && !expected.OptionalClaims.IsUnknown() {
-			if !actual.OptionalClaims.Equal(expected.OptionalClaims) {
+			if !applicationObjectMatchesKnownFields(actual.OptionalClaims, expected.OptionalClaims) {
 				return false
 			}
 		}
 		if !expected.ParentalControlSettings.IsNull() && !expected.ParentalControlSettings.IsUnknown() {
-			if !actual.ParentalControlSettings.Equal(expected.ParentalControlSettings) {
+			if !applicationObjectMatchesKnownFields(actual.ParentalControlSettings, expected.ParentalControlSettings) {
 				return false
 			}
 		}
 		if !expected.PublicClient.IsNull() && !expected.PublicClient.IsUnknown() {
-			if !actual.PublicClient.Equal(expected.PublicClient) {
+			if !applicationObjectMatchesKnownFields(actual.PublicClient, expected.PublicClient) {
 				return false
 			}
 		}
@@ -124,21 +125,44 @@ func applicationConsistencyPredicate(expected *ApplicationResourceModel) func(ct
 			}
 		}
 		if !expected.Spa.IsNull() && !expected.Spa.IsUnknown() {
-			if !actual.Spa.Equal(expected.Spa) {
+			if !applicationObjectMatchesKnownFields(actual.Spa, expected.Spa) {
 				return false
 			}
 		}
 		if !expected.Web.IsNull() && !expected.Web.IsUnknown() {
-			if !actual.Web.Equal(expected.Web) {
+			if !applicationObjectMatchesKnownFields(actual.Web, expected.Web) {
 				return false
 			}
 		}
 		if !expected.SignInAudienceRestrictions.IsNull() && !expected.SignInAudienceRestrictions.IsUnknown() {
-			if !actual.SignInAudienceRestrictions.Equal(expected.SignInAudienceRestrictions) {
+			if !applicationObjectMatchesKnownFields(actual.SignInAudienceRestrictions, expected.SignInAudienceRestrictions) {
 				return false
 			}
 		}
 
 		return true
 	}
+}
+
+// applicationObjectMatchesKnownFields checks fields written by the provider while
+// allowing omitted computed fields, including nested objects, to be resolved by Graph.
+func applicationObjectMatchesKnownFields(actual, expected types.Object) bool {
+	if actual.IsNull() || actual.IsUnknown() {
+		return false
+	}
+	actualAttributes := actual.Attributes()
+	for name, value := range expected.Attributes() {
+		if value.IsNull() || value.IsUnknown() {
+			continue
+		}
+		if expectedObject, ok := value.(types.Object); ok {
+			actualObject, ok := actualAttributes[name].(types.Object)
+			if !ok || !applicationObjectMatchesKnownFields(actualObject, expectedObject) {
+				return false
+			}
+		} else if !value.Equal(actualAttributes[name]) {
+			return false
+		}
+	}
+	return true
 }

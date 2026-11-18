@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // constructResource maps the Terraform schema to the SDK model
@@ -24,6 +25,16 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 	}
 
 	requestBody := graphmodels.NewApplication()
+
+	// Apply creation defaults without replacing nullable values on imported applications.
+	if isCreate {
+		if data.IsDeviceOnlyAuthSupported.IsNull() || data.IsDeviceOnlyAuthSupported.IsUnknown() {
+			data.IsDeviceOnlyAuthSupported = types.BoolValue(false)
+		}
+		if data.IsFallbackPublicClient.IsNull() || data.IsFallbackPublicClient.IsUnknown() {
+			data.IsFallbackPublicClient = types.BoolValue(false)
+		}
+	}
 
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
@@ -61,6 +72,14 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		diags := data.Api.As(ctx, &apiData, basetypes.ObjectAsOptions{})
 		if diags.HasError() {
 			return nil, fmt.Errorf("failed to extract api data: %s", diags.Errors()[0].Detail())
+		}
+
+		if isCreate && (apiData.RequestedAccessTokenVersion.IsNull() || apiData.RequestedAccessTokenVersion.IsUnknown()) {
+			apiData.RequestedAccessTokenVersion = types.Int32Value(1)
+			data.Api, diags = types.ObjectValueFrom(ctx, ApplicationApiAttrTypes, apiData)
+			if diags.HasError() {
+				return nil, fmt.Errorf("failed to apply api creation defaults: %s", diags.Errors()[0].Detail())
+			}
 		}
 
 		api, err := constructApi(ctx, &apiData)
@@ -488,7 +507,7 @@ func constructParentalControlSettings(ctx context.Context, data *ApplicationPare
 
 	convert.FrameworkToGraphString(data.LegalAgeGroupRule, settings.SetLegalAgeGroupRule)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.CountriesBlockedForMinors, settings.SetCountriesBlockedForMinors); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.CountriesBlockedForMinors, settings.SetCountriesBlockedForMinors); err != nil {
 		return nil, fmt.Errorf("failed to set countries_blocked_for_minors: %w", err)
 	}
 
@@ -499,7 +518,7 @@ func constructParentalControlSettings(ctx context.Context, data *ApplicationPare
 func constructPublicClient(ctx context.Context, data *ApplicationPublicClient) (graphmodels.PublicClientApplicationable, error) {
 	publicClient := graphmodels.NewPublicClientApplication()
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.RedirectUris, publicClient.SetRedirectUris); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.RedirectUris, publicClient.SetRedirectUris); err != nil {
 		return nil, fmt.Errorf("failed to set redirect_uris: %w", err)
 	}
 
@@ -551,7 +570,7 @@ func constructRequiredResourceAccess(ctx context.Context, data types.Set) ([]gra
 func constructSpa(ctx context.Context, data *ApplicationSpa) (graphmodels.SpaApplicationable, error) {
 	spa := graphmodels.NewSpaApplication()
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.RedirectUris, spa.SetRedirectUris); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.RedirectUris, spa.SetRedirectUris); err != nil {
 		return nil, fmt.Errorf("failed to set redirect_uris: %w", err)
 	}
 
@@ -565,7 +584,7 @@ func constructWeb(ctx context.Context, data *ApplicationWeb) (graphmodels.WebApp
 	convert.FrameworkToGraphString(data.HomePageUrl, web.SetHomePageUrl)
 	convert.FrameworkToGraphString(data.LogoutUrl, web.SetLogoutUrl)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.RedirectUris, web.SetRedirectUris); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.RedirectUris, web.SetRedirectUris); err != nil {
 		return nil, fmt.Errorf("failed to set redirect_uris: %w", err)
 	}
 
