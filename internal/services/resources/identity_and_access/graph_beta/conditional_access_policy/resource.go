@@ -31,11 +31,6 @@ const (
 	DeleteTimeout = 180
 )
 
-// compliantNetworkLocationDescription documents the named location behind the portal's "All Compliant Network locations".
-const compliantNetworkLocationDescription = "**All Compliant Network locations** is the named location " +
-	"`3d46dbda-8382-466a-856d-eb00cbc6b910`, created when Global Secure Access signaling for Conditional Access " +
-	"(Adaptive Access Signaling) is enabled."
-
 var (
 	// Basic resource interface (CRUD operations)
 	_ resource.Resource = &ConditionalAccessPolicyResource{}
@@ -192,10 +187,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Attributes: map[string]schema.Attribute{
 							"include_applications": schema.SetAttribute{
 								MarkdownDescription: "Applications to include in the policy. Can use special values: 'All' (all applications), " +
-									"'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (**All agent resources** in the portal). " +
-									"You can also specify application GUIDs. **All internet resources with Global Secure Access** is the pair " +
-									"`5dc48733-b5df-475c-a49b-fa307ef00853` (Internet resources with Global Secure Access) and " +
-									"`c08f52c9-8f03-4558-a0ea-9a4c878cf343` (Microsoft apps with Global Secure Access); Global Secure Access must be deployed in the tenant.",
+									"'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). " +
+									"You can also specify application GUIDs. For all internet resources with Global Secure Access, use " +
+									"`5dc48733-b5df-475c-a49b-fa307ef00853` and `c08f52c9-8f03-4558-a0ea-9a4c878cf343`.",
 								ElementType: types.StringType,
 								Required:    true,
 								Validators: []validator.Set{
@@ -549,8 +543,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"include_locations": schema.SetAttribute{
-								MarkdownDescription: "Named locations to include in the policy (the **Network** assignment in the portal). Use 'All' (any network or location), " +
-									"'AllTrusted' (all trusted networks and locations), or named location GUIDs. " + compliantNetworkLocationDescription,
+								MarkdownDescription: "Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted', or provide GUIDs of named locations " +
+									"(e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for all compliant network locations).",
 								ElementType: types.StringType,
 								Optional:    true,
 								Computed:    true,
@@ -568,8 +562,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								},
 							},
 							"exclude_locations": schema.SetAttribute{
-								MarkdownDescription: "Named locations to exclude from the policy. Use 'AllTrusted' (all trusted networks and locations) or named location GUIDs. " +
-									compliantNetworkLocationDescription,
+								MarkdownDescription: "Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide GUIDs of named locations " +
+									"(e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for all compliant network locations).",
 								ElementType: types.StringType,
 								Optional:    true,
 								Computed:    true,
@@ -1031,7 +1025,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				Optional:            true,
 				Attributes: map[string]schema.Attribute{
 					"application_enforced_restrictions": schema.SingleNestedAttribute{
-						MarkdownDescription: "Application enforced restrictions for the session. Only Office 365, Exchange Online, and SharePoint Online support this control.",
+						MarkdownDescription: "Application enforced restrictions for the session.",
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"is_enabled": schema.BoolAttribute{
@@ -1041,7 +1035,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"cloud_app_security": schema.SingleNestedAttribute{
-						MarkdownDescription: "Conditional Access App Control (Microsoft Defender for Cloud Apps) for the session.",
+						MarkdownDescription: "Cloud app security controls for the session.",
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"is_enabled": schema.BoolAttribute{
@@ -1049,9 +1043,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								Required:            true,
 							},
 							"cloud_app_security_type": schema.StringAttribute{
-								MarkdownDescription: "Type of App Control. Possible values are: monitorOnly (**Monitor only (preview)**), blockDownloads (**Block downloads (preview)**), " +
-									"mcasConfigured (**Use custom policy...**, configured in Defender for Cloud Apps), unknownFutureValue.",
-								Required: true,
+								MarkdownDescription: "Type of cloud app security control. Possible values are: blockDownloads, mcasConfigured, monitorOnly, unknownFutureValue.",
+								Required:            true,
 								Validators: []validator.String{
 									stringvalidator.OneOf("blockDownloads", "mcasConfigured", "monitorOnly", "unknownFutureValue"),
 								},
@@ -1086,11 +1079,9 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								},
 							},
 							"frequency_interval": schema.StringAttribute{
-								MarkdownDescription: "Frequency interval for sign-in frequency. Possible values are: timeBased (**Periodic reauthentication**), everyTime (**Every time**), " +
-									"everyTimeStrict (**Every time strict (preview)**). `everyTimeStrict` is for apps that understand it, such as Global Secure Access " +
-									"Private Access apps (where `everyTime` doesn't apply); don't apply it to all apps or Office 365, to avoid authentication fatigue. " +
-									"Both `everyTime` and `everyTimeStrict` only allow `authentication_type = \"primaryAndSecondaryAuthentication\"`. " +
-									"See [Configure Private Access sign-in every time](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-sign-in-every-time).",
+								MarkdownDescription: "Frequency interval for sign-in frequency. Possible values are: timeBased, everyTime, everyTimeStrict. " +
+									"`everyTimeStrict` (preview) is for Private Access apps. `everyTime` and `everyTimeStrict` require " +
+									"`authentication_type = \"primaryAndSecondaryAuthentication\"`.",
 								Optional: true,
 								Computed: true,
 								Validators: []validator.String{
@@ -1100,7 +1091,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"persistent_browser": schema.SingleNestedAttribute{
-						MarkdownDescription: "Persistent browser controls for the session. Only works correctly when `include_applications` is 'All'.",
+						MarkdownDescription: "Persistent browser controls for the session.",
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"is_enabled": schema.BoolAttribute{
@@ -1117,18 +1108,16 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"disable_resilience_defaults": schema.BoolAttribute{
-						MarkdownDescription: "Whether to disable resilience defaults, which otherwise extend existing sessions during a Microsoft Entra outage.",
+						MarkdownDescription: "Whether to disable resilience defaults.",
 						Optional:            true,
 					},
 					"continuous_access_evaluation": schema.SingleNestedAttribute{
-						MarkdownDescription: "Customize continuous access evaluation for the session.",
+						MarkdownDescription: "Continuous access evaluation controls for the session.",
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"mode": schema.StringAttribute{
-								MarkdownDescription: "Mode for continuous access evaluation. Possible values are: disabled (**Disable**), strictLocation " +
-									"(**Strictly enforce location policies (preview)**), strictEnforcement. With `strictLocation`, add the dedicated egress IPs " +
-									"that users use to reach Microsoft Entra and CAE-capable resources to your IP-based named locations; requests from other IPs are blocked.",
-								Required: true,
+								MarkdownDescription: "Mode for continuous access evaluation. Possible values are: strictEnforcement, disabled, strictLocation.",
+								Required:            true,
 								Validators: []validator.String{
 									stringvalidator.OneOf("strictEnforcement", "disabled", "strictLocation"),
 								},
@@ -1136,7 +1125,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"secure_sign_in_session": schema.SingleNestedAttribute{
-						MarkdownDescription: "**Require token protection for sign-in sessions**. Only works with supported devices and applications; unsupported ones are blocked.",
+						MarkdownDescription: "Secure sign-in session controls.",
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"is_enabled": schema.BoolAttribute{
@@ -1146,7 +1135,7 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						},
 					},
 					"global_secure_access_filtering_profile": schema.SingleNestedAttribute{
-						MarkdownDescription: "**Use Global Secure Access security profile** for the session. Only works with Global Secure Access resources.",
+						MarkdownDescription: "Global Secure Access filtering profile for the session.",
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"is_enabled": schema.BoolAttribute{
