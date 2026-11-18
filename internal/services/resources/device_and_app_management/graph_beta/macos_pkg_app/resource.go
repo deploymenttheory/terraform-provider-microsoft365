@@ -126,7 +126,7 @@ func (r *MacOSPKGAppResource) Schema(ctx context.Context, req resource.SchemaReq
 			},
 			"privacy_information_url": schema.StringAttribute{
 				Optional:            true,
-				MarkdownDescription: "The privacy statement Url.",
+				MarkdownDescription: "The privacy statement URL. Empty values returned by Microsoft Graph are treated as unset.",
 				Validators: []validator.String{
 					stringvalidator.RegexMatches(
 						regexp.MustCompile(constants.HttpOrHttpsUrlRegex),
