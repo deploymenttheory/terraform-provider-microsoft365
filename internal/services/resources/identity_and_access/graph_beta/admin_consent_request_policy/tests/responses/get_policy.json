@@ -1,0 +1,8 @@
+{
+  "isEnabled": false,
+  "notifyReviewers": false,
+  "remindersEnabled": false,
+  "requestDurationInDays": 0,
+  "reviewers": [],
+  "version": 0
+}

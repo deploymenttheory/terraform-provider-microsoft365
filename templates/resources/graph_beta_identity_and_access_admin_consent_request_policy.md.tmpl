@@ -1,0 +1,39 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Identity and Access"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Admin consent request policy](https://learn.microsoft.com/en-us/graph/api/resources/adminconsentrequestpolicy?view=graph-rest-beta)
+- [Get policy](https://learn.microsoft.com/en-us/graph/api/adminconsentrequestpolicy-get?view=graph-rest-beta)
+- [Update policy](https://learn.microsoft.com/en-us/graph/api/adminconsentrequestpolicy-update?view=graph-rest-beta)
+- [Reviewer scope](https://learn.microsoft.com/en-us/graph/api/resources/accessreviewreviewerscope?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+Reading requires the application permission `Policy.Read.All`. Writing requires `Policy.ReadWrite.ConsentRequest`, which also permits reading.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_identity_and_access_admin_consent_request_policy/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- Configure a single instance per tenant across all Terraform states. Create and update replace the complete writable policy using beta PUT. The generated SDK PATCH method is unsupported by the service.
+- All five writable settings are required. Import preserves disabled tenant policies with duration `0` and reviewers `[]`; the provider supplies no defaults that enable the workflow or invent reviewers.
+- Reviewer entries use Graph selection queries. `query_root` is optional and has no default. The service validates target-specific query combinations.
+- `version` is read-only and may change after a write. It is omitted from requests.
+- Destroy removes the resource from Terraform state and leaves the tenant policy unchanged. It does not disable the workflow, clear reviewers, or call Graph DELETE.
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_identity_and_access_admin_consent_request_policy/import.sh" }}
