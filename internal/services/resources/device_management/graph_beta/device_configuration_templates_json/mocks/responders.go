@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -105,12 +106,16 @@ func (m *DeviceConfigurationTemplatesJsonMock) create(req *http.Request) (*http.
 }
 
 func loadProfileFixture(typ string) (map[string]any, error) {
-	files, err := filepath.Glob("tests/responses/validate_create/post_device_configuration_*.json")
+	_, sourceFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return nil, fmt.Errorf("%w: cannot locate profile fixtures", errInvalidFixture)
+	}
+	files, err := filepath.Glob(filepath.Join(filepath.Dir(sourceFile), "..", "tests", "responses", "validate_create", "post_device_configuration_*.json"))
 	if err != nil {
 		return nil, fmt.Errorf("find profile fixtures: %w", err)
 	}
 	for _, file := range files {
-		content, err := helpers.ParseJSONFile(filepath.Join("..", file))
+		content, err := helpers.ParseJSONFile(file)
 		if err != nil {
 			return nil, fmt.Errorf("load profile fixture: %w", err)
 		}

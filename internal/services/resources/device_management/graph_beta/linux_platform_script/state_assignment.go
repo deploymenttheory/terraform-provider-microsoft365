@@ -193,12 +193,12 @@ func MapAssignmentsToTerraform(ctx context.Context, data *LinuxPlatformScriptRes
 			})
 			assignmentObj["filter_id"] = convert.GraphToFrameworkString(filterID)
 		} else {
-			tflog.Debug(ctx, "Assignment has no meaningful filter ID, using schema default", map[string]any{
+			tflog.Debug(ctx, "Assignment has no meaningful filter ID, using null", map[string]any{
 				"assignmentIndex": i,
 				"assignmentId":    assignment.GetId(),
 				"resourceId":      data.ID.ValueString(),
 			})
-			assignmentObj["filter_id"] = types.StringValue("00000000-0000-0000-0000-000000000000")
+			assignmentObj["filter_id"] = types.StringNull()
 		}
 
 		filterType := target.GetDeviceAndAppManagementAssignmentFilterType()

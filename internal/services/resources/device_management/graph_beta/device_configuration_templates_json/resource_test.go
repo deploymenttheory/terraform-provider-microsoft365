@@ -509,7 +509,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_21_FormattedJSON(t *testin
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
-			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`(?s)^\{\n  "`))},
+			{Config: config, Check: check.That(resourceType + ".test").Key("settings").MatchesRegex(regexp.MustCompile(`(?s)^\{\r?\n  "`))},
 			{Config: config, PlanOnly: true},
 			{Config: updated},
 			{Config: updated, PlanOnly: true},

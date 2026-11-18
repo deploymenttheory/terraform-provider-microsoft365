@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"maps"
 	"net/http"
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 )
 
 var mockState struct {
@@ -177,14 +178,14 @@ func (m *SettingsCatalogPolicyMock) registerCreatePolicyMock() {
 
 		// For POST (create), isUpdate is always false
 		jsonFileName := getJSONFileForPolicyName(name, false)
-		responsesPath := filepath.Join("tests", "responses", "validate_create", jsonFileName)
-		jsonData, err := os.ReadFile(responsesPath)
+		responsesPath := filepath.Join("..", "tests", "responses", "validate_create", jsonFileName)
+		jsonData, err := helpers.ParseJSONFile(responsesPath)
 		if err != nil {
 			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to load JSON response file %s: %s"}}`, responsesPath, err.Error())), nil
 		}
 
 		var responseObj map[string]any
-		if err := json.Unmarshal(jsonData, &responseObj); err != nil {
+		if err := json.Unmarshal([]byte(jsonData), &responseObj); err != nil {
 			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to parse JSON response: %s"}}`, err.Error())), nil
 		}
 
@@ -333,11 +334,11 @@ func (m *SettingsCatalogPolicyMock) registerUpdatePolicyMocks() {
 		if _, ok := requestBody["settings"]; ok {
 			policyName, _ := policy["name"].(string)
 			jsonFileName := getJSONFileForPolicyName(policyName, true)
-			responsesPath := filepath.Join("tests", "responses", "validate_create", jsonFileName)
+			responsesPath := filepath.Join("..", "tests", "responses", "validate_create", jsonFileName)
 
-			if jsonData, err := os.ReadFile(responsesPath); err == nil {
+			if jsonData, err := helpers.ParseJSONFile(responsesPath); err == nil {
 				var updateResponseObj map[string]any
-				if err := json.Unmarshal(jsonData, &updateResponseObj); err == nil {
+				if err := json.Unmarshal([]byte(jsonData), &updateResponseObj); err == nil {
 					if updatedSettings, ok := updateResponseObj["settings"].([]any); ok {
 						policy["settingCount"] = len(updatedSettings)
 						mockState.settings[policyId] = map[string]any{
@@ -388,11 +389,11 @@ func (m *SettingsCatalogPolicyMock) registerUpdatePolicyMocks() {
 		if _, ok := requestBody["settings"]; ok {
 			policyName, _ := policy["name"].(string)
 			jsonFileName := getJSONFileForPolicyName(policyName, true)
-			responsesPath := filepath.Join("tests", "responses", "validate_create", jsonFileName)
+			responsesPath := filepath.Join("..", "tests", "responses", "validate_create", jsonFileName)
 
-			if jsonData, err := os.ReadFile(responsesPath); err == nil {
+			if jsonData, err := helpers.ParseJSONFile(responsesPath); err == nil {
 				var updateResponseObj map[string]any
-				if err := json.Unmarshal(jsonData, &updateResponseObj); err == nil {
+				if err := json.Unmarshal([]byte(jsonData), &updateResponseObj); err == nil {
 					if updatedSettings, ok := updateResponseObj["settings"].([]any); ok {
 						policy["settingCount"] = len(updatedSettings)
 						mockState.settings[policyId] = map[string]any{
