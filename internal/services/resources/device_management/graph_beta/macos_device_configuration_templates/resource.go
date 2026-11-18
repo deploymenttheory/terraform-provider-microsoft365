@@ -96,6 +96,12 @@ func (r *MacosDeviceConfigurationTemplatesResource) IdentitySchema(ctx context.C
 
 // Schema defines the schema for the resource.
 func (r *MacosDeviceConfigurationTemplatesResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	assignments := commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema()
+	filterID := assignments.NestedObject.Attributes["filter_id"].(schema.StringAttribute)
+	filterID.Computed = false
+	filterID.Default = nil
+	assignments.NestedObject.Attributes["filter_id"] = filterID
+
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages macOS configuration templates in Microsoft Intune. " +
 			"This resource creates device configurations for macOS devices including custom configuration profiles, " +
@@ -450,7 +456,7 @@ func (r *MacosDeviceConfigurationTemplatesResource) Schema(ctx context.Context, 
 					},
 				},
 			},
-			"assignments": commonschemagraphbeta.DeviceConfigurationWithAllGroupAssignmentsAndFilterSchema(),
+			"assignments": assignments,
 			"timeouts":    commonschema.ResourceTimeouts(ctx),
 		},
 	}

@@ -22,7 +22,7 @@ func mapAssignment(
 ) (attr.Value, error) {
 	values := map[string]attr.Value{
 		"group_id":    types.StringNull(),
-		"filter_id":   types.StringValue(noFilterID),
+		"filter_id":   types.StringNull(),
 		"filter_type": types.StringValue("none"),
 	}
 	switch target := target.(type) {
@@ -39,7 +39,7 @@ func mapAssignment(
 	default:
 		return nil, fmt.Errorf("%w: unsupported assignment target %T", errInvalidAssignment, target)
 	}
-	if id := target.GetDeviceAndAppManagementAssignmentFilterId(); id != nil && *id != "" {
+	if id := target.GetDeviceAndAppManagementAssignmentFilterId(); id != nil && *id != "" && *id != noFilterID {
 		values["filter_id"] = types.StringValue(*id)
 	}
 	if filter := target.GetDeviceAndAppManagementAssignmentFilterType(); filter != nil {
