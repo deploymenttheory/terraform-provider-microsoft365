@@ -110,7 +110,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
 - `content_version` (Attributes List) The committed content version of the app, including its files. Only the currently committed version is shown. (see [below for nested schema](#nestedatt--content_version))
 - `developer` (String) The developer of the app.
 - `information_url` (String) The more information Url.
-- `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin.
+- `is_featured` (Boolean) The value indicating whether the app is marked as featured by the admin. Defaults to `false`.
 - `macos_pkg_app` (Attributes) The path to the PKG file to be uploaded. Resource supports both local file sources and url based sources. (see [below for nested schema](#nestedatt--macos_pkg_app))
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
