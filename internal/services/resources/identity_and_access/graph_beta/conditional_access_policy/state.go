@@ -69,7 +69,7 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data ConditionalAcce
 		tflog.Debug(ctx, "grantControls null, keeping an empty grant controls object to match the configured block")
 		// Graph returns null for an empty grant_controls block, so keep the configured empty object.
 		data.GrantControls = &ConditionalAccessGrantControls{
-			Operator:                    types.StringValue("OR"), // Default operator
+			Operator:                    data.GrantControls.Operator,
 			BuiltInControls:             types.SetValueMust(types.StringType, []attr.Value{}),
 			CustomAuthenticationFactors: types.SetValueMust(types.StringType, []attr.Value{}),
 			TermsOfUse:                  types.SetValueMust(types.StringType, []attr.Value{}),

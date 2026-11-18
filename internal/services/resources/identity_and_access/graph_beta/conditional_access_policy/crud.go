@@ -97,7 +97,7 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 //
 // Operation: Retrieves a conditional access policy by ID
 // API Calls:
-//   - GET /identity/conditionalAccess/policies/{id}
+//   - GET /identity/conditionalAccess/policies/{id} (read as raw bytes so enum values missing from the SDK are kept)
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-get?view=graph-rest-beta
 func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -135,13 +135,7 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 		}
 	}
 
-	remoteResource, err := r.client.
-		Identity().
-		ConditionalAccess().
-		Policies().
-		ByConditionalAccessPolicyId(object.ID.ValueString()).
-		Get(ctx, nil)
-
+	remoteResource, body, err := getConditionalAccessPolicy(ctx, r.client, object.ID.ValueString())
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -149,10 +143,10 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 
 	object = MapRemoteResourceStateToTerraform(ctx, object, remoteResource)
 
-	if signInFrequencyIntervalDropped(remoteResource) {
-		interval, err := fetchRawSignInFrequencyInterval(ctx, r.client.GetAdapter(), object.ID.ValueString())
+	if object.SessionControls != nil && object.SessionControls.SignInFrequency != nil {
+		interval, err := rawSignInFrequencyInterval(body)
 		if err != nil {
-			errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+			resp.Diagnostics.AddError("Error mapping resource state", err.Error())
 			return
 		}
 		object.SessionControls.SignInFrequency.FrequencyInterval = interval
