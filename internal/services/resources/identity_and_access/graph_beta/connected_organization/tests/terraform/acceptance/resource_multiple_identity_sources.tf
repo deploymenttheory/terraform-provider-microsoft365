@@ -19,13 +19,13 @@ resource "microsoft365_graph_beta_identity_and_access_connected_organization" "t
   identity_sources = [
     {
       odata_type   = "#microsoft.graph.domainIdentitySource"
-      display_name = "wingtiptoys.com"
-      domain_name  = "wingtiptoys.com"
+      display_name = "first-${random_string.suffix.result}.192-0-2-1.sslip.io"
+      domain_name  = "first-${random_string.suffix.result}.192-0-2-1.sslip.io"
     },
     {
       odata_type   = "#microsoft.graph.domainIdentitySource"
-      display_name = "tailspintoys.com"
-      domain_name  = "tailspintoys.com"
+      display_name = "second-${random_string.suffix.result}.192-0-2-1.sslip.io"
+      domain_name  = "second-${random_string.suffix.result}.192-0-2-1.sslip.io"
     }
   ]
 }

@@ -249,12 +249,26 @@ func (r *ConnectedOrganizationResource) Delete(ctx context.Context, req resource
 
 	tflog.Info(ctx, fmt.Sprintf("Deleting %s with ID: %s", ResourceName, connectedOrganizationId))
 
-	err := r.client.
-		IdentityGovernance().
-		EntitlementManagement().
-		ConnectedOrganizations().
-		ByConnectedOrganizationId(connectedOrganizationId).
-		Delete(ctx, nil)
+	deleteOptions := crud.DefaultDeleteWithRetryOptions()
+	deleteOptions.ResourceTypeName = ResourceName
+	deleteOptions.ResourceID = connectedOrganizationId
+	deleteOptions.RetryInterval = 5 * time.Second
+
+	err := crud.DeleteWithRetry(ctx, func(ctx context.Context) error {
+		deleteErr := r.client.
+			IdentityGovernance().
+			EntitlementManagement().
+			ConnectedOrganizations().
+			ByConnectedOrganizationId(connectedOrganizationId).
+			Delete(ctx, nil)
+		if deleteErr != nil && errors.GraphError(ctx, deleteErr).StatusCode != 404 {
+			return fmt.Errorf("failed to delete connected organization %s: %w", connectedOrganizationId, deleteErr)
+		}
+		return nil
+	}, deleteOptions)
+	if ctx.Err() != nil {
+		err = ctx.Err()
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
