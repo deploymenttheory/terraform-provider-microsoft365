@@ -38,6 +38,9 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data *MacOSPKGAppRes
 	data.Publisher = convert.GraphToFrameworkString(remoteResource.GetPublisher())
 	data.InformationUrl = convert.GraphToFrameworkString(remoteResource.GetInformationUrl())
 	data.PrivacyInformationUrl = convert.GraphToFrameworkString(remoteResource.GetPrivacyInformationUrl())
+	if data.PrivacyInformationUrl.ValueString() == "" {
+		data.PrivacyInformationUrl = types.StringNull()
+	}
 	data.Owner = convert.GraphToFrameworkString(remoteResource.GetOwner())
 	data.Developer = convert.GraphToFrameworkString(remoteResource.GetDeveloper())
 	data.Notes = convert.GraphToFrameworkString(remoteResource.GetNotes())

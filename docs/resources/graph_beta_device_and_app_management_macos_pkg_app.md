@@ -114,7 +114,7 @@ resource "microsoft365_graph_beta_device_and_app_management_macos_pkg_app" "mozi
 - `macos_pkg_app` (Attributes) The path to the PKG file to be uploaded. Resource supports both local file sources and url based sources. (see [below for nested schema](#nestedatt--macos_pkg_app))
 - `notes` (String) Notes for the app.
 - `owner` (String) The owner of the app.
-- `privacy_information_url` (String) The privacy statement Url.
+- `privacy_information_url` (String) The privacy statement URL. Empty values returned by Microsoft Graph are treated as unset.
 - `relationships` (Attributes List) List of relationships associated with this application. (see [below for nested schema](#nestedatt--relationships))
 - `role_scope_tag_ids` (Set of String) Set of scope tag IDs for this Settings Catalog template profile.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
