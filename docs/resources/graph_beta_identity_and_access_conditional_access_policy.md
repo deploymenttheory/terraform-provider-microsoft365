@@ -2720,7 +2720,7 @@ Optional:
 
 Required:
 
-- `include_applications` (Set of String) Applications to include in the policy. Can use special values: 'All' (all applications), 'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). You can also specify application GUIDs. For all internet resources with Global Secure Access, use `5dc48733-b5df-475c-a49b-fa307ef00853` and `c08f52c9-8f03-4558-a0ea-9a4c878cf343`.
+- `include_applications` (Set of String) Applications to include in the policy. Can use special values: 'All' (all applications), 'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). You can also specify application GUIDs. To select **All internet resources with Global Secure Access** in the portal's target resources, use `5dc48733-b5df-475c-a49b-fa307ef00853` and `c08f52c9-8f03-4558-a0ea-9a4c878cf343`.
 
 Optional:
 
@@ -2879,8 +2879,8 @@ Required:
 
 Optional:
 
-- `exclude_locations` (Set of String) Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide GUIDs of named locations (e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for all compliant network locations).
-- `include_locations` (Set of String) Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted', or provide GUIDs of named locations (e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for all compliant network locations).
+- `exclude_locations` (Set of String) Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide GUIDs of named locations (e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for **All Compliant Network locations** in the portal's network condition).
+- `include_locations` (Set of String) Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted', or provide GUIDs of named locations (e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for **All Compliant Network locations** in the portal's network condition).
 
 
 <a id="nestedatt--conditions--platforms"></a>
