@@ -2,6 +2,7 @@ package graphBetaApplication
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -13,6 +14,8 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
+
+var errApplicationAPICreationDefaults = errors.New("failed to apply api creation defaults")
 
 // constructResource maps the Terraform schema to the SDK model
 // isCreate indicates whether this is a create operation (POST) or update operation (PATCH)
@@ -78,7 +81,7 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 			apiData.RequestedAccessTokenVersion = types.Int32Value(1)
 			data.Api, diags = types.ObjectValueFrom(ctx, ApplicationApiAttrTypes, apiData)
 			if diags.HasError() {
-				return nil, fmt.Errorf("failed to apply api creation defaults: %s", diags.Errors()[0].Detail())
+				return nil, fmt.Errorf("%w: %s", errApplicationAPICreationDefaults, diags.Errors()[0].Detail())
 			}
 		}
 
