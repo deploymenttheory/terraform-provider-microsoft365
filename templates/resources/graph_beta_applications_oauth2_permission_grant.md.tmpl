@@ -1,0 +1,42 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Delegated permission grant](https://learn.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-beta)
+- [Create grant](https://learn.microsoft.com/en-us/graph/api/oauth2permissiongrant-post?view=graph-rest-beta)
+- [Update grant](https://learn.microsoft.com/en-us/graph/api/oauth2permissiongrant-update?view=graph-rest-beta)
+- [Delete grant](https://learn.microsoft.com/en-us/graph/api/oauth2permissiongrant-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+The provider requires the application permission `DelegatedPermissionGrant.ReadWrite.All` to write grants. Reading grants requires `Directory.Read.All`; `DelegatedPermissionGrant.ReadWrite.All` also permits reading them.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_oauth2_permission_grant/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- `client_id` and `resource_id` identify **service principal objects**, not application/client IDs.
+- This resource owns all scopes on one grant. Import existing grants instead of creating duplicate consent, and use one Terraform resource for the complete scope set.
+- `Principal` consent requires a user object ID; omit `principal_id` for `AllPrincipals`.
+- Only scopes are updated in place. Changing either service principal or the consent identity replaces the grant.
+- Graph beta currently requires legacy `startTime` and `expiryTime` fields during creation, although their values are ignored. The provider supplies those transport fields; this resource does not implement expiration.
+- Graph directory replication can temporarily return 404 or specific 400 responses after creation or updates. The provider retries these responses within the configured timeout and confirms deletion before removing state.
+
+## Import
+
+Import the opaque Graph grant ID:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_oauth2_permission_grant/import.sh" }}
