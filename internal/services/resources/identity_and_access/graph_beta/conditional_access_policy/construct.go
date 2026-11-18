@@ -47,6 +47,9 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 			return nil, fmt.Errorf("failed to construct grant controls: %w", err)
 		}
 		requestBody.SetGrantControls(grantControls)
+	} else {
+		// Graph keeps existing grant controls when the property is omitted, so clear them explicitly.
+		requestBody.SetAdditionalData(map[string]any{"grantControls": nil})
 	}
 
 	// Build session controls

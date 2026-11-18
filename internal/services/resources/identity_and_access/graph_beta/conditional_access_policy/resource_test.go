@@ -2,6 +2,7 @@ package graphBetaConditionalAccessPolicy_test
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -2500,10 +2501,39 @@ func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
 				),
 			},
 			{
+				// Graph returns null for an empty grant block; the configured block must survive the update.
+				Config: cau021Config(`grant_controls = { operator = "AND" }`, "everyTime"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").HasValue("AND"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("everyTime"),
+				),
+			},
+			{
+				Config: cau021Config(`grant_controls = { operator = "OR", built_in_controls = ["mfa"] }`, "everyTimeStrict"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("mfa"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("everyTimeStrict"),
+				),
+			},
+			{
+				// Removing the block must clear grant controls in Graph.
+				Config: loadUnitTestTerraform("resource_cau021-selected.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType + ".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").DoesNotExist(),
+				),
+			},
+			{
 				ResourceName:      resourceType + ".cau021_private_access_sign_in_every_time",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
 	})
+}
+
+// cau021Config adds a grant_controls block and sets frequency_interval on the CAU021 config.
+func cau021Config(grantControls, frequencyInterval string) string {
+	config := loadUnitTestTerraform("resource_cau021-selected.tf")
+	config = strings.Replace(config, "  session_controls = {", "  "+grantControls+"\n\n  session_controls = {", 1)
+	return strings.Replace(config, `"everyTimeStrict"`, `"`+frequencyInterval+`"`, 1)
 }

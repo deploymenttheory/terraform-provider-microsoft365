@@ -2,12 +2,15 @@ package graphBetaConditionalAccessPolicy
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 )
 
 // Graph rejects null device lists, so a policy that only sets device_filter must leave them out.
@@ -95,5 +98,39 @@ func TestConstructSessionControlsSendsEveryTimeStrict(t *testing.T) {
 	}
 	if strings.Count(body, `"frequencyInterval"`) != 1 {
 		t.Errorf("expected a single frequencyInterval, got %s", body)
+	}
+}
+
+func TestValidateSessionControlsEveryTimeRules(t *testing.T) {
+	for name, tc := range map[string]struct {
+		signInFrequency ConditionalAccessSignInFrequency
+		want            error
+	}{
+		"everyTimeStrict with type": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), Type: types.StringValue("hours")},
+			want:            sentinels.ErrFrequencyIntervalEveryTimeWithType,
+		},
+		"everyTimeStrict with value": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), Value: types.Int32Value(1)},
+			want:            sentinels.ErrFrequencyIntervalEveryTimeWithValue,
+		},
+		"everyTime with secondaryAuthentication": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue("everyTime"), AuthenticationType: types.StringValue("secondaryAuthentication")},
+			want:            sentinels.ErrFrequencyIntervalEveryTimeAuthenticationType,
+		},
+		"everyTimeStrict with primaryAndSecondaryAuthentication": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), AuthenticationType: types.StringValue("primaryAndSecondaryAuthentication")},
+		},
+		"timeBased with secondaryAuthentication": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue("timeBased"), AuthenticationType: types.StringValue("secondaryAuthentication")},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			signInFrequency := tc.signInFrequency
+			err := validateSessionControls(context.Background(), &ConditionalAccessSessionControls{SignInFrequency: &signInFrequency})
+			if !errors.Is(err, tc.want) {
+				t.Fatalf("expected %v, got %v", tc.want, err)
+			}
+		})
 	}
 }

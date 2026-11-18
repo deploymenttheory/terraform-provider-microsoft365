@@ -207,6 +207,12 @@ func (r *ConditionalAccessPolicyResource) Update(ctx context.Context, req resour
 		return
 	}
 
+	// Read maps against the planned values, not the prior state.
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 

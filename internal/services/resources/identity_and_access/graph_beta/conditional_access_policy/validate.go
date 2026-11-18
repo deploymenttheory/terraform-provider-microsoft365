@@ -644,6 +644,11 @@ func validateSessionControls(ctx context.Context, sessionControls *ConditionalAc
 				if !signInFreq.Value.IsNull() && !signInFreq.Value.IsUnknown() {
 					return sentinels.ErrFrequencyIntervalEveryTimeWithValue
 				}
+				// Graph rejects any other authentication type (error 1144)
+				if !signInFreq.AuthenticationType.IsNull() && !signInFreq.AuthenticationType.IsUnknown() &&
+					signInFreq.AuthenticationType.ValueString() != "primaryAndSecondaryAuthentication" {
+					return sentinels.ErrFrequencyIntervalEveryTimeAuthenticationType
+				}
 			}
 		}
 	}

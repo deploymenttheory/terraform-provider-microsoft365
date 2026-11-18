@@ -98,6 +98,11 @@ var (
 		"when 'frequency_interval' is set to 'everyTime' or 'everyTimeStrict', the 'value' field must not be set in the configuration",
 	)
 
+	// ErrFrequencyIntervalEveryTimeAuthenticationType indicates an unsupported authentication_type for everyTime or everyTimeStrict
+	ErrFrequencyIntervalEveryTimeAuthenticationType = errors.New(
+		"when 'frequency_interval' is set to 'everyTime' or 'everyTimeStrict', 'authentication_type' must be 'primaryAndSecondaryAuthentication'",
+	)
+
 	// Agent-related errors
 
 	// ErrSponsorUserIDsNullOrUnknown indicates sponsor_user_ids is null or unknown
