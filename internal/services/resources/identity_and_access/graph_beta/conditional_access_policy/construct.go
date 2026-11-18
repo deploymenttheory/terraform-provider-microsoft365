@@ -583,8 +583,7 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 			return nil, fmt.Errorf("failed to set authentication type: %w", err)
 		}
 
-		if err := convert.FrameworkToGraphEnum(data.SignInFrequency.FrequencyInterval,
-			graphmodels.ParseSignInFrequencyInterval, signInFrequency.SetFrequencyInterval); err != nil {
+		if err := setSignInFrequencyInterval(data.SignInFrequency.FrequencyInterval, signInFrequency); err != nil {
 			return nil, fmt.Errorf("failed to set frequency interval: %w", err)
 		}
 

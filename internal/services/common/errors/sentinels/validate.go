@@ -89,10 +89,10 @@ var (
 	ErrApplicationsAndAuthContext = errors.New("conditional access policy cannot have both 'include_applications' and 'include_authentication_context_class_references' configured at the same time")
 
 	// ErrFrequencyIntervalEveryTimeWithType indicates type field is set when frequency_interval is everyTime
-	ErrFrequencyIntervalEveryTimeWithType = errors.New("when 'frequency_interval' is set to 'everyTime', the 'type' field must not be set in the configuration")
+	ErrFrequencyIntervalEveryTimeWithType = errors.New("when 'frequency_interval' is set to 'everyTime' or 'everyTimeStrict', the 'type' field must not be set in the configuration")
 
 	// ErrFrequencyIntervalEveryTimeWithValue indicates value field is set when frequency_interval is everyTime
-	ErrFrequencyIntervalEveryTimeWithValue = errors.New("when 'frequency_interval' is set to 'everyTime', the 'value' field must not be set in the configuration")
+	ErrFrequencyIntervalEveryTimeWithValue = errors.New("when 'frequency_interval' is set to 'everyTime' or 'everyTimeStrict', the 'value' field must not be set in the configuration")
 
 	// Agent-related errors
 

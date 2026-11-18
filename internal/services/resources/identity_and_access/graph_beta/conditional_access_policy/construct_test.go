@@ -67,3 +67,33 @@ func TestConstructDevicesRejectsNonStringLists(t *testing.T) {
 		})
 	}
 }
+
+// everyTimeStrict isn't in the SDK enum, so it must still reach the request body.
+func TestConstructSessionControlsSendsEveryTimeStrict(t *testing.T) {
+	sessionControls, err := constructSessionControls(context.Background(), &ConditionalAccessSessionControls{
+		SignInFrequency: &ConditionalAccessSignInFrequency{
+			IsEnabled:          types.BoolValue(true),
+			AuthenticationType: types.StringValue("primaryAndSecondaryAuthentication"),
+			FrequencyInterval:  types.StringValue(signInFrequencyIntervalEveryTimeStrict),
+		},
+	})
+	if err != nil {
+		t.Fatalf("constructSessionControls returned error: %v", err)
+	}
+	writer := jsonserialization.NewJsonSerializationWriter()
+	if err := writer.WriteObjectValue("", sessionControls); err != nil {
+		t.Fatalf("serialize session controls: %v", err)
+	}
+	content, err := writer.GetSerializedContent()
+	if err != nil {
+		t.Fatalf("read serialized session controls: %v", err)
+	}
+
+	body := string(content)
+	if !strings.Contains(body, `"frequencyInterval":"everyTimeStrict"`) {
+		t.Errorf("expected frequencyInterval everyTimeStrict, got %s", body)
+	}
+	if strings.Count(body, `"frequencyInterval"`) != 1 {
+		t.Errorf("expected a single frequencyInterval, got %s", body)
+	}
+}

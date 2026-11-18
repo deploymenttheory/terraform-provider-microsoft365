@@ -632,10 +632,10 @@ func validateSessionControls(ctx context.Context, sessionControls *ConditionalAc
 	if sessionControls.SignInFrequency != nil {
 		signInFreq := sessionControls.SignInFrequency
 
-		// Rule: When frequency_interval is "everyTime", type and value should not be set
+		// Rule: When frequency_interval is "everyTime" or "everyTimeStrict", type and value should not be set
 		if !signInFreq.FrequencyInterval.IsNull() && !signInFreq.FrequencyInterval.IsUnknown() {
 			frequencyInterval := signInFreq.FrequencyInterval.ValueString()
-			if frequencyInterval == "everyTime" {
+			if frequencyInterval == "everyTime" || frequencyInterval == signInFrequencyIntervalEveryTimeStrict {
 				// Check if type is set
 				if !signInFreq.Type.IsNull() && !signInFreq.Type.IsUnknown() {
 					return sentinels.ErrFrequencyIntervalEveryTimeWithType

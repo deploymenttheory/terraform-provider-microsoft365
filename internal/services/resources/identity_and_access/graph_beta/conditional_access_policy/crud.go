@@ -149,6 +149,15 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 
 	object = MapRemoteResourceStateToTerraform(ctx, object, remoteResource)
 
+	if signInFrequencyIntervalDropped(remoteResource) {
+		interval, err := fetchRawSignInFrequencyInterval(ctx, r.client.GetAdapter(), object.ID.ValueString())
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+			return
+		}
+		object.SessionControls.SignInFrequency.FrequencyInterval = interval
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return

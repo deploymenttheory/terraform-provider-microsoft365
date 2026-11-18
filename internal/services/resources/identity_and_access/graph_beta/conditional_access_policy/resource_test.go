@@ -2475,3 +2475,35 @@ func TestUnitResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 		},
 	})
 }
+
+// CAU021: Sign-in Every Time Strict for Private Access Apps
+func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer conditionalAccessPolicyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_cau021-selected.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("state").HasValue("disabled"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").DoesNotExist(),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("55555555-5555-5555-5555-555555555555"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("conditions.platforms.include_platforms.*").ContainsTypeSetElement("windows"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.authentication_type").HasValue("primaryAndSecondaryAuthentication"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("everyTimeStrict"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.is_enabled").HasValue("true"),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".cau021_private_access_sign_in_every_time",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

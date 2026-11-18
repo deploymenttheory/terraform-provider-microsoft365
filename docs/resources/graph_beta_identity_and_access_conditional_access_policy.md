@@ -2720,7 +2720,7 @@ Optional:
 
 Required:
 
-- `include_applications` (Set of String) Applications to include in the policy. Can use special values: 'All' (all applications), 'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). You can also specify application GUIDs.
+- `include_applications` (Set of String) Applications to include in the policy. Can use special values: 'All' (all applications), 'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (**All agent resources** in the portal). You can also specify application GUIDs. **All internet resources with Global Secure Access** is the pair `5dc48733-b5df-475c-a49b-fa307ef00853` (Internet resources with Global Secure Access) and `c08f52c9-8f03-4558-a0ea-9a4c878cf343` (Microsoft apps with Global Secure Access); Global Secure Access must be deployed in the tenant.
 
 Optional:
 
@@ -2879,8 +2879,8 @@ Required:
 
 Optional:
 
-- `exclude_locations` (Set of String) Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide guid'sof named locations.
-- `include_locations` (Set of String) Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted' 'or provide guid'sof named locations.
+- `exclude_locations` (Set of String) Named locations to exclude from the policy. Use 'AllTrusted' (all trusted networks and locations) or named location GUIDs. **All Compliant Network locations** is the named location `3d46dbda-8382-466a-856d-eb00cbc6b910`, created when Global Secure Access signaling for Conditional Access (Adaptive Access Signaling) is enabled.
+- `include_locations` (Set of String) Named locations to include in the policy (the **Network** assignment in the portal). Use 'All' (any network or location), 'AllTrusted' (all trusted networks and locations), or named location GUIDs. **All Compliant Network locations** is the named location `3d46dbda-8382-466a-856d-eb00cbc6b910`, created when Global Secure Access signaling for Conditional Access (Adaptive Access Signaling) is enabled.
 
 
 <a id="nestedatt--conditions--platforms"></a>
@@ -2950,13 +2950,13 @@ Read-Only:
 
 Optional:
 
-- `application_enforced_restrictions` (Attributes) Application enforced restrictions for the session. (see [below for nested schema](#nestedatt--session_controls--application_enforced_restrictions))
-- `cloud_app_security` (Attributes) Cloud app security controls for the session. (see [below for nested schema](#nestedatt--session_controls--cloud_app_security))
-- `continuous_access_evaluation` (Attributes) Continuous access evaluation controls for the session. (see [below for nested schema](#nestedatt--session_controls--continuous_access_evaluation))
-- `disable_resilience_defaults` (Boolean) Whether to disable resilience defaults.
-- `global_secure_access_filtering_profile` (Attributes) Global Secure Access filtering profile for the session. (see [below for nested schema](#nestedatt--session_controls--global_secure_access_filtering_profile))
-- `persistent_browser` (Attributes) Persistent browser controls for the session. (see [below for nested schema](#nestedatt--session_controls--persistent_browser))
-- `secure_sign_in_session` (Attributes) Secure sign-in session controls. (see [below for nested schema](#nestedatt--session_controls--secure_sign_in_session))
+- `application_enforced_restrictions` (Attributes) Application enforced restrictions for the session. Only Office 365, Exchange Online, and SharePoint Online support this control. (see [below for nested schema](#nestedatt--session_controls--application_enforced_restrictions))
+- `cloud_app_security` (Attributes) Conditional Access App Control (Microsoft Defender for Cloud Apps) for the session. (see [below for nested schema](#nestedatt--session_controls--cloud_app_security))
+- `continuous_access_evaluation` (Attributes) Customize continuous access evaluation for the session. (see [below for nested schema](#nestedatt--session_controls--continuous_access_evaluation))
+- `disable_resilience_defaults` (Boolean) Whether to disable resilience defaults, which otherwise extend existing sessions during a Microsoft Entra outage.
+- `global_secure_access_filtering_profile` (Attributes) **Use Global Secure Access security profile** for the session. Only works with Global Secure Access resources. (see [below for nested schema](#nestedatt--session_controls--global_secure_access_filtering_profile))
+- `persistent_browser` (Attributes) Persistent browser controls for the session. Only works correctly when `include_applications` is 'All'. (see [below for nested schema](#nestedatt--session_controls--persistent_browser))
+- `secure_sign_in_session` (Attributes) **Require token protection for sign-in sessions**. Only works with supported devices and applications; unsupported ones are blocked. (see [below for nested schema](#nestedatt--session_controls--secure_sign_in_session))
 - `sign_in_frequency` (Attributes) Sign-in frequency controls for the session. (see [below for nested schema](#nestedatt--session_controls--sign_in_frequency))
 
 <a id="nestedatt--session_controls--application_enforced_restrictions"></a>
@@ -2972,7 +2972,7 @@ Required:
 
 Required:
 
-- `cloud_app_security_type` (String) Type of cloud app security control. Possible values are: blockDownloads, mcasConfigured, monitorOnly, unknownFutureValue.
+- `cloud_app_security_type` (String) Type of App Control. Possible values are: monitorOnly (**Monitor only (preview)**), blockDownloads (**Block downloads (preview)**), mcasConfigured (**Use custom policy...**, configured in Defender for Cloud Apps), unknownFutureValue.
 - `is_enabled` (Boolean) Whether cloud app security controls are enabled.
 
 
@@ -2981,7 +2981,7 @@ Required:
 
 Required:
 
-- `mode` (String) Mode for continuous access evaluation. Possible values are: strictEnforcement, disabled, strictLocation.
+- `mode` (String) Mode for continuous access evaluation. Possible values are: disabled (**Disable**), strictLocation (**Strictly enforce location policies (preview)**), strictEnforcement. With `strictLocation`, add the dedicated egress IPs that users use to reach Microsoft Entra and CAE-capable resources to your IP-based named locations; requests from other IPs are blocked.
 
 
 <a id="nestedatt--session_controls--global_secure_access_filtering_profile"></a>
@@ -3020,9 +3020,9 @@ Required:
 Optional:
 
 - `authentication_type` (String) Authentication type for sign-in frequency. Possible values are: primaryAndSecondaryAuthentication, secondaryAuthentication.
-- `frequency_interval` (String) Frequency interval for sign-in frequency. Possible values are: timeBased, everyTime.
-- `type` (String) Type of sign-in frequency control. Possible values are: days, hours. Not used when frequency_interval is everyTime.
-- `value` (Number) Value for the sign-in frequency. Not used when frequency_interval is everyTime.
+- `frequency_interval` (String) Frequency interval for sign-in frequency. Possible values are: timeBased (**Periodic reauthentication**), everyTime (**Every time**), everyTimeStrict (**Every time strict (preview)**). `everyTimeStrict` is for apps that understand it, such as Global Secure Access Private Access apps (where `everyTime` doesn't apply); don't apply it to all apps or Office 365, to avoid authentication fatigue. Both `everyTime` and `everyTimeStrict` only allow `authentication_type = "primaryAndSecondaryAuthentication"`. See [Configure Private Access sign-in every time](https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-sign-in-every-time).
+- `type` (String) Type of sign-in frequency control. Possible values are: days, hours. Not used when frequency_interval is everyTime or everyTimeStrict.
+- `value` (Number) Value for the sign-in frequency. Not used when frequency_interval is everyTime or everyTimeStrict.
 
 
 

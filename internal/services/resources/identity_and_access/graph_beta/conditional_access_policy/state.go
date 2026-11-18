@@ -61,13 +61,13 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data ConditionalAcce
 		data.Conditions = nil
 	}
 
-	// Map grant controls (Required field - must always be present)
+	// Map grant controls
 	if grantControls := remoteResource.GetGrantControls(); grantControls != nil {
 		tflog.Debug(ctx, "Mapping grantControls")
 		data.GrantControls = mapGrantControls(ctx, grantControls)
-	} else {
-		tflog.Debug(ctx, "grantControls not found or null, creating empty grant controls for required field")
-		// grant_controls is Required in schema, so we must return an empty object when API returns null
+	} else if data.GrantControls != nil {
+		tflog.Debug(ctx, "grantControls null, keeping an empty grant controls object to match the configured block")
+		// Graph returns null for an empty grant_controls block, so keep the configured empty object.
 		data.GrantControls = &ConditionalAccessGrantControls{
 			Operator:                    types.StringValue("OR"), // Default operator
 			BuiltInControls:             types.SetValueMust(types.StringType, []attr.Value{}),
