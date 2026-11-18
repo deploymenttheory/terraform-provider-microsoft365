@@ -10,8 +10,8 @@ import (
 // verifies the group resource write has propagated across Microsoft Entra replicas
 // before accepting the read as authoritative.
 //
-// The predicate checks that the group ID and display_name are populated in state,
-// confirming the group is visible on the responding replica.
+// The predicate checks the group ID, name, nickname and known description,
+// confirming the written values are visible on the responding replica.
 //
 // See: https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/
 func groupConsistencyPredicate(expected *GroupResourceModel) func(ctx context.Context, state tfsdk.State) bool {
@@ -32,6 +32,10 @@ func groupConsistencyPredicate(expected *GroupResourceModel) func(ctx context.Co
 
 		// mail_nickname must also match.
 		if !actual.MailNickname.Equal(expected.MailNickname) {
+			return false
+		}
+
+		if !expected.Description.IsUnknown() && !actual.Description.Equal(expected.Description) {
 			return false
 		}
 

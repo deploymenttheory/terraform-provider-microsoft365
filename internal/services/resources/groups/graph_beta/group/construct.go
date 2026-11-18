@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // constructResource maps the Terraform schema to the SDK model
@@ -36,6 +36,14 @@ func constructResource(ctx context.Context, data *GroupResourceModel, isUpdate b
 	// Set owners and members using additionalData with OData bind (only during creation)
 	// A maximum of 20 relationships (owners + members) can be added during group creation
 	if !isUpdate {
+		// Apply creation defaults here so importing nullable remote fields does not plan an update.
+		if data.Visibility.IsNull() || data.Visibility.IsUnknown() {
+			requestBody.SetVisibility(new("Private"))
+		}
+		if data.IsAssignableToRole.IsNull() || data.IsAssignableToRole.IsUnknown() {
+			requestBody.SetIsAssignableToRole(new(false))
+		}
+
 		additionalData := make(map[string]any)
 
 		// Add owners if specified
