@@ -1,7 +1,9 @@
 package graphBetaLinuxPlatformScript_test
 
 import (
+	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -17,6 +19,29 @@ import (
 const minimalScriptContent = "#!/bin/bash\nprintf \"Linux platform script test\\n\"\n"
 const maximalScriptContent = "#!/bin/bash\n# Updated script: café\nprintf \"Linux platform script updated\\n\"\n"
 
+func checkUnfilteredAssignment(address, groupID string) resource.TestCheckFunc {
+	return func(state *terraform.State) error {
+		object, exists := state.RootModule().Resources[address]
+		if !exists || object.Primary == nil {
+			return fmt.Errorf("resource %s is missing from state", address)
+		}
+		attributes := object.Primary.Attributes
+		for key, value := range attributes {
+			if !strings.HasPrefix(key, "assignments.") || !strings.HasSuffix(key, ".group_id") || value != groupID {
+				continue
+			}
+			prefix := strings.TrimSuffix(key, "group_id")
+			if attributes[prefix+"type"] != "groupAssignmentTarget" || attributes[prefix+"filter_type"] != "none" {
+				continue
+			}
+			if filterID, present := attributes[prefix+"filter_id"]; present {
+				return fmt.Errorf("assignment for group %s has filter_id %q, expected null", groupID, filterID)
+			}
+			return nil
+		}
+		return fmt.Errorf("resource %s has no unfiltered assignment for group %s", address, groupID)
+	}
+}
 func setupMockEnvironment() (*mocks.Mocks, *scriptMocks.LinuxPlatformScriptMock) {
 	httpmock.Activate()
 	mockClient := mocks.NewMocks()
@@ -246,7 +271,7 @@ func TestUnitResourceLinuxPlatformScript_05_AssignmentsMinimal(t *testing.T) {
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_005").Key("execution_retries").HasValue("1"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_005").Key("role_scope_tag_ids.0").HasValue("0"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_005").Key("assignments.#").HasValue("1"),
-					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_005", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "11111111-1111-1111-1111-111111111111", "filter_type": "none", "filter_id": "00000000-0000-0000-0000-000000000000"}),
+					checkUnfilteredAssignment(graphBetaLinuxPlatformScript.ResourceName+".test_005", "11111111-1111-1111-1111-111111111111"),
 				),
 			},
 			{
@@ -283,7 +308,7 @@ func TestUnitResourceLinuxPlatformScript_06_AssignmentsMaximal(t *testing.T) {
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_006").Key("execution_retries").HasValue("1"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_006").Key("role_scope_tag_ids.0").HasValue("0"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_006").Key("assignments.#").HasValue("5"),
-					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_006", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "11111111-1111-1111-1111-111111111111", "filter_type": "none", "filter_id": "00000000-0000-0000-0000-000000000000"}),
+					checkUnfilteredAssignment(graphBetaLinuxPlatformScript.ResourceName+".test_006", "11111111-1111-1111-1111-111111111111"),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_006", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "22222222-2222-2222-2222-222222222222", "filter_type": "include", "filter_id": "44444444-4444-4444-4444-444444444444"}),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_006", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget", "group_id": "33333333-3333-3333-3333-333333333333"}),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_006", "assignments.*", map[string]string{"type": "allDevicesAssignmentTarget"}),
@@ -324,7 +349,7 @@ func TestUnitResourceLinuxPlatformScript_07_AssignmentsLifecycle_MinimalToMaxima
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_007").Key("execution_retries").HasValue("1"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_007").Key("role_scope_tag_ids.0").HasValue("0"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_007").Key("assignments.#").HasValue("1"),
-					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_007", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "11111111-1111-1111-1111-111111111111", "filter_type": "none", "filter_id": "00000000-0000-0000-0000-000000000000"}),
+					checkUnfilteredAssignment(graphBetaLinuxPlatformScript.ResourceName+".test_007", "11111111-1111-1111-1111-111111111111"),
 				),
 			},
 			{
@@ -340,7 +365,7 @@ func TestUnitResourceLinuxPlatformScript_07_AssignmentsLifecycle_MinimalToMaxima
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_007").Key("execution_retries").HasValue("1"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_007").Key("role_scope_tag_ids.0").HasValue("0"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_007").Key("assignments.#").HasValue("5"),
-					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_007", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "11111111-1111-1111-1111-111111111111", "filter_type": "none", "filter_id": "00000000-0000-0000-0000-000000000000"}),
+					checkUnfilteredAssignment(graphBetaLinuxPlatformScript.ResourceName+".test_007", "11111111-1111-1111-1111-111111111111"),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_007", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "22222222-2222-2222-2222-222222222222", "filter_type": "include", "filter_id": "44444444-4444-4444-4444-444444444444"}),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_007", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget", "group_id": "33333333-3333-3333-3333-333333333333"}),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_007", "assignments.*", map[string]string{"type": "allDevicesAssignmentTarget"}),
@@ -381,7 +406,7 @@ func TestUnitResourceLinuxPlatformScript_08_AssignmentsLifecycle_MaximalToMinima
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_008").Key("execution_retries").HasValue("1"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_008").Key("role_scope_tag_ids.0").HasValue("0"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_008").Key("assignments.#").HasValue("5"),
-					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_008", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "11111111-1111-1111-1111-111111111111", "filter_type": "none", "filter_id": "00000000-0000-0000-0000-000000000000"}),
+					checkUnfilteredAssignment(graphBetaLinuxPlatformScript.ResourceName+".test_008", "11111111-1111-1111-1111-111111111111"),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_008", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "22222222-2222-2222-2222-222222222222", "filter_type": "include", "filter_id": "44444444-4444-4444-4444-444444444444"}),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_008", "assignments.*", map[string]string{"type": "exclusionGroupAssignmentTarget", "group_id": "33333333-3333-3333-3333-333333333333"}),
 					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_008", "assignments.*", map[string]string{"type": "allDevicesAssignmentTarget"}),
@@ -401,7 +426,7 @@ func TestUnitResourceLinuxPlatformScript_08_AssignmentsLifecycle_MaximalToMinima
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_008").Key("execution_retries").HasValue("1"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_008").Key("role_scope_tag_ids.0").HasValue("0"),
 					check.That(graphBetaLinuxPlatformScript.ResourceName+".test_008").Key("assignments.#").HasValue("1"),
-					resource.TestCheckTypeSetElemNestedAttrs(graphBetaLinuxPlatformScript.ResourceName+".test_008", "assignments.*", map[string]string{"type": "groupAssignmentTarget", "group_id": "11111111-1111-1111-1111-111111111111", "filter_type": "none", "filter_id": "00000000-0000-0000-0000-000000000000"}),
+					checkUnfilteredAssignment(graphBetaLinuxPlatformScript.ResourceName+".test_008", "11111111-1111-1111-1111-111111111111"),
 				),
 			},
 			{
