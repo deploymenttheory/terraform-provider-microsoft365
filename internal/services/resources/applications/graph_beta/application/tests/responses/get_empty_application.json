@@ -1,0 +1,109 @@
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#applications/$entity",
+  "id": "11111111-1111-4111-8111-111111111111",
+  "deletedDateTime": null,
+  "appId": "22222222-2222-4222-8222-222222222222",
+  "applicationTemplateId": null,
+  "identifierUris": [
+    "api://22222222-2222-4222-8222-222222222222"
+  ],
+  "createdByAppId": "33333333-3333-4333-8333-333333333333",
+  "createdDateTime": "2026-01-01T00:00:00Z",
+  "description": "Empty collection import probe",
+  "disabledByMicrosoftStatus": null,
+  "displayName": "unit-test-empty-application",
+  "isAuthorizationServiceEnabled": false,
+  "isDeviceOnlyAuthSupported": null,
+  "isDisabled": null,
+  "isFallbackPublicClient": null,
+  "isHardDeleteProtectionEnabled": null,
+  "isManagementRestricted": null,
+  "groupMembershipClaims": null,
+  "nativeAuthenticationApisEnabled": null,
+  "notes": null,
+  "oauth2RequirePostResponse": false,
+  "orgRestrictions": [],
+  "publisherDomain": "example.com",
+  "signInAudience": "AzureADMyOrg",
+  "tags": [],
+  "tokenEncryptionKeyId": null,
+  "uniqueName": null,
+  "defaultRedirectUri": null,
+  "samlMetadataUrl": null,
+  "serviceManagementReference": null,
+  "addIns": [],
+  "appCapabilities": [],
+  "certification": null,
+  "optionalClaims": null,
+  "windows": null,
+  "requestSignatureVerification": null,
+  "migrationStatus": null,
+  "api": {
+    "requestedAccessTokenVersion": null,
+    "acceptMappedClaims": null,
+    "knownClientApplications": [],
+    "oauth2PermissionScopes": [],
+    "preAuthorizedApplications": [],
+    "tokenEncryptionSetting": {
+      "scheme": null,
+      "audience": null,
+      "automatedTokenVersion": {
+        "current": null,
+        "available": []
+      }
+    }
+  },
+  "appRoles": [],
+  "publicClient": {
+    "redirectUris": [],
+    "enabledResponseModes": "all"
+  },
+  "info": {
+    "termsOfServiceUrl": null,
+    "supportUrl": null,
+    "privacyStatementUrl": null,
+    "marketingUrl": null,
+    "logoUrl": null
+  },
+  "keyCredentials": [],
+  "parentalControlSettings": {
+    "countriesBlockedForMinors": [],
+    "legalAgeGroupRule": "Allow"
+  },
+  "passwordCredentials": [],
+  "requiredResourceAccess": [],
+  "signInAudienceRestrictions": {
+    "@odata.type": "#microsoft.graph.unrestrictedAudience",
+    "kind": "unrestricted"
+  },
+  "verifiedPublisher": {
+    "displayName": null,
+    "verifiedPublisherId": null,
+    "addedDateTime": null
+  },
+  "web": {
+    "redirectUris": [],
+    "homePageUrl": null,
+    "logoutUrl": null,
+    "enabledResponseModes": "all",
+    "customAuthenticationUx": null,
+    "redirectUriSettings": [],
+    "implicitGrantSettings": {
+      "enableIdTokenIssuance": false,
+      "enableAccessTokenIssuance": false
+    }
+  },
+  "spa": {
+    "redirectUris": [],
+    "enabledResponseModes": "all"
+  },
+  "servicePrincipalLockConfiguration": {
+    "isEnabled": true,
+    "allProperties": true,
+    "credentialsWithUsageVerify": null,
+    "credentialsWithUsageSign": null,
+    "identifierUris": null,
+    "tokenEncryptionKeyId": null,
+    "enforcementScope": "foreignTenantOnly"
+  }
+}
