@@ -88,7 +88,7 @@ func TestUnit_GitHubOIDCStrategy_ErrorPaths(t *testing.T) {
 		}))
 		defer mockServer.Close()
 
-		os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", mockServer.URL)
+		t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", mockServer.URL)
 		defer os.Unsetenv("ACTIONS_ID_TOKEN_REQUEST_URL")
 
 		config := &ProviderData{
@@ -116,7 +116,7 @@ func TestUnit_GitHubOIDCStrategy_ErrorPaths(t *testing.T) {
 		}))
 		defer mockServer.Close()
 
-		os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "env-request-token")
+		t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "env-request-token")
 		defer os.Unsetenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
 
 		config := &ProviderData{
@@ -144,8 +144,8 @@ func TestUnit_GitHubOIDCStrategy_ErrorPaths(t *testing.T) {
 		}))
 		defer mockServer.Close()
 
-		os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", mockServer.URL)
-		os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "env-request-token")
+		t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", mockServer.URL)
+		t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "env-request-token")
 		defer os.Unsetenv("ACTIONS_ID_TOKEN_REQUEST_URL")
 		defer os.Unsetenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
 
@@ -339,9 +339,8 @@ func TestUnit_GitHubOIDCStrategy_GetAssertion(t *testing.T) {
 
 	// Set up environment for the test
 	baseURL := tokenServer.URL
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", baseURL)
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-request-token")
-	defer os.Clearenv()
+	t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", baseURL)
+	t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "test-request-token")
 
 	// Create test context
 	ctx := context.Background()
@@ -407,8 +406,8 @@ func TestUnit_GitHubOIDCStrategy_GetAssertion(t *testing.T) {
 
 // TestGitHubOIDCStrategy_MissingEnvironment tests error handling when GitHub environment variables are missing
 func TestGitHubOIDCStrategy_MissingEnvironment(t *testing.T) {
-	// Ensure environment is clean
-	os.Clearenv()
+	t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", "")
+	t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
 
 	// Create test context and options
 	ctx := context.Background()
@@ -436,10 +435,10 @@ func TestGitHubOIDCStrategy_AudienceParameter(t *testing.T) {
 	t.Run("default audience", func(t *testing.T) {
 		// Given a URL without audience parameter
 		baseURL := "https://example.com/token"
-		os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", baseURL)
-		os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "token")
-		os.Unsetenv("M365_OIDC_AUDIENCE")
-		os.Unsetenv("ARM_OIDC_AUDIENCE")
+		t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", baseURL)
+		t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "token")
+		t.Setenv("M365_OIDC_AUDIENCE", "")
+		t.Setenv("ARM_OIDC_AUDIENCE", "")
 
 		// We need to check what the URL would be constructed as
 		requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
@@ -464,9 +463,9 @@ func TestGitHubOIDCStrategy_AudienceParameter(t *testing.T) {
 	t.Run("custom audience", func(t *testing.T) {
 		// Given a URL without audience parameter
 		baseURL := "https://example.com/token"
-		os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", baseURL)
-		os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "token")
-		os.Setenv("M365_OIDC_AUDIENCE", "custom-audience")
+		t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", baseURL)
+		t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "token")
+		t.Setenv("M365_OIDC_AUDIENCE", "custom-audience")
 
 		// We need to check what the URL would be constructed as
 		requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
@@ -487,16 +486,14 @@ func TestGitHubOIDCStrategy_AudienceParameter(t *testing.T) {
 			"URL should include custom audience parameter from M365_OIDC_AUDIENCE")
 	})
 
-	// Cleanup
-	os.Clearenv()
 }
 
 // TestGitHubOIDCStrategy_ExistingQueryParams tests URL construction with existing query parameters
 func TestGitHubOIDCStrategy_ExistingQueryParams(t *testing.T) {
 	// Given a URL with existing query parameters
 	baseURL := "https://example.com/token?existing=param"
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", baseURL)
-	os.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "token")
+	t.Setenv("ACTIONS_ID_TOKEN_REQUEST_URL", baseURL)
+	t.Setenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN", "token")
 
 	// We need to check what the URL would be constructed as
 	requestURL := os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
@@ -517,8 +514,6 @@ func TestGitHubOIDCStrategy_ExistingQueryParams(t *testing.T) {
 	assert.Contains(t, requestURL, "&audience=api://AzureADTokenExchange",
 		"URL should add audience parameter with & when existing params present")
 
-	// Cleanup
-	os.Clearenv()
 }
 
 // TestUnit_ClientSecretStrategy_CredentialCreation validates client secret credential creation.

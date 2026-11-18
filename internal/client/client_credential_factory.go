@@ -206,23 +206,24 @@ func (s *ClientCertificateStrategy) GetCredential(
 }
 
 // DeviceCodeStrategy implements the credential strategy for device code authentication
-type DeviceCodeStrategy struct{}
+type DeviceCodeStrategy struct {
+	openTerminal func() (io.WriteCloser, error)
+}
 
 func (s *DeviceCodeStrategy) GetCredential(ctx context.Context, config *ProviderData, clientOptions policy.ClientOptions) (azcore.TokenCredential, error) {
 	tflog.Info(ctx, "Creating device code credential", map[string]any{
 		"tenant_id": config.TenantID,
 		"client_id": config.EntraIDOptions.ClientID,
 	})
+	openTerminal := s.openTerminal
+	if openTerminal == nil {
+		openTerminal = openDeviceCodeTerminal
+	}
 	return azidentity.NewDeviceCodeCredential(&azidentity.DeviceCodeCredentialOptions{
-		TenantID: config.TenantID,
-		ClientID: config.EntraIDOptions.ClientID,
-		UserPrompt: func(ctx context.Context, message azidentity.DeviceCodeMessage) error {
-			tflog.Info(ctx, "Device code message", map[string]any{
-				"message": message.Message,
-			})
-			fmt.Println(message.Message)
-			return nil
-		},
+		ClientOptions:              clientOptions,
+		TenantID:                   config.TenantID,
+		ClientID:                   config.EntraIDOptions.ClientID,
+		UserPrompt:                 newDeviceCodePrompt(openTerminal),
 		DisableInstanceDiscovery:   config.EntraIDOptions.DisableInstanceDiscovery,
 		AdditionallyAllowedTenants: config.EntraIDOptions.AdditionallyAllowedTenants,
 	})
