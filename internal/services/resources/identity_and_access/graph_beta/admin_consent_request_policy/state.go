@@ -1,0 +1,47 @@
+package graphBetaAdminConsentRequestPolicy
+
+import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+)
+
+func MapRemoteStateToTerraform(ctx context.Context, data *AdminConsentRequestPolicyResourceModel, remote graphmodels.AdminConsentRequestPolicyable) diag.Diagnostics {
+	data.ID = types.StringValue(singletonID)
+	data.IsEnabled = convert.GraphToFrameworkBool(remote.GetIsEnabled())
+	data.NotifyReviewers = convert.GraphToFrameworkBool(remote.GetNotifyReviewers())
+	data.RemindersEnabled = convert.GraphToFrameworkBool(remote.GetRemindersEnabled())
+	data.RequestDurationInDays = convert.GraphToFrameworkInt32(remote.GetRequestDurationInDays())
+	data.Version = convert.GraphToFrameworkInt32(remote.GetVersion())
+	selections := make([]ReviewerModel, 0, len(remote.GetReviewers()))
+	for _, reviewer := range remote.GetReviewers() {
+		selections = append(
+			selections,
+			ReviewerModel{
+				Query:     convert.GraphToFrameworkString(reviewer.GetQuery()),
+				QueryType: convert.GraphToFrameworkString(reviewer.GetQueryType()),
+				QueryRoot: convert.GraphToFrameworkString(reviewer.GetQueryRoot()),
+			},
+		)
+	}
+	var diags diag.Diagnostics
+	data.Reviewers, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: reviewerAttributeTypes}, selections)
+	return diags
+}
+
+func policyConsistencyPredicate(expected *AdminConsentRequestPolicyResourceModel) func(context.Context, tfsdk.State) bool {
+	return func(ctx context.Context, state tfsdk.State) bool {
+		var actual AdminConsentRequestPolicyResourceModel
+		if state.Get(ctx, &actual).HasError() {
+			return false
+		}
+		return actual.IsEnabled.Equal(expected.IsEnabled) && actual.NotifyReviewers.Equal(expected.NotifyReviewers) && actual.RemindersEnabled.Equal(expected.RemindersEnabled) &&
+			actual.RequestDurationInDays.Equal(expected.RequestDurationInDays) &&
+			actual.Reviewers.Equal(expected.Reviewers)
+	}
+}

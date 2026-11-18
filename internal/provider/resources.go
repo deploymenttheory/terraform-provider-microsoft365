@@ -142,6 +142,7 @@ import (
 	graphBetaGroupLicenseAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/license_assignment"
 
 	// Graph Beta - Identity and Access resources
+	graphBetaIdentityAndAccessAdminConsentRequestPolicy "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/admin_consent_request_policy"
 	graphBetaIdentityAndAccessAdministrativeUnit "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/administrative_unit"
 	graphBetaIdentityAndAccessAdministrativeUnitDirectoryRoleAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/administrative_unit_directory_role_assignment"
 	graphBetaIdentityAndAccessAdministrativeUnitMembership "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/administrative_unit_membership"
@@ -411,6 +412,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaIdentityAndAccessAuthenticationFlowsPolicy.NewAuthenticationFlowsPolicyResource,
 		graphBetaIdentityAndAccessAuthenticationMethodsPolicy.NewAuthenticationMethodsPolicyResource,
 		graphBetaIdentityAndAccessAuthenticationStrengthPolicy.NewAuthenticationStrengthPolicyResource,
+		graphBetaIdentityAndAccessAdminConsentRequestPolicy.NewAdminConsentRequestPolicyResource,
 		graphBetaIdentityAndAccessAuthorizationPolicy.NewAuthorizationPolicyResource,
 		graphBetaIdentityAndAccessB2bManagementPolicy.NewB2bManagementPolicyResource,
 		graphBetaIdentityAndAccessB2bManagementPolicyAssignment.NewB2bManagementPolicyAssignmentResource,
