@@ -2516,6 +2516,14 @@ func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
 				),
 			},
 			{
+				// Removing the block must clear session controls in Graph.
+				Config: withoutSessionControls(cau021Config(`grant_controls = { operator = "OR", built_in_controls = ["mfa"] }`, "everyTimeStrict")),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("mfa"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").DoesNotExist(),
+				),
+			},
+			{
 				// Removing the block must clear grant controls in Graph.
 				Config: loadUnitTestTerraform("resource_cau021-selected.tf"),
 				Check: resource.ComposeTestCheckFunc(
@@ -2536,4 +2544,9 @@ func cau021Config(grantControls, frequencyInterval string) string {
 	config := loadUnitTestTerraform("resource_cau021-selected.tf")
 	config = strings.Replace(config, "  session_controls = {", "  "+grantControls+"\n\n  session_controls = {", 1)
 	return strings.Replace(config, `"everyTimeStrict"`, `"`+frequencyInterval+`"`, 1)
+}
+
+// withoutSessionControls drops the trailing session_controls block from a policy config.
+func withoutSessionControls(config string) string {
+	return config[:strings.Index(config, "  session_controls = {")] + "}\n"
 }

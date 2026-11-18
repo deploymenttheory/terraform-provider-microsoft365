@@ -40,6 +40,10 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		requestBody.SetConditions(conditions)
 	}
 
+	// Graph keeps existing grant and session controls when the property is omitted, so unset blocks
+	// are cleared with an explicit null.
+	clearedControls := map[string]any{}
+
 	// Build grant controls
 	if data.GrantControls != nil {
 		grantControls, err := constructGrantControls(ctx, data.GrantControls)
@@ -48,8 +52,7 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		}
 		requestBody.SetGrantControls(grantControls)
 	} else {
-		// Graph keeps existing grant controls when the property is omitted, so clear them explicitly.
-		requestBody.SetAdditionalData(map[string]any{"grantControls": nil})
+		clearedControls["grantControls"] = nil
 	}
 
 	// Build session controls
@@ -59,6 +62,12 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 			return nil, fmt.Errorf("failed to construct session controls: %w", err)
 		}
 		requestBody.SetSessionControls(sessionControls)
+	} else {
+		clearedControls["sessionControls"] = nil
+	}
+
+	if len(clearedControls) > 0 {
+		requestBody.SetAdditionalData(clearedControls)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
