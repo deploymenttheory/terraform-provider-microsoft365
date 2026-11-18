@@ -77,7 +77,7 @@ func minimalChecks() resource.TestCheckFunc {
 		check.That(accTestResourceName).Key("state").HasValue("configured"),
 		check.That(accTestResourceName).Key("identity_sources.#").HasValue("1"),
 		check.That(accTestResourceName).Key("identity_sources.0.odata_type").HasValue("#microsoft.graph.domainIdentitySource"),
-		check.That(accTestResourceName).Key("identity_sources.0.domain_name").HasValue("fabrikam.com"),
+		check.That(accTestResourceName).Key("identity_sources.0.domain_name").MatchesRegex(regexp.MustCompile(`^[a-z0-9]{8}\.192-0-2-1\.sslip\.io$`)),
 		check.That(accTestResourceName).Key("created_by").IsSet(),
 		check.That(accTestResourceName).Key("created_date_time").IsSet(),
 		check.That(accTestResourceName).Key("modified_date_time").IsSet(),
@@ -92,7 +92,7 @@ func maximalChecks() resource.TestCheckFunc {
 		check.That(accTestResourceName).Key("description").HasValue("Connected organization managed by Terraform acceptance tests"),
 		check.That(accTestResourceName).Key("state").HasValue("proposed"),
 		check.That(accTestResourceName).Key("identity_sources.#").HasValue("1"),
-		check.That(accTestResourceName).Key("identity_sources.0.domain_name").HasValue("fabrikam.com"),
+		check.That(accTestResourceName).Key("identity_sources.0.domain_name").MatchesRegex(regexp.MustCompile(`^[a-z0-9]{8}\.192-0-2-1\.sslip\.io$`)),
 	)
 }
 
@@ -237,7 +237,7 @@ func TestAccResourceConnectedOrganization_07_IdentitySourceForcesReplace(t *test
 			Check: resource.ComposeTestCheckFunc(
 				check.That(accTestResourceName).ExistsInGraph(testResource),
 				check.That(accTestResourceName).Key("identity_sources.#").HasValue("1"),
-				check.That(accTestResourceName).Key("identity_sources.0.domain_name").HasValue("adatum.com"),
+				check.That(accTestResourceName).Key("identity_sources.0.domain_name").MatchesRegex(regexp.MustCompile(`^replacement-[a-z0-9]{8}\.192-0-2-1\.sslip\.io$`)),
 			),
 		},
 		importStep("Importing replaced connected organization"),

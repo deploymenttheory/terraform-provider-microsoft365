@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/google/uuid"
 	"github.com/jarcoal/httpmock"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 )
 
@@ -101,14 +100,13 @@ func (m *ConnectedOrganizationMock) RegisterMocks() {
 			return badRequest("BadRequest", fmt.Sprintf("Unable to determine JSON file for displayName: %s", displayName)), nil
 		}
 
-		responsesPath := filepath.Join("tests", "responses", "validate_create", jsonFileName)
-		jsonData, err := os.ReadFile(responsesPath)
+		jsonData, err := helpers.ParseJSONFile("../tests/responses/validate_create/" + jsonFileName)
 		if err != nil {
 			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to load JSON response file: %s"}}`, err.Error())), nil
 		}
 
 		var responseObj map[string]any
-		if err := json.Unmarshal(jsonData, &responseObj); err != nil {
+		if err := json.Unmarshal([]byte(jsonData), &responseObj); err != nil {
 			return httpmock.NewStringResponse(500, fmt.Sprintf(`{"error":{"code":"InternalServerError","message":"Failed to parse JSON response: %s"}}`, err.Error())), nil
 		}
 

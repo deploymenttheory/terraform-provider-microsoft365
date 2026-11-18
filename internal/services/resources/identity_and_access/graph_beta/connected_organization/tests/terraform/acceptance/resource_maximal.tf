@@ -20,8 +20,8 @@ resource "microsoft365_graph_beta_identity_and_access_connected_organization" "t
   identity_sources = [
     {
       odata_type   = "#microsoft.graph.domainIdentitySource"
-      display_name = "fabrikam.com"
-      domain_name  = "fabrikam.com"
+      display_name = "${random_string.suffix.result}.192-0-2-1.sslip.io"
+      domain_name  = "${random_string.suffix.result}.192-0-2-1.sslip.io"
     }
   ]
 

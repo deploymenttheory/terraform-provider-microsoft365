@@ -12,18 +12,16 @@ resource "random_string" "suffix" {
 # Connected Organization - Minimal (domain identity source)
 # ==============================================================================
 
-# Graph only accepts a domain identity source for a domain that resolves publicly
-# (it returns 404 IdentityProviderNotFound otherwise) and allows each domain in only
-# one connected organization per tenant, so acceptance fixtures use fixed public
-# sample domains rather than random subdomains.
+# Graph requires public DNS resolution and permits each identity provider in only
+# one connected organization. Wildcard DNS gives this run a resolving, unique domain.
 resource "microsoft365_graph_beta_identity_and_access_connected_organization" "test" {
   display_name = "acc-test-connected-organization-${random_string.suffix.result}"
 
   identity_sources = [
     {
       odata_type   = "#microsoft.graph.domainIdentitySource"
-      display_name = "fabrikam.com"
-      domain_name  = "fabrikam.com"
+      display_name = "${random_string.suffix.result}.192-0-2-1.sslip.io"
+      domain_name  = "${random_string.suffix.result}.192-0-2-1.sslip.io"
     }
   ]
 
