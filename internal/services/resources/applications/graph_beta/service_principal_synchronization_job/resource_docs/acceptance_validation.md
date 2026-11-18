@@ -1,0 +1,11 @@
+# Beta API and tenant validation
+
+The renewed instruction to complete this resource authorized the prepared live curl probe. It completed successfully on 2026-11-18 using applications-domain lab credentials. Earlier approval-review blocks are retained in the research history and are superseded by this run.
+
+`Test-ServicePrincipalSynchronizationJobBeta4894.ps1` created an isolated Custom application and disabled its service principal, discovered the `scim` connector, and posted one job with only `templateId`. The API returned POST 201, GET 200, schedule state `Disabled`, interval `PT40M`, and status code `Paused`. DELETE returned 204, followed by three GET 404 responses while the disabled parent still existed. Both owned parent objects were then verified absent from active and deleted collections. No credentials, assignments, or provisioning starts were performed.
+
+The response and cleanup evidence is saved under the lab `msgraph/applications` directory in `service-principal-synchronization-job-beta-4894.json`. The acceptance fixture uses raw instantiate-response decoding because beta returns legacy `objectId` properties; an offline transport regression verifies that both ownership IDs are retained before another tenant fixture is created. The initial setup failure's exact owned application and principal were recovered and verified removed in `synchronization-job-failed-fixture-cleanup-4894.json`.
+
+Unit tests cover disabled and enabled creation, explicit start/pause transitions without refresh side effects, ordinary and generated imports, malformed composite IDs, missing/forbidden/incomplete responses, retention of the returned job ID when start fails, and direct deletion verification. Start/pause transitions are mocked; real acceptance deliberately keeps the job disabled and never connects a provisioning target.
+
+Final `TestAccResourceServicePrincipalSynchronizationJob_Lifecycle` passed in 109.94 seconds: disabled create, ordinary import, generated import/no-change plan, and direct job destruction before parent cleanup. Both exact parent IDs were then checked across active/deleted collections to handle delayed deleted-item replicas. Terraform unit tests pass with 77.8% resource coverage; OpenTofu lifecycle/generated-import tests pass. Changed-code lint reports zero issues.
