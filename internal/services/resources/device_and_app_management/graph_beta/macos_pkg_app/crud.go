@@ -68,7 +68,7 @@ func (r *MacOSPKGAppResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	// Step 3: Construct the base resource from the Terraform model
-	requestBody, err := constructResource(ctx, &object, installerSourcePath)
+	requestBody, err := constructResource(ctx, &object, installerSourcePath, false)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for Create method",
@@ -471,9 +471,6 @@ func (r *MacOSPKGAppResource) Read(ctx context.Context, req resource.ReadRequest
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-apps-macospkgapp-update?view=graph-rest-beta
 func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state MacOSPKGAppResourceModel
-	var installerSourcePath string
-	var tempFileInfo helpers.TempFileInfo
-	var err error
 
 	tflog.Debug(ctx, fmt.Sprintf("Updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 
@@ -489,22 +486,8 @@ func (r *MacOSPKGAppResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 	defer cancel()
 
-	// Ensure cleanup of temporary file when we're done
-	if tempFileInfo.ShouldCleanup {
-		defer helpers.CleanupTempFile(ctx, tempFileInfo)
-	}
-
-	installerSourcePath, tempFileInfo, err = helpers.SetInstallerSourcePath(ctx, plan.AppInstaller)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error determining installer file path",
-			err.Error(),
-		)
-		return
-	}
-
 	// Step 1: Update the base mobile app resource
-	requestBody, err := constructResource(ctx, &plan, installerSourcePath)
+	requestBody, err := constructResource(ctx, &plan, "", true)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error constructing resource for update method",
