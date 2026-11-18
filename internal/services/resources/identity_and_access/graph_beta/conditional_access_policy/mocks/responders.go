@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -227,7 +228,12 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 		for key, value := range requestBody {
 			policy[key] = value
 		}
-		policy["modifiedDateTime"] = "2024-01-02T00:00:00Z"
+		// Advance a whole second per update so the post-update consistency predicate sees a new version
+		modified, err := time.Parse(time.RFC3339, fmt.Sprint(policy["modifiedDateTime"]))
+		if err != nil {
+			modified = time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)
+		}
+		policy["modifiedDateTime"] = modified.Add(time.Second).Format(time.RFC3339)
 		mockState.policies[policyId] = policy
 		mockState.Unlock()
 

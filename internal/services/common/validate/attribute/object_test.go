@@ -107,3 +107,75 @@ func TestExactlyOneOfMixedTypes_EmptyAttributes(t *testing.T) {
 		t.Errorf("Expected description %q, got %q", expected, desc)
 	}
 }
+
+func TestAtLeastOneOfNonEmpty(t *testing.T) {
+	t.Parallel()
+
+	strengthType := types.ObjectType{AttrTypes: map[string]attr.Type{"id": types.StringType}}
+	attrTypes := map[string]attr.Type{
+		"operator":          types.StringType,
+		"built_in_controls": types.SetType{ElemType: types.StringType},
+		"names":             types.ListType{ElemType: types.StringType},
+		"tags":              types.MapType{ElemType: types.StringType},
+		"strength":          strengthType,
+	}
+	emptySet := types.SetValueMust(types.StringType, []attr.Value{})
+	emptyList := types.ListValueMust(types.StringType, []attr.Value{})
+	emptyMap := types.MapValueMust(types.StringType, map[string]attr.Value{})
+	noStrength := types.ObjectNull(strengthType.AttrTypes)
+	object := func(values map[string]attr.Value) types.Object {
+		all := map[string]attr.Value{
+			"operator":          types.StringValue("OR"),
+			"built_in_controls": types.SetNull(types.StringType),
+			"names":             types.ListNull(types.StringType),
+			"tags":              types.MapNull(types.StringType),
+			"strength":          noStrength,
+		}
+		for name, value := range values {
+			all[name] = value
+		}
+		return types.ObjectValueMust(attrTypes, all)
+	}
+
+	for name, tc := range map[string]struct {
+		value     types.Object
+		wantError bool
+	}{
+		"null object":    {value: types.ObjectNull(attrTypes)},
+		"unknown object": {value: types.ObjectUnknown(attrTypes)},
+		"nothing set":    {value: object(nil), wantError: true},
+		"empty collections": {
+			value:     object(map[string]attr.Value{"built_in_controls": emptySet, "names": emptyList, "tags": emptyMap}),
+			wantError: true,
+		},
+		"unknown after empty": {
+			value: object(map[string]attr.Value{"built_in_controls": emptySet, "names": types.ListUnknown(types.StringType)}),
+		},
+		"non-empty set": {
+			value: object(map[string]attr.Value{"built_in_controls": types.SetValueMust(types.StringType, []attr.Value{types.StringValue("mfa")})}),
+		},
+		"non-empty list": {
+			value: object(map[string]attr.Value{"names": types.ListValueMust(types.StringType, []attr.Value{types.StringValue("a")})}),
+		},
+		"nested object": {
+			value: object(map[string]attr.Value{
+				"built_in_controls": emptySet,
+				"strength":          types.ObjectValueMust(strengthType.AttrTypes, map[string]attr.Value{"id": types.StringValue("x")}),
+			}),
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			resp := &validator.ObjectResponse{}
+			AtLeastOneOfNonEmpty("built_in_controls", "names", "tags", "strength").ValidateObject(
+				context.Background(),
+				validator.ObjectRequest{Path: path.Root("test"), ConfigValue: tc.value},
+				resp,
+			)
+			if resp.Diagnostics.HasError() != tc.wantError {
+				t.Fatalf("expected error %v, got %v", tc.wantError, resp.Diagnostics)
+			}
+		})
+	}
+}

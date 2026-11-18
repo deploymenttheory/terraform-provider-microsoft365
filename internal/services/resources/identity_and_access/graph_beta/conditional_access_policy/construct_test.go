@@ -2,12 +2,15 @@ package graphBetaConditionalAccessPolicy
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 )
 
 // Graph rejects null device lists, so a policy that only sets device_filter must leave them out.
@@ -63,6 +66,74 @@ func TestConstructDevicesRejectsNonStringLists(t *testing.T) {
 			_, err := constructDevices(context.Background(), data)
 			if err == nil || !strings.Contains(err.Error(), "failed to convert "+name) {
 				t.Fatalf("expected failed to convert %s, got %v", name, err)
+			}
+		})
+	}
+}
+
+// everyTimeStrict isn't in the SDK enum, so it must still reach the request body.
+func TestConstructSessionControlsSendsEveryTimeStrict(t *testing.T) {
+	sessionControls, err := constructSessionControls(context.Background(), &ConditionalAccessSessionControls{
+		SignInFrequency: &ConditionalAccessSignInFrequency{
+			IsEnabled:          types.BoolValue(true),
+			AuthenticationType: types.StringValue("primaryAndSecondaryAuthentication"),
+			FrequencyInterval:  types.StringValue(signInFrequencyIntervalEveryTimeStrict),
+		},
+	})
+	if err != nil {
+		t.Fatalf("constructSessionControls returned error: %v", err)
+	}
+	writer := jsonserialization.NewJsonSerializationWriter()
+	if err := writer.WriteObjectValue("", sessionControls); err != nil {
+		t.Fatalf("serialize session controls: %v", err)
+	}
+	content, err := writer.GetSerializedContent()
+	if err != nil {
+		t.Fatalf("read serialized session controls: %v", err)
+	}
+
+	body := string(content)
+	if !strings.Contains(body, `"frequencyInterval":"everyTimeStrict"`) {
+		t.Errorf("expected frequencyInterval everyTimeStrict, got %s", body)
+	}
+	if strings.Count(body, `"frequencyInterval"`) != 1 {
+		t.Errorf("expected a single frequencyInterval, got %s", body)
+	}
+}
+
+func TestValidateSessionControlsEveryTimeRules(t *testing.T) {
+	for name, tc := range map[string]struct {
+		signInFrequency ConditionalAccessSignInFrequency
+		want            error
+	}{
+		"everyTimeStrict with type": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), Type: types.StringValue("hours")},
+			want:            sentinels.ErrFrequencyIntervalEveryTimeWithType,
+		},
+		"everyTimeStrict with value": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), Value: types.Int32Value(1)},
+			want:            sentinels.ErrFrequencyIntervalEveryTimeWithValue,
+		},
+		"everyTime with secondaryAuthentication": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue("everyTime"), AuthenticationType: types.StringValue("secondaryAuthentication")},
+			want:            sentinels.ErrFrequencyIntervalEveryTimeAuthenticationType,
+		},
+		"everyTimeStrict with secondaryAuthentication": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), AuthenticationType: types.StringValue("secondaryAuthentication")},
+			want:            sentinels.ErrFrequencyIntervalEveryTimeAuthenticationType,
+		},
+		"everyTimeStrict with primaryAndSecondaryAuthentication": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue(signInFrequencyIntervalEveryTimeStrict), AuthenticationType: types.StringValue("primaryAndSecondaryAuthentication")},
+		},
+		"timeBased with secondaryAuthentication": {
+			signInFrequency: ConditionalAccessSignInFrequency{FrequencyInterval: types.StringValue("timeBased"), AuthenticationType: types.StringValue("secondaryAuthentication")},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			signInFrequency := tc.signInFrequency
+			err := validateSessionControls(context.Background(), &ConditionalAccessSessionControls{SignInFrequency: &signInFrequency})
+			if !errors.Is(err, tc.want) {
+				t.Fatalf("expected %v, got %v", tc.want, err)
 			}
 		})
 	}

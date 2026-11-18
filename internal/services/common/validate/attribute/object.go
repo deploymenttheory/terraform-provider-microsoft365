@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -240,5 +241,78 @@ func ObjectSupportedOnlyWhenStringIn(dependentPath path.Path, values []string, v
 		values:            values,
 		allowList:         true,
 		validationMessage: validationMessage,
+	}
+}
+
+// atLeastOneOfNonEmptyValidator validates that a nested object sets at least one of the given
+// attributes. An empty collection (set, list or map) doesn't count as set.
+type atLeastOneOfNonEmptyValidator struct {
+	attributeNames []string
+}
+
+// Description returns the validator's description.
+func (v atLeastOneOfNonEmptyValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("At least one of [%s] must be set to a non-empty value", strings.Join(v.attributeNames, ", "))
+}
+
+// MarkdownDescription returns the validator's description in Markdown format.
+func (v atLeastOneOfNonEmptyValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+// ValidateObject implements the validation logic for object attributes.
+func (v atLeastOneOfNonEmptyValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	attributes := req.ConfigValue.Attributes()
+	for _, name := range v.attributeNames {
+		value, ok := attributes[name]
+		if !ok || value.IsNull() {
+			continue
+		}
+		// The value may still turn out to be set, so wait until it's known.
+		if value.IsUnknown() {
+			return
+		}
+		if emptyCollection(value) {
+			continue
+		}
+		return
+	}
+
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		"Missing Required Attribute",
+		fmt.Sprintf("At least one of these attributes must be set to a non-empty value: %s",
+			strings.Join(v.attributeNames, ", ")),
+	)
+}
+
+// emptyCollection reports whether value is a set, list or map without elements.
+func emptyCollection(value attr.Value) bool {
+	switch collection := value.(type) {
+	case interface{ Elements() []attr.Value }:
+		return len(collection.Elements()) == 0
+	case interface{ Elements() map[string]attr.Value }:
+		return len(collection.Elements()) == 0
+	}
+	return false
+}
+
+// AtLeastOneOfNonEmpty returns a validator that ensures a nested object sets at least one of the
+// given attributes, treating empty collections as unset.
+//
+// Example usage in a schema:
+//
+//	"grant_controls": schema.SingleNestedAttribute{
+//	    Validators: []validator.Object{
+//	        attribute.AtLeastOneOfNonEmpty("built_in_controls", "terms_of_use"),
+//	    },
+//	}
+func AtLeastOneOfNonEmpty(attributeNames ...string) validator.Object {
+	return &atLeastOneOfNonEmptyValidator{
+		attributeNames: attributeNames,
 	}
 }

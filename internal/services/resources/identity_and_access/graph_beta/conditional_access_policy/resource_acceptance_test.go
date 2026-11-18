@@ -417,7 +417,7 @@ func TestAccResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("conditions.devices.device_filter.mode").HasValue("exclude"),
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("conditions.devices.device_filter.rule").HasValue("device.isCompliant -eq True -or device.trustType -eq \"ServerAD\""),
 					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("session_controls.application_enforced_restrictions.is_enabled").HasValue("true"),
-					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cad006_session_block_download_unmanaged").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -541,7 +541,7 @@ func TestAccResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("session_controls.sign_in_frequency.authentication_type").HasValue("primaryAndSecondaryAuthentication"),
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("timeBased"),
 					check.That(resourceType+".cad008_browser_signin_frequency").Key("session_controls.sign_in_frequency.is_enabled").HasValue("true"),
-					check.That(resourceType+".cad008_browser_signin_frequency").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cad008_browser_signin_frequency").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -599,7 +599,7 @@ func TestAccResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("conditions.devices.device_filter.rule").HasValue("device.isCompliant -eq True -or device.trustType -eq \"ServerAD\""),
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("session_controls.persistent_browser.mode").HasValue("never"),
 					check.That(resourceType+".cad009_disable_browser_persistence").Key("session_controls.persistent_browser.is_enabled").HasValue("true"),
-					check.That(resourceType+".cad009_disable_browser_persistence").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cad009_disable_browser_persistence").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -2772,7 +2772,7 @@ func TestAccResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("timeBased"),
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("session_controls.sign_in_frequency.value").HasValue("10"),
 					check.That(resourceType+".cau017_admin_signin_frequency").Key("session_controls.sign_in_frequency.type").HasValue("hours"),
-					check.That(resourceType+".cau017_admin_signin_frequency").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cau017_admin_signin_frequency").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
@@ -2826,7 +2826,7 @@ func TestAccResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("All"),
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("session_controls.persistent_browser.is_enabled").HasValue("true"),
 					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("session_controls.persistent_browser.mode").HasValue("never"),
-					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceType+".cau018_admin_disable_browser_persistence").Key("grant_controls.operator").DoesNotExist(),
 				),
 			},
 			{
