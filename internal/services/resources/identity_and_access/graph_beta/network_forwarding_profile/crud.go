@@ -2,6 +2,10 @@ package graphBetaNetworkForwardingProfile
 
 import (
 	"context"
+	stderrors "errors"
+	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -9,9 +13,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
@@ -51,17 +57,73 @@ func (r *NetworkForwardingProfileResource) Create(
 	}
 	// POST can return 504 after creating the profile, and a retried POST then fails
 	// as a duplicate. List first so only a profile created by this request is adopted.
-	existing, listErr := r.customProfileIDs(ctx)
+	var beforeCreate struct {
+		Value []sharedmodels.ForwardingProfileWire `json:"value"`
+	}
+	listErr := customrequests.JSONRequest(ctx, r.client.GetAdapter(), abstractions.GET, r.ResourcePath, nil, nil, &beforeCreate)
+	if listErr != nil {
+		listErr = fmt.Errorf("list forwarding profiles: %w", listErr)
+	}
+	existing := make(map[string]bool, len(beforeCreate.Value))
+	for _, profile := range beforeCreate.Value {
+		if profile.ID != nil && profile.IsCustomProfile != nil && *profile.IsCustomProfile {
+			existing[*profile.ID] = true
+		}
+	}
 	if listErr != nil {
 		tflog.Warn(ctx, "Could not list forwarding profiles before create", map[string]any{
 			"error": listErr.Error(),
 		})
 	}
-	remote, err := r.create(ctx, body)
+	var createResponse sharedmodels.ForwardingProfileWire
+	createErr := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.POST,
+		r.ResourcePath,
+		nil,
+		body,
+		&createResponse,
+	)
+	remote, err := decodeCreateResponse(createResponse, createErr)
 	// Without the list a match may be pre-existing, so report the error.
 	if err != nil && listErr == nil {
 		info := errors.GraphError(ctx, err)
-		if created := r.waitForCreated(ctx, plan, existing, createdLookupAttemptsFor(info)); created != nil {
+		var created *sharedmodels.ForwardingProfileWire
+		attempts := createdLookupAttemptsFor(info)
+		attempt := 0
+		_ = crud.PollUntil(ctx, createdLookupInterval, func(ctx context.Context) (bool, error) {
+			attempt++
+			var recoveryProfiles struct {
+				Value []sharedmodels.ForwardingProfileWire `json:"value"`
+			}
+			lookupErr := customrequests.JSONRequest(ctx, r.client.GetAdapter(), abstractions.GET, r.ResourcePath, nil, nil, &recoveryProfiles)
+			if lookupErr == nil {
+				for i, profile := range recoveryProfiles.Value {
+					if profile.ID != nil && !existing[*profile.ID] && profile.IsCustomProfile != nil && *profile.IsCustomProfile &&
+						profile.Name != nil && *profile.Name == plan.Name.ValueString() && profile.TrafficForwardingType != nil &&
+						*profile.TrafficForwardingType == plan.TrafficForwardingType.ValueString() && profile.Priority != nil &&
+						*profile.Priority == plan.Priority.ValueInt32() && tryClaim(*profile.ID) {
+						created = &recoveryProfiles.Value[i]
+						return true, nil
+					}
+				}
+				lookupErr = errProfileNotCreated
+			} else {
+				lookupErr = fmt.Errorf("list forwarding profiles: %w", lookupErr)
+			}
+			if !stderrors.Is(lookupErr, errProfileNotCreated) {
+				lookupInfo := errors.GraphError(ctx, lookupErr)
+				if lookupInfo.StatusCode >= 400 && lookupInfo.StatusCode < 500 && lookupInfo.StatusCode != 429 && lookupInfo.ErrorCode != "URLError" {
+					return false, &crud.FatalPollError{Err: lookupErr}
+				}
+			}
+			if attempt >= attempts {
+				return false, &crud.FatalPollError{Err: lookupErr}
+			}
+			return false, lookupErr
+		})
+		if created != nil {
 			tflog.Warn(
 				ctx,
 				"Forwarding profile create returned an error but the profile exists; adopting it",
@@ -130,8 +192,20 @@ func (r *NetworkForwardingProfileResource) Read(
 	}
 	defer cancel()
 
-	remote, err := r.get(ctx, state.ID.ValueString())
+	var readResponse sharedmodels.ForwardingProfileWire
+	readErr := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.GET,
+		r.ResourcePath+"/{profileId}",
+		map[string]string{"profileId": state.ID.ValueString()},
+		nil,
+		&readResponse,
+	)
+	remote, err := &readResponse, readErr
 	if err != nil {
+		err = fmt.Errorf("get forwarding profile: %w", err)
+
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
 		return
 	}
@@ -176,7 +250,22 @@ func (r *NetworkForwardingProfileResource) Update(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := r.patch(ctx, state.ID.ValueString(), body); err != nil {
+
+	var updateErr error
+	if len(body) > 0 {
+		updateErr = customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			r.ResourcePath+"/{profileId}",
+			map[string]string{"profileId": state.ID.ValueString()},
+			body,
+			nil,
+		)
+	}
+	if err := updateErr; err != nil {
+		err = fmt.Errorf("update forwarding profile: %w", err)
+
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -230,7 +319,18 @@ func (r *NetworkForwardingProfileResource) Delete(
 	}
 	defer cancel()
 
-	if err := r.delete(ctx, state.ID.ValueString()); err != nil {
+	deleteErr := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.DELETE,
+		r.ResourcePath+"/{profileId}",
+		map[string]string{"profileId": state.ID.ValueString()},
+		nil,
+		nil,
+	)
+	if err := deleteErr; err != nil {
+		err = fmt.Errorf("delete forwarding profile: %w", err)
+
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -274,4 +374,46 @@ func readbackOptions(
 // values are computed by Graph and are not compared.
 func matches(planned, actual attr.Value) bool {
 	return planned.IsUnknown() || planned.Equal(actual)
+}
+
+var (
+	errInvalidProfileResponse = stderrors.New("graph returned a forwarding profile without an ID")
+	errProfileNotCreated      = stderrors.New("forwarding profile not found after failed create")
+)
+
+// claimedProfiles holds IDs already created or adopted in this process, so two
+// resources with the same name and priority cannot both adopt one profile.
+var claimedProfiles sync.Map
+
+// Variables so unit tests can shorten the wait.
+var (
+	createdLookupAttempts   = 12
+	duplicateLookupAttempts = 3
+	createdLookupInterval   = 5 * time.Second
+)
+
+// createdLookupAttemptsFor polls longest after errors that can hide a create
+// (transport errors, which GraphError reports as 400 "URLError", 503 or 504;
+// gateway failures; non-Graph 500s). 400/409 get a few checks (a retried POST
+// fails as a duplicate); anything else gets one.
+func createdLookupAttemptsFor(info errors.GraphErrorInfo) int {
+	switch {
+	case info.ErrorCode == "URLError",
+		info.StatusCode == 502, info.StatusCode == 503, info.StatusCode == 504,
+		info.StatusCode == 500 && !info.IsODataError:
+		return createdLookupAttempts
+	case info.StatusCode == 400, info.StatusCode == 409:
+		return duplicateLookupAttempts
+	default:
+		return 1
+	}
+}
+
+// claimProfile records the profile ID as claimed by a resource in this provider process.
+func claimProfile(id string) { claimedProfiles.Store(strings.ToLower(id), struct{}{}) }
+
+// tryClaim claims id atomically and reports whether this caller got it.
+func tryClaim(id string) bool {
+	_, loaded := claimedProfiles.LoadOrStore(strings.ToLower(id), struct{}{})
+	return !loaded
 }

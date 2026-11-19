@@ -4,11 +4,14 @@ import (
 	"context"
 	stderrors "errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -35,7 +38,14 @@ func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req r
 		resp.Diagnostics.AddError("Error constructing resource for Create Method", err.Error())
 		return
 	}
-	created, err := r.createManagedTLSCertificate(ctx, body)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newManagedTLSCertificateRequestInformation(ctx, createAdapter, abstractions.POST, "", body)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createResult, err := createAdapter.Send(ctx, createRequest, createManagedTLSCertificateResponseFromDiscriminatorValue, managedTLSCertificateErrorMapping)
+	created, err := decodeCreateManagedTLSCertificateResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -63,12 +73,57 @@ func (r *NetworkManagedTLSCertificateResource) Create(ctx context.Context, req r
 			resp.Diagnostics.AddError("Error constructing status update after Create Method", err.Error())
 			return
 		}
-		if err := r.updateManagedTLSCertificate(ctx, object.ID.ValueString(), statusBody); err != nil {
+		updateAdapter := r.client.GetAdapter()
+		updateRequest, err := newManagedTLSCertificateRequestInformation(ctx, updateAdapter, abstractions.PATCH, object.ID.ValueString(), statusBody)
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+			return
+		}
+		if err := updateAdapter.SendNoContent(ctx, updateRequest, managedTLSCertificateErrorMapping); err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
 		}
 
-		settled, err := r.waitForManagedTLSCertificateStatus(ctx, object.ID.ValueString(), true)
+		var settled *managedTLSCertificateResponse
+
+		err = crud.PollUntil(ctx, managedTLSCertificateStatusPollInterval, func(ctx context.Context) (bool, error) {
+			readbackAdapter := r.client.GetAdapter()
+			readbackRequest, err := newManagedTLSCertificateRequestInformation(ctx, readbackAdapter, abstractions.GET, object.ID.ValueString(), nil)
+			if err != nil {
+				info := errors.GraphError(ctx, err)
+				if info.StatusCode == 400 || info.StatusCode == 401 || info.StatusCode == 403 {
+					return false, &crud.FatalPollError{Err: err}
+				}
+				return false, err
+			}
+			readbackResult, err := readbackAdapter.Send(ctx, readbackRequest, createManagedTLSCertificateResponseFromDiscriminatorValue, managedTLSCertificateErrorMapping)
+			certificate, err := decodeSendManagedTLSCertificateResponse(readbackResult, err)
+			if err != nil {
+				info := errors.GraphError(ctx, err)
+				if info.StatusCode == 400 || info.StatusCode == 401 || info.StatusCode == 403 {
+					return false, &crud.FatalPollError{Err: err}
+				}
+				return false, err
+			}
+			settled = certificate
+			if certificate.status == nil {
+				return false, errMissingCertificateStatus
+			}
+
+			status := strings.ToLower(*certificate.status)
+			switch status {
+			case "expired", "revoked":
+				return false, &crud.FatalPollError{Err: fmt.Errorf("%w: %q", errTerminalStatus, status)}
+			case "active", "expiring":
+				return true, nil
+			default:
+				return false, fmt.Errorf("%w with status %q", errPendingEnable, status)
+			}
+		})
+		if err != nil {
+			// settled is returned with the error so callers can report the last status seen.
+			err = fmt.Errorf("wait for certificate status: %w", err)
+		}
 		if err != nil && keepAfterWaitError(err) {
 			keepPlanned(ctx, &object, settled, err, &resp.Diagnostics)
 			resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -123,7 +178,14 @@ func (r *NetworkManagedTLSCertificateResource) Read(ctx context.Context, req res
 		}
 	}
 
-	certificate, err := r.getManagedTLSCertificate(ctx, object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newManagedTLSCertificateRequestInformation(ctx, readAdapter, abstractions.GET, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	readResult, err := readAdapter.Send(ctx, readRequest, createManagedTLSCertificateResponseFromDiscriminatorValue, managedTLSCertificateErrorMapping)
+	certificate, err := decodeSendManagedTLSCertificateResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -152,12 +214,61 @@ func (r *NetworkManagedTLSCertificateResource) Update(ctx context.Context, req r
 			resp.Diagnostics.AddError("Error constructing resource for Update Method", err.Error())
 			return
 		}
-		if err := r.updateManagedTLSCertificate(ctx, state.ID.ValueString(), body); err != nil {
+		updateAdapter := r.client.GetAdapter()
+		updateRequest, err := newManagedTLSCertificateRequestInformation(ctx, updateAdapter, abstractions.PATCH, state.ID.ValueString(), body)
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+			return
+		}
+		if err := updateAdapter.SendNoContent(ctx, updateRequest, managedTLSCertificateErrorMapping); err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 
-		settled, err := r.waitForManagedTLSCertificateStatus(ctx, state.ID.ValueString(), plan.Enabled.ValueBool())
+		var settled *managedTLSCertificateResponse
+
+		err = crud.PollUntil(ctx, managedTLSCertificateStatusPollInterval, func(ctx context.Context) (bool, error) {
+			readbackAdapter := r.client.GetAdapter()
+			readbackRequest, err := newManagedTLSCertificateRequestInformation(ctx, readbackAdapter, abstractions.GET, state.ID.ValueString(), nil)
+			if err != nil {
+				info := errors.GraphError(ctx, err)
+				if info.StatusCode == 400 || info.StatusCode == 401 || info.StatusCode == 403 {
+					return false, &crud.FatalPollError{Err: err}
+				}
+				return false, err
+			}
+			readbackResult, err := readbackAdapter.Send(ctx, readbackRequest, createManagedTLSCertificateResponseFromDiscriminatorValue, managedTLSCertificateErrorMapping)
+			certificate, err := decodeSendManagedTLSCertificateResponse(readbackResult, err)
+			if err != nil {
+				info := errors.GraphError(ctx, err)
+				if info.StatusCode == 400 || info.StatusCode == 401 || info.StatusCode == 403 {
+					return false, &crud.FatalPollError{Err: err}
+				}
+				return false, err
+			}
+			settled = certificate
+			if certificate.status == nil {
+				return false, errMissingCertificateStatus
+			}
+
+			status := strings.ToLower(*certificate.status)
+			switch {
+			case status == "expired" || status == "revoked":
+				return false, &crud.FatalPollError{Err: fmt.Errorf("%w: %q", errTerminalStatus, status)}
+			case plan.Enabled.ValueBool() && (status == "active" || status == "expiring"):
+				return true, nil
+			case !plan.Enabled.ValueBool() && status == "disabled":
+				return true, nil
+			case plan.Enabled.ValueBool():
+				return false, fmt.Errorf("%w with status %q", errPendingEnable, status)
+			default:
+				return false, fmt.Errorf("%w with status %q", errPendingDisable, status)
+			}
+		})
+		if err != nil {
+			// settled is returned with the error so callers can report the last status seen.
+			err = fmt.Errorf("wait for certificate status: %w", err)
+		}
 		if err != nil && keepAfterWaitError(err) {
 			plan.ID = state.ID
 			keepPlanned(ctx, &plan, settled, err, &resp.Diagnostics)
@@ -197,7 +308,13 @@ func (r *NetworkManagedTLSCertificateResource) Delete(ctx context.Context, req r
 	}
 	defer cancel()
 
-	if err := r.deleteManagedTLSCertificate(ctx, object.ID.ValueString()); err != nil {
+	deleteAdapter := r.client.GetAdapter()
+	deleteRequest, err := newManagedTLSCertificateRequestInformation(ctx, deleteAdapter, abstractions.DELETE, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+	if err := deleteAdapter.SendNoContent(ctx, deleteRequest, managedTLSCertificateErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
@@ -247,3 +364,16 @@ func mapComputed(ctx context.Context, object *NetworkManagedTLSCertificateResour
 		}
 	}
 }
+
+var managedTLSCertificateErrorMapping = abstractions.ErrorMappings{"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue}
+
+const managedTLSCertificateStatusPollInterval = 5 * time.Second
+
+var (
+	// errTerminalStatus marks a certificate that can no longer reach the requested status.
+	errTerminalStatus = stderrors.New("certificate entered a terminal status")
+	errPendingEnable  = stderrors.New("certificate activation is still pending")
+	errPendingDisable = stderrors.New("certificate deactivation is still pending")
+)
+
+var errMissingCertificateStatus = stderrors.New("certificate response from Microsoft Graph has no lifecycle status")

@@ -7,10 +7,11 @@ import (
 	"math"
 	"slices"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	graph "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 var errInvalidResponse = errors.New("invalid cloud firewall response")
@@ -18,7 +19,14 @@ var errInvalidResponse = errors.New("invalid cloud firewall response")
 // MapRemoteStateToTerraform refuses unsupported or incomplete responses before changing state.
 func MapRemoteStateToTerraform(ctx context.Context, data *NetworkCloudFirewallPolicyRuleResourceModel, response graph.PolicyRuleable) error {
 	remote, ok := response.(graph.CloudFirewallRuleable)
-	if !ok || remote == nil || remote.GetOdataType() == nil || *remote.GetOdataType() != "#microsoft.graph.networkaccess.cloudFirewallRule" || remote.GetId() == nil || *remote.GetId() == "" || remote.GetName() == nil || remote.GetPriority() == nil || remote.GetAction() == nil || remote.GetSettings() == nil || remote.GetSettings().GetStatus() == nil || remote.GetMatchingConditions() == nil {
+	if !ok || remote == nil || remote.GetOdataType() == nil || *remote.GetOdataType() != "#microsoft.graph.networkaccess.cloudFirewallRule" || remote.GetId() == nil ||
+		*remote.GetId() == "" ||
+		remote.GetName() == nil ||
+		remote.GetPriority() == nil ||
+		remote.GetAction() == nil ||
+		remote.GetSettings() == nil ||
+		remote.GetSettings().GetStatus() == nil ||
+		remote.GetMatchingConditions() == nil {
 		return fmt.Errorf("%w: cloud firewall rule response is missing required properties or has an unsupported type", errInvalidResponse)
 	}
 	if !data.ID.IsNull() && !data.ID.IsUnknown() && data.ID.ValueString() != *remote.GetId() {
@@ -59,6 +67,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkCloudFirewallPo
 func addressState(ctx context.Context, typ string, values []string) types.Object {
 	return types.ObjectValueMust(addressObjectType().AttrTypes, map[string]attr.Value{"type": types.StringValue(typ), "values": stringSet(ctx, values)})
 }
+
 func stringSet(ctx context.Context, values []string) types.Set {
 	values = append([]string{}, values...)
 	slices.Sort(values)
@@ -94,7 +103,10 @@ func sourceState(ctx context.Context, source graph.CloudFirewallSourceMatchingab
 	if len(addresses) > 1 {
 		return empty, fmt.Errorf("%w: multiple source address groups with the same type are not supported", errInvalidResponse)
 	}
-	return types.ObjectValueMust(matchingObjectType(false).AttrTypes, map[string]attr.Value{"addresses": types.SetValueMust(addressObjectType(), addresses), "ports": stringSet(ctx, source.GetPorts())}), nil
+	return types.ObjectValueMust(
+		matchingObjectType(false).AttrTypes,
+		map[string]attr.Value{"addresses": types.SetValueMust(addressObjectType(), addresses), "ports": stringSet(ctx, source.GetPorts())},
+	), nil
 }
 
 func destinationState(ctx context.Context, destination graph.CloudFirewallDestinationMatchingable) (types.Object, error) {
@@ -142,5 +154,20 @@ func destinationState(ctx context.Context, destination graph.CloudFirewallDestin
 		seen[typ] = true
 		addresses = append(addresses, addressState(ctx, typ, values))
 	}
-	return types.ObjectValueMust(matchingObjectType(true).AttrTypes, map[string]attr.Value{"addresses": types.SetValueMust(addressObjectType(), addresses), "ports": stringSet(ctx, destination.GetPorts()), "protocols": convert.GraphToFrameworkBitmaskEnumAsSet(ctx, destination.GetProtocols())}), nil
+	return types.ObjectValueMust(
+		matchingObjectType(true).AttrTypes,
+		map[string]attr.Value{
+			"addresses": types.SetValueMust(addressObjectType(), addresses),
+			"ports":     stringSet(ctx, destination.GetPorts()),
+			"protocols": convert.GraphToFrameworkBitmaskEnumAsSet(ctx, destination.GetProtocols()),
+		},
+	), nil
+}
+
+// decodeCreateRuleResponse validates and decodes the Microsoft Graph response.
+func decodeCreateRuleResponse(result any, err error) (graph.PolicyRuleable, error) {
+	if err != nil || result == nil {
+		return nil, err //nolint:wrapcheck // Keep the Kiota error type for shared Graph HTTP status handling.
+	}
+	return result.(graph.PolicyRuleable), nil
 }

@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	commonattr "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/attr"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 const (
@@ -149,6 +151,7 @@ type contentPolicyRuleSettingsRequestBody struct{ status *string }
 func (b *contentPolicyRuleSettingsRequestBody) Serialize(writer s.SerializationWriter) error {
 	return writer.WriteStringValue("status", b.status)
 }
+
 func (b *contentPolicyRuleSettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
@@ -168,6 +171,7 @@ func (b *contentPolicyRuleMatchingConditionsRequestBody) Serialize(writer s.Seri
 	}
 	return writer.WriteObjectValue("sources", b.sources)
 }
+
 func (b *contentPolicyRuleMatchingConditionsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
@@ -213,6 +217,7 @@ func (b *contentPolicyRuleDestinationRequestBody) Serialize(writer s.Serializati
 	}
 	return writer.WriteCollectionOfStringValues("values", b.values)
 }
+
 func (b *contentPolicyRuleDestinationRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
@@ -222,6 +227,38 @@ type contentPolicyRuleSourcesRequestBody struct{ sessionType *string }
 func (b *contentPolicyRuleSourcesRequestBody) Serialize(writer s.SerializationWriter) error {
 	return writer.WriteStringValue("sessionType", b.sessionType)
 }
+
 func (b *contentPolicyRuleSourcesRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
+}
+
+const (
+	contentPolicyRulesURLTemplate    = "{+baseurl}/networkaccess/filePolicies/{contentPolicyId}/policyRules"
+	contentPolicyRuleItemURLTemplate = contentPolicyRulesURLTemplate + "/{policyRuleId}"
+)
+
+func newContentPolicyRuleRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	policyID, ruleID string,
+	body s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl":         adapter.GetBaseUrl(),
+		"contentPolicyId": policyID,
+	}
+	urlTemplate := contentPolicyRulesURLTemplate
+	if ruleID != "" {
+		urlTemplate = contentPolicyRuleItemURLTemplate
+		pathParameters["policyRuleId"] = ruleID
+	}
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+	if body != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", body); err != nil {
+			return nil, fmt.Errorf("set content policy rule request content: %w", err)
+		}
+	}
+	return requestInfo, nil
 }

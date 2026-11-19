@@ -1,6 +1,8 @@
 package graphBetaIdentityAndAccessNetworkRemoteNetwork
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -25,4 +27,15 @@ func mapResponse(state *NetworkRemoteNetworkResourceModel, remote *remoteNetwork
 	}
 	state.ForwardingProfileIDs = types.SetValueMust(types.StringType, ids)
 	return nil
+}
+
+// decodeCreateResponse validates and maps the Microsoft Graph response.
+func decodeCreateResponse(response remoteNetworkResponse, err error) (*remoteNetworkResponse, error) {
+	if err != nil {
+		return nil, fmt.Errorf("create remote network: %w", err)
+	}
+	if response.ID == nil || *response.ID == "" {
+		return nil, errMissingID
+	}
+	return &response, nil
 }

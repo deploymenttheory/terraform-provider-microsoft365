@@ -2,12 +2,14 @@ package graphBetaNetworkFilteringProfilePolicyLink
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfilePolicyLinkResourceModel, filteringProfileID string, link models.PolicyLinkable) {
@@ -81,3 +83,23 @@ func findPolicyLink(profile models.FilteringProfileable, policyLinkID, policyID 
 
 	return nil
 }
+
+// decodeCreatePolicyLinkResponse validates and decodes the Microsoft Graph response.
+func decodeCreatePolicyLinkResponse(result any, err error) (models.PolicyLinkable, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	link, ok := result.(models.PolicyLinkable)
+	if !ok {
+		return nil, fmt.Errorf("create policy link returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return link, nil
+}
+
+var (
+	errCreateResponseNil      = stderrors.New("create policy link returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected PolicyLinkable")
+)

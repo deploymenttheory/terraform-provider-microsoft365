@@ -28,9 +28,21 @@ import (
 )
 
 func testModel() NetworkPromptPolicyResourceModel {
-	return NetworkPromptPolicyResourceModel{ID: types.StringValue("11111111-1111-1111-1111-111111111111"), Name: types.StringValue("test"), Description: types.StringNull(), DefaultAction: types.StringValue("allow"), Version: types.StringValue("1.0.0"), LastModifiedDateTime: types.StringValue("2026-09-05T01:00:00Z"),
-		Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{"create": types.StringType, "read": types.StringType, "update": types.StringType, "delete": types.StringType})}}
+	return NetworkPromptPolicyResourceModel{
+		ID: types.StringValue(
+			"11111111-1111-1111-1111-111111111111",
+		),
+		Name:                 types.StringValue("test"),
+		Description:          types.StringNull(),
+		DefaultAction:        types.StringValue("allow"),
+		Version:              types.StringValue("1.0.0"),
+		LastModifiedDateTime: types.StringValue("2026-09-05T01:00:00Z"),
+		Timeouts: timeouts.Value{
+			Object: types.ObjectNull(map[string]attr.Type{"create": types.StringType, "read": types.StringType, "update": types.StringType, "delete": types.StringType}),
+		},
+	}
 }
+
 func testState(t *testing.T, r *NetworkPromptPolicyResource, model NetworkPromptPolicyResourceModel) tfsdk.State {
 	t.Helper()
 	var schema resource.SchemaResponse
@@ -39,6 +51,7 @@ func testState(t *testing.T, r *NetworkPromptPolicyResource, model NetworkPrompt
 	require.False(t, state.Set(context.Background(), model).HasError())
 	return state
 }
+
 func testClient(t *testing.T, h http.HandlerFunc) *NetworkPromptPolicyResource {
 	t.Helper()
 	server := httptest.NewServer(h)
@@ -50,6 +63,7 @@ func testClient(t *testing.T, h http.HandlerFunc) *NetworkPromptPolicyResource {
 	r.client = msgraphbetasdk.NewGraphServiceClient(adapter)
 	return r
 }
+
 func testClientWithConfiguredMiddleware(t *testing.T, h http.HandlerFunc) *NetworkPromptPolicyResource {
 	t.Helper()
 	t.Setenv("TF_ACC", "")
@@ -75,12 +89,14 @@ func testClientWithConfiguredMiddleware(t *testing.T, h http.HandlerFunc) *Netwo
 	r.client = msgraphbetasdk.NewGraphServiceClient(adapter)
 	return r
 }
+
 func successFixture(t *testing.T) []byte {
 	t.Helper()
 	b, err := os.ReadFile("tests/responses/validate_get/get_prompt_policy_success.json")
 	require.NoError(t, err)
 	return b
 }
+
 func writeResponse(t *testing.T, w http.ResponseWriter, code int, body []byte) {
 	t.Helper()
 	w.Header().Set("Content-Type", "application/json")
@@ -90,6 +106,7 @@ func writeResponse(t *testing.T, w http.ResponseWriter, code int, body []byte) {
 		require.NoError(t, err)
 	}
 }
+
 func TestUnitResourceNetworkPromptPolicy_10_ReadErrors(t *testing.T) {
 	for _, code := range []int{400, 403, 404} {
 		t.Run(fmt.Sprint(code), func(t *testing.T) {
@@ -107,6 +124,7 @@ func TestUnitResourceNetworkPromptPolicy_10_ReadErrors(t *testing.T) {
 		})
 	}
 }
+
 func TestUnitResourceNetworkPromptPolicy_11_CreateReadbackFailureRetainsID(t *testing.T) {
 	for _, code := range []int{400, 403, 404} {
 		t.Run(fmt.Sprint(code), func(t *testing.T) {
@@ -136,6 +154,7 @@ func TestUnitResourceNetworkPromptPolicy_11_CreateReadbackFailureRetainsID(t *te
 		})
 	}
 }
+
 func TestUnitResourceNetworkPromptPolicy_12_DeleteErrors(t *testing.T) {
 	for _, code := range []int{204, 400, 403, 404} {
 		t.Run(fmt.Sprint(code), func(t *testing.T) {
@@ -154,6 +173,7 @@ func TestUnitResourceNetworkPromptPolicy_12_DeleteErrors(t *testing.T) {
 		})
 	}
 }
+
 func TestUnitResourceNetworkPromptPolicy_13_DiffPatchClearsDescription(t *testing.T) {
 	var patch map[string]any
 	r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
@@ -179,6 +199,7 @@ func TestUnitResourceNetworkPromptPolicy_13_DiffPatchClearsDescription(t *testin
 	require.NotContains(t, patch, "version")
 	require.Len(t, patch, 1)
 }
+
 func TestUnitResourceNetworkPromptPolicy_14_UpdateFailureRetainsState(t *testing.T) {
 	for _, method := range []string{"PATCH", "GET"} {
 		for _, code := range []int{400, 403, 404} {
@@ -221,6 +242,7 @@ func TestUnitResourceNetworkPromptPolicy_17_CreateErrors(t *testing.T) {
 		})
 	}
 }
+
 func TestUnitResourceNetworkPromptPolicy_18_InvalidImport(t *testing.T) {
 	r := NewNetworkPromptPolicyResource().(*NetworkPromptPolicyResource)
 	for _, id := range []string{"", "not-a-uuid", "/", "11111111-1111-1111-1111-111111111111/invalid"} {
@@ -313,20 +335,23 @@ func TestPromptPolicyRequestsRetryThrottledResponses(t *testing.T) {
 
 	ctx := context.Background()
 	model := testModel()
-	createBody, err := constructResource(ctx, &model)
-	require.NoError(t, err)
-	_, err = r.createPromptPolicy(ctx, createBody)
-	require.NoError(t, err)
-
-	_, err = r.getPromptPolicy(ctx, model.ID.ValueString())
-	require.NoError(t, err)
-
+	planned := testState(t, r, model)
+	created := resource.CreateResponse{State: tfsdk.State{Schema: planned.Schema}}
+	r.Create(ctx, resource.CreateRequest{Plan: tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw}}, &created)
+	require.False(t, created.Diagnostics.HasError(), "%v", created.Diagnostics)
+	readback := resource.ReadResponse{State: created.State}
+	r.Read(ctx, resource.ReadRequest{State: created.State}, &readback)
+	require.False(t, readback.Diagnostics.HasError(), "%v", readback.Diagnostics)
 	previous := model
 	previous.Name = types.StringValue("previous")
-	updateBody, err := constructUpdateResource(ctx, &model, &previous)
-	require.NoError(t, err)
-	require.NoError(t, r.updatePromptPolicy(ctx, model.ID.ValueString(), updateBody))
-	require.NoError(t, r.deletePromptPolicy(ctx, model.ID.ValueString()))
+	previousState := testState(t, r, previous)
+	updated := resource.UpdateResponse{State: previousState}
+	r.Update(ctx, resource.UpdateRequest{State: previousState, Plan: tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw}}, &updated)
+	require.False(t, updated.Diagnostics.HasError(), "%v", updated.Diagnostics)
+	deleted := resource.DeleteResponse{State: updated.State}
+	r.Delete(ctx, resource.DeleteRequest{State: updated.State}, &deleted)
+	require.False(t, deleted.Diagnostics.HasError(), "%v", deleted.Diagnostics)
+	require.True(t, deleted.State.Raw.IsNull())
 
 	for _, method := range []string{
 		http.MethodPost,
@@ -334,7 +359,11 @@ func TestPromptPolicyRequestsRetryThrottledResponses(t *testing.T) {
 		http.MethodPatch,
 		http.MethodDelete,
 	} {
-		require.Equal(t, 2, attempts[method], "%s should be retried by Kiota", method)
+		expected := 2
+		if method == http.MethodGet {
+			expected = 4
+		} // Create readback, explicit Read and Update readback, plus the retry.
+		require.Equal(t, expected, attempts[method], "%s should be retried by Kiota", method)
 	}
 	require.Equal(t, requestBodies[http.MethodPost][0], requestBodies[http.MethodPost][1])
 	require.Equal(t, requestBodies[http.MethodPatch][0], requestBodies[http.MethodPatch][1])

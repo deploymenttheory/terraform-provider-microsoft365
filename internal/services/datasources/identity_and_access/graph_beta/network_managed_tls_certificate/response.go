@@ -1,6 +1,11 @@
 package graphBetaNetworkManagedTLSCertificate
 
-import s "github.com/microsoft/kiota-abstractions-go/serialization"
+import (
+	stderrors "errors"
+	"fmt"
+
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
+)
 
 type managedTLSCertificateResponse struct {
 	id               *string
@@ -60,3 +65,23 @@ func (r *managedTLSCertificateValidityResponse) GetFieldDeserializers() map[stri
 		"endDateTime":   func(n s.ParseNode) error { value, err := n.GetStringValue(); r.endDateTime = value; return err },
 	}
 }
+
+// decodeGetManagedTLSCertificateResponse validates and decodes the Microsoft Graph response.
+func decodeGetManagedTLSCertificateResponse(result any, err error) (*managedTLSCertificateResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errNilResponse
+	}
+	certificate, ok := result.(*managedTLSCertificateResponse)
+	if !ok {
+		return nil, fmt.Errorf("the Microsoft-managed TLS certificate request returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return certificate, nil
+}
+
+var (
+	errNilResponse            = stderrors.New("the Microsoft-managed TLS certificate request returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected managedTLSCertificateResponse")
+)

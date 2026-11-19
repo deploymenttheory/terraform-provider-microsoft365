@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 func (r *NetworkForwardingProfilePolicyLinkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -26,7 +29,20 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Create(ctx context.Context,
 	}
 	defer cancel()
 
-	if err := r.patchPolicyLinkState(ctx, object.ForwardingProfileID.ValueString(), object.PolicyLinkID.ValueString(), constructResource(&object)); err != nil {
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newForwardingPolicyLinkRequestInformation(
+		ctx,
+		updateAdapter,
+		abstractions.PATCH,
+		object.ForwardingProfileID.ValueString(),
+		object.PolicyLinkID.ValueString(),
+		constructResource(&object),
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	if err := updateAdapter.SendNoContent(ctx, updateRequest, forwardingPolicyLinkErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
@@ -77,7 +93,13 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Read(ctx context.Context, r
 		}
 	}
 
-	link, err := r.getPolicyLink(ctx, object.ForwardingProfileID.ValueString(), object.PolicyLinkID.ValueString())
+	readResult, err := r.client.NetworkAccess().
+		ForwardingProfiles().
+		ByForwardingProfileId(object.ForwardingProfileID.ValueString()).
+		Policies().
+		ByPolicyLinkId(object.PolicyLinkID.ValueString()).
+		Get(ctx, nil)
+	link, err := readResult, err
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -106,7 +128,20 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Update(ctx context.Context,
 	}
 	defer cancel()
 
-	if err := r.patchPolicyLinkState(ctx, state.ForwardingProfileID.ValueString(), state.PolicyLinkID.ValueString(), constructResource(&plan)); err != nil {
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newForwardingPolicyLinkRequestInformation(
+		ctx,
+		updateAdapter,
+		abstractions.PATCH,
+		state.ForwardingProfileID.ValueString(),
+		state.PolicyLinkID.ValueString(),
+		constructResource(&plan),
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+	if err := updateAdapter.SendNoContent(ctx, updateRequest, forwardingPolicyLinkErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -141,4 +176,8 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Delete(ctx context.Context,
 		"policy_link_id":        object.PolicyLinkID.ValueString(),
 	})
 	resp.State.RemoveResource(ctx)
+}
+
+var forwardingPolicyLinkErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

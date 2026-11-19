@@ -1,6 +1,11 @@
 package graphBetaNetworkManagedTLSCertificate
 
-import s "github.com/microsoft/kiota-abstractions-go/serialization"
+import (
+	stderrors "errors"
+	"fmt"
+
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
+)
 
 type managedTLSCertificateResponse struct {
 	id               *string
@@ -102,3 +107,36 @@ func (r *managedTLSCertificateValidityResponse) GetFieldDeserializers() map[stri
 		},
 	}
 }
+
+// decodeSendManagedTLSCertificateResponse validates and decodes a Microsoft Graph response.
+func decodeSendManagedTLSCertificateResponse(result any, err error) (*managedTLSCertificateResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errNilResponse
+	}
+	certificate, ok := result.(*managedTLSCertificateResponse)
+	if !ok {
+		return nil, fmt.Errorf("the Microsoft-managed TLS certificate request returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return certificate, nil
+}
+
+// decodeCreateManagedTLSCertificateResponse validates and decodes the Microsoft Graph response.
+func decodeCreateManagedTLSCertificateResponse(transportResult any, err error) (*managedTLSCertificateResponse, error) {
+	result, err := decodeSendManagedTLSCertificateResponse(transportResult, err)
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	return result, nil
+}
+
+var (
+	errNilResponse            = stderrors.New("the Microsoft-managed TLS certificate request returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected managedTLSCertificateResponse")
+	errCreateResponseNil      = stderrors.New("create Microsoft-managed TLS certificate returned nil response")
+)

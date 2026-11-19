@@ -2,17 +2,21 @@ package graphBetaNetworkForwardingProfilePrivateAccessPolicyLink
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
@@ -47,7 +51,19 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 	}
 	defer cancel()
 
-	profile, err := r.getProfile(ctx, profileType, profileID)
+	var profile forwardingProfile
+	err := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.GET,
+		profileTemplate(profileType)+"?$expand=policies($expand=policy)",
+		map[string]string{"forwardingProfileId": profileID},
+		nil,
+		&profile,
+	)
+	if err != nil {
+		err = fmt.Errorf("get forwarding profile %s: %w", profileID, err)
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 		return
@@ -77,22 +93,124 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 			"policy_link_id":        existing.ID,
 		})
 		// Graph rejects link updates and a remove+add in one delta, so this takes two writes.
-		if err := r.removeLink(ctx, profileType, profileID, existing.ID); err != nil {
+		if err := customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			profileTemplate(profileType),
+			map[string]string{"forwardingProfileId": profileID},
+			constructPolicyDelta(constructRemovedLink(existing.ID)),
+			nil,
+		); err != nil {
+			err = fmt.Errorf("patch forwarding profile %s policies: %w", profileID, err)
+
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
 		}
-		if err := r.waitForLinkRemoved(ctx, profileType, profileID, existing.ID); err != nil {
+		consecutive := 0
+		if err := crud.PollUntil(ctx, readbackInterval, func(ctx context.Context) (bool, error) {
+			var currentProfile forwardingProfile
+			readErr := customrequests.JSONRequest(
+				ctx,
+				r.client.GetAdapter(),
+				abstractions.GET,
+				profileTemplate(profileType)+"?$expand=policies($expand=policy)",
+				map[string]string{"forwardingProfileId": profileID},
+				nil,
+				&currentProfile,
+			)
+			absent := false
+			if readErr != nil {
+				readErr = fmt.Errorf("get forwarding profile %s: %w", profileID, readErr)
+				switch errors.GraphError(ctx, readErr).StatusCode {
+				case 404:
+					absent = true
+				case 401, 403:
+					return false, &crud.FatalPollError{Err: readErr}
+				default:
+					consecutive = 0
+					return false, nil
+				}
+			} else {
+				absent = findLink(currentProfile.Policies, existing.ID, "") == nil
+			}
+			if absent {
+				consecutive++
+			} else {
+				consecutive = 0
+			}
+			return consecutive >= stableReads, nil
+		}); err != nil {
+			if ctx.Err() != nil {
+				err = fmt.Errorf("%w: %w", errWaitTimedOut, ctx.Err())
+			}
+
 			resp.Diagnostics.AddError("Error waiting for existing forwarding policy link removal",
 				fmt.Sprintf("Link %s was removed; the next apply re-adds the policy. %s", existing.ID, err.Error()))
 			return
 		}
-		if err := r.addLink(ctx, &plan); err != nil {
+		if err := customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			profileTemplate(profileType),
+			map[string]string{"forwardingProfileId": profileID},
+			constructPolicyDelta(constructLink(&plan)),
+			nil,
+		); err != nil {
+			err = fmt.Errorf("patch forwarding profile %s policies: %w", profileID, err)
+
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
-			r.restoreLink(ctx, profileType, profileID, existing, plan.ConfigType.ValueString(), resp)
+
+			configType := existing.ConfigType
+			if configType == "" {
+				configType = plan.ConfigType.ValueString()
+			}
+			restore := NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel{
+				ProfileType:         types.StringValue(profileType),
+				ForwardingProfileID: types.StringValue(profileID),
+				ForwardingPolicyID:  types.StringValue(existing.Policy.ID),
+				ConfigType:          types.StringValue(configType),
+				State:               types.StringValue(strings.ToLower(existing.State)),
+				Priority:            types.Int64PointerValue(existing.Priority),
+			}
+			if err := customrequests.JSONRequest(
+				ctx,
+				r.client.GetAdapter(),
+				abstractions.PATCH,
+				profileTemplate(profileType),
+				map[string]string{"forwardingProfileId": profileID},
+				constructPolicyDelta(constructLink(&restore)),
+				nil,
+			); err != nil {
+				err = fmt.Errorf("patch forwarding profile %s policies: %w", profileID, err)
+				resp.Diagnostics.AddError(
+					"Previous forwarding policy link was removed and could not be restored",
+					fmt.Sprintf("Create removed link %s from profile %s before its add failed, and re-adding it failed: %s",
+						existing.ID, profileID, err.Error()),
+				)
+				return
+			}
+			resp.Diagnostics.AddWarning(
+				"Previous forwarding policy link restored",
+				fmt.Sprintf("The add failed, so the link that Create removed from profile %s was re-added with its "+
+					"previous state and priority. Graph gives it a new link ID.", profileID),
+			)
+
 			return
 		}
 	default:
-		if err := r.addLink(ctx, &plan); err != nil {
+		if err := customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			profileTemplate(profileType),
+			map[string]string{"forwardingProfileId": profileID},
+			constructPolicyDelta(constructLink(&plan)),
+			nil,
+		); err != nil {
+			err = fmt.Errorf("patch forwarding profile %s policies: %w", profileID, err)
+
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 			return
 		}
@@ -151,7 +269,19 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Read(
 	}
 	defer cancel()
 
-	profile, err := r.getProfile(ctx, state.ProfileType.ValueString(), state.ForwardingProfileID.ValueString())
+	var profile forwardingProfile
+	err := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.GET,
+		profileTemplate(state.ProfileType.ValueString())+"?$expand=policies($expand=policy)",
+		map[string]string{"forwardingProfileId": state.ForwardingProfileID.ValueString()},
+		nil,
+		&profile,
+	)
+	if err != nil {
+		err = fmt.Errorf("get forwarding profile %s: %w", state.ForwardingProfileID.ValueString(), err)
+	}
 	if err != nil {
 		errors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, operation, r.ReadPermissions,
 			errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true})
@@ -222,7 +352,19 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Delete(
 	}
 	defer cancel()
 
-	profile, err := r.getProfile(ctx, profileType, profileID)
+	var profile forwardingProfile
+	err := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.GET,
+		profileTemplate(profileType)+"?$expand=policies($expand=policy)",
+		map[string]string{"forwardingProfileId": profileID},
+		nil,
+		&profile,
+	)
+	if err != nil {
+		err = fmt.Errorf("get forwarding profile %s: %w", profileID, err)
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 		if !resp.Diagnostics.HasError() {
@@ -243,54 +385,65 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Delete(
 		return
 	}
 
-	if err := r.removeLink(ctx, profileType, profileID, link.ID); err != nil {
+	if err := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.PATCH,
+		profileTemplate(profileType),
+		map[string]string{"forwardingProfileId": profileID},
+		constructPolicyDelta(constructRemovedLink(link.ID)),
+		nil,
+	); err != nil {
+		err = fmt.Errorf("patch forwarding profile %s policies: %w", profileID, err)
+
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		if !resp.Diagnostics.HasError() {
 			resp.State.RemoveResource(ctx)
 		}
 		return
 	}
-	if err := r.waitForLinkRemoved(ctx, profileType, profileID, link.ID); err != nil {
+	consecutive := 0
+	if err := crud.PollUntil(ctx, readbackInterval, func(ctx context.Context) (bool, error) {
+		var currentProfile forwardingProfile
+		readErr := customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.GET,
+			profileTemplate(profileType)+"?$expand=policies($expand=policy)",
+			map[string]string{"forwardingProfileId": profileID},
+			nil,
+			&currentProfile,
+		)
+		absent := false
+		if readErr != nil {
+			readErr = fmt.Errorf("get forwarding profile %s: %w", profileID, readErr)
+			switch errors.GraphError(ctx, readErr).StatusCode {
+			case 404:
+				absent = true
+			case 401, 403:
+				return false, &crud.FatalPollError{Err: readErr}
+			default:
+				consecutive = 0
+				return false, nil
+			}
+		} else {
+			absent = findLink(currentProfile.Policies, link.ID, "") == nil
+		}
+		if absent {
+			consecutive++
+		} else {
+			consecutive = 0
+		}
+		return consecutive >= stableReads, nil
+	}); err != nil {
+		if ctx.Err() != nil {
+			err = fmt.Errorf("%w: %w", errWaitTimedOut, ctx.Err())
+		}
+
 		resp.Diagnostics.AddError("Error waiting for forwarding policy link removal", err.Error())
 		return
 	}
 	resp.State.RemoveResource(ctx)
-}
-
-// restoreLink re-adds the link Create removed when the new add fails.
-// Microsoft does not recreate removed auto-links.
-func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) restoreLink(
-	ctx context.Context,
-	profileType, profileID string,
-	previous *policyLink,
-	fallbackConfigType string,
-	resp *resource.CreateResponse,
-) {
-	configType := previous.ConfigType
-	if configType == "" {
-		configType = fallbackConfigType
-	}
-	restore := NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel{
-		ProfileType:         types.StringValue(profileType),
-		ForwardingProfileID: types.StringValue(profileID),
-		ForwardingPolicyID:  types.StringValue(previous.Policy.ID),
-		ConfigType:          types.StringValue(configType),
-		State:               types.StringValue(strings.ToLower(previous.State)),
-		Priority:            types.Int64PointerValue(previous.Priority),
-	}
-	if err := r.addLink(ctx, &restore); err != nil {
-		resp.Diagnostics.AddError(
-			"Previous forwarding policy link was removed and could not be restored",
-			fmt.Sprintf("Create removed link %s from profile %s before its add failed, and re-adding it failed: %s",
-				previous.ID, profileID, err.Error()),
-		)
-		return
-	}
-	resp.Diagnostics.AddWarning(
-		"Previous forwarding policy link restored",
-		fmt.Sprintf("The add failed, so the link that Create removed from profile %s was re-added with its "+
-			"previous state and priority. Graph gives it a new link ID.", profileID),
-	)
 }
 
 // linkMatchesPlan checks whether the policy link matches the planned configuration.
@@ -364,4 +517,22 @@ func matchesPlan(actual, plan *NetworkForwardingProfilePrivateAccessPolicyLinkRe
 		return actual.Priority.Equal(plan.Priority)
 	}
 	return true
+}
+
+// readbackInterval is a variable so unit tests can shorten it.
+var readbackInterval = 2 * time.Second
+
+var errWaitTimedOut = stderrors.New("timed out waiting for forwarding policy link change to propagate")
+
+// profileLocks serialises writes to one profile: each is a read-modify-write,
+// and Terraform runs sibling links in parallel.
+var profileLocks sync.Map
+
+// lockProfile serializes changes to policy links on the same forwarding profile.
+func lockProfile(profileType, profileID string) (unlock func()) {
+	key := profileType + "/" + strings.ToLower(profileID)
+	mu, _ := profileLocks.LoadOrStore(key, &sync.Mutex{})
+	m, _ := mu.(*sync.Mutex)
+	m.Lock()
+	return m.Unlock
 }

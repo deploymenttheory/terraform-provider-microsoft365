@@ -7,6 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -39,7 +41,31 @@ func (r *NetworkPromptPolicyResource) Create(
 		resp.Diagnostics.AddError("Error constructing prompt resource", err.Error())
 		return
 	}
-	created, err := r.createPromptPolicy(ctx, body)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newPromptPolicyRequestInformation(
+		ctx,
+		createAdapter,
+		abstractions.POST,
+		"",
+		body,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationCreate,
+			r.WritePermissions,
+		)
+		return
+	}
+	createResult, err := createAdapter.Send(
+		ctx,
+		createRequest,
+		createPromptPolicyResponseFromDiscriminatorValue,
+		promptPolicyErrorMapping,
+	)
+	created, err := decodeCreatePromptPolicyResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -114,7 +140,32 @@ func (r *NetworkPromptPolicyResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.getPromptPolicy(ctx, object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newPromptPolicyRequestInformation(
+		ctx,
+		readAdapter,
+		abstractions.GET,
+		object.ID.ValueString(),
+		nil,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphErrorWithOptions(
+			ctx,
+			err,
+			resp,
+			operation,
+			r.ReadPermissions,
+			errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true},
+		)
+		return
+	}
+	readResult, err := readAdapter.Send(
+		ctx,
+		readRequest,
+		createPromptPolicyResponseFromDiscriminatorValue,
+		promptPolicyErrorMapping,
+	)
+	remote, err := decodeSendPromptPolicyResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphErrorWithOptions(
 			ctx,
@@ -165,7 +216,31 @@ func (r *NetworkPromptPolicyResource) Update(
 		return
 	}
 	if body.hasChanges() {
-		if err := r.updatePromptPolicy(ctx, state.ID.ValueString(), body); err != nil {
+		updateAdapter := r.client.GetAdapter()
+		updateRequest, err := newPromptPolicyRequestInformation(
+			ctx,
+			updateAdapter,
+			abstractions.PATCH,
+			state.ID.ValueString(),
+			body,
+		)
+		if err != nil {
+			errors.HandleKiotaGraphError(
+				ctx,
+				err,
+				resp,
+				constants.TfOperationUpdate,
+				r.WritePermissions,
+			)
+			return
+		}
+		_, err = updateAdapter.Send(
+			ctx,
+			updateRequest,
+			createPromptPolicyResponseFromDiscriminatorValue,
+			promptPolicyErrorMapping,
+		)
+		if err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
 				err,
@@ -224,7 +299,27 @@ func (r *NetworkPromptPolicyResource) Delete(
 		return
 	}
 	defer cancel()
-	if err := r.deletePromptPolicy(ctx, object.ID.ValueString()); err != nil {
+	deleteAdapter := r.client.GetAdapter()
+	deleteRequest, err := newPromptPolicyRequestInformation(
+		ctx,
+		deleteAdapter,
+		abstractions.DELETE,
+		object.ID.ValueString(),
+		nil,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationDelete,
+			r.WritePermissions,
+		)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+	if err := deleteAdapter.SendNoContent(ctx, deleteRequest, promptPolicyErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -237,4 +332,8 @@ func (r *NetworkPromptPolicyResource) Delete(
 		}
 	}
 	resp.State.RemoveResource(ctx)
+}
+
+var promptPolicyErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

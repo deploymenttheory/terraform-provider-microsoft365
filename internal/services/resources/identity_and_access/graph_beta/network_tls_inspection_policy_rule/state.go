@@ -116,3 +116,19 @@ func tlsInspectionPolicyRuleDestinationObjectType() types.ObjectType {
 		},
 	}
 }
+
+// decodeCreateTLSInspectionPolicyRuleResponse validates and decodes the Microsoft Graph response.
+func decodeCreateTLSInspectionPolicyRuleResponse(result any, err error) (models.TlsInspectionRuleable, error) {
+	if err != nil {
+		return nil, err
+	}
+	return tlsInspectionRule(result)
+}
+
+// decodeGetTLSInspectionPolicyRuleResponse validates and decodes the Microsoft Graph response.
+func decodeGetTLSInspectionPolicyRuleResponse(result any, err error) (models.TlsInspectionRuleable, error) {
+	if err != nil {
+		return nil, err
+	}
+	return tlsInspectionRule(result)
+}

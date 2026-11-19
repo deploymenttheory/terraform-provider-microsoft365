@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 // Create handles the Create operation for network internet access forwarding policy rule resources.
@@ -41,7 +43,21 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Create(ctx context.C
 		return
 	}
 
-	created, err := r.createRuleWithPreconditionRetry(ctx, object.ForwardingPolicyID.ValueString(), requestBody)
+	var created *internetAccessForwardingRuleResponse
+	err = r.withPolicyRulePreconditionRetry(ctx, "create", object.ForwardingPolicyID.ValueString(), "", func() error {
+		createAdapter := r.client.GetAdapter()
+		createRequest, err := newInternetAccessForwardingRuleRequestInformation(ctx, createAdapter, abstractions.POST, object.ForwardingPolicyID.ValueString(), "", requestBody)
+		if err != nil {
+			return err
+		}
+		createResult, err := createAdapter.Send(ctx, createRequest, createInternetAccessForwardingRuleResponseFromDiscriminatorValue, internetAccessForwardingRuleErrorMapping)
+		result, err := decodeCreateRuleResponse(createResult, err)
+		if err != nil {
+			return err
+		}
+		created = result
+		return nil
+	})
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -104,7 +120,14 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Read(ctx context.Con
 		}
 	}
 
-	rule, err := r.getRule(ctx, object.ForwardingPolicyID.ValueString(), object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newInternetAccessForwardingRuleRequestInformation(ctx, readAdapter, abstractions.GET, object.ForwardingPolicyID.ValueString(), object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	readResult, err := readAdapter.Send(ctx, readRequest, createInternetAccessForwardingRuleResponseFromDiscriminatorValue, internetAccessForwardingRuleErrorMapping)
+	rule, err := decodeGetRuleResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -147,7 +170,21 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Update(ctx context.C
 		return
 	}
 
-	if err := r.updateRuleWithPreconditionRetry(ctx, state.ForwardingPolicyID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
+	if err := r.withPolicyRulePreconditionRetry(ctx, "update", state.ForwardingPolicyID.ValueString(), state.ID.ValueString(), func() error {
+		adapter := r.client.GetAdapter()
+		requestInfo, err := newInternetAccessForwardingRuleRequestInformation(
+			ctx,
+			adapter,
+			abstractions.PATCH,
+			state.ForwardingPolicyID.ValueString(),
+			state.ID.ValueString(),
+			requestBody,
+		)
+		if err != nil {
+			return err
+		}
+		return adapter.SendNoContent(ctx, requestInfo, internetAccessForwardingRuleErrorMapping)
+	}); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -188,41 +225,27 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Delete(ctx context.C
 	}
 	defer cancel()
 
-	if err := r.deleteRuleWithPreconditionRetry(ctx, object.ForwardingPolicyID.ValueString(), object.ID.ValueString()); err != nil {
+	if err := r.withPolicyRulePreconditionRetry(ctx, "delete", object.ForwardingPolicyID.ValueString(), object.ID.ValueString(), func() error {
+		adapter := r.client.GetAdapter()
+		requestInfo, err := newInternetAccessForwardingRuleRequestInformation(
+			ctx,
+			adapter,
+			abstractions.DELETE,
+			object.ForwardingPolicyID.ValueString(),
+			object.ID.ValueString(),
+			nil,
+		)
+		if err != nil {
+			return err
+		}
+		return adapter.SendNoContent(ctx, requestInfo, internetAccessForwardingRuleErrorMapping)
+	}); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Deleted %s with id %s", ResourceName, object.ID.ValueString()))
 	resp.State.RemoveResource(ctx)
-}
-
-// createRuleWithPreconditionRetry creates the rule with bounded retries for policy precondition conflicts.
-func (r *NetworkInternetAccessForwardingPolicyRuleResource) createRuleWithPreconditionRetry(ctx context.Context, policyID string, requestBody s.Parsable) (*internetAccessForwardingRuleResponse, error) {
-	var created *internetAccessForwardingRuleResponse
-	err := r.withPolicyRulePreconditionRetry(ctx, "create", policyID, "", func() error {
-		result, err := r.createRule(ctx, policyID, requestBody)
-		if err != nil {
-			return err
-		}
-		created = result
-		return nil
-	})
-	return created, err
-}
-
-// updateRuleWithPreconditionRetry updates the rule with bounded retries for policy precondition conflicts.
-func (r *NetworkInternetAccessForwardingPolicyRuleResource) updateRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string, requestBody s.Parsable) error {
-	return r.withPolicyRulePreconditionRetry(ctx, "update", policyID, ruleID, func() error {
-		return r.updateRule(ctx, policyID, ruleID, requestBody)
-	})
-}
-
-// deleteRuleWithPreconditionRetry deletes the rule with bounded retries for policy precondition conflicts.
-func (r *NetworkInternetAccessForwardingPolicyRuleResource) deleteRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string) error {
-	return r.withPolicyRulePreconditionRetry(ctx, "delete", policyID, ruleID, func() error {
-		return r.deleteRule(ctx, policyID, ruleID)
-	})
 }
 
 // withPolicyRulePreconditionRetry retries the rule operation when its policy precondition changes.
@@ -261,4 +284,8 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) withPolicyRulePrecon
 	}
 
 	return lastErr
+}
+
+var internetAccessForwardingRuleErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

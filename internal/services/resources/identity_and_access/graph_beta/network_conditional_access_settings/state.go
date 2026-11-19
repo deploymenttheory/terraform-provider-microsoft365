@@ -2,6 +2,8 @@ package graphBetaNetworkConditionalAccessSettings
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -42,4 +44,23 @@ func consistencyPredicate(expected types.String) func(context.Context, tfsdk.Sta
 		}
 		return actual.ID.ValueString() == singletonID && actual.SignalingStatus.Equal(expected)
 	}
+}
+
+// decodeSettingsResponse validates and decodes the raw conditional-access settings response.
+func decodeSettingsResponse(result any, err error) (*conditionalAccessSettingsResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	raw, ok := result.([]byte)
+	if !ok || len(raw) == 0 {
+		return nil, errInvalidSettingsResponse
+	}
+	var settings *conditionalAccessSettingsResponse
+	if err := json.Unmarshal(raw, &settings); err != nil {
+		return nil, fmt.Errorf("%w: %w", errInvalidSettingsResponse, err)
+	}
+	if settings == nil {
+		return nil, errInvalidSettingsResponse
+	}
+	return settings, nil
 }

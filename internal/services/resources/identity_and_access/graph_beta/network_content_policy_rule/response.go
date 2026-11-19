@@ -1,10 +1,13 @@
 package graphBetaNetworkContentPolicyRule
 
 import (
+	stderrors "errors"
+	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 )
 
 type contentPolicyRuleResponse struct {
@@ -86,9 +89,11 @@ type contentPolicyRuleMatchingConditionsResponse struct {
 func createContentPolicyRuleMatchingConditionsResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
 	return &contentPolicyRuleMatchingConditionsResponse{}, nil
 }
+
 func (r *contentPolicyRuleMatchingConditionsResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
+
 func (r *contentPolicyRuleMatchingConditionsResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"fileAttributes": func(n s.ParseNode) error {
@@ -135,9 +140,11 @@ type contentPolicyRuleFileAttributesResponse struct {
 func createContentPolicyRuleFileAttributesResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
 	return &contentPolicyRuleFileAttributesResponse{}, nil
 }
+
 func (r *contentPolicyRuleFileAttributesResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
+
 func (r *contentPolicyRuleFileAttributesResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"activities": func(n s.ParseNode) error {
@@ -168,9 +175,11 @@ type contentPolicyRuleDestinationResponse struct {
 func createContentPolicyRuleDestinationResponseFromDiscriminatorValue(parseNode s.ParseNode) (s.Parsable, error) {
 	return &contentPolicyRuleDestinationResponse{}, nil
 }
+
 func (r *contentPolicyRuleDestinationResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
+
 func (r *contentPolicyRuleDestinationResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"@odata.type": func(n s.ParseNode) error { value, err := n.GetStringValue(); r.odataType = value; return err },
@@ -218,3 +227,20 @@ func contentPolicyRulePrimitiveStrings(values []any) []string {
 	}
 	return result
 }
+
+// decodeSendContentPolicyRuleResponse validates and decodes a Microsoft Graph response.
+func decodeSendContentPolicyRuleResponse(result any, err error) (*contentPolicyRuleResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	rule, ok := result.(*contentPolicyRuleResponse)
+	if !ok {
+		return nil, fmt.Errorf("content policy rule request returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return rule, nil
+}
+
+var errUnexpectedResponseType = stderrors.New("expected contentPolicyRuleResponse")

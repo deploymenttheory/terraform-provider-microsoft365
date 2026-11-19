@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
@@ -40,4 +41,25 @@ func constructResource(
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
 
 	return requestBody, nil
+}
+
+// writableApp rebuilds an entry without the server-assigned id and version, which
+// targetApps derives itself.
+func writableApp(app graphmodels.ManagedMobileAppable) graphmodels.ManagedMobileAppable {
+	pkg := packageID(app)
+	if pkg == "" {
+		return app
+	}
+	identifier := graphmodels.NewAndroidMobileAppIdentifier()
+	identifier.SetPackageId(&pkg)
+	entry := graphmodels.NewManagedMobileApp()
+	entry.SetMobileAppIdentifier(identifier)
+	return entry
+}
+
+// constructPolicyApps builds the complete targetApps replacement request.
+func constructPolicyApps(apps []graphmodels.ManagedMobileAppable) *deviceappmanagement.ManagedAppPoliciesItemTargetAppsPostRequestBody {
+	body := deviceappmanagement.NewManagedAppPoliciesItemTargetAppsPostRequestBody()
+	body.SetApps(apps)
+	return body
 }

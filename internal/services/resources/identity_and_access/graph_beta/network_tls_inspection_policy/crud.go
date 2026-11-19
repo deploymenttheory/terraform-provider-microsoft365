@@ -37,7 +37,10 @@ func (r *NetworkTLSInspectionPolicyResource) Create(
 		resp.Diagnostics.AddError("Error constructing TLS inspection resource", err.Error())
 		return
 	}
-	created, err := r.createTLSInspectionPolicy(ctx, body)
+	created, err := r.client.NetworkAccess().TlsInspectionPolicies().Post(ctx, body, nil)
+	if err == nil && created == nil {
+		err = errEmptyResponse
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -68,7 +71,12 @@ func (r *NetworkTLSInspectionPolicyResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	remote, err := r.getTLSInspectionPolicy(ctx, object.ID.ValueString())
+	remote, err := r.client.NetworkAccess().TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.ID.ValueString()).
+		Get(ctx, nil)
+	if err == nil && remote == nil {
+		err = errEmptyResponse
+	}
 	// This is a create readback, not a refresh: even a 404 must retain the created id.
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
@@ -101,7 +109,12 @@ func (r *NetworkTLSInspectionPolicyResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.getTLSInspectionPolicy(ctx, object.ID.ValueString())
+	remote, err := r.client.NetworkAccess().TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.ID.ValueString()).
+		Get(ctx, nil)
+	if err == nil && remote == nil {
+		err = errEmptyResponse
+	}
 	if err != nil {
 		errors.HandleKiotaGraphErrorWithOptions(
 			ctx,
@@ -152,7 +165,9 @@ func (r *NetworkTLSInspectionPolicyResource) Update(
 		return
 	}
 	if hasUpdateChanges(&plan, &state) {
-		if err := r.updateTLSInspectionPolicy(ctx, state.ID.ValueString(), body); err != nil {
+		if _, err := r.client.NetworkAccess().TlsInspectionPolicies().
+			ByTlsInspectionPolicyId(state.ID.ValueString()).
+			Patch(ctx, body, nil); err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
 				err,
@@ -167,7 +182,12 @@ func (r *NetworkTLSInspectionPolicyResource) Update(
 	resp.State = req.State
 	object := plan
 	object.ID = state.ID
-	remote, err := r.getTLSInspectionPolicy(ctx, object.ID.ValueString())
+	remote, err := r.client.NetworkAccess().TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.ID.ValueString()).
+		Get(ctx, nil)
+	if err == nil && remote == nil {
+		err = errEmptyResponse
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
@@ -204,7 +224,9 @@ func (r *NetworkTLSInspectionPolicyResource) Delete(
 		return
 	}
 	defer cancel()
-	if err := r.deleteTLSInspectionPolicy(ctx, object.ID.ValueString()); err != nil {
+	if err := r.client.NetworkAccess().TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.ID.ValueString()).
+		Delete(ctx, nil); err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,

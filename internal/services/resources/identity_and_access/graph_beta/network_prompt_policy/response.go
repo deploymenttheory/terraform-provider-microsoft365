@@ -101,3 +101,30 @@ func wrapResponseError(err error) error {
 	}
 	return nil
 }
+
+// decodeSendPromptPolicyResponse validates and decodes a Microsoft Graph response.
+func decodeSendPromptPolicyResponse(result any, err error) (*promptPolicyResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errEmptyResponse
+	}
+	policy, ok := result.(*promptPolicyResponse)
+	if !ok {
+		return nil, fmt.Errorf("%w: received %T", errInvalidResponse, result)
+	}
+	return policy, nil
+}
+
+// decodeCreatePromptPolicyResponse validates and decodes the Microsoft Graph response.
+func decodeCreatePromptPolicyResponse(transportResult any, err error) (*promptPolicyResponse, error) {
+	result, err := decodeSendPromptPolicyResponse(transportResult, err)
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errEmptyResponse
+	}
+	return result, nil
+}

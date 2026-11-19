@@ -3,13 +3,18 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	kiotahttp "github.com/microsoft/kiota-http-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 func constructResource(ctx context.Context, data *OnPremisesIpApplicationSegmentResourceModel) (s.Parsable, error) {
@@ -124,4 +129,63 @@ func (b *ipApplicationSegmentRequestBody) Serialize(writer s.SerializationWriter
 
 func (b *ipApplicationSegmentRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
+}
+
+const (
+	graphBetaBaseURL = "https://graph.microsoft.com/beta"
+
+	// Microsoft Learn documents the application-scoped endpoint here:
+	// https://learn.microsoft.com/en-us/graph/api/onpremisespublishingprofile-post-applicationsegments?view=graph-rest-beta
+	//
+	// POST /applications/{applicationObjectId}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments
+	//
+	// The current msgraph-beta-sdk-go package does not expose a generated
+	// request builder for this application-scoped segmentsConfiguration path.
+	// A dedicated request helper is therefore used instead of the generic
+	// resource path helpers or generated application builders. It still builds a
+	// Kiota RequestInformation and sends it through the provider's Graph adapter,
+	// so authentication, retry, middleware, serialization, and OData error
+	// handling remain on the normal Kiota pipeline.
+	ipApplicationSegmentsURLTemplate = "{+baseurl}/applications/{applicationObjectId}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments"
+	ipApplicationSegmentURLTemplate  = ipApplicationSegmentsURLTemplate + "/{ipApplicationSegmentId}"
+)
+
+// createIpApplicationSegmentRetryOptions retries explicit throttling only: ambiguous server
+// failures can leave an untracked duplicate.
+func createIpApplicationSegmentRetryOptions(base kiotahttp.RetryHandlerOptions) kiotahttp.RetryHandlerOptions {
+	options := base
+	options.ShouldRetry = func(_ time.Duration, _ int, _ *http.Request, response *http.Response) bool {
+		return response != nil && response.StatusCode == http.StatusTooManyRequests
+	}
+	return options
+}
+
+func newIpApplicationSegmentRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	applicationObjectID, segmentID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl":             graphBetaBaseURL,
+		"applicationObjectId": applicationObjectID,
+	}
+
+	urlTemplate := ipApplicationSegmentsURLTemplate
+	if segmentID != "" {
+		urlTemplate = ipApplicationSegmentURLTemplate
+		pathParameters["ipApplicationSegmentId"] = segmentID
+	}
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
+			return nil, fmt.Errorf("set ip application segment request content: %w", err)
+		}
+	}
+
+	return requestInfo, nil
 }

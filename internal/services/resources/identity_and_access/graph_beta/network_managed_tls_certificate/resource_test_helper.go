@@ -3,9 +3,11 @@ package graphBetaNetworkManagedTLSCertificate
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 // NetworkManagedTLSCertificateTestResource implements the acceptance TestResource interface.
@@ -19,7 +21,20 @@ func (NetworkManagedTLSCertificateTestResource) Exists(ctx context.Context, _ an
 	}
 
 	resource := NetworkManagedTLSCertificateResource{client: graphClient}
-	_, err = resource.getManagedTLSCertificate(ctx, state.ID)
+	readAdapter := resource.client.GetAdapter()
+	readRequest, err := newManagedTLSCertificateRequestInformation(ctx, readAdapter, abstractions.GET, state.ID, nil)
+	if err != nil {
+		errorInfo := errors.GraphError(ctx, err)
+		if errorInfo.StatusCode == 404 ||
+			errorInfo.ErrorCode == "ResourceNotFound" ||
+			errorInfo.ErrorCode == "Request_ResourceNotFound" {
+			exists := false
+			return &exists, nil
+		}
+		return nil, err
+	}
+	readResult, err := readAdapter.Send(ctx, readRequest, createManagedTLSCertificateResponseFromDiscriminatorValue, managedTLSCertificateErrorMapping)
+	_, err = decodeSendManagedTLSCertificateResponse(readResult, err)
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)
 		if errorInfo.StatusCode == 404 ||

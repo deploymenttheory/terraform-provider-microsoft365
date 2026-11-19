@@ -1,6 +1,11 @@
 package graphBetaNetworkContentPolicy
 
-import s "github.com/microsoft/kiota-abstractions-go/serialization"
+import (
+	stderrors "errors"
+	"fmt"
+
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
+)
 
 type contentPolicyResponse struct {
 	id            *string
@@ -74,3 +79,44 @@ func (r *contentPolicySettingsResponse) GetFieldDeserializers() map[string]func(
 		},
 	}
 }
+
+// decodeSendContentPolicyResponse validates and decodes a Microsoft Graph response.
+func decodeSendContentPolicyResponse(result any, err error) (*contentPolicyResponse, error) {
+	if err != nil || result == nil {
+		return nil, err
+	}
+	policy, ok := result.(*contentPolicyResponse)
+	if !ok {
+		return nil, fmt.Errorf("content policy request returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return policy, nil
+}
+
+// decodeCreateContentPolicyResponse validates and decodes the Microsoft Graph response.
+func decodeCreateContentPolicyResponse(transportResult any, err error) (*contentPolicyResponse, error) {
+	result, err := decodeSendContentPolicyResponse(transportResult, err)
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	return result, nil
+}
+
+// decodeUpdateContentPolicyResponse validates and decodes the Microsoft Graph response.
+func decodeUpdateContentPolicyResponse(result any, err error) error {
+	if err != nil {
+		return err
+	}
+	if result == nil {
+		return errUpdateResponseNil
+	}
+	return nil
+}
+
+var (
+	errUnexpectedResponseType = stderrors.New("expected contentPolicyResponse")
+	errCreateResponseNil      = stderrors.New("create content policy returned nil response")
+	errUpdateResponseNil      = stderrors.New("update content policy returned nil response")
+)

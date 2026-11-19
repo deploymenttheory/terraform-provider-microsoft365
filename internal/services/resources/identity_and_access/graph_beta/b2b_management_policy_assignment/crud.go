@@ -7,14 +7,17 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 )
 
 // Create handles the Create operation for B2B Management Policy Assignment resources.
@@ -46,7 +49,24 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 	directoryObjectID := object.DirectoryObjectID.ValueString()
 
 	// Objects created moments earlier may not have reached every Entra replica yet.
-	if err := r.waitForPolicyPropagation(ctx, policyID); err != nil {
+	if err := crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
+		_, err := r.client.
+			Policies().
+			B2bManagementPolicies().
+			ByB2bManagementPolicyId(policyID).
+			Get(ctx, nil)
+
+		if err == nil {
+			return true, nil
+		}
+
+		if errors.GraphError(ctx, err).StatusCode != 404 {
+			return false, &crud.FatalPollError{Err: err}
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("B2B management policy %s not visible yet, awaiting Entra propagation", policyID))
+		return false, fmt.Errorf("B2B management policy %s is not visible in the directory yet: %w", policyID, err)
+	}); err != nil {
 		resp.Diagnostics.AddError(
 			"Error verifying B2B management policy before assignment",
 			fmt.Sprintf("B2B management policy %s could not be read prior to assigning it to directory object %s: %s", policyID, directoryObjectID, err.Error()),
@@ -54,7 +74,23 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 		return
 	}
 
-	directoryObjectType, err := r.waitForDirectoryObjectType(ctx, directoryObjectID)
+	var directoryObjectType string
+
+	err := crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
+		directoryObject, err := r.client.DirectoryObjects().ByDirectoryObjectId(directoryObjectID).Get(ctx, nil)
+		resolvedType, err := decodeDirectoryObjectType(directoryObject, err, directoryObjectID)
+		if err == nil {
+			directoryObjectType = resolvedType
+			return true, nil
+		}
+
+		if errors.GraphError(ctx, err).StatusCode != 404 {
+			return false, &crud.FatalPollError{Err: err}
+		}
+
+		tflog.Debug(ctx, fmt.Sprintf("Directory object %s not visible yet, awaiting Entra propagation", directoryObjectID))
+		return false, fmt.Errorf("directory object %s is not visible in the directory yet: %w", directoryObjectID, err)
+	})
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error resolving directory object before assignment",
@@ -65,7 +101,34 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 
 	tflog.Debug(ctx, fmt.Sprintf("Applying B2B management policy %s to %s %s", policyID, directoryObjectType, directoryObjectID))
 
-	if err := r.addPolicyReferenceWithRetry(ctx, directoryObjectType, directoryObjectID, policyID); err != nil {
+	// Retry only 404s from replicas the policy has not reached. An existing reference
+	// must be imported rather than adopted, since destroy would otherwise remove it.
+	attempt := 0
+	if err := crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
+		attempt++
+
+		adapter := r.client.GetAdapter()
+		requestInfo, err := constructPolicyReferenceRequest(ctx, adapter, abstractions.POST, directoryObjectType, directoryObjectID, policyID)
+		if err == nil {
+			err = adapter.SendNoContent(ctx, requestInfo, policyReferenceErrorMapping)
+		}
+		if err == nil {
+			return true, nil
+		}
+
+		if isReferenceAlreadyExistsError(err) {
+			return false, &crud.FatalPollError{Err: fmt.Errorf(
+				"B2B management policy %s is already applied to %s %s; import it with ID %q instead of creating it: %w",
+				policyID, directoryObjectType, directoryObjectID, policyID+"/"+directoryObjectID, err)}
+		}
+
+		if errors.GraphError(ctx, err).StatusCode == 404 {
+			tflog.Debug(ctx, fmt.Sprintf("Assigning B2B management policy %s returned 404 (attempt %d), awaiting Entra propagation", policyID, attempt))
+			return false, err
+		}
+
+		return false, &crud.FatalPollError{Err: err}
+	}); err != nil {
 		if isReferenceAlreadyExistsError(err) {
 			resp.Diagnostics.AddError("B2B management policy assignment already exists", err.Error())
 			return
@@ -102,81 +165,6 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
-}
-
-// waitForPolicyPropagation polls until the policy is readable, treating 404 as replication lag.
-func (r *B2bManagementPolicyAssignmentResource) waitForPolicyPropagation(ctx context.Context, policyID string) error {
-	return crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
-		_, err := r.client.
-			Policies().
-			B2bManagementPolicies().
-			ByB2bManagementPolicyId(policyID).
-			Get(ctx, nil)
-
-		if err == nil {
-			return true, nil
-		}
-
-		if errors.GraphError(ctx, err).StatusCode != 404 {
-			return false, &crud.FatalPollError{Err: err}
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("B2B management policy %s not visible yet, awaiting Entra propagation", policyID))
-		return false, fmt.Errorf("B2B management policy %s is not visible in the directory yet: %w", policyID, err)
-	})
-}
-
-// waitForDirectoryObjectType polls until the directory object is readable (404 = replication lag)
-// and returns whether it is an application or a service principal.
-func (r *B2bManagementPolicyAssignmentResource) waitForDirectoryObjectType(ctx context.Context, directoryObjectID string) (string, error) {
-	var directoryObjectType string
-
-	err := crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
-		resolvedType, err := r.resolveDirectoryObjectType(ctx, directoryObjectID)
-		if err == nil {
-			directoryObjectType = resolvedType
-			return true, nil
-		}
-
-		if errors.GraphError(ctx, err).StatusCode != 404 {
-			return false, &crud.FatalPollError{Err: err}
-		}
-
-		tflog.Debug(ctx, fmt.Sprintf("Directory object %s not visible yet, awaiting Entra propagation", directoryObjectID))
-		return false, fmt.Errorf("directory object %s is not visible in the directory yet: %w", directoryObjectID, err)
-	})
-
-	return directoryObjectType, err
-}
-
-// addPolicyReferenceWithRetry retries the $ref POST on 404: a replica the policy has not reached
-// yet rejects it even after a GET succeeded, and nothing is written. Because only 404s are retried,
-// 400 "already exist" means the assignment predates this Create; it is reported with an import
-// hint rather than adopted, since a later destroy would otherwise remove it.
-func (r *B2bManagementPolicyAssignmentResource) addPolicyReferenceWithRetry(ctx context.Context, directoryObjectType, directoryObjectID, policyID string) error {
-	attempt := 0
-
-	return crud.PollUntil(ctx, 2*time.Second, func(ctx context.Context) (bool, error) {
-		attempt++
-
-		err := r.addPolicyReference(ctx, directoryObjectType, directoryObjectID, policyID)
-		if err == nil {
-			return true, nil
-		}
-
-		if isReferenceAlreadyExistsError(err) {
-			return false, &crud.FatalPollError{Err: fmt.Errorf(
-				"B2B management policy %s is already applied to %s %s; import it with ID %q instead of creating it: %w",
-				policyID, directoryObjectType, directoryObjectID, policyID+"/"+directoryObjectID, err)}
-		}
-
-		if errors.GraphError(ctx, err).StatusCode == 404 {
-			tflog.Debug(ctx, fmt.Sprintf("Assigning B2B management policy %s returned 404 (attempt %d), awaiting Entra propagation", policyID, attempt))
-			return false, err
-		}
-
-		return false, &crud.FatalPollError{Err: err}
-	})
 }
 
 // isReferenceAlreadyExistsError matches Graph's 400 for a reference that is already present.
@@ -232,7 +220,69 @@ func (r *B2bManagementPolicyAssignmentResource) Read(ctx context.Context, req re
 	policyID := object.B2bManagementPolicyID.ValueString()
 	directoryObjectID := object.DirectoryObjectID.ValueString()
 
-	directoryObject, err := r.findAppliesTo(ctx, policyID, directoryObjectID, operation == constants.TfOperationRead)
+	find := func(ctx context.Context) (graphmodels.DirectoryObjectable, error) {
+		builder := r.client.Policies().B2bManagementPolicies().ByB2bManagementPolicyId(policyID).AppliesTo()
+		page, err := builder.Get(ctx, nil)
+		if err != nil {
+			if errors.GraphError(ctx, err).StatusCode == 404 {
+				return nil, nil //nolint:nilnil // No matching assignment is a valid lookup result.
+			}
+			return nil, wrapAppliesToError(err)
+		}
+		var directoryObjects []graphmodels.DirectoryObjectable
+		for page != nil {
+			directoryObjects = append(directoryObjects, page.GetValue()...)
+			nextLink := page.GetOdataNextLink()
+			if nextLink == nil || *nextLink == "" {
+				break
+			}
+			page, err = builder.WithUrl(*nextLink).Get(ctx, nil)
+			if err != nil {
+				if errors.GraphError(ctx, err).StatusCode == 404 {
+					return nil, nil //nolint:nilnil // No matching assignment is a valid lookup result.
+				}
+				return nil, wrapAppliesToError(err)
+			}
+		}
+		for _, directoryObject := range directoryObjects {
+			if directoryObject.GetId() != nil && *directoryObject.GetId() == directoryObjectID {
+				return directoryObject, nil
+			}
+		}
+		return nil, nil //nolint:nilnil // No matching assignment is a valid lookup result.
+	}
+	directoryObject, err := find(ctx)
+	if err == nil && directoryObject == nil && operation == constants.TfOperationRead {
+		tflog.Debug(ctx, fmt.Sprintf("Directory object %s not in appliesTo of B2B management policy %s, confirming it is not a stale Entra replica", directoryObjectID, policyID))
+		select {
+		case <-time.After(notFoundConfirmationInterval):
+		case <-ctx.Done():
+			err = ctx.Err()
+		}
+		if err == nil {
+			pollCtx, cancelPoll := context.WithTimeout(ctx, notFoundConfirmationWindow)
+			defer cancelPoll()
+			pollErr := crud.PollUntil(pollCtx, notFoundConfirmationInterval, func(ctx context.Context) (bool, error) {
+				found, findErr := find(ctx)
+				if findErr != nil {
+					return false, &crud.FatalPollError{Err: findErr}
+				}
+				if found == nil {
+					return false, errAssignmentNotVisible
+				}
+				directoryObject = found
+				return true, nil
+			})
+			switch {
+			case pollErr == nil:
+				tflog.Debug(ctx, fmt.Sprintf("Directory object %s is in appliesTo again; the miss came from a stale Entra replica", directoryObjectID))
+			case pollCtx.Err() != nil && ctx.Err() == nil:
+				directoryObject = nil
+			default:
+				err = pollErr
+			}
+		}
+	}
 	if stderrors.Is(err, errAppliesToUnreadable) {
 		resp.Diagnostics.AddError(
 			"Error reading B2B management policy appliesTo",
@@ -313,7 +363,8 @@ func (r *B2bManagementPolicyAssignmentResource) Delete(ctx context.Context, req 
 
 	directoryObjectType := object.DirectoryObjectType.ValueString()
 	if directoryObjectType == "" {
-		resolvedType, err := r.resolveDirectoryObjectType(ctx, directoryObjectID)
+		directoryObject, err := r.client.DirectoryObjects().ByDirectoryObjectId(directoryObjectID).Get(ctx, nil)
+		resolvedType, err := decodeDirectoryObjectType(directoryObject, err, directoryObjectID)
 		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 			return
@@ -323,7 +374,12 @@ func (r *B2bManagementPolicyAssignmentResource) Delete(ctx context.Context, req 
 
 	tflog.Debug(ctx, fmt.Sprintf("Removing B2B management policy %s from %s %s", policyID, directoryObjectType, directoryObjectID))
 
-	if err := r.removePolicyReference(ctx, directoryObjectType, directoryObjectID, policyID); err != nil {
+	adapter := r.client.GetAdapter()
+	requestInfo, err := constructPolicyReferenceRequest(ctx, adapter, abstractions.DELETE, directoryObjectType, directoryObjectID, policyID)
+	if err == nil {
+		err = adapter.SendNoContent(ctx, requestInfo, policyReferenceErrorMapping)
+	}
+	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
@@ -333,3 +389,20 @@ func (r *B2bManagementPolicyAssignmentResource) Delete(ctx context.Context, req 
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }
+
+// errAppliesToUnreadable marks an unparseable appliesTo response. Without Application.Read.All,
+// Graph returns HTTP 200 with the body cut off at an application it cannot serialize. $select=id
+// is not a way around it: it returns an empty list, which would drop the assignment from state.
+var errAppliesToUnreadable = stderrors.New("the appliesTo response could not be parsed")
+
+var policyReferenceErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
+}
+
+// Variables so unit tests can shorten them (export_test.go).
+var (
+	notFoundConfirmationWindow   = 60 * time.Second
+	notFoundConfirmationInterval = 3 * time.Second
+)
+
+var errAssignmentNotVisible = stderrors.New("assignment not visible in appliesTo")

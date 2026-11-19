@@ -5,15 +5,19 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	graph "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 var errInvalidResponse = errors.New("invalid cloud firewall response")
 
 // MapRemoteStateToTerraform validates the response before replacing known state.
 func MapRemoteStateToTerraform(_ context.Context, data *NetworkCloudFirewallPolicyResourceModel, remote graph.CloudFirewallPolicyable) error {
-	if remote == nil || remote.GetId() == nil || *remote.GetId() == "" || remote.GetName() == nil || remote.GetSettings() == nil || remote.GetSettings().GetDefaultAction() == nil || remote.GetVersion() == nil || remote.GetLastModifiedDateTime() == nil {
+	if remote == nil || remote.GetId() == nil || *remote.GetId() == "" || remote.GetName() == nil || remote.GetSettings() == nil ||
+		remote.GetSettings().GetDefaultAction() == nil ||
+		remote.GetVersion() == nil ||
+		remote.GetLastModifiedDateTime() == nil {
 		return fmt.Errorf("%w: cloud firewall policy response is missing required properties", errInvalidResponse)
 	}
 	if remote.GetSettings().GetDefaultAction().String() != "allow" {
@@ -29,4 +33,12 @@ func MapRemoteStateToTerraform(_ context.Context, data *NetworkCloudFirewallPoli
 	data.Version = convert.GraphToFrameworkString(remote.GetVersion())
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remote.GetLastModifiedDateTime())
 	return nil
+}
+
+// decodeCreatePolicyResponse validates and decodes the Microsoft Graph response.
+func decodeCreatePolicyResponse(result any, err error) (graph.CloudFirewallPolicyable, error) {
+	if err != nil || result == nil {
+		return nil, err //nolint:wrapcheck // Keep the Kiota error type for shared Graph HTTP status handling.
+	}
+	return result.(graph.CloudFirewallPolicyable), nil
 }

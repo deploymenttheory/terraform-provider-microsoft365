@@ -2,14 +2,20 @@ package graphBetaNetworkCloudFirewallPolicy
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	graph "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *NetworkCloudFirewallPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -23,7 +29,21 @@ func (r *NetworkCloudFirewallPolicyResource) Create(ctx context.Context, req res
 		return
 	}
 	defer cancel()
-	created, err := r.createPolicy(ctx, constructResource(ctx, &object))
+	createBuilder := r.client.NetworkAccess().CloudFirewallPolicies()
+	createRequest, err := createBuilder.ToPostRequestInformation(ctx, constructResource(ctx, &object), nil)
+	if err != nil {
+		err = fmt.Errorf("build cloud firewall create request: %w", err)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createRetryOptions := r.retryOptions
+	createRetryOptions.ShouldRetry = func(_ time.Duration, _ int, _ *http.Request, response *http.Response) bool {
+		return response.StatusCode == http.StatusTooManyRequests
+	}
+	createRequest.AddRequestOptions([]abstractions.RequestOption{&createRetryOptions})
+	createResult, err := r.client.GetAdapter().
+		Send(ctx, createRequest, graph.CreateCloudFirewallPolicyFromDiscriminatorValue, abstractions.ErrorMappings{"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue})
+	created, err := decodeCreatePolicyResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/exists"
@@ -22,11 +23,20 @@ func (r NetworkMCPPolicyRuleTestResource) Exists(
 		state,
 		func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, state *terraform.InstanceState) error {
 			resource := &NetworkMCPPolicyRuleResource{client: client}
-			_, err := resource.getMCPPolicyRule(
+			readAdapter := resource.client.GetAdapter()
+			readRequest, err := newMCPPolicyRuleRequestInformation(
 				ctx,
+				readAdapter,
+				abstractions.GET,
 				state.Attributes["mcp_policy_id"],
 				state.ID,
+				nil,
 			)
+			if err != nil {
+				return err
+			}
+			readResult, err := readAdapter.SendPrimitive(ctx, readRequest, "[]byte", mcpPolicyRuleErrorMapping)
+			_, err = decodeSendMCPPolicyRuleResponse(readResult, err)
 			return err
 		},
 	)

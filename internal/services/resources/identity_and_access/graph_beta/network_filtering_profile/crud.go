@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Create handles the Create operation for Filtering Profile resources.
@@ -48,7 +52,19 @@ func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	baseResource, err := r.createFilteringProfile(ctx, requestBody)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newFilteringProfileRequestInformation(ctx, createAdapter, abstractions.POST, "", requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createResult, err := createAdapter.Send(
+		ctx,
+		createRequest,
+		models.CreateFilteringProfileFromDiscriminatorValue,
+		filteringProfileErrorMapping,
+	)
+	baseResource, err := decodeCreateFilteringProfileResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -137,7 +153,6 @@ func (r *NetworkFilteringProfileResource) Read(ctx context.Context, req resource
 		FilteringProfiles().
 		ByFilteringProfileId(object.ID.ValueString()).
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -187,7 +202,13 @@ func (r *NetworkFilteringProfileResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	if err := r.updateFilteringProfile(ctx, state.ID.ValueString(), requestBody); err != nil {
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newFilteringProfileRequestInformation(ctx, updateAdapter, abstractions.PATCH, state.ID.ValueString(), requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+	if err := updateAdapter.SendNoContent(ctx, updateRequest, filteringProfileErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -246,7 +267,6 @@ func (r *NetworkFilteringProfileResource) Delete(ctx context.Context, req resour
 		FilteringProfiles().
 		ByFilteringProfileId(object.ID.ValueString()).
 		Delete(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
@@ -257,4 +277,8 @@ func (r *NetworkFilteringProfileResource) Delete(ctx context.Context, req resour
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+var filteringProfileErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

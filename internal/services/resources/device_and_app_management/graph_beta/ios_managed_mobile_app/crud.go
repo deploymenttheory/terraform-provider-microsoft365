@@ -2,7 +2,10 @@ package graphBetaDeviceAndAppManagementIOSManagedMobileApp
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -66,11 +69,19 @@ func (r *IOSManagedMobileAppResource) Create(
 	}
 	defer unlock()
 
-	currentApps, err := r.listPolicyApps(ctx, policyID)
+	appsResponse, err := r.client.
+		DeviceAppManagement().
+		IosManagedAppProtections().
+		ByIosManagedAppProtectionId(policyID).
+		Apps().
+		Get(ctx, nil)
 	if err != nil {
+		err = fmt.Errorf("list policy apps: %w", err)
+
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 		return
 	}
+	currentApps := appsResponse.GetValue()
 
 	if existing := findByBundle(currentApps, pkg); existing != nil {
 		existingID := pkg + ".ios"
@@ -93,7 +104,9 @@ func (r *IOSManagedMobileAppResource) Create(
 	}
 	desired = append(desired, newApp)
 
-	if err := r.setPolicyApps(ctx, policyID, desired); err != nil {
+	if err := r.client.DeviceAppManagement().ManagedAppPolicies().ByManagedAppPolicyId(policyID).TargetApps().Post(ctx, constructPolicyApps(desired), nil); err != nil {
+		err = fmt.Errorf("set policy target apps: %w", err)
+
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -105,10 +118,22 @@ func (r *IOSManagedMobileAppResource) Create(
 	}
 
 	// targetApps returns no content; Intune assigns the id, so wait for the entry.
-	apps, err := r.waitForApps(ctx, policyID, func(apps []graphmodels.ManagedMobileAppable) bool {
+	var apps []graphmodels.ManagedMobileAppable
+	pollReadFailed := false
+	err = crud.PollUntil(ctx, appPollInterval, func(ctx context.Context) (bool, error) {
+		response, readErr := r.client.DeviceAppManagement().IosManagedAppProtections().ByIosManagedAppProtectionId(policyID).Apps().Get(ctx, nil)
+		if readErr != nil {
+			pollReadFailed = true
+			return false, &crud.FatalPollError{Err: fmt.Errorf("list policy apps: %w", readErr)}
+		}
+		apps = response.GetValue()
+
 		created := findByBundle(apps, pkg)
-		return created != nil && created.GetId() != nil
+		return created != nil && created.GetId() != nil, nil
 	})
+	if err != nil && ctx.Err() != nil && !pollReadFailed {
+		err = fmt.Errorf("%w: %w", errAppWaitTimeout, ctx.Err())
+	}
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading resource state after create",
@@ -168,11 +193,19 @@ func (r *IOSManagedMobileAppResource) Read(
 	}
 	defer cancel()
 
-	apps, err := r.listPolicyApps(ctx, object.ManagedAppProtectionId.ValueString())
+	appsResponse, err := r.client.
+		DeviceAppManagement().
+		IosManagedAppProtections().
+		ByIosManagedAppProtectionId(object.ManagedAppProtectionId.ValueString()).
+		Apps().
+		Get(ctx, nil)
 	if err != nil {
+		err = fmt.Errorf("list policy apps: %w", err)
+
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
 		return
 	}
+	apps := appsResponse.GetValue()
 
 	app := findByID(apps, object.ID.ValueString())
 	if app == nil {
@@ -265,11 +298,19 @@ func (r *IOSManagedMobileAppResource) Delete(
 	}
 	defer unlock()
 
-	currentApps, err := r.listPolicyApps(ctx, policyID)
+	appsResponse, err := r.client.
+		DeviceAppManagement().
+		IosManagedAppProtections().
+		ByIosManagedAppProtectionId(policyID).
+		Apps().
+		Get(ctx, nil)
 	if err != nil {
+		err = fmt.Errorf("list policy apps: %w", err)
+
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
 		return
 	}
+	currentApps := appsResponse.GetValue()
 
 	if findByID(currentApps, appID) != nil {
 		remaining := make([]graphmodels.ManagedMobileAppable, 0, len(currentApps))
@@ -279,7 +320,9 @@ func (r *IOSManagedMobileAppResource) Delete(
 			}
 		}
 
-		if err := r.setPolicyApps(ctx, policyID, remaining); err != nil {
+		if err := r.client.DeviceAppManagement().ManagedAppPolicies().ByManagedAppPolicyId(policyID).TargetApps().Post(ctx, constructPolicyApps(remaining), nil); err != nil {
+			err = fmt.Errorf("set policy target apps: %w", err)
+
 			errors.HandleKiotaGraphError(
 				ctx,
 				err,
@@ -290,9 +333,20 @@ func (r *IOSManagedMobileAppResource) Delete(
 			return
 		}
 
-		_, err = r.waitForApps(ctx, policyID, func(apps []graphmodels.ManagedMobileAppable) bool {
-			return findByID(apps, appID) == nil
+		pollReadFailed := false
+		err = crud.PollUntil(ctx, appPollInterval, func(ctx context.Context) (bool, error) {
+			response, readErr := r.client.DeviceAppManagement().IosManagedAppProtections().ByIosManagedAppProtectionId(policyID).Apps().Get(ctx, nil)
+			if readErr != nil {
+				pollReadFailed = true
+				return false, &crud.FatalPollError{Err: fmt.Errorf("list policy apps: %w", readErr)}
+			}
+			apps := response.GetValue()
+
+			return findByID(apps, appID) == nil, nil
 		})
+		if err != nil && ctx.Err() != nil && !pollReadFailed {
+			err = fmt.Errorf("%w: %w", errAppWaitTimeout, ctx.Err())
+		}
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error verifying resource deletion",
@@ -310,4 +364,27 @@ func (r *IOSManagedMobileAppResource) Delete(
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+var (
+	errAppAlreadyTargeted = stderrors.New("the app is already targeted by this policy")
+	errAppWaitTimeout     = stderrors.New(
+		"timed out waiting for the policy app list to reflect the change",
+	)
+	policyLocks sync.Map
+
+	// appPollInterval is how often the app list is re-read after a write.
+	appPollInterval = 2 * time.Second
+)
+
+// lockPolicy serializes app-list writes for one policy until the returned func is called.
+func lockPolicy(ctx context.Context, policyID string) (func(), error) {
+	value, _ := policyLocks.LoadOrStore(strings.ToLower(policyID), make(chan struct{}, 1))
+	lock := value.(chan struct{})
+	select {
+	case lock <- struct{}{}:
+		return func() { <-lock }, nil
+	case <-ctx.Done():
+		return nil, fmt.Errorf("wait for policy app lock: %w", ctx.Err())
+	}
 }

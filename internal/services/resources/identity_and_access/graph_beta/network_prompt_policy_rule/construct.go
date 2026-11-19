@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
@@ -211,4 +212,44 @@ func wrapSerializationError(err error) error {
 		return fmt.Errorf("serialize prompt policy rule: %w", err)
 	}
 	return nil
+}
+
+const (
+	promptPolicyRulesURLTemplate    = "{+baseurl}/networkaccess/promptPolicies/{promptPolicyId}/policyRules"
+	promptPolicyRuleItemURLTemplate = promptPolicyRulesURLTemplate + "/{policyRuleId}"
+)
+
+func newPromptPolicyRuleRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	policyID, ruleID string,
+	body s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl":        adapter.GetBaseUrl(),
+		"promptPolicyId": policyID,
+	}
+	urlTemplate := promptPolicyRulesURLTemplate
+	if ruleID != "" {
+		urlTemplate = promptPolicyRuleItemURLTemplate
+		pathParameters["policyRuleId"] = ruleID
+	}
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(
+		method,
+		urlTemplate,
+		pathParameters,
+	)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+	if body != nil {
+		if err := requestInfo.SetContentFromParsable(
+			ctx,
+			adapter,
+			"application/json",
+			body,
+		); err != nil {
+			return nil, fmt.Errorf("set prompt policy rule request content: %w", err)
+		}
+	}
+	return requestInfo, nil
 }

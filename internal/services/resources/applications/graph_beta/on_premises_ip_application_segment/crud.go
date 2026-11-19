@@ -6,13 +6,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // ipApplicationSegmentApplicationLocks serializes segment writes per application.
@@ -79,7 +82,21 @@ func (r *OnPremisesIpApplicationSegmentResource) Create(ctx context.Context, req
 		return
 	}
 
-	createdIpApplicationSegment, err := r.createIpApplicationSegment(ctx, object.ApplicationObjectID.ValueString(), requestBody)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newIpApplicationSegmentRequestInformation(ctx, createAdapter, abstractions.POST, object.ApplicationObjectID.ValueString(), "", requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createRetryOptions := createIpApplicationSegmentRetryOptions(r.retryOptions)
+	createRequest.AddRequestOptions([]abstractions.RequestOption{&createRetryOptions})
+	createResult, err := createAdapter.Send(
+		ctx,
+		createRequest,
+		createIpApplicationSegmentResponseFromDiscriminatorValue,
+		ipApplicationSegmentErrorMapping,
+	)
+	createdIpApplicationSegment, err := decodeCreateIpApplicationSegmentResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -160,8 +177,19 @@ func (r *OnPremisesIpApplicationSegmentResource) Read(ctx context.Context, req r
 		}
 	}
 
-	ipApplicationSegment, err := r.getIpApplicationSegment(ctx, object.ApplicationObjectID.ValueString(), object.ID.ValueString())
-
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newIpApplicationSegmentRequestInformation(ctx, readAdapter, abstractions.GET, object.ApplicationObjectID.ValueString(), object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	readResult, err := readAdapter.Send(
+		ctx,
+		readRequest,
+		createIpApplicationSegmentResponseFromDiscriminatorValue,
+		ipApplicationSegmentErrorMapping,
+	)
+	ipApplicationSegment, err := decodeGetIpApplicationSegmentResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -233,7 +261,20 @@ func (r *OnPremisesIpApplicationSegmentResource) Update(ctx context.Context, req
 		return
 	}
 
-	if err := r.updateIpApplicationSegment(ctx, state.ApplicationObjectID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newIpApplicationSegmentRequestInformation(
+		ctx,
+		updateAdapter,
+		abstractions.PATCH,
+		state.ApplicationObjectID.ValueString(),
+		state.ID.ValueString(),
+		requestBody,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
+		return
+	}
+	if err := updateAdapter.SendNoContent(ctx, updateRequest, ipApplicationSegmentErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
 		return
 	}
@@ -296,7 +337,13 @@ func (r *OnPremisesIpApplicationSegmentResource) Delete(ctx context.Context, req
 	}
 	defer cancel()
 
-	if err := r.deleteIpApplicationSegment(ctx, data.ApplicationObjectID.ValueString(), data.ID.ValueString()); err != nil {
+	deleteAdapter := r.client.GetAdapter()
+	deleteRequest, err := newIpApplicationSegmentRequestInformation(ctx, deleteAdapter, abstractions.DELETE, data.ApplicationObjectID.ValueString(), data.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+	if err := deleteAdapter.SendNoContent(ctx, deleteRequest, ipApplicationSegmentErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
@@ -304,4 +351,8 @@ func (r *OnPremisesIpApplicationSegmentResource) Delete(ctx context.Context, req
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+var ipApplicationSegmentErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

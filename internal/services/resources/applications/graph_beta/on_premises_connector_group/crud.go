@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 func (r *OnPremisesConnectorGroupResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -39,7 +42,19 @@ func (r *OnPremisesConnectorGroupResource) Create(ctx context.Context, req resou
 		return
 	}
 
-	createdConnectorGroup, err := r.createConnectorGroup(ctx, requestBody)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newConnectorGroupRequestInformation(ctx, createAdapter, abstractions.POST, "", requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createResult, err := createAdapter.Send(
+		ctx,
+		createRequest,
+		createConnectorGroupResponseFromDiscriminatorValue,
+		connectorGroupErrorMapping,
+	)
+	createdConnectorGroup, err := decodeCreateConnectorGroupResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -114,7 +129,19 @@ func (r *OnPremisesConnectorGroupResource) Read(ctx context.Context, req resourc
 		}
 	}
 
-	connectorGroup, err := r.getConnectorGroup(ctx, object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newConnectorGroupRequestInformation(ctx, readAdapter, abstractions.GET, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	readResult, err := readAdapter.Send(
+		ctx,
+		readRequest,
+		createConnectorGroupResponseFromDiscriminatorValue,
+		connectorGroupErrorMapping,
+	)
+	connectorGroup, err := decodeGetConnectorGroupResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -171,7 +198,19 @@ func (r *OnPremisesConnectorGroupResource) Update(ctx context.Context, req resou
 		return
 	}
 
-	updatedConnectorGroup, err := r.updateConnectorGroup(ctx, state.ID.ValueString(), requestBody)
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newConnectorGroupRequestInformation(ctx, updateAdapter, abstractions.PATCH, state.ID.ValueString(), requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
+		return
+	}
+	updateResult, err := updateAdapter.Send(
+		ctx,
+		updateRequest,
+		createConnectorGroupResponseFromDiscriminatorValue,
+		connectorGroupErrorMapping,
+	)
+	updatedConnectorGroup, err := decodeUpdateConnectorGroupResponse(updateResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
 		return
@@ -239,7 +278,13 @@ func (r *OnPremisesConnectorGroupResource) Delete(ctx context.Context, req resou
 		return
 	}
 
-	if err := r.deleteConnectorGroup(ctx, data.ID.ValueString()); err != nil {
+	deleteAdapter := r.client.GetAdapter()
+	deleteRequest, err := newConnectorGroupRequestInformation(ctx, deleteAdapter, abstractions.DELETE, data.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+	if err := deleteAdapter.SendNoContent(ctx, deleteRequest, connectorGroupErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
@@ -247,4 +292,8 @@ func (r *OnPremisesConnectorGroupResource) Delete(ctx context.Context, req resou
 	resp.State.RemoveResource(ctx)
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+}
+
+var connectorGroupErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }
