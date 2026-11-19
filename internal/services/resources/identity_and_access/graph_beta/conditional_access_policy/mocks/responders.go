@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/google/uuid"
@@ -61,6 +62,16 @@ func getJSONFileForDisplayName(displayName string) string {
 var deviceListFields = []string{"includeDevices", "excludeDevices", "includeDeviceStates", "excludeDeviceStates"}
 
 const malformedMessage = "The server could not process the request because it is malformed or incorrect."
+
+// emptyGrantControls reports whether a grant controls payload configures no control.
+func emptyGrantControls(grantControls map[string]any) bool {
+	for _, key := range []string{"builtInControls", "customAuthenticationFactors", "termsOfUse"} {
+		if values, ok := grantControls[key].([]any); ok && len(values) > 0 {
+			return false
+		}
+	}
+	return grantControls["authenticationStrength"] == nil
+}
 
 // nullDeviceListResponse mirrors Graph, which rejects a policy whose device lists are null.
 func nullDeviceListResponse(request map[string]any) *http.Response {
@@ -227,7 +238,16 @@ func (m *ConditionalAccessPolicyMock) RegisterMocks() {
 		for key, value := range requestBody {
 			policy[key] = value
 		}
-		policy["modifiedDateTime"] = "2024-01-02T00:00:00Z"
+		// Graph stores an empty grant controls block as null
+		if grantControls, ok := policy["grantControls"].(map[string]any); ok && emptyGrantControls(grantControls) {
+			policy["grantControls"] = nil
+		}
+		// Advance a whole second per update so the post-update consistency predicate sees a new version
+		modified, err := time.Parse(time.RFC3339, fmt.Sprint(policy["modifiedDateTime"]))
+		if err != nil {
+			modified = time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)
+		}
+		policy["modifiedDateTime"] = modified.Add(time.Second).Format(time.RFC3339)
 		mockState.policies[policyId] = policy
 		mockState.Unlock()
 

@@ -2,6 +2,7 @@ package graphBetaConditionalAccessPolicy_test
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -2474,4 +2475,78 @@ func TestUnitResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 			},
 		},
 	})
+}
+
+// CAU021: Sign-in Every Time Strict for Private Access Apps
+func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer conditionalAccessPolicyMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: loadUnitTestTerraform("resource_cau021-selected.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("state").HasValue("disabled"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").DoesNotExist(),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("conditions.applications.include_applications.*").ContainsTypeSetElement("55555555-5555-5555-5555-555555555555"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("conditions.platforms.include_platforms.*").ContainsTypeSetElement("windows"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.authentication_type").HasValue("primaryAndSecondaryAuthentication"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("everyTimeStrict"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.is_enabled").HasValue("true"),
+				),
+			},
+			{
+				// Graph returns null for an empty grant block; the configured block must survive the update.
+				Config: cau021Config(`grant_controls = { operator = "AND" }`, "everyTime"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").HasValue("AND"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("everyTime"),
+				),
+			},
+			{
+				Config: cau021Config(`grant_controls = { operator = "OR", built_in_controls = ["mfa"] }`, "everyTimeStrict"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("mfa"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("everyTimeStrict"),
+				),
+			},
+			{
+				// Removing the block must clear session controls in Graph.
+				Config: withoutSessionControls(cau021Config(`grant_controls = { operator = "OR", built_in_controls = ["mfa"] }`, "everyTimeStrict")),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("mfa"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").DoesNotExist(),
+				),
+			},
+			{
+				// Removing the block must clear grant controls in Graph.
+				Config: loadUnitTestTerraform("resource_cau021-selected.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType + ".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").DoesNotExist(),
+				),
+			},
+			{
+				ResourceName:      resourceType + ".cau021_private_access_sign_in_every_time",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// cau021Config adds a grant_controls block and sets frequency_interval on the CAU021 config.
+func cau021Config(grantControls, frequencyInterval string) string {
+	config := loadUnitTestTerraform("resource_cau021-selected.tf")
+	config = strings.Replace(config, "  session_controls = {", "  "+grantControls+"\n\n  session_controls = {", 1)
+	return strings.Replace(config, `"everyTimeStrict"`, `"`+frequencyInterval+`"`, 1)
+}
+
+// withoutSessionControls drops the trailing session_controls block from a policy config.
+func withoutSessionControls(config string) string {
+	return config[:strings.Index(config, "  session_controls = {")] + "}\n"
 }

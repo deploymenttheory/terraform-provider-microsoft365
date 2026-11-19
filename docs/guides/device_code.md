@@ -7,7 +7,7 @@ description: |-
 
 # Authentication with Device Code
 
-The Microsoft 365 provider can use device code authentication when interactive login isn't possible directly within the application. This is useful for environments without a web browser or where the user cannot directly interact with a login prompt.
+The Microsoft 365 provider can use device code authentication from an interactive terminal, including an SSH session without a local web browser. The provider displays the sign-in URL and code in the controlling terminal while you complete authentication in a browser on any device.
 
 ## How Device Code Authentication Works
 
@@ -63,7 +63,7 @@ export M365_CLIENT_ID="00000000-0000-0000-0000-000000000000"
 
 ## Usage Workflow
 
-When you run Terraform with device code authentication, you'll see a message similar to:
+When you run Terraform or OpenTofu from an interactive terminal with device code authentication, you'll see a message similar to:
 
 ```
 To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code ABC123XYZ to authenticate.
@@ -74,11 +74,15 @@ To sign in, use a web browser to open the page https://microsoft.com/devicelogin
 3. Sign in with your Microsoft credentials
 4. Terraform will continue once authentication is complete
 
+The instructions are written directly to the controlling terminal (`/dev/tty` on macOS/Linux or `CONOUT$` on Windows), so they remain visible when Terraform captures provider output. Provider logging does not need to be enabled, and the sign-in code is not written to provider logs.
+
+A process without a controlling terminal fails with an actionable authentication error instead of silently waiting for the code to expire. For a session that must run without a terminal, authenticate beforehand with `az login --use-device-code` and configure `auth_method = "azure_cli"`, or use an unattended authentication method.
+
 ## Use Cases
 
 Device code authentication is ideal for:
 
-- CI/CD pipelines with manual intervention
+- Interactive administrative sessions
 - Environments without a web browser
 - Remote terminals or SSH sessions
 - Scenarios where redirection to a local web server isn't possible
@@ -94,4 +98,4 @@ Device code authentication is ideal for:
 
 - **Code expired**: If you don't authenticate within the time limit (typically 15 minutes), you'll need to restart the process
 - **Permission denied**: Ensure you've granted admin consent for the required permissions
-- **No code displayed**: Verify your terminal can display output from the provider
+- **Interactive terminal unavailable**: Run Terraform/OpenTofu in a terminal or SSH session. For redirected/background execution, authenticate beforehand with Azure CLI and use `auth_method = "azure_cli"`, or select an unattended authentication method.

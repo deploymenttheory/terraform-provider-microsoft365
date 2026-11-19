@@ -2720,7 +2720,7 @@ Optional:
 
 Required:
 
-- `include_applications` (Set of String) Applications to include in the policy. Can use special values: 'All' (all applications), 'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). You can also specify application GUIDs.
+- `include_applications` (Set of String) Applications to include in the policy. Can use special values: 'All' (all applications), 'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). You can also specify application GUIDs. To select **All internet resources with Global Secure Access** in the portal's target resources, use `5dc48733-b5df-475c-a49b-fa307ef00853` and `c08f52c9-8f03-4558-a0ea-9a4c878cf343`.
 
 Optional:
 
@@ -2879,8 +2879,8 @@ Required:
 
 Optional:
 
-- `exclude_locations` (Set of String) Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide guid'sof named locations.
-- `include_locations` (Set of String) Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted' 'or provide guid'sof named locations.
+- `exclude_locations` (Set of String) Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide GUIDs of named locations (e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for **All Compliant Network locations** in the portal's network condition).
+- `include_locations` (Set of String) Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted', or provide GUIDs of named locations (e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for **All Compliant Network locations** in the portal's network condition).
 
 
 <a id="nestedatt--conditions--platforms"></a>
@@ -3020,9 +3020,9 @@ Required:
 Optional:
 
 - `authentication_type` (String) Authentication type for sign-in frequency. Possible values are: primaryAndSecondaryAuthentication, secondaryAuthentication.
-- `frequency_interval` (String) Frequency interval for sign-in frequency. Possible values are: timeBased, everyTime.
-- `type` (String) Type of sign-in frequency control. Possible values are: days, hours. Not used when frequency_interval is everyTime.
-- `value` (Number) Value for the sign-in frequency. Not used when frequency_interval is everyTime.
+- `frequency_interval` (String) Frequency interval for sign-in frequency. Possible values are: timeBased, everyTime, everyTimeStrict. `everyTimeStrict` (preview) is for Private Access apps. `everyTime` and `everyTimeStrict` require `authentication_type = "primaryAndSecondaryAuthentication"`.
+- `type` (String) Type of sign-in frequency control. Possible values are: days, hours. Not used when frequency_interval is everyTime or everyTimeStrict.
+- `value` (Number) Value for the sign-in frequency. Not used when frequency_interval is everyTime or everyTimeStrict.
 
 
 

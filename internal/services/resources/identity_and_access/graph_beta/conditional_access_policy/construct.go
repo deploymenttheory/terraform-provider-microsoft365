@@ -40,6 +40,10 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 		requestBody.SetConditions(conditions)
 	}
 
+	// Graph keeps existing grant and session controls when the property is omitted, so unset blocks
+	// are cleared with an explicit null.
+	clearedControls := map[string]any{}
+
 	// Build grant controls
 	if data.GrantControls != nil {
 		grantControls, err := constructGrantControls(ctx, data.GrantControls)
@@ -47,6 +51,8 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 			return nil, fmt.Errorf("failed to construct grant controls: %w", err)
 		}
 		requestBody.SetGrantControls(grantControls)
+	} else {
+		clearedControls["grantControls"] = nil
 	}
 
 	// Build session controls
@@ -56,6 +62,12 @@ func constructResource(ctx context.Context, client *msgraphbetasdk.GraphServiceC
 			return nil, fmt.Errorf("failed to construct session controls: %w", err)
 		}
 		requestBody.SetSessionControls(sessionControls)
+	} else {
+		clearedControls["sessionControls"] = nil
+	}
+
+	if len(clearedControls) > 0 {
+		requestBody.SetAdditionalData(clearedControls)
 	}
 
 	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
@@ -583,8 +595,7 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 			return nil, fmt.Errorf("failed to set authentication type: %w", err)
 		}
 
-		if err := convert.FrameworkToGraphEnum(data.SignInFrequency.FrequencyInterval,
-			graphmodels.ParseSignInFrequencyInterval, signInFrequency.SetFrequencyInterval); err != nil {
+		if err := setSignInFrequencyInterval(data.SignInFrequency.FrequencyInterval, signInFrequency); err != nil {
 			return nil, fmt.Errorf("failed to set frequency interval: %w", err)
 		}
 

@@ -1,0 +1,43 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Synchronization job](https://learn.microsoft.com/en-us/graph/api/resources/synchronization-synchronizationjob?view=graph-rest-beta)
+- [Create job](https://learn.microsoft.com/en-us/graph/api/synchronization-synchronization-post-jobs?view=graph-rest-beta)
+- [Start job](https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationjob-start?view=graph-rest-beta)
+- [Pause job](https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationjob-pause?view=graph-rest-beta)
+- [Delete job](https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationjob-delete?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+Reading requires application permission `Synchronization.Read.All`. Writing requires `Synchronization.ReadWrite.All` or ownership-scoped `Application.ReadWrite.OwnedBy` when the caller owns the service principal. Consult the operation-specific Microsoft permission tables for the selected access model.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_synchronization_job/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- The service principal must support the selected synchronization template. Discover its connector templates through `/servicePrincipals/{id}/synchronization/templates`; a template ID such as `scim` differs from a gallery application template GUID.
+- Creation defaults to disabled. To customize a separately managed schema, first create the disabled job and configure its credentials/schema, then explicitly enable it in a subsequent apply. Referencing the job from the schema creates a dependency on the job; a reverse dependency would form a cycle.
+- Use `job_id` with `microsoft365_graph_beta_applications_service_principal_synchronization_schema_json`. The composite `id` contains both parent and job identifiers and cannot be passed as the sibling's `job_id`.
+- Only `enabled` updates in place. A transition to true calls start; a transition to false calls pause. Read never restarts provisioning, including quarantined jobs. Schedule and status are read-only outputs.
+- Import existing jobs explicitly. The provider does not adopt same-template jobs or replay an ambiguous create request.
+- Destroy deletes the job itself and verifies its absence before removing state. Accounts previously provisioned to the target are retained.
+
+## Import
+
+The job portion is opaque and may contain dots; it is not UUID-validated:
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_service_principal_synchronization_job/import.sh" }}
