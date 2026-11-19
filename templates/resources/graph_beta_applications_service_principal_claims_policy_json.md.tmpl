@@ -1,0 +1,41 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Applications"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Custom claims policy](https://learn.microsoft.com/en-us/graph/api/resources/customclaimspolicy?view=graph-rest-beta)
+- [Get policy](https://learn.microsoft.com/en-us/graph/api/customclaimspolicy-get?view=graph-rest-beta)
+- [Create or replace policy](https://learn.microsoft.com/en-us/graph/api/serviceprincipal-put-claimspolicy?view=graph-rest-beta)
+- [Claims customization](https://learn.microsoft.com/en-us/entra/identity-platform/reference-claims-customization)
+
+## Microsoft Graph API Permissions
+
+Both reading and writing require application permission `Policy.ReadWrite.ApplicationConfiguration`. This API is documented for the global cloud; sovereign clouds are not currently supported by Microsoft.
+
+## Example Usage
+
+{{ tffile "examples/resources/microsoft365_graph_beta_applications_service_principal_claims_policy_json/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Important Notes
+
+- One resource owns the complete custom policy at the service principal's `claimsPolicy` endpoint, including settings made in the Entra portal. A reusable claims mapping policy is a different API and can take precedence over this configuration.
+- Create and update use full replacement with PUT. Explicit `includeBasicClaimSet`, `includeApplicationIdInIssuer`, and `claims` are required by this resource so changes to token defaults are intentional. Import an existing policy before editing it.
+- The JSON surface preserves polymorphic custom/NameID claims, sourced/value attributes, conditions, transformations, and beta fields missing from the generated SDK. Nested `@odata.type`, unknown fields, `version`, and array order remain meaningful. Known service-added nullable fields and root server metadata do not cause drift.
+- Root server `id` and transport annotations are excluded from requests. The returned policy UUID is exported as `policy_id`; Terraform identity and import use the service principal UUID.
+- Read-after-write can temporarily return 404 or stale policy values. Shared bounded retries wait for the requested semantic configuration and repeated matching reads before completing a write.
+- **Destroy retains the policy and removes Terraform state only.** Beta DELETE returns 405. PUT of an empty object changes claim/token settings and is not equivalent to deleting the policy. To clear custom claims, explicitly apply an empty `claims` array while choosing the desired root flags before releasing management.
+- The resource configures policy storage. Token issuance can additionally depend on application signing keys, assigned claims mapping policies, and the application's SAML configuration; this resource does not provision those dependencies.
+
+## Import
+
+{{ codefile "shell" "examples/resources/microsoft365_graph_beta_applications_service_principal_claims_policy_json/import.sh" }}
