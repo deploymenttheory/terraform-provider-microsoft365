@@ -188,7 +188,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 							"include_applications": schema.SetAttribute{
 								MarkdownDescription: "Applications to include in the policy. Can use special values: 'All' (all applications), " +
 									"'None' (no applications), 'MicrosoftAdminPortals', 'Office365', or 'AllAgentIdResources' (all agent ID resources for Private Access). " +
-									"You can also specify application GUIDs.",
+									"You can also specify application GUIDs. To select **All internet resources with Global Secure Access** in the portal's target resources, use " +
+									"`5dc48733-b5df-475c-a49b-fa307ef00853` and `c08f52c9-8f03-4558-a0ea-9a4c878cf343`.",
 								ElementType: types.StringType,
 								Required:    true,
 								Validators: []validator.Set{
@@ -542,8 +543,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 						Optional:            true,
 						Attributes: map[string]schema.Attribute{
 							"include_locations": schema.SetAttribute{
-								MarkdownDescription: "Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted' 'or provide guid's" +
-									"of named locations.",
+								MarkdownDescription: "Named locations to include in the policy. Can use special values like 'All' or 'AllTrusted', or provide GUIDs of named locations " +
+									"(e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for **All Compliant Network locations** in the portal's network condition).",
 								ElementType: types.StringType,
 								Optional:    true,
 								Computed:    true,
@@ -561,8 +562,8 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								},
 							},
 							"exclude_locations": schema.SetAttribute{
-								MarkdownDescription: "Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide guid's" +
-									"of named locations.",
+								MarkdownDescription: "Named locations to exclude from the policy. Can use special values like 'AllTrusted' or provide GUIDs of named locations " +
+									"(e.g. `3d46dbda-8382-466a-856d-eb00cbc6b910` for **All Compliant Network locations** in the portal's network condition).",
 								ElementType: types.StringType,
 								Optional:    true,
 								Computed:    true,
@@ -1059,14 +1060,14 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								Required:            true,
 							},
 							"type": schema.StringAttribute{
-								MarkdownDescription: "Type of sign-in frequency control. Possible values are: days, hours. Not used when frequency_interval is everyTime.",
+								MarkdownDescription: "Type of sign-in frequency control. Possible values are: days, hours. Not used when frequency_interval is everyTime or everyTimeStrict.",
 								Optional:            true,
 								Validators: []validator.String{
 									stringvalidator.OneOf("days", "hours"),
 								},
 							},
 							"value": schema.Int32Attribute{
-								MarkdownDescription: "Value for the sign-in frequency. Not used when frequency_interval is everyTime.",
+								MarkdownDescription: "Value for the sign-in frequency. Not used when frequency_interval is everyTime or everyTimeStrict.",
 								Optional:            true,
 							},
 							"authentication_type": schema.StringAttribute{
@@ -1078,11 +1079,13 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 								},
 							},
 							"frequency_interval": schema.StringAttribute{
-								MarkdownDescription: "Frequency interval for sign-in frequency. Possible values are: timeBased, everyTime.",
-								Optional:            true,
-								Computed:            true,
+								MarkdownDescription: "Frequency interval for sign-in frequency. Possible values are: timeBased, everyTime, everyTimeStrict. " +
+									"`everyTimeStrict` (preview) is for Private Access apps. `everyTime` and `everyTimeStrict` require " +
+									"`authentication_type = \"primaryAndSecondaryAuthentication\"`.",
+								Optional: true,
+								Computed: true,
 								Validators: []validator.String{
-									stringvalidator.OneOf("timeBased", "everyTime"),
+									stringvalidator.OneOf("timeBased", "everyTime", signInFrequencyIntervalEveryTimeStrict),
 								},
 							},
 						},
