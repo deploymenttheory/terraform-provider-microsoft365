@@ -9,6 +9,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
+// mapRemoteStateToTerraform maps the remote Microsoft Graph response to Terraform state.
 func mapRemoteStateToTerraform(
 	ctx context.Context,
 	state *NetworkForwardingProfileResourceModel,

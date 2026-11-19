@@ -17,10 +17,12 @@ func createInternetAccessForwardingRuleResponseFromDiscriminatorValue(parseNode 
 	return &internetAccessForwardingRuleResponse{}, nil
 }
 
+// Serialize satisfies the Parsable interface; this response model is read-only.
 func (r *internetAccessForwardingRuleResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
 
+// GetFieldDeserializers defines the fields used to deserialize the Microsoft Graph model.
 func (r *internetAccessForwardingRuleResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"id": func(n s.ParseNode) error {
@@ -124,10 +126,12 @@ func createRuleDestinationResponseFromDiscriminatorValue(parseNode s.ParseNode) 
 	return &ruleDestinationResponse{}, nil
 }
 
+// Serialize satisfies the Parsable interface; this response model is read-only.
 func (r *ruleDestinationResponse) Serialize(writer s.SerializationWriter) error {
 	return nil
 }
 
+// GetFieldDeserializers defines the fields used to deserialize the Microsoft Graph model.
 func (r *ruleDestinationResponse) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{
 		"@odata.type": func(n s.ParseNode) error {

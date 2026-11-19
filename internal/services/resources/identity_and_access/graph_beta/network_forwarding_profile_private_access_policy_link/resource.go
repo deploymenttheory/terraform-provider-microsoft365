@@ -38,8 +38,13 @@ const (
 )
 
 var (
-	_ resource.Resource                = &NetworkForwardingProfilePrivateAccessPolicyLinkResource{}
-	_ resource.ResourceWithConfigure   = &NetworkForwardingProfilePrivateAccessPolicyLinkResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &NetworkForwardingProfilePrivateAccessPolicyLinkResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &NetworkForwardingProfilePrivateAccessPolicyLinkResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &NetworkForwardingProfilePrivateAccessPolicyLinkResource{}
 
 	guidPattern = regexp.MustCompile(constants.GuidRegex)
@@ -54,6 +59,7 @@ type NetworkForwardingProfilePrivateAccessPolicyLinkResource struct {
 	ResourcePath     string
 }
 
+// NewNetworkForwardingProfilePrivateAccessPolicyLinkResource creates the network forwarding profile private access policy link resource.
 func NewNetworkForwardingProfilePrivateAccessPolicyLinkResource() resource.Resource {
 	return &NetworkForwardingProfilePrivateAccessPolicyLinkResource{
 		ReadPermissions:  []string{"NetworkAccess.Read.All"},
@@ -62,6 +68,7 @@ func NewNetworkForwardingProfilePrivateAccessPolicyLinkResource() resource.Resou
 	}
 }
 
+// Metadata returns the resource type name.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Metadata(
 	ctx context.Context,
 	req resource.MetadataRequest,
@@ -70,6 +77,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Metadata(
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Configure(
 	ctx context.Context,
 	req resource.ConfigureRequest,
@@ -102,6 +110,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) ImportState(
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("policy_link_id"), linkID)...)
 }
 
+// parseImportID parses the resource identifiers from the Terraform import ID.
 func parseImportID(id string) (profileType, profileID, linkID string, ok bool) {
 	parts := strings.Split(id, "/")
 	switch len(parts) {
@@ -122,6 +131,7 @@ func parseImportID(id string) (profileType, profileID, linkID string, ok bool) {
 	return profileType, strings.ToLower(profileID), strings.ToLower(linkID), true
 }
 
+// compositeID builds the Terraform identity from the forwarding profile and policy link IDs.
 func compositeID(profileID, linkID string) types.String {
 	if profileID == "" || linkID == "" {
 		return types.StringNull()
@@ -129,6 +139,7 @@ func compositeID(profileID, linkID string) types.String {
 	return types.StringValue(profileID + "/" + linkID)
 }
 
+// Schema defines the schema for the resource.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Schema(
 	ctx context.Context,
 	req resource.SchemaRequest,

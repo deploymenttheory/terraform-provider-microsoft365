@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
+// MapRemoteStateToTerraform maps the remote Microsoft Graph response to Terraform state.
 func MapRemoteStateToTerraform(ctx context.Context, data *AdminConsentRequestPolicyResourceModel, remote graphmodels.AdminConsentRequestPolicyable) diag.Diagnostics {
 	data.ID = types.StringValue(singletonID)
 	data.IsEnabled = convert.GraphToFrameworkBool(remote.GetIsEnabled())
@@ -34,6 +35,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AdminConsentRequestPol
 	return diags
 }
 
+// policyConsistencyPredicate checks that the tenant policy matches the written configuration.
 func policyConsistencyPredicate(expected *AdminConsentRequestPolicyResourceModel) func(context.Context, tfsdk.State) bool {
 	return func(ctx context.Context, state tfsdk.State) bool {
 		var actual AdminConsentRequestPolicyResourceModel

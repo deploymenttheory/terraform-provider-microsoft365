@@ -77,6 +77,7 @@ func normaliseMembership(membership map[string]any) error {
 	return nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *DeviceRegistrationPolicyMock) RegisterMocks() {
 	policy, err := loadSeedPolicy()
 	mockState.Lock()
@@ -151,6 +152,7 @@ func (m *DeviceRegistrationPolicyMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *DeviceRegistrationPolicyMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	forbidden := `{"error":{"code":"Authorization_RequestDenied","message":"Insufficient privileges to complete the operation."}}`
@@ -158,6 +160,7 @@ func (m *DeviceRegistrationPolicyMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("PUT", policyURL, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *DeviceRegistrationPolicyMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.policy = nil

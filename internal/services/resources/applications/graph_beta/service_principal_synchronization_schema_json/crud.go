@@ -16,7 +16,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
-// Create handles the Create operation for service principal synchronization schema resources.
+// Create handles the Create operation for service principal synchronization schema JSON resources.
 //
 // Operation: The schema of a synchronization job always exists, so Create replaces it with the configured schema.
 // API Calls:
@@ -82,7 +82,7 @@ func (r *ServicePrincipalSynchronizationSchemaJsonResource) Create(ctx context.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for service principal synchronization schema resources.
+// Read handles the Read operation for service principal synchronization schema JSON resources.
 //
 // Operation: Retrieves the schema of a synchronization job
 // API Calls:
@@ -147,7 +147,7 @@ func (r *ServicePrincipalSynchronizationSchemaJsonResource) Read(ctx context.Con
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for service principal synchronization schema resources.
+// Update handles the Update operation for service principal synchronization schema JSON resources.
 //
 // Operation: Replaces the schema of a synchronization job with the configured schema
 // API Calls:
@@ -209,7 +209,7 @@ func (r *ServicePrincipalSynchronizationSchemaJsonResource) Update(ctx context.C
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete handles the Delete operation for service principal synchronization schema resources.
+// Delete handles the Delete operation for service principal synchronization schema JSON resources.
 //
 // Operation: The schema of a synchronization job cannot be removed. Delete resets it to the default schema of the
 // job's synchronization template and removes the resource from Terraform state. A job or service principal that no

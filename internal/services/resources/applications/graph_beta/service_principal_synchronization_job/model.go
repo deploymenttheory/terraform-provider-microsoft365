@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/synchronization-synchronizationjob?view=graph-rest-beta
 package graphBetaServicePrincipalSynchronizationJob
 
 import (
@@ -6,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// ServicePrincipalSynchronizationJobResourceModel represents the schema for the service principal synchronization job resource.
 type ServicePrincipalSynchronizationJobResourceModel struct {
 	ID                 types.String   `tfsdk:"id"`
 	ServicePrincipalID types.String   `tfsdk:"service_principal_id"`

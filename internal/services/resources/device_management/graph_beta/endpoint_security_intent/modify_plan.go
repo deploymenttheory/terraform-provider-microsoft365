@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-// ModifyPlan handles plan modification for endpoint security intents
+// ModifyPlan modifies the resource plan before applying changes.
 func (r *EndpointSecurityIntentResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
 	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
 		return

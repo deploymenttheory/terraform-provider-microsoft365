@@ -30,6 +30,7 @@ var errWaitTimedOut = errors.New("timed out waiting for forwarding policy link c
 // and Terraform runs sibling links in parallel.
 var profileLocks sync.Map
 
+// lockProfile serializes changes to policy links on the same forwarding profile.
 func lockProfile(profileType, profileID string) (unlock func()) {
 	key := profileType + "/" + strings.ToLower(profileID)
 	mu, _ := profileLocks.LoadOrStore(key, &sync.Mutex{})
@@ -38,6 +39,7 @@ func lockProfile(profileType, profileID string) (unlock func()) {
 	return m.Unlock
 }
 
+// profileTemplate returns the API path for a user or device forwarding profile.
 func profileTemplate(profileType string) string {
 	if profileType == profileTypeDevice {
 		return "/networkAccess/deviceForwardingProfiles/{forwardingProfileId}"
@@ -45,6 +47,7 @@ func profileTemplate(profileType string) string {
 	return "/networkAccess/forwardingProfiles/{forwardingProfileId}"
 }
 
+// getProfile retrieves the forwarding profile and its expanded policy links.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) getProfile(
 	ctx context.Context,
 	profileType, profileID string,
@@ -64,6 +67,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) getProfile(
 	return &profile, nil
 }
 
+// patchPolicies applies a policy-link delta to the forwarding profile.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) patchPolicies(
 	ctx context.Context,
 	profileType, profileID string,
@@ -83,6 +87,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) patchPolicies(
 	return nil
 }
 
+// addLink adds the configured policy link to the forwarding profile.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) addLink(
 	ctx context.Context,
 	plan *NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel,
@@ -102,6 +107,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) addLink(
 	return r.patchPolicies(ctx, plan.ProfileType.ValueString(), plan.ForwardingProfileID.ValueString(), link)
 }
 
+// removeLink removes the policy link without deleting its profile or policy.
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) removeLink(
 	ctx context.Context,
 	profileType, profileID, linkID string,
@@ -121,6 +127,7 @@ type removedLink struct {
 	ID        string        `json:"id"`
 }
 
+// removedReason represents the removal reason in a policy link delta request.
 type removedReason struct {
 	Reason string `json:"reason"`
 }

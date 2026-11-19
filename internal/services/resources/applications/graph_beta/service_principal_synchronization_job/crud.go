@@ -13,6 +13,14 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// Create handles the Create operation for service principal synchronization job resources.
+//
+// Operation: Creates a disabled provisioning job and starts it only when enabled is true
+// API Calls:
+//   - POST /servicePrincipals/{servicePrincipalId}/synchronization/jobs
+//   - POST /servicePrincipals/{servicePrincipalId}/synchronization/jobs/{jobId}/start (only when enabled)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/synchronization-synchronizationjob?view=graph-rest-beta
 func (r *ServicePrincipalSynchronizationJobResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data ServicePrincipalSynchronizationJobResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -69,6 +77,13 @@ func (r *ServicePrincipalSynchronizationJobResource) Create(ctx context.Context,
 	}
 }
 
+// Read handles the Read operation for service principal synchronization job resources.
+//
+// Operation: Retrieves the service principal synchronization job by ID
+// API Calls:
+//   - GET /servicePrincipals/{servicePrincipalId}/synchronization/jobs/{jobId}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/synchronization-synchronizationjob?view=graph-rest-beta
 func (r *ServicePrincipalSynchronizationJobResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data ServicePrincipalSynchronizationJobResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -105,6 +120,14 @@ func (r *ServicePrincipalSynchronizationJobResource) Read(ctx context.Context, r
 	}
 }
 
+// Update handles the Update operation for service principal synchronization job resources.
+//
+// Operation: Starts or pauses the job only when enabled changes; parent and template changes require replacement
+// API Calls:
+//   - POST /servicePrincipals/{servicePrincipalId}/synchronization/jobs/{jobId}/start
+//   - POST /servicePrincipals/{servicePrincipalId}/synchronization/jobs/{jobId}/pause
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationjob-start?view=graph-rest-beta
 func (r *ServicePrincipalSynchronizationJobResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state ServicePrincipalSynchronizationJobResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -154,6 +177,14 @@ func (r *ServicePrincipalSynchronizationJobResource) Update(ctx context.Context,
 	}
 }
 
+// Delete handles the Delete operation for service principal synchronization job resources.
+//
+// Operation: Deletes the service principal synchronization job
+// API Calls:
+//   - DELETE /servicePrincipals/{servicePrincipalId}/synchronization/jobs/{jobId}
+//   - GET /servicePrincipals/{servicePrincipalId}/synchronization/jobs/{jobId} (verifies deletion)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/synchronization-synchronizationjob?view=graph-rest-beta
 func (r *ServicePrincipalSynchronizationJobResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data ServicePrincipalSynchronizationJobResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)

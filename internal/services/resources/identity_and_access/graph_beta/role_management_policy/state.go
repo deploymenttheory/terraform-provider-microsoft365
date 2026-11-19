@@ -72,6 +72,7 @@ func finishRuleMap[T any](prior, result map[string]T, importAll bool) map[string
 	return result
 }
 
+// mapExpirationRules maps managed expiration rules, including all supported rules during import.
 func mapExpirationRules(
 	prior map[string]ExpirationRuleModel,
 	remoteRules map[string]graphmodels.UnifiedRoleManagementPolicyRuleable,
@@ -98,6 +99,7 @@ func mapExpirationRules(
 	return finishRuleMap(prior, result, importAll)
 }
 
+// mapEnablementRules maps managed enablement rules, including all supported rules during import.
 func mapEnablementRules(
 	ctx context.Context,
 	prior map[string]EnablementRuleModel,
@@ -117,6 +119,7 @@ func mapEnablementRules(
 	return finishRuleMap(prior, result, importAll)
 }
 
+// mapNotificationRules maps managed notification rules, including all supported rules during import.
 func mapNotificationRules(
 	ctx context.Context,
 	prior map[string]NotificationRuleModel,
@@ -138,6 +141,7 @@ func mapNotificationRules(
 	return finishRuleMap(prior, result, importAll)
 }
 
+// mapAuthenticationContextRules maps managed authentication context rules, including all supported rules during import.
 func mapAuthenticationContextRules(
 	prior map[string]AuthenticationContextRuleModel,
 	remoteRules map[string]graphmodels.UnifiedRoleManagementPolicyRuleable,

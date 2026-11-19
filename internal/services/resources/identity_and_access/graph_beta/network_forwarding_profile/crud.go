@@ -16,6 +16,13 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
+// Create handles the Create operation for network forwarding profile resources.
+//
+// Operation: Creates a new network forwarding profile
+// API Calls:
+//   - POST /networkaccess/forwardingProfiles
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 func (r *NetworkForwardingProfileResource) Create(
 	ctx context.Context,
 	req resource.CreateRequest,
@@ -95,6 +102,13 @@ func (r *NetworkForwardingProfileResource) Create(
 	}
 }
 
+// Read handles the Read operation for network forwarding profile resources.
+//
+// Operation: Retrieves the network forwarding profile by ID
+// API Calls:
+//   - GET /networkaccess/forwardingProfiles/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 func (r *NetworkForwardingProfileResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
@@ -128,6 +142,13 @@ func (r *NetworkForwardingProfileResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
+// Update handles the Update operation for network forwarding profile resources.
+//
+// Operation: Updates the network forwarding profile
+// API Calls:
+//   - PATCH /networkaccess/forwardingProfiles/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 func (r *NetworkForwardingProfileResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
@@ -181,6 +202,13 @@ func (r *NetworkForwardingProfileResource) Update(
 	}
 }
 
+// Delete handles the Delete operation for network forwarding profile resources.
+//
+// Operation: Deletes the network forwarding profile
+// API Calls:
+//   - DELETE /networkaccess/forwardingProfiles/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 func (r *NetworkForwardingProfileResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
@@ -217,6 +245,7 @@ func (r *NetworkForwardingProfileResource) Delete(
 	resp.State.RemoveResource(ctx)
 }
 
+// readbackOptions configures shared read retries to verify the preceding write.
 func readbackOptions(
 	plan NetworkForwardingProfileResourceModel,
 	operation string,

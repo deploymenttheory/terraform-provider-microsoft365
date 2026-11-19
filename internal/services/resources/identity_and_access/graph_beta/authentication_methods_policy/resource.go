@@ -53,9 +53,11 @@ var (
 	_ resource.ResourceWithIdentity = &AuthenticationMethodsPolicyResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/authenticationmethodspolicy-get?view=graph-rest-beta#permissions
-// https://learn.microsoft.com/en-us/graph/api/authenticationmethodspolicy-update?view=graph-rest-beta#permissions
-// https://learn.microsoft.com/en-us/graph/api/authenticationmethodconfiguration-update?view=graph-rest-beta#permissions
+// NewAuthenticationMethodsPolicyResource creates the authentication methods policy resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationmethodspolicy-get?view=graph-rest-beta#permissions
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationmethodspolicy-update?view=graph-rest-beta#permissions
+// Reference: https://learn.microsoft.com/en-us/graph/api/authenticationmethodconfiguration-update?view=graph-rest-beta#permissions
 func NewAuthenticationMethodsPolicyResource() resource.Resource {
 	return &AuthenticationMethodsPolicyResource{
 		ReadPermissions: []string{
@@ -67,6 +69,7 @@ func NewAuthenticationMethodsPolicyResource() resource.Resource {
 	}
 }
 
+// AuthenticationMethodsPolicyResource defines the Microsoft Graph client and permissions for the authentication methods policy resource.
 type AuthenticationMethodsPolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -95,7 +98,7 @@ func (r *AuthenticationMethodsPolicyResource) ImportState(ctx context.Context, r
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *AuthenticationMethodsPolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

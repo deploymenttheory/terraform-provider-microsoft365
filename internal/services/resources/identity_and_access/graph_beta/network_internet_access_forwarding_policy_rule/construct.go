@@ -16,6 +16,7 @@ const (
 	ipSubnetODataType                     = "#microsoft.graph.networkaccess.ipSubnet"
 )
 
+// constructResource converts the Terraform resource model to a Microsoft Graph request body.
 func constructResource(ctx context.Context, data *NetworkInternetAccessForwardingPolicyRuleResourceModel, includeID bool) (s.Parsable, error) {
 	ports, err := stringSetValues(ctx, data.Ports)
 	if err != nil {
@@ -53,6 +54,7 @@ func constructResource(ctx context.Context, data *NetworkInternetAccessForwardin
 	return body, nil
 }
 
+// stringSetValues converts a Terraform string set to request values.
 func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
 	if value.IsNull() || value.IsUnknown() {
 		return nil, nil
@@ -65,6 +67,7 @@ func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
 	return result, nil
 }
 
+// destinationValues converts Terraform destinations to request values.
 func destinationValues(ctx context.Context, value types.List) ([]s.Parsable, error) {
 	if value.IsNull() || value.IsUnknown() {
 		return nil, nil
@@ -86,6 +89,7 @@ func destinationValues(ctx context.Context, value types.List) ([]s.Parsable, err
 	return result, nil
 }
 
+// validateDestinationsMatchRuleType validates that destinations match the configured forwarding rule type.
 func validateDestinationsMatchRuleType(ctx context.Context, ruleType string, destinations types.List) error {
 	if destinations.IsNull() || destinations.IsUnknown() {
 		return nil
@@ -103,6 +107,7 @@ func validateDestinationsMatchRuleType(ctx context.Context, ruleType string, des
 	return nil
 }
 
+// destinationRequestBody builds a forwarding rule destination request.
 func destinationRequestBody(item RuleDestinationModel) (s.Parsable, error) {
 	switch item.Type.ValueString() {
 	case ruleTypeFQDN:
@@ -134,6 +139,7 @@ func destinationRequestBody(item RuleDestinationModel) (s.Parsable, error) {
 	}
 }
 
+// graphRuleType converts the Terraform forwarding rule type to its Microsoft Graph discriminator.
 func graphRuleType(value string) string {
 	switch value {
 	case ruleTypeIPAddress:
@@ -147,6 +153,7 @@ func graphRuleType(value string) string {
 	}
 }
 
+// terraformRuleType converts the Microsoft Graph discriminator to the Terraform forwarding rule type.
 func terraformRuleType(value string) string {
 	switch value {
 	case "ipAddress":
@@ -160,6 +167,7 @@ func terraformRuleType(value string) string {
 	}
 }
 
+// internetAccessForwardingRuleRequestBody represents the writable fields of an internet access forwarding rule.
 type internetAccessForwardingRuleRequestBody struct {
 	ODataType string
 	ID        string
@@ -173,6 +181,7 @@ type internetAccessForwardingRuleRequestBody struct {
 	Destinations         []s.Parsable
 }
 
+// Serialize serializes the request body for Microsoft Graph.
 func (b *internetAccessForwardingRuleRequestBody) Serialize(writer s.SerializationWriter) error {
 	if b.ODataType != "" {
 		if err := writer.WriteStringValue("@odata.type", &b.ODataType); err != nil {
@@ -222,10 +231,12 @@ func (b *internetAccessForwardingRuleRequestBody) Serialize(writer s.Serializati
 	return nil
 }
 
+// GetFieldDeserializers returns no deserializers because this request model is write-only.
 func (b *internetAccessForwardingRuleRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
 
+// ruleDestinationRequestBody represents a forwarding rule destination in a Microsoft Graph request.
 type ruleDestinationRequestBody struct {
 	ODataType    string
 	Value        string
@@ -233,6 +244,7 @@ type ruleDestinationRequestBody struct {
 	EndAddress   string
 }
 
+// Serialize serializes the request body for Microsoft Graph.
 func (b *ruleDestinationRequestBody) Serialize(writer s.SerializationWriter) error {
 	if err := writer.WriteStringValue("@odata.type", &b.ODataType); err != nil {
 		return err
@@ -255,6 +267,7 @@ func (b *ruleDestinationRequestBody) Serialize(writer s.SerializationWriter) err
 	return nil
 }
 
+// GetFieldDeserializers returns no deserializers because this request model is write-only.
 func (b *ruleDestinationRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }

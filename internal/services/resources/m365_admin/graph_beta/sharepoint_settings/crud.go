@@ -15,7 +15,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
-// Create adopts the tenant SharePoint settings and applies the configuration.
+// Create handles the Create operation for SharePoint settings resources.
 //
 // Operation: The SharePoint settings are a singleton that always exists in the tenant and has no POST
 // endpoint. Create applies the configured values with PATCH; unconfigured values keep their tenant values.
@@ -87,7 +87,7 @@ func (r *SharepointSettingsResource) Create(ctx context.Context, req resource.Cr
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the SharePoint settings resource.
+// Read handles the Read operation for SharePoint settings resources.
 //
 // Operation: Retrieves the tenant SharePoint settings
 // API Calls:
@@ -149,7 +149,7 @@ func (r *SharepointSettingsResource) Read(ctx context.Context, req resource.Read
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for the SharePoint settings resource.
+// Update handles the Update operation for SharePoint settings resources.
 //
 // Operation: Applies the configured values to the tenant SharePoint settings
 // API Calls:
@@ -212,11 +212,14 @@ func (r *SharepointSettingsResource) Update(ctx context.Context, req resource.Up
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete releases Terraform management without changing the tenant-wide SharePoint settings.
+// Delete handles the Delete operation for SharePoint settings resources.
 //
 // Operation: The singleton settings cannot be deleted. Delete only removes the resource from Terraform
 // state and leaves the tenant settings as they are.
-// API Calls: none
+// API Calls:
+//   - None (state only)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/sharepointsettings?view=graph-rest-beta
 func (r *SharepointSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

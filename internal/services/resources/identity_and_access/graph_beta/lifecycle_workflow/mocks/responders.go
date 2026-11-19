@@ -131,6 +131,7 @@ func workflowIdFromPath(path string, offsetFromEnd int) string {
 	return parts[len(parts)-1-offsetFromEnd]
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *LifecycleWorkflowMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.workflows = make(map[string]map[string]any)
@@ -316,6 +317,7 @@ func (m *LifecycleWorkflowMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *LifecycleWorkflowMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", workflowsURL, httpmock.NewStringResponder(403, forbiddenBody))
 	httpmock.RegisterResponder("GET", workflowItemPattern, httpmock.NewStringResponder(404, notFoundBody))
@@ -324,6 +326,7 @@ func (m *LifecycleWorkflowMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("DELETE", workflowItemPattern, httpmock.NewStringResponder(404, notFoundBody))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *LifecycleWorkflowMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.workflows = make(map[string]map[string]any)

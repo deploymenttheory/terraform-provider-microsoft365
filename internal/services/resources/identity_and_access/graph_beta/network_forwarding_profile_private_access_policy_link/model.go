@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-forwardingpolicylink?view=graph-rest-beta
 package graphBetaNetworkForwardingProfilePrivateAccessPolicyLink
 
 import (
@@ -5,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel represents the schema for the network forwarding profile private access policy link resource.
 type NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel struct {
 	ID                  types.String   `tfsdk:"id"`
 	ForwardingProfileID types.String   `tfsdk:"forwarding_profile_id"`
@@ -17,11 +19,13 @@ type NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel struct {
 	Timeouts            timeouts.Value `tfsdk:"timeouts"`
 }
 
+// policyRef represents the policy referenced by a forwarding policy link.
 type policyRef struct {
 	ID   string `json:"id"`
 	Name string `json:"name,omitempty"`
 }
 
+// policyLink represents a forwarding profile policy link returned by Microsoft Graph.
 type policyLink struct {
 	ID         string     `json:"id"`
 	State      string     `json:"state,omitempty"`
@@ -30,6 +34,7 @@ type policyLink struct {
 	Policy     *policyRef `json:"policy,omitempty"`
 }
 
+// forwardingProfile represents a forwarding profile with its expanded policy links.
 type forwardingProfile struct {
 	ID       string       `json:"id"`
 	Policies []policyLink `json:"policies"`

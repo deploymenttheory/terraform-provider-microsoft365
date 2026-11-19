@@ -45,6 +45,7 @@ func (r *NetworkDefaultForwardingProfileResource) findDefault(
 	return nil, fmt.Errorf("%w: %q", errDefaultProfileNotFound, trafficType)
 }
 
+// get retrieves the resource from Microsoft Graph.
 func (r *NetworkDefaultForwardingProfileResource) get(
 	ctx context.Context,
 	id string,
@@ -64,6 +65,7 @@ func (r *NetworkDefaultForwardingProfileResource) get(
 	return &response, nil
 }
 
+// patch applies the configured changes to Microsoft Graph.
 func (r *NetworkDefaultForwardingProfileResource) patch(
 	ctx context.Context,
 	id string,
@@ -86,6 +88,7 @@ func (r *NetworkDefaultForwardingProfileResource) patch(
 	return nil
 }
 
+// mapRemoteStateToTerraform maps the remote Microsoft Graph response to Terraform state.
 func mapRemoteStateToTerraform(
 	ctx context.Context,
 	state *NetworkDefaultForwardingProfileResourceModel,

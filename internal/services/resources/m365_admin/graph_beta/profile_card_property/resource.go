@@ -58,7 +58,9 @@ var (
 	_ resource.ResourceWithIdentity = &ProfileCardPropertyResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/peopleadminsettings-post-profilecardproperties?view=graph-rest-beta
+// NewProfileCardPropertyResource creates the profile card property resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/peopleadminsettings-post-profilecardproperties?view=graph-rest-beta
 func NewProfileCardPropertyResource() resource.Resource {
 	return &ProfileCardPropertyResource{
 		ReadPermissions: []string{
@@ -70,6 +72,7 @@ func NewProfileCardPropertyResource() resource.Resource {
 	}
 }
 
+// ProfileCardPropertyResource defines the Microsoft Graph client and permissions for the profile card property resource.
 type ProfileCardPropertyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -91,7 +94,7 @@ func (r *ProfileCardPropertyResource) ImportState(ctx context.Context, req resou
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *ProfileCardPropertyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

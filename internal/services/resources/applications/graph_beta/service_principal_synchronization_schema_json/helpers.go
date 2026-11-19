@@ -153,6 +153,7 @@ func normaliseSchemaJSON(value string) (any, error) {
 	return normaliseValue(decoded), nil
 }
 
+// normaliseValue normalizes nested schema values before comparing synchronization schema JSON.
 func normaliseValue(value any) any {
 	switch typed := value.(type) {
 	case map[string]any:

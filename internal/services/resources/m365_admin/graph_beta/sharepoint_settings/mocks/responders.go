@@ -118,6 +118,7 @@ func validatePatch(body map[string]any) *graphError {
 	return nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *SharepointSettingsMock) RegisterMocks() {
 	settings, err := loadSeedSettings()
 	mockState.Lock()
@@ -181,6 +182,7 @@ func (m *SharepointSettingsMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *SharepointSettingsMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	forbidden := `{"error":{"code":"accessDenied","message":"Insufficient privileges to complete the operation."}}`
@@ -195,6 +197,7 @@ func (m *SharepointSettingsMock) RegisterNotFoundMocks() {
 	httpmock.RegisterResponder("PATCH", settingsURL, httpmock.NewStringResponder(404, notFound))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *SharepointSettingsMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.settings = nil

@@ -18,7 +18,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
-// Create adopts the tenant device registration policy and applies the configuration.
+// Create handles the Create operation for device registration policy resources.
 //
 // Operation: The deviceRegistrationPolicy is a singleton that always exists in the tenant and has no POST
 // endpoint. Create reads the current policy, merges the configured values over it and replaces it with PUT.
@@ -87,7 +87,7 @@ func (r *DeviceRegistrationPolicyResource) Create(ctx context.Context, req resou
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the device registration policy resource.
+// Read handles the Read operation for device registration policy resources.
 //
 // Operation: Retrieves the tenant device registration policy
 // API Calls:
@@ -148,7 +148,7 @@ func (r *DeviceRegistrationPolicyResource) Read(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for the device registration policy resource.
+// Update handles the Update operation for device registration policy resources.
 //
 // Operation: Reads the current policy, merges the configured values over it and replaces it with PUT
 // API Calls:
@@ -209,11 +209,14 @@ func (r *DeviceRegistrationPolicyResource) Update(ctx context.Context, req resou
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, singletonID))
 }
 
-// Delete releases Terraform management without changing the tenant-wide device registration policy.
+// Delete handles the Delete operation for device registration policy resources.
 //
 // Operation: The singleton policy cannot be deleted. Delete only removes the resource from Terraform
 // state and leaves the tenant policy as it is.
-// API Calls: none
+// API Calls:
+//   - None (state only)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/deviceregistrationpolicy?view=graph-rest-beta
 func (r *DeviceRegistrationPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

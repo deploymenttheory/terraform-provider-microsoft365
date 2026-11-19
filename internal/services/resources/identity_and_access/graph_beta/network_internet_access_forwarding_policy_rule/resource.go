@@ -38,14 +38,23 @@ const (
 )
 
 var (
-	_ resource.Resource                = &NetworkInternetAccessForwardingPolicyRuleResource{}
-	_ resource.ResourceWithConfigure   = &NetworkInternetAccessForwardingPolicyRuleResource{}
-	_ resource.ResourceWithImportState = &NetworkInternetAccessForwardingPolicyRuleResource{}
-	_ resource.ResourceWithIdentity    = &NetworkInternetAccessForwardingPolicyRuleResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &NetworkInternetAccessForwardingPolicyRuleResource{}
 
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &NetworkInternetAccessForwardingPolicyRuleResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &NetworkInternetAccessForwardingPolicyRuleResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &NetworkInternetAccessForwardingPolicyRuleResource{}
+
+	// Enables common validations
 	_ resource.ResourceWithConfigValidators = &NetworkInternetAccessForwardingPolicyRuleResource{}
 )
 
+// NewNetworkInternetAccessForwardingPolicyRuleResource creates the network internet access forwarding policy rule resource.
 func NewNetworkInternetAccessForwardingPolicyRuleResource() resource.Resource {
 	return &NetworkInternetAccessForwardingPolicyRuleResource{
 		ReadPermissions: []string{
@@ -58,6 +67,7 @@ func NewNetworkInternetAccessForwardingPolicyRuleResource() resource.Resource {
 	}
 }
 
+// NetworkInternetAccessForwardingPolicyRuleResource defines the Microsoft Graph client and permissions for the network internet access forwarding policy rule resource.
 type NetworkInternetAccessForwardingPolicyRuleResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -65,14 +75,17 @@ type NetworkInternetAccessForwardingPolicyRuleResource struct {
 	ResourcePath     string
 }
 
+// Metadata returns the resource type name.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
+// ImportState imports the resource state.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.Split(req.ID, "/")
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
@@ -83,6 +96,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) ImportState(ctx cont
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), parts[1])...)
 }
 
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
@@ -91,10 +105,12 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) IdentitySchema(ctx c
 	}
 }
 
+// ConfigValidators defines the resource configuration validators.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{destinationsValidator{}}
 }
 
+// Schema defines the schema for the resource.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages Microsoft Entra Global Secure Access Internet Access forwarding policy rules using Microsoft Graph beta `/networkAccess/forwardingPolicies/{forwardingPolicyId}/policyRules`.",

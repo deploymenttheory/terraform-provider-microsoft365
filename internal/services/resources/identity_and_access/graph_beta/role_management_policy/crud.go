@@ -18,7 +18,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
-// Create adopts an existing role management policy and applies the configured rules.
+// Create handles the Create operation for role management policy resources.
 //
 // Operation: Role management policies are created by Microsoft Entra for every role and scope and cannot be created
 // or deleted. Create finds the policy, validates the configured rules against it and updates them.
@@ -248,11 +248,14 @@ func (r *RoleManagementPolicyResource) Update(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete releases Terraform management without changing the role management policy.
+// Delete handles the Delete operation for role management policy resources.
 //
 // Operation: Role management policies cannot be deleted. Delete only removes the resource from Terraform state and
 // leaves the policy rules as they are. To return a rule to its previous values, apply them before destroying.
-// API Calls: none
+// API Calls:
+//   - None (state only)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/unifiedrolemanagementpolicy?view=graph-rest-beta
 func (r *RoleManagementPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

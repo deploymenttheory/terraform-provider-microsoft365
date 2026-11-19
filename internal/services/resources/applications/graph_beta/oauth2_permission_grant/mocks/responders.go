@@ -27,6 +27,7 @@ var state struct {
 	patches []map[string]any
 }
 
+// OAuth2PermissionGrantMock provides HTTP responders and state for resource tests.
 type OAuth2PermissionGrantMock struct{}
 
 func init() {
@@ -53,6 +54,7 @@ func graphError(status int, message string) (*http.Response, error) {
 	return response, nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *OAuth2PermissionGrantMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", collectionURL, func(req *http.Request) (*http.Response, error) {
 		body, err := readJSON(req)
@@ -112,6 +114,7 @@ func (m *OAuth2PermissionGrantMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *OAuth2PermissionGrantMock) RegisterErrorMocks() {
 	for _, method := range []string{"POST", "GET", "PATCH", "DELETE"} {
 		url := collectionURL
@@ -143,6 +146,7 @@ func (m *OAuth2PermissionGrantMock) Patches() []map[string]any {
 	return append([]map[string]any(nil), state.patches...)
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *OAuth2PermissionGrantMock) CleanupMockState() {
 	state.Lock()
 	defer state.Unlock()

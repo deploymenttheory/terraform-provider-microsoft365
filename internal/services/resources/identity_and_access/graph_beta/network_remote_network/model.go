@@ -16,6 +16,7 @@ type NetworkRemoteNetworkResourceModel struct {
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
 }
 
+// remoteNetworkResponse represents a remote network returned by Microsoft Graph.
 type remoteNetworkResponse struct {
 	ID                 *string                     `json:"id"`
 	Name               *string                     `json:"name"`
@@ -24,6 +25,7 @@ type remoteNetworkResponse struct {
 	ForwardingProfiles []forwardingProfileResponse `json:"forwardingProfiles"`
 }
 
+// forwardingProfileResponse represents a forwarding profile associated with a remote network.
 type forwardingProfileResponse struct {
 	ID *string `json:"id"`
 }

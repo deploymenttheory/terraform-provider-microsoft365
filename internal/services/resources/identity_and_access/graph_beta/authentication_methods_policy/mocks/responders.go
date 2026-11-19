@@ -87,6 +87,7 @@ func readBody(req *http.Request) (map[string]any, error) {
 	return body, nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *AuthenticationMethodsPolicyMock) RegisterMocks() {
 	policy, err := loadSeedPolicy()
 	mockState.Lock()
@@ -165,6 +166,7 @@ func (m *AuthenticationMethodsPolicyMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *AuthenticationMethodsPolicyMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	forbidden := `{"error":{"code":"Authorization_RequestDenied","message":"Insufficient privileges to complete the operation."}}`
@@ -179,6 +181,7 @@ func (m *AuthenticationMethodsPolicyMock) RegisterNotFoundMocks() {
 	httpmock.RegisterResponder("GET", policyURL, httpmock.NewStringResponder(404, `{"error":{"code":"resourceNotFound","message":"Resource not found"}}`))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *AuthenticationMethodsPolicyMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.policy = nil

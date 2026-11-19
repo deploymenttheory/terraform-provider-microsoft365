@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
+// mapResponse maps the remote network response to Terraform state.
 func mapResponse(state *NetworkRemoteNetworkResourceModel, remote *remoteNetworkResponse) error {
 	if remote == nil || remote.ID == nil || *remote.ID == "" || remote.Name == nil || remote.Region == nil {
 		return errInvalidResponse

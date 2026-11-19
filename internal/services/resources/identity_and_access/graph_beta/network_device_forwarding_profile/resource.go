@@ -33,9 +33,16 @@ const (
 )
 
 var (
-	_ resource.Resource                   = &NetworkDeviceForwardingProfileResource{}
-	_ resource.ResourceWithConfigure      = &NetworkDeviceForwardingProfileResource{}
-	_ resource.ResourceWithImportState    = &NetworkDeviceForwardingProfileResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &NetworkDeviceForwardingProfileResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &NetworkDeviceForwardingProfileResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &NetworkDeviceForwardingProfileResource{}
+
+	// Enables resource-specific configuration validation
 	_ resource.ResourceWithValidateConfig = &NetworkDeviceForwardingProfileResource{}
 )
 
@@ -47,6 +54,7 @@ type NetworkDeviceForwardingProfileResource struct {
 	ResourcePath     string
 }
 
+// NewNetworkDeviceForwardingProfileResource creates the network device forwarding profile resource.
 func NewNetworkDeviceForwardingProfileResource() resource.Resource {
 	return &NetworkDeviceForwardingProfileResource{
 		ReadPermissions:  []string{"NetworkAccess.ReadWrite.All"},
@@ -55,6 +63,7 @@ func NewNetworkDeviceForwardingProfileResource() resource.Resource {
 	}
 }
 
+// Metadata returns the resource type name.
 func (r *NetworkDeviceForwardingProfileResource) Metadata(
 	ctx context.Context,
 	req resource.MetadataRequest,
@@ -63,6 +72,7 @@ func (r *NetworkDeviceForwardingProfileResource) Metadata(
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *NetworkDeviceForwardingProfileResource) Configure(
 	ctx context.Context,
 	req resource.ConfigureRequest,
@@ -71,6 +81,7 @@ func (r *NetworkDeviceForwardingProfileResource) Configure(
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
+// ImportState imports the resource state.
 func (r *NetworkDeviceForwardingProfileResource) ImportState(
 	ctx context.Context,
 	req resource.ImportStateRequest,
@@ -86,6 +97,7 @@ func (r *NetworkDeviceForwardingProfileResource) ImportState(
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// ValidateConfig validates the resource configuration.
 func (r *NetworkDeviceForwardingProfileResource) ValidateConfig(
 	ctx context.Context,
 	req resource.ValidateConfigRequest,
@@ -105,6 +117,7 @@ func (r *NetworkDeviceForwardingProfileResource) ValidateConfig(
 	resp.Diagnostics.Append(validateNoUserAssignments(ctx, config.AssignmentRules)...)
 }
 
+// Schema defines the schema for the resource.
 func (r *NetworkDeviceForwardingProfileResource) Schema(
 	ctx context.Context,
 	req resource.SchemaRequest,

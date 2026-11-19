@@ -42,6 +42,7 @@ func createdLookupAttemptsFor(info kiotaerrors.GraphErrorInfo) int {
 // resources with the same name and priority cannot both adopt one profile.
 var claimedProfiles sync.Map
 
+// claimProfile records the profile ID as claimed by a resource in this provider process.
 func claimProfile(id string) { claimedProfiles.Store(strings.ToLower(id), struct{}{}) }
 
 // tryClaim claims id atomically and reports whether this caller got it.
@@ -57,7 +58,7 @@ var (
 	createdLookupInterval   = 5 * time.Second
 )
 
-// The SDK lacks the v2 properties, so requests are raw JSON in the portal's shape.
+// requestBody builds raw JSON for forwarding profile v2 properties that the SDK does not expose.
 func requestBody(
 	ctx context.Context,
 	plan NetworkDeviceForwardingProfileResourceModel,
@@ -93,6 +94,7 @@ func requestBody(
 	return body, diags
 }
 
+// create creates the resource in Microsoft Graph.
 func (r *NetworkDeviceForwardingProfileResource) create(
 	ctx context.Context,
 	body map[string]any,
@@ -115,6 +117,7 @@ func (r *NetworkDeviceForwardingProfileResource) create(
 	return &response, nil
 }
 
+// list retrieves resources from Microsoft Graph.
 func (r *NetworkDeviceForwardingProfileResource) list(
 	ctx context.Context,
 ) ([]sharedmodels.ForwardingProfileWire, error) {
@@ -207,6 +210,7 @@ func (r *NetworkDeviceForwardingProfileResource) waitForCreated(
 	return nil
 }
 
+// get retrieves the resource from Microsoft Graph.
 func (r *NetworkDeviceForwardingProfileResource) get(
 	ctx context.Context,
 	id string,
@@ -226,6 +230,7 @@ func (r *NetworkDeviceForwardingProfileResource) get(
 	return &response, nil
 }
 
+// patch applies the configured changes to Microsoft Graph.
 func (r *NetworkDeviceForwardingProfileResource) patch(
 	ctx context.Context,
 	id string,
@@ -248,6 +253,7 @@ func (r *NetworkDeviceForwardingProfileResource) patch(
 	return nil
 }
 
+// delete deletes the resource from Microsoft Graph.
 func (r *NetworkDeviceForwardingProfileResource) delete(ctx context.Context, id string) error {
 	if err := customrequests.JSONRequest(
 		ctx,

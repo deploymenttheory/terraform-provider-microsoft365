@@ -32,9 +32,16 @@ const (
 var trafficTypes = []string{"private", "internet", "m365"}
 
 var (
-	_ resource.Resource                   = &NetworkDefaultForwardingProfileResource{}
-	_ resource.ResourceWithConfigure      = &NetworkDefaultForwardingProfileResource{}
-	_ resource.ResourceWithImportState    = &NetworkDefaultForwardingProfileResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &NetworkDefaultForwardingProfileResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &NetworkDefaultForwardingProfileResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &NetworkDefaultForwardingProfileResource{}
+
+	// Enables resource-specific configuration validation
 	_ resource.ResourceWithValidateConfig = &NetworkDefaultForwardingProfileResource{}
 )
 
@@ -46,6 +53,7 @@ type NetworkDefaultForwardingProfileResource struct {
 	ResourcePath     string
 }
 
+// NewNetworkDefaultForwardingProfileResource creates the network default forwarding profile resource.
 func NewNetworkDefaultForwardingProfileResource() resource.Resource {
 	return &NetworkDefaultForwardingProfileResource{
 		ReadPermissions:  []string{"NetworkAccess.ReadWrite.All"},
@@ -54,6 +62,7 @@ func NewNetworkDefaultForwardingProfileResource() resource.Resource {
 	}
 }
 
+// Metadata returns the resource type name.
 func (r *NetworkDefaultForwardingProfileResource) Metadata(
 	ctx context.Context,
 	req resource.MetadataRequest,
@@ -62,6 +71,7 @@ func (r *NetworkDefaultForwardingProfileResource) Metadata(
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *NetworkDefaultForwardingProfileResource) Configure(
 	ctx context.Context,
 	req resource.ConfigureRequest,
@@ -91,6 +101,7 @@ func (r *NetworkDefaultForwardingProfileResource) ImportState(
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// ValidateConfig validates the resource configuration.
 func (r *NetworkDefaultForwardingProfileResource) ValidateConfig(
 	ctx context.Context,
 	req resource.ValidateConfigRequest,
@@ -109,6 +120,7 @@ func (r *NetworkDefaultForwardingProfileResource) ValidateConfig(
 	)...)
 }
 
+// Schema defines the schema for the resource.
 func (r *NetworkDefaultForwardingProfileResource) Schema(
 	ctx context.Context,
 	req resource.SchemaRequest,

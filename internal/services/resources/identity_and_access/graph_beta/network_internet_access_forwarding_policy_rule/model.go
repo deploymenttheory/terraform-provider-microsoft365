@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile
 package graphBetaNetworkInternetAccessForwardingPolicyRule
 
 import (
@@ -5,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// NetworkInternetAccessForwardingPolicyRuleResourceModel represents the schema for the network internet access forwarding policy rule resource.
 type NetworkInternetAccessForwardingPolicyRuleResourceModel struct {
 	ID                   types.String   `tfsdk:"id"`
 	ForwardingPolicyID   types.String   `tfsdk:"forwarding_policy_id"`
@@ -18,6 +20,7 @@ type NetworkInternetAccessForwardingPolicyRuleResourceModel struct {
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
 }
 
+// RuleDestinationModel represents a destination for an internet access forwarding rule.
 type RuleDestinationModel struct {
 	Type         types.String `tfsdk:"type"`
 	Value        types.String `tfsdk:"value"`

@@ -15,6 +15,13 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// Create handles the Create operation for admin consent request policy resources.
+//
+// Operation: Applies the complete writable configuration to the existing tenant singleton
+// API Calls:
+//   - PUT /policies/adminConsentRequestPolicy
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminconsentrequestpolicy-update?view=graph-rest-beta
 func (r *AdminConsentRequestPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data AdminConsentRequestPolicyResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -63,6 +70,13 @@ func (r *AdminConsentRequestPolicyResource) Create(ctx context.Context, req reso
 	}
 }
 
+// Read handles the Read operation for admin consent request policy resources.
+//
+// Operation: Retrieves the tenant admin consent request policy
+// API Calls:
+//   - GET /policies/adminConsentRequestPolicy
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminconsentrequestpolicy-get?view=graph-rest-beta
 func (r *AdminConsentRequestPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data AdminConsentRequestPolicyResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -104,6 +118,13 @@ func (r *AdminConsentRequestPolicyResource) Read(ctx context.Context, req resour
 	}
 }
 
+// Update handles the Update operation for admin consent request policy resources.
+//
+// Operation: Applies the complete writable configuration to the existing tenant singleton
+// API Calls:
+//   - PUT /policies/adminConsentRequestPolicy
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/adminconsentrequestpolicy-update?view=graph-rest-beta
 func (r *AdminConsentRequestPolicyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data AdminConsentRequestPolicyResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -151,7 +172,13 @@ func (r *AdminConsentRequestPolicyResource) Update(ctx context.Context, req reso
 	}
 }
 
-// Delete releases management of the tenant singleton without changing the policy.
+// Delete handles the Delete operation for admin consent request policy resources.
+//
+// Operation: Removes Terraform state while retaining the tenant policy
+// API Calls:
+//   - None (state only)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/adminconsentrequestpolicy?view=graph-rest-beta
 func (r *AdminConsentRequestPolicyResource) Delete(ctx context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
 	resp.State.RemoveResource(ctx)
 }

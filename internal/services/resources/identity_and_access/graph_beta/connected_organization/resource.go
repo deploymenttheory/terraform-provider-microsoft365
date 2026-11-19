@@ -54,7 +54,9 @@ var (
 	_ resource.ResourceWithIdentity = &ConnectedOrganizationResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/entitlementmanagement-post-connectedorganizations?view=graph-rest-beta#permissions
+// NewConnectedOrganizationResource creates the connected organization resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/entitlementmanagement-post-connectedorganizations?view=graph-rest-beta#permissions
 func NewConnectedOrganizationResource() resource.Resource {
 	return &ConnectedOrganizationResource{
 		ReadPermissions: []string{
@@ -66,6 +68,7 @@ func NewConnectedOrganizationResource() resource.Resource {
 	}
 }
 
+// ConnectedOrganizationResource defines the Microsoft Graph client and permissions for the connected organization resource.
 type ConnectedOrganizationResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -87,7 +90,7 @@ func (r *ConnectedOrganizationResource) ImportState(ctx context.Context, req res
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *ConnectedOrganizationResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

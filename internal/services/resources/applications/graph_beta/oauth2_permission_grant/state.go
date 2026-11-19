@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
+// MapRemoteStateToTerraform maps the remote Microsoft Graph response to Terraform state.
 func MapRemoteStateToTerraform(ctx context.Context, data *OAuth2PermissionGrantResourceModel, remote graphmodels.OAuth2PermissionGrantable) {
 	data.ID = convert.GraphToFrameworkString(remote.GetId())
 	data.ClientID = convert.GraphToFrameworkString(remote.GetClientId())
@@ -23,6 +24,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *OAuth2PermissionGrantR
 	data.Scopes = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, slices.Compact(values))
 }
 
+// grantConsistencyPredicate checks that repeated reads match the written consent grant.
 func grantConsistencyPredicate(expected *OAuth2PermissionGrantResourceModel) func(context.Context, tfsdk.State) bool {
 	matchingReads := 0
 	return func(ctx context.Context, state tfsdk.State) bool {

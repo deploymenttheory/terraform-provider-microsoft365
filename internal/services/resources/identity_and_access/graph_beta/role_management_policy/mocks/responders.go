@@ -158,6 +158,7 @@ func applyRule(policy map[string]any, update map[string]any) (int, string, strin
 	return 400, "InvalidPolicyRuleId", fmt.Sprintf("The policy rule id %s is invalid.", ruleId)
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *RoleManagementPolicyMock) RegisterMocks() {
 	policy, policyErr := loadJSONResponse("get_role_management_policy_success.json")
 	assignments, assignmentsErr := loadJSONResponse("get_role_management_policy_assignments_success.json")
@@ -282,6 +283,7 @@ func (m *RoleManagementPolicyMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *RoleManagementPolicyMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	forbidden := `{"error":{"code":"Authorization_RequestDenied","message":"Insufficient privileges to complete the operation."}}`
@@ -290,6 +292,7 @@ func (m *RoleManagementPolicyMock) RegisterErrorMocks() {
 	httpmock.RegisterRegexpResponder("PATCH", policyURLPattern, httpmock.NewStringResponder(400, `{"error":{"code":"InvalidPolicy","message":"The policy is invalid."}}`))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *RoleManagementPolicyMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.policies = nil

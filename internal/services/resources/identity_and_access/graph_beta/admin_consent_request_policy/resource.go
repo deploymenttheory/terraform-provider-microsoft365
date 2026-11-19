@@ -28,30 +28,42 @@ const (
 )
 
 var (
-	_ resource.Resource                = &AdminConsentRequestPolicyResource{}
-	_ resource.ResourceWithConfigure   = &AdminConsentRequestPolicyResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &AdminConsentRequestPolicyResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &AdminConsentRequestPolicyResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &AdminConsentRequestPolicyResource{}
-	_ resource.ResourceWithIdentity    = &AdminConsentRequestPolicyResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &AdminConsentRequestPolicyResource{}
 )
 
+// AdminConsentRequestPolicyResource defines the Microsoft Graph client and permissions for the admin consent request policy resource.
 type AdminConsentRequestPolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
+// NewAdminConsentRequestPolicyResource creates the admin consent request policy resource.
 func NewAdminConsentRequestPolicyResource() resource.Resource {
 	return &AdminConsentRequestPolicyResource{ReadPermissions: []string{"Policy.Read.All"}, WritePermissions: []string{"Policy.ReadWrite.ConsentRequest"}}
 }
 
+// Metadata returns the resource type name.
 func (r *AdminConsentRequestPolicyResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *AdminConsentRequestPolicyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
+// ImportState imports the resource state.
 func (r *AdminConsentRequestPolicyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if req.ID != singletonID {
 		resp.Diagnostics.AddError("Invalid import ID", "Import this tenant singleton using the literal ID adminConsentRequestPolicy.")
@@ -60,10 +72,12 @@ func (r *AdminConsentRequestPolicyResource) ImportState(ctx context.Context, req
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *AdminConsentRequestPolicyResource) IdentitySchema(_ context.Context, _ resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{Attributes: map[string]identityschema.Attribute{"id": identityschema.StringAttribute{RequiredForImport: true}}}
 }
 
+// Schema defines the schema for the resource.
 func (r *AdminConsentRequestPolicyResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages the tenant-wide admin consent request policy using Microsoft Graph beta `/policies/adminConsentRequestPolicy`. Create and update configure the existing singleton with PUT. Destroy releases Terraform management and retains the tenant policy. Manage only one instance per tenant across all Terraform states.",

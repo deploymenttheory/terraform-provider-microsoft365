@@ -39,6 +39,7 @@ func init() {
 	mocks.GlobalRegistry.Register("mobile_threat_defense_connector", &MobileThreatDefenseConnectorMock{})
 }
 
+// MobileThreatDefenseConnectorMock provides HTTP responders and state for resource tests.
 type MobileThreatDefenseConnectorMock struct{}
 
 var _ mocks.MockRegistrar = (*MobileThreatDefenseConnectorMock)(nil)
@@ -120,6 +121,7 @@ func connectorIdFromRequest(req *http.Request) string {
 	return parts[len(parts)-1]
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *MobileThreatDefenseConnectorMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.connectors = make(map[string]map[string]any)
@@ -211,6 +213,7 @@ func (m *MobileThreatDefenseConnectorMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *MobileThreatDefenseConnectorMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	httpmock.RegisterResponder("POST", connectorsUrl, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
@@ -241,6 +244,7 @@ func (m *MobileThreatDefenseConnectorMock) RemoveConnector(id string) {
 	mockState.Unlock()
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *MobileThreatDefenseConnectorMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.connectors = make(map[string]map[string]any)
