@@ -1,6 +1,8 @@
 package graphBetaNetworkPrivateNetwork
 
 import (
+	stderrors "errors"
+	"fmt"
 	"strings"
 
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
@@ -258,3 +260,53 @@ func terraformIPResolutionType(odataType *string) string {
 		return expectedIPResolutionTypeIPAddress
 	}
 }
+
+// decodeCreatePrivateNetworkResponse validates and decodes the Microsoft Graph response.
+func decodeCreatePrivateNetworkResponse(result any, err error) (*privateNetworkResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	privateNetwork, ok := result.(*privateNetworkResponse)
+	if !ok {
+		return nil, fmt.Errorf("create private network returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return privateNetwork, nil
+}
+
+// decodeGetPrivateNetworkResponse validates and decodes the Microsoft Graph response.
+func decodeGetPrivateNetworkResponse(result any, err error) (*privateNetworkResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	privateNetwork, ok := result.(*privateNetworkResponse)
+	if !ok {
+		return nil, fmt.Errorf("get private network returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return privateNetwork, nil
+}
+
+// decodeUpdatePrivateNetworkResponse validates and decodes the Microsoft Graph response.
+func decodeUpdatePrivateNetworkResponse(result any, err error) (*privateNetworkResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	privateNetwork, ok := result.(*privateNetworkResponse)
+	if !ok {
+		return nil, fmt.Errorf("update private network returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return privateNetwork, nil
+}
+
+var (
+	errCreateResponseNil      = stderrors.New("create private network returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected privateNetworkResponse")
+)

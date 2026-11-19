@@ -1,6 +1,12 @@
 package graphBetaNetworkForwardingProfilePolicyLink
 
-import s "github.com/microsoft/kiota-abstractions-go/serialization"
+import (
+	"context"
+	"fmt"
+
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
+)
 
 func constructResource(data *NetworkForwardingProfilePolicyLinkResourceModel) s.Parsable {
 	return &forwardingPolicyLinkStateRequestBody{
@@ -30,4 +36,32 @@ func (b *forwardingPolicyLinkStateRequestBody) Serialize(writer s.SerializationW
 
 func (b *forwardingPolicyLinkStateRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
+}
+
+const (
+	forwardingProfilePolicyLinkURLTemplate = "{+baseurl}/networkAccess/forwardingProfiles/{forwardingProfileId}/policies/{policyLinkId}"
+)
+
+func newForwardingPolicyLinkRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	forwardingProfileID, policyLinkID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl":             adapter.GetBaseUrl(),
+		"forwardingProfileId": forwardingProfileID,
+		"policyLinkId":        policyLinkID,
+	}
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, forwardingProfilePolicyLinkURLTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
+			return nil, fmt.Errorf("set forwarding policy link request content: %w", err)
+		}
+	}
+	return requestInfo, nil
 }

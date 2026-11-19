@@ -50,3 +50,38 @@ func MapRemoteStateToTerraform(
 		fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()),
 	)
 }
+
+// bundleID returns the iOS bundle of an app entry, or "" for other identifiers.
+func bundleID(app graphmodels.ManagedMobileAppable) string {
+	if app == nil {
+		return ""
+	}
+	identifier, ok := app.GetMobileAppIdentifier().(graphmodels.IosMobileAppIdentifierable)
+	if !ok || identifier.GetBundleId() == nil {
+		return ""
+	}
+	return *identifier.GetBundleId()
+}
+
+// findByBundle returns the entry targeting the bundle, matched case-insensitively.
+func findByBundle(
+	apps []graphmodels.ManagedMobileAppable,
+	pkg string,
+) graphmodels.ManagedMobileAppable {
+	for _, app := range apps {
+		if strings.EqualFold(bundleID(app), pkg) {
+			return app
+		}
+	}
+	return nil
+}
+
+// findByID returns the entry with the given id.
+func findByID(apps []graphmodels.ManagedMobileAppable, id string) graphmodels.ManagedMobileAppable {
+	for _, app := range apps {
+		if app != nil && app.GetId() != nil && strings.EqualFold(*app.GetId(), id) {
+			return app
+		}
+	}
+	return nil
+}

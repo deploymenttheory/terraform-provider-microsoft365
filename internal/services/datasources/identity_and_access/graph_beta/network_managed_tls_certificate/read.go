@@ -4,10 +4,13 @@ import (
 	"context"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
 func (d *NetworkManagedTLSCertificateDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -23,7 +26,20 @@ func (d *NetworkManagedTLSCertificateDataSource) Read(ctx context.Context, req d
 	}
 	defer cancel()
 
-	certificate, err := d.getManagedTLSCertificate(ctx, object.ID.ValueString())
+	readAdapter := d.client.GetAdapter()
+	readRequest := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(
+		abstractions.GET,
+		managedTLSCertificateItemURLTemplate,
+		map[string]string{
+			"baseurl":                 readAdapter.GetBaseUrl(),
+			"managedTLSCertificateId": object.ID.ValueString(),
+		},
+	)
+	readRequest.Headers.TryAdd("Accept", "application/json")
+	// Without this header Graph returns status "disabled" as "unknownFutureValue".
+	readRequest.Headers.TryAdd("Prefer", "include-unknown-enum-members")
+	readResult, err := readAdapter.Send(ctx, readRequest, createManagedTLSCertificateResponseFromDiscriminatorValue, managedTLSCertificateErrorMapping)
+	certificate, err := decodeGetManagedTLSCertificateResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, d.ReadPermissions)
 		return
@@ -32,3 +48,7 @@ func (d *NetworkManagedTLSCertificateDataSource) Read(ctx context.Context, req d
 	mapRemoteStateToDataSource(&object, certificate)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
+
+const managedTLSCertificateItemURLTemplate = "{+baseurl}/networkaccess/tls/managedCertificateAuthorityCertificates/{managedTLSCertificateId}"
+
+var managedTLSCertificateErrorMapping = abstractions.ErrorMappings{"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue}

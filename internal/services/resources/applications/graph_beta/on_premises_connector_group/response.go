@@ -1,6 +1,9 @@
 package graphBetaApplicationsOnPremisesConnectorGroup
 
 import (
+	stderrors "errors"
+	"fmt"
+
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
@@ -91,3 +94,53 @@ func (r *connectorGroupResponse) GetFieldDeserializers() map[string]func(s.Parse
 		},
 	}
 }
+
+// decodeCreateConnectorGroupResponse validates and decodes the Microsoft Graph response.
+func decodeCreateConnectorGroupResponse(result any, err error) (*connectorGroupResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	connectorGroup, ok := result.(*connectorGroupResponse)
+	if !ok {
+		return nil, fmt.Errorf("create connector group returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return connectorGroup, nil
+}
+
+// decodeGetConnectorGroupResponse validates and decodes the Microsoft Graph response.
+func decodeGetConnectorGroupResponse(result any, err error) (*connectorGroupResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	connectorGroup, ok := result.(*connectorGroupResponse)
+	if !ok {
+		return nil, fmt.Errorf("get connector group returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return connectorGroup, nil
+}
+
+// decodeUpdateConnectorGroupResponse validates and decodes the Microsoft Graph response.
+func decodeUpdateConnectorGroupResponse(result any, err error) (*connectorGroupResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	connectorGroup, ok := result.(*connectorGroupResponse)
+	if !ok {
+		return nil, fmt.Errorf("update connector group returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return connectorGroup, nil
+}
+
+var (
+	errCreateResponseNil      = stderrors.New("create connector group returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected connectorGroupResponse")
+)

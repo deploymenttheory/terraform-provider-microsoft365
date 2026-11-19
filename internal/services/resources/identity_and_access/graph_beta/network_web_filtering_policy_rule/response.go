@@ -1,6 +1,7 @@
 package graphBetaNetworkWebFilteringPolicyRule
 
 import (
+	stderrors "errors"
 	"fmt"
 	"strings"
 
@@ -486,3 +487,38 @@ func terraformAction(odataType *string) *string {
 		return odataType
 	}
 }
+
+// decodeCreateWebFilteringPolicyRuleResponse validates and decodes the Microsoft Graph response.
+func decodeCreateWebFilteringPolicyRuleResponse(result any, err error) (*webFilteringPolicyRuleResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	rule, ok := result.(*webFilteringPolicyRuleResponse)
+	if !ok {
+		return nil, fmt.Errorf("create web filtering policy rule returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return rule, nil
+}
+
+// decodeGetWebFilteringPolicyRuleResponse validates and decodes the Microsoft Graph response.
+func decodeGetWebFilteringPolicyRuleResponse(result any, err error) (*webFilteringPolicyRuleResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	rule, ok := result.(*webFilteringPolicyRuleResponse)
+	if !ok {
+		return nil, fmt.Errorf("get web filtering policy rule returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return rule, nil
+}
+
+var (
+	errCreateResponseNil      = stderrors.New("create web filtering policy rule returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected webFilteringPolicyRuleResponse")
+)

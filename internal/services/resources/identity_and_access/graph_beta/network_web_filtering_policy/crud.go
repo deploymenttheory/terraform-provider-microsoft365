@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 func (r *NetworkWebFilteringPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -36,7 +39,14 @@ func (r *NetworkWebFilteringPolicyResource) Create(ctx context.Context, req reso
 		return
 	}
 
-	created, err := r.createWebFilteringPolicy(ctx, requestBody)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newWebFilteringPolicyRequestInformation(ctx, createAdapter, abstractions.POST, "", requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createResult, err := createAdapter.Send(ctx, createRequest, createWebFilteringPolicyResponseFromDiscriminatorValue, webFilteringPolicyErrorMapping)
+	created, err := decodeCreateWebFilteringPolicyResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -93,7 +103,14 @@ func (r *NetworkWebFilteringPolicyResource) Read(ctx context.Context, req resour
 		}
 	}
 
-	policy, err := r.getWebFilteringPolicy(ctx, object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newWebFilteringPolicyRequestInformation(ctx, readAdapter, abstractions.GET, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	readResult, err := readAdapter.Send(ctx, readRequest, createWebFilteringPolicyResponseFromDiscriminatorValue, webFilteringPolicyErrorMapping)
+	policy, err := decodeGetWebFilteringPolicyResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -125,7 +142,13 @@ func (r *NetworkWebFilteringPolicyResource) Update(ctx context.Context, req reso
 		return
 	}
 
-	if err := r.updateWebFilteringPolicy(ctx, state.ID.ValueString(), requestBody); err != nil {
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newWebFilteringPolicyRequestInformation(ctx, updateAdapter, abstractions.PATCH, state.ID.ValueString(), requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+	if err := updateAdapter.SendNoContent(ctx, updateRequest, webFilteringPolicyErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -161,10 +184,20 @@ func (r *NetworkWebFilteringPolicyResource) Delete(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	if err := r.deleteWebFilteringPolicy(ctx, object.ID.ValueString()); err != nil {
+	deleteAdapter := r.client.GetAdapter()
+	deleteRequest, err := newWebFilteringPolicyRequestInformation(ctx, deleteAdapter, abstractions.DELETE, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+	if err := deleteAdapter.SendNoContent(ctx, deleteRequest, webFilteringPolicyErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
 	resp.State.RemoveResource(ctx)
+}
+
+var webFilteringPolicyErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

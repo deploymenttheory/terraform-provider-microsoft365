@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 func (r *NetworkContentPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -31,7 +33,14 @@ func (r *NetworkContentPolicyRuleResource) Create(ctx context.Context, req resou
 		resp.Diagnostics.AddError("Error constructing resource for Create Method", err.Error())
 		return
 	}
-	created, err := r.createContentPolicyRule(ctx, object.ContentPolicyID.ValueString(), body)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newContentPolicyRuleRequestInformation(ctx, createAdapter, abstractions.POST, object.ContentPolicyID.ValueString(), "", body)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createResult, err := createAdapter.Send(ctx, createRequest, createContentPolicyRuleResponseFromDiscriminatorValue, contentPolicyRuleErrorMapping)
+	created, err := decodeSendContentPolicyRuleResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -77,7 +86,14 @@ func (r *NetworkContentPolicyRuleResource) Read(ctx context.Context, req resourc
 			return
 		}
 	}
-	rule, err := r.getContentPolicyRule(ctx, object.ContentPolicyID.ValueString(), object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newContentPolicyRuleRequestInformation(ctx, readAdapter, abstractions.GET, object.ContentPolicyID.ValueString(), object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	readResult, err := readAdapter.Send(ctx, readRequest, createContentPolicyRuleResponseFromDiscriminatorValue, contentPolicyRuleErrorMapping)
+	rule, err := decodeSendContentPolicyRuleResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -103,7 +119,14 @@ func (r *NetworkContentPolicyRuleResource) Update(ctx context.Context, req resou
 		resp.Diagnostics.AddError("Error constructing resource for Update Method", err.Error())
 		return
 	}
-	if err := r.updateContentPolicyRuleWithPreconditionRetry(ctx, state.ContentPolicyID.ValueString(), state.ID.ValueString(), body); err != nil {
+	if err := r.withContentPolicyRulePreconditionRetry(ctx, "update", state.ContentPolicyID.ValueString(), state.ID.ValueString(), func() error {
+		adapter := r.client.GetAdapter()
+		requestInfo, err := newContentPolicyRuleRequestInformation(ctx, adapter, abstractions.PATCH, state.ContentPolicyID.ValueString(), state.ID.ValueString(), body)
+		if err != nil {
+			return err
+		}
+		return adapter.SendNoContent(ctx, requestInfo, contentPolicyRuleErrorMapping)
+	}); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -132,19 +155,18 @@ func (r *NetworkContentPolicyRuleResource) Delete(ctx context.Context, req resou
 		return
 	}
 	defer cancel()
-	if err := r.deleteContentPolicyRuleWithPreconditionRetry(ctx, object.ContentPolicyID.ValueString(), object.ID.ValueString()); err != nil {
+	if err := r.withContentPolicyRulePreconditionRetry(ctx, "delete", object.ContentPolicyID.ValueString(), object.ID.ValueString(), func() error {
+		adapter := r.client.GetAdapter()
+		requestInfo, err := newContentPolicyRuleRequestInformation(ctx, adapter, abstractions.DELETE, object.ContentPolicyID.ValueString(), object.ID.ValueString(), nil)
+		if err != nil {
+			return err
+		}
+		return adapter.SendNoContent(ctx, requestInfo, contentPolicyRuleErrorMapping)
+	}); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 	resp.State.RemoveResource(ctx)
-}
-
-func (r *NetworkContentPolicyRuleResource) updateContentPolicyRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string, body s.Parsable) error {
-	return r.withContentPolicyRulePreconditionRetry(ctx, "update", policyID, ruleID, func() error { return r.updateContentPolicyRule(ctx, policyID, ruleID, body) })
-}
-
-func (r *NetworkContentPolicyRuleResource) deleteContentPolicyRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string) error {
-	return r.withContentPolicyRulePreconditionRetry(ctx, "delete", policyID, ruleID, func() error { return r.deleteContentPolicyRule(ctx, policyID, ruleID) })
 }
 
 func (r *NetworkContentPolicyRuleResource) withContentPolicyRulePreconditionRetry(ctx context.Context, operation, policyID, ruleID string, fn func() error) error {
@@ -175,3 +197,5 @@ func (r *NetworkContentPolicyRuleResource) withContentPolicyRulePreconditionRetr
 		return false, err
 	})
 }
+
+var contentPolicyRuleErrorMapping = abstractions.ErrorMappings{"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue}

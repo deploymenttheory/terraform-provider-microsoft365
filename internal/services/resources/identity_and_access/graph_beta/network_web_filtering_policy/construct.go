@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 )
 
 // constructResource builds the portal-observed web filtering policy
@@ -101,4 +103,44 @@ func (b *webFilteringPolicyDefaultActionRequestBody) Serialize(writer s.Serializ
 
 func (b *webFilteringPolicyDefaultActionRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
+}
+
+const (
+	// This endpoint is used by the Microsoft Entra Global Secure Access web
+	// content filtering blade. It is not currently present in Microsoft Graph beta
+	// metadata or the generated Go SDK, so this resource uses a custom Kiota
+	// RequestInformation path instead of a generated request builder. Do not
+	// confuse it with the documented /networkAccess/filteringPolicies surface:
+	// https://learn.microsoft.com/graph/api/resources/networkaccess-filteringpolicy
+	webFilteringPoliciesURLTemplate   = "{+baseurl}/networkaccess/webFilteringPolicies"
+	webFilteringPolicyItemURLTemplate = webFilteringPoliciesURLTemplate + "/{webFilteringPolicyId}"
+)
+
+func newWebFilteringPolicyRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	policyID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl": adapter.GetBaseUrl(),
+	}
+
+	urlTemplate := webFilteringPoliciesURLTemplate
+	if policyID != "" {
+		urlTemplate = webFilteringPolicyItemURLTemplate
+		pathParameters["webFilteringPolicyId"] = policyID
+	}
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
+			return nil, fmt.Errorf("set web filtering policy request content: %w", err)
+		}
+	}
+
+	return requestInfo, nil
 }

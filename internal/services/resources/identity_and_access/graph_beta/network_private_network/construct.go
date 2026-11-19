@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"net/netip"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 )
 
 const (
@@ -149,7 +151,7 @@ func expectedIPResolutionValues(ctx context.Context, value types.Set) ([]s.Parsa
 				endAddress:   item.EndAddress.ValueStringPointer(),
 			})
 		default:
-			return nil, fmt.Errorf("expected_ip_resolutions type must be one of %q, %q, or %q", expectedIPResolutionTypeIPAddress, expectedIPResolutionTypeIPSubnet, expectedIPResolutionTypeIPRange)
+			return nil, errInvalidExpectedIPResolutionType
 		}
 	}
 
@@ -289,3 +291,44 @@ func (b *ipRangeRequestBody) Serialize(writer s.SerializationWriter) error {
 func (b *ipRangeRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
 }
+
+const (
+	privateNetworksURLTemplate    = "{+baseurl}/networkaccess/privateNetworks"
+	privateNetworkItemURLTemplate = privateNetworksURLTemplate + "/{privateNetworkId}"
+)
+
+func newPrivateNetworkRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	privateNetworkID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl": adapter.GetBaseUrl(),
+	}
+
+	urlTemplate := privateNetworksURLTemplate
+	if privateNetworkID != "" {
+		urlTemplate = privateNetworkItemURLTemplate
+		pathParameters["privateNetworkId"] = privateNetworkID
+	}
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
+			return nil, fmt.Errorf("set private network request content: %w", err)
+		}
+	}
+
+	return requestInfo, nil
+}
+
+var errInvalidExpectedIPResolutionType = fmt.Errorf(
+	"expected_ip_resolutions type must be one of %q, %q, or %q",
+	expectedIPResolutionTypeIPAddress,
+	expectedIPResolutionTypeIPSubnet,
+	expectedIPResolutionTypeIPRange,
+)

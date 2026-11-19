@@ -23,11 +23,12 @@ func (r NetworkThreatIntelligencePolicyRuleTestResource) Exists(
 		"threat_intelligence_policy_id",
 		func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, parent, id string) error {
 			resource := &NetworkThreatIntelligencePolicyRuleResource{client: client}
-			_, err := resource.getThreatIntelligencePolicyRule(
-				ctx,
-				parent,
-				id,
-			)
+			_, err := resource.client.NetworkAccess().
+				ThreatIntelligencePolicies().
+				ByThreatIntelligencePolicyId(parent).
+				PolicyRules().
+				ByPolicyRuleId(id).
+				Get(ctx, nil)
 			return err
 		},
 	)

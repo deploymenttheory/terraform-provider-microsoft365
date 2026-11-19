@@ -12,8 +12,6 @@ import (
 	"testing"
 	"time"
 
-	providerclient "github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -24,6 +22,8 @@ import (
 	kiotahttp "github.com/microsoft/kiota-http-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/stretchr/testify/require"
+
+	providerclient "github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 )
 
 func testModel() NetworkThreatIntelligencePolicyRuleResourceModel {
@@ -686,6 +686,10 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_29_UpdateRetriesThrottl
 	patches := 0
 	var original map[string]any
 	r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
+		if q.Method == http.MethodGet {
+			writeResponse(t, w, http.StatusOK, successFixture(t))
+			return
+		}
 		require.Equal(t, http.MethodPatch, q.Method)
 		patches++
 		var body map[string]any
@@ -705,14 +709,12 @@ func TestUnitResourceNetworkThreatIntelligencePolicyRule_29_UpdateRetriesThrottl
 		writeResponse(t, w, http.StatusNoContent, nil)
 	})
 	model := testModel()
-	body, err := constructResource(context.Background(), &model)
-	require.NoError(t, err)
-	err = r.updateThreatIntelligencePolicyRule(
-		context.Background(),
-		model.ThreatIntelligencePolicyID.ValueString(),
-		model.ID.ValueString(),
-		body,
-	)
-	require.NoError(t, err)
+	previous := model
+	previous.Name = types.StringValue("previous")
+	previousState := testState(t, r, previous)
+	planned := testState(t, r, model)
+	response := resource.UpdateResponse{State: previousState}
+	r.Update(context.Background(), resource.UpdateRequest{State: previousState, Plan: tfsdk.Plan{Schema: planned.Schema, Raw: planned.Raw}}, &response)
+	require.False(t, response.Diagnostics.HasError(), "%v", response.Diagnostics)
 	require.Equal(t, 2, patches)
 }

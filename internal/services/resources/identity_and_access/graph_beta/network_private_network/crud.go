@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 func (r *NetworkPrivateNetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -36,7 +39,14 @@ func (r *NetworkPrivateNetworkResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	created, err := r.createPrivateNetwork(ctx, requestBody)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newPrivateNetworkRequestInformation(ctx, createAdapter, abstractions.POST, "", requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createResult, err := createAdapter.Send(ctx, createRequest, createPrivateNetworkResponseFromDiscriminatorValue, privateNetworkErrorMapping)
+	created, err := decodeCreatePrivateNetworkResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -93,7 +103,14 @@ func (r *NetworkPrivateNetworkResource) Read(ctx context.Context, req resource.R
 		}
 	}
 
-	privateNetwork, err := r.getPrivateNetwork(ctx, object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newPrivateNetworkRequestInformation(ctx, readAdapter, abstractions.GET, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	readResult, err := readAdapter.Send(ctx, readRequest, createPrivateNetworkResponseFromDiscriminatorValue, privateNetworkErrorMapping)
+	privateNetwork, err := decodeGetPrivateNetworkResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -125,7 +142,14 @@ func (r *NetworkPrivateNetworkResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	if _, err := r.updatePrivateNetwork(ctx, state.ID.ValueString(), requestBody); err != nil {
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newPrivateNetworkRequestInformation(ctx, updateAdapter, abstractions.PATCH, state.ID.ValueString(), requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+	updateResult, err := updateAdapter.Send(ctx, updateRequest, createPrivateNetworkResponseFromDiscriminatorValue, privateNetworkErrorMapping)
+	if _, err := decodeUpdatePrivateNetworkResponse(updateResult, err); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -161,10 +185,20 @@ func (r *NetworkPrivateNetworkResource) Delete(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	if err := r.deletePrivateNetwork(ctx, object.ID.ValueString()); err != nil {
+	deleteAdapter := r.client.GetAdapter()
+	deleteRequest, err := newPrivateNetworkRequestInformation(ctx, deleteAdapter, abstractions.DELETE, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+	if err := deleteAdapter.SendNoContent(ctx, deleteRequest, privateNetworkErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 
 	resp.State.RemoveResource(ctx)
+}
+
+var privateNetworkErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 )
 
 const (
@@ -93,4 +95,36 @@ func (b *managedTLSCertificateRequestBody) Serialize(writer s.SerializationWrite
 
 func (b *managedTLSCertificateRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
+}
+
+const (
+	managedTLSCertificatesURLTemplate    = "{+baseurl}/networkaccess/tls/managedCertificateAuthorityCertificates"
+	managedTLSCertificateItemURLTemplate = managedTLSCertificatesURLTemplate + "/{managedTLSCertificateId}"
+)
+
+func newManagedTLSCertificateRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	certificateID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{"baseurl": adapter.GetBaseUrl()}
+	urlTemplate := managedTLSCertificatesURLTemplate
+	if certificateID != "" {
+		urlTemplate = managedTLSCertificateItemURLTemplate
+		pathParameters["managedTLSCertificateId"] = certificateID
+	}
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+	// status values such as "disabled" are evolvable enum members; without this
+	// header Graph returns them as "unknownFutureValue".
+	requestInfo.Headers.TryAdd("Prefer", "include-unknown-enum-members")
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
+			return nil, fmt.Errorf("set Microsoft-managed TLS certificate request content: %w", err)
+		}
+	}
+	return requestInfo, nil
 }

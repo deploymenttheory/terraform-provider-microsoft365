@@ -50,3 +50,38 @@ func MapRemoteStateToTerraform(
 		fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()),
 	)
 }
+
+// packageID returns the Android package of an app entry, or "" for other identifiers.
+func packageID(app graphmodels.ManagedMobileAppable) string {
+	if app == nil {
+		return ""
+	}
+	identifier, ok := app.GetMobileAppIdentifier().(graphmodels.AndroidMobileAppIdentifierable)
+	if !ok || identifier.GetPackageId() == nil {
+		return ""
+	}
+	return *identifier.GetPackageId()
+}
+
+// findByPackage returns the entry targeting the package, matched case-insensitively.
+func findByPackage(
+	apps []graphmodels.ManagedMobileAppable,
+	pkg string,
+) graphmodels.ManagedMobileAppable {
+	for _, app := range apps {
+		if strings.EqualFold(packageID(app), pkg) {
+			return app
+		}
+	}
+	return nil
+}
+
+// findByID returns the entry with the given id.
+func findByID(apps []graphmodels.ManagedMobileAppable, id string) graphmodels.ManagedMobileAppable {
+	for _, app := range apps {
+		if app != nil && app.GetId() != nil && strings.EqualFold(*app.GetId(), id) {
+			return app
+		}
+	}
+	return nil
+}

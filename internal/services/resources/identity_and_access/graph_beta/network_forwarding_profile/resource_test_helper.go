@@ -2,11 +2,15 @@ package graphBetaNetworkForwardingProfile
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/exists"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
 // NetworkForwardingProfileTestResource provides resource existence checks for acceptance tests.
@@ -25,7 +29,20 @@ func (r NetworkForwardingProfileTestResource) Exists(
 		func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, state *terraform.InstanceState) error {
 			r := NewNetworkForwardingProfileResource().(*NetworkForwardingProfileResource)
 			r.client = client
-			_, err := r.get(ctx, state.ID)
+			var readResponse sharedmodels.ForwardingProfileWire
+			readErr := customrequests.JSONRequest(
+				ctx,
+				r.client.GetAdapter(),
+				abstractions.GET,
+				r.ResourcePath+"/{profileId}",
+				map[string]string{"profileId": state.ID},
+				nil,
+				&readResponse,
+			)
+			_, err := &readResponse, readErr
+			if err != nil {
+				err = fmt.Errorf("get forwarding profile: %w", err)
+			}
 			return err
 		},
 	)

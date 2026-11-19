@@ -22,7 +22,12 @@ func (r NetworkTLSInspectionPolicyTestResource) Exists(
 		state,
 		func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, state *terraform.InstanceState) error {
 			resource := &NetworkTLSInspectionPolicyResource{client: client}
-			_, err := resource.getTLSInspectionPolicy(ctx, state.ID)
+			remote, err := resource.client.NetworkAccess().TlsInspectionPolicies().
+				ByTlsInspectionPolicyId(state.ID).
+				Get(ctx, nil)
+			if err == nil && remote == nil {
+				err = errEmptyResponse
+			}
 			return err
 		},
 	)

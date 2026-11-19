@@ -2,11 +2,13 @@ package graphBetaNetworkFilteringProfile
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // MapRemoteStateToTerraform maps the base properties of a NetworkFilteringProfileResourceModel to a Terraform state.
@@ -31,3 +33,23 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfil
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()))
 }
+
+// decodeCreateFilteringProfileResponse validates and decodes the Microsoft Graph response.
+func decodeCreateFilteringProfileResponse(result any, err error) (models.FilteringProfileable, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	profile, ok := result.(models.FilteringProfileable)
+	if !ok {
+		return nil, fmt.Errorf("create filtering profile returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return profile, nil
+}
+
+var (
+	errCreateResponseNil      = stderrors.New("create filtering profile returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected FilteringProfileable")
+)

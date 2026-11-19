@@ -2,12 +2,17 @@ package graphBetaNetworkConditionalAccessSettings
 
 import (
 	"context"
+	stderrors "errors"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	kiotahttp "github.com/microsoft/kiota-http-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+	builders "github.com/microsoftgraph/msgraph-beta-sdk-go/networkaccess"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -37,7 +42,25 @@ func (r *NetworkConditionalAccessSettingsResource) Create(
 	}
 	defer cancel()
 	if config.SignalingStatus.IsNull() {
-		remote, err := r.getSettings(ctx)
+		request, err := r.client.NetworkAccess().
+			Settings().
+			ConditionalAccess().
+			ToGetRequestInformation(ctx, nil)
+		if err != nil {
+
+			errors.HandleKiotaGraphError(
+				ctx,
+				err,
+				resp,
+				constants.TfOperationCreate,
+				r.ReadPermissions,
+			)
+			return
+
+		}
+		result, err := r.client.GetAdapter().
+			SendPrimitive(ctx, request, "[]byte", abstractions.ErrorMappings{"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue})
+		remote, err := decodeSettingsResponse(result, err)
 		if err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
@@ -58,7 +81,12 @@ func (r *NetworkConditionalAccessSettingsResource) Create(
 			resp.Diagnostics.AddError("Invalid signaling status", err.Error())
 			return
 		}
-		if err = r.patchSettings(ctx, body); err != nil {
+
+		if _, err = r.client.NetworkAccess().Settings().ConditionalAccess().Patch(ctx, body,
+			&builders.SettingsConditionalAccessRequestBuilderPatchRequestConfiguration{
+				// Avoid Kiota replaying an uncompressed body with a stale gzip header on retry.
+				Options: []abstractions.RequestOption{kiotahttp.NewCompressionOptionsReference(false)},
+			}); err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
 				err,
@@ -116,7 +144,30 @@ func (r *NetworkConditionalAccessSettingsResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.getSettings(ctx)
+	request, err := r.client.NetworkAccess().
+		Settings().
+		ConditionalAccess().
+		ToGetRequestInformation(ctx, nil)
+	if err != nil {
+
+		// A missing singleton endpoint can mean licensing or availability, not deletion.
+		errors.HandleKiotaGraphErrorWithOptions(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationRead,
+			r.ReadPermissions,
+			errors.GraphErrorOptions{
+				PreserveStateOnReadBadRequest: true,
+				PreserveStateOnReadNotFound:   true,
+			},
+		)
+		return
+
+	}
+	result, err := r.client.GetAdapter().
+		SendPrimitive(ctx, request, "[]byte", abstractions.ErrorMappings{"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue})
+	remote, err := decodeSettingsResponse(result, err)
 	if err != nil {
 		// A missing singleton endpoint can mean licensing or availability, not deletion.
 		errors.HandleKiotaGraphErrorWithOptions(
@@ -175,7 +226,12 @@ func (r *NetworkConditionalAccessSettingsResource) Update(
 		resp.Diagnostics.AddError("Invalid signaling status", err.Error())
 		return
 	}
-	if err = r.patchSettings(ctx, body); err != nil {
+
+	if _, err = r.client.NetworkAccess().Settings().ConditionalAccess().Patch(ctx, body,
+		&builders.SettingsConditionalAccessRequestBuilderPatchRequestConfiguration{
+			// Avoid Kiota replaying an uncompressed body with a stale gzip header on retry.
+			Options: []abstractions.RequestOption{kiotahttp.NewCompressionOptionsReference(false)},
+		}); err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -217,3 +273,9 @@ func (r *NetworkConditionalAccessSettingsResource) Delete(
 	)
 	resp.State.RemoveResource(ctx)
 }
+
+var errMissingSignalingStatus = stderrors.New(
+	"signaling_status must be a known enabled or disabled value before writing",
+)
+
+var errInvalidSettingsResponse = stderrors.New("invalid conditional access settings response")

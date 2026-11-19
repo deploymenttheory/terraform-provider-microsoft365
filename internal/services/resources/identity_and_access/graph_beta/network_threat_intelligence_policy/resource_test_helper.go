@@ -22,7 +22,10 @@ func (r NetworkThreatIntelligencePolicyTestResource) Exists(
 		state,
 		func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, state *terraform.InstanceState) error {
 			resource := &NetworkThreatIntelligencePolicyResource{client: client}
-			_, err := resource.getThreatIntelligencePolicy(ctx, state.ID)
+			_, err := resource.client.NetworkAccess().
+				ThreatIntelligencePolicies().
+				ByThreatIntelligencePolicyId(state.ID).
+				Get(ctx, nil)
 			return err
 		},
 	)

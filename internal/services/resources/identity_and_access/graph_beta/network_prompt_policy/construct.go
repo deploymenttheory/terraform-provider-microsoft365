@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
@@ -125,4 +126,41 @@ func wrapSerializationError(err error) error {
 		return fmt.Errorf("serialize prompt policy: %w", err)
 	}
 	return nil
+}
+
+const (
+	promptPoliciesURLTemplate   = "{+baseurl}/networkaccess/promptPolicies"
+	promptPolicyItemURLTemplate = promptPoliciesURLTemplate + "/{promptPolicyId}"
+)
+
+func newPromptPolicyRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	policyID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{"baseurl": adapter.GetBaseUrl()}
+	urlTemplate := promptPoliciesURLTemplate
+	if policyID != "" {
+		urlTemplate = promptPolicyItemURLTemplate
+		pathParameters["promptPolicyId"] = policyID
+	}
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(
+		method,
+		urlTemplate,
+		pathParameters,
+	)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(
+			ctx,
+			adapter,
+			"application/json",
+			requestBody,
+		); err != nil {
+			return nil, fmt.Errorf("set prompt policy request content: %w", err)
+		}
+	}
+	return requestInfo, nil
 }

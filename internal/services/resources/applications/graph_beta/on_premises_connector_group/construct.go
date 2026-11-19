@@ -3,11 +3,14 @@ package graphBetaApplicationsOnPremisesConnectorGroup
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 )
 
 func constructCreateResource(ctx context.Context, data *OnPremisesConnectorGroupResourceModel) (s.Parsable, error) {
@@ -91,4 +94,62 @@ func (b *connectorGroupRequestBody) Serialize(writer s.SerializationWriter) erro
 
 func (b *connectorGroupRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
+}
+
+const (
+	defaultGraphBetaBaseURL = "https://graph.microsoft.com/beta"
+
+	// Microsoft Learn documents connectorGroup CRUD at:
+	// https://learn.microsoft.com/en-us/graph/api/resources/connectorgroup?view=graph-rest-beta
+	// https://learn.microsoft.com/en-us/graph/api/connectorgroup-post?view=graph-rest-beta
+	//
+	// The current msgraph-beta-sdk-go package exposes generated request builders
+	// for this path. A dedicated Kiota request helper is still used because the
+	// generated ConnectorGroup model parses region through an enum generated from
+	// Microsoft Graph beta OData CSDL metadata, while direct API verification on
+	// 2026-07-05 returned "region": "japan", which is not in that enum. This
+	// same verification also showed create returning HTTP 200 instead of the
+	// Learn-documented 201, read-only create body values such as isDefault being
+	// ignored, and PATCH returning 204 with no response body. This helper keeps
+	// the normal Kiota adapter pipeline but pairs it with the custom
+	// request/response types in this package so actual API values are preserved.
+	connectorGroupsURLTemplate = "{+baseurl}/onPremisesPublishingProfiles/applicationProxy/connectorGroups"
+	connectorGroupURLTemplate  = connectorGroupsURLTemplate + "/{connectorGroupId}"
+)
+
+func newConnectorGroupRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	connectorGroupID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl": graphBetaBaseURL(adapter),
+	}
+
+	urlTemplate := connectorGroupsURLTemplate
+	if connectorGroupID != "" {
+		urlTemplate = connectorGroupURLTemplate
+		pathParameters["connectorGroupId"] = connectorGroupID
+	}
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
+			return nil, fmt.Errorf("set connector group request content: %w", err)
+		}
+	}
+
+	return requestInfo, nil
+}
+
+func graphBetaBaseURL(adapter abstractions.RequestAdapter) string {
+	if adapter == nil || adapter.GetBaseUrl() == "" {
+		return defaultGraphBetaBaseURL
+	}
+
+	return strings.TrimRight(adapter.GetBaseUrl(), "/")
 }

@@ -2,15 +2,19 @@ package graphBetaNetworkDefaultForwardingProfile
 
 import (
 	"context"
+	stderrors "errors"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
@@ -44,7 +48,19 @@ func (r *NetworkDefaultForwardingProfileResource) Create(
 	}
 	defer cancel()
 
-	remote, err := r.findDefault(ctx, plan.TrafficForwardingType.ValueString())
+	var readbackResponse struct {
+		Value []sharedmodels.ForwardingProfileWire `json:"value"`
+	}
+	readbackErr := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.GET,
+		r.ResourcePath,
+		nil,
+		nil,
+		&readbackResponse,
+	)
+	remote, err := decodeFindDefaultResponse(readbackResponse, readbackErr, plan.TrafficForwardingType.ValueString())
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 		return
@@ -62,7 +78,22 @@ func (r *NetworkDefaultForwardingProfileResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := r.patch(ctx, *remote.ID, body); err != nil {
+
+	var updateErr error
+	if len(body) > 0 {
+		updateErr = customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			r.ResourcePath+"/{profileId}",
+			map[string]string{"profileId": *remote.ID},
+			body,
+			nil,
+		)
+	}
+	if err := updateErr; err != nil {
+		err = fmt.Errorf("update forwarding profile: %w", err)
+
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -126,9 +157,34 @@ func (r *NetworkDefaultForwardingProfileResource) Read(
 	)
 	if state.ID.IsNull() || state.ID.IsUnknown() {
 		// Imported by traffic type.
-		remote, err = r.findDefault(ctx, state.TrafficForwardingType.ValueString())
+		var readResponse struct {
+			Value []sharedmodels.ForwardingProfileWire `json:"value"`
+		}
+		readErr := customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.GET,
+			r.ResourcePath,
+			nil,
+			nil,
+			&readResponse,
+		)
+		remote, err = decodeFindDefaultResponse(readResponse, readErr, state.TrafficForwardingType.ValueString())
 	} else {
-		remote, err = r.get(ctx, state.ID.ValueString())
+		var profileResponse sharedmodels.ForwardingProfileWire
+		profileErr := customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.GET,
+			r.ResourcePath+"/{profileId}",
+			map[string]string{"profileId": state.ID.ValueString()},
+			nil,
+			&profileResponse,
+		)
+		remote, err = &profileResponse, profileErr
+		if err != nil {
+			err = fmt.Errorf("get forwarding profile: %w", err)
+		}
 	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
@@ -176,7 +232,22 @@ func (r *NetworkDefaultForwardingProfileResource) Update(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := r.patch(ctx, state.ID.ValueString(), body); err != nil {
+
+	var updateErr error
+	if len(body) > 0 {
+		updateErr = customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			r.ResourcePath+"/{profileId}",
+			map[string]string{"profileId": state.ID.ValueString()},
+			body,
+			nil,
+		)
+	}
+	if err := updateErr; err != nil {
+		err = fmt.Errorf("update forwarding profile: %w", err)
+
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -246,3 +317,7 @@ func readbackOptions(
 func matches(planned, actual attr.Value) bool {
 	return planned.IsUnknown() || planned.Equal(actual)
 }
+
+var errDefaultProfileNotFound = stderrors.New(
+	"default forwarding profile not found; the tenant must be onboarded to Global Secure Access and use traffic forwarding profiles v2",
+)

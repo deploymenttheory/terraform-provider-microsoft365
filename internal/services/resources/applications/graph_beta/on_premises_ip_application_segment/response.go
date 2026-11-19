@@ -1,6 +1,9 @@
 package graphBetaApplicationsOnPremisesIpApplicationSegment
 
 import (
+	stderrors "errors"
+	"fmt"
+
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
@@ -104,3 +107,38 @@ func (r *ipApplicationSegmentResponse) GetFieldDeserializers() map[string]func(s
 		},
 	}
 }
+
+// decodeCreateIpApplicationSegmentResponse validates and decodes the Microsoft Graph response.
+func decodeCreateIpApplicationSegmentResponse(result any, err error) (*ipApplicationSegmentResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	segment, ok := result.(*ipApplicationSegmentResponse)
+	if !ok {
+		return nil, fmt.Errorf("create ip application segment returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return segment, nil
+}
+
+// decodeGetIpApplicationSegmentResponse validates and decodes the Microsoft Graph response.
+func decodeGetIpApplicationSegmentResponse(result any, err error) (*ipApplicationSegmentResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	segment, ok := result.(*ipApplicationSegmentResponse)
+	if !ok {
+		return nil, fmt.Errorf("get ip application segment returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return segment, nil
+}
+
+var (
+	errCreateResponseNil      = stderrors.New("create ip application segment returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected ipApplicationSegmentResponse")
+)

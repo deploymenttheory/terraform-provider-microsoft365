@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -38,7 +40,26 @@ func (r *NetworkMCPPolicyResource) Create(
 		resp.Diagnostics.AddError("Error constructing MCP resource", err.Error())
 		return
 	}
-	created, err := r.createMCPPolicy(ctx, body)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newMCPPolicyRequestInformation(
+		ctx,
+		createAdapter,
+		abstractions.POST,
+		"",
+		body,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationCreate,
+			r.WritePermissions,
+		)
+		return
+	}
+	createResult, err := createAdapter.SendPrimitive(ctx, createRequest, "[]byte", mcpPolicyErrorMapping)
+	created, err := decodeCreateMCPPolicyResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -70,7 +91,20 @@ func (r *NetworkMCPPolicyResource) Create(
 		return
 	}
 	desired := object
-	remote, err := r.getMCPPolicy(ctx, object.ID.ValueString())
+	readbackAdapter := r.client.GetAdapter()
+	readbackRequest, err := newMCPPolicyRequestInformation(
+		ctx,
+		readbackAdapter,
+		abstractions.GET,
+		object.ID.ValueString(),
+		nil,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
+		return
+	}
+	readbackResult, err := readbackAdapter.SendPrimitive(ctx, readbackRequest, "[]byte", mcpPolicyErrorMapping)
+	remote, err := decodeSendMCPPolicyResponse(readbackResult, err)
 	// This is a create readback, not a refresh: even a 404 must retain the created id.
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
@@ -114,7 +148,27 @@ func (r *NetworkMCPPolicyResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.getMCPPolicy(ctx, object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newMCPPolicyRequestInformation(
+		ctx,
+		readAdapter,
+		abstractions.GET,
+		object.ID.ValueString(),
+		nil,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphErrorWithOptions(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationRead,
+			r.ReadPermissions,
+			errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true},
+		)
+		return
+	}
+	readResult, err := readAdapter.SendPrimitive(ctx, readRequest, "[]byte", mcpPolicyErrorMapping)
+	remote, err := decodeSendMCPPolicyResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphErrorWithOptions(
 			ctx,
@@ -166,7 +220,26 @@ func (r *NetworkMCPPolicyResource) Update(
 		return
 	}
 	if body.hasChanges() {
-		if err := r.updateMCPPolicy(ctx, state.ID.ValueString(), body); err != nil {
+		updateAdapter := r.client.GetAdapter()
+		updateRequest, err := newMCPPolicyRequestInformation(
+			ctx,
+			updateAdapter,
+			abstractions.PATCH,
+			state.ID.ValueString(),
+			body,
+		)
+		if err != nil {
+			errors.HandleKiotaGraphError(
+				ctx,
+				err,
+				resp,
+				constants.TfOperationUpdate,
+				r.WritePermissions,
+			)
+			return
+		}
+		updateResult, err := updateAdapter.SendPrimitive(ctx, updateRequest, "[]byte", mcpPolicyErrorMapping)
+		if err := decodeUpdateMCPPolicyResponse(updateResult, err); err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
 				err,
@@ -181,7 +254,20 @@ func (r *NetworkMCPPolicyResource) Update(
 	resp.State = req.State
 	object := plan
 	object.ID = state.ID
-	remote, err := r.getMCPPolicy(ctx, object.ID.ValueString())
+	readbackAdapter := r.client.GetAdapter()
+	readbackRequest, err := newMCPPolicyRequestInformation(
+		ctx,
+		readbackAdapter,
+		abstractions.GET,
+		object.ID.ValueString(),
+		nil,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
+		return
+	}
+	readbackResult, err := readbackAdapter.SendPrimitive(ctx, readbackRequest, "[]byte", mcpPolicyErrorMapping)
+	remote, err := decodeSendMCPPolicyResponse(readbackResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
@@ -224,7 +310,27 @@ func (r *NetworkMCPPolicyResource) Delete(
 		return
 	}
 	defer cancel()
-	if err := r.deleteMCPPolicy(ctx, object.ID.ValueString()); err != nil {
+	deleteAdapter := r.client.GetAdapter()
+	deleteRequest, err := newMCPPolicyRequestInformation(
+		ctx,
+		deleteAdapter,
+		abstractions.DELETE,
+		object.ID.ValueString(),
+		nil,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationDelete,
+			r.WritePermissions,
+		)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+	if err := deleteAdapter.SendNoContent(ctx, deleteRequest, mcpPolicyErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -237,4 +343,8 @@ func (r *NetworkMCPPolicyResource) Delete(
 		}
 	}
 	resp.State.RemoveResource(ctx)
+}
+
+var mcpPolicyErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

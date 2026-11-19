@@ -1,42 +1,8 @@
 package graphBetaNetworkExplicitForwardProxy
 
 import (
-	"context"
-	"errors"
-	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
-
-	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 )
-
-var (
-	errInvalidProxyResponse = errors.New(
-		"graph omitted required explicit proxy settings or returned unsupported session affinity options; existing state is retained",
-	)
-	errUnknownProxySettings = errors.New(
-		"internet_access attributes must be known and non-null, with affinity enabled exactly when options is not none",
-	)
-)
-
-func (r *NetworkExplicitForwardProxyResource) get(
-	ctx context.Context,
-) (*proxyResponse, error) {
-	var response proxyResponse
-	if err := customrequests.JSONRequest(
-		ctx,
-		r.client.GetAdapter(),
-		abstractions.GET,
-		r.ResourcePath,
-		nil,
-		nil,
-		&response,
-	); err != nil {
-		return nil, fmt.Errorf("get explicit proxy: %w", err)
-	}
-	return &response, nil
-}
 
 func proxyPatch(
 	plan NetworkExplicitForwardProxyResourceModel,
@@ -79,30 +45,4 @@ func proxyPatch(
 		return map[string]any{}, nil
 	}
 	return map[string]any{"internetAccess": access}, nil
-}
-
-func (r *NetworkExplicitForwardProxyResource) patch(
-	ctx context.Context,
-	plan NetworkExplicitForwardProxyResourceModel,
-	state *NetworkExplicitForwardProxyResourceModel,
-) error {
-	body, err := proxyPatch(plan, state)
-	if err != nil {
-		return err
-	}
-	if len(body) == 0 {
-		return nil
-	}
-	if err := customrequests.JSONRequest(
-		ctx,
-		r.client.GetAdapter(),
-		abstractions.PATCH,
-		r.ResourcePath,
-		nil,
-		body,
-		nil,
-	); err != nil {
-		return fmt.Errorf("patch explicit proxy: %w", err)
-	}
-	return nil
 }

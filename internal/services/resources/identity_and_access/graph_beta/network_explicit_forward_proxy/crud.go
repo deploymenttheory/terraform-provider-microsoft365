@@ -2,14 +2,18 @@ package graphBetaNetworkExplicitForwardProxy
 
 import (
 	"context"
+	stderrors "errors"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
@@ -33,7 +37,26 @@ func (r *NetworkExplicitForwardProxyResource) Create(
 		return
 	}
 	defer cancel()
-	if err := r.patch(ctx, plan, nil); err != nil {
+	body, err := proxyPatch(plan, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	var updateErr error
+	if len(body) > 0 {
+		updateErr = customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			r.ResourcePath,
+			nil,
+			body,
+			nil,
+		)
+	}
+	if err := updateErr; err != nil {
+		err = fmt.Errorf("patch explicit proxy: %w", err)
+
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -83,8 +106,20 @@ func (r *NetworkExplicitForwardProxyResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.get(ctx)
+	var readResponse proxyResponse
+	readErr := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.GET,
+		r.ResourcePath,
+		nil,
+		nil,
+		&readResponse,
+	)
+	remote, err := &readResponse, readErr
 	if err != nil {
+		err = fmt.Errorf("get explicit proxy: %w", err)
+
 		errors.HandleKiotaGraphErrorWithOptions(
 			ctx,
 			err,
@@ -127,7 +162,26 @@ func (r *NetworkExplicitForwardProxyResource) Update(
 		return
 	}
 	defer cancel()
-	if err := r.patch(ctx, plan, &state); err != nil {
+	body, err := proxyPatch(plan, &state)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+	var updateErr error
+	if len(body) > 0 {
+		updateErr = customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			r.ResourcePath,
+			nil,
+			body,
+			nil,
+		)
+	}
+	if err := updateErr; err != nil {
+		err = fmt.Errorf("patch explicit proxy: %w", err)
+
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -185,3 +239,12 @@ func readbackOptions(
 	}
 	return opts
 }
+
+var (
+	errInvalidProxyResponse = stderrors.New(
+		"graph omitted required explicit proxy settings or returned unsupported session affinity options; existing state is retained",
+	)
+	errUnknownProxySettings = stderrors.New(
+		"internet_access attributes must be known and non-null, with affinity enabled exactly when options is not none",
+	)
+)

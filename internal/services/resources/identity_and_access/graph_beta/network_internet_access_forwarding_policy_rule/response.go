@@ -1,6 +1,11 @@
 package graphBetaNetworkInternetAccessForwardingPolicyRule
 
-import s "github.com/microsoft/kiota-abstractions-go/serialization"
+import (
+	stderrors "errors"
+	"fmt"
+
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
+)
 
 type internetAccessForwardingRuleResponse struct {
 	id                   *string
@@ -168,3 +173,38 @@ func (r *ruleDestinationResponse) GetFieldDeserializers() map[string]func(s.Pars
 		},
 	}
 }
+
+// decodeCreateRuleResponse validates and decodes the Microsoft Graph response.
+func decodeCreateRuleResponse(result any, err error) (*internetAccessForwardingRuleResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	rule, ok := result.(*internetAccessForwardingRuleResponse)
+	if !ok {
+		return nil, fmt.Errorf("create internet access forwarding policy rule returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return rule, nil
+}
+
+// decodeGetRuleResponse validates and decodes the Microsoft Graph response.
+func decodeGetRuleResponse(result any, err error) (*internetAccessForwardingRuleResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	rule, ok := result.(*internetAccessForwardingRuleResponse)
+	if !ok {
+		return nil, fmt.Errorf("get internet access forwarding policy rule returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return rule, nil
+}
+
+var (
+	errCreateResponseNil      = stderrors.New("create internet access forwarding policy rule returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected internetAccessForwardingRuleResponse")
+)

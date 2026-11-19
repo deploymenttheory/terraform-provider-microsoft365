@@ -114,3 +114,14 @@ func hasUpdateChanges(plan, state *NetworkTLSInspectionPolicyRuleResourceModel) 
 		!plan.Action.Equal(state.Action) || !plan.Priority.Equal(state.Priority) ||
 		!plan.Enabled.Equal(state.Enabled) || !plan.Destinations.Equal(state.Destinations)
 }
+
+func tlsInspectionRule(result any) (models.TlsInspectionRuleable, error) {
+	if result == nil {
+		return nil, errEmptyResponse
+	}
+	rule, ok := result.(models.TlsInspectionRuleable)
+	if !ok {
+		return nil, fmt.Errorf("%w: received %T", errInvalidResponse, result)
+	}
+	return rule, nil
+}

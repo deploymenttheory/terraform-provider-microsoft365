@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
@@ -140,4 +141,44 @@ func wrapSerializationError(err error) error {
 		return fmt.Errorf("serialize MCP policy rule: %w", err)
 	}
 	return nil
+}
+
+const (
+	mcpPolicyRulesURLTemplate    = "{+baseurl}/networkaccess/mcpPolicies/{mcpPolicyId}/policyRules"
+	mcpPolicyRuleItemURLTemplate = mcpPolicyRulesURLTemplate + "/{policyRuleId}"
+)
+
+func newMCPPolicyRuleRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	policyID, ruleID string,
+	body s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl":     adapter.GetBaseUrl(),
+		"mcpPolicyId": policyID,
+	}
+	urlTemplate := mcpPolicyRulesURLTemplate
+	if ruleID != "" {
+		urlTemplate = mcpPolicyRuleItemURLTemplate
+		pathParameters["policyRuleId"] = ruleID
+	}
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(
+		method,
+		urlTemplate,
+		pathParameters,
+	)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+	if body != nil {
+		if err := requestInfo.SetContentFromParsable(
+			ctx,
+			adapter,
+			"application/json",
+			body,
+		); err != nil {
+			return nil, fmt.Errorf("set MCP policy rule request content: %w", err)
+		}
+	}
+	return requestInfo, nil
 }

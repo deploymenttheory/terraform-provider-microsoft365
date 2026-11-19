@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
-
-	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 )
 
 // constructResource maps Terraform schema values to the minimal Graph payload.
@@ -98,4 +99,48 @@ func (b *filteringProfileRequestBody) Serialize(writer s.SerializationWriter) er
 
 func (b *filteringProfileRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
+}
+
+const (
+	// Microsoft Learn currently documents the filteringProfile resource plus
+	// list/get/update operations:
+	// https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-filteringprofile?view=graph-rest-beta
+	// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-list?view=graph-rest-beta
+	// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-get?view=graph-rest-beta
+	// https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-update?view=graph-rest-beta
+	//
+	// The beta SDK also exposes collection POST and item DELETE builders for the
+	// same /networkAccess/filteringProfiles paths. Live Graph probing confirmed
+	// POST works when the payload includes name, description, priority, and state.
+	filteringProfilesURLTemplate    = "{+baseurl}/networkAccess/filteringProfiles"
+	filteringProfileItemURLTemplate = filteringProfilesURLTemplate + "/{filteringProfileId}"
+)
+
+func newFilteringProfileRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	filteringProfileID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl": adapter.GetBaseUrl(),
+	}
+
+	urlTemplate := filteringProfilesURLTemplate
+	if filteringProfileID != "" {
+		urlTemplate = filteringProfileItemURLTemplate
+		pathParameters["filteringProfileId"] = filteringProfileID
+	}
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
+			return nil, fmt.Errorf("set filtering profile request content: %w", err)
+		}
+	}
+
+	return requestInfo, nil
 }

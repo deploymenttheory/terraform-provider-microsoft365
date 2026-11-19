@@ -114,3 +114,18 @@ func wrapResponseError(err error) error {
 	}
 	return nil
 }
+
+// decodeSendPromptPolicyRuleResponse validates and decodes a Microsoft Graph response.
+func decodeSendPromptPolicyRuleResponse(result any, err error) (*promptPolicyRuleResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errEmptyResponse
+	}
+	rule, ok := result.(*promptPolicyRuleResponse)
+	if !ok {
+		return nil, fmt.Errorf("%w: received %T", errInvalidResponse, result)
+	}
+	return rule, nil
+}

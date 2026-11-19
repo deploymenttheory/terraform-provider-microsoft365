@@ -6,6 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -37,11 +40,28 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Create(
 		resp.Diagnostics.AddError("Error constructing TLS inspection resource", err.Error())
 		return
 	}
-	created, err := r.createTLSInspectionPolicyRule(
+	createBuilder := r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.TLSInspectionPolicyID.ValueString()).
+		PolicyRules()
+	createRequest, err := createBuilder.ToPostRequestInformation(ctx, body, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationCreate,
+			r.WritePermissions,
+		)
+		return
+	}
+	createResult, err := r.client.GetAdapter().Send(
 		ctx,
-		object.TLSInspectionPolicyID.ValueString(),
-		body,
+		createRequest,
+		models.CreateTlsInspectionRuleFromDiscriminatorValue,
+		tlsInspectionRuleErrorMapping,
 	)
+	created, err := decodeCreateTLSInspectionPolicyRuleResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -76,11 +96,23 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	remote, err := r.getTLSInspectionPolicyRule(
+	readbackBuilder := r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.TLSInspectionPolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString())
+	readbackRequest, err := readbackBuilder.ToGetRequestInformation(ctx, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
+		return
+	}
+	readbackResult, err := r.client.GetAdapter().Send(
 		ctx,
-		object.TLSInspectionPolicyID.ValueString(),
-		object.ID.ValueString(),
+		readbackRequest,
+		models.CreateTlsInspectionRuleFromDiscriminatorValue,
+		tlsInspectionRuleErrorMapping,
 	)
+	remote, err := decodeGetTLSInspectionPolicyRuleResponse(readbackResult, err)
 	// This is a create readback, not a refresh: even a 404 must retain the created id.
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
@@ -113,11 +145,30 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.getTLSInspectionPolicyRule(
+	readBuilder := r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.TLSInspectionPolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString())
+	readRequest, err := readBuilder.ToGetRequestInformation(ctx, nil)
+	if err != nil {
+		errors.HandleKiotaGraphErrorWithOptions(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationRead,
+			r.ReadPermissions,
+			errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true},
+		)
+		return
+	}
+	readResult, err := r.client.GetAdapter().Send(
 		ctx,
-		object.TLSInspectionPolicyID.ValueString(),
-		object.ID.ValueString(),
+		readRequest,
+		models.CreateTlsInspectionRuleFromDiscriminatorValue,
+		tlsInspectionRuleErrorMapping,
 	)
+	remote, err := decodeGetTLSInspectionPolicyRuleResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphErrorWithOptions(
 			ctx,
@@ -173,12 +224,12 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Update(
 		return
 	}
 	if hasUpdateChanges(&plan, &state) {
-		if err := r.updateTLSInspectionPolicyRule(
-			ctx,
-			state.TLSInspectionPolicyID.ValueString(),
-			state.ID.ValueString(),
-			body,
-		); err != nil {
+		if _, err := r.client.NetworkAccess().
+			TlsInspectionPolicies().
+			ByTlsInspectionPolicyId(state.TLSInspectionPolicyID.ValueString()).
+			PolicyRules().
+			ByPolicyRuleId(state.ID.ValueString()).
+			Patch(ctx, body, nil); err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
 				err,
@@ -193,11 +244,23 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Update(
 	resp.State = req.State
 	object := plan
 	object.ID = state.ID
-	remote, err := r.getTLSInspectionPolicyRule(
+	readbackBuilder := r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.TLSInspectionPolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString())
+	readbackRequest, err := readbackBuilder.ToGetRequestInformation(ctx, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
+		return
+	}
+	readbackResult, err := r.client.GetAdapter().Send(
 		ctx,
-		object.TLSInspectionPolicyID.ValueString(),
-		object.ID.ValueString(),
+		readbackRequest,
+		models.CreateTlsInspectionRuleFromDiscriminatorValue,
+		tlsInspectionRuleErrorMapping,
 	)
+	remote, err := decodeGetTLSInspectionPolicyRuleResponse(readbackResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
@@ -239,11 +302,12 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Delete(
 		return
 	}
 	defer cancel()
-	if err := r.deleteTLSInspectionPolicyRule(
-		ctx,
-		object.TLSInspectionPolicyID.ValueString(),
-		object.ID.ValueString(),
-	); err != nil {
+	if err := r.client.NetworkAccess().
+		TlsInspectionPolicies().
+		ByTlsInspectionPolicyId(object.TLSInspectionPolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Delete(ctx, nil); err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -256,4 +320,8 @@ func (r *NetworkTLSInspectionPolicyRuleResource) Delete(
 		}
 	}
 	resp.State.RemoveResource(ctx)
+}
+
+var tlsInspectionRuleErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

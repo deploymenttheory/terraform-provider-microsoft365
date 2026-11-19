@@ -2,13 +2,19 @@ package graphBetaNetworkCloudFirewallPolicyRule
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	graph "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *NetworkCloudFirewallPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -22,7 +28,26 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Create(ctx context.Context, req
 		return
 	}
 	defer cancel()
-	created, err := r.createRule(ctx, &object)
+	body, err := constructRule(ctx, &object, nil)
+	if err != nil {
+		err = fmt.Errorf("build cloud firewall create request: %w", err)
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createBuilder := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(object.PolicyID.ValueString()).PolicyRules()
+	createRequest, err := createBuilder.ToPostRequestInformation(ctx, body, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createRetryOptions := r.retryOptions
+	createRetryOptions.ShouldRetry = func(_ time.Duration, _ int, _ *http.Request, response *http.Response) bool {
+		return response.StatusCode == http.StatusTooManyRequests
+	}
+	createRequest.AddRequestOptions([]abstractions.RequestOption{&createRetryOptions})
+	createResult, err := r.client.GetAdapter().
+		Send(ctx, createRequest, graph.CreatePolicyRuleFromDiscriminatorValue, abstractions.ErrorMappings{"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue})
+	created, err := decodeCreateRuleResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -40,7 +65,12 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Create(ctx context.Context, req
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	remote, err := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(object.PolicyID.ValueString()).PolicyRules().ByPolicyRuleId(object.ID.ValueString()).Get(ctx, nil)
+	remote, err := r.client.NetworkAccess().
+		CloudFirewallPolicies().
+		ByCloudFirewallPolicyId(object.PolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 		return
@@ -63,7 +93,12 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Read(ctx context.Context, req r
 		return
 	}
 	defer cancel()
-	remote, err := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(object.PolicyID.ValueString()).PolicyRules().ByPolicyRuleId(object.ID.ValueString()).Get(ctx, nil)
+	remote, err := r.client.NetworkAccess().
+		CloudFirewallPolicies().
+		ByCloudFirewallPolicyId(object.PolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions, errors.GraphErrorOptions{PreserveStateOnReadBadRequest: true})
 		return
@@ -96,7 +131,12 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Update(ctx context.Context, req
 		return
 	}
 	if body.changed {
-		if _, err := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(state.PolicyID.ValueString()).PolicyRules().ByPolicyRuleId(state.ID.ValueString()).Patch(ctx, body, nil); err != nil {
+		if _, err := r.client.NetworkAccess().
+			CloudFirewallPolicies().
+			ByCloudFirewallPolicyId(state.PolicyID.ValueString()).
+			PolicyRules().
+			ByPolicyRuleId(state.ID.ValueString()).
+			Patch(ctx, body, nil); err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
@@ -105,7 +145,12 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Update(ctx context.Context, req
 	object := state
 	object.Timeouts = plan.Timeouts
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	remote, err := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(object.PolicyID.ValueString()).PolicyRules().ByPolicyRuleId(object.ID.ValueString()).Get(ctx, nil)
+	remote, err := r.client.NetworkAccess().
+		CloudFirewallPolicies().
+		ByCloudFirewallPolicyId(object.PolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
@@ -128,7 +173,12 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Delete(ctx context.Context, req
 		return
 	}
 	defer cancel()
-	if err := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(object.PolicyID.ValueString()).PolicyRules().ByPolicyRuleId(object.ID.ValueString()).Delete(ctx, nil); err != nil {
+	if err := r.client.NetworkAccess().
+		CloudFirewallPolicies().
+		ByCloudFirewallPolicyId(object.PolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Delete(ctx, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

@@ -5,14 +5,18 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/networkaccess"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/microsoftgraph/msgraph-beta-sdk-go/networkaccess"
 )
 
 func (r *NetworkFilteringProfilePolicyLinkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -41,7 +45,14 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Create(ctx context.Context, 
 		return
 	}
 
-	link, err := r.createPolicyLink(ctx, object.FilteringProfileID.ValueString(), requestBody)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newPolicyLinkRequestInformation(ctx, createAdapter, abstractions.POST, object.FilteringProfileID.ValueString(), "", requestBody)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createResult, err := createAdapter.Send(ctx, createRequest, models.CreatePolicyLinkFromDiscriminatorValue, policyLinkErrorMapping)
+	link, err := decodeCreatePolicyLinkResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -168,7 +179,20 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Update(ctx context.Context, 
 		return
 	}
 
-	if err := r.updatePolicyLink(ctx, state.FilteringProfileID.ValueString(), state.PolicyLinkID.ValueString(), requestBody); err != nil {
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newPolicyLinkRequestInformation(
+		ctx,
+		updateAdapter,
+		abstractions.PATCH,
+		state.FilteringProfileID.ValueString(),
+		state.PolicyLinkID.ValueString(),
+		requestBody,
+	)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+	if err := updateAdapter.SendNoContent(ctx, updateRequest, policyLinkErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -222,4 +246,8 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Delete(ctx context.Context, 
 	}
 
 	resp.State.RemoveResource(ctx)
+}
+
+var policyLinkErrorMapping = abstractions.ErrorMappings{
+	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }

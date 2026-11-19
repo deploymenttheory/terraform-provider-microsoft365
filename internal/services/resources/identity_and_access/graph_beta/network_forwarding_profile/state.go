@@ -2,6 +2,7 @@ package graphBetaNetworkForwardingProfile
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -37,4 +38,15 @@ func mapRemoteStateToTerraform(
 	state.LocalNetworkSettings = settings.LocalNetworkSettings
 	state.AssignmentRules = settings.AssignmentRules
 	return diags
+}
+
+// decodeCreateResponse validates and maps the Microsoft Graph response.
+func decodeCreateResponse(response sharedmodels.ForwardingProfileWire, err error) (*sharedmodels.ForwardingProfileWire, error) {
+	if err != nil {
+		return nil, fmt.Errorf("create forwarding profile: %w", err)
+	}
+	if response.ID == nil || *response.ID == "" {
+		return nil, errInvalidProfileResponse
+	}
+	return &response, nil
 }

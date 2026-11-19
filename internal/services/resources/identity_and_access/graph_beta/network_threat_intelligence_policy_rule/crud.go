@@ -8,6 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	kiotahttp "github.com/microsoft/kiota-http-go"
+	builders "github.com/microsoftgraph/msgraph-beta-sdk-go/networkaccess"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -39,11 +42,15 @@ func (r *NetworkThreatIntelligencePolicyRuleResource) Create(
 		resp.Diagnostics.AddError("Error constructing threat intelligence resource", err.Error())
 		return
 	}
-	created, err := r.createThreatIntelligencePolicyRule(
-		ctx,
-		object.ThreatIntelligencePolicyID.ValueString(),
-		body,
-	)
+	created, err := r.client.NetworkAccess().
+		ThreatIntelligencePolicies().
+		ByThreatIntelligencePolicyId(object.ThreatIntelligencePolicyID.ValueString()).
+		PolicyRules().
+		Post(ctx, body, &builders.ThreatIntelligencePoliciesItemPolicyRulesRequestBuilderPostRequestConfiguration{
+			// Kiota 1.5.6 can retain a gzip header while replaying the original JSON body.
+			// Use its standard compression option so existing retries replay valid requests.
+			Options: []abstractions.RequestOption{kiotahttp.NewCompressionOptionsReference(false)},
+		})
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -78,12 +85,13 @@ func (r *NetworkThreatIntelligencePolicyRuleResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	remote, err := r.getThreatIntelligencePolicyRule(
-		ctx,
-		object.ThreatIntelligencePolicyID.ValueString(),
-		object.ID.ValueString(),
-	)
-	// This is a create readback, not a refresh: even a 404 must retain the created id.
+	remote, err := r.client.NetworkAccess().
+		ThreatIntelligencePolicies().
+		ByThreatIntelligencePolicyId(object.ThreatIntelligencePolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Get(ctx, nil)
+		// This is a create readback, not a refresh: even a 404 must retain the created id.
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 		return
@@ -120,11 +128,12 @@ func (r *NetworkThreatIntelligencePolicyRuleResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.getThreatIntelligencePolicyRule(
-		ctx,
-		object.ThreatIntelligencePolicyID.ValueString(),
-		object.ID.ValueString(),
-	)
+	remote, err := r.client.NetworkAccess().
+		ThreatIntelligencePolicies().
+		ByThreatIntelligencePolicyId(object.ThreatIntelligencePolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphErrorWithOptions(
 			ctx,
@@ -185,12 +194,16 @@ func (r *NetworkThreatIntelligencePolicyRuleResource) Update(
 		return
 	}
 	if body.hasChanges() {
-		if err := r.updateThreatIntelligencePolicyRule(
-			ctx,
-			state.ThreatIntelligencePolicyID.ValueString(),
-			state.ID.ValueString(),
-			body,
-		); err != nil {
+		if _, err := r.client.NetworkAccess().
+			ThreatIntelligencePolicies().
+			ByThreatIntelligencePolicyId(state.ThreatIntelligencePolicyID.ValueString()).
+			PolicyRules().
+			ByPolicyRuleId(state.ID.ValueString()).
+			Patch(ctx, body, &builders.ThreatIntelligencePoliciesItemPolicyRulesPolicyRuleItemRequestBuilderPatchRequestConfiguration{
+				// Kiota 1.5.6 can retain a gzip header while replaying the original JSON body.
+				// Use its standard compression option so existing retries replay valid requests.
+				Options: []abstractions.RequestOption{kiotahttp.NewCompressionOptionsReference(false)},
+			}); err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
 				err,
@@ -205,11 +218,12 @@ func (r *NetworkThreatIntelligencePolicyRuleResource) Update(
 	resp.State = req.State
 	object := plan
 	object.ID = state.ID
-	remote, err := r.getThreatIntelligencePolicyRule(
-		ctx,
-		object.ThreatIntelligencePolicyID.ValueString(),
-		object.ID.ValueString(),
-	)
+	remote, err := r.client.NetworkAccess().
+		ThreatIntelligencePolicies().
+		ByThreatIntelligencePolicyId(object.ThreatIntelligencePolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
@@ -256,11 +270,12 @@ func (r *NetworkThreatIntelligencePolicyRuleResource) Delete(
 		return
 	}
 	defer cancel()
-	if err := r.deleteThreatIntelligencePolicyRule(
-		ctx,
-		object.ThreatIntelligencePolicyID.ValueString(),
-		object.ID.ValueString(),
-	); err != nil {
+	if err := r.client.NetworkAccess().
+		ThreatIntelligencePolicies().
+		ByThreatIntelligencePolicyId(object.ThreatIntelligencePolicyID.ValueString()).
+		PolicyRules().
+		ByPolicyRuleId(object.ID.ValueString()).
+		Delete(ctx, nil); err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,

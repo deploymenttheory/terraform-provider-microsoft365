@@ -39,3 +39,16 @@ type forwardingProfile struct {
 	ID       string       `json:"id"`
 	Policies []policyLink `json:"policies"`
 }
+
+// removedLink is a struct because Graph needs @removed before @odata.type
+// ("Invalid request parameters" otherwise) and json.Marshal sorts map keys.
+type removedLink struct {
+	Removed   removedReason `json:"@removed"`
+	ODataType string        `json:"@odata.type"` //nolint:tagliatelle // Graph requires the literal OData key.
+	ID        string        `json:"id"`
+}
+
+// removedReason represents the removal reason in a policy link delta request.
+type removedReason struct {
+	Reason string `json:"reason"`
+}

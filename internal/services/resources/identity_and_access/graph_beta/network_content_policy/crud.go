@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *NetworkContentPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -29,7 +32,14 @@ func (r *NetworkContentPolicyResource) Create(ctx context.Context, req resource.
 		resp.Diagnostics.AddError("Error constructing resource for Create Method", err.Error())
 		return
 	}
-	created, err := r.createContentPolicy(ctx, body)
+	createAdapter := r.client.GetAdapter()
+	createRequest, err := newContentPolicyRequestInformation(ctx, createAdapter, abstractions.POST, "", body)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	createResult, err := createAdapter.Send(ctx, createRequest, createContentPolicyResponseFromDiscriminatorValue, contentPolicyErrorMapping)
+	created, err := decodeCreateContentPolicyResponse(createResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -75,7 +85,14 @@ func (r *NetworkContentPolicyResource) Read(ctx context.Context, req resource.Re
 			return
 		}
 	}
-	policy, err := r.getContentPolicy(ctx, object.ID.ValueString())
+	readAdapter := r.client.GetAdapter()
+	readRequest, err := newContentPolicyRequestInformation(ctx, readAdapter, abstractions.GET, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		return
+	}
+	readResult, err := readAdapter.Send(ctx, readRequest, createContentPolicyResponseFromDiscriminatorValue, contentPolicyErrorMapping)
+	policy, err := decodeSendContentPolicyResponse(readResult, err)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -101,7 +118,14 @@ func (r *NetworkContentPolicyResource) Update(ctx context.Context, req resource.
 		resp.Diagnostics.AddError("Error constructing resource for Update Method", err.Error())
 		return
 	}
-	if err := r.updateContentPolicy(ctx, state.ID.ValueString(), body); err != nil {
+	updateAdapter := r.client.GetAdapter()
+	updateRequest, err := newContentPolicyRequestInformation(ctx, updateAdapter, abstractions.PATCH, state.ID.ValueString(), body)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+	updateResult, err := updateAdapter.Send(ctx, updateRequest, createContentPolicyResponseFromDiscriminatorValue, contentPolicyErrorMapping)
+	if err := decodeUpdateContentPolicyResponse(updateResult, err); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -130,9 +154,17 @@ func (r *NetworkContentPolicyResource) Delete(ctx context.Context, req resource.
 		return
 	}
 	defer cancel()
-	if err := r.deleteContentPolicy(ctx, object.ID.ValueString()); err != nil {
+	deleteAdapter := r.client.GetAdapter()
+	deleteRequest, err := newContentPolicyRequestInformation(ctx, deleteAdapter, abstractions.DELETE, object.ID.ValueString(), nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+		return
+	}
+	if err := deleteAdapter.SendNoContent(ctx, deleteRequest, contentPolicyErrorMapping); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 	resp.State.RemoveResource(ctx)
 }
+
+var contentPolicyErrorMapping = abstractions.ErrorMappings{"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue}

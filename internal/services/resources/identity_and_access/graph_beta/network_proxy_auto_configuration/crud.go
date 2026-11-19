@@ -2,6 +2,8 @@ package graphBetaNetworkProxyAutoConfiguration
 
 import (
 	"context"
+	stderrors "errors"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -35,7 +37,29 @@ func (r *NetworkProxyAutoConfigurationResource) Create(
 		return
 	}
 	defer cancel()
-	remote, err := r.create(ctx, plan)
+	body, err := pacBody(plan, nil)
+	if err != nil {
+		err := err
+		errors.HandleKiotaGraphError(
+			ctx,
+			err,
+			resp,
+			constants.TfOperationCreate,
+			r.WritePermissions,
+		)
+		return
+	}
+	var createResponse pacResponse
+	createErr := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.POST,
+		r.ResourcePath,
+		nil,
+		body,
+		&createResponse,
+	)
+	remote, err := decodeCreateResponse(createResponse, createErr)
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -86,8 +110,20 @@ func (r *NetworkProxyAutoConfigurationResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.get(ctx, state.ID.ValueString())
+	var readResponse pacResponse
+	readErr := customrequests.JSONRequest(
+		ctx,
+		r.client.GetAdapter(),
+		abstractions.GET,
+		r.ResourcePath+"/{pacId}",
+		map[string]string{"pacId": state.ID.ValueString()},
+		nil,
+		&readResponse,
+	)
+	remote, err := &readResponse, readErr
 	if err != nil {
+		err = fmt.Errorf("get custom PAC: %w", err)
+
 		errors.HandleKiotaGraphErrorWithOptions(
 			ctx,
 			err,
@@ -130,7 +166,26 @@ func (r *NetworkProxyAutoConfigurationResource) Update(
 		return
 	}
 	defer cancel()
-	if err := r.patch(ctx, plan, &state); err != nil {
+	body, err := pacBody(plan, &state)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+		return
+	}
+	var updateErr error
+	if len(body) > 0 {
+		updateErr = customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.PATCH,
+			r.ResourcePath+"/{pacId}",
+			map[string]string{"pacId": plan.ID.ValueString()},
+			body,
+			nil,
+		)
+	}
+	if err := updateErr; err != nil {
+		err = fmt.Errorf("update custom PAC: %w", err)
+
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,
@@ -215,3 +270,12 @@ func readbackOptions(
 	}
 	return opts
 }
+
+var (
+	errInvalidPACResponse = stderrors.New(
+		"graph omitted required custom PAC fields; existing state is retained",
+	)
+	errInvalidPACConfig = stderrors.New(
+		"name, content and is_enabled must be explicitly configured; name and content must be nonempty",
+	)
+)

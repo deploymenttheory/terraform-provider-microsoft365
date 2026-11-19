@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
@@ -270,4 +271,38 @@ func (b *ruleDestinationRequestBody) Serialize(writer s.SerializationWriter) err
 // GetFieldDeserializers returns no deserializers because this request model is write-only.
 func (b *ruleDestinationRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
 	return map[string]func(s.ParseNode) error{}
+}
+
+const (
+	forwardingPolicyRulesURLTemplate    = "{+baseurl}/networkAccess/forwardingPolicies/{forwardingPolicyId}/policyRules"
+	forwardingPolicyRuleItemURLTemplate = forwardingPolicyRulesURLTemplate + "/{policyRuleId}"
+)
+
+// newInternetAccessForwardingRuleRequestInformation builds the Microsoft Graph request for a forwarding rule operation.
+func newInternetAccessForwardingRuleRequestInformation(
+	ctx context.Context,
+	adapter abstractions.RequestAdapter,
+	method abstractions.HttpMethod,
+	forwardingPolicyID, ruleID string,
+	requestBody s.Parsable,
+) (*abstractions.RequestInformation, error) {
+	pathParameters := map[string]string{
+		"baseurl":            adapter.GetBaseUrl(),
+		"forwardingPolicyId": forwardingPolicyID,
+	}
+	urlTemplate := forwardingPolicyRulesURLTemplate
+	if ruleID != "" {
+		urlTemplate = forwardingPolicyRuleItemURLTemplate
+		pathParameters["policyRuleId"] = ruleID
+	}
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, urlTemplate, pathParameters)
+	requestInfo.Headers.TryAdd("Accept", "application/json")
+
+	if requestBody != nil {
+		if err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", requestBody); err != nil {
+			return nil, fmt.Errorf("set internet access forwarding policy rule request content: %w", err)
+		}
+	}
+	return requestInfo, nil
 }

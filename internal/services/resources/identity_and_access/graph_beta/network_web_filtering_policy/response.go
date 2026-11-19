@@ -1,6 +1,8 @@
 package graphBetaNetworkWebFilteringPolicy
 
 import (
+	stderrors "errors"
+	"fmt"
 	"strings"
 
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
@@ -156,3 +158,38 @@ func graphDefaultActionODataType(action string) string {
 
 	return defaultActionAllowODataType
 }
+
+// decodeCreateWebFilteringPolicyResponse validates and decodes the Microsoft Graph response.
+func decodeCreateWebFilteringPolicyResponse(result any, err error) (*webFilteringPolicyResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, errCreateResponseNil
+	}
+	policy, ok := result.(*webFilteringPolicyResponse)
+	if !ok {
+		return nil, fmt.Errorf("create web filtering policy returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return policy, nil
+}
+
+// decodeGetWebFilteringPolicyResponse validates and decodes the Microsoft Graph response.
+func decodeGetWebFilteringPolicyResponse(result any, err error) (*webFilteringPolicyResponse, error) {
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		return nil, nil //nolint:nilnil // Empty responses are handled by the lifecycle method.
+	}
+	policy, ok := result.(*webFilteringPolicyResponse)
+	if !ok {
+		return nil, fmt.Errorf("get web filtering policy returned %T, %w", result, errUnexpectedResponseType)
+	}
+	return policy, nil
+}
+
+var (
+	errCreateResponseNil      = stderrors.New("create web filtering policy returned nil response")
+	errUnexpectedResponseType = stderrors.New("expected webFilteringPolicyResponse")
+)

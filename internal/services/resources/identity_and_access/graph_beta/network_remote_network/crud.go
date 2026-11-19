@@ -2,16 +2,20 @@ package graphBetaIdentityAndAccessNetworkRemoteNetwork
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
@@ -44,7 +48,14 @@ func (r *NetworkRemoteNetworkResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	created, err := r.create(ctx, plan.Name.ValueString(), plan.Region.ValueString(), profileIDs)
+	createBody, err := constructResource(plan.Name.ValueString(), plan.Region.ValueString(), profileIDs)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	var createResponse remoteNetworkResponse
+	createErr := customrequests.JSONRequest(ctx, r.client.GetAdapter(), abstractions.POST, collectionPath, nil, createBody, &createResponse)
+	created, err := decodeCreateResponse(createResponse, createErr)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -102,8 +113,14 @@ func (r *NetworkRemoteNetworkResource) Read(ctx context.Context, req resource.Re
 	}
 	defer cancel()
 
-	remote, err := r.get(ctx, state.ID.ValueString())
+	var readResponse remoteNetworkResponse
+	readErr := customrequests.JSONRequest(
+		ctx, r.client.GetAdapter(), abstractions.GET, itemPath, map[string]string{"remoteNetworkId": state.ID.ValueString()}, nil, &readResponse,
+	)
+	remote, err := &readResponse, readErr
 	if err != nil {
+		err = fmt.Errorf("get remote network: %w", err)
+
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
@@ -142,7 +159,13 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 	id := state.ID.ValueString()
 
 	if !plan.Name.Equal(state.Name) {
-		if err := r.updateName(ctx, id, plan.Name.ValueString()); err != nil {
+
+		updateErr := customrequests.JSONRequest(
+			ctx, r.client.GetAdapter(), abstractions.PATCH, itemPath, map[string]string{"remoteNetworkId": id}, constructNameUpdate(plan.Name.ValueString()), nil,
+		)
+		if err := updateErr; err != nil {
+			err = fmt.Errorf("update remote network name: %w", err)
+
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
@@ -154,7 +177,17 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if err := r.updateForwardingProfiles(ctx, id, profileIDs); err != nil {
+		profileDelta, err := constructForwardingProfileDelta(profileIDs)
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+			return
+		}
+		profileUpdateErr := customrequests.JSONRequest(
+			ctx, r.client.GetAdapter(), abstractions.PATCH, forwardingProfilesPath, map[string]string{"remoteNetworkId": id}, profileDelta, nil,
+		)
+		if err := profileUpdateErr; err != nil {
+			err = fmt.Errorf("update remote network forwarding profiles: %w", err)
+
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
@@ -206,7 +239,12 @@ func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	if err := r.delete(ctx, state.ID.ValueString()); err != nil {
+	deleteErr := customrequests.JSONRequest(
+		ctx, r.client.GetAdapter(), abstractions.DELETE, itemPath, map[string]string{"remoteNetworkId": state.ID.ValueString()}, nil, nil,
+	)
+	if err := deleteErr; err != nil {
+		err = fmt.Errorf("delete remote network: %w", err)
+
 		// An earlier destroy may have started the deletion; wait for it anyway.
 		if errors.GraphError(ctx, err).StatusCode != 404 {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
@@ -214,7 +252,38 @@ func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.
 		}
 	}
 
-	if err := r.waitForDeletion(ctx, state.ID.ValueString()); err != nil {
+	if err := crud.PollUntil(ctx, deletionPollInterval, func(ctx context.Context) (bool, error) {
+		var deletingNetwork remoteNetworkResponse
+		readErr := customrequests.JSONRequest(
+			ctx,
+			r.client.GetAdapter(),
+			abstractions.GET,
+			itemPath,
+			map[string]string{"remoteNetworkId": state.ID.ValueString()},
+			nil,
+			&deletingNetwork,
+		)
+		if ctx.Err() != nil {
+			return false, &crud.FatalPollError{Err: fmt.Errorf("%w: %w", errDeletionTimedOut, ctx.Err())}
+		}
+		if readErr != nil {
+			readErr = fmt.Errorf("get remote network: %w", readErr)
+			info := errors.GraphError(ctx, readErr)
+			switch info.StatusCode {
+			case 404:
+				if !strings.Contains(strings.ToLower(info.ErrorMessage), "deletion process") {
+					return true, nil
+				}
+			case 401, 403:
+				return false, &crud.FatalPollError{Err: readErr}
+			}
+		}
+		return false, nil
+	}); err != nil {
+		if ctx.Err() != nil {
+			err = fmt.Errorf("%w: %w", errDeletionTimedOut, ctx.Err())
+		}
+
 		resp.Diagnostics.AddError("Error waiting for remote network deletion", err.Error())
 		return
 	}
@@ -240,3 +309,19 @@ func setStrings(ctx context.Context, set types.Set) ([]string, diag.Diagnostics)
 	diags := set.ElementsAs(ctx, &values, false)
 	return values, diags
 }
+
+const (
+	collectionPath         = "/networkaccess/connectivity/remoteNetworks"
+	itemPath               = collectionPath + "/{remoteNetworkId}"
+	forwardingProfilesPath = itemPath + "/forwardingProfiles"
+)
+
+var (
+	errMissingID            = stderrors.New("graph did not return an ID for the created remote network")
+	errInvalidResponse      = stderrors.New("graph omitted required remote network fields")
+	errNoForwardingProfiles = stderrors.New("at least one forwarding profile ID is required")
+	errDeletionTimedOut     = stderrors.New("stopped waiting for remote network deletion to finish")
+)
+
+// deletionPollInterval is a variable so unit tests can shorten it.
+var deletionPollInterval = 5 * time.Second

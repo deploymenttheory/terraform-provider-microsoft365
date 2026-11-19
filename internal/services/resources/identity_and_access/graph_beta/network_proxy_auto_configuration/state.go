@@ -1,6 +1,8 @@
 package graphBetaNetworkProxyAutoConfiguration
 
 import (
+	"fmt"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
@@ -17,4 +19,15 @@ func mapResponse(state *NetworkProxyAutoConfigurationResourceModel, remote *pacR
 	state.CreatedDateTime = convert.GraphToFrameworkString(remote.CreatedDateTime)
 	state.LastModifiedDateTime = convert.GraphToFrameworkString(remote.LastModifiedDateTime)
 	return nil
+}
+
+// decodeCreateResponse validates and maps the Microsoft Graph response.
+func decodeCreateResponse(response pacResponse, err error) (*pacResponse, error) {
+	if err != nil {
+		return nil, fmt.Errorf("create custom PAC: %w", err)
+	}
+	if response.ID == nil || *response.ID == "" {
+		return nil, errInvalidPACResponse
+	}
+	return &response, nil
 }
