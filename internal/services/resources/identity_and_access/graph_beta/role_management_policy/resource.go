@@ -59,7 +59,9 @@ var (
 	_ resource.ResourceWithIdentity = &RoleManagementPolicyResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/unifiedrolemanagementpolicy-update?view=graph-rest-beta
+// NewRoleManagementPolicyResource creates the role management policy resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/unifiedrolemanagementpolicy-update?view=graph-rest-beta
 func NewRoleManagementPolicyResource() resource.Resource {
 	return &RoleManagementPolicyResource{
 		ReadPermissions: []string{
@@ -73,6 +75,7 @@ func NewRoleManagementPolicyResource() resource.Resource {
 	}
 }
 
+// RoleManagementPolicyResource defines the Microsoft Graph client and permissions for the role management policy resource.
 type RoleManagementPolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -97,7 +100,7 @@ func (r *RoleManagementPolicyResource) ImportState(ctx context.Context, req reso
 	resp.Diagnostics.Append(resp.Private.SetKey(ctx, importAllRulesKey, []byte(`true`))...)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *RoleManagementPolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{
@@ -108,7 +111,7 @@ func (r *RoleManagementPolicyResource) IdentitySchema(ctx context.Context, req r
 	}
 }
 
-// ConfigValidators returns the resource level validators.
+// ConfigValidators defines the resource configuration validators.
 func (r *RoleManagementPolicyResource) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
 		resourcevalidator.ExactlyOneOf(path.MatchRoot("policy_id"), path.MatchRoot("role_definition_id")),

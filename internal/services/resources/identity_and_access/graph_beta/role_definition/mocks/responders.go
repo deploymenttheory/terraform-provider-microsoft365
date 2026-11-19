@@ -44,6 +44,7 @@ func init() {
 	mocks.GlobalRegistry.Register("identity_and_access_role_definition", &RoleDefinitionMock{})
 }
 
+// RoleDefinitionMock provides HTTP responders and state for resource tests.
 type RoleDefinitionMock struct{}
 
 var _ mocks.MockRegistrar = (*RoleDefinitionMock)(nil)
@@ -80,6 +81,7 @@ func nullRolePermissionsResponse(request map[string]any) *http.Response {
 	return nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *RoleDefinitionMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.roleDefinitions = make(map[string]map[string]any)
@@ -207,6 +209,7 @@ func (m *RoleDefinitionMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *RoleDefinitionMock) RegisterErrorMocks() {
 	m.registerMockResourceActions()
 
@@ -217,6 +220,7 @@ func (m *RoleDefinitionMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("DELETE", roleDefinitionItemURL, httpmock.NewStringResponder(400, `{"error":{"code":"Request_BadRequest","message":"Invalid request"}}`))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *RoleDefinitionMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.roleDefinitions = make(map[string]map[string]any)

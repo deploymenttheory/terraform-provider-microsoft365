@@ -29,9 +29,16 @@ const (
 )
 
 var (
-	_ resource.Resource                   = &NetworkForwardingProfileResource{}
-	_ resource.ResourceWithConfigure      = &NetworkForwardingProfileResource{}
-	_ resource.ResourceWithImportState    = &NetworkForwardingProfileResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &NetworkForwardingProfileResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &NetworkForwardingProfileResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &NetworkForwardingProfileResource{}
+
+	// Enables resource-specific configuration validation
 	_ resource.ResourceWithValidateConfig = &NetworkForwardingProfileResource{}
 )
 
@@ -43,6 +50,7 @@ type NetworkForwardingProfileResource struct {
 	ResourcePath     string
 }
 
+// NewNetworkForwardingProfileResource creates the network forwarding profile resource.
 func NewNetworkForwardingProfileResource() resource.Resource {
 	return &NetworkForwardingProfileResource{
 		ReadPermissions:  []string{"NetworkAccess.ReadWrite.All"},
@@ -51,6 +59,7 @@ func NewNetworkForwardingProfileResource() resource.Resource {
 	}
 }
 
+// Metadata returns the resource type name.
 func (r *NetworkForwardingProfileResource) Metadata(
 	ctx context.Context,
 	req resource.MetadataRequest,
@@ -59,6 +68,7 @@ func (r *NetworkForwardingProfileResource) Metadata(
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *NetworkForwardingProfileResource) Configure(
 	ctx context.Context,
 	req resource.ConfigureRequest,
@@ -67,6 +77,7 @@ func (r *NetworkForwardingProfileResource) Configure(
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
+// ImportState imports the resource state.
 func (r *NetworkForwardingProfileResource) ImportState(
 	ctx context.Context,
 	req resource.ImportStateRequest,
@@ -82,6 +93,7 @@ func (r *NetworkForwardingProfileResource) ImportState(
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// ValidateConfig validates the resource configuration.
 func (r *NetworkForwardingProfileResource) ValidateConfig(
 	ctx context.Context,
 	req resource.ValidateConfigRequest,
@@ -100,6 +112,7 @@ func (r *NetworkForwardingProfileResource) ValidateConfig(
 	)...)
 }
 
+// Schema defines the schema for the resource.
 func (r *NetworkForwardingProfileResource) Schema(
 	ctx context.Context,
 	req resource.SchemaRequest,

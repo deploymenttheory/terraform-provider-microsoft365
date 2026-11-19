@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/unifiedroleassignment?view=graph-rest-beta
 package graphBetaDirectoryRoleAssignment
 
 import (
@@ -5,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// DirectoryRoleAssignmentResourceModel represents the schema for the directory role assignment resource.
 type DirectoryRoleAssignmentResourceModel struct {
 	ID               types.String   `tfsdk:"id"`
 	RoleDefinitionID types.String   `tfsdk:"role_definition_id"`

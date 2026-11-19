@@ -18,6 +18,7 @@ var internetAccessForwardingRuleErrorMapping = abstractions.ErrorMappings{
 	"XXX": odataerrors.CreateODataErrorFromDiscriminatorValue,
 }
 
+// createRule creates the forwarding rule in Microsoft Graph.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) createRule(ctx context.Context, forwardingPolicyID string, requestBody s.Parsable) (*internetAccessForwardingRuleResponse, error) {
 	adapter := r.client.GetAdapter()
 	requestInfo, err := newInternetAccessForwardingRuleRequestInformation(ctx, adapter, abstractions.POST, forwardingPolicyID, "", requestBody)
@@ -38,6 +39,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) createRule(ctx conte
 	return rule, nil
 }
 
+// getRule retrieves the forwarding rule from Microsoft Graph.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) getRule(ctx context.Context, forwardingPolicyID, ruleID string) (*internetAccessForwardingRuleResponse, error) {
 	adapter := r.client.GetAdapter()
 	requestInfo, err := newInternetAccessForwardingRuleRequestInformation(ctx, adapter, abstractions.GET, forwardingPolicyID, ruleID, nil)
@@ -58,6 +60,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) getRule(ctx context.
 	return rule, nil
 }
 
+// updateRule updates the forwarding rule in Microsoft Graph.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) updateRule(ctx context.Context, forwardingPolicyID, ruleID string, requestBody s.Parsable) error {
 	adapter := r.client.GetAdapter()
 	requestInfo, err := newInternetAccessForwardingRuleRequestInformation(ctx, adapter, abstractions.PATCH, forwardingPolicyID, ruleID, requestBody)
@@ -67,6 +70,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) updateRule(ctx conte
 	return adapter.SendNoContent(ctx, requestInfo, internetAccessForwardingRuleErrorMapping)
 }
 
+// deleteRule deletes the forwarding rule from Microsoft Graph.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) deleteRule(ctx context.Context, forwardingPolicyID, ruleID string) error {
 	adapter := r.client.GetAdapter()
 	requestInfo, err := newInternetAccessForwardingRuleRequestInformation(ctx, adapter, abstractions.DELETE, forwardingPolicyID, ruleID, nil)
@@ -76,6 +80,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) deleteRule(ctx conte
 	return adapter.SendNoContent(ctx, requestInfo, internetAccessForwardingRuleErrorMapping)
 }
 
+// newInternetAccessForwardingRuleRequestInformation builds the Microsoft Graph request for a forwarding rule operation.
 func newInternetAccessForwardingRuleRequestInformation(ctx context.Context, adapter abstractions.RequestAdapter, method abstractions.HttpMethod, forwardingPolicyID, ruleID string, requestBody s.Parsable) (*abstractions.RequestInformation, error) {
 	pathParameters := map[string]string{
 		"baseurl":            adapter.GetBaseUrl(),

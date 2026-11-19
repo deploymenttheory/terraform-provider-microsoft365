@@ -15,7 +15,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
-// Create adopts the tenant security defaults enforcement policy and applies the configuration.
+// Create handles the Create operation for security defaults enforcement policy resources.
 //
 // Operation: The security defaults enforcement policy is a singleton that always exists in the tenant and has no
 // POST endpoint. Create applies is_enabled with PATCH.
@@ -87,7 +87,7 @@ func (r *SecurityDefaultsEnforcementPolicyResource) Create(ctx context.Context, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the security defaults enforcement policy resource.
+// Read handles the Read operation for security defaults enforcement policy resources.
 //
 // Operation: Retrieves the tenant security defaults enforcement policy
 // API Calls:
@@ -148,7 +148,7 @@ func (r *SecurityDefaultsEnforcementPolicyResource) Read(ctx context.Context, re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for the security defaults enforcement policy resource.
+// Update handles the Update operation for security defaults enforcement policy resources.
 //
 // Operation: Applies is_enabled to the tenant security defaults enforcement policy
 // API Calls:
@@ -211,11 +211,14 @@ func (r *SecurityDefaultsEnforcementPolicyResource) Update(ctx context.Context, 
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete releases Terraform management without changing the tenant-wide security defaults enforcement policy.
+// Delete handles the Delete operation for security defaults enforcement policy resources.
 //
 // Operation: The singleton policy cannot be deleted. Delete only removes the resource from Terraform state and
 // leaves security defaults as they are, so destroying the resource never enables or disables security defaults.
-// API Calls: none
+// API Calls:
+//   - None (state only)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/identitysecuritydefaultsenforcementpolicy?view=graph-rest-beta
 func (r *SecurityDefaultsEnforcementPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

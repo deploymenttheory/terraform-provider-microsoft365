@@ -108,6 +108,7 @@ func stateScope(conditions igmodels.TriggerAndScopeBasedConditionsable) *Workflo
 	return nil
 }
 
+// stateTrigger maps the remote workflow trigger to Terraform state.
 func stateTrigger(remote igmodels.WorkflowExecutionTriggerable) *WorkflowTrigger {
 	switch trigger := remote.(type) {
 	case *igmodels.TimeBasedAttributeTrigger:
@@ -177,6 +178,7 @@ func stateTasks(remote []igmodels.Taskable, prior []WorkflowTask) []WorkflowTask
 	return tasks
 }
 
+// sequenceOf returns the task execution sequence, or zero when Graph omits it.
 func sequenceOf(task igmodels.Taskable) int32 {
 	if task.GetExecutionSequence() == nil {
 		return 0

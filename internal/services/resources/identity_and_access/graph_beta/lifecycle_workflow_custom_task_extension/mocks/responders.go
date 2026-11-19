@@ -117,6 +117,7 @@ func idFromPath(path string) string {
 	return parts[len(parts)-1]
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *LifecycleWorkflowCustomTaskExtensionMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.extensions = make(map[string]map[string]any)
@@ -216,6 +217,7 @@ func (m *LifecycleWorkflowCustomTaskExtensionMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *LifecycleWorkflowCustomTaskExtensionMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", customTaskExtensionsURL, httpmock.NewStringResponder(403, forbiddenBody))
 	httpmock.RegisterResponder("GET", customTaskExtensionItemPattern, httpmock.NewStringResponder(404, notFoundBody))
@@ -228,6 +230,7 @@ func (m *LifecycleWorkflowCustomTaskExtensionMock) RegisterBadRequestMocks() {
 	httpmock.RegisterResponder("POST", customTaskExtensionsURL, httpmock.NewStringResponder(400, badRequestBody))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *LifecycleWorkflowCustomTaskExtensionMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.extensions = make(map[string]map[string]any)

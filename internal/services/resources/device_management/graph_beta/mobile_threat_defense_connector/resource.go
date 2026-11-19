@@ -54,7 +54,9 @@ var (
 	_ resource.ResourceWithIdentity = &MobileThreatDefenseConnectorResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/intune-onboarding-mobilethreatdefenseconnector-create?view=graph-rest-beta
+// NewMobileThreatDefenseConnectorResource creates the mobile threat defense connector resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-onboarding-mobilethreatdefenseconnector-create?view=graph-rest-beta
 func NewMobileThreatDefenseConnectorResource() resource.Resource {
 	return &MobileThreatDefenseConnectorResource{
 		ReadPermissions: []string{
@@ -66,6 +68,7 @@ func NewMobileThreatDefenseConnectorResource() resource.Resource {
 	}
 }
 
+// MobileThreatDefenseConnectorResource defines the Microsoft Graph client and permissions for the mobile threat defense connector resource.
 type MobileThreatDefenseConnectorResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -87,7 +90,7 @@ func (r *MobileThreatDefenseConnectorResource) ImportState(ctx context.Context, 
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *MobileThreatDefenseConnectorResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

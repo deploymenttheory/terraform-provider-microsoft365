@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// MapRemoteStateToTerraform maps the remote Microsoft Graph response to Terraform state.
 func MapRemoteStateToTerraform(ctx context.Context, data *NetworkInternetAccessForwardingPolicyRuleResourceModel, remote *internetAccessForwardingRuleResponse) {
 	if remote == nil {
 		tflog.Debug(ctx, "Remote internet access forwarding policy rule is nil")
@@ -37,6 +38,7 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkInternetAccessF
 	tflog.Debug(ctx, fmt.Sprintf("Finished mapping %s with id %s", ResourceName, data.ID.ValueString()))
 }
 
+// destinationObjectType defines the Terraform object type for a forwarding rule destination.
 func destinationObjectType() types.ObjectType {
 	return types.ObjectType{
 		AttrTypes: map[string]attr.Type{
@@ -48,6 +50,7 @@ func destinationObjectType() types.ObjectType {
 	}
 }
 
+// destinationObjectValue maps a remote forwarding rule destination to a Terraform object.
 func destinationObjectValue(destination ruleDestinationResponse) attr.Value {
 	destinationType := types.StringNull()
 	if destination.odataType != nil {
@@ -61,6 +64,7 @@ func destinationObjectValue(destination ruleDestinationResponse) attr.Value {
 	})
 }
 
+// terraformDestinationType converts the Microsoft Graph discriminator to the Terraform destination type.
 func terraformDestinationType(odataType string) string {
 	switch odataType {
 	case ipAddressODataType:

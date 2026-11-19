@@ -29,30 +29,42 @@ const (
 )
 
 var (
-	_ resource.Resource                = &DirectoryRoleAssignmentResource{}
-	_ resource.ResourceWithConfigure   = &DirectoryRoleAssignmentResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &DirectoryRoleAssignmentResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &DirectoryRoleAssignmentResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &DirectoryRoleAssignmentResource{}
-	_ resource.ResourceWithIdentity    = &DirectoryRoleAssignmentResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &DirectoryRoleAssignmentResource{}
 )
 
+// DirectoryRoleAssignmentResource defines the Microsoft Graph client and permissions for the directory role assignment resource.
 type DirectoryRoleAssignmentResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
+// NewDirectoryRoleAssignmentResource creates the directory role assignment resource.
 func NewDirectoryRoleAssignmentResource() resource.Resource {
 	return &DirectoryRoleAssignmentResource{ReadPermissions: []string{"RoleManagement.Read.Directory"}, WritePermissions: []string{"RoleManagement.ReadWrite.Directory"}}
 }
 
+// Metadata returns the resource type name.
 func (r *DirectoryRoleAssignmentResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *DirectoryRoleAssignmentResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
+// ImportState imports the resource state.
 func (r *DirectoryRoleAssignmentResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if strings.TrimSpace(req.ID) == "" || strings.Contains(req.ID, "/") {
 		resp.Diagnostics.AddError("Invalid import ID", "Supply the opaque Graph directory role assignment ID without an API path.")
@@ -61,10 +73,12 @@ func (r *DirectoryRoleAssignmentResource) ImportState(ctx context.Context, req r
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *DirectoryRoleAssignmentResource) IdentitySchema(_ context.Context, _ resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{Attributes: map[string]identityschema.Attribute{"id": identityschema.StringAttribute{RequiredForImport: true}}}
 }
 
+// Schema defines the schema for the resource.
 func (r *DirectoryRoleAssignmentResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	guid := stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "must be a valid UUID")
 	resp.Schema = schema.Schema{

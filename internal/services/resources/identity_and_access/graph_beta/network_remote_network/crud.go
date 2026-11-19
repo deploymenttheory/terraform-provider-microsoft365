@@ -15,8 +15,9 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
-// Create handles the Create operation.
+// Create handles the Create operation for remote network resources.
 //
+// Operation: Creates a new remote network
 // API Calls:
 //   - POST /networkaccess/connectivity/remoteNetworks
 //
@@ -74,8 +75,9 @@ func (r *NetworkRemoteNetworkResource) Create(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation.
+// Read handles the Read operation for remote network resources.
 //
+// Operation: Retrieves a remote network by ID
 // API Calls:
 //   - GET /networkaccess/connectivity/remoteNetworks/{id}
 //
@@ -114,8 +116,9 @@ func (r *NetworkRemoteNetworkResource) Read(ctx context.Context, req resource.Re
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Update handles the Update operation.
+// Update handles the Update operation for remote network resources.
 //
+// Operation: Updates the remote network name and forwarding profile membership
 // API Calls:
 //   - PATCH /networkaccess/connectivity/remoteNetworks/{id} (name)
 //   - PATCH /networkaccess/connectivity/remoteNetworks/{id}/forwardingProfiles ($delta, full desired set)
@@ -181,8 +184,9 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, id))
 }
 
-// Delete handles the Delete operation.
+// Delete handles the Delete operation for remote network resources.
 //
+// Operation: Deletes the remote network and waits for deletion to finish
 // API Calls:
 //   - DELETE /networkaccess/connectivity/remoteNetworks/{id}
 //   - GET /networkaccess/connectivity/remoteNetworks/{id} (until the deletion finishes)
@@ -218,6 +222,7 @@ func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.
 	resp.State.RemoveResource(ctx)
 }
 
+// readbackOptions configures shared read retries to verify the preceding write.
 func readbackOptions(plan NetworkRemoteNetworkResourceModel, operation string) crud.ReadWithRetryOptions {
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = operation

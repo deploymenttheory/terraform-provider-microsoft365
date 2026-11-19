@@ -101,6 +101,7 @@ func validatePatch(body map[string]any) *graphError {
 	return nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *LifecycleWorkflowSettingsMock) RegisterMocks() {
 	settings, err := loadSeedSettings()
 	mockState.Lock()
@@ -162,6 +163,7 @@ func (m *LifecycleWorkflowSettingsMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *LifecycleWorkflowSettingsMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	forbidden := `{"error":{"code":"Authorization_RequestDenied","message":"Insufficient privileges to complete the operation."}}`
@@ -176,6 +178,7 @@ func (m *LifecycleWorkflowSettingsMock) RegisterNotFoundMocks() {
 	httpmock.RegisterResponder("PATCH", settingsURL, httpmock.NewStringResponder(404, notFound))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *LifecycleWorkflowSettingsMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.settings = nil

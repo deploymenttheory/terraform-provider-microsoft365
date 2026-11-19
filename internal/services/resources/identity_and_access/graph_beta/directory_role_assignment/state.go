@@ -5,6 +5,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// MapRemoteStateToTerraform maps the remote Microsoft Graph response to Terraform state.
 func MapRemoteStateToTerraform(data *DirectoryRoleAssignmentResourceModel, remote graphmodels.UnifiedRoleAssignmentable) {
 	data.ID = types.StringPointerValue(remote.GetId())
 	data.RoleDefinitionID = types.StringPointerValue(remote.GetRoleDefinitionId())

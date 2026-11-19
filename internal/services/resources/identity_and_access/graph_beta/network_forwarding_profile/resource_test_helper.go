@@ -9,8 +9,10 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/exists"
 )
 
+// NetworkForwardingProfileTestResource provides resource existence checks for acceptance tests.
 type NetworkForwardingProfileTestResource struct{}
 
+// Exists checks whether the resource exists in Microsoft Graph.
 func (r NetworkForwardingProfileTestResource) Exists(
 	ctx context.Context,
 	_ any,

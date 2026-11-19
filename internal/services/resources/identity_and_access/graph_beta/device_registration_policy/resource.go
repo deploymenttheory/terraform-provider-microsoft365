@@ -56,8 +56,10 @@ var (
 	_ resource.ResourceWithIdentity = &DeviceRegistrationPolicyResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/deviceregistrationpolicy-get?view=graph-rest-beta#permissions
-// https://learn.microsoft.com/en-us/graph/api/deviceregistrationpolicy-update?view=graph-rest-beta#permissions
+// NewDeviceRegistrationPolicyResource creates the device registration policy resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/deviceregistrationpolicy-get?view=graph-rest-beta#permissions
+// Reference: https://learn.microsoft.com/en-us/graph/api/deviceregistrationpolicy-update?view=graph-rest-beta#permissions
 func NewDeviceRegistrationPolicyResource() resource.Resource {
 	return &DeviceRegistrationPolicyResource{
 		ReadPermissions: []string{
@@ -69,6 +71,7 @@ func NewDeviceRegistrationPolicyResource() resource.Resource {
 	}
 }
 
+// DeviceRegistrationPolicyResource defines the Microsoft Graph client and permissions for the device registration policy resource.
 type DeviceRegistrationPolicyResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -97,7 +100,7 @@ func (r *DeviceRegistrationPolicyResource) ImportState(ctx context.Context, req 
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *DeviceRegistrationPolicyResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

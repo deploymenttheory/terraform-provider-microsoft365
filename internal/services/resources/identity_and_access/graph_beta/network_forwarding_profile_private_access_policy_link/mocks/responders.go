@@ -167,6 +167,7 @@ func (m *Mock) profileKey(q *http.Request) string {
 	return Key(match[1], strings.ToLower(match[2]))
 }
 
+// get retrieves the resource from Microsoft Graph.
 func (m *Mock) get(q *http.Request) (*http.Response, error) {
 	key := m.profileKey(q)
 	m.Lock()
@@ -182,6 +183,7 @@ func (m *Mock) get(q *http.Request) (*http.Response, error) {
 	return jsonResponse(200, profileJSON(key[strings.Index(key, "/")+1:], links))
 }
 
+// patch applies the configured changes to Microsoft Graph.
 func (m *Mock) patch(q *http.Request) (*http.Response, error) {
 	key := m.profileKey(q)
 	body, err := decode(q)
@@ -297,6 +299,7 @@ func (m *Mock) Links(collection, profileID string) []Link {
 	return append([]Link(nil), m.Profiles[Key(collection, profileID)]...)
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *Mock) RegisterErrorMocks() {
 	for _, method := range []string{"GET", "PATCH"} {
 		httpmock.RegisterRegexpResponder(method, profilePattern, httpmock.NewStringResponder(
@@ -305,6 +308,7 @@ func (m *Mock) RegisterErrorMocks() {
 	}
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *Mock) CleanupMockState() {
 	m.Lock()
 	defer m.Unlock()

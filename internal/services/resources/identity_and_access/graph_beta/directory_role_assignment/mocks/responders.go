@@ -21,6 +21,7 @@ var state struct {
 	active map[string]any
 }
 
+// DirectoryRoleAssignmentMock provides HTTP responders and state for resource tests.
 type DirectoryRoleAssignmentMock struct{}
 
 func init() {
@@ -39,6 +40,7 @@ func graphError(status int) (*http.Response, error) {
 	return reply(status, map[string]any{"error": map[string]any{"code": "Request_BadRequest", "message": "directory role assignment probe error"}})
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *DirectoryRoleAssignmentMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", collectionURL, func(req *http.Request) (*http.Response, error) {
 		var body map[string]any
@@ -73,6 +75,7 @@ func (m *DirectoryRoleAssignmentMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *DirectoryRoleAssignmentMock) RegisterErrorMocks() {
 	for _, method := range []string{"POST", "GET", "DELETE"} {
 		url := collectionURL
@@ -83,6 +86,7 @@ func (m *DirectoryRoleAssignmentMock) RegisterErrorMocks() {
 	}
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *DirectoryRoleAssignmentMock) CleanupMockState() {
 	state.Lock()
 	defer state.Unlock()

@@ -70,6 +70,7 @@ func NewLifecycleWorkflowResource() resource.Resource {
 	}
 }
 
+// LifecycleWorkflowResource defines the Microsoft Graph client and permissions for the lifecycle workflow resource.
 type LifecycleWorkflowResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -91,7 +92,7 @@ func (r *LifecycleWorkflowResource) ImportState(ctx context.Context, req resourc
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *LifecycleWorkflowResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

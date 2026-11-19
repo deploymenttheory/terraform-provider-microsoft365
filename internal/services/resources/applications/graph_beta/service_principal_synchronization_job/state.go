@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
+// MapRemoteStateToTerraform maps the remote Microsoft Graph response to Terraform state.
 func MapRemoteStateToTerraform(data *ServicePrincipalSynchronizationJobResourceModel, remote graphmodels.SynchronizationJobable) error {
 	if remote == nil || remote.GetId() == nil || *remote.GetId() == "" || remote.GetTemplateId() == nil || remote.GetSchedule() == nil || remote.GetSchedule().GetState() == nil {
 		return errJobResponse
@@ -31,6 +32,7 @@ func MapRemoteStateToTerraform(data *ServicePrincipalSynchronizationJobResourceM
 	return nil
 }
 
+// jobConsistencyPredicate checks that the job template and enabled state match the written configuration.
 func jobConsistencyPredicate(expected *ServicePrincipalSynchronizationJobResourceModel) func(context.Context, tfsdk.State) bool {
 	return func(ctx context.Context, state tfsdk.State) bool {
 		var actual ServicePrincipalSynchronizationJobResourceModel

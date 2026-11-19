@@ -90,6 +90,7 @@ func defaultProfile() map[string]any {
 	}
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *Mock) RegisterMocks() {
 	m.CleanupMockState()
 	item := endpoint + "/" + ProfileID
@@ -194,6 +195,7 @@ func (m *Mock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *Mock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", endpoint, httpmock.NewStringResponder(
 		403,
@@ -201,6 +203,7 @@ func (m *Mock) RegisterErrorMocks() {
 	))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *Mock) CleanupMockState() {
 	m.Lock()
 	defer m.Unlock()

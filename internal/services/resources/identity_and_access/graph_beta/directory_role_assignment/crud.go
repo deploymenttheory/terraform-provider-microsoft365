@@ -20,6 +20,13 @@ import (
 
 var errEmptyAssignment = errors.New("empty directory role assignment response during deletion verification")
 
+// Create handles the Create operation for directory role assignment resources.
+//
+// Operation: Creates a permanent active tenant-scoped directory role assignment
+// API Calls:
+//   - POST /roleManagement/directory/roleAssignments
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/unifiedroleassignment?view=graph-rest-beta
 func (r *DirectoryRoleAssignmentResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data DirectoryRoleAssignmentResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -81,6 +88,13 @@ func (r *DirectoryRoleAssignmentResource) Create(ctx context.Context, req resour
 	}
 }
 
+// Read handles the Read operation for directory role assignment resources.
+//
+// Operation: Retrieves the directory role assignment by ID
+// API Calls:
+//   - GET /roleManagement/directory/roleAssignments/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/unifiedroleassignment?view=graph-rest-beta
 func (r *DirectoryRoleAssignmentResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data DirectoryRoleAssignmentResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -119,10 +133,25 @@ func (r *DirectoryRoleAssignmentResource) Read(ctx context.Context, req resource
 	}
 }
 
+// Update handles the Update operation for directory role assignment resources.
+//
+// Operation: Rejects in-place updates because role and principal changes require replacement
+// API Calls:
+//   - None (replacement required)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/unifiedroleassignment?view=graph-rest-beta
 func (r *DirectoryRoleAssignmentResource) Update(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
 	resp.Diagnostics.AddError("Unexpected directory role assignment update", "Assignment identity changes require replacement.")
 }
 
+// Delete handles the Delete operation for directory role assignment resources.
+//
+// Operation: Deletes the directory role assignment
+// API Calls:
+//   - DELETE /roleManagement/directory/roleAssignments/{id}
+//   - GET /roleManagement/directory/roleAssignments/{id} (verifies deletion)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/unifiedroleassignment?view=graph-rest-beta
 func (r *DirectoryRoleAssignmentResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data DirectoryRoleAssignmentResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)

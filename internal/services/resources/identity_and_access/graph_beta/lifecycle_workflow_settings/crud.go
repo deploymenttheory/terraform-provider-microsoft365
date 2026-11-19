@@ -15,7 +15,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
-// Create adopts the tenant lifecycle workflow settings and applies the configuration.
+// Create handles the Create operation for lifecycle workflow settings resources.
 //
 // Operation: The lifecycle workflow settings are a singleton that always exists in the tenant and has no POST
 // endpoint. Create applies the configured values with PATCH; unconfigured values keep their tenant values.
@@ -87,7 +87,7 @@ func (r *LifecycleWorkflowSettingsResource) Create(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the lifecycle workflow settings resource.
+// Read handles the Read operation for lifecycle workflow settings resources.
 //
 // Operation: Retrieves the tenant lifecycle workflow settings
 // API Calls:
@@ -149,7 +149,7 @@ func (r *LifecycleWorkflowSettingsResource) Read(ctx context.Context, req resour
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for the lifecycle workflow settings resource.
+// Update handles the Update operation for lifecycle workflow settings resources.
 //
 // Operation: Applies the configured values to the tenant lifecycle workflow settings
 // API Calls:
@@ -212,11 +212,14 @@ func (r *LifecycleWorkflowSettingsResource) Update(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, state.ID.ValueString()))
 }
 
-// Delete releases Terraform management without changing the tenant-wide lifecycle workflow settings.
+// Delete handles the Delete operation for lifecycle workflow settings resources.
 //
 // Operation: The singleton settings cannot be deleted. Delete only removes the resource from Terraform
 // state and leaves the tenant settings as they are.
-// API Calls: none
+// API Calls:
+//   - None (state only)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/identitygovernance-lifecyclemanagementsettings?view=graph-rest-beta
 func (r *LifecycleWorkflowSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

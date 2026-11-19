@@ -49,6 +49,7 @@ func hasGraphChanges(ctx context.Context, plan tfsdk.Plan, state tfsdk.State) (b
 	return false, diags
 }
 
+// changed checks whether the configured value differs from the previous state.
 func changed(planValue, stateValue attr.Value) bool {
 	return planValue.IsUnknown() || !planValue.Equal(stateValue)
 }

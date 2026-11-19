@@ -15,7 +15,7 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
-// Create adopts the tenant authentication methods policy and applies the configuration.
+// Create handles the Create operation for authentication methods policy resources.
 //
 // Operation: The authenticationMethodsPolicy is a singleton that always exists in the tenant and has no POST
 // endpoint. Create PATCHes the configured policy-level settings and each configured method configuration.
@@ -84,7 +84,7 @@ func (r *AuthenticationMethodsPolicyResource) Create(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished Create Method: %s", ResourceName))
 }
 
-// Read handles the Read operation for the authentication methods policy resource.
+// Read handles the Read operation for authentication methods policy resources.
 //
 // Operation: Retrieves the tenant authentication methods policy, which includes its method configurations
 // API Calls:
@@ -145,7 +145,7 @@ func (r *AuthenticationMethodsPolicyResource) Read(ctx context.Context, req reso
 	tflog.Debug(ctx, fmt.Sprintf("Finished Read Method: %s", ResourceName))
 }
 
-// Update handles the Update operation for the authentication methods policy resource.
+// Update handles the Update operation for authentication methods policy resources.
 //
 // Operation: PATCHes the policy-level settings and each method configuration that changed
 // API Calls:
@@ -205,11 +205,14 @@ func (r *AuthenticationMethodsPolicyResource) Update(ctx context.Context, req re
 	tflog.Debug(ctx, fmt.Sprintf("Finished updating %s with ID: %s", ResourceName, singletonID))
 }
 
-// Delete releases Terraform management without changing the tenant-wide authentication methods policy.
+// Delete handles the Delete operation for authentication methods policy resources.
 //
 // Operation: The singleton policy cannot be deleted. Delete only removes the resource from Terraform
 // state and leaves the tenant policy and its method configurations as they are.
-// API Calls: none
+// API Calls:
+//   - None (state only)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/authenticationmethodspolicy?view=graph-rest-beta
 func (r *AuthenticationMethodsPolicyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
 

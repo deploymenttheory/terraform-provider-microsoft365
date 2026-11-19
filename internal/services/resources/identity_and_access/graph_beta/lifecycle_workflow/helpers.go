@@ -56,6 +56,7 @@ func planUpdateKind(ctx context.Context, plan tfsdk.Plan, state tfsdk.State) (up
 	return updateNone, diags
 }
 
+// attributePair returns the named attribute values from the plan and prior state.
 func attributePair(ctx context.Context, plan tfsdk.Plan, state tfsdk.State, name string) (attr.Value, attr.Value, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	var planValue, stateValue attr.Value

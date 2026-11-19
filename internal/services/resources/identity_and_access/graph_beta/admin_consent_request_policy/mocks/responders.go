@@ -19,6 +19,7 @@ var state struct {
 	puts   []map[string]any
 }
 
+// AdminConsentRequestPolicyMock provides HTTP responders and state for resource tests.
 type AdminConsentRequestPolicyMock struct{}
 
 func init() {
@@ -33,6 +34,7 @@ func reply(status int, body any) (*http.Response, error) {
 	return response, nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *AdminConsentRequestPolicyMock) RegisterMocks() {
 	httpmock.RegisterResponder("GET", policyURL, func(_ *http.Request) (*http.Response, error) {
 		state.Lock()
@@ -65,6 +67,7 @@ func (m *AdminConsentRequestPolicyMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *AdminConsentRequestPolicyMock) RegisterErrorMocks() {
 	for _, method := range []string{"GET", "PUT"} {
 		httpmock.RegisterResponder(method, policyURL, func(_ *http.Request) (*http.Response, error) {
@@ -73,6 +76,7 @@ func (m *AdminConsentRequestPolicyMock) RegisterErrorMocks() {
 	}
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *AdminConsentRequestPolicyMock) CleanupMockState() {
 	state.Lock()
 	defer state.Unlock()

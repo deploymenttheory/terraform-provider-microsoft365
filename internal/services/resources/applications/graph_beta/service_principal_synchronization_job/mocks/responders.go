@@ -24,6 +24,7 @@ var state struct {
 	starts, pauses, creates int
 }
 
+// ServicePrincipalSynchronizationJobMock provides HTTP responders and state for resource tests.
 type ServicePrincipalSynchronizationJobMock struct{}
 
 func init() {
@@ -54,6 +55,7 @@ func fixture() (map[string]any, error) {
 	return body, nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *ServicePrincipalSynchronizationJobMock) RegisterMocks() {
 	httpmock.RegisterResponder("POST", collectionURL, func(req *http.Request) (*http.Response, error) {
 		var body map[string]any
@@ -111,6 +113,7 @@ func (m *ServicePrincipalSynchronizationJobMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *ServicePrincipalSynchronizationJobMock) RegisterErrorMocks() {
 	for _, method := range []string{"GET", "DELETE", "POST"} {
 		url := collectionURL
@@ -121,6 +124,7 @@ func (m *ServicePrincipalSynchronizationJobMock) RegisterErrorMocks() {
 	}
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *ServicePrincipalSynchronizationJobMock) CleanupMockState() {
 	state.Lock()
 	defer state.Unlock()

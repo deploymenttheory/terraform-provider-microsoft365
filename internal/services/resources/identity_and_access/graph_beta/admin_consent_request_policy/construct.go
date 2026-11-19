@@ -12,6 +12,7 @@ import (
 
 var errReviewers = errors.New("invalid admin consent reviewer configuration")
 
+// constructResource converts the Terraform resource model to a Microsoft Graph request body.
 func constructResource(ctx context.Context, data *AdminConsentRequestPolicyResourceModel) (graphmodels.AdminConsentRequestPolicyable, error) {
 	body := graphmodels.NewAdminConsentRequestPolicy()
 	convert.FrameworkToGraphBool(data.IsEnabled, body.SetIsEnabled)

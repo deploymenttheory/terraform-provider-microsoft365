@@ -57,7 +57,9 @@ var (
 	_ resource.ResourceWithIdentity = &RoleDefinitionResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/rbacapplication-post-roledefinitions?view=graph-rest-beta
+// NewRoleDefinitionResource creates the role definition resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/rbacapplication-post-roledefinitions?view=graph-rest-beta
 func NewRoleDefinitionResource() resource.Resource {
 	return &RoleDefinitionResource{
 		ReadPermissions: []string{
@@ -69,6 +71,7 @@ func NewRoleDefinitionResource() resource.Resource {
 	}
 }
 
+// RoleDefinitionResource defines the Microsoft Graph client and permissions for the role definition resource.
 type RoleDefinitionResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -90,7 +93,7 @@ func (r *RoleDefinitionResource) ImportState(ctx context.Context, req resource.I
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *RoleDefinitionResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

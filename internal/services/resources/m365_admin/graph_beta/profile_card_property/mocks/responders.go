@@ -36,6 +36,7 @@ func init() {
 	mocks.GlobalRegistry.Register("m365_admin_profile_card_property", &ProfileCardPropertyMock{})
 }
 
+// ProfileCardPropertyMock provides HTTP responders and state for resource tests.
 type ProfileCardPropertyMock struct{}
 
 var _ mocks.MockRegistrar = (*ProfileCardPropertyMock)(nil)
@@ -81,6 +82,7 @@ func normalizeAnnotations(value any) []any {
 	return annotations
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *ProfileCardPropertyMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.profileCardProperties = make(map[string]map[string]any)
@@ -196,6 +198,7 @@ func (m *ProfileCardPropertyMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *ProfileCardPropertyMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	httpmock.RegisterResponder("POST", profileCardPropertiesURL, httpmock.NewStringResponder(400, badRequestBody))
@@ -212,6 +215,7 @@ func (m *ProfileCardPropertyMock) RegisterForbiddenMocks() {
 	httpmock.RegisterResponder("DELETE", profileCardPropertyItemURL, httpmock.NewStringResponder(403, forbiddenBody))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *ProfileCardPropertyMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.profileCardProperties = make(map[string]map[string]any)

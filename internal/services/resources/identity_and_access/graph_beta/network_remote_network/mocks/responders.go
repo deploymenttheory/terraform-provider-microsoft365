@@ -172,6 +172,7 @@ func (m *RemoteNetworkMock) record(req *http.Request, body map[string]any) {
 	m.Requests = append(m.Requests, Request{Method: req.Method, Path: req.URL.Path, Body: body})
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *RemoteNetworkMock) RegisterMocks() {
 	m.CleanupMockState()
 
@@ -316,6 +317,7 @@ func (m *RemoteNetworkMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *RemoteNetworkMock) RegisterErrorMocks() {
 	forbidden := httpmock.NewStringResponder(403, `{"error":{"code":"Forbidden","message":"Insufficient privileges to complete the operation."}}`)
 	httpmock.RegisterResponder("POST", collectionURL, forbidden)
@@ -325,6 +327,7 @@ func (m *RemoteNetworkMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("DELETE", itemURLRegex, forbidden)
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *RemoteNetworkMock) CleanupMockState() {
 	m.Lock()
 	defer m.Unlock()

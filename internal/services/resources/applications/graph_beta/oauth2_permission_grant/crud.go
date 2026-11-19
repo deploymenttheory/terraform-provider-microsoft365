@@ -22,7 +22,13 @@ const grantPollInterval = 2 * time.Second
 
 var errGrantResponse = errors.New("delegated permission grant or grant ID missing from Microsoft Graph response")
 
-// Create posts an owned consent grant to /beta/oauth2PermissionGrants.
+// Create handles the Create operation for OAuth2 permission grant resources.
+//
+// Operation: Creates a new OAuth2 permission grant
+// API Calls:
+//   - POST /oauth2PermissionGrants
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-beta
 func (r *OAuth2PermissionGrantResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object OAuth2PermissionGrantResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
@@ -79,8 +85,15 @@ func (r *OAuth2PermissionGrantResource) Create(ctx context.Context, req resource
 	}
 }
 
-// Read refreshes a grant by its opaque ID. Repeated 404s confirm deletion during
-// ordinary refresh; a post-write 404 remains an error for shared read retries.
+// Read handles the Read operation for OAuth2 permission grant resources.
+//
+// Operation: Retrieves the OAuth2 permission grant by ID
+// API Calls:
+//   - GET /oauth2PermissionGrants/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-beta
+//
+// Note: Repeated 404s confirm deletion during ordinary refresh; a post-write 404 remains an error for shared read retries.
 func (r *OAuth2PermissionGrantResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object OAuth2PermissionGrantResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -140,7 +153,13 @@ func (r *OAuth2PermissionGrantResource) Read(ctx context.Context, req resource.R
 	}
 }
 
-// Update changes the complete scope set with a scope-only beta PATCH.
+// Update handles the Update operation for OAuth2 permission grant resources.
+//
+// Operation: Replaces the scope set with a scope-only PATCH; consent identity changes require replacement
+// API Calls:
+//   - PATCH /oauth2PermissionGrants/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-beta
 func (r *OAuth2PermissionGrantResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan, state OAuth2PermissionGrantResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
@@ -190,8 +209,16 @@ func (r *OAuth2PermissionGrantResource) Update(ctx context.Context, req resource
 	}
 }
 
-// Delete removes the grant itself, then verifies its disappearance before
-// removing state. A missing-object write response alone can be a stale replica.
+// Delete handles the Delete operation for OAuth2 permission grant resources.
+//
+// Operation: Deletes the OAuth2 permission grant
+// API Calls:
+//   - DELETE /oauth2PermissionGrants/{id}
+//   - GET /oauth2PermissionGrants/{id} (verifies deletion)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/oauth2permissiongrant?view=graph-rest-beta
+//
+// Note: Deletion is verified before removing state. A missing-object write response alone can be a stale replica.
 func (r *OAuth2PermissionGrantResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object OAuth2PermissionGrantResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)

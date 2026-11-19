@@ -34,19 +34,30 @@ const (
 )
 
 var (
-	_ resource.Resource                   = &OAuth2PermissionGrantResource{}
-	_ resource.ResourceWithConfigure      = &OAuth2PermissionGrantResource{}
-	_ resource.ResourceWithImportState    = &OAuth2PermissionGrantResource{}
-	_ resource.ResourceWithIdentity       = &OAuth2PermissionGrantResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &OAuth2PermissionGrantResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &OAuth2PermissionGrantResource{}
+
+	// Enables import functionality
+	_ resource.ResourceWithImportState = &OAuth2PermissionGrantResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &OAuth2PermissionGrantResource{}
+
+	// Enables resource-specific configuration validation
 	_ resource.ResourceWithValidateConfig = &OAuth2PermissionGrantResource{}
 )
 
+// OAuth2PermissionGrantResource defines the Microsoft Graph client and permissions for the OAuth2 permission grant resource.
 type OAuth2PermissionGrantResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
+// NewOAuth2PermissionGrantResource creates the OAuth2 permission grant resource.
 func NewOAuth2PermissionGrantResource() resource.Resource {
 	return &OAuth2PermissionGrantResource{
 		ReadPermissions:  []string{"Directory.Read.All"},
@@ -54,14 +65,17 @@ func NewOAuth2PermissionGrantResource() resource.Resource {
 	}
 }
 
+// Metadata returns the resource type name.
 func (r *OAuth2PermissionGrantResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *OAuth2PermissionGrantResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
+// ImportState imports the resource state.
 func (r *OAuth2PermissionGrantResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if strings.TrimSpace(req.ID) == "" || strings.Contains(req.ID, "/") {
 		resp.Diagnostics.AddError("Invalid import ID", "Supply the opaque Microsoft Graph delegated permission grant ID, without an API path.")
@@ -70,12 +84,14 @@ func (r *OAuth2PermissionGrantResource) ImportState(ctx context.Context, req res
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *OAuth2PermissionGrantResource) IdentitySchema(_ context.Context, _ resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{Attributes: map[string]identityschema.Attribute{
 		"id": identityschema.StringAttribute{RequiredForImport: true},
 	}}
 }
 
+// Schema defines the schema for the resource.
 func (r *OAuth2PermissionGrantResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	guid := stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "must be a valid UUID")
 	resp.Schema = schema.Schema{
@@ -127,6 +143,7 @@ func (r *OAuth2PermissionGrantResource) Schema(ctx context.Context, _ resource.S
 	}
 }
 
+// ValidateConfig validates the resource configuration.
 func (r *OAuth2PermissionGrantResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var scopes types.Set
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("scopes"), &scopes)...)

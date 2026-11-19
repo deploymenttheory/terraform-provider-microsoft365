@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/graph/api/resources/adminconsentrequestpolicy?view=graph-rest-beta
 package graphBetaAdminConsentRequestPolicy
 
 import (
@@ -6,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// AdminConsentRequestPolicyResourceModel represents the schema for the admin consent request policy resource.
 type AdminConsentRequestPolicyResourceModel struct {
 	ID                    types.String   `tfsdk:"id"`
 	IsEnabled             types.Bool     `tfsdk:"is_enabled"`
@@ -16,6 +18,8 @@ type AdminConsentRequestPolicyResourceModel struct {
 	Version               types.Int32    `tfsdk:"version"`
 	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 }
+
+// ReviewerModel represents a reviewer query for the admin consent request policy.
 type ReviewerModel struct {
 	Query     types.String `tfsdk:"query"`
 	QueryType types.String `tfsdk:"query_type"`

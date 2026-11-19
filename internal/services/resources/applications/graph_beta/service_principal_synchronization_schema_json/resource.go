@@ -43,7 +43,9 @@ var (
 	_ resource.ResourceWithIdentity = &ServicePrincipalSynchronizationSchemaJsonResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationschema-update?view=graph-rest-beta
+// NewServicePrincipalSynchronizationSchemaJsonResource creates the service principal synchronization schema JSON resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/synchronization-synchronizationschema-update?view=graph-rest-beta
 func NewServicePrincipalSynchronizationSchemaJsonResource() resource.Resource {
 	return &ServicePrincipalSynchronizationSchemaJsonResource{
 		ReadPermissions: []string{
@@ -56,6 +58,7 @@ func NewServicePrincipalSynchronizationSchemaJsonResource() resource.Resource {
 	}
 }
 
+// ServicePrincipalSynchronizationSchemaJsonResource defines the Microsoft Graph client and permissions for the service principal synchronization schema JSON resource.
 type ServicePrincipalSynchronizationSchemaJsonResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -88,7 +91,7 @@ func (r *ServicePrincipalSynchronizationSchemaJsonResource) ImportState(ctx cont
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("job_id"), jobId)...)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *ServicePrincipalSynchronizationSchemaJsonResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

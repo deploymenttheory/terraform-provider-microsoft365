@@ -70,6 +70,7 @@ func nullFieldResponse(request map[string]any) *http.Response {
 	return nil
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *ConnectedOrganizationMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.connectedOrganizations = make(map[string]map[string]any)
@@ -184,6 +185,7 @@ func (m *ConnectedOrganizationMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *ConnectedOrganizationMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("POST", collectionURL, httpmock.NewStringResponder(403, forbiddenBody))
 	httpmock.RegisterResponder("GET", itemURLRegex, httpmock.NewStringResponder(404, notFoundBody))
@@ -191,6 +193,7 @@ func (m *ConnectedOrganizationMock) RegisterErrorMocks() {
 	httpmock.RegisterResponder("DELETE", itemURLRegex, httpmock.NewStringResponder(400, badRequestBody))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *ConnectedOrganizationMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.connectedOrganizations = make(map[string]map[string]any)

@@ -53,7 +53,9 @@ var (
 	_ resource.ResourceWithIdentity = &EndpointSecurityIntentResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/intune-deviceintent-devicemanagementintent-create?view=graph-rest-beta
+// NewEndpointSecurityIntentResource creates the endpoint security intent resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/intune-deviceintent-devicemanagementintent-create?view=graph-rest-beta
 func NewEndpointSecurityIntentResource() resource.Resource {
 	return &EndpointSecurityIntentResource{
 		ReadPermissions: []string{
@@ -65,6 +67,7 @@ func NewEndpointSecurityIntentResource() resource.Resource {
 	}
 }
 
+// EndpointSecurityIntentResource defines the Microsoft Graph client and permissions for the endpoint security intent resource.
 type EndpointSecurityIntentResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -99,7 +102,7 @@ func (r *EndpointSecurityIntentResource) ImportState(ctx context.Context, req re
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("settings"), importedSettings(definitionIds))...)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *EndpointSecurityIntentResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

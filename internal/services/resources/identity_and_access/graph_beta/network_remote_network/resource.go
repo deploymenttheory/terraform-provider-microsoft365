@@ -41,8 +41,13 @@ var regions = []string{
 }
 
 var (
-	_ resource.Resource                = &NetworkRemoteNetworkResource{}
-	_ resource.ResourceWithConfigure   = &NetworkRemoteNetworkResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &NetworkRemoteNetworkResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &NetworkRemoteNetworkResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &NetworkRemoteNetworkResource{}
 )
 
@@ -53,7 +58,9 @@ type NetworkRemoteNetworkResource struct {
 	WritePermissions []string
 }
 
-// https://learn.microsoft.com/en-us/graph/api/networkaccess-connectivity-post-remotenetworks?view=graph-rest-beta#permissions
+// NewNetworkRemoteNetworkResource creates the network remote network resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-connectivity-post-remotenetworks?view=graph-rest-beta#permissions
 func NewNetworkRemoteNetworkResource() resource.Resource {
 	return &NetworkRemoteNetworkResource{
 		ReadPermissions:  []string{"NetworkAccess.Read.All"},
@@ -61,14 +68,17 @@ func NewNetworkRemoteNetworkResource() resource.Resource {
 	}
 }
 
+// Metadata returns the resource type name.
 func (r *NetworkRemoteNetworkResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *NetworkRemoteNetworkResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
+// ImportState imports the resource state.
 func (r *NetworkRemoteNetworkResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if _, err := uuid.Parse(req.ID); err != nil {
 		resp.Diagnostics.AddError("Invalid import ID", "Use the remote network ID (a GUID) returned by Microsoft Graph.")
@@ -77,6 +87,7 @@ func (r *NetworkRemoteNetworkResource) ImportState(ctx context.Context, req reso
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
+// Schema defines the schema for the resource.
 func (r *NetworkRemoteNetworkResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a Microsoft Entra Global Secure Access remote network and its forwarding profile associations using the Microsoft Graph beta " +

@@ -1,3 +1,4 @@
+// REF: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 package graphBetaNetworkDefaultForwardingProfile
 
 import (
@@ -23,6 +24,7 @@ type NetworkDefaultForwardingProfileResourceModel struct {
 	Timeouts                 timeouts.Value `tfsdk:"timeouts"`
 }
 
+// settings returns the forwarding profile settings represented by the Terraform model.
 func (m NetworkDefaultForwardingProfileResourceModel) settings() sharedmodels.ForwardingProfileSettings {
 	return sharedmodels.ForwardingProfileSettings{
 		State:                    m.State,

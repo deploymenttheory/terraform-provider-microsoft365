@@ -15,6 +15,13 @@ import (
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
+// Create handles the Create operation for network internet access forwarding policy rule resources.
+//
+// Operation: Creates a new network internet access forwarding policy rule
+// API Calls:
+//   - POST /networkAccess/forwardingPolicies/{forwardingPolicyId}/policyRules
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkInternetAccessForwardingPolicyRuleResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
@@ -60,6 +67,13 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Create(ctx context.C
 	}
 }
 
+// Read handles the Read operation for network internet access forwarding policy rule resources.
+//
+// Operation: Retrieves the network internet access forwarding policy rule by ID
+// API Calls:
+//   - GET /networkAccess/forwardingPolicies/{forwardingPolicyId}/policyRules/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object NetworkInternetAccessForwardingPolicyRuleResourceModel
 	var identity sharedmodels.ResourceIdentity
@@ -104,6 +118,13 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Read(ctx context.Con
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
 
+// Update handles the Update operation for network internet access forwarding policy rule resources.
+//
+// Operation: Updates the network internet access forwarding policy rule
+// API Calls:
+//   - PATCH /networkAccess/forwardingPolicies/{forwardingPolicyId}/policyRules/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan NetworkInternetAccessForwardingPolicyRuleResourceModel
 	var state NetworkInternetAccessForwardingPolicyRuleResourceModel
@@ -147,6 +168,13 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Update(ctx context.C
 	}
 }
 
+// Delete handles the Delete operation for network internet access forwarding policy rule resources.
+//
+// Operation: Deletes the network internet access forwarding policy rule
+// API Calls:
+//   - DELETE /networkAccess/forwardingPolicies/{forwardingPolicyId}/policyRules/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-manage-internet-access-profile
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object NetworkInternetAccessForwardingPolicyRuleResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &object)...)
@@ -169,6 +197,7 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Delete(ctx context.C
 	resp.State.RemoveResource(ctx)
 }
 
+// createRuleWithPreconditionRetry creates the rule with bounded retries for policy precondition conflicts.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) createRuleWithPreconditionRetry(ctx context.Context, policyID string, requestBody s.Parsable) (*internetAccessForwardingRuleResponse, error) {
 	var created *internetAccessForwardingRuleResponse
 	err := r.withPolicyRulePreconditionRetry(ctx, "create", policyID, "", func() error {
@@ -182,18 +211,21 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) createRuleWithPrecon
 	return created, err
 }
 
+// updateRuleWithPreconditionRetry updates the rule with bounded retries for policy precondition conflicts.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) updateRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string, requestBody s.Parsable) error {
 	return r.withPolicyRulePreconditionRetry(ctx, "update", policyID, ruleID, func() error {
 		return r.updateRule(ctx, policyID, ruleID, requestBody)
 	})
 }
 
+// deleteRuleWithPreconditionRetry deletes the rule with bounded retries for policy precondition conflicts.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) deleteRuleWithPreconditionRetry(ctx context.Context, policyID, ruleID string) error {
 	return r.withPolicyRulePreconditionRetry(ctx, "delete", policyID, ruleID, func() error {
 		return r.deleteRule(ctx, policyID, ruleID)
 	})
 }
 
+// withPolicyRulePreconditionRetry retries the rule operation when its policy precondition changes.
 func (r *NetworkInternetAccessForwardingPolicyRuleResource) withPolicyRulePreconditionRetry(ctx context.Context, operation, policyID, ruleID string, fn func() error) error {
 	const (
 		maxPreconditionRetries = 3

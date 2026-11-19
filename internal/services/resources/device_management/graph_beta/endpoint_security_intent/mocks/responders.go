@@ -51,6 +51,7 @@ func init() {
 	mocks.GlobalRegistry.Register("endpoint_security_intent", &EndpointSecurityIntentMock{})
 }
 
+// EndpointSecurityIntentMock provides HTTP responders and state for resource tests.
 type EndpointSecurityIntentMock struct{}
 
 var _ mocks.MockRegistrar = (*EndpointSecurityIntentMock)(nil)
@@ -138,6 +139,7 @@ func applySettings(state *intentState, settings []any) (int, string) {
 	return 0, ""
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *EndpointSecurityIntentMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.intents = make(map[string]*intentState)
@@ -316,6 +318,7 @@ func (m *EndpointSecurityIntentMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *EndpointSecurityIntentMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	httpmock.RegisterResponder("POST", createInstanceUrl, httpmock.NewStringResponder(400, `{"error":{"code":"BadRequest","message":"Invalid request"}}`))
@@ -349,6 +352,7 @@ func (m *EndpointSecurityIntentMock) SettingValue(id, definitionId string) strin
 	return ""
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *EndpointSecurityIntentMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.intents = make(map[string]*intentState)

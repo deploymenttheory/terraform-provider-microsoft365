@@ -29,18 +29,27 @@ const (
 )
 
 var (
-	_ resource.Resource                = &ServicePrincipalSynchronizationJobResource{}
-	_ resource.ResourceWithConfigure   = &ServicePrincipalSynchronizationJobResource{}
+	// Basic resource interface (CRUD operations)
+	_ resource.Resource = &ServicePrincipalSynchronizationJobResource{}
+
+	// Allows the resource to be configured with the provider client
+	_ resource.ResourceWithConfigure = &ServicePrincipalSynchronizationJobResource{}
+
+	// Enables import functionality
 	_ resource.ResourceWithImportState = &ServicePrincipalSynchronizationJobResource{}
-	_ resource.ResourceWithIdentity    = &ServicePrincipalSynchronizationJobResource{}
+
+	// Enables identity schema for list resource support
+	_ resource.ResourceWithIdentity = &ServicePrincipalSynchronizationJobResource{}
 )
 
+// ServicePrincipalSynchronizationJobResource defines the Microsoft Graph client and permissions for the service principal synchronization job resource.
 type ServicePrincipalSynchronizationJobResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
 	WritePermissions []string
 }
 
+// NewServicePrincipalSynchronizationJobResource creates the service principal synchronization job resource.
 func NewServicePrincipalSynchronizationJobResource() resource.Resource {
 	return &ServicePrincipalSynchronizationJobResource{
 		ReadPermissions:  []string{"Synchronization.Read.All"},
@@ -48,14 +57,17 @@ func NewServicePrincipalSynchronizationJobResource() resource.Resource {
 	}
 }
 
+// Metadata returns the resource type name.
 func (r *ServicePrincipalSynchronizationJobResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = ResourceName
 }
 
+// Configure sets the client for the resource.
 func (r *ServicePrincipalSynchronizationJobResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.client = client.SetGraphBetaClientForResource(ctx, req, resp, ResourceName)
 }
 
+// ImportState imports the resource state.
 func (r *ServicePrincipalSynchronizationJobResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parent, job, err := parseResourceID(req.ID)
 	if err != nil {
@@ -67,10 +79,12 @@ func (r *ServicePrincipalSynchronizationJobResource) ImportState(ctx context.Con
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("job_id"), job)...)
 }
 
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *ServicePrincipalSynchronizationJobResource) IdentitySchema(_ context.Context, _ resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{Attributes: map[string]identityschema.Attribute{"id": identityschema.StringAttribute{RequiredForImport: true}}}
 }
 
+// Schema defines the schema for the resource.
 func (r *ServicePrincipalSynchronizationJobResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a service principal provisioning job through Microsoft Graph beta `/servicePrincipals/{id}/synchronization/jobs`. Jobs are created disabled by default. Set `enabled = true` only after configuring the target credentials and schema. Changing the parent or synchronization template replaces the job. Destroy deletes the job and its synchronization state, while retaining the parent application and accounts already provisioned to the target.",

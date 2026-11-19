@@ -50,8 +50,10 @@ var (
 	_ resource.ResourceWithIdentity = &LifecycleWorkflowSettingsResource{}
 )
 
-// https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecyclemanagementsettings-get?view=graph-rest-beta#permissions
-// https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecyclemanagementsettings-update?view=graph-rest-beta#permissions
+// NewLifecycleWorkflowSettingsResource creates the lifecycle workflow settings resource.
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecyclemanagementsettings-get?view=graph-rest-beta#permissions
+// Reference: https://learn.microsoft.com/en-us/graph/api/identitygovernance-lifecyclemanagementsettings-update?view=graph-rest-beta#permissions
 func NewLifecycleWorkflowSettingsResource() resource.Resource {
 	return &LifecycleWorkflowSettingsResource{
 		ReadPermissions: []string{
@@ -63,6 +65,7 @@ func NewLifecycleWorkflowSettingsResource() resource.Resource {
 	}
 }
 
+// LifecycleWorkflowSettingsResource defines the Microsoft Graph client and permissions for the lifecycle workflow settings resource.
 type LifecycleWorkflowSettingsResource struct {
 	client           *msgraphbetasdk.GraphServiceClient
 	ReadPermissions  []string
@@ -91,7 +94,7 @@ func (r *LifecycleWorkflowSettingsResource) ImportState(ctx context.Context, req
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-// IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
+// IdentitySchema defines the identity schema used by list operations to uniquely identify instances.
 func (r *LifecycleWorkflowSettingsResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {
 	resp.IdentitySchema = identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{

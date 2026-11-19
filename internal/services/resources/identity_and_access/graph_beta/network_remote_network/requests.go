@@ -29,6 +29,7 @@ var (
 // deletionPollInterval is a variable so unit tests can shorten it.
 var deletionPollInterval = 5 * time.Second
 
+// profileRefs builds forwarding profile references from their IDs.
 func profileRefs(ids []string) []map[string]string {
 	refs := make([]map[string]string, 0, len(ids))
 	for _, id := range ids {
@@ -37,6 +38,7 @@ func profileRefs(ids []string) []map[string]string {
 	return refs
 }
 
+// create creates the resource in Microsoft Graph.
 func (r *NetworkRemoteNetworkResource) create(ctx context.Context, name, region string, profileIDs []string) (*remoteNetworkResponse, error) {
 	if len(profileIDs) == 0 {
 		return nil, errNoForwardingProfiles
@@ -68,6 +70,7 @@ func (r *NetworkRemoteNetworkResource) get(ctx context.Context, id string) (*rem
 	return &response, nil
 }
 
+// updateName updates the remote network name without changing its forwarding profiles.
 func (r *NetworkRemoteNetworkResource) updateName(ctx context.Context, id, name string) error {
 	if err := customrequests.JSONRequest(
 		ctx, r.client.GetAdapter(), abstractions.PATCH, itemPath, map[string]string{"remoteNetworkId": id}, map[string]any{"name": name}, nil,
@@ -96,6 +99,7 @@ func (r *NetworkRemoteNetworkResource) updateForwardingProfiles(ctx context.Cont
 	return nil
 }
 
+// delete deletes the resource from Microsoft Graph.
 func (r *NetworkRemoteNetworkResource) delete(ctx context.Context, id string) error {
 	if err := customrequests.JSONRequest(
 		ctx, r.client.GetAdapter(), abstractions.DELETE, itemPath, map[string]string{"remoteNetworkId": id}, nil, nil,

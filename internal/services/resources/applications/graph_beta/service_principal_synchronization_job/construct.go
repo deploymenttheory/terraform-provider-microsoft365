@@ -16,6 +16,7 @@ var (
 	errJobResponse = errors.New("incomplete synchronization job response from Microsoft Graph")
 )
 
+// parseResourceID parses the parent and resource identifiers from the Terraform ID.
 func parseResourceID(id string) (string, string, error) {
 	parent, job, ok := strings.Cut(id, "/")
 	if !ok || !regexp.MustCompile(constants.GuidRegex).MatchString(parent) || strings.TrimSpace(job) == "" || strings.Contains(job, "/") {
@@ -24,6 +25,7 @@ func parseResourceID(id string) (string, string, error) {
 	return parent, job, nil
 }
 
+// constructResource converts the Terraform resource model to a Microsoft Graph request body.
 func constructResource(data *ServicePrincipalSynchronizationJobResourceModel) graphmodels.SynchronizationJobable {
 	body := graphmodels.NewSynchronizationJob()
 	convert.FrameworkToGraphString(data.TemplateID, body.SetTemplateId)

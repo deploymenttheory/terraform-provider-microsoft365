@@ -16,6 +16,16 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// Create handles the Create operation for network forwarding profile private access policy link resources.
+//
+// Operation: Adds or replaces the Private Access policy link using policies@delta
+// API Calls:
+//   - GET /networkAccess/forwardingProfiles/{id}?$expand=policies($expand=policy)
+//   - PATCH /networkAccess/forwardingProfiles/{id} (policies@delta)
+//   - GET /networkAccess/deviceForwardingProfiles/{id}?$expand=policies($expand=policy) (device profiles)
+//   - PATCH /networkAccess/deviceForwardingProfiles/{id} (device profiles; policies@delta)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-forwardingpolicylink?view=graph-rest-beta
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 	ctx context.Context,
 	req resource.CreateRequest,
@@ -111,6 +121,14 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Create(
 	}
 }
 
+// Read handles the Read operation for network forwarding profile private access policy link resources.
+//
+// Operation: Retrieves the linked policy from the selected user or device forwarding profile
+// API Calls:
+//   - GET /networkAccess/forwardingProfiles/{id}?$expand=policies($expand=policy)
+//   - GET /networkAccess/deviceForwardingProfiles/{id}?$expand=policies($expand=policy) (device profiles)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-forwardingpolicylink?view=graph-rest-beta
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
@@ -154,7 +172,13 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// Update only stores plan-only changes such as timeouts; everything else forces replacement.
+// Update handles the Update operation for network forwarding profile private access policy link resources.
+//
+// Operation: Stores plan-only changes; changes to link settings require replacement
+// API Calls:
+//   - None (replacement required for link settings)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-forwardingpolicylink?view=graph-rest-beta
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
@@ -168,6 +192,16 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Update(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
+// Delete handles the Delete operation for network forwarding profile private access policy link resources.
+//
+// Operation: Removes the owned policy link using policies@delta while retaining its profile and policy
+// API Calls:
+//   - GET /networkAccess/forwardingProfiles/{id}?$expand=policies($expand=policy)
+//   - PATCH /networkAccess/forwardingProfiles/{id} (policies@delta)
+//   - GET /networkAccess/deviceForwardingProfiles/{id}?$expand=policies($expand=policy) (device profiles)
+//   - PATCH /networkAccess/deviceForwardingProfiles/{id} (device profiles; policies@delta)
+//
+// Reference: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-forwardingpolicylink?view=graph-rest-beta
 func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
@@ -259,6 +293,7 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) restoreLink(
 	)
 }
 
+// linkMatchesPlan checks whether the policy link matches the planned configuration.
 func linkMatchesPlan(link *policyLink, plan *NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel) bool {
 	if !strings.EqualFold(link.State, plan.State.ValueString()) {
 		return false
@@ -294,6 +329,7 @@ func mapLinkToState(state *NetworkForwardingProfilePrivateAccessPolicyLinkResour
 	}
 }
 
+// readbackOptions configures shared read retries to verify the preceding write.
 func readbackOptions(
 	plan *NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel,
 	operation string,
@@ -316,6 +352,7 @@ func readbackOptions(
 	return opts
 }
 
+// matchesPlan checks whether remote state matches the planned settings.
 func matchesPlan(actual, plan *NetworkForwardingProfilePrivateAccessPolicyLinkResourceModel) bool {
 	if actual.PolicyLinkID.ValueString() == "" ||
 		!strings.EqualFold(actual.ForwardingPolicyID.ValueString(), plan.ForwardingPolicyID.ValueString()) ||

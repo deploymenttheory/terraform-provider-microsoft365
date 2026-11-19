@@ -115,6 +115,7 @@ func applyServerManagedValues(schema map[string]any, revision int) {
 	schema["version"] = version
 }
 
+// RegisterMocks registers HTTP responders for successful resource operations.
 func (m *ServicePrincipalSynchronizationSchemaJsonMock) RegisterMocks() {
 	defaultSchema, loadErr := loadJSONResponse("get_synchronization_schema_default.json")
 
@@ -202,6 +203,7 @@ func (m *ServicePrincipalSynchronizationSchemaJsonMock) RegisterMocks() {
 	})
 }
 
+// RegisterErrorMocks registers HTTP responders for API error responses.
 func (m *ServicePrincipalSynchronizationSchemaJsonMock) RegisterErrorMocks() {
 	// Error scenarios for testing
 	forbidden := `{"error":{"code":"Authorization_RequestDenied","message":"Insufficient privileges to complete the operation."}}`
@@ -211,6 +213,7 @@ func (m *ServicePrincipalSynchronizationSchemaJsonMock) RegisterErrorMocks() {
 	httpmock.RegisterRegexpResponder("DELETE", schemaURLPattern, httpmock.NewStringResponder(403, forbidden))
 }
 
+// CleanupMockState clears the resource mock state between tests.
 func (m *ServicePrincipalSynchronizationSchemaJsonMock) CleanupMockState() {
 	mockState.Lock()
 	mockState.defaultSchema = nil

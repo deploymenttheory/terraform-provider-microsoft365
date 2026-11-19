@@ -15,6 +15,14 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
+// Create handles the Create operation for network default forwarding profile resources.
+//
+// Operation: Finds and adopts the built-in profile, then applies configured differences
+// API Calls:
+//   - GET /networkaccess/forwardingProfiles (finds the built-in profile)
+//   - PATCH /networkaccess/forwardingProfiles/{id} (only when settings differ)
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 func (r *NetworkDefaultForwardingProfileResource) Create(
 	ctx context.Context,
 	req resource.CreateRequest,
@@ -83,6 +91,14 @@ func (r *NetworkDefaultForwardingProfileResource) Create(
 	}
 }
 
+// Read handles the Read operation for network default forwarding profile resources.
+//
+// Operation: Retrieves the built-in forwarding profile by ID or imported traffic type
+// API Calls:
+//   - GET /networkaccess/forwardingProfiles/{id}
+//   - GET /networkaccess/forwardingProfiles (when imported by traffic type)
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 func (r *NetworkDefaultForwardingProfileResource) Read(
 	ctx context.Context,
 	req resource.ReadRequest,
@@ -125,6 +141,13 @@ func (r *NetworkDefaultForwardingProfileResource) Read(
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
+// Update handles the Update operation for network default forwarding profile resources.
+//
+// Operation: Updates the network default forwarding profile
+// API Calls:
+//   - PATCH /networkaccess/forwardingProfiles/{id}
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 func (r *NetworkDefaultForwardingProfileResource) Update(
 	ctx context.Context,
 	req resource.UpdateRequest,
@@ -182,7 +205,13 @@ func (r *NetworkDefaultForwardingProfileResource) Update(
 	}
 }
 
-// Delete only removes state; changing a default profile affects the whole tenant.
+// Delete handles the Delete operation for network default forwarding profile resources.
+//
+// Operation: Removes Terraform state while retaining the built-in forwarding profile
+// API Calls:
+//   - None (state only)
+//
+// Reference: https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding
 func (r *NetworkDefaultForwardingProfileResource) Delete(
 	ctx context.Context,
 	req resource.DeleteRequest,
@@ -191,6 +220,7 @@ func (r *NetworkDefaultForwardingProfileResource) Delete(
 	resp.State.RemoveResource(ctx)
 }
 
+// readbackOptions configures shared read retries to verify the preceding write.
 func readbackOptions(
 	plan NetworkDefaultForwardingProfileResourceModel,
 	operation string,
@@ -212,6 +242,7 @@ func readbackOptions(
 	return opts
 }
 
+// matches checks whether remote state matches the configured settings.
 func matches(planned, actual attr.Value) bool {
 	return planned.IsUnknown() || planned.Equal(actual)
 }
