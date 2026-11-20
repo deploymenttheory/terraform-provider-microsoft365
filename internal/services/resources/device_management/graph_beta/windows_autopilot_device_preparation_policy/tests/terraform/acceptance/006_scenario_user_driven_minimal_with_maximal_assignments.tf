@@ -37,6 +37,7 @@ resource "time_sleep" "wait_for_device_group_ud_max_assign" {
 }
 
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "acc_test_ud_max_assign_device_group_owner" {
+
   group_id          = microsoft365_graph_beta_groups_group.acc_test_ud_max_assign_device_group.id
   owner_id          = data.microsoft365_graph_beta_applications_service_principal.intune_provisioning_client_ud_max_assign.id
   owner_object_type = "ServicePrincipal"
@@ -178,7 +179,7 @@ resource "microsoft365_graph_beta_device_management_windows_autopilot_device_pre
   device_security_group = microsoft365_graph_beta_groups_group.acc_test_ud_max_assign_device_group.id
 
   deployment_settings = {
-    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_1"
+    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0"
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_0"
     account_type    = "enrollment_autopilot_dpp_accountype_1"
   }

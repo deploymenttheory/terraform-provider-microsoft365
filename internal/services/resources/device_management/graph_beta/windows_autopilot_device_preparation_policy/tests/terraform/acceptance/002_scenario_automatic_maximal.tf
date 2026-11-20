@@ -17,7 +17,15 @@ resource "microsoft365_graph_beta_groups_group" "acc_test_auto_maximal_device_gr
   hard_delete      = true
 }
 
+# Allow the new group to become visible before assigning its provisioning owner.
+resource "time_sleep" "wait_for_acc_test_auto_maximal_device_group" {
+  depends_on      = [microsoft365_graph_beta_groups_group.acc_test_auto_maximal_device_group]
+  create_duration = "15s"
+}
+
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "acc_test_auto_maximal_device_group_owner" {
+  depends_on = [time_sleep.wait_for_acc_test_auto_maximal_device_group]
+
   group_id          = microsoft365_graph_beta_groups_group.acc_test_auto_maximal_device_group.id
   owner_id          = data.microsoft365_graph_beta_applications_service_principal.intune_provisioning_client_auto_maximal.id
   owner_object_type = "ServicePrincipal"

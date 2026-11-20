@@ -2,6 +2,8 @@ package graphBetaWindowsAutopilotDevicePreparationPolicy
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,6 +13,10 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+)
+
+var errMissingMembershipTargetStatuses = errors.New(
+	"enrollment-time device membership target response is missing validation statuses",
 )
 
 // mapResourceToState maps the resource data to the state model
@@ -180,7 +186,7 @@ func mapSettingsToState(
 			if isUserDriven {
 				extractIntValue(ctx, settingInstance, &stateModel.OOBESettings.TimeoutInMinutes)
 			}
-		case "enrollment_autopilot_dpp_custonerror":
+		case SettingDefCustomErrorMessage:
 			if isUserDriven {
 				extractStringValue(
 					ctx,
@@ -212,6 +218,33 @@ func mapSettingsToState(
 		stateModel.DeploymentSettings.JoinType = types.StringNull()
 	}
 
+	return nil
+}
+
+// mapEnrollmentTimeDeviceMembershipTargetToState maps the enrollment-time target to Terraform state.
+func mapEnrollmentTimeDeviceMembershipTargetToState(
+	ctx context.Context,
+	stateModel *WindowsAutopilotDevicePreparationPolicyResourceModel,
+	body []byte,
+) error {
+	var result struct {
+		Statuses []struct {
+			TargetID string `json:"targetId"`
+		} `json:"enrollmentTimeDeviceMembershipTargetValidationStatuses"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return fmt.Errorf("failed to decode enrollment-time device membership target: %w", err)
+	}
+
+	if result.Statuses == nil {
+		return errMissingMembershipTargetStatuses
+	}
+
+	stateModel.DeviceSecurityGroup = types.StringNull()
+	if len(result.Statuses) > 0 && result.Statuses[0].TargetID != "" {
+		stateModel.DeviceSecurityGroup = types.StringValue(result.Statuses[0].TargetID)
+	}
+	tflog.Debug(ctx, "Mapped enrollment-time device membership target")
 	return nil
 }
 
@@ -305,7 +338,7 @@ func extractIntValue(
 	tflog.Warn(ctx, "Failed to extract int value")
 }
 
-// extractBoolValue extracts a boolean value using the additional data property
+// extractBoolValue extracts a boolean from a typed choice or legacy additional data.
 func extractBoolValue(
 	ctx context.Context,
 	settingInstance models.DeviceManagementConfigurationSettingInstanceable,
@@ -316,8 +349,20 @@ func extractBoolValue(
 		return
 	}
 
-	// The SDK doesn't seem to have a specific DeviceManagementConfigurationBooleanSettingValueable type
-	// So we primarily rely on the additionalData approach
+	if definitionID := settingInstance.GetSettingDefinitionId(); definitionID != nil {
+		choice := types.StringNull()
+		extractChoiceValue(ctx, settingInstance, &choice)
+		switch choice.ValueString() {
+		case *definitionID + "_0":
+			*target = types.BoolValue(false)
+			return
+		case *definitionID + "_1":
+			*target = types.BoolValue(true)
+			return
+		}
+	}
+
+	// Preserve support for legacy boolean values stored in additional data.
 
 	// Access the setting's backing data as a map
 	additionalData := settingInstance.GetAdditionalData()

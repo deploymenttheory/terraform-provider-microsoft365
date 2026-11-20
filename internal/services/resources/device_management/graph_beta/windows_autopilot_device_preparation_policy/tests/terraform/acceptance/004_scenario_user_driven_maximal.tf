@@ -37,6 +37,7 @@ resource "time_sleep" "wait_for_device_group_ud_maximal" {
 }
 
 resource "microsoft365_graph_beta_groups_group_owner_assignment" "acc_test_ud_maximal_device_group_owner" {
+
   group_id          = microsoft365_graph_beta_groups_group.acc_test_ud_maximal_device_group.id
   owner_id          = data.microsoft365_graph_beta_applications_service_principal.intune_provisioning_client_ud_maximal.id
   owner_object_type = "ServicePrincipal"
@@ -118,12 +119,12 @@ resource "time_sleep" "wait_for_dependencies_ud_maximal" {
 
 resource "microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy" "ud_maximal" {
   name                  = "acc-test-autopilot-dpp-ud-maximal-${random_string.suffix_ud_maximal.result}"
-  description           = "User-driven mode maximal acceptance test with enhanced mode features"
+  description           = "User-driven mode maximal acceptance test with all supported user-driven settings"
   role_scope_tag_ids    = ["0"]
   device_security_group = microsoft365_graph_beta_groups_group.acc_test_ud_maximal_device_group.id
 
   deployment_settings = {
-    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_1"
+    deployment_mode = "enrollment_autopilot_dpp_deploymentmode_0"
     deployment_type = "enrollment_autopilot_dpp_deploymenttype_0"
     account_type    = "enrollment_autopilot_dpp_accountype_1"
   }

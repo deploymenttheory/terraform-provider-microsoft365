@@ -19,12 +19,14 @@ var mockState struct {
 	autopilotPolicies map[string]map[string]any
 	policySettings    map[string][]any // policy ID -> settings array stored from POST/PUT body
 	policyAssignments map[string][]any // policy ID -> assignments in GET response format
+	membershipTargets map[string]string
 }
 
 func init() {
 	mockState.autopilotPolicies = make(map[string]map[string]any)
 	mockState.policySettings = make(map[string][]any)
 	mockState.policyAssignments = make(map[string][]any)
+	mockState.membershipTargets = make(map[string]string)
 	httpmock.RegisterNoResponder(
 		httpmock.NewStringResponder(
 			404,
@@ -46,6 +48,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	mockState.autopilotPolicies = make(map[string]map[string]any)
 	mockState.policySettings = make(map[string][]any)
 	mockState.policyAssignments = make(map[string][]any)
+	mockState.membershipTargets = make(map[string]string)
 	mockState.Unlock()
 
 	// 0a. Mobile apps - called during validateAllowedApps
@@ -98,7 +101,9 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 		"GET",
 		`=~^https://graph\.microsoft\.com/beta/groups/[0-9a-fA-F-]+/owners$`,
 		func(req *http.Request) (*http.Response, error) {
-			jsonStr, _ := helpers.ParseJSONFile("../tests/responses/validate_get/get_group_owners.json")
+			jsonStr, _ := helpers.ParseJSONFile(
+				"../tests/responses/validate_get/get_group_owners.json",
+			)
 			var responseObj map[string]any
 			_ = json.Unmarshal([]byte(jsonStr), &responseObj)
 			return httpmock.NewJsonResponse(200, responseObj)
@@ -178,7 +183,54 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 		"POST",
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F-]+/setEnrollmentTimeDeviceMembershipTarget$`,
 		func(req *http.Request) (*http.Response, error) {
+			var body struct {
+				Targets []struct {
+					TargetID string `json:"targetId"`
+				} `json:"enrollmentTimeDeviceMembershipTargets"`
+			}
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				return httpmock.NewStringResponse(
+					400,
+					`{"error":{"code":"BadRequest","message":"Invalid target body"}}`,
+				), nil
+			}
+			if len(body.Targets) > 0 {
+				parts := strings.Split(req.URL.Path, "/")
+				id := parts[len(parts)-2]
+				mockState.Lock()
+				mockState.membershipTargets[id] = body.Targets[0].TargetID
+				mockState.Unlock()
+			}
 			return httpmock.NewStringResponse(204, ""), nil
+		},
+	)
+
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies\('[0-9a-fA-F-]+'\)/retrieveEnrollmentTimeDeviceMembershipTarget$`,
+		func(req *http.Request) (*http.Response, error) {
+			id := strings.Split(req.URL.Path, "'")[1]
+			mockState.Lock()
+			_, exists := mockState.autopilotPolicies[id]
+			target := mockState.membershipTargets[id]
+			mockState.Unlock()
+			if !exists {
+				return httpmock.NewStringResponse(
+					404,
+					`{"error":{"code":"ResourceNotFound","message":"Policy not found"}}`,
+				), nil
+			}
+			statuses := []any{}
+			if target != "" {
+				statuses = append(
+					statuses,
+					map[string]any{"targetId": target, "validationSucceeded": true},
+				)
+			}
+			return httpmock.NewJsonResponse(200, map[string]any{
+				"validationSucceeded": true,
+				"enrollmentTimeDeviceMembershipTargetValidationStatuses": statuses,
+			})
 		},
 	)
 
@@ -211,7 +263,10 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 										responseAssignment["target"] = targetMap
 									}
 								}
-								responseAssignments = append(responseAssignments, responseAssignment)
+								responseAssignments = append(
+									responseAssignments,
+									responseAssignment,
+								)
 							}
 						}
 						mockState.Lock()
@@ -336,7 +391,10 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies\('[0-9a-fA-F-]+'\)$`,
 		func(req *http.Request) (*http.Response, error) {
 			parts := strings.Split(req.URL.Path, "/")
-			id := strings.TrimSuffix(strings.TrimPrefix(parts[len(parts)-1], "configurationPolicies('"), "')")
+			id := strings.TrimSuffix(
+				strings.TrimPrefix(parts[len(parts)-1], "configurationPolicies('"),
+				"')",
+			)
 
 			var body map[string]any
 			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
@@ -387,6 +445,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 			delete(mockState.autopilotPolicies, id)
 			delete(mockState.policySettings, id)
 			delete(mockState.policyAssignments, id)
+			delete(mockState.membershipTargets, id)
 			mockState.Unlock()
 
 			return httpmock.NewStringResponse(204, ""), nil
@@ -499,6 +558,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterErrorMocks() {
 func (m *WindowsAutopilotDevicePreparationPolicyMock) CleanupMockState() {
 	mockState.Lock()
 	defer mockState.Unlock()
+	clear(mockState.membershipTargets)
 	for id := range mockState.autopilotPolicies {
 		delete(mockState.autopilotPolicies, id)
 	}
