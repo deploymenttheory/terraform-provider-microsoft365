@@ -4,8 +4,6 @@ package graphBetaNetworkDeviceForwardingProfile
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
 // NetworkDeviceForwardingProfileResourceModel describes a pre-logon (device) forwarding profile.
@@ -21,16 +19,4 @@ type NetworkDeviceForwardingProfileResourceModel struct {
 	AssignmentRules       types.Object   `tfsdk:"assignment_rules"`
 	Version               types.String   `tfsdk:"version"`
 	Timeouts              timeouts.Value `tfsdk:"timeouts"`
-}
-
-// settings returns the forwarding profile settings represented by the Terraform model.
-func (m NetworkDeviceForwardingProfileResourceModel) settings() sharedmodels.ForwardingProfileSettings {
-	return sharedmodels.ForwardingProfileSettings{
-		State:                m.State,
-		ClientFallbackAction: m.ClientFallbackAction,
-		// Device profiles reject agent-only source matching, so it is never sent.
-		ForwardingSourceMatching: types.ObjectNull(sharedmodels.ForwardingSourceMatchingAttrTypes),
-		LocalNetworkSettings:     m.LocalNetworkSettings,
-		AssignmentRules:          m.AssignmentRules,
-	}
 }

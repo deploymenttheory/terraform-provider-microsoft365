@@ -15,11 +15,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	profileschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/identity_and_access"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
 const (
@@ -114,7 +116,22 @@ func (r *NetworkDeviceForwardingProfileResource) ValidateConfig(
 		config.LocalNetworkSettings,
 		config.AssignmentRules,
 	)...)
-	resp.Diagnostics.Append(validateNoUserAssignments(ctx, config.AssignmentRules)...)
+	// Graph refuses user assignments on device profiles ("Only device and group assignments are allowed").
+	if config.AssignmentRules.IsNull() || config.AssignmentRules.IsUnknown() {
+		return
+	}
+	var rules sharedmodels.AssignmentRulesModel
+	if d := config.AssignmentRules.As(ctx, &rules, basetypes.ObjectAsOptions{UnhandledUnknownAsEmpty: true}); d.HasError() {
+		resp.Diagnostics.Append(d...)
+		return
+	}
+	if !rules.UserIDs.IsNull() && !rules.UserIDs.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("assignment_rules").AtName("user_ids"),
+			"User assignments are not supported",
+			"Pre-logon (device) forwarding profiles can be assigned to devices and groups only.",
+		)
+	}
 }
 
 // Schema defines the schema for the resource.
@@ -158,33 +175,26 @@ func (r *NetworkDeviceForwardingProfileResource) Schema(
 	maps.Copy(attributes, profileschema.ForwardingProfileSettingsAttributes())
 	// Device profiles reject source matching, so there is no attribute.
 	delete(attributes, "forwarding_source_matching")
-	describeDeviceAssignments(attributes)
+	// The shared assignment descriptions mention users, so rewrite them for device profiles.
+	if rules, ok := attributes["assignment_rules"].(schema.SingleNestedAttribute); ok {
+		rules.MarkdownDescription = "Group, device and platform assignments. Graph replaces assignments as a whole. " +
+			"Omitting it leaves the current assignments unchanged."
+		nested := maps.Clone(rules.Attributes)
+		if m, ok := nested["membership"].(schema.StringAttribute); ok {
+			m.MarkdownDescription = "`all` assigns all devices, `enumerated` assigns the listed IDs, `none` assigns nothing."
+			nested["membership"] = m
+		}
+		if u, ok := nested["user_ids"].(schema.SetAttribute); ok {
+			u.MarkdownDescription = "Not supported on pre-logon profiles; Graph rejects user assignments."
+			nested["user_ids"] = u
+		}
+		rules.Attributes = nested
+		attributes["assignment_rules"] = rules
+	}
 	resp.Schema = schema.Schema{
 		MarkdownDescription: "Manages a Microsoft Entra Global Secure Access pre-logon (device) forwarding profile using Microsoft Graph beta `/networkaccess/deviceForwardingProfiles`. " +
 			"Pre-logon profiles connect a device to Private Access before a user signs in to Windows. They support Private Access only and are assigned to devices or groups, not users. " +
 			"Destroy deletes the profile. Policy links are not managed by this resource.",
 		Attributes: attributes,
 	}
-}
-
-// describeDeviceAssignments rewrites the shared assignment descriptions, which
-// mention users, for device profiles.
-func describeDeviceAssignments(attributes map[string]schema.Attribute) {
-	rules, ok := attributes["assignment_rules"].(schema.SingleNestedAttribute)
-	if !ok {
-		return
-	}
-	rules.MarkdownDescription = "Group, device and platform assignments. Graph replaces assignments as a whole. " +
-		"Omitting it leaves the current assignments unchanged."
-	nested := maps.Clone(rules.Attributes)
-	if m, ok := nested["membership"].(schema.StringAttribute); ok {
-		m.MarkdownDescription = "`all` assigns all devices, `enumerated` assigns the listed IDs, `none` assigns nothing."
-		nested["membership"] = m
-	}
-	if u, ok := nested["user_ids"].(schema.SetAttribute); ok {
-		u.MarkdownDescription = "Not supported on pre-logon profiles; Graph rejects user assignments."
-		nested["user_ids"] = u
-	}
-	rules.Attributes = nested
-	attributes["assignment_rules"] = rules
 }
