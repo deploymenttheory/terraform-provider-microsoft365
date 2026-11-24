@@ -1,0 +1,165 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assignments"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assignments"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/settings"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/settings"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/deviceManagement/inventoryPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Comprehensive inventory policy with full settings and all assignment types",
+      "name": "Test Maximal Inventory Policy - Unit",
+      "platforms": "windows10",
+      "roleScopeTagIds": [
+        "0",
+        "1"
+      ],
+      "settings": [
+        {
+          "settingInstance": {
+            "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+            "groupSettingCollectionValue": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingValue",
+                "children": [
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                    "choiceSettingValue": {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                      "children": [],
+                      "value": "windows_applicationinventory_applicationproperties_applicationkey_appname_24"
+                    },
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_appname"
+                  },
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                    "choiceSettingValue": {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                      "children": [],
+                      "value": "windows_applicationinventory_applicationproperties_applicationkey_appversion_24"
+                    },
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_appversion"
+                  },
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                    "choiceSettingValue": {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                      "children": [],
+                      "value": "windows_applicationinventory_applicationproperties_applicationkey_architectures_24"
+                    },
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_architectures"
+                  },
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                    "choiceSettingValue": {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                      "children": [],
+                      "value": "windows_applicationinventory_applicationproperties_applicationkey_publisher_24"
+                    },
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_publisher"
+                  },
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                    "choiceSettingValue": {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                      "children": [],
+                      "value": "windows_applicationinventory_applicationproperties_applicationkey_installdatetime_24"
+                    },
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_installdatetime"
+                  },
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                    "choiceSettingValue": {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                      "children": [],
+                      "value": "windows_applicationinventory_applicationproperties_applicationkey_installlocation_24"
+                    },
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_installlocation"
+                  }
+                ]
+              }
+            ],
+            "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey"
+          }
+        }
+      ],
+      "technologies": "extensibility"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assign",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "assignments": [
+        {
+          "target": {
+            "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+            "deviceAndAppManagementAssignmentFilterId": "{uuid-2}",
+            "deviceAndAppManagementAssignmentFilterType": "include",
+            "groupId": "{uuid-3}"
+          }
+        },
+        {
+          "target": {
+            "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+            "deviceAndAppManagementAssignmentFilterId": "{uuid-4}",
+            "deviceAndAppManagementAssignmentFilterType": "include",
+            "groupId": "{uuid-5}"
+          }
+        },
+        {
+          "target": {
+            "@odata.type": "#microsoft.graph.allLicensedUsersAssignmentTarget",
+            "deviceAndAppManagementAssignmentFilterId": "{uuid-6}",
+            "deviceAndAppManagementAssignmentFilterType": "include"
+          }
+        },
+        {
+          "target": {
+            "@odata.type": "#microsoft.graph.allDevicesAssignmentTarget",
+            "deviceAndAppManagementAssignmentFilterId": "{uuid-7}",
+            "deviceAndAppManagementAssignmentFilterType": "include"
+          }
+        },
+        {
+          "target": {
+            "@odata.type": "#microsoft.graph.exclusionGroupAssignmentTarget",
+            "deviceAndAppManagementAssignmentFilterId": "{uuid-8}",
+            "deviceAndAppManagementAssignmentFilterType": "include",
+            "groupId": "{uuid-9}"
+          }
+        }
+      ]
+    }
+  }
+]
