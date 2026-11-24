@@ -2,12 +2,13 @@ package graphBetaNetworkFilteringProfile
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestConstructResourceMapsWritableFields(t *testing.T) {
+func TestConstructResourceSerializesObservedGraphPayload(t *testing.T) {
 	body, err := constructResource(context.Background(), &NetworkFilteringProfileResourceModel{
 		Name:        types.StringValue("test-profile"),
 		Description: types.StringValue("Managed by Terraform"),
@@ -18,22 +19,13 @@ func TestConstructResourceMapsWritableFields(t *testing.T) {
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	requestBody, ok := body.(*filteringProfileRequestBody)
-	if !ok {
-		t.Fatalf("constructResource returned %T, expected filteringProfileRequestBody", body)
+	content, err := json.Marshal(body)
+	if err != nil {
+		t.Fatalf("failed to marshal request body: %v", err)
 	}
-
-	if got := requestBody.name; got == nil || *got != "test-profile" {
-		t.Fatalf("name = %v, expected test-profile", got)
-	}
-	if got := requestBody.description; got == nil || *got != "Managed by Terraform" {
-		t.Fatalf("description = %v, expected Managed by Terraform", got)
-	}
-	if got := requestBody.priority; got == nil || *got != 100 {
-		t.Fatalf("priority = %v, expected 100", got)
-	}
-	if got := requestBody.state; got == nil || *got != "enabled" {
-		t.Fatalf("state = %v, expected enabled", got)
+	want := `{"name":"test-profile","description":"Managed by Terraform","priority":100,"state":"enabled"}`
+	if string(content) != want {
+		t.Fatalf("request body = %s, expected %s", content, want)
 	}
 }
 
