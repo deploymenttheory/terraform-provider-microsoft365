@@ -25,6 +25,11 @@ const (
 	// Example: "123e4567-e89b-12d3-a456-426614174000" or "A_123e4567-e89b-12d3-a456-426614174000"
 	GuidOrPrefixedGuidRegex = "^(?:[0-9a-zA-Z]_)?[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
 
+	// EnrollmentNotificationConfigurationIdRegex matches the ID Intune gives a device enrollment notification configuration:
+	// a GUID followed by "_EnrollmentNotificationsConfiguration".
+	// Example: "123e4567-e89b-12d3-a456-426614174000_EnrollmentNotificationsConfiguration"
+	EnrollmentNotificationConfigurationIdRegex = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}_EnrollmentNotificationsConfiguration$"
+
 	// UrlValidStringRegex matches a valid URL string (letters, numbers, and URL-safe characters).
 	// Example: "https://example.com/path?query=1"
 	UrlValidStringRegex = "(?i)^[A-Za-z0-9-._~%/:/?=]+$"
