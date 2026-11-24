@@ -4,8 +4,6 @@ package graphBetaNetworkDefaultForwardingProfile
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
 // NetworkDefaultForwardingProfileResourceModel describes a built-in forwarding profile.
@@ -22,15 +20,4 @@ type NetworkDefaultForwardingProfileResourceModel struct {
 	AssignmentRules          types.Object   `tfsdk:"assignment_rules"`
 	Version                  types.String   `tfsdk:"version"`
 	Timeouts                 timeouts.Value `tfsdk:"timeouts"`
-}
-
-// settings returns the forwarding profile settings represented by the Terraform model.
-func (m NetworkDefaultForwardingProfileResourceModel) settings() sharedmodels.ForwardingProfileSettings {
-	return sharedmodels.ForwardingProfileSettings{
-		State:                    m.State,
-		ClientFallbackAction:     m.ClientFallbackAction,
-		ForwardingSourceMatching: m.ForwardingSourceMatching,
-		LocalNetworkSettings:     m.LocalNetworkSettings,
-		AssignmentRules:          m.AssignmentRules,
-	}
 }

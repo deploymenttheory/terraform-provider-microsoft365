@@ -1,19 +1,40 @@
+// Package graphBetaNetworkProxyAutoConfiguration manages Global Secure Access custom proxy auto-configuration (PAC) files.
+//
+// SDK deviation: missing type
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0 has no explicitForwardProxyConfig or
+//     proxyAutoConfigurationFiles request builder in networkaccess and no PAC file model in models/networkaccess.
+//   - Learn: none. There is no proxyAutoConfigurationFile resource or API page; the endpoint and its name, content and
+//     isEnabled shape follow the Entra admin centre's custom PAC file requests to
+//     /networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles.
+//   - Observed: checked by reading the SDK source on 2026-11-24; no live call, because the test tenant has no Global
+//     Secure Access licence. The POST, GET, PATCH and DELETE go through custom_requests in raw JSON mode with pacResponse
+//     and a map body. APIVersion is left empty so the requests use the beta client's own base URL, as the previous
+//     transport did.
+//
+// Removal condition: the beta SDK ships a /networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles request
+// builder with a PAC file model.
 package graphBetaNetworkProxyAutoConfiguration
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
+
+var errInvalidPACResponse = errors.New("graph omitted required custom PAC fields; existing state is retained")
+
+// readbackPaths are the attributes the read-back after a write waits for.
+var readbackPaths = crud.RootPaths("id", "name", "content", "is_enabled")
 
 func (r *NetworkProxyAutoConfigurationResource) Create(
 	ctx context.Context,
@@ -35,15 +56,16 @@ func (r *NetworkProxyAutoConfigurationResource) Create(
 		return
 	}
 	defer cancel()
-	remote, err := r.create(ctx, plan)
+	body, err := constructResource(plan, nil)
+	var remote *pacResponse
+	if err == nil {
+		_, err = customrequests.PostRequest(ctx, r.client.GetAdapter(), customrequests.PostRequestConfig{Endpoint: r.ResourcePath, RawBody: body, RawResponse: &remote}, nil, nil)
+	}
+	if err == nil && (remote == nil || remote.ID == nil || *remote.ID == "") {
+		err = errInvalidPACResponse
+	}
 	if err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationCreate,
-			r.WritePermissions,
-		)
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 	// Retain the created ID if a subsequent read fails, so cleanup remains possible.
@@ -52,13 +74,10 @@ func (r *NetworkProxyAutoConfigurationResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := crud.ReadWithRetry(
-		ctx,
-		r.Read,
-		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
-		&crud.CreateResponseContainer{CreateResponse: resp},
-		readbackOptions(plan, constants.TfOperationCreate),
-	); err != nil {
+	predicate := crud.AttributesMatchPredicate(req.Plan, crud.AttributeMatchOptions{Paths: readbackPaths})
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(predicate))
+	readRequest := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	if err := crud.ReadWithRetry(ctx, r.Read, readRequest, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading custom PAC after initial apply",
 			err.Error(),
@@ -86,22 +105,20 @@ func (r *NetworkProxyAutoConfigurationResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.get(ctx, state.ID.ValueString())
-	if err != nil {
-		errors.HandleKiotaGraphErrorWithOptions(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationRead,
-			r.ReadPermissions,
-			errors.GraphErrorOptions{
-				PreserveStateOnReadBadRequest: true,
-				PreserveStateOnReadNotFound:   false,
-			},
-		)
+	// An empty or null body leaves remote nil, which MapRemoteStateToTerraform reports as an invalid response.
+	var remote *pacResponse
+	getConfig := customrequests.GetRequestConfig{
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID.ValueString(),
+		RawResponse:       &remote,
+	}
+	if _, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig); err != nil {
+		options := kiotaerrors.GraphErrorOptions{PreserveStateOnReadBadRequest: true, PreserveStateOnReadNotFound: false}
+		kiotaerrors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions, options)
 		return
 	}
-	if err := mapResponse(&state, remote); err != nil {
+	if err := MapRemoteStateToTerraform(&state, remote); err != nil {
 		resp.Diagnostics.AddError("Invalid Graph response", err.Error())
 		return
 	}
@@ -130,14 +147,18 @@ func (r *NetworkProxyAutoConfigurationResource) Update(
 		return
 	}
 	defer cancel()
-	if err := r.patch(ctx, plan, &state); err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationUpdate,
-			r.WritePermissions,
-		)
+	body, err := constructResource(plan, &state)
+	if err == nil && len(body) > 0 {
+		patchConfig := customrequests.PatchRequestConfig{
+			Endpoint:          r.ResourcePath,
+			ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+			ResourceID:        plan.ID.ValueString(),
+			RawBody:           body,
+		}
+		err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig)
+	}
+	if err != nil {
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -145,13 +166,10 @@ func (r *NetworkProxyAutoConfigurationResource) Update(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := crud.ReadWithRetry(
-		ctx,
-		r.Read,
-		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
-		&crud.UpdateResponseContainer{UpdateResponse: resp},
-		readbackOptions(plan, constants.TfOperationUpdate),
-	); err != nil {
+	predicate := crud.AttributesMatchPredicate(req.Plan, crud.AttributeMatchOptions{Paths: readbackPaths})
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(predicate))
+	readRequest := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	if err := crud.ReadWithRetry(ctx, r.Read, readRequest, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading custom PAC after update", err.Error())
 	}
 }
@@ -176,42 +194,14 @@ func (r *NetworkProxyAutoConfigurationResource) Delete(
 		return
 	}
 	defer cancel()
-	if err := customrequests.JSONRequest(
-		ctx,
-		r.client.GetAdapter(),
-		abstractions.DELETE,
-		r.ResourcePath+"/{pacId}",
-		map[string]string{"pacId": state.ID.ValueString()},
-		nil,
-		nil,
-	); err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationDelete,
-			r.WritePermissions,
-		)
+	deleteConfig := customrequests.DeleteRequestConfig{
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID.ValueString(),
+	}
+	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig); err != nil {
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
 	resp.State.RemoveResource(ctx)
-}
-
-func readbackOptions(
-	plan NetworkProxyAutoConfigurationResourceModel,
-	operation string,
-) crud.ReadWithRetryOptions {
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = operation
-	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
-		var actual NetworkProxyAutoConfigurationResourceModel
-		if state.Get(ctx, &actual).HasError() {
-			return false
-		}
-		return actual.ID.Equal(plan.ID) && actual.Name.Equal(plan.Name) &&
-			actual.Content.Equal(plan.Content) &&
-			actual.IsEnabled.Equal(plan.IsEnabled)
-	}
-	return opts
 }

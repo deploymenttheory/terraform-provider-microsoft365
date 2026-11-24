@@ -152,7 +152,7 @@ func TestUnitResourceNetworkExplicitForwardProxy_14_Payloads(t *testing.T) {
 				options = "useHttpHeader"
 			}
 			plan.InternetAccess.SourceIPSessionAffinityOptions = types.StringValue(options)
-			body, err := proxyPatch(plan, nil)
+			body, err := constructResource(plan, nil)
 			require.NoError(t, err)
 			access := body["internetAccess"].(map[string]any)
 			require.Equal(t, smart || header, access["isSourceIpSessionAffinityEnabled"])
@@ -169,7 +169,7 @@ func TestUnitResourceNetworkExplicitForwardProxy_14_Payloads(t *testing.T) {
 				remote.InternetAccess.SourceIPSessionAffinityOptions = &none
 			}
 			var actual NetworkExplicitForwardProxyResourceModel
-			require.NoError(t, mapResponse(&actual, &remote))
+			require.NoError(t, MapRemoteStateToTerraform(&actual, &remote))
 			require.Equal(
 				t,
 				smart || header,
@@ -185,14 +185,14 @@ func TestUnitResourceNetworkExplicitForwardProxy_14_Payloads(t *testing.T) {
 	state := testModel()
 	plan := testModel()
 	plan.InternetAccess.IsEnabled = types.BoolValue(true)
-	body, err := proxyPatch(plan, &state)
+	body, err := constructResource(plan, &state)
 	require.NoError(t, err)
 	require.Equal(t, map[string]any{"internetAccess": map[string]any{"isEnabled": true}}, body)
-	same, err := proxyPatch(state, &state)
+	same, err := constructResource(state, &state)
 	require.NoError(t, err)
 	require.Empty(t, same)
 	plan.InternetAccess.IsEnabled = types.BoolNull()
-	_, err = proxyPatch(plan, nil)
+	_, err = constructResource(plan, nil)
 	require.Error(t, err)
 }
 
@@ -226,7 +226,7 @@ func TestUnitResourceNetworkExplicitForwardProxy_15_AffinityValidation(t *testin
 				&response,
 			)
 			require.Equal(t, !tc.valid, response.Diagnostics.HasError())
-			_, err := proxyPatch(m, nil)
+			_, err := constructResource(m, nil)
 			require.Equal(t, !tc.valid, err != nil)
 		})
 	}

@@ -1,0 +1,200 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "policies@delta": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicyLink",
+          "@removed": {
+            "reason": "deleted"
+          },
+          "id": "{uuid-3}"
+        }
+      ]
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "policies@delta": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicyLink",
+          "@removed": {
+            "reason": "deleted"
+          },
+          "id": "{uuid-4}"
+        }
+      ]
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "policies@delta": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicyLink",
+          "configType": "appPolicy",
+          "policy": {
+            "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicy",
+            "id": "{uuid-2}"
+          },
+          "priority": 120,
+          "state": "enabled"
+        }
+      ]
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "policies@delta": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicyLink",
+          "configType": "appPolicy",
+          "policy": {
+            "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicy",
+            "id": "{uuid-2}"
+          },
+          "priority": 99,
+          "state": "disabled"
+        }
+      ]
+    }
+  }
+]

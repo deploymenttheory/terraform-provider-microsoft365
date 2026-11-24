@@ -1,17 +1,38 @@
+// Package graphBetaNetworkExplicitForwardProxy manages the Global Secure Access explicit forward proxy configuration.
+//
+// SDK deviation: missing type
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0 has no explicitForwardProxyConfig request builder in
+//     networkaccess and no explicit forward proxy model in models/networkaccess.
+//   - Learn: none. There is no explicitForwardProxyConfig resource or API page; the endpoint and its internetAccess shape
+//     follow the Entra admin centre's explicit forward proxy requests to /networkAccess/explicitForwardProxyConfig.
+//   - Observed: checked by reading the SDK source on 2026-11-24; no live call, because the test tenant has no Global
+//     Secure Access licence. The GET and PATCH go through custom_requests in raw JSON mode with proxyResponse and a map
+//     body. APIVersion is left empty so the requests use the beta client's own base URL, as the previous transport did.
+//
+// Removal condition: the beta SDK ships a /networkAccess/explicitForwardProxyConfig request builder with a model for its
+// internetAccess settings.
 package graphBetaNetworkExplicitForwardProxy
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
+
+var errInvalidProxyResponse = errors.New("graph omitted required explicit proxy settings or returned unsupported session affinity options; existing state is retained")
+
+// readbackPaths are the attributes the read-back after a write waits for.
+var readbackPaths = crud.RootPaths("id", "internet_access")
 
 func (r *NetworkExplicitForwardProxyResource) Create(
 	ctx context.Context,
@@ -33,14 +54,17 @@ func (r *NetworkExplicitForwardProxyResource) Create(
 		return
 	}
 	defer cancel()
-	if err := r.patch(ctx, plan, nil); err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationCreate,
-			r.WritePermissions,
-		)
+	body, err := constructResource(plan, nil)
+	if err == nil && len(body) > 0 {
+		patchConfig := customrequests.PatchRequestConfig{
+			Endpoint:          r.ResourcePath,
+			ResourceIDPattern: customrequests.ResourceIDPatternNone,
+			RawBody:           body,
+		}
+		err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig)
+	}
+	if err != nil {
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 	// Record adoption before readback so an unavailable replica does not lose management state.
@@ -49,13 +73,10 @@ func (r *NetworkExplicitForwardProxyResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := crud.ReadWithRetry(
-		ctx,
-		r.Read,
-		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
-		&crud.CreateResponseContainer{CreateResponse: resp},
-		readbackOptions(plan, constants.TfOperationCreate),
-	); err != nil {
+	predicate := crud.AttributesMatchPredicate(req.Plan, crud.AttributeMatchOptions{Paths: readbackPaths})
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(predicate))
+	readRequest := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	if err := crud.ReadWithRetry(ctx, r.Read, readRequest, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading explicit forward proxy after initial apply",
 			err.Error(),
@@ -83,22 +104,19 @@ func (r *NetworkExplicitForwardProxyResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.get(ctx)
-	if err != nil {
-		errors.HandleKiotaGraphErrorWithOptions(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationRead,
-			r.ReadPermissions,
-			errors.GraphErrorOptions{
-				PreserveStateOnReadBadRequest: true,
-				PreserveStateOnReadNotFound:   true,
-			},
-		)
+	// An empty or null body leaves remote nil, which MapRemoteStateToTerraform reports as an invalid response.
+	var remote *proxyResponse
+	getConfig := customrequests.GetRequestConfig{
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: customrequests.ResourceIDPatternNone,
+		RawResponse:       &remote,
+	}
+	if _, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig); err != nil {
+		options := kiotaerrors.GraphErrorOptions{PreserveStateOnReadBadRequest: true, PreserveStateOnReadNotFound: true}
+		kiotaerrors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions, options)
 		return
 	}
-	if err := mapResponse(&state, remote); err != nil {
+	if err := MapRemoteStateToTerraform(&state, remote); err != nil {
 		resp.Diagnostics.AddError("Invalid Graph response", err.Error())
 		return
 	}
@@ -127,14 +145,17 @@ func (r *NetworkExplicitForwardProxyResource) Update(
 		return
 	}
 	defer cancel()
-	if err := r.patch(ctx, plan, &state); err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationUpdate,
-			r.WritePermissions,
-		)
+	body, err := constructResource(plan, &state)
+	if err == nil && len(body) > 0 {
+		patchConfig := customrequests.PatchRequestConfig{
+			Endpoint:          r.ResourcePath,
+			ResourceIDPattern: customrequests.ResourceIDPatternNone,
+			RawBody:           body,
+		}
+		err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig)
+	}
+	if err != nil {
+		kiotaerrors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
@@ -142,13 +163,10 @@ func (r *NetworkExplicitForwardProxyResource) Update(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := crud.ReadWithRetry(
-		ctx,
-		r.Read,
-		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
-		&crud.UpdateResponseContainer{UpdateResponse: resp},
-		readbackOptions(plan, constants.TfOperationUpdate),
-	); err != nil {
+	predicate := crud.AttributesMatchPredicate(req.Plan, crud.AttributeMatchOptions{Paths: readbackPaths})
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(predicate))
+	readRequest := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	if err := crud.ReadWithRetry(ctx, r.Read, readRequest, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading explicit forward proxy after update", err.Error())
 	}
 }
@@ -160,28 +178,4 @@ func (r *NetworkExplicitForwardProxyResource) Delete(
 	resp *resource.DeleteResponse,
 ) {
 	resp.State.RemoveResource(ctx)
-}
-
-func readbackOptions(
-	plan NetworkExplicitForwardProxyResourceModel,
-	operation string,
-) crud.ReadWithRetryOptions {
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = operation
-	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
-		var actual NetworkExplicitForwardProxyResourceModel
-		if state.Get(ctx, &actual).HasError() {
-			return false
-		}
-		return actual.ID.Equal(plan.ID) &&
-			actual.InternetAccess != nil && plan.InternetAccess != nil && actual.InternetAccess.IsEnabled.Equal(plan.InternetAccess.IsEnabled) &&
-			actual.InternetAccess.IsSourceIPSessionAffinityEnabled.Equal(
-				plan.InternetAccess.IsSourceIPSessionAffinityEnabled,
-			) &&
-			actual.InternetAccess.SourceIPSessionAffinityOptions.Equal(
-				plan.InternetAccess.SourceIPSessionAffinityOptions,
-			)
-	}
-	return opts
 }

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/stretchr/testify/require"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
@@ -36,18 +35,12 @@ func TestAccResourceNetworkExplicitForwardProxy_01_Lifecycle(t *testing.T) {
 			Options   string `json:"sourceIpSessionAffinityOptions"`
 		} `json:"internetAccess"`
 	}
-	require.NoError(
-		t,
-		customrequests.JSONRequest(
-			ctx,
-			client.GetAdapter(),
-			abstractions.GET,
-			"/networkAccess/explicitForwardProxyConfig",
-			nil,
-			nil,
-			&original,
-		),
-	)
+	getConfig := customrequests.GetRequestConfig{
+		Endpoint:    "/networkAccess/explicitForwardProxyConfig",
+		RawResponse: &original,
+	}
+	_, err = customrequests.GetRequestByResourceId(ctx, client.GetAdapter(), getConfig)
+	require.NoError(t, err)
 	access := original.InternetAccess
 	require.Contains(
 		t,
@@ -70,18 +63,11 @@ func TestAccResourceNetworkExplicitForwardProxy_01_Lifecycle(t *testing.T) {
 				"sourceIpSessionAffinityOptions":   access.Options,
 			},
 		}
-		require.NoError(
-			t,
-			customrequests.JSONRequest(
-				restoreCtx,
-				client.GetAdapter(),
-				abstractions.PATCH,
-				"/networkAccess/explicitForwardProxyConfig",
-				nil,
-				restore,
-				nil,
-			),
-		)
+		patchConfig := customrequests.PatchRequestConfig{
+			Endpoint: "/networkAccess/explicitForwardProxyConfig",
+			RawBody:  restore,
+		}
+		require.NoError(t, customrequests.PatchRequestByResourceId(restoreCtx, client.GetAdapter(), patchConfig))
 	})
 	enabled := access.IsEnabled
 

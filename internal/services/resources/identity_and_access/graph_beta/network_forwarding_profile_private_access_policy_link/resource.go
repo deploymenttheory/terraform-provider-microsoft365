@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
@@ -93,8 +92,14 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) ImportState(
 	req resource.ImportStateRequest,
 	resp *resource.ImportStateResponse,
 ) {
-	profileType, profileID, linkID, ok := parseImportID(req.ID)
-	if !ok {
+	var profileType, profileID, linkID string
+	switch parts := strings.Split(req.ID, "/"); len(parts) {
+	case 2:
+		profileType, profileID, linkID = profileTypeUser, parts[0], parts[1]
+	case 3:
+		profileType, profileID, linkID = parts[0], parts[1], parts[2]
+	}
+	if (profileType != profileTypeUser && profileType != profileTypeDevice) || !guidPattern.MatchString(profileID) || !guidPattern.MatchString(linkID) {
 		resp.Diagnostics.AddError(
 			"Invalid import ID",
 			fmt.Sprintf(
@@ -104,39 +109,12 @@ func (r *NetworkForwardingProfilePrivateAccessPolicyLinkResource) ImportState(
 		)
 		return
 	}
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), compositeID(profileID, linkID))...)
+	// Graph IDs are lowercase; an uppercase import would otherwise force a replacement.
+	profileID, linkID = strings.ToLower(profileID), strings.ToLower(linkID)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), profileID+"/"+linkID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("profile_type"), profileType)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("forwarding_profile_id"), profileID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("policy_link_id"), linkID)...)
-}
-
-// parseImportID parses the resource identifiers from the Terraform import ID.
-func parseImportID(id string) (profileType, profileID, linkID string, ok bool) {
-	parts := strings.Split(id, "/")
-	switch len(parts) {
-	case 2:
-		profileType, profileID, linkID = profileTypeUser, parts[0], parts[1]
-	case 3:
-		profileType, profileID, linkID = parts[0], parts[1], parts[2]
-	default:
-		return "", "", "", false
-	}
-	if profileType != profileTypeUser && profileType != profileTypeDevice {
-		return "", "", "", false
-	}
-	if !guidPattern.MatchString(profileID) || !guidPattern.MatchString(linkID) {
-		return "", "", "", false
-	}
-	// Graph IDs are lowercase; an uppercase import would otherwise force a replacement.
-	return profileType, strings.ToLower(profileID), strings.ToLower(linkID), true
-}
-
-// compositeID builds the Terraform identity from the forwarding profile and policy link IDs.
-func compositeID(profileID, linkID string) types.String {
-	if profileID == "" || linkID == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(profileID + "/" + linkID)
 }
 
 // Schema defines the schema for the resource.

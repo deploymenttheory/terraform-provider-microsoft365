@@ -7,8 +7,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
-// mapResponse maps the remote network response to Terraform state.
-func mapResponse(state *NetworkRemoteNetworkResourceModel, remote *remoteNetworkResponse) error {
+// MapRemoteStateToTerraform maps the remote network response to Terraform state. It returns errInvalidResponse, leaving
+// state unchanged, when Graph omits a required field.
+func MapRemoteStateToTerraform(state *NetworkRemoteNetworkResourceModel, remote *remoteNetworkResponse) error {
 	if remote == nil || remote.ID == nil || *remote.ID == "" || remote.Name == nil || remote.Region == nil {
 		return errInvalidResponse
 	}

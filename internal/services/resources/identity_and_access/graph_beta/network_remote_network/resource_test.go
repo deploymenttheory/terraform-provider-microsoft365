@@ -2,6 +2,7 @@ package graphBetaIdentityAndAccessNetworkRemoteNetwork_test
 
 import (
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -45,6 +46,7 @@ func loadConfig(t *testing.T, filename string) string {
 // Create, import, rename in place, then destroy.
 func TestUnitResourceNetworkRemoteNetwork_01_CreateRenameImport(t *testing.T) {
 	m := setupMock(t)
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -79,6 +81,7 @@ func TestUnitResourceNetworkRemoteNetwork_01_CreateRenameImport(t *testing.T) {
 			{Config: loadConfig(t, "resource_renamed.tf"), PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/create_rename_import.json")
 
 	require.Len(t, m.WritesTo("POST", "/remoteNetworks"), 1)
 	renames := m.WritesTo("PATCH", "")
@@ -91,6 +94,7 @@ func TestUnitResourceNetworkRemoteNetwork_01_CreateRenameImport(t *testing.T) {
 // Forwarding profile changes use a $delta PATCH carrying the full desired set.
 func TestUnitResourceNetworkRemoteNetwork_02_UpdateForwardingProfiles(t *testing.T) {
 	m := setupMock(t)
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -119,6 +123,7 @@ func TestUnitResourceNetworkRemoteNetwork_02_UpdateForwardingProfiles(t *testing
 			{Config: loadConfig(t, "resource_internet_only.tf"), PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/update_forwarding_profiles.json")
 
 	deltas := m.WritesTo("PATCH", "/forwardingProfiles")
 	require.Len(t, deltas, 2)
@@ -133,6 +138,7 @@ func TestUnitResourceNetworkRemoteNetwork_02_UpdateForwardingProfiles(t *testing
 // Region is immutable, so changing it replaces the remote network.
 func TestUnitResourceNetworkRemoteNetwork_03_RegionForcesReplace(t *testing.T) {
 	m := setupMock(t)
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -149,6 +155,7 @@ func TestUnitResourceNetworkRemoteNetwork_03_RegionForcesReplace(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/region_forces_replace.json")
 
 	// The replacement reuses the name, so Delete must wait for the old network.
 	require.Len(t, m.WritesTo("POST", "/remoteNetworks"), 2)
@@ -157,6 +164,7 @@ func TestUnitResourceNetworkRemoteNetwork_03_RegionForcesReplace(t *testing.T) {
 // A remote network deleted outside Terraform is removed from state on refresh.
 func TestUnitResourceNetworkRemoteNetwork_04_NotFoundRemovesFromState(t *testing.T) {
 	m := setupMock(t)
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -170,11 +178,13 @@ func TestUnitResourceNetworkRemoteNetwork_04_NotFoundRemovesFromState(t *testing
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/not_found_removes_from_state.json")
 }
 
 // Graph rejects disabled and private forwarding profiles; the 400 message is surfaced.
 func TestUnitResourceNetworkRemoteNetwork_05_GraphRejectsProfile(t *testing.T) {
 	setupMock(t)
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -189,11 +199,13 @@ func TestUnitResourceNetworkRemoteNetwork_05_GraphRejectsProfile(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/graph_rejects_profile.json")
 }
 
 // A failed $delta PATCH keeps the prior associations in state, so the next plan retries.
 func TestUnitResourceNetworkRemoteNetwork_06_FailedProfileUpdateKeepsState(t *testing.T) {
 	setupMock(t)
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -212,6 +224,7 @@ func TestUnitResourceNetworkRemoteNetwork_06_FailedProfileUpdateKeepsState(t *te
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/failed_profile_update_keeps_state.json")
 }
 
 // Plan-time validation rejects invalid configuration before any Graph call.
@@ -246,6 +259,7 @@ func TestUnitResourceNetworkRemoteNetwork_07_Validation(t *testing.T) {
 // Import requires a GUID.
 func TestUnitResourceNetworkRemoteNetwork_08_InvalidImportID(t *testing.T) {
 	setupMock(t)
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -259,6 +273,7 @@ func TestUnitResourceNetworkRemoteNetwork_08_InvalidImportID(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/invalid_import_id.json")
 }
 
 // Permission errors on create are surfaced.
@@ -269,6 +284,7 @@ func TestUnitResourceNetworkRemoteNetwork_09_ErrorHandling(t *testing.T) {
 	m := &remoteNetworkMocks.RemoteNetworkMock{}
 	m.RegisterErrorMocks()
 	t.Cleanup(func() { httpmock.DeactivateAndReset() })
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -279,11 +295,13 @@ func TestUnitResourceNetworkRemoteNetwork_09_ErrorHandling(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/error_handling.json")
 }
 
 // Changing only timeouts updates state without calling Graph.
 func TestUnitResourceNetworkRemoteNetwork_10_TimeoutsOnlyUpdate(t *testing.T) {
 	m := setupMock(t)
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -300,6 +318,7 @@ func TestUnitResourceNetworkRemoteNetwork_10_TimeoutsOnlyUpdate(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/timeouts_only_update.json")
 
 	require.Empty(t, m.WritesTo("PATCH", ""))
 }
@@ -312,6 +331,7 @@ func TestUnitResourceNetworkRemoteNetwork_11_DeletionWaitEdgeCases(t *testing.T)
 	} {
 		t.Run(name, func(t *testing.T) {
 			m := setupMock(t)
+			capture := mocks.CaptureGraphRequests(t)
 			configure(m)
 			resource.UnitTest(t, resource.TestCase{
 				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -320,6 +340,7 @@ func TestUnitResourceNetworkRemoteNetwork_11_DeletionWaitEdgeCases(t *testing.T)
 					{Config: loadConfig(t, "resource_region_changed.tf")},
 				},
 			})
+			capture.AssertMatchesFixture(t, "tests/requests/deletion_wait_"+strings.ReplaceAll(name, " ", "_")+".json")
 			require.Len(t, m.WritesTo("POST", "/remoteNetworks"), 2)
 		})
 	}

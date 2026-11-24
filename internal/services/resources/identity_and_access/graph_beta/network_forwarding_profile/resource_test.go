@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	target "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_forwarding_profile"
 	testmocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_forwarding_profile/mocks"
 )
@@ -24,7 +25,7 @@ func setup(t *testing.T) *testmocks.Mock {
 	mocks.NewMocks().AuthMocks.RegisterMocks()
 	m := &testmocks.Mock{}
 	m.RegisterMocks()
-	target.ResetClaimedProfiles()
+	crud.ResetClaims(target.ResourceName)
 	t.Cleanup(func() { httpmock.DeactivateAndReset(); m.CleanupMockState() })
 	return m
 }
@@ -38,6 +39,7 @@ func hcl(t *testing.T, name string) string {
 
 func TestUnitResourceNetworkForwardingProfile_01_Lifecycle(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	initial := hcl(t, "resource.tf")
 	updated := hcl(t, "resource_updated.tf")
 	addr := resourceType + ".test"
@@ -80,6 +82,7 @@ func TestUnitResourceNetworkForwardingProfile_01_Lifecycle(t *testing.T) {
 			{Config: updated, PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/lifecycle.json")
 
 	require.Len(t, m.Posts, 1)
 	require.Equal(t, true, m.Posts[0]["isCustomProfile"])
@@ -106,6 +109,7 @@ func TestUnitResourceNetworkForwardingProfile_01_Lifecycle(t *testing.T) {
 
 func TestUnitResourceNetworkForwardingProfile_02_MinimalKeepsServerDefaults(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	minimal := hcl(t, "resource_minimal.tf")
 	addr := resourceType + ".test"
 	resource.UnitTest(t, resource.TestCase{
@@ -123,6 +127,7 @@ func TestUnitResourceNetworkForwardingProfile_02_MinimalKeepsServerDefaults(t *t
 			{Config: minimal, PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/minimal.json")
 	require.Len(t, m.Posts, 1)
 	for _, key := range []string{"assignmentRules", "localNetworkSettings", "forwardingSourceMatching", "clientFallbackAction", "description"} {
 		require.NotContains(t, m.Posts[0], key)
@@ -134,6 +139,7 @@ func TestUnitResourceNetworkForwardingProfile_03_AdoptsProfileCreatedBeforeGatew
 	t *testing.T,
 ) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.PostFailures = 1
 	minimal := hcl(t, "resource_minimal.tf")
@@ -146,6 +152,7 @@ func TestUnitResourceNetworkForwardingProfile_03_AdoptsProfileCreatedBeforeGatew
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/adopt_after_gateway_timeout.json")
 	require.Len(t, m.Posts, 1, "the timed-out POST is not retried")
 	require.Equal(t, 1, m.Deletes)
 }
@@ -155,6 +162,7 @@ func TestUnitResourceNetworkForwardingProfile_03b_AdoptsProfileAfterRetriedPostF
 	t *testing.T,
 ) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.PostDuplicates = 1
 	resource.UnitTest(t, resource.TestCase{
@@ -166,12 +174,14 @@ func TestUnitResourceNetworkForwardingProfile_03b_AdoptsProfileAfterRetriedPostF
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/adopt_after_duplicate.json")
 	require.Equal(t, 1, m.Deletes)
 }
 
 // A profile that existed before the POST is never adopted.
 func TestUnitResourceNetworkForwardingProfile_03c_DoesNotAdoptExistingProfile(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.Existing = map[string]any{
 		"id":                    "99999999-8888-7777-6666-555555555555",
@@ -190,14 +200,16 @@ func TestUnitResourceNetworkForwardingProfile_03c_DoesNotAdoptExistingProfile(t 
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/no_adopt_existing.json")
 	require.Zero(t, m.Deletes, "the pre-existing profile must not be adopted and destroyed")
 }
 
 // A profile another resource created in the same apply is not adopted.
 func TestUnitResourceNetworkForwardingProfile_03f_DoesNotAdoptProfileClaimedInSameApply(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
-	target.ClaimProfile(testmocks.ProfileID)
+	crud.RecordClaim(target.ResourceName, testmocks.ProfileID)
 	m.PostDuplicates = 1
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -208,11 +220,13 @@ func TestUnitResourceNetworkForwardingProfile_03f_DoesNotAdoptProfileClaimedInSa
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/no_adopt_claimed.json")
 }
 
 // Without the list before the POST, a failed create is reported, not adopted.
 func TestUnitResourceNetworkForwardingProfile_03d_NoAdoptionWithoutPriorList(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.ListFailures = 1
 	m.PostFailures = 1
@@ -225,6 +239,7 @@ func TestUnitResourceNetworkForwardingProfile_03d_NoAdoptionWithoutPriorList(t *
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/no_adopt_without_list.json")
 	require.Len(t, m.Posts, 1)
 }
 
@@ -233,6 +248,7 @@ func TestUnitResourceNetworkForwardingProfile_03e_KeepsPollingAfterListTransport
 	t *testing.T,
 ) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.PostFailures = 1
 	m.ListResetsAfterCreate = 1
@@ -245,6 +261,7 @@ func TestUnitResourceNetworkForwardingProfile_03e_KeepsPollingAfterListTransport
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/adopt_after_list_transport_error.json")
 	require.Equal(t, 1, m.Deletes)
 }
 
@@ -265,6 +282,7 @@ func TestUnitResourceNetworkForwardingProfile_04_ValidationErrors(t *testing.T) 
 
 func TestUnitResourceNetworkForwardingProfile_05_RejectsDefaultProfileImport(t *testing.T) {
 	setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -277,4 +295,5 @@ func TestUnitResourceNetworkForwardingProfile_05_RejectsDefaultProfileImport(t *
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/reject_default_profile_import.json")
 }

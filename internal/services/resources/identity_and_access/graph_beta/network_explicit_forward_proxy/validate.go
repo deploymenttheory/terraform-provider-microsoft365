@@ -32,22 +32,11 @@ func (r *NetworkExplicitForwardProxyResource) ValidateConfig(
 		options.IsUnknown() {
 		return
 	}
-	if !validAffinity(enabled.ValueBool(), options.ValueString()) {
+	if wantEnabled, ok := affinityOptionsEnabled[options.ValueString()]; !ok || wantEnabled != enabled.ValueBool() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("internet_access").AtName("source_ip_session_affinity_options"),
 			"Inconsistent session affinity settings",
 			"Use none when is_source_ip_session_affinity_enabled is false. When true, select useSessionId, useHttpHeader, or useSessionId,useHttpHeader.",
 		)
-	}
-}
-
-func validAffinity(enabled bool, options string) bool {
-	switch options {
-	case "none":
-		return !enabled
-	case "useSessionId", "useHttpHeader", "useSessionId,useHttpHeader":
-		return enabled
-	default:
-		return false
 	}
 }

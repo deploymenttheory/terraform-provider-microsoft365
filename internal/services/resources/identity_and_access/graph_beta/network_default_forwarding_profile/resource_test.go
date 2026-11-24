@@ -37,6 +37,7 @@ func hcl(t *testing.T, name string) string {
 
 func TestUnitResourceNetworkDefaultForwardingProfile_01_Lifecycle(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	initial := hcl(t, "resource.tf")
 	updated := hcl(t, "resource_updated.tf")
 	addr := resourceType + ".test"
@@ -79,6 +80,7 @@ func TestUnitResourceNetworkDefaultForwardingProfile_01_Lifecycle(t *testing.T) 
 			{Config: updated, PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/lifecycle.json")
 
 	require.Len(t, m.Patches, 1, "adopting with matching values sends no request")
 	require.Equal(t, map[string]any{
@@ -113,6 +115,7 @@ func TestUnitResourceNetworkDefaultForwardingProfile_02_RejectsLocalNetworkOnInt
 
 func TestUnitResourceNetworkDefaultForwardingProfile_03_RejectsCustomProfileImport(t *testing.T) {
 	setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -125,4 +128,5 @@ func TestUnitResourceNetworkDefaultForwardingProfile_03_RejectsCustomProfileImpo
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/reject_custom_profile_import.json")
 }

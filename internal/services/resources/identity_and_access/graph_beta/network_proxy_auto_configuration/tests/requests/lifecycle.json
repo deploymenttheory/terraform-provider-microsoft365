@@ -1,0 +1,60 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "content": "// updated\nfunction FindProxyForURL(url, host) { return \"DIRECT\"; }"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig/proxyAutoConfigurationFiles",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "content": "function FindProxyForURL(url, host) { return \"DIRECT\"; }",
+      "isEnabled": false,
+      "name": "test-pac"
+    }
+  }
+]

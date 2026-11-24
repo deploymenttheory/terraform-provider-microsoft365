@@ -151,14 +151,14 @@ func TestUnitResourceNetworkProxyAutoConfiguration_14_Payloads(t *testing.T) {
 	plan.Content = types.StringValue(
 		"// comment\nfunction FindProxyForURL(url, host) { return \"DIRECT\"; }",
 	)
-	body, err := pacBody(plan, &state)
+	body, err := constructResource(plan, &state)
 	require.NoError(t, err)
 	require.Equal(t, map[string]any{"content": plan.Content.ValueString()}, body)
-	same, err := pacBody(state, &state)
+	same, err := constructResource(state, &state)
 	require.NoError(t, err)
 	require.Empty(t, same)
 	plan.Content = types.StringNull()
-	_, err = pacBody(plan, nil)
+	_, err = constructResource(plan, nil)
 	require.Error(t, err)
 }
 

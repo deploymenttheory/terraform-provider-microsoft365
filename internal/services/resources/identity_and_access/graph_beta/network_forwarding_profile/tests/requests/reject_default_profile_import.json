@@ -1,0 +1,6 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  }
+]

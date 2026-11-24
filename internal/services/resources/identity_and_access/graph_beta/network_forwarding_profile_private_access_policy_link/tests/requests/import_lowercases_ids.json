@@ -1,0 +1,60 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "policies@delta": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicyLink",
+          "@removed": {
+            "reason": "deleted"
+          },
+          "id": "{uuid-2}"
+        }
+      ]
+    }
+  }
+]

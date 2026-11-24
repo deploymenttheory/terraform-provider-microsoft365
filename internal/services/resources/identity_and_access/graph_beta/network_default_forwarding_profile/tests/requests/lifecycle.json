@@ -1,0 +1,80 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/forwardingProfiles/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "assignmentRules": {
+        "assignments": {
+          "@odata.type": "#microsoft.graph.networkaccess.forwardingProfileAssignmentsNoMembership"
+        },
+        "devicePropertyFilters": {
+          "platforms": "windows"
+        }
+      },
+      "clientFallbackAction": "block",
+      "forwardingSourceMatching": {
+        "sessionType": "agent"
+      },
+      "state": "enabled"
+    }
+  }
+]

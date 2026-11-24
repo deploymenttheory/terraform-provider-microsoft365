@@ -4,7 +4,9 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
-func mapResponse(state *NetworkProxyAutoConfigurationResourceModel, remote *pacResponse) error {
+// MapRemoteStateToTerraform maps the custom PAC file to Terraform state. It returns errInvalidPACResponse, leaving
+// state unchanged, when Graph omits a required field.
+func MapRemoteStateToTerraform(state *NetworkProxyAutoConfigurationResourceModel, remote *pacResponse) error {
 	if remote == nil || remote.ID == nil || *remote.ID == "" || remote.Name == nil ||
 		remote.Content == nil ||
 		remote.IsEnabled == nil {

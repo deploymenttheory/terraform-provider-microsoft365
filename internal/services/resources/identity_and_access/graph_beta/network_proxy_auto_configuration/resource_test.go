@@ -23,6 +23,7 @@ func TestUnitResourceNetworkProxyAutoConfiguration_01_Lifecycle(t *testing.T) {
 	m := &testmocks.Mock{}
 	m.RegisterMocks()
 	t.Cleanup(func() { httpmock.DeactivateAndReset(); m.CleanupMockState() })
+	capture := mocks.CaptureGraphRequests(t)
 	initial, err := helpers.ParseHCLFile("tests/terraform/unit/resource.tf")
 	require.NoError(t, err)
 	updated, err := helpers.ParseHCLFile("tests/terraform/unit/resource_updated.tf")
@@ -48,6 +49,7 @@ func TestUnitResourceNetworkProxyAutoConfiguration_01_Lifecycle(t *testing.T) {
 			},
 		},
 	)
+	capture.AssertMatchesFixture(t, "tests/requests/lifecycle.json")
 	require.Equal(t, 1, m.Deletes)
 	require.Nil(t, m.State)
 	require.Len(t, m.Patches, 1)

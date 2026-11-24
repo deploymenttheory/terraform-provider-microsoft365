@@ -1,0 +1,48 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-1}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/deviceForwardingProfiles",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "isCustomProfile": true,
+      "name": "unit-minimal",
+      "priority": 150,
+      "state": "disabled",
+      "trafficForwardingType": "private"
+    }
+  }
+]

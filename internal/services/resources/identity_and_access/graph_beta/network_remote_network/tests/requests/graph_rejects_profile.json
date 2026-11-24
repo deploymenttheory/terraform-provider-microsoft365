@@ -1,0 +1,34 @@
+[
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "forwardingProfiles": [
+        {
+          "id": "{uuid-1}"
+        }
+      ],
+      "name": "unit-test-remote-network",
+      "region": "eastUS"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "forwardingProfiles": [
+        {
+          "id": "{uuid-2}"
+        }
+      ],
+      "name": "unit-test-remote-network",
+      "region": "eastUS"
+    }
+  }
+]

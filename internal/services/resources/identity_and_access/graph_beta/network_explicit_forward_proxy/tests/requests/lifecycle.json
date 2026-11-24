@@ -1,0 +1,60 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "internetAccess": {
+        "isEnabled": false,
+        "isSourceIpSessionAffinityEnabled": true,
+        "sourceIpSessionAffinityOptions": "useSessionId"
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/explicitForwardProxyConfig",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "internetAccess": {
+        "isSourceIpSessionAffinityEnabled": false
+      }
+    }
+  }
+]
