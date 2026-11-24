@@ -35,6 +35,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *privateNetworkMocks.PrivateNetw
 func TestUnitResourceNetworkPrivateNetwork_01_Basic(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, privateNetworkMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer privateNetworkMock.CleanupMockState()
 
@@ -56,11 +57,13 @@ func TestUnitResourceNetworkPrivateNetwork_01_Basic(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/basic.json")
 }
 
 func TestUnitResourceNetworkPrivateNetwork_02_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, privateNetworkMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer privateNetworkMock.CleanupMockState()
 
@@ -83,6 +86,7 @@ func TestUnitResourceNetworkPrivateNetwork_02_Update(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/update.json")
 }
 
 func TestUnitResourceNetworkPrivateNetwork_03_InvalidExpectedIPResolution(t *testing.T) {

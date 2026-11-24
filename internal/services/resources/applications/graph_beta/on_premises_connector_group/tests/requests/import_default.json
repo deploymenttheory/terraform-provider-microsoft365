@@ -1,0 +1,6 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{uuid-1}"
+  }
+]

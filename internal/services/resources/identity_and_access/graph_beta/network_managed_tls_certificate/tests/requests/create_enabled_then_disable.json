@@ -1,0 +1,94 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json",
+      "Prefer": "include-unknown-enum-members"
+    },
+    "body": {
+      "status": "disabled"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json",
+      "Prefer": "include-unknown-enum-members"
+    },
+    "body": {
+      "status": "enabled"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates",
+    "headers": {
+      "Content-Type": "application/json",
+      "Prefer": "include-unknown-enum-members"
+    },
+    "body": {
+      "commonName": "Terraform TLS Inspection Root CA",
+      "name": "M-TLSi-unit-enabled",
+      "organizationName": "Example",
+      "validityMonths": 60
+    }
+  }
+]

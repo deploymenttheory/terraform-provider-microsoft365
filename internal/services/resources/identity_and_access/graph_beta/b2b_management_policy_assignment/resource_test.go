@@ -32,6 +32,7 @@ func setupMockEnvironment() (*mocks.Mocks, *assignmentMocks.B2bManagementPolicyA
 func TestUnitResourceB2bManagementPolicyAssignment_01_ServicePrincipal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer assignmentMock.CleanupMockState()
 
@@ -74,6 +75,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_01_ServicePrincipal(t *testin
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/service_principal.json")
 
 	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 1)
 	assertCallCount(t, assignmentMock, "DELETE", "servicePrincipals", 1)
@@ -82,6 +84,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_01_ServicePrincipal(t *testin
 func TestUnitResourceB2bManagementPolicyAssignment_02_Application(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer assignmentMock.CleanupMockState()
 
@@ -105,6 +108,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_02_Application(t *testing.T) 
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/application.json")
 
 	assertCallCount(t, assignmentMock, "POST", "applications", 1)
 	assertCallCount(t, assignmentMock, "DELETE", "applications", 1)
@@ -424,6 +428,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_12_MaximalToMinimal(t *testin
 func TestUnitResourceB2bManagementPolicyAssignment_13_PolicyReplacement(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer assignmentMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
@@ -461,6 +466,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_13_PolicyReplacement(t *testi
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/policy_replacement.json")
 	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 2)
 	assertCallCount(t, assignmentMock, "DELETE", "servicePrincipals", 2)
 }
@@ -468,6 +474,7 @@ func TestUnitResourceB2bManagementPolicyAssignment_13_PolicyReplacement(t *testi
 func TestUnitResourceB2bManagementPolicyAssignment_14_TargetReplacement(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, assignmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer assignmentMock.CleanupMockState()
 	resource.UnitTest(t, resource.TestCase{
@@ -505,8 +512,39 @@ func TestUnitResourceB2bManagementPolicyAssignment_14_TargetReplacement(t *testi
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/target_replacement.json")
 	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 1)
 	assertCallCount(t, assignmentMock, "POST", "applications", 1)
 	assertCallCount(t, assignmentMock, "DELETE", "servicePrincipals", 1)
 	assertCallCount(t, assignmentMock, "DELETE", "applications", 1)
+}
+
+// Graph pages appliesTo with @odata.nextLink: the assignment on the second page must be found on every read.
+func TestUnitResourceB2bManagementPolicyAssignment_15_PagedAppliesTo(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, assignmentMock := setupMockEnvironment()
+	assignmentMock.RegisterPagedAppliesToMocks()
+	capture := mocks.CaptureGraphRequests(t)
+	defer httpmock.DeactivateAndReset()
+	defer assignmentMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfig("tests/terraform/unit/resource_service_principal.tf"),
+				Check:  check.That(resourceType+".service_principal").Key("directory_object_type").HasValue("servicePrincipal"),
+			},
+			{
+				ResourceName:            resourceType + ".service_principal",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateId:           policyID + "/" + assignmentMocks.ServicePrincipalID,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+	capture.AssertMatchesFixture(t, "tests/requests/paged_applies_to.json")
+	assertCallCount(t, assignmentMock, "POST", "servicePrincipals", 1)
+	assertCallCount(t, assignmentMock, "DELETE", "servicePrincipals", 1)
 }

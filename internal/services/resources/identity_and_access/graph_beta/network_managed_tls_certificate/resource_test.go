@@ -67,6 +67,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_01_DefaultsAndImport(t *testin
 func TestUnitResourceNetworkManagedTLSCertificate_02_CreateEnabledThenDisable(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, certificateMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer certificateMock.CleanupMockState()
 
@@ -93,6 +94,7 @@ func TestUnitResourceNetworkManagedTLSCertificate_02_CreateEnabledThenDisable(t 
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/create_enabled_then_disable.json")
 }
 
 func TestUnitResourceNetworkManagedTLSCertificate_03_CreateError(t *testing.T) {

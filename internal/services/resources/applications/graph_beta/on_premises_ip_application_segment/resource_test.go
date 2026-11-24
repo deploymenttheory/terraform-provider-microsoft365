@@ -37,6 +37,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 func TestUnitResourceIpApplicationSegment_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer ipSegmentMock.CleanupMockState()
 
@@ -61,11 +62,13 @@ func TestUnitResourceIpApplicationSegment_01_Minimal(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/minimal.json")
 }
 
 func TestUnitResourceIpApplicationSegment_02_Maximal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer ipSegmentMock.CleanupMockState()
 
@@ -94,11 +97,13 @@ func TestUnitResourceIpApplicationSegment_02_Maximal(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/maximal.json")
 }
 
 func TestUnitResourceIpApplicationSegment_03_IpRange(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer ipSegmentMock.CleanupMockState()
 
@@ -119,6 +124,7 @@ func TestUnitResourceIpApplicationSegment_03_IpRange(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/ip_range.json")
 }
 
 func TestUnitResourceIpApplicationSegment_03a_IpRangeStartEnd(t *testing.T) {
@@ -187,6 +193,7 @@ resource "microsoft365_graph_beta_applications_on_premises_ip_application_segmen
 func TestUnitResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer ipSegmentMock.CleanupMockState()
 
@@ -208,6 +215,7 @@ func TestUnitResourceIpApplicationSegment_04_FQDN(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/fqdn.json")
 }
 
 // Each create takes 3s and has an 8s timeout. The mock rejects overlapping POSTs, so
@@ -241,6 +249,7 @@ func TestUnitResourceIpApplicationSegment_04a_ConcurrentSameApplication(t *testi
 func TestUnitResourceIpApplicationSegment_05_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, ipSegmentMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer ipSegmentMock.CleanupMockState()
 
@@ -265,6 +274,7 @@ func TestUnitResourceIpApplicationSegment_05_Update(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/update.json")
 }
 
 // Configuration helper functions

@@ -294,6 +294,26 @@ func (m *B2bManagementPolicyAssignmentMock) RegisterStaleAppliesToMocks(staleCou
 		})
 }
 
+// RegisterPagedAppliesToMocks serves appliesTo in two pages: the first page is empty and links to a second page
+// ($skiptoken=page2) that holds the assignments.
+func (m *B2bManagementPolicyAssignmentMock) RegisterPagedAppliesToMocks() {
+	list := m.listAppliesToResponder()
+
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/policies/b2bManagementPolicies/[0-9a-fA-F-]+/appliesTo$`,
+		func(req *http.Request) (*http.Response, error) {
+			if req.URL.Query().Get("$skiptoken") == "page2" {
+				return list(req)
+			}
+			nextLink := "https://graph.microsoft.com" + req.URL.Path + "?$skiptoken=page2"
+			response := map[string]any{
+				"@odata.context":  "https://graph.microsoft.com/beta/$metadata#directoryObjects",
+				"@odata.nextLink": nextLink,
+				"value":           []any{},
+			}
+			return factories.SuccessResponse(200, response)(req)
+		})
+}
+
 // RegisterTruncatedAppliesToMocks serves the truncated appliesTo body captured from Graph for a
 // caller without Application.Read.All.
 func (m *B2bManagementPolicyAssignmentMock) RegisterTruncatedAppliesToMocks() {
