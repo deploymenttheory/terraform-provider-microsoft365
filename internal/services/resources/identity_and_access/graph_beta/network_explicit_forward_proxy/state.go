@@ -6,7 +6,10 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
-func mapResponse(state *NetworkExplicitForwardProxyResourceModel, remote *proxyResponse) error {
+// MapRemoteStateToTerraform maps the explicit forward proxy configuration to Terraform state. It returns
+// errInvalidProxyResponse, leaving state unchanged, when Graph omits a required setting or returns unsupported
+// session affinity options.
+func MapRemoteStateToTerraform(state *NetworkExplicitForwardProxyResourceModel, remote *proxyResponse) error {
 	if remote == nil || remote.InternetAccess == nil {
 		return errInvalidProxyResponse
 	}
@@ -19,7 +22,7 @@ func mapResponse(state *NetworkExplicitForwardProxyResourceModel, remote *proxyR
 	if options == "useHttpHeader,useSessionId" {
 		options = "useSessionId,useHttpHeader"
 	}
-	if !validAffinity(*access.IsSourceIPSessionAffinityEnabled, options) {
+	if wantEnabled, ok := affinityOptionsEnabled[options]; !ok || wantEnabled != *access.IsSourceIPSessionAffinityEnabled {
 		return errInvalidProxyResponse
 	}
 	state.ID = types.StringValue("explicitForwardProxyConfig")
