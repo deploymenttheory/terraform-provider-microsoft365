@@ -7,13 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
-	"github.com/microsoft/kiota-abstractions-go/store"
-	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 )
 
-func TestPrivateNetworkRequestInformationSerializesPortalPayload(t *testing.T) {
+func TestConstructResourceSerializesPortalPayload(t *testing.T) {
 	body := serializedPayload(t, context.Background(), &NetworkPrivateNetworkResourceModel{
 		Name:   testString("sample-private-network"),
 		AppIDs: testStringSet(t, []string{"81ff8e33-3181-475b-ade6-e27147234bb3"}),
@@ -70,62 +66,16 @@ func serializedPayload(t *testing.T, ctx context.Context, model *NetworkPrivateN
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	requestInfo, err := newPrivateNetworkRequestInformation(ctx, privateNetworkTestRequestAdapter{}, abstractions.POST, "", body)
+	content, err := json.Marshal(body)
 	if err != nil {
-		t.Fatalf("newPrivateNetworkRequestInformation returned error: %v", err)
+		t.Fatalf("failed to marshal request body: %v", err)
 	}
 
 	var payload map[string]any
-	if err := json.Unmarshal(requestInfo.Content, &payload); err != nil {
+	if err := json.Unmarshal(content, &payload); err != nil {
 		t.Fatalf("failed to unmarshal request content: %v", err)
 	}
 	return payload
-}
-
-type privateNetworkTestRequestAdapter struct{}
-
-func (privateNetworkTestRequestAdapter) Send(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) (s.Parsable, error) {
-	return nil, nil
-}
-
-func (privateNetworkTestRequestAdapter) SendEnum(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) (any, error) {
-	return nil, nil
-}
-
-func (privateNetworkTestRequestAdapter) SendCollection(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) ([]s.Parsable, error) {
-	return nil, nil
-}
-
-func (privateNetworkTestRequestAdapter) SendEnumCollection(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) ([]any, error) {
-	return nil, nil
-}
-
-func (privateNetworkTestRequestAdapter) SendPrimitive(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) (any, error) {
-	return nil, nil
-}
-
-func (privateNetworkTestRequestAdapter) SendPrimitiveCollection(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) ([]any, error) {
-	return nil, nil
-}
-
-func (privateNetworkTestRequestAdapter) SendNoContent(context.Context, *abstractions.RequestInformation, abstractions.ErrorMappings) error {
-	return nil
-}
-
-func (privateNetworkTestRequestAdapter) GetSerializationWriterFactory() s.SerializationWriterFactory {
-	return jsonserialization.NewJsonSerializationWriterFactory()
-}
-
-func (privateNetworkTestRequestAdapter) EnableBackingStore(store.BackingStoreFactory) {}
-
-func (privateNetworkTestRequestAdapter) SetBaseUrl(string) {}
-
-func (privateNetworkTestRequestAdapter) GetBaseUrl() string {
-	return "https://graph.microsoft.com/beta"
-}
-
-func (privateNetworkTestRequestAdapter) ConvertToNativeRequest(context.Context, *abstractions.RequestInformation) (any, error) {
-	return nil, nil
 }
 
 func testString(value string) types.String {
@@ -165,14 +115,14 @@ func testExpectedIPResolutionSet(t *testing.T, values []ExpectedIPResolutionMode
 			attrs["end_address"] = value.EndAddress
 		}
 
-		objectValue, diags := types.ObjectValue(expectedIPResolutionAttrTypes(), attrs)
+		objectValue, diags := types.ObjectValue(expectedIPResolutionAttrTypes, attrs)
 		if diags.HasError() {
 			t.Fatalf("failed to create expected IP resolution object: %s", diags.Errors()[0].Detail())
 		}
 		elements = append(elements, objectValue)
 	}
 
-	set, diags := types.SetValue(expectedIPResolutionObjectType(), elements)
+	set, diags := types.SetValue(types.ObjectType{AttrTypes: expectedIPResolutionAttrTypes}, elements)
 	if diags.HasError() {
 		t.Fatalf("failed to create expected IP resolution set: %s", diags.Errors()[0].Detail())
 	}

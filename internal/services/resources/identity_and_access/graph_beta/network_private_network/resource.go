@@ -132,7 +132,7 @@ func (r *NetworkPrivateNetworkResource) Schema(ctx context.Context, req resource
 						},
 						NestedObject: schema.NestedAttributeObject{
 							Validators: []validator.Object{
-								expectedIPResolutionObject(),
+								expectedIPResolutionObjectValidator{},
 							},
 							Attributes: map[string]schema.Attribute{
 								"type": schema.StringAttribute{

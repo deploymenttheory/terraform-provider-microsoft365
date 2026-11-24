@@ -2,13 +2,11 @@ package graphBetaNetworkPrivateNetwork
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/netip"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 const (
@@ -24,268 +22,108 @@ const (
 	expectedIPResolutionTypeIPRange   = "ip_range"
 )
 
+// errInvalidRequest marks a configuration the private network request cannot be built from.
+var errInvalidRequest = errors.New("invalid private network request")
+
 // constructResource builds the portal-observed private network payload for
-// /networkaccess/privateNetworks.
-//
-// Microsoft Graph beta currently exposes this Global Secure Access private
-// network surface in the Entra portal before the generated Go SDK has a typed
-// request builder for it, so this resource uses Kiota RequestInformation and
-// custom Parsable request bodies while preserving the portal-observed payload
-// shape.
-func constructResource(ctx context.Context, data *NetworkPrivateNetworkResourceModel, includeODataType bool) (s.Parsable, error) {
+// /networkaccess/privateNetworks. includeODataType adds the @odata.type the
+// portal sends on create.
+func constructResource(ctx context.Context, data *NetworkPrivateNetworkResourceModel, includeODataType bool) (privateNetworkRequest, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	if data.DNSResolutionIdentification == nil {
-		return nil, fmt.Errorf("dns_resolution_identification must be specified")
-	}
+	var requestBody privateNetworkRequest
 
-	dnsServers, err := stringSetValues(ctx, data.DNSResolutionIdentification.DNSServers)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read dns_resolution_identification.dns_servers: %w", err)
+	if data.DNSResolutionIdentification == nil {
+		return requestBody, fmt.Errorf("%w: dns_resolution_identification must be specified", errInvalidRequest)
+	}
+	dnsResolution := data.DNSResolutionIdentification
+
+	// A null or unknown set has no elements, so it decodes to no values.
+	var dnsServers []string
+	if len(dnsResolution.DNSServers.Elements()) > 0 {
+		if diags := dnsResolution.DNSServers.ElementsAs(ctx, &dnsServers, false); diags.HasError() {
+			return requestBody, fmt.Errorf("%w: failed to read dns_resolution_identification.dns_servers: %s", errInvalidRequest, diags.Errors()[0].Detail())
+		}
 	}
 	if len(dnsServers) == 0 {
-		return nil, fmt.Errorf("at least one dns_resolution_identification.dns_servers value must be specified")
+		return requestBody, fmt.Errorf("%w: at least one dns_resolution_identification.dns_servers value must be specified", errInvalidRequest)
 	}
+	serverAddresses := make([]ipResolutionRequest, 0, len(dnsServers))
 	for _, server := range dnsServers {
 		if _, err := netip.ParseAddr(server); err != nil {
-			return nil, fmt.Errorf("dns server %q must be a valid IP address: %w", server, err)
+			return requestBody, fmt.Errorf("dns server %q must be a valid IP address: %w", server, err)
+		}
+		serverAddresses = append(serverAddresses, ipResolutionRequest{ODataType: ipAddressODataType, Value: &server})
+	}
+
+	var expectedIPResolutionModels []ExpectedIPResolutionModel
+	if len(dnsResolution.ExpectedIPResolutions.Elements()) > 0 {
+		if diags := dnsResolution.ExpectedIPResolutions.ElementsAs(ctx, &expectedIPResolutionModels, false); diags.HasError() {
+			return requestBody, fmt.Errorf("%w: failed to read dns_resolution_identification.expected_ip_resolutions: %s", errInvalidRequest, diags.Errors()[0].Detail())
+		}
+	}
+	if len(expectedIPResolutionModels) == 0 {
+		return requestBody, fmt.Errorf("%w: at least one dns_resolution_identification.expected_ip_resolutions value must be specified", errInvalidRequest)
+	}
+	// ValueString is "" for a null or unknown value, so an empty string covers every unset field.
+	expectedIPResolutions := make([]ipResolutionRequest, 0, len(expectedIPResolutionModels))
+	for _, item := range expectedIPResolutionModels {
+		resolutionType := item.Type.ValueString()
+		switch resolutionType {
+		case expectedIPResolutionTypeIPAddress, expectedIPResolutionTypeIPSubnet:
+			value := item.Value.ValueString()
+			if value == "" {
+				return requestBody, fmt.Errorf("%w: expected_ip_resolutions value is required when type is %q", errInvalidRequest, resolutionType)
+			}
+			if resolutionType == expectedIPResolutionTypeIPSubnet {
+				if _, err := netip.ParsePrefix(value); err != nil {
+					return requestBody, fmt.Errorf("expected_ip_resolutions value %q must be a valid CIDR prefix: %w", value, err)
+				}
+				expectedIPResolutions = append(expectedIPResolutions, ipResolutionRequest{ODataType: ipSubnetODataType, Value: &value})
+				continue
+			}
+			if _, err := netip.ParseAddr(value); err != nil {
+				return requestBody, fmt.Errorf("expected_ip_resolutions value %q must be a valid IP address: %w", value, err)
+			}
+			expectedIPResolutions = append(expectedIPResolutions, ipResolutionRequest{ODataType: ipAddressODataType, Value: &value})
+		case expectedIPResolutionTypeIPRange:
+			begin, end := item.BeginAddress.ValueString(), item.EndAddress.ValueString()
+			for _, address := range []struct{ name, value string }{{"begin_address", begin}, {"end_address", end}} {
+				if address.value == "" {
+					return requestBody, fmt.Errorf("%w: expected_ip_resolutions %s is required when type is %q", errInvalidRequest, address.name, resolutionType)
+				}
+				if _, err := netip.ParseAddr(address.value); err != nil {
+					return requestBody, fmt.Errorf("expected_ip_resolutions %s %q must be a valid IP address: %w", address.name, address.value, err)
+				}
+			}
+			expectedIPResolutions = append(expectedIPResolutions, ipResolutionRequest{ODataType: ipRangeODataType, BeginAddress: &begin, EndAddress: &end})
+		default:
+			return requestBody, fmt.Errorf("%w: expected_ip_resolutions type must be one of \"ip_address\", \"ip_subnet\", or \"ip_range\"", errInvalidRequest)
 		}
 	}
 
-	expectedIPResolutions, err := expectedIPResolutionValues(ctx, data.DNSResolutionIdentification.ExpectedIPResolutions)
-	if err != nil {
-		return nil, err
-	}
-	if len(expectedIPResolutions) == 0 {
-		return nil, fmt.Errorf("at least one dns_resolution_identification.expected_ip_resolutions value must be specified")
-	}
-
-	appIDs, err := stringSetValues(ctx, data.AppIDs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read app_ids: %w", err)
+	if !data.AppIDs.IsNull() && !data.AppIDs.IsUnknown() {
+		appIDs := []string{}
+		if diags := data.AppIDs.ElementsAs(ctx, &appIDs, false); diags.HasError() {
+			return requestBody, fmt.Errorf("%w: failed to read app_ids: %s", errInvalidRequest, diags.Errors()[0].Detail())
+		}
+		requestBody.AppIDs = &appIDs
 	}
 
-	requestBody := &privateNetworkRequestBody{
-		includeODataType: includeODataType,
-		name:             data.Name.ValueStringPointer(),
-		appIDs:           appIDs,
-		networkIdentifications: []s.Parsable{
-			&dnsResolutionIdentificationRequestBody{
-				serverAddresses:       ipAddressRequestBodies(dnsServers),
-				fqdnToResolve:         &fqdnRequestBody{value: data.DNSResolutionIdentification.FQDNToResolve.ValueStringPointer()},
-				expectedIPResolutions: expectedIPResolutions,
-			},
+	if includeODataType {
+		requestBody.ODataType = privateNetworkODataType
+	}
+	requestBody.Name = data.Name.ValueStringPointer()
+	requestBody.NetworkIdentifications = []dnsResolutionIdentificationRequest{
+		{
+			ODataType:             dnsResolutionIdentificationODataType,
+			ServerAddresses:       serverAddresses,
+			FQDNToResolve:         &ipResolutionRequest{ODataType: fqdnODataType, Value: dnsResolution.FQDNToResolve.ValueStringPointer()},
+			ExpectedIPResolutions: expectedIPResolutions,
 		},
 	}
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]any{
-			"error": err.Error(),
-		})
-	}
+	tflog.Debug(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), map[string]any{"request_body": requestBody})
 
 	return requestBody, nil
-}
-
-func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
-	if value.IsNull() || value.IsUnknown() {
-		return nil, nil
-	}
-
-	var result []string
-	diags := value.ElementsAs(ctx, &result, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
-	}
-
-	return result, nil
-}
-
-func expectedIPResolutionValues(ctx context.Context, value types.Set) ([]s.Parsable, error) {
-	if value.IsNull() || value.IsUnknown() {
-		return nil, nil
-	}
-
-	var terraformValues []ExpectedIPResolutionModel
-	diags := value.ElementsAs(ctx, &terraformValues, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to read dns_resolution_identification.expected_ip_resolutions: %s", diags.Errors()[0].Detail())
-	}
-
-	result := make([]s.Parsable, 0, len(terraformValues))
-	for _, item := range terraformValues {
-		switch item.Type.ValueString() {
-		case expectedIPResolutionTypeIPAddress:
-			if item.Value.IsNull() || item.Value.IsUnknown() || item.Value.ValueString() == "" {
-				return nil, fmt.Errorf("expected_ip_resolutions value is required when type is %q", expectedIPResolutionTypeIPAddress)
-			}
-			if _, err := netip.ParseAddr(item.Value.ValueString()); err != nil {
-				return nil, fmt.Errorf("expected_ip_resolutions value %q must be a valid IP address: %w", item.Value.ValueString(), err)
-			}
-			result = append(result, &ipAddressRequestBody{value: item.Value.ValueStringPointer()})
-		case expectedIPResolutionTypeIPSubnet:
-			if item.Value.IsNull() || item.Value.IsUnknown() || item.Value.ValueString() == "" {
-				return nil, fmt.Errorf("expected_ip_resolutions value is required when type is %q", expectedIPResolutionTypeIPSubnet)
-			}
-			if _, err := netip.ParsePrefix(item.Value.ValueString()); err != nil {
-				return nil, fmt.Errorf("expected_ip_resolutions value %q must be a valid CIDR prefix: %w", item.Value.ValueString(), err)
-			}
-			result = append(result, &ipSubnetRequestBody{value: item.Value.ValueStringPointer()})
-		case expectedIPResolutionTypeIPRange:
-			if item.BeginAddress.IsNull() || item.BeginAddress.IsUnknown() || item.BeginAddress.ValueString() == "" {
-				return nil, fmt.Errorf("expected_ip_resolutions begin_address is required when type is %q", expectedIPResolutionTypeIPRange)
-			}
-			if item.EndAddress.IsNull() || item.EndAddress.IsUnknown() || item.EndAddress.ValueString() == "" {
-				return nil, fmt.Errorf("expected_ip_resolutions end_address is required when type is %q", expectedIPResolutionTypeIPRange)
-			}
-			if _, err := netip.ParseAddr(item.BeginAddress.ValueString()); err != nil {
-				return nil, fmt.Errorf("expected_ip_resolutions begin_address %q must be a valid IP address: %w", item.BeginAddress.ValueString(), err)
-			}
-			if _, err := netip.ParseAddr(item.EndAddress.ValueString()); err != nil {
-				return nil, fmt.Errorf("expected_ip_resolutions end_address %q must be a valid IP address: %w", item.EndAddress.ValueString(), err)
-			}
-			result = append(result, &ipRangeRequestBody{
-				beginAddress: item.BeginAddress.ValueStringPointer(),
-				endAddress:   item.EndAddress.ValueStringPointer(),
-			})
-		default:
-			return nil, fmt.Errorf("expected_ip_resolutions type must be one of %q, %q, or %q", expectedIPResolutionTypeIPAddress, expectedIPResolutionTypeIPSubnet, expectedIPResolutionTypeIPRange)
-		}
-	}
-
-	return result, nil
-}
-
-func ipAddressRequestBodies(values []string) []s.Parsable {
-	result := make([]s.Parsable, 0, len(values))
-	for _, value := range values {
-		v := value
-		result = append(result, &ipAddressRequestBody{value: &v})
-	}
-	return result
-}
-
-type privateNetworkRequestBody struct {
-	includeODataType       bool
-	name                   *string
-	appIDs                 []string
-	networkIdentifications []s.Parsable
-}
-
-func (b *privateNetworkRequestBody) Serialize(writer s.SerializationWriter) error {
-	if b.includeODataType {
-		odataType := privateNetworkODataType
-		if err := writer.WriteStringValue("@odata.type", &odataType); err != nil {
-			return err
-		}
-	}
-	if err := writer.WriteStringValue("name", b.name); err != nil {
-		return err
-	}
-	if err := writer.WriteCollectionOfStringValues("appIds", b.appIDs); err != nil {
-		return err
-	}
-	if err := writer.WriteCollectionOfObjectValues("networkIdentifications", b.networkIdentifications); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (b *privateNetworkRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type dnsResolutionIdentificationRequestBody struct {
-	serverAddresses       []s.Parsable
-	fqdnToResolve         *fqdnRequestBody
-	expectedIPResolutions []s.Parsable
-}
-
-func (b *dnsResolutionIdentificationRequestBody) Serialize(writer s.SerializationWriter) error {
-	odataType := dnsResolutionIdentificationODataType
-	if err := writer.WriteStringValue("@odata.type", &odataType); err != nil {
-		return err
-	}
-	if err := writer.WriteCollectionOfObjectValues("serverAddresses", b.serverAddresses); err != nil {
-		return err
-	}
-	if err := writer.WriteObjectValue("fqdnToResolve", b.fqdnToResolve); err != nil {
-		return err
-	}
-	if err := writer.WriteCollectionOfObjectValues("expectedIpResolutions", b.expectedIPResolutions); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (b *dnsResolutionIdentificationRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type fqdnRequestBody struct {
-	value *string
-}
-
-func (b *fqdnRequestBody) Serialize(writer s.SerializationWriter) error {
-	odataType := fqdnODataType
-	if err := writer.WriteStringValue("@odata.type", &odataType); err != nil {
-		return err
-	}
-	return writer.WriteStringValue("value", b.value)
-}
-
-func (b *fqdnRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type ipAddressRequestBody struct {
-	value *string
-}
-
-func (b *ipAddressRequestBody) Serialize(writer s.SerializationWriter) error {
-	odataType := ipAddressODataType
-	if err := writer.WriteStringValue("@odata.type", &odataType); err != nil {
-		return err
-	}
-	return writer.WriteStringValue("value", b.value)
-}
-
-func (b *ipAddressRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type ipSubnetRequestBody struct {
-	value *string
-}
-
-func (b *ipSubnetRequestBody) Serialize(writer s.SerializationWriter) error {
-	odataType := ipSubnetODataType
-	if err := writer.WriteStringValue("@odata.type", &odataType); err != nil {
-		return err
-	}
-	return writer.WriteStringValue("value", b.value)
-}
-
-func (b *ipSubnetRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type ipRangeRequestBody struct {
-	beginAddress *string
-	endAddress   *string
-}
-
-func (b *ipRangeRequestBody) Serialize(writer s.SerializationWriter) error {
-	odataType := ipRangeODataType
-	if err := writer.WriteStringValue("@odata.type", &odataType); err != nil {
-		return err
-	}
-	if err := writer.WriteStringValue("beginAddress", b.beginAddress); err != nil {
-		return err
-	}
-	return writer.WriteStringValue("endAddress", b.endAddress)
-}
-
-func (b *ipRangeRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
 }
