@@ -20,8 +20,15 @@ class ServicePackageTests(unittest.TestCase):
     """Exercise package selection."""
 
     def test_only_service_packages_are_selected(self):
-        """Verify only packages under internal/services are kept."""
-        packages = [".", "internal/provider", SERVICE, "tools/helperscan", "internal/servicesx"]
+        """Verify only non-common packages under internal/services are kept."""
+        packages = [
+            ".",
+            "internal/provider",
+            SERVICE,
+            "tools/helperscan",
+            "internal/servicesx",
+            "internal/services/common/crud",
+        ]
         self.assertEqual(service_packages(packages), [SERVICE])
 
 

@@ -17,6 +17,7 @@ on:
       - '**/*.go'
       - 'internal/**'
       - 'scripts/pipeline/pr/**'
+      - 'tools/helperscan/**'
       - 'scripts/pipeline/generate_test_factories.py'
       - 'scripts/pipeline/tests/**'
       - 'scripts/pipeline/bi_weekly_tests/**'
@@ -77,7 +78,9 @@ jobs:
         run: python3 scripts/pipeline/pr/steps/plan_jobs.py --base-ref "$BASE_REF"
 
       - name: Verify helper report
-        run: python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_report_helpers.py -v
+        run: |
+          go test ./tools/helperscan
+          python3 -m unittest discover -s scripts/pipeline/pr/tests -p test_report_helpers.py -v
 
       - name: '🧩 Helper report (report-only)'
         continue-on-error: true

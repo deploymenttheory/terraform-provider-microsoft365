@@ -131,7 +131,9 @@ retain their existing test batches and use the isolated factories as well.
 ## Helper report
 
 The planning job runs `steps/report_helpers.py`, which selects the changed
-packages under `internal/services` and runs `tools/helperscan` on them. It prints
+packages under `internal/services`, except the shared `internal/services/common`
+packages, and runs `tools/helperscan` on them. The same step runs the scanner's
+Go tests, because the unit-test planner only selects packages under `internal`. It prints
 a table to the job log and adds the same report to the step summary. For every
 helper it shows the declaration's line span, how many places reference it, which
 CRUD methods call it directly and whether its name follows the convention in the

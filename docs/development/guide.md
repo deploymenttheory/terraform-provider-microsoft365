@@ -378,7 +378,7 @@ if err := r.client.DeviceAppManagement().ManagedAppPolicies().ByManagedAppPolicy
 
 ### The helper report
 
-Every PR that changes a package under `internal/services` runs `tools/helperscan` on the changed packages. The report appears in the log of the "Plan test partitions" job and in its step summary. It is report-only for now and never fails the job. For each helper it shows:
+Every PR that changes a package under `internal/services` runs `tools/helperscan` on the changed packages, except the shared packages in `internal/services/common`. The report appears in the log of the "Plan test partitions" job and in its step summary. It is report-only for now and never fails the job. For each helper it shows:
 
 - `LINES`: the span of the declaration, from `func` to the closing brace. A helper of 10 lines or fewer counts as short.
 - `REFS`: how many places in the package's non-test files reference it. Recursive calls don't count.

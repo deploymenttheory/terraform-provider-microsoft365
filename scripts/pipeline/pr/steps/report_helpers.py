@@ -16,13 +16,19 @@ from lib.git_operations import get_changed_packages, get_merge_base  # noqa: E40
 # pylint: enable=wrong-import-position
 
 SERVICES_PREFIX = "internal/services/"
+# Shared packages are generic by design, so the package-local helper rule does not apply to them.
+COMMON_PREFIX = "internal/services/common/"
 SCANNER = "./tools/helperscan"
-SKIPPED = "No changed Go packages under internal/services; helper report skipped."
+SKIPPED = "No changed resource packages under internal/services; helper report skipped."
 
 
 def service_packages(packages):
-    """Keep the changed packages that live under internal/services."""
-    return [package for package in packages if package.startswith(SERVICES_PREFIX)]
+    """Keep the changed packages under internal/services, except the shared common packages."""
+    return [
+        package
+        for package in packages
+        if package.startswith(SERVICES_PREFIX) and not package.startswith(COMMON_PREFIX)
+    ]
 
 
 def append_summary(summary_file, markdown):
