@@ -191,8 +191,9 @@ func (r *B2bManagementPolicyAssignmentResource) Create(ctx context.Context, req 
 		return
 	}
 
-	// Reads from replicas that do not list the new assignment yet are rejected; accepting them would leave Create
-	// without state.
+	// Deliberate exception to "no consistency predicate on Create": stale Entra replicas can omit a new assignment
+	// from appliesTo, and main already had this predicate. Reads from replicas that do not list the new assignment
+	// yet are rejected; accepting them would leave Create without state.
 	matchOptions := crud.AttributeMatchOptions{
 		Paths:        crud.RootPaths("b2b_management_policy_id", "directory_object_id"),
 		RequireKnown: crud.RootPaths("id"),
