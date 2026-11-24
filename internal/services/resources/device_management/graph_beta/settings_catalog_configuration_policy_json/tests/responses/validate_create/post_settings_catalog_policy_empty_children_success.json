@@ -1,0 +1,66 @@
+{
+  "templateReference": {
+    "templateDisplayVersion": null,
+    "templateId": "",
+    "templateFamily": "none",
+    "templateDisplayName": null
+  },
+  "lastModifiedDateTime": "2024-01-01T00:00:00Z",
+  "technologies": "mdm",
+  "settingCount": 3,
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#deviceManagement/configurationPolicies/$entity",
+  "id": "00000000-0000-0000-0000-000000000000",
+  "priorityMetaData": null,
+  "creationSource": null,
+  "createdDateTime": "2024-01-01T00:00:00Z",
+  "platforms": "windows10",
+  "roleScopeTagIds": [
+    "0"
+  ],
+  "description": "Test policy for settings without children",
+  "name": "Test Empty Children Policy",
+  "settings": [
+    {
+      "settingInstance": {
+        "choiceSettingCollectionValue": [
+          {
+            "value": "device_vendor_msft_defender_configuration_passiveremediation_1",
+            "settingValueTemplateReference": null,
+            "children": []
+          }
+        ],
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_defender_configuration_passiveremediation"
+      },
+      "id": "0"
+    },
+    {
+      "settingInstance": {
+        "groupSettingCollectionValue": [
+          {
+            "settingValueTemplateReference": null,
+            "children": []
+          }
+        ],
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_test_groupcollection"
+      },
+      "id": "1"
+    },
+    {
+      "settingInstance": {
+        "choiceSettingValue": {
+          "value": "device_vendor_msft_policy_config_camera_allowcamera_1",
+          "settingValueTemplateReference": null,
+          "children": []
+        },
+        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+        "settingInstanceTemplateReference": null,
+        "settingDefinitionId": "device_vendor_msft_policy_config_camera_allowcamera"
+      },
+      "id": "2"
+    }
+  ]
+}
