@@ -59,12 +59,7 @@
         }
       },
       "displayName": "CAD009-All: Session disable browser persistence for All users when Browser and Non-Compliant-v1.2",
-      "grantControls": {
-        "builtInControls": [],
-        "customAuthenticationFactors": [],
-        "operator": "OR",
-        "termsOfUse": []
-      },
+      "grantControls": null,
       "sessionControls": {
         "persistentBrowser": {
           "@odata.type": "#microsoft.graph.persistentBrowserSessionControl",

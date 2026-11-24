@@ -81,12 +81,7 @@
         }
       },
       "displayName": "CAU018-All: Session disable browser persistence for Admins when Browser-v1.0",
-      "grantControls": {
-        "builtInControls": [],
-        "customAuthenticationFactors": [],
-        "operator": "OR",
-        "termsOfUse": []
-      },
+      "grantControls": null,
       "sessionControls": {
         "persistentBrowser": {
           "@odata.type": "#microsoft.graph.persistentBrowserSessionControl",

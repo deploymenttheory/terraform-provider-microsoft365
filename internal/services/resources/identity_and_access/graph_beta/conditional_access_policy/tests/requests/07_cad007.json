@@ -66,12 +66,7 @@
         }
       },
       "displayName": "CAD007-O365: Session set Sign-in Frequency for Apps for All users when Modern Auth Clients and Non-Compliant-v1.2",
-      "grantControls": {
-        "builtInControls": [],
-        "customAuthenticationFactors": [],
-        "operator": "OR",
-        "termsOfUse": []
-      },
+      "grantControls": null,
       "sessionControls": {
         "signInFrequency": {
           "@odata.type": "#microsoft.graph.signInFrequencySessionControl",

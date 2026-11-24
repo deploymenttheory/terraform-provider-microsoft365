@@ -60,12 +60,7 @@
         }
       },
       "displayName": "CAD006-O365: Session block download on unmanaged device for All users when Browser and Modern App Clients and Non-Compliant-v1.5",
-      "grantControls": {
-        "builtInControls": [],
-        "customAuthenticationFactors": [],
-        "operator": "OR",
-        "termsOfUse": []
-      },
+      "grantControls": null,
       "sessionControls": {
         "applicationEnforcedRestrictions": {
           "@odata.type": "#microsoft.graph.applicationEnforcedRestrictionsSessionControl",

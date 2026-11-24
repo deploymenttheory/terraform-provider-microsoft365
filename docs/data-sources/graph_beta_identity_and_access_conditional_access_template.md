@@ -856,14 +856,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
     }
   }
 
-  # Template has null grant_controls, but we need to provide an empty structure to avoid inconsistency
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-    terms_of_use                  = []
-  }
-
   session_controls = {
     application_enforced_restrictions = {
       is_enabled = data.microsoft365_graph_beta_identity_and_access_conditional_access_template.app_enforced_restrictions_o365.details.session_controls.application_enforced_restrictions.is_enabled

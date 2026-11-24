@@ -59,12 +59,7 @@
         }
       },
       "displayName": "CAU004-Selected: Session route through MDCA for All users when Browser on Non-Compliant-v1.2",
-      "grantControls": {
-        "builtInControls": [],
-        "customAuthenticationFactors": [],
-        "operator": "OR",
-        "termsOfUse": []
-      },
+      "grantControls": null,
       "sessionControls": {
         "cloudAppSecurity": {
           "@odata.type": "#microsoft.graph.cloudAppSecuritySessionControl",

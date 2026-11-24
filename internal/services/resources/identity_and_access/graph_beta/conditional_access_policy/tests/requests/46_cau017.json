@@ -88,12 +88,7 @@
         }
       },
       "displayName": "CAU017-All: Session set Sign-in Frequency for Admins when Browser-v1.0",
-      "grantControls": {
-        "builtInControls": [],
-        "customAuthenticationFactors": [],
-        "operator": "OR",
-        "termsOfUse": []
-      },
+      "grantControls": null,
       "sessionControls": {
         "signInFrequency": {
           "@odata.type": "#microsoft.graph.signInFrequencySessionControl",

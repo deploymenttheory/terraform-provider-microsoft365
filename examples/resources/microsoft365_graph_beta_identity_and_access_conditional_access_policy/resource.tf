@@ -315,14 +315,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled = true
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
-
-
 }
 
 # CAD007: Sign-in Frequency for Mobile Apps on Non-Compliant Devices
@@ -377,14 +369,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled          = true
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
-
-
 }
 
 # CAD008: Sign-in Frequency for Browser on Non-Compliant Devices
@@ -434,14 +418,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled          = true
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
-
-
 }
 
 # CAD009: Disable Browser Persistence on Non-Compliant Devices
@@ -488,14 +464,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled = true
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
-
-
 }
 
 # CAD010: Require MFA for Device Registration/Join

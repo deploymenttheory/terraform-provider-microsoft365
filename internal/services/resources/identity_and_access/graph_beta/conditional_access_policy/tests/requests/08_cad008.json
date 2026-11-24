@@ -59,12 +59,7 @@
         }
       },
       "displayName": "CAD008-All: Session set Sign-in Frequency for All users when Browser and Non-Compliant-v1.1",
-      "grantControls": {
-        "builtInControls": [],
-        "customAuthenticationFactors": [],
-        "operator": "OR",
-        "termsOfUse": []
-      },
+      "grantControls": null,
       "sessionControls": {
         "signInFrequency": {
           "@odata.type": "#microsoft.graph.signInFrequencySessionControl",

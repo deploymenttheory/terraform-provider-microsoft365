@@ -355,12 +355,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled = true
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
 }
 ```
 
@@ -419,12 +413,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled          = true
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
 }
 ```
 
@@ -478,12 +466,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled          = true
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
 }
 ```
 
@@ -533,12 +515,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       mode       = "never"
       is_enabled = true
     }
-  }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
   }
 }
 ```
@@ -1863,12 +1839,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       is_enabled              = true
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
 }
 ```
 
@@ -2520,12 +2490,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       type                = "hours"
     }
   }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
-  }
 }
 ```
 
@@ -2594,12 +2558,6 @@ resource "microsoft365_graph_beta_identity_and_access_conditional_access_policy"
       mode       = "never"
       is_enabled = true
     }
-  }
-
-  grant_controls = {
-    operator                      = "OR"
-    built_in_controls             = []
-    custom_authentication_factors = []
   }
 }
 ```
