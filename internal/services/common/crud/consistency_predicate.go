@@ -68,6 +68,54 @@ type AttributeMatchOptions struct {
 	// UnorderedLists matches list elements regardless of order, for lists that Graph
 	// returns in its own order.
 	UnorderedLists bool
+	// Overrides changes the options above for the attributes that a path expression
+	// matches, at any depth, such as one nested field that Graph returns in another case.
+	Overrides []AttributeMatchOverride
+	// RejectValues lists read-back attributes that must be populated, as RequireKnown
+	// requires, and must not equal any of the given values, such as a placeholder that
+	// Graph returns before the write has propagated.
+	RejectValues []RejectedAttributeValues
+
+	// at is the path of the value being compared. The predicate sets it while it walks
+	// the expected value, so that Overrides apply to the right attributes.
+	at path.Path
+}
+
+// AttributeMatchOverride changes AttributeMatchOptions for the attributes that Path matches
+// and for every value nested in them. A nil field keeps the setting inherited from the
+// enclosing attribute, or from AttributeMatchOptions at the root. When several overrides
+// match the same attribute, later entries win.
+type AttributeMatchOverride struct {
+	// Path selects the attributes to override. Use path.MatchRoot, and steps such as
+	// AtAnySetValue or AtAnyListIndex to reach attributes inside collections.
+	Path                   path.Expression
+	IgnoreNullExpected     *bool
+	NullMatchesEmpty       *bool
+	CaseInsensitiveStrings *bool
+	UnorderedLists         *bool
+	// RequireKnown, when true, requires each matched read-back value to be populated, as
+	// AttributeMatchOptions.RequireKnown does, even when its expected value is unknown or
+	// null. It applies to the matched attributes only, not to the values nested in them,
+	// and only to attributes that the predicate compares through Paths. When false, it
+	// removes the matched paths from AttributeMatchOptions.RequireKnown.
+	RequireKnown *bool
+}
+
+// RejectedAttributeValues names a read-back attribute and the values it must not equal.
+// Values are compared with the options that apply to Path, so each value must have the
+// attribute's type. RejectStrings builds the values for a types.String attribute.
+type RejectedAttributeValues struct {
+	Path   path.Path
+	Values []attr.Value
+}
+
+// RejectStrings returns a RejectedAttributeValues for a string attribute.
+func RejectStrings(p path.Path, values ...string) RejectedAttributeValues {
+	rejected := RejectedAttributeValues{Path: p, Values: make([]attr.Value, 0, len(values))}
+	for _, v := range values {
+		rejected.Values = append(rejected.Values, basetypes.NewStringValue(v))
+	}
+	return rejected
 }
 
 // RootPaths returns a path.Root for each top-level attribute name.
@@ -81,8 +129,9 @@ func RootPaths(names ...string) []path.Path {
 
 // AttributesMatchPredicate returns a ConsistencyPredicate for ReadWithRetry that holds
 // when the read-back state reflects the expected value of every path in opts.Paths and
-// every path in opts.RequireKnown is populated. A read that removed the resource from
-// state never holds. Wrap the result in RequireStableReads when Graph can serve a stale
+// every path in opts.RequireKnown is populated. Each path in opts.RejectValues must be
+// populated and must not equal any of its rejected values. A read that removed the
+// resource from state never holds. Wrap the result in RequireStableReads when Graph can serve a stale
 // read after a fresh one. See ADR-002.
 func AttributesMatchPredicate(expected AttributeGetter, opts AttributeMatchOptions) func(ctx context.Context, state tfsdk.State) bool {
 	return func(ctx context.Context, state tfsdk.State) bool {
@@ -91,10 +140,27 @@ func AttributesMatchPredicate(expected AttributeGetter, opts AttributeMatchOptio
 			return false
 		}
 		for _, p := range opts.RequireKnown {
+			if required, set := opts.requireKnownOverride(p); set && !required {
+				continue
+			}
 			var actual attr.Value
 			if diags := state.GetAttribute(ctx, p, &actual); diags.HasError() || !isPopulated(ctx, actual) {
 				tflog.Debug(ctx, "Consistency predicate: required attribute is not populated", map[string]any{"path": p.String()})
 				return false
+			}
+		}
+		for _, rejected := range opts.RejectValues {
+			var actual attr.Value
+			if diags := state.GetAttribute(ctx, rejected.Path, &actual); diags.HasError() || !isPopulated(ctx, actual) {
+				tflog.Debug(ctx, "Consistency predicate: attribute with rejected values is not populated", map[string]any{"path": rejected.Path.String()})
+				return false
+			}
+			pathOpts := opts.atPath(rejected.Path)
+			for _, value := range rejected.Values {
+				if pathOpts.valueMatches(ctx, value, actual) {
+					tflog.Debug(ctx, "Consistency predicate: read-back attribute has a rejected value", map[string]any{"path": rejected.Path.String()})
+					return false
+				}
 			}
 		}
 		for _, p := range opts.Paths {
@@ -107,7 +173,7 @@ func AttributesMatchPredicate(expected AttributeGetter, opts AttributeMatchOptio
 				tflog.Debug(ctx, "Consistency predicate: read-back attribute cannot be read", map[string]any{"path": p.String()})
 				return false
 			}
-			if !opts.valueMatches(ctx, want, got) {
+			if !opts.atPath(p).valueMatches(ctx, want, got) {
 				tflog.Debug(ctx, "Consistency predicate: read-back attribute does not match the expected value", map[string]any{"path": p.String()})
 				return false
 			}
@@ -128,8 +194,59 @@ func isPopulated(ctx context.Context, v attr.Value) bool {
 	return true
 }
 
+// atPath returns the options for the attribute at p, with the overrides that match p and
+// each of its parent paths applied from the root down.
+func (opts AttributeMatchOptions) atPath(p path.Path) AttributeMatchOptions {
+	var lineage []path.Path
+	for current := p; len(current.Steps()) > 0; current = current.ParentPath() {
+		lineage = append(lineage, current)
+	}
+	for i := len(lineage) - 1; i >= 0; i-- {
+		opts = opts.descend(lineage[i])
+	}
+	return opts
+}
+
+// descend returns the options for the value at p, a direct child of the value at opts.at.
+// It keeps the settings of the enclosing value and applies the overrides that match p.
+func (opts AttributeMatchOptions) descend(p path.Path) AttributeMatchOptions {
+	opts.at = p
+	for _, o := range opts.Overrides {
+		if !o.Path.Matches(p) {
+			continue
+		}
+		if o.IgnoreNullExpected != nil {
+			opts.IgnoreNullExpected = *o.IgnoreNullExpected
+		}
+		if o.NullMatchesEmpty != nil {
+			opts.NullMatchesEmpty = *o.NullMatchesEmpty
+		}
+		if o.CaseInsensitiveStrings != nil {
+			opts.CaseInsensitiveStrings = *o.CaseInsensitiveStrings
+		}
+		if o.UnorderedLists != nil {
+			opts.UnorderedLists = *o.UnorderedLists
+		}
+	}
+	return opts
+}
+
+// requireKnownOverride returns the RequireKnown setting of the last override that matches
+// p, and whether any override sets it.
+func (opts AttributeMatchOptions) requireKnownOverride(p path.Path) (required, set bool) {
+	for _, o := range opts.Overrides {
+		if o.RequireKnown != nil && o.Path.Matches(p) {
+			required, set = *o.RequireKnown, true
+		}
+	}
+	return required, set
+}
+
 // valueMatches reports whether the read-back value got reflects the expected value want.
 func (opts AttributeMatchOptions) valueMatches(ctx context.Context, want, got attr.Value) bool {
+	if required, _ := opts.requireKnownOverride(opts.at); required && !isPopulated(ctx, got) {
+		return false
+	}
 	if want == nil || want.IsUnknown() {
 		return true
 	}
@@ -175,7 +292,7 @@ func (opts AttributeMatchOptions) objectMatches(ctx context.Context, want basety
 	}
 	gotAttrs := gotObject.Attributes()
 	for name, value := range wantObject.Attributes() {
-		if !opts.valueMatches(ctx, value, gotAttrs[name]) {
+		if !opts.descend(opts.at.AtName(name)).valueMatches(ctx, value, gotAttrs[name]) {
 			return false
 		}
 	}
@@ -193,7 +310,7 @@ func (opts AttributeMatchOptions) setMatches(ctx context.Context, want basetypes
 	if wd.HasError() || gd.HasError() {
 		return false
 	}
-	return opts.elementsMatchUnordered(ctx, wantSet.Elements(), gotSet.Elements())
+	return opts.elementsMatchUnordered(ctx, wantSet.Elements(), gotSet.Elements(), func(_ int, w attr.Value) path.Path { return opts.at.AtSetValue(w) })
 }
 
 // listMatches compares list elements in order, or regardless of order when UnorderedLists is set.
@@ -208,7 +325,7 @@ func (opts AttributeMatchOptions) listMatches(ctx context.Context, want basetype
 		return false
 	}
 	if opts.UnorderedLists {
-		return opts.elementsMatchUnordered(ctx, wantList.Elements(), gotList.Elements())
+		return opts.elementsMatchUnordered(ctx, wantList.Elements(), gotList.Elements(), func(i int, _ attr.Value) path.Path { return opts.at.AtListIndex(i) })
 	}
 	return opts.elementsMatchOrdered(ctx, wantList.Elements(), gotList.Elements())
 }
@@ -230,7 +347,7 @@ func (opts AttributeMatchOptions) mapMatches(ctx context.Context, want basetypes
 	}
 	for key, value := range wantMap.Elements() {
 		actual, ok := gotElems[key]
-		if !ok || !opts.valueMatches(ctx, value, actual) {
+		if !ok || !opts.descend(opts.at.AtMapKey(key)).valueMatches(ctx, value, actual) {
 			return false
 		}
 	}
@@ -257,7 +374,7 @@ func (opts AttributeMatchOptions) elementsMatchOrdered(ctx context.Context, want
 		return false
 	}
 	for i := range want {
-		if !opts.valueMatches(ctx, want[i], got[i]) {
+		if !opts.descend(opts.at.AtListIndex(i)).valueMatches(ctx, want[i], got[i]) {
 			return false
 		}
 	}
@@ -266,15 +383,17 @@ func (opts AttributeMatchOptions) elementsMatchOrdered(ctx context.Context, want
 
 // elementsMatchUnordered pairs each expected element with a distinct read-back element in
 // any order. It uses augmenting paths, so an expected element with unknown parts cannot
-// claim a read-back element that another expected element needs.
-func (opts AttributeMatchOptions) elementsMatchUnordered(ctx context.Context, want, got []attr.Value) bool {
+// claim a read-back element that another expected element needs. elementPath returns the
+// path of the expected element w at index i, so that Overrides apply to it.
+func (opts AttributeMatchOptions) elementsMatchUnordered(ctx context.Context, want, got []attr.Value, elementPath func(i int, w attr.Value) path.Path) bool {
 	if len(want) != len(got) {
 		return false
 	}
 	candidates := make([][]int, len(want))
 	for i, w := range want {
+		elementOpts := opts.descend(elementPath(i, w))
 		for j, g := range got {
-			if opts.valueMatches(ctx, w, g) {
+			if elementOpts.valueMatches(ctx, w, g) {
 				candidates[i] = append(candidates[i], j)
 			}
 		}
