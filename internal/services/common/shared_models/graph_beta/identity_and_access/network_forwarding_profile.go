@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
@@ -321,23 +320,4 @@ func canonicalPlatform(p string) string {
 		}
 	}
 	return p
-}
-
-// StableReads is how many matching reads in a row confirm a write. A stale read
-// can follow a fresh one.
-const StableReads = 3
-
-// RequireStableReads holds only after StableReads matching reads in a row.
-func RequireStableReads(
-	predicate func(context.Context, tfsdk.State) bool,
-) func(context.Context, tfsdk.State) bool {
-	matched := 0
-	return func(ctx context.Context, s tfsdk.State) bool {
-		if !predicate(ctx, s) {
-			matched = 0
-			return false
-		}
-		matched++
-		return matched >= StableReads
-	}
 }
