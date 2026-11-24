@@ -46,6 +46,50 @@ func DefaultReadWithRetryOptions() ReadWithRetryOptions {
 	}
 }
 
+// ReadWithRetryOption changes one field of the options built by NewReadWithRetryOptions.
+type ReadWithRetryOption func(*ReadWithRetryOptions)
+
+// NewReadWithRetryOptions returns DefaultReadWithRetryOptions with the operation and
+// resource type name set, then applies each option in order. It lets a Create or Update
+// build its read-back options in one call, for example:
+//
+//	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(predicate))
+func NewReadWithRetryOptions(operation, resourceTypeName string, options ...ReadWithRetryOption) ReadWithRetryOptions {
+	opts := DefaultReadWithRetryOptions()
+	opts.Operation = operation
+	opts.ResourceTypeName = resourceTypeName
+	for _, option := range options {
+		if option != nil {
+			option(&opts)
+		}
+	}
+	return opts
+}
+
+// ReadWithConsistencyPredicate sets ConsistencyPredicate. A nil predicate keeps the
+// default fast-exit behaviour.
+func ReadWithConsistencyPredicate(predicate func(ctx context.Context, state tfsdk.State) bool) ReadWithRetryOption {
+	return func(opts *ReadWithRetryOptions) {
+		opts.ConsistencyPredicate = predicate
+	}
+}
+
+// ReadWithMaxRetries sets MaxRetries. ReadWithRetry treats a value of zero or less as
+// the default and caps it at what fits in the context deadline.
+func ReadWithMaxRetries(maxRetries int) ReadWithRetryOption {
+	return func(opts *ReadWithRetryOptions) {
+		opts.MaxRetries = maxRetries
+	}
+}
+
+// ReadWithRetryInterval sets RetryInterval. ReadWithRetry treats a value of zero or less
+// as the default.
+func ReadWithRetryInterval(interval time.Duration) ReadWithRetryOption {
+	return func(opts *ReadWithRetryOptions) {
+		opts.RetryInterval = interval
+	}
+}
+
 // StateContainer interface for anything that has a State field and optionally an Identity field
 type StateContainer interface {
 	GetState() tfsdk.State
