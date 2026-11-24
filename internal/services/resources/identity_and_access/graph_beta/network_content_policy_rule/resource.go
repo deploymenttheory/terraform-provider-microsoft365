@@ -8,6 +8,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -73,6 +74,11 @@ func (r *NetworkContentPolicyRuleResource) ImportState(ctx context.Context, req 
 	parts := strings.Split(req.ID, "/")
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 		resp.Diagnostics.AddError("Invalid import ID", fmt.Sprintf("Expected import ID in the format {content_policy_id}/{rule_id}, got %q.", req.ID))
+		return
+	}
+	// Both IDs are written into the custom_requests URL unescaped, so each must be a GUID.
+	policyIDValid := crud.ValidateImportIDPart(&resp.Diagnostics, "content_policy_id", parts[0], crud.ImportIDFormatGUID)
+	if !policyIDValid || !crud.ValidateImportIDPart(&resp.Diagnostics, "rule_id", parts[1], crud.ImportIDFormatGUID) {
 		return
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("content_policy_id"), parts[0])...)
