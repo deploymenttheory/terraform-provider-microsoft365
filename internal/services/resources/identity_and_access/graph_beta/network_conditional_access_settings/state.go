@@ -10,7 +10,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
-func mapRemoteState(
+// MapRemoteStateToTerraform maps the signaling status onto state, or reports an invalid response and leaves state unchanged.
+func MapRemoteStateToTerraform(
 	data *NetworkConditionalAccessSettingsResourceModel,
 	remote *conditionalAccessSettingsResponse,
 	diagnostics *diag.Diagnostics,
