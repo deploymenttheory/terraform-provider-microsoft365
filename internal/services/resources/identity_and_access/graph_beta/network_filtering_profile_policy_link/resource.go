@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -185,11 +184,4 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
-}
-
-func compositeID(filteringProfileID, policyLinkID string) types.String {
-	if filteringProfileID == "" || policyLinkID == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(filteringProfileID + "/" + policyLinkID)
 }

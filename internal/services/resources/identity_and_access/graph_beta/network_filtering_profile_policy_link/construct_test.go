@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
 
 func TestConstructCreateResourceFilteringPolicy(t *testing.T) {
@@ -18,12 +16,12 @@ func TestConstructCreateResourceFilteringPolicy(t *testing.T) {
 		Priority:   types.Int64Value(100),
 	}
 
-	body, err := constructCreateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, true)
 	if err != nil {
-		t.Fatalf("constructCreateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type":  filteringPolicyLinkODataType,
 		"priority":     float64(100),
@@ -45,12 +43,12 @@ func TestConstructCreateResourceWebFilteringPolicy(t *testing.T) {
 		State:      types.StringValue("enabled"),
 	}
 
-	body, err := constructCreateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, true)
 	if err != nil {
-		t.Fatalf("constructCreateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": webFilteringPolicyLinkODataType,
 		"state":       "enabled",
@@ -70,12 +68,12 @@ func TestConstructCreateResourcePromptPolicy(t *testing.T) {
 		State:      types.StringValue("enabled"),
 	}
 
-	body, err := constructCreateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, true)
 	if err != nil {
-		t.Fatalf("constructCreateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": promptPolicyLinkODataType,
 		"state":       "enabled",
@@ -95,12 +93,12 @@ func TestConstructCreateResourceContentPolicy(t *testing.T) {
 		State:      types.StringValue("enabled"),
 	}
 
-	body, err := constructCreateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, true)
 	if err != nil {
-		t.Fatalf("constructCreateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": filePolicyLinkODataType,
 		"state":       "enabled",
@@ -120,12 +118,12 @@ func TestConstructCreateResourceNetskopeDlpPolicy(t *testing.T) {
 		State:      types.StringValue("enabled"),
 	}
 
-	body, err := constructCreateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, true)
 	if err != nil {
-		t.Fatalf("constructCreateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": securityProviderPolicyLinkODataType,
 		"state":       "enabled",
@@ -144,12 +142,12 @@ func TestConstructUpdateResourceFilteringPolicy(t *testing.T) {
 		State:      types.StringValue("disabled"),
 	}
 
-	body, err := constructUpdateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, false)
 	if err != nil {
-		t.Fatalf("constructUpdateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": filteringPolicyLinkODataType,
 		"state":       "disabled",
@@ -164,12 +162,12 @@ func TestConstructUpdateResourceWebFilteringPolicy(t *testing.T) {
 		State:      types.StringValue("disabled"),
 	}
 
-	body, err := constructUpdateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, false)
 	if err != nil {
-		t.Fatalf("constructUpdateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": webFilteringPolicyLinkODataType,
 		"state":       "disabled",
@@ -184,12 +182,12 @@ func TestConstructUpdateResourcePromptPolicy(t *testing.T) {
 		State:      types.StringValue("disabled"),
 	}
 
-	body, err := constructUpdateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, false)
 	if err != nil {
-		t.Fatalf("constructUpdateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": promptPolicyLinkODataType,
 		"state":       "disabled",
@@ -204,12 +202,12 @@ func TestConstructUpdateResourceContentPolicy(t *testing.T) {
 		State:      types.StringValue("disabled"),
 	}
 
-	body, err := constructUpdateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, false)
 	if err != nil {
-		t.Fatalf("constructUpdateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": filePolicyLinkODataType,
 		"state":       "disabled",
@@ -224,12 +222,12 @@ func TestConstructUpdateResourceNetskopeDlpPolicy(t *testing.T) {
 		State:      types.StringValue("disabled"),
 	}
 
-	body, err := constructUpdateResource(context.Background(), model)
+	body, err := constructResource(context.Background(), model, false)
 	if err != nil {
-		t.Fatalf("constructUpdateResource returned error: %v", err)
+		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	actual := serializeParsableForTest(t, body)
+	actual := marshalForTest(t, body)
 	expected := map[string]any{
 		"@odata.type": securityProviderPolicyLinkODataType,
 		"state":       "disabled",
@@ -238,16 +236,16 @@ func TestConstructUpdateResourceNetskopeDlpPolicy(t *testing.T) {
 	assertJSONMapEqual(t, expected, actual)
 }
 
-func serializeParsableForTest(t *testing.T, body s.Parsable) map[string]any {
+func marshalForTest(t *testing.T, body policyLinkRequest) map[string]any {
 	t.Helper()
 
-	requestInfo := abstractions.NewRequestInformation()
-	if err := requestInfo.SetContentFromParsable(context.Background(), policyLinkTestRequestAdapter{}, "application/json", body); err != nil {
-		t.Fatalf("SetContentFromParsable returned error: %v", err)
+	content, err := json.Marshal(body)
+	if err != nil {
+		t.Fatalf("json.Marshal returned error: %v", err)
 	}
 
 	var actual map[string]any
-	if err := json.Unmarshal(requestInfo.Content, &actual); err != nil {
+	if err := json.Unmarshal(content, &actual); err != nil {
 		t.Fatalf("json.Unmarshal returned error: %v", err)
 	}
 	return actual
