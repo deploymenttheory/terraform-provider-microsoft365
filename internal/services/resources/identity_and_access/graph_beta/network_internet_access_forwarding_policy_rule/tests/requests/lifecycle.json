@@ -1,0 +1,189 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.internetAccessForwardingRule",
+      "destinations": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.fqdn",
+          "value": "www.example.com"
+        },
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.fqdn",
+          "value": "*.contoso.com"
+        }
+      ],
+      "id": "{uuid-2}",
+      "ports": [
+        "443",
+        "8000-8080"
+      ],
+      "protocol": "udp",
+      "ruleType": "fqdn"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.internetAccessForwardingRule",
+      "destinations": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipAddress",
+          "value": "192.0.2.53"
+        }
+      ],
+      "id": "{uuid-2}",
+      "ports": [
+        "53"
+      ],
+      "protocol": "udp",
+      "ruleType": "ipAddress"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.internetAccessForwardingRule",
+      "destinations": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipRange",
+          "beginAddress": "192.0.2.10",
+          "endAddress": "192.0.2.20"
+        }
+      ],
+      "id": "{uuid-2}",
+      "ports": [
+        "443"
+      ],
+      "protocol": "tcp",
+      "ruleType": "ipRange"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.internetAccessForwardingRule",
+      "destinations": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipSubnet",
+          "value": "192.0.2.0/24"
+        },
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipSubnet",
+          "value": "198.51.100.0/24"
+        }
+      ],
+      "id": "{uuid-2}",
+      "ports": [
+        "443"
+      ],
+      "protocol": "tcp",
+      "ruleType": "ipSubnet"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.internetAccessForwardingRule",
+      "action": "forward",
+      "clientFallbackAction": "block",
+      "destinations": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.fqdn",
+          "value": "www.example.com"
+        }
+      ],
+      "name": "unit-test-forwarding-rule",
+      "ports": [
+        "443",
+        "80"
+      ],
+      "protocol": "tcp",
+      "ruleType": "fqdn"
+    }
+  }
+]

@@ -1,0 +1,91 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}/policies/{uuid-3}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}?%24expand=policies%28%24expand%3Dpolicy%29"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}/policies/{uuid-3}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.filteringPolicyLink",
+      "state": "disabled"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.filteringPolicyLink",
+      "loggingState": "disabled",
+      "policy": {
+        "@odata.type": "#microsoft.graph.networkaccess.filteringPolicy",
+        "id": "{uuid-2}"
+      },
+      "priority": 200,
+      "state": "disabled"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.filteringPolicyLink",
+      "loggingState": "enabled",
+      "policy": {
+        "@odata.type": "#microsoft.graph.networkaccess.filteringPolicy",
+        "id": "{uuid-2}"
+      },
+      "priority": 100,
+      "state": "enabled"
+    }
+  }
+]

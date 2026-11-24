@@ -1,0 +1,68 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.internetAccessForwardingRule",
+      "action": "forward",
+      "destinations": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipAddress",
+          "value": "192.0.2.53"
+        }
+      ],
+      "name": "unit-test-forwarding-rule",
+      "ports": [
+        "53"
+      ],
+      "protocol": "udp",
+      "ruleType": "ipAddress"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/forwardingPolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.internetAccessForwardingRule",
+      "action": "forward",
+      "destinations": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.ipAddress",
+          "value": "192.0.2.53"
+        }
+      ],
+      "name": "unit-test-forwarding-rule",
+      "ports": [
+        "53"
+      ],
+      "protocol": "udp",
+      "ruleType": "ipAddress"
+    }
+  }
+]

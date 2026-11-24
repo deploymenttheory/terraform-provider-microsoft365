@@ -1,0 +1,162 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.webFilteringRule",
+      "action": {
+        "@odata.type": "#microsoft.graph.networkaccess.webFilteringActionAllow",
+        "headerSettings": null
+      },
+      "description": "Allow rule without headers",
+      "matchingConditions": {
+        "destinations": {
+          "targets": [
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.webFilteringWebCategoryDestination",
+              "values": [
+                "Gambling",
+                "Hacking"
+              ]
+            }
+          ]
+        }
+      },
+      "name": "unit-test-allow-rule",
+      "priority": 300,
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules/{uuid-3}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.webFilteringRule",
+      "action": {
+        "@odata.type": "#microsoft.graph.networkaccess.webFilteringActionBlock"
+      },
+      "description": "Block rule",
+      "matchingConditions": {
+        "destinations": {
+          "targets": [
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.webFilteringUrlDestination",
+              "values": [
+                "www.example.com"
+              ]
+            }
+          ]
+        }
+      },
+      "name": "unit-test-block-rule",
+      "priority": 200,
+      "settings": {
+        "status": "disabled"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.webFilteringRule",
+      "action": {
+        "@odata.type": "#microsoft.graph.networkaccess.webFilteringActionAllow",
+        "headerSettings": {
+          "modifications": [
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.headerModificationAdd",
+              "headerName": "Restrict-Access-To-Tenants",
+              "headerValue": "contoso.com"
+            },
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.headerModificationAdd",
+              "headerName": "Restrict-Access-Context",
+              "headerValue": "{uuid-2}"
+            }
+          ]
+        }
+      },
+      "description": "Allow rule with custom headers",
+      "matchingConditions": {
+        "destinations": {
+          "httpRequestMethod": "get, post",
+          "targets": [
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.webFilteringUrlDestination",
+              "values": [
+                "*.contoso.com",
+                "www.example.com"
+              ]
+            },
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.webFilteringWebCategoryDestination",
+              "values": [
+                "AlcoholAndTobacco"
+              ]
+            }
+          ]
+        },
+        "sources": {
+          "sessionType": "agent, user"
+        }
+      },
+      "name": "unit-test-allow-rule",
+      "priority": 100,
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  }
+]
