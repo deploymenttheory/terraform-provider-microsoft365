@@ -60,6 +60,11 @@ func getJSONFileForPolicyName(name string, isUpdate bool) string {
 		return "post_settings_catalog_policy_file_explorer_success.json"
 	}
 
+	// Settings without children, used by the request-capture test for #4956
+	if strings.Contains(nameUpper, "EMPTY CHILDREN") {
+		return "post_settings_catalog_policy_empty_children_success.json"
+	}
+
 	// Simple policies
 	if strings.Contains(nameUpper, "CAMERA") {
 		return "post_settings_catalog_policy_camera_success.json"

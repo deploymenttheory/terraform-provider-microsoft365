@@ -969,3 +969,76 @@ func TestAccResourceSettingsCatalogConfigurationPolicyJson_17_LocalPoliciesMaxim
 		},
 	})
 }
+
+// TestAccResourceSettingsCatalogConfigurationPolicyJson_18_PassiveRemediation creates a choice setting collection without
+// children (#4956), then changes only the description and assignments so the update PUTs the same settings again.
+func TestAccResourceSettingsCatalogConfigurationPolicyJson_18_PassiveRemediation(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: graphBetaGroup.ResourceName, TestResource: graphBetaGroup.GroupTestResource{}},
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating passive remediation policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_18_passive_remediation.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy with assignments", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".passive_remediation").ExistsInGraph(testResource),
+					check.That(resourceType+".passive_remediation").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceType+".passive_remediation").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-18-passive-remediation-`)),
+					check.That(resourceType+".passive_remediation").Key("description").HasValue("Acceptance test policy for Defender passive remediation"),
+					check.That(resourceType+".passive_remediation").Key("settings_count").HasValue("1"),
+					check.That(resourceType+".passive_remediation").Key("assignments.#").HasValue("1"),
+					resource.TestCheckResourceAttrPair(resourceType+".passive_remediation", "assignments.0.group_id", "microsoft365_graph_beta_groups_group.passive_remediation_group_1", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Updating passive remediation policy description and assignments")
+				},
+				Config: loadAcceptanceTestTerraform("resource_18_passive_remediation_updated.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("settings catalog policy with assignments", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceType+".passive_remediation").ExistsInGraph(testResource),
+					check.That(resourceType+".passive_remediation").Key("description").HasValue("Acceptance test policy for Defender passive remediation - updated"),
+					check.That(resourceType+".passive_remediation").Key("settings_count").HasValue("1"),
+					check.That(resourceType+".passive_remediation").Key("assignments.#").HasValue("1"),
+					resource.TestCheckResourceAttrPair(resourceType+".passive_remediation", "assignments.0.group_id", "microsoft365_graph_beta_groups_group.passive_remediation_group_2", "id"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing passive remediation policy")
+				},
+				ResourceName:            resourceType + ".passive_remediation",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
