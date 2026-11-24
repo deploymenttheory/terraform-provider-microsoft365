@@ -16,15 +16,6 @@ var destinationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
 	"type": types.StringType, "values": types.ListType{ElemType: types.StringType},
 }}
 
-type unknownRuleStatusError struct{ status string }
-
-func (e *unknownRuleStatusError) Error() string {
-	return fmt.Sprintf(
-		"unsupported observed rule status %q; enabled cannot be inferred; retaining its previous value",
-		e.status,
-	)
-}
-
 // MapRemoteStateToTerraform preserves the API representation, including repeated FQDNs.
 func MapRemoteStateToTerraform(
 	ctx context.Context,
@@ -58,7 +49,9 @@ func MapRemoteStateToTerraform(
 	}
 	status := remote.GetSettings().GetStatus().String()
 	if status != "enabled" && status != "disabled" {
-		return &unknownRuleStatusError{status: status}
+		// Record the observed status so Create, Read and Update can keep it while enabled keeps its previous value.
+		data.Status = types.StringValue(status)
+		return fmt.Errorf("%w %q; enabled cannot be inferred; retaining its previous value", errUnknownRuleStatus, status)
 	}
 	if len(remote.GetMatchingConditions().GetDestinations()) > 1 {
 		return fmt.Errorf(
