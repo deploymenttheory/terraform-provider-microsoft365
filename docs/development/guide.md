@@ -296,6 +296,14 @@ A helper's name is a verb, then the Graph entity it works on, then a qualifier, 
 
 Generic names are banned, for example `matches`, `settings`, `requestBody`, `tryClaim`, `readbackOptions` and `writableApp`. They say nothing about the Graph entity, so a reader has to open the function to learn what it does.
 
+### The state mapper: `MapRemoteStateToTerraform`
+
+The function that maps the Graph response onto the resource's Terraform state is always named `MapRemoteStateToTerraform`, and it lives in `state.go`. It is a required part of the CRUD pattern, so the caller-count and line-count parts of the helper rule don't apply to it.
+
+Other mappers keep the `map<Entity>ToState` convention, for example `mapAssignmentsToState`.
+
+`MapRemoteResourceStateToTerraform` is a legacy name, and so are lower-case variants such as `mapRemoteStateToTerraform` and `mapRemoteState`. Rename them to `MapRemoteStateToTerraform` when you next touch their package.
+
 ### Before and after: Android managed mobile app
 
 Before, the Android managed mobile app resource had two helpers for one request. `writableApp` has a banned generic name, and `constructPolicyApps` is a five-line wrapper:
@@ -384,7 +392,7 @@ Every PR that changes a package under `internal/services` runs `tools/helperscan
 - `REFS`: how many places in the package's non-test files reference it. Recursive calls don't count.
 - `CRUD CALLERS`: the distinct CRUD methods that reference it directly. Calls inside a closure in a CRUD method count for that method.
 - `NAME`: `ok`, or why the name fails the convention above.
-- `RULE`: `pass`, or which parts of the helper rule it misses (`callers`, `lines`, `name`).
+- `RULE`: `pass`, or which parts of the helper rule it misses (`callers`, `lines`, `name`). The state mapper shows `exempt`, or `fails: name` if it is not in `state.go`. The legacy state mapper names fail `NAME` with a message to rename them to `MapRemoteStateToTerraform`.
 
 Kiota interface methods (`Serialize`, `GetFieldDeserializers`, `GetAdditionalData`, the `create…FromDiscriminatorValue` factories) and framework validator methods (`Description`, `MarkdownDescription`, `Validate…`, `PlanModify…`) are counted in the summary but left out of the table. Run it locally with:
 

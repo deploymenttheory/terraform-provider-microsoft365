@@ -15,6 +15,7 @@ type summary struct {
 	Kiota           int
 	Framework       int
 	Helpers         int
+	StateMappers    int
 	SingleRef       int
 	Short           int
 	ShortSingleRef  int
@@ -25,9 +26,15 @@ type summary struct {
 }
 
 // summarize counts every non-standard function, then the helpers against each part of the helper rule.
+// State mappers are counted on their own and left out of the other figures, which keeps them comparable with the #4929 baseline.
 func summarize(packages int, funcs []Func) summary {
-	s := summary{Packages: packages, Total: len(funcs)}
+	s := summary{Packages: packages}
 	for _, f := range funcs {
+		if f.Kind == kindStateMapper {
+			s.StateMappers++
+			continue
+		}
+		s.Total++
 		short := f.Lines <= maxShortLines
 		if f.Refs <= 1 {
 			s.SingleRef++
@@ -71,6 +78,7 @@ func (s summary) lines() []string {
 		fmt.Sprintf("Non-standard functions: %d (Kiota interface methods %d, framework validator methods %d, helpers %d)", s.Total, s.Kiota, s.Framework, s.Helpers),
 		fmt.Sprintf("All non-standard functions: referenced at most once %d; %d lines or fewer %d; both %d", s.SingleRef, maxShortLines, s.Short, s.ShortSingleRef),
 		fmt.Sprintf("Helpers: %s; name fails convention %d; meet the helper rule %d", callers, s.NameFails, s.Pass),
+		fmt.Sprintf("State mappers (%s, exempt from the caller and line rules): %d", stateMapperName, s.StateMappers),
 	}
 }
 
@@ -106,7 +114,7 @@ func writeText(w io.Writer, s summary, funcs []Func) error {
 	tw := tabwriter.NewWriter(&b, 0, 4, 2, ' ', 0)
 	fmt.Fprintln(tw, "PACKAGE\tFILE\tFUNC\tLINES\tREFS\tCRUD CALLERS\tNAME\tRULE")
 	for _, f := range funcs {
-		if f.Kind != kindHelper {
+		if !inTable(f) {
 			continue
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%d\t%d\t%d %s\t%s\t%s\n", f.Package, f.File, displayName(f), f.Lines, f.Refs, len(f.CRUDCallers), crudList(f), f.NameCheck, f.Rule())
@@ -140,7 +148,7 @@ func writeMarkdown(w io.Writer, s summary, funcs []Func) error {
 	}
 	b.WriteString("\n| Package | File | Func | Lines | Refs | CRUD callers | Name | Rule |\n| --- | --- | --- | ---: | ---: | --- | --- | --- |\n")
 	for _, f := range funcs {
-		if f.Kind != kindHelper {
+		if !inTable(f) {
 			continue
 		}
 		fmt.Fprintf(&b, "| %s | %s | `%s` | %d | %d | %d %s | %s | %s |\n", f.Package, f.File, displayName(f), f.Lines, f.Refs, len(f.CRUDCallers), crudList(f), f.NameCheck, f.Rule())
@@ -154,4 +162,9 @@ func writeString(w io.Writer, s string) error {
 		return fmt.Errorf("write report: %w", err)
 	}
 	return nil
+}
+
+// inTable reports whether a function appears in the text and Markdown tables: helpers and the state mapper.
+func inTable(f Func) bool {
+	return f.Kind == kindHelper || f.Kind == kindStateMapper
 }

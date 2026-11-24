@@ -18,7 +18,7 @@ func sampleFuncs(t *testing.T) []Func {
 
 func TestSummarize(t *testing.T) {
 	got := summarize(1, sampleFuncs(t))
-	want := summary{Packages: 1, Total: 14, Kiota: 4, Framework: 3, Helpers: 7, SingleRef: 10, Short: 12, ShortSingleRef: 10, FewCallers: 3, ShortFewCallers: 3, NameFails: 4, Pass: 2}
+	want := summary{Packages: 1, Total: 14, Kiota: 4, Framework: 3, Helpers: 7, StateMappers: 1, SingleRef: 10, Short: 12, ShortSingleRef: 10, FewCallers: 3, ShortFewCallers: 3, NameFails: 4, Pass: 2}
 	if got != want {
 		t.Errorf("summarize = %+v\nwant        %+v", got, want)
 	}
@@ -31,7 +31,7 @@ func TestWriteText(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := out.String()
-	for _, want := range []string{"Packages scanned: 1", "PACKAGE", "constructWidgetRequest", "3 Read,Create,Update", "SampleResource.refreshWidget", "fails: callers,lines,name"} {
+	for _, want := range []string{"Packages scanned: 1", "PACKAGE", "constructWidgetRequest", "3 Read,Create,Update", "SampleResource.refreshWidget", "fails: callers,lines,name", "State mappers (MapRemoteStateToTerraform, exempt from the caller and line rules): 1", "MapRemoteStateToTerraform", "exempt"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("text report missing %q:\n%s", want, text)
 		}
