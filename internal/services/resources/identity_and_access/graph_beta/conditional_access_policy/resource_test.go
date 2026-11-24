@@ -43,6 +43,7 @@ func loadUnitTestTerraform(filename string) string {
 func TestUnitResourceConditionalAccessPolicy_01_CAD001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -98,12 +99,14 @@ func TestUnitResourceConditionalAccessPolicy_01_CAD001(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/01_cad001.json")
 }
 
 // CAD002: Windows Device Compliance
 func TestUnitResourceConditionalAccessPolicy_02_CAD002(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -160,12 +163,14 @@ func TestUnitResourceConditionalAccessPolicy_02_CAD002(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/02_cad002.json")
 }
 
 // CAD003: iOS and Android Device Compliance or App Protection
 func TestUnitResourceConditionalAccessPolicy_03_CAD003(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -223,12 +228,14 @@ func TestUnitResourceConditionalAccessPolicy_03_CAD003(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/03_cad003.json")
 }
 
 // CAD004: Require MFA on Non-Compliant Devices via Browser
 func TestUnitResourceConditionalAccessPolicy_04_CAD004(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -273,12 +280,14 @@ func TestUnitResourceConditionalAccessPolicy_04_CAD004(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/04_cad004.json")
 }
 
 // CAD005: Block Unsupported Device Platforms
 func TestUnitResourceConditionalAccessPolicy_05_CAD005(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -330,12 +339,14 @@ func TestUnitResourceConditionalAccessPolicy_05_CAD005(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/05_cad005.json")
 }
 
 // CAD006: Block Downloads on Unmanaged Devices
 func TestUnitResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -383,12 +394,14 @@ func TestUnitResourceConditionalAccessPolicy_06_CAD006(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/06_cad006.json")
 }
 
 // CAD007: Sign-in Frequency for Mobile Apps on Non-Compliant Devices
 func TestUnitResourceConditionalAccessPolicy_07_CAD007(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -444,12 +457,14 @@ func TestUnitResourceConditionalAccessPolicy_07_CAD007(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/07_cad007.json")
 }
 
 // CAD008: Sign-in Frequency for Browser on Non-Compliant Devices
 func TestUnitResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -500,12 +515,14 @@ func TestUnitResourceConditionalAccessPolicy_08_CAD008(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/08_cad008.json")
 }
 
 // CAD009: Disable Browser Persistence on Non-Compliant Devices
 func TestUnitResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -553,12 +570,14 @@ func TestUnitResourceConditionalAccessPolicy_09_CAD009(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/09_cad009.json")
 }
 
 // CAD010: Require MFA for Device Registration/Join
 func TestUnitResourceConditionalAccessPolicy_10_CAD010(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -600,12 +619,14 @@ func TestUnitResourceConditionalAccessPolicy_10_CAD010(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/10_cad010.json")
 }
 
 // CAD011: Linux Device Compliance
 func TestUnitResourceConditionalAccessPolicy_11_CAD011(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -653,12 +674,14 @@ func TestUnitResourceConditionalAccessPolicy_11_CAD011(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/11_cad011.json")
 }
 
 // CAD012: Admin Access on Compliant Devices
 func TestUnitResourceConditionalAccessPolicy_12_CAD012(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -701,12 +724,14 @@ func TestUnitResourceConditionalAccessPolicy_12_CAD012(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/12_cad012.json")
 }
 
 // CAD013: Selected Apps - Compliant Device Requirement
 func TestUnitResourceConditionalAccessPolicy_13_CAD013(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -755,12 +780,14 @@ func TestUnitResourceConditionalAccessPolicy_13_CAD013(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/13_cad013.json")
 }
 
 // CAD014: Edge App Protection on Windows
 func TestUnitResourceConditionalAccessPolicy_14_CAD014(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -810,12 +837,14 @@ func TestUnitResourceConditionalAccessPolicy_14_CAD014(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/14_cad014.json")
 }
 
 // CAD015: Compliant Device for Windows and macOS Browser Access
 func TestUnitResourceConditionalAccessPolicy_15_CAD015(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -864,12 +893,14 @@ func TestUnitResourceConditionalAccessPolicy_15_CAD015(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/15_cad015.json")
 }
 
 // CAD016: Token Protection for EXO/SPO/CloudPC on Windows
 func TestUnitResourceConditionalAccessPolicy_16_CAD016(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -924,12 +955,14 @@ func TestUnitResourceConditionalAccessPolicy_16_CAD016(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/16_cad016.json")
 }
 
 // CAD017: Selected Apps - Mobile App Protection or Compliance
 func TestUnitResourceConditionalAccessPolicy_17_CAD017(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -987,12 +1020,14 @@ func TestUnitResourceConditionalAccessPolicy_17_CAD017(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/17_cad017.json")
 }
 
 // CAD018: Cloud PC - Mobile App Protection or Compliance
 func TestUnitResourceConditionalAccessPolicy_18_CAD018(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1039,12 +1074,14 @@ func TestUnitResourceConditionalAccessPolicy_18_CAD018(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/18_cad018.json")
 }
 
 // CAD019: Intune Enrollment - MFA and Sign-in Frequency
 func TestUnitResourceConditionalAccessPolicy_19_CAD019(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1090,12 +1127,14 @@ func TestUnitResourceConditionalAccessPolicy_19_CAD019(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/19_cad019.json")
 }
 
 // CAL001: Block Specified Locations
 func TestUnitResourceConditionalAccessPolicy_20_CAL001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1139,12 +1178,14 @@ func TestUnitResourceConditionalAccessPolicy_20_CAL001(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/20_cal001.json")
 }
 
 // CAL002: MFA Registration from Trusted Locations Only
 func TestUnitResourceConditionalAccessPolicy_21_CAL002(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1189,12 +1230,14 @@ func TestUnitResourceConditionalAccessPolicy_21_CAL002(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/21_cal002.json")
 }
 
 // CAL003: Block Service Accounts from Non-Trusted Locations
 func TestUnitResourceConditionalAccessPolicy_22_CAL003(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1240,12 +1283,14 @@ func TestUnitResourceConditionalAccessPolicy_22_CAL003(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/22_cal003.json")
 }
 
 // CAL004: Block Admin Access from Non-Trusted Locations
 func TestUnitResourceConditionalAccessPolicy_23_CAL004(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1290,12 +1335,14 @@ func TestUnitResourceConditionalAccessPolicy_23_CAL004(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/23_cal004.json")
 }
 
 // CAL005: Less-Trusted Locations Require Compliance
 func TestUnitResourceConditionalAccessPolicy_24_CAL005(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1341,12 +1388,14 @@ func TestUnitResourceConditionalAccessPolicy_24_CAL005(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/24_cal005.json")
 }
 
 // CAL006: Allow Access Only from Specified Locations
 func TestUnitResourceConditionalAccessPolicy_25_CAL006(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1392,12 +1441,14 @@ func TestUnitResourceConditionalAccessPolicy_25_CAL006(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/25_cal006.json")
 }
 
 // CAP001: Block Legacy Authentication
 func TestUnitResourceConditionalAccessPolicy_26_CAP001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1436,12 +1487,14 @@ func TestUnitResourceConditionalAccessPolicy_26_CAP001(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/26_cap001.json")
 }
 
 // CAP002: Block Exchange ActiveSync
 func TestUnitResourceConditionalAccessPolicy_27_CAP002(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1480,12 +1533,14 @@ func TestUnitResourceConditionalAccessPolicy_27_CAP002(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/27_cap002.json")
 }
 
 // CAP003: Block Device Code Flow
 func TestUnitResourceConditionalAccessPolicy_28_CAP003(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1527,12 +1582,14 @@ func TestUnitResourceConditionalAccessPolicy_28_CAP003(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/28_cap003.json")
 }
 
 // CAP004: Block Authentication Transfer
 func TestUnitResourceConditionalAccessPolicy_29_CAP004(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1574,12 +1631,14 @@ func TestUnitResourceConditionalAccessPolicy_29_CAP004(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/29_cap004.json")
 }
 
 // CAU001: Require MFA for Guest Users
 func TestUnitResourceConditionalAccessPolicy_30_CAU001(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1618,12 +1677,14 @@ func TestUnitResourceConditionalAccessPolicy_30_CAU001(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/30_cau001.json")
 }
 
 // CAU001A: Require MFA for Guests - Windows Azure AD
 func TestUnitResourceConditionalAccessPolicy_31_CAU001A(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1661,12 +1722,14 @@ func TestUnitResourceConditionalAccessPolicy_31_CAU001A(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/31_cau001a.json")
 }
 
 // CAU002: Require MFA for All Users
 func TestUnitResourceConditionalAccessPolicy_32_CAU002(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1706,12 +1769,14 @@ func TestUnitResourceConditionalAccessPolicy_32_CAU002(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/32_cau002.json")
 }
 
 // CAU003: Block Unapproved Apps for Guests
 func TestUnitResourceConditionalAccessPolicy_33_CAU003(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1749,12 +1814,14 @@ func TestUnitResourceConditionalAccessPolicy_33_CAU003(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/33_cau003.json")
 }
 
 // CAU004: Route Through Microsoft Defender for Cloud Apps
 func TestUnitResourceConditionalAccessPolicy_34_CAU004(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1796,12 +1863,14 @@ func TestUnitResourceConditionalAccessPolicy_34_CAU004(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/34_cau004.json")
 }
 
 // CAU006: MFA for Medium/High Sign-in Risk
 func TestUnitResourceConditionalAccessPolicy_35_CAU006(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1851,12 +1920,14 @@ func TestUnitResourceConditionalAccessPolicy_35_CAU006(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/35_cau006.json")
 }
 
 // CAU007: Password Change for Medium/High User Risk
 func TestUnitResourceConditionalAccessPolicy_36_CAU007(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1906,12 +1977,14 @@ func TestUnitResourceConditionalAccessPolicy_36_CAU007(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/36_cau007.json")
 }
 
 // CAU008: Phishing-Resistant MFA for Admins
 func TestUnitResourceConditionalAccessPolicy_37_CAU008(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1949,12 +2022,14 @@ func TestUnitResourceConditionalAccessPolicy_37_CAU008(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/37_cau008.json")
 }
 
 // CAU009: Require MFA for Admin Portals
 func TestUnitResourceConditionalAccessPolicy_38_CAU009(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -1994,12 +2069,14 @@ func TestUnitResourceConditionalAccessPolicy_38_CAU009(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/38_cau009.json")
 }
 
 // CAU010: Require Terms of Use
 func TestUnitResourceConditionalAccessPolicy_39_CAU010(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2038,12 +2115,14 @@ func TestUnitResourceConditionalAccessPolicy_39_CAU010(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/39_cau010.json")
 }
 
 // CAU011: Block Unlicensed Users
 func TestUnitResourceConditionalAccessPolicy_40_CAU011(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2085,12 +2164,14 @@ func TestUnitResourceConditionalAccessPolicy_40_CAU011(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/40_cau011.json")
 }
 
 // CAU012: Security Info Registration with TAP
 func TestUnitResourceConditionalAccessPolicy_41_CAU012(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2140,12 +2221,14 @@ func TestUnitResourceConditionalAccessPolicy_41_CAU012(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/41_cau012.json")
 }
 
 // CAU013: Phishing-Resistant MFA for All Users
 func TestUnitResourceConditionalAccessPolicy_42_CAU013(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2183,12 +2266,14 @@ func TestUnitResourceConditionalAccessPolicy_42_CAU013(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/42_cau013.json")
 }
 
 // CAU014: Block Managed Identity with Medium/High Sign-in Risk
 func TestUnitResourceConditionalAccessPolicy_43_CAU014(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2236,12 +2321,14 @@ func TestUnitResourceConditionalAccessPolicy_43_CAU014(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/43_cau014.json")
 }
 
 // CAU015: Block High Sign-in Risk
 func TestUnitResourceConditionalAccessPolicy_44_CAU015(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2284,12 +2371,14 @@ func TestUnitResourceConditionalAccessPolicy_44_CAU015(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/44_cau015.json")
 }
 
 // CAU016: Block High User Risk
 func TestUnitResourceConditionalAccessPolicy_45_CAU016(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2332,12 +2421,14 @@ func TestUnitResourceConditionalAccessPolicy_45_CAU016(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/45_cau016.json")
 }
 
 // CAU017: Admin Sign-in Frequency
 func TestUnitResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2380,12 +2471,14 @@ func TestUnitResourceConditionalAccessPolicy_46_CAU017(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/46_cau017.json")
 }
 
 // CAU018: Disable Browser Persistence for Admins
 func TestUnitResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2425,12 +2518,14 @@ func TestUnitResourceConditionalAccessPolicy_47_CAU018(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/47_cau018.json")
 }
 
 // CAU019: Allow Only Approved Apps for Guests
 func TestUnitResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2475,12 +2570,14 @@ func TestUnitResourceConditionalAccessPolicy_48_CAU019(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/48_cau019.json")
 }
 
 // CAU021: Sign-in Every Time Strict for Private Access Apps
 func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer conditionalAccessPolicyMock.CleanupMockState()
 
@@ -2537,6 +2634,7 @@ func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/49_cau021.json")
 }
 
 // cau021Config adds a grant_controls block and sets frequency_interval on the CAU021 config.

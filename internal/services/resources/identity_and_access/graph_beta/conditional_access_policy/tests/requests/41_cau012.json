@@ -1,0 +1,83 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-3}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": [
+            "urn:user:registersecurityinfo"
+          ]
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "locations": {
+          "excludeLocations": [
+            "AllTrusted"
+          ],
+          "includeLocations": [
+            "All"
+          ]
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-1}",
+            "{uuid-2}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "includeRoles": [],
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "displayName": "CAU012-RSI: Combined Security Info Registration with TAP-v1.1",
+      "grantControls": {
+        "builtInControls": [
+          "mfa"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": {
+        "signInFrequency": {
+          "@odata.type": "#microsoft.graph.signInFrequencySessionControl",
+          "authenticationType": "primaryAndSecondaryAuthentication",
+          "frequencyInterval": "everyTime",
+          "isEnabled": true
+        }
+      },
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]
