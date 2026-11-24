@@ -13,7 +13,6 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
 
 // Create handles the Create operation for network forwarding profile resources.
@@ -253,7 +252,7 @@ func readbackOptions(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = operation
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = sharedmodels.RequireStableReads(func(ctx context.Context, s tfsdk.State) bool {
+	opts.ConsistencyPredicate = crud.RequireStableReads(func(ctx context.Context, s tfsdk.State) bool {
 		var actual NetworkForwardingProfileResourceModel
 		if s.Get(ctx, &actual).HasError() {
 			return false
