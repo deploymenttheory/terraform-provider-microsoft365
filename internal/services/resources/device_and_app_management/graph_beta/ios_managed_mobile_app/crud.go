@@ -87,7 +87,14 @@ func (r *IOSManagedMobileAppResource) Create(ctx context.Context, req resource.C
 	}
 	currentApps := appsResponse.GetValue()
 
-	if existing := findTargetedAppByBundleID(currentApps, bundle); existing != nil {
+	// Match the policy's entry for this app by its identifier, case-insensitively.
+	targetsThisApp := func(app graphmodels.ManagedMobileAppable) bool {
+		identifier, ok := app.GetMobileAppIdentifier().(graphmodels.IosMobileAppIdentifierable)
+		return ok && identifier.GetBundleId() != nil && strings.EqualFold(*identifier.GetBundleId(), bundle)
+	}
+
+	if index := slices.IndexFunc(currentApps, func(app graphmodels.ManagedMobileAppable) bool { return app != nil && targetsThisApp(app) }); index >= 0 {
+		existing := currentApps[index]
 		existingID := bundle + ".ios"
 		if existing.GetId() != nil {
 			existingID = *existing.GetId()
@@ -114,10 +121,12 @@ func (r *IOSManagedMobileAppResource) Create(ctx context.Context, req resource.C
 			pollReadFailed = true
 			return false, &crud.FatalPollError{Err: fmt.Errorf("list policy apps: %w", readErr)}
 		}
-		created := findTargetedAppByBundleID(response.GetValue(), bundle)
-		if created == nil || created.GetId() == nil {
+		apps := response.GetValue()
+		index := slices.IndexFunc(apps, func(app graphmodels.ManagedMobileAppable) bool { return app != nil && targetsThisApp(app) })
+		if index < 0 || apps[index].GetId() == nil {
 			return false, nil
 		}
+		created := apps[index]
 		object.ID = types.StringValue(*created.GetId())
 		return true, nil
 	})
@@ -270,8 +279,13 @@ func (r *IOSManagedMobileAppResource) Delete(ctx context.Context, req resource.D
 	}
 	currentApps := appsResponse.GetValue()
 
-	if target := findTargetedAppByBundleID(currentApps, bundle); target != nil {
-		remaining := slices.DeleteFunc(slices.Clone(currentApps), func(app graphmodels.ManagedMobileAppable) bool { return app == target })
+	appID := object.ID.ValueString()
+	hasThisID := func(app graphmodels.ManagedMobileAppable) bool {
+		return app != nil && app.GetId() != nil && strings.EqualFold(*app.GetId(), appID)
+	}
+
+	if slices.ContainsFunc(currentApps, hasThisID) {
+		remaining := slices.DeleteFunc(slices.Clone(currentApps), hasThisID)
 
 		requestBody := constructTargetAppsRequest(remaining)
 
@@ -287,7 +301,7 @@ func (r *IOSManagedMobileAppResource) Delete(ctx context.Context, req resource.D
 				pollReadFailed = true
 				return false, &crud.FatalPollError{Err: fmt.Errorf("list policy apps: %w", readErr)}
 			}
-			return findTargetedAppByBundleID(response.GetValue(), bundle) == nil, nil
+			return !slices.ContainsFunc(response.GetValue(), hasThisID), nil
 		})
 		if err != nil && ctx.Err() != nil && !pollReadFailed {
 			err = fmt.Errorf("%w: %w", errAppWaitTimeout, ctx.Err())

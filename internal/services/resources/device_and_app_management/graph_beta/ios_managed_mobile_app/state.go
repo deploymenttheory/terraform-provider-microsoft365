@@ -51,17 +51,3 @@ func MapRemoteStateToTerraform(
 	)
 }
 
-// findTargetedAppByBundleID returns the policy's targeted app entry for the iOS bundle,
-// matched case-insensitively, or nil when the policy does not target it.
-func findTargetedAppByBundleID(apps []graphmodels.ManagedMobileAppable, bundleID string) graphmodels.ManagedMobileAppable {
-	for _, app := range apps {
-		if app == nil {
-			continue
-		}
-		identifier, ok := app.GetMobileAppIdentifier().(graphmodels.IosMobileAppIdentifierable)
-		if ok && identifier.GetBundleId() != nil && strings.EqualFold(*identifier.GetBundleId(), bundleID) {
-			return app
-		}
-	}
-	return nil
-}
