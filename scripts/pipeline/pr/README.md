@@ -128,6 +128,21 @@ Selection compares committed changes. Commit work intended for comparison first.
 Documentation-only changes do not select Go packages. Scheduled acceptance jobs
 retain their existing test batches and use the isolated factories as well.
 
+## Helper report
+
+The planning job runs `steps/report_helpers.py`, which selects the changed
+packages under `internal/services` and runs `tools/helperscan` on them. It prints
+a table to the job log and adds the same report to the step summary. For every
+helper it shows the declaration's line span, how many places reference it, which
+CRUD methods call it directly and whether its name follows the convention in the
+"Helpers" section of `docs/development/guide.md`. The step is report-only: any
+failure becomes a warning, and the step also sets `continue-on-error`. Locally:
+
+```sh
+python3 scripts/pipeline/pr/steps/report_helpers.py --base-ref origin/main
+go run ./tools/helperscan -format text internal/services/resources/<path to package>
+```
+
 ## Diagnostics
 
 Linux CI wraps commands with `monitor_resources.sh`: output streams directly to
