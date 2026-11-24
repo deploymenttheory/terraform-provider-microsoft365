@@ -1,10 +1,6 @@
 package graphBetaNetworkDeviceForwardingProfile
 
-import (
-	"strings"
-	"sync"
-	"time"
-)
+import "time"
 
 // ShortenCreatedLookup makes the post-504 lookup fast in unit tests.
 func ShortenCreatedLookup() func() {
@@ -14,9 +10,3 @@ func ShortenCreatedLookup() func() {
 		createdLookupAttempts, duplicateLookupAttempts, createdLookupInterval = attempts, duplicates, interval
 	}
 }
-
-// ResetClaimedProfiles forgets claimed IDs, since the mock reuses one ID.
-func ResetClaimedProfiles() { claimedProfiles = sync.Map{} }
-
-// ClaimProfile marks an ID as created by another resource in this apply.
-func ClaimProfile(id string) { claimedProfiles.Store(strings.ToLower(id), struct{}{}) }

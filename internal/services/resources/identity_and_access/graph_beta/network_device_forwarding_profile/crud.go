@@ -21,8 +21,6 @@ package graphBetaNetworkDeviceForwardingProfile
 import (
 	"context"
 	stderrors "errors"
-	"strings"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -41,11 +39,6 @@ var (
 	errEmptyProfileResponse   = stderrors.New("graph returned an empty forwarding profile response")
 	errProfileNotCreated      = stderrors.New("forwarding profile not found after failed create")
 )
-
-// claimedProfiles holds the lower-cased IDs of profiles already created, adopted or deleted in this provider process,
-// so two resources with the same name and priority cannot both adopt one profile, and a stale list after a delete is
-// never adopted on a re-create. It is a record of claims, not a lock: entries are never released.
-var claimedProfiles sync.Map
 
 // Variables so unit tests can shorten the post-create lookup.
 var (
@@ -163,7 +156,7 @@ func (r *NetworkDeviceForwardingProfileResource) Create(
 					continue
 				}
 				// Claim atomically, so a profile another resource has claimed is skipped.
-				if _, claimed := claimedProfiles.LoadOrStore(strings.ToLower(*p.ID), struct{}{}); claimed {
+				if crud.ClaimKey(ResourceName, *p.ID) {
 					continue
 				}
 				created = &after.Value[i]
@@ -183,7 +176,7 @@ func (r *NetworkDeviceForwardingProfileResource) Create(
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
-	claimedProfiles.Store(strings.ToLower(*remote.ID), struct{}{})
+	crud.RecordClaim(ResourceName, *remote.ID)
 	// Persist the ID before reading back so a failed read still allows cleanup.
 	plan.ID = types.StringPointerValue(remote.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -346,6 +339,6 @@ func (r *NetworkDeviceForwardingProfileResource) Delete(
 		return
 	}
 	// A stale list could still show it; never adopt it on a re-create.
-	claimedProfiles.Store(strings.ToLower(state.ID.ValueString()), struct{}{})
+	crud.RecordClaim(ResourceName, state.ID.ValueString())
 	resp.State.RemoveResource(ctx)
 }

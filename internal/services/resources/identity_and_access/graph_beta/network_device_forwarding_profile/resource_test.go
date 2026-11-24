@@ -11,6 +11,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	target "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_device_forwarding_profile"
 	testmocks "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_device_forwarding_profile/mocks"
 )
@@ -24,7 +25,7 @@ func setup(t *testing.T) *testmocks.Mock {
 	mocks.NewMocks().AuthMocks.RegisterMocks()
 	m := &testmocks.Mock{}
 	m.RegisterMocks()
-	target.ResetClaimedProfiles()
+	crud.ResetClaims(target.ResourceName)
 	t.Cleanup(func() { httpmock.DeactivateAndReset(); m.CleanupMockState() })
 	return m
 }
@@ -205,7 +206,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03f_DoesNotAdoptProfileClaim
 	m := setup(t)
 	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
-	target.ClaimProfile(testmocks.ProfileID)
+	crud.RecordClaim(target.ResourceName, testmocks.ProfileID)
 	m.PostDuplicates = 1
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
