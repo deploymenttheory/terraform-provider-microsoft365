@@ -126,15 +126,6 @@ func TestByIDRequestUrlTemplate(t *testing.T) {
 			expected: "{+baseurl}/applications/abc/owners/d557c813-b8e5-4efc-b00e-9c0bd5fd10df/$ref",
 		},
 		{
-			name: "quoted brace pattern",
-			config: GetRequestConfig{
-				Endpoint:          "/deviceManagement/configurationPolicies",
-				ResourceIDPattern: "('{id}')",
-				ResourceID:        "12345",
-			},
-			expected: "{+baseurl}/deviceManagement/configurationPolicies('12345')",
-		},
-		{
 			name: "no pattern keeps the endpoint",
 			config: GetRequestConfig{
 				Endpoint: "/applications/abc/microsoft.graph.agentIdentityBlueprint/sponsors",

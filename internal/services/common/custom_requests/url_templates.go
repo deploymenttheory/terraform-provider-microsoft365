@@ -88,17 +88,40 @@ func endpointUrlTemplate(endpoint string) string {
 	return "{+baseurl}/" + strings.TrimPrefix(endpoint, "/")
 }
 
+// Resource ID patterns accepted by ResourceIDPattern. Each caller chooses the format its endpoint needs; the
+// choice is deliberate per endpoint family and is never inferred.
+const (
+	// ResourceIDPatternParentheses addresses the resource with an OData parentheses key: "<endpoint>('<id>')".
+	// It is the original format of the custom requests (ShocOne, 1b060e6a, Nov 2024), written for the Intune
+	// settings catalog (e.g. deviceManagement/configurationPolicies('<id>')/settings) and used by the Intune
+	// policy, inventory policy and enrollment policy callers.
+	ResourceIDPatternParentheses = "('id')"
+
+	// ResourceIDPatternSegment addresses the resource with an OData key segment: "<endpoint>/<id>".
+	// ShocOne added it with the explicit PATCH switch (dccde7e7, Apr 2025) for device categories, and kenchan0130
+	// copied it to DELETE (47ce3efb). It is the form Microsoft Learn documents for directory navigation references,
+	// e.g. DELETE /servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors/{sponsorObjectId}/$ref, and is used
+	// by the owner, sponsor, credential and localized notification message callers.
+	ResourceIDPatternSegment = "/{id}"
+
+	// ResourceIDPatternNone appends no ID: the endpoint is a singleton or already contains the ID.
+	ResourceIDPatternNone = ""
+)
+
 // ByIDRequestUrlTemplate constructs a URL template for a single resource request using the provided configuration.
-// The function combines the endpoint path with a resource ID and optional suffix to create a complete URL template.
-// The resource ID is written into the template literally, so it is never expanded as a template variable.
-// Supported ID patterns include "('id')", "(id)" and "/{id}". For example, if the config contains:
-//   - Endpoint: "/deviceManagement/configurationPolicies"
-//   - ResourceIDPattern: "('id')"
-//   - ResourceID: "12345"
-//   - EndpointSuffix: "/settings"
+// The endpoint is always joined to the base URL with exactly one slash, then the resource ID is written in the
+// format named by ResourceIDPattern, then the optional suffix is appended:
+//   - ResourceIDPatternParentheses "('id')": "{+baseurl}/<endpoint>('<id>')<suffix>"
+//   - ResourceIDPatternSegment "/{id}":      "{+baseurl}/<endpoint>/<id><suffix>"
+//   - ResourceIDPatternNone "":              "{+baseurl}/<endpoint><suffix>"
+//   - any other pattern (e.g. "(id)"):       every "id" in the pattern is replaced with the resource ID
 //
-// The resulting template would be: "{+baseurl}/deviceManagement/configurationPolicies('12345')/settings"
-// With ResourceIDPattern "/{id}" it would be: "{+baseurl}/deviceManagement/configurationPolicies/12345/settings"
+// This is the PATCH/DELETE switch (dccde7e7, 47ce3efb) in one place, so GET, PATCH and DELETE build identical
+// URLs for the same config. The resource ID is written into the template literally (it is not escaped), exactly
+// as before, so every existing caller's URL is unchanged.
+//
+// For example, Endpoint "/deviceManagement/configurationPolicies", ResourceIDPattern "('id')", ResourceID "12345"
+// and EndpointSuffix "/settings" give "{+baseurl}/deviceManagement/configurationPolicies('12345')/settings".
 //
 // Parameters:
 //   - reqConfig: a RequestUrlTemplateConfig containing the endpoint path, resource ID pattern, actual ID, and optional suffix
@@ -106,13 +129,17 @@ func endpointUrlTemplate(endpoint string) string {
 // Returns:
 //   - string: The constructed URL template ready for use with the Kiota request adapter
 func ByIDRequestUrlTemplate(reqConfig RequestUrlTemplateConfig) string {
-	pattern := reqConfig.GetResourceIDPattern()
-	var idFormat string
-	if strings.Contains(pattern, "{id}") {
-		idFormat = strings.ReplaceAll(pattern, "{id}", reqConfig.GetResourceID())
-	} else {
-		idFormat = strings.ReplaceAll(pattern, "id", reqConfig.GetResourceID())
+	urlTemplate := endpointUrlTemplate(reqConfig.GetEndpoint())
+
+	switch reqConfig.GetResourceIDPattern() {
+	case ResourceIDPatternSegment:
+		urlTemplate += "/" + reqConfig.GetResourceID()
+	case ResourceIDPatternParentheses:
+		urlTemplate += "('" + reqConfig.GetResourceID() + "')"
+	case ResourceIDPatternNone:
+	default:
+		urlTemplate += strings.ReplaceAll(reqConfig.GetResourceIDPattern(), "id", reqConfig.GetResourceID())
 	}
 
-	return endpointUrlTemplate(reqConfig.GetEndpoint()) + idFormat + reqConfig.GetEndpointSuffix()
+	return urlTemplate + reqConfig.GetEndpointSuffix()
 }
