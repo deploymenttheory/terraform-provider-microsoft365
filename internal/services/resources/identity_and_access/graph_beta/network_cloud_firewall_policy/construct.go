@@ -7,36 +7,25 @@ import (
 	graph "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 )
 
-// policyRequest tracks changes to API-managed fields.
-type policyRequest struct {
-	*graph.CloudFirewallPolicy
-	changed bool
-}
-
-func constructResource(_ context.Context, plan *NetworkCloudFirewallPolicyResourceModel) *policyRequest {
-	return constructPolicy(plan, nil)
-}
-
-func constructPolicy(plan, state *NetworkCloudFirewallPolicyResourceModel) *policyRequest {
-	b := &policyRequest{CloudFirewallPolicy: graph.NewCloudFirewallPolicy()}
+// constructResource builds the cloud firewall policy body. Create passes a nil state and sends every field; Update passes the
+// prior state and sends only the fields that changed.
+func constructResource(_ context.Context, plan, state *NetworkCloudFirewallPolicyResourceModel) graph.CloudFirewallPolicyable {
+	body := graph.NewCloudFirewallPolicy()
 	if state == nil || !plan.Name.Equal(state.Name) {
-		convert.FrameworkToGraphString(plan.Name, b.SetName)
-		b.changed = true
+		convert.FrameworkToGraphString(plan.Name, body.SetName)
 	}
 	if state == nil || !plan.Description.Equal(state.Description) {
-		convert.FrameworkToGraphString(plan.Description, b.SetDescription)
+		convert.FrameworkToGraphString(plan.Description, body.SetDescription)
 		if plan.Description.IsNull() {
-			// Match the existing Service Principal construction pattern for explicit JSON null.
-			b.SetAdditionalData(map[string]any{"description": nil})
+			// The generated setter omits nil strings, so an explicit JSON null goes through additional data.
+			body.SetAdditionalData(map[string]any{"description": nil})
 		}
-		b.changed = true
 	}
 	if state == nil || !plan.DefaultAction.Equal(state.DefaultAction) {
 		settings := graph.NewCloudFirewallPolicySettings()
 		action := graph.ALLOW_CLOUDFIREWALLACTION
 		settings.SetDefaultAction(&action)
-		b.SetSettings(settings)
-		b.changed = true
+		body.SetSettings(settings)
 	}
-	return b
+	return body
 }

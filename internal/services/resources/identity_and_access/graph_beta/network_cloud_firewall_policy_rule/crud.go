@@ -2,13 +2,18 @@ package graphBetaNetworkCloudFirewallPolicyRule
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/networkaccess"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *NetworkCloudFirewallPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -22,7 +27,18 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Create(ctx context.Context, req
 		return
 	}
 	defer cancel()
-	created, err := r.createRule(ctx, &object)
+	body, err := constructResource(ctx, &object, nil)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, fmt.Errorf("build cloud firewall create request: %w", err), resp, constants.TfOperationCreate, r.WritePermissions)
+		return
+	}
+	// Retry explicit throttling only: ambiguous server failures can leave an untracked duplicate.
+	createRetryOptions := r.retryOptions
+	createRetryOptions.ShouldRetry = func(_ time.Duration, _ int, _ *http.Request, response *http.Response) bool {
+		return response.StatusCode == http.StatusTooManyRequests
+	}
+	createConfig := &networkaccess.CloudFirewallPoliciesItemPolicyRulesRequestBuilderPostRequestConfiguration{Options: []abstractions.RequestOption{&createRetryOptions}}
+	created, err := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(object.PolicyID.ValueString()).PolicyRules().Post(ctx, body, createConfig)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -90,12 +106,15 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Update(ctx context.Context, req
 		return
 	}
 	defer cancel()
-	body, err := constructRule(ctx, &plan, &state)
+	body, err := constructResource(ctx, &plan, &state)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing cloud firewall rule", err.Error())
 		return
 	}
-	if body.changed {
+	changed := !plan.Name.Equal(state.Name) || !plan.Description.Equal(state.Description) || !plan.Priority.Equal(state.Priority) ||
+		!plan.Action.Equal(state.Action) || !plan.Enabled.Equal(state.Enabled) || !plan.Sources.Equal(state.Sources) ||
+		!plan.Destinations.Equal(state.Destinations)
+	if changed {
 		if _, err := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(state.PolicyID.ValueString()).PolicyRules().ByPolicyRuleId(state.ID.ValueString()).Patch(ctx, body, nil); err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
