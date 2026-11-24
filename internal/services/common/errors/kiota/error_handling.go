@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
+	betaodataerrors "github.com/microsoftgraph/msgraph-beta-sdk-go/models/odataerrors"
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -61,6 +62,22 @@ type ErrorDetailInfo struct {
 	Code    string
 	Message string
 	Target  string
+}
+
+// odataErrorFields is the code, message and target shape shared by the v1.0 and beta
+// MainError and ErrorDetails models, so both SDKs share one extraction path.
+type odataErrorFields interface {
+	GetCode() *string
+	GetMessage() *string
+	GetTarget() *string
+}
+
+// odataInnerErrorFields is the shape shared by the v1.0 and beta InnerError models.
+type odataInnerErrorFields interface {
+	GetRequestId() *string
+	GetClientRequestId() *string
+	GetDate() *time.Time
+	GetOdataType() *string
 }
 
 // ErrorCategory represents different types of errors
@@ -279,9 +296,14 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 	{
 		var urlError *url.Error
 		var odataError *odataerrors.ODataError
+		var betaODataError *betaodataerrors.ODataError
 		var graphResponseError interface {
 			GetStatusCode() int
 			GetErrorEscaped() odataerrors.MainErrorable
+		}
+		var betaGraphResponseError interface {
+			GetStatusCode() int
+			GetErrorEscaped() betaodataerrors.MainErrorable
 		}
 		var apiError abstractions.ApiErrorable
 		switch {
@@ -289,10 +311,18 @@ func GraphError(ctx context.Context, err error) GraphErrorInfo {
 			extractURLError(ctx, urlError, &errorInfo)
 		case errors.As(err, &odataError):
 			extractAPIError(ctx, odataError, &errorInfo)
+		case errors.As(err, &betaODataError):
+			extractAPIError(ctx, betaODataError, &errorInfo)
 		case errors.As(err, &graphResponseError):
 			errorInfo.StatusCode = graphResponseError.GetStatusCode()
-			mainError := graphResponseError.GetErrorEscaped()
-			extractMainError(ctx, mainError, &errorInfo)
+			if mainError := graphResponseError.GetErrorEscaped(); mainError != nil {
+				extractMainError(ctx, mainError, &errorInfo)
+			}
+		case errors.As(err, &betaGraphResponseError):
+			errorInfo.StatusCode = betaGraphResponseError.GetStatusCode()
+			if mainError := betaGraphResponseError.GetErrorEscaped(); mainError != nil {
+				extractMainError(ctx, mainError, &errorInfo)
+			}
 		case errors.As(err, &apiError):
 			extractAPIError(ctx, apiError, &errorInfo)
 		default:
@@ -363,7 +393,15 @@ func extractAPIError(
 
 	switch typedApiErr := apiErr.(type) {
 	case *odataerrors.ODataError:
-		extractODataError(ctx, typedApiErr, errorInfo)
+		errorInfo.IsODataError = true
+		if mainError := typedApiErr.GetErrorEscaped(); mainError != nil {
+			extractODataError(ctx, mainError, collectODataErrorDetails(mainError.GetDetails()), mainError.GetInnerError(), errorInfo)
+		}
+	case *betaodataerrors.ODataError:
+		errorInfo.IsODataError = true
+		if mainError := typedApiErr.GetErrorEscaped(); mainError != nil {
+			extractODataError(ctx, mainError, collectODataErrorDetails(mainError.GetDetails()), mainError.GetInnerError(), errorInfo)
+		}
 	case *abstractions.ApiError:
 		if typedApiErr.Message != "" {
 			errorInfo.ErrorMessage = typedApiErr.Message
@@ -399,29 +437,35 @@ func extractHeaders(apiErr abstractions.ApiErrorable, errorInfo *GraphErrorInfo)
 	}
 }
 
-// extractODataError handles OData specific errors with complete extraction
+// extractODataError extracts the main error, its details and inner error from a v1.0 or beta OData error
 func extractODataError(
 	ctx context.Context,
-	odataErr *odataerrors.ODataError,
+	mainError odataErrorFields,
+	details []odataErrorFields,
+	innerError odataInnerErrorFields,
 	errorInfo *GraphErrorInfo,
 ) {
-	errorInfo.IsODataError = true
+	extractMainError(ctx, mainError, errorInfo)
+	extractErrorDetails(ctx, details, errorInfo)
 
-	if mainError := odataErr.GetErrorEscaped(); mainError != nil {
-
-		extractMainError(ctx, mainError, errorInfo)
-		extractErrorDetails(ctx, mainError, errorInfo)
-
-		if innerError := mainError.GetInnerError(); innerError != nil {
-			extractInnerError(ctx, innerError, errorInfo)
-		}
+	if innerError != nil {
+		extractInnerError(ctx, innerError, errorInfo)
 	}
+}
+
+// collectODataErrorDetails converts a v1.0 or beta ErrorDetailsable slice into the shared shape
+func collectODataErrorDetails[T odataErrorFields](details []T) []odataErrorFields {
+	collected := make([]odataErrorFields, 0, len(details))
+	for _, detail := range details {
+		collected = append(collected, detail)
+	}
+	return collected
 }
 
 // extractMainError extracts comprehensive information from the main error object
 func extractMainError(
 	ctx context.Context,
-	mainError odataerrors.MainErrorable,
+	mainError odataErrorFields,
 	errorInfo *GraphErrorInfo,
 ) {
 	if code := mainError.GetCode(); code != nil && *code != "" {
@@ -453,10 +497,9 @@ func extractMainError(
 // extractErrorDetails extracts the details array from the main error
 func extractErrorDetails(
 	ctx context.Context,
-	mainError odataerrors.MainErrorable,
+	details []odataErrorFields,
 	errorInfo *GraphErrorInfo,
 ) {
-	details := mainError.GetDetails()
 	if len(details) == 0 {
 		return
 	}
@@ -493,7 +536,7 @@ func extractErrorDetails(
 // extractInnerError extracts the inner error (only one level in current SDK)
 func extractInnerError(
 	ctx context.Context,
-	innerError odataerrors.InnerErrorable,
+	innerError odataInnerErrorFields,
 	errorInfo *GraphErrorInfo,
 ) {
 	if innerError == nil {

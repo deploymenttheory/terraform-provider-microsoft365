@@ -283,7 +283,7 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_08_GraphErr
 		Steps: []resource.TestStep{
 			{
 				Config:      config(t, "unknown_policy"),
-				ExpectError: regexp.MustCompile(`of traffic type Private was not found`),
+				ExpectError: regexp.MustCompile(`of\s+traffic\s+type\s+Private\s+was\s+not\s+found`),
 			},
 		},
 	})

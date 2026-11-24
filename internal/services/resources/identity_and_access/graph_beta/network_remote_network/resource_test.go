@@ -185,7 +185,7 @@ func TestUnitResourceNetworkRemoteNetwork_05_GraphRejectsProfile(t *testing.T) {
 			},
 			{
 				Config:      loadConfig(t, "resource_private_profile.tf"),
-				ExpectError: regexp.MustCompile(`not allowed to be\s+assigned to a\s+remote network`),
+				ExpectError: regexp.MustCompile(`not\s+allowed\s+to\s+be\s+assigned\s+to\s+a\s+remote\s+network`),
 			},
 		},
 	})
