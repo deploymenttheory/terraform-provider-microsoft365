@@ -130,7 +130,7 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "fro
 
 ### Regional placement
 
-Use the exact region name and group returned by Graph. `uae` and `southAfrica` are not supported by the current Graph region-group enum.
+Use the exact region name and group returned by Graph.
 
 ```terraform
 resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "example" {
@@ -140,6 +140,74 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "exa
   image_type                 = "gallery"
   windows_setting            = { locale = "en-US" }
   domain_join_configurations = [{ domain_join_type = "azureADJoin", region_name = "westeurope", region_group = "netherlands" }]
+}
+```
+
+### Geography selection
+
+Windows 365 offers three levels of region selection: a whole geography, a region group within a geography, and a single region. Set `geographic_location_type` to choose the geography, the same way the Intune portal does:
+
+- `region_group = "automatic"` with `region_name = "automatic"` and a `geographic_location_type` selects the **whole geography**: every region group and region in it. For example, `geographic_location_type = "middleEast"` selects the whole Middle East and `geographic_location_type = "africa"` selects the whole Africa geography (the portal's South Africa option).
+- A specific `region_group` with a `geographic_location_type` limits placement to that group, for example `geographic_location_type = "middleEast"` with `region_group = "uae"`.
+- When `geographic_location_type` is omitted, the provider keeps the geography that Windows 365 reports in state.
+
+`region_group = "middleEast"` is rejected at plan time. It is the legacy Middle East region group, which Windows 365 maps to `israel` (Israel Central), so it can't select the whole geography and doesn't read back as configured. `southAfrica` is not accepted as a region group; use `geographic_location_type = "africa"` with `region_group = "automatic"`.
+
+`uae` is not yet in the Microsoft Graph SDK region-group enum. The provider sends it as the Intune portal does and reads it back from the raw Graph response.
+
+```terraform
+# Whole Middle East geography: every region group and region in the geography.
+resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "middle_east" {
+  display_name              = "Middle East geography"
+  image_id                  = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
+  image_type                = "gallery"
+  microsoft_managed_desktop = { managed_type = "notManaged" }
+  windows_setting           = { locale = "en-US" }
+
+  domain_join_configurations = [
+    {
+      domain_join_type         = "azureADJoin"
+      geographic_location_type = "middleEast"
+      region_group             = "automatic"
+      region_name              = "automatic"
+    }
+  ]
+}
+
+# UAE region group within the Middle East geography.
+resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "uae" {
+  display_name              = "Middle East - UAE"
+  image_id                  = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
+  image_type                = "gallery"
+  microsoft_managed_desktop = { managed_type = "notManaged" }
+  windows_setting           = { locale = "en-US" }
+
+  domain_join_configurations = [
+    {
+      domain_join_type         = "azureADJoin"
+      geographic_location_type = "middleEast"
+      region_group             = "uae"
+      region_name              = "automatic"
+    }
+  ]
+}
+
+# Whole Africa geography (this is how the Intune portal selects South Africa).
+resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "africa" {
+  display_name              = "Africa geography"
+  image_id                  = "microsoftwindowsdesktop_windows-ent-cpc_win11-26h2-ent-cpc-m365"
+  image_type                = "gallery"
+  microsoft_managed_desktop = { managed_type = "notManaged" }
+  windows_setting           = { locale = "en-US" }
+
+  domain_join_configurations = [
+    {
+      domain_join_type         = "azureADJoin"
+      geographic_location_type = "africa"
+      region_group             = "automatic"
+      region_name              = "automatic"
+    }
+  ]
 }
 ```
 
@@ -224,10 +292,6 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "exa
 
 ### Optional
 
-- `user_settings_persistence_configuration` (Attributes) User application settings persistence for sharedByEntraGroup policies. Omitting this block preserves remote settings, including on import. Set enabled = false explicitly to disable persistence; removing the block does not disable it. (see [below for nested schema](#nestedatt--user_settings_persistence_configuration))
-
-- `user_experience_type` (String) The user experience: cloudPc provides the full desktop; cloudApp provides published applications and requires provisioning_type = sharedByEntraGroup. Defaults to cloudPc when creating a policy. Omitting this attribute preserves an imported policy's experience. Changing the experience requires replacement.
-
 - `apply_to_existing_cloud_pcs` (Attributes) If you change the network, image, region or single sign-on configuration in a provisioning policy,no change will occur for previously provisioned Cloud PCs. Newly provisioned or reprovisioned Cloud PCs will honor thechanges in your provisioning policy. To change the network or image of previously provisioned Cloud PCs to align with the changes,you must reprovision those Cloud PCs. To change the region or single sign-on of previously provisioned Cloud PCs to align with the changes,you must apply the changed configuration retrospectively using the apply_to_existing_cloud_pcs block. (see [below for nested schema](#nestedatt--apply_to_existing_cloud_pcs))
 - `assignments` (Attributes Set) Assignments of the Cloud PC provisioning policy to groups. Only Microsoft 365 groups and security groups in Microsoft Entra ID are currently supported. (see [below for nested schema](#nestedatt--assignments))
 - `autopatch` (Attributes) Autopatch settings for the provisioning policy. (see [below for nested schema](#nestedatt--autopatch))
@@ -241,6 +305,8 @@ resource "microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy" "exa
 - `provisioning_type` (String) Specifies the type of license used when provisioning Cloud PCs using this policy.By default, the license type is dedicated if the provisioningType isn't specified when you create the cloudPcProvisioningPolicy.Possible values are: dedicated, shared, sharedByUser, sharedByEntraGroup, unknownFutureValue.Changes to this attribute will force recreation of the resource.dedicated: (Enterprise) Each user will get their own Cloud PC without restrictions on when they can connect to it.shared: (Frontline - Dedicated) Recommended for users who need part time access to their Cloud PCs or follow a set schedule, such as shifts. A single license lets you provision up to three Cloud PCs that can be used non-concurrently, each assigned to a single user. Provides one concurrent session.sharedByEntraGroup: (Frontline - Shared) Recommended for users who use Cloud PC for a short period of time and do not require data to be preserved. A single license lets you provision one Cloud PC that can be shared non-concurrently among a group of users. Provides one concurrent session.
 - `scope_ids` (Set of String) Set of scope tag IDs for this resource.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
+- `user_experience_type` (String) The user experience: cloudPc provides the full desktop; cloudApp provides published applications and requires provisioning_type = sharedByEntraGroup. Defaults to cloudPc when creating a policy. Omitting this attribute preserves an imported policy's experience. Changing the experience requires replacement.
+- `user_settings_persistence_configuration` (Attributes) User application settings persistence for sharedByEntraGroup policies. Omitting this block preserves remote settings, including on import. Set enabled = false explicitly to disable persistence; removing the block does not disable it. (see [below for nested schema](#nestedatt--user_settings_persistence_configuration))
 
 ### Read-Only
 
@@ -315,13 +381,14 @@ Optional:
 
 Required:
 
-- `region_group` (String) The Cloud PC region group. Must be one of: default, australia, canada, usCentral, usEast, usWest, france, germany, europeUnion, unitedKingdom, japan, asia, india, southAmerica, euap, usGovernment, usGovernmentDOD, unknownFutureValue, norway, switzerland, southKorea, middleEast, mexico, australasia, europe, singapore, hongKong, ireland, sweden, poland, italy, spain, netherlands, brazil, israel, automatic, indonesia, taiwan, malaysia, newZealand, austria, denmark, belgium, kenya. The exported observations uae and southAfrica are not members of the current Graph enum and are not supported; no broader group is substituted.
+- `region_group` (String) The Cloud PC region group. Must be one of: default, australia, canada, usCentral, usEast, usWest, france, germany, europeUnion, unitedKingdom, japan, asia, india, southAmerica, euap, usGovernment, usGovernmentDOD, unknownFutureValue, norway, switzerland, southKorea, mexico, australasia, europe, singapore, hongKong, ireland, sweden, poland, italy, spain, netherlands, brazil, israel, automatic, indonesia, taiwan, malaysia, newZealand, austria, denmark, belgium, kenya, uae. Use automatic together with geographic_location_type to select a whole geography. uae is the UAE region group of the middleEast geography as the Intune portal sends it; it is not yet in the Graph SDK enum. The legacy middleEast region group is rejected because Windows 365 maps it to the israel (Israel Central) group, which is narrower than the Middle East geography; use geographic_location_type = "middleEast" with region_group = "automatic" instead. southAfrica is not accepted: the Intune portal selects South Africa as geographic_location_type = "africa" with region_group = "automatic".
 
 Optional:
 
 - `domain_join_type` (String) Specifies the method by which the provisioned Cloud PC joins Microsoft Entra ID.
+- `geographic_location_type` (String) The Windows 365 geography that the region selection belongs to, as the Intune portal sends it (for example middleEast or africa). Set it with region_group = "automatic" and region_name = "automatic" to select every region group and region in the geography, or with a specific region_group (for example uae) to limit placement to that group within the geography. When omitted, the value Windows 365 reports is kept in state. Must be one of: default, asia, australasia, canada, europe, india, africa, usCentral, usEast, usWest, southAmerica, middleEast, centralAmerica, usGovernment, mexico, australiaNewZealand.
 - `on_premises_connection_id` (String) The Azure network connection ID that matches the virtual network IT admins want the provisioning policy to use when they create Cloud PCs.
-- `region_name` (String) The supported Azure region where the IT admin wants the provisioning policy to create Cloud PCs. It is recommended using the Automatic option. The option allows Windows 365 to make the best selection which decreases the chance of provisioning failure. Use centralindia for Central India. The legacy indiacentral spelling remains accepted for compatibility and is sent unchanged; it is not an alias for centralindia.
+- `region_name` (String) The supported Azure region where the IT admin wants the provisioning policy to create Cloud PCs. It is recommended using the Automatic option.The option allows Windows 365 to make the best selection which decreases the chance of provisioning failure. Use centralindia for Central India. The legacy indiacentral spelling remains accepted for compatibility and is sent unchanged; it is not an alias for centralindia.
 
 
 <a id="nestedatt--timeouts"></a>
@@ -333,6 +400,18 @@ Optional:
 - `delete` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Setting a timeout for a Delete operation is only applicable if changes are saved into state before the destroy operation occurs.
 - `read` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours). Read operations occur during any refresh or planning operation when refresh is enabled.
 - `update` (String) A string that can be [parsed as a duration](https://pkg.go.dev/time#ParseDuration) consisting of numbers and unit suffixes, such as "30s" or "2h45m". Valid time units are "s" (seconds), "m" (minutes), "h" (hours).
+
+
+<a id="nestedatt--user_settings_persistence_configuration"></a>
+### Nested Schema for `user_settings_persistence_configuration`
+
+Required:
+
+- `enabled` (Boolean) Whether to persist user application settings between Cloud PC sessions.
+
+Optional:
+
+- `storage_size_category` (String) Storage size for persisted settings: fourGB, eightGB, sixteenGB, thirtyTwoGB, or sixtyFourGB. Defaults to fourGB when no existing storage size is available.
 
 ## Important Notes
 
@@ -355,14 +434,3 @@ Import is supported using the following syntax:
 # {user_id}
 terraform import microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy.example 00000000-0000-0000-0000-000000000000
 ```
-
-<a id="nestedatt--user_settings_persistence_configuration"></a>
-### Nested Schema for `user_settings_persistence_configuration`
-
-Required:
-
-- `enabled` (Boolean) Whether to persist user application settings between Cloud PC sessions.
-
-Optional:
-
-- `storage_size_category` (String) Storage size for persisted settings: fourGB, eightGB, sixteenGB, thirtyTwoGB, or sixtyFourGB. Defaults to fourGB when no existing storage size is available.

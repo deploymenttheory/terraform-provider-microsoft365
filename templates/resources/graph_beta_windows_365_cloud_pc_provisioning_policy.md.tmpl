@@ -38,9 +38,23 @@ The following client `application` permissions are needed in order to use this {
 
 ### Regional placement
 
-Use the exact region name and group returned by Graph. `uae` and `southAfrica` are not supported by the current Graph region-group enum.
+Use the exact region name and group returned by Graph.
 
 {{ tffile "examples/resources/microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy/resource_regional_placement.tf" }}
+
+### Geography selection
+
+Windows 365 offers three levels of region selection: a whole geography, a region group within a geography, and a single region. Set `geographic_location_type` to choose the geography, the same way the Intune portal does:
+
+- `region_group = "automatic"` with `region_name = "automatic"` and a `geographic_location_type` selects the **whole geography**: every region group and region in it. For example, `geographic_location_type = "middleEast"` selects the whole Middle East and `geographic_location_type = "africa"` selects the whole Africa geography (the portal's South Africa option).
+- A specific `region_group` with a `geographic_location_type` limits placement to that group, for example `geographic_location_type = "middleEast"` with `region_group = "uae"`.
+- When `geographic_location_type` is omitted, the provider keeps the geography that Windows 365 reports in state.
+
+`region_group = "middleEast"` is rejected at plan time. It is the legacy Middle East region group, which Windows 365 maps to `israel` (Israel Central), so it can't select the whole geography and doesn't read back as configured. `southAfrica` is not accepted as a region group; use `geographic_location_type = "africa"` with `region_group = "automatic"`.
+
+`uae` is not yet in the Microsoft Graph SDK region-group enum. The provider sends it as the Intune portal does and reads it back from the raw Graph response.
+
+{{ tffile "examples/resources/microsoft365_graph_beta_windows_365_cloud_pc_provisioning_policy/resource_geography.tf" }}
 
 ### Central India
 
