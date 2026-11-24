@@ -39,7 +39,7 @@ func TestCheckName(t *testing.T) {
 		{"mapRemoteOwnersToTerraform", "state.go", "map… must name an entity and end ToState"},
 	}
 	for _, c := range cases {
-		if got := checkName(c.name, c.file); got != c.want {
+		if got := checkName(c.name, c.file, stateMapperName); got != c.want {
 			t.Errorf("checkName(%q, %q) = %q, want %q", c.name, c.file, got, c.want)
 		}
 	}
@@ -61,10 +61,29 @@ func TestSplitWords(t *testing.T) {
 }
 
 func TestCheckStateMapperFile(t *testing.T) {
-	if got := checkStateMapperFile("state.go"); got != nameOK {
+	if got := checkStateMapperFile("MapRemoteStateToTerraform", "state.go"); got != nameOK {
 		t.Errorf("state.go: %q", got)
 	}
-	if got := checkStateMapperFile("crud.go"); got != "MapRemoteStateToTerraform belongs in state.go" {
+	if got := checkStateMapperFile("MapRemoteStateToTerraform", "crud.go"); got != "MapRemoteStateToTerraform belongs in state.go" {
 		t.Errorf("crud.go: %q", got)
+	}
+}
+
+func TestCheckNameInDataSource(t *testing.T) {
+	rename := "non-standard state mapper: rename to MapRemoteStateToDataSource"
+	cases := map[string]string{
+		"mapRemoteStateToDataSource":        rename,
+		"MapRemoteResourceStateToTerraform": rename,
+		"MapRemoteStateToTerraform":         rename,
+		"mapRemoteState":                    rename,
+		"mapRemoteOwnersToTerraform":        "map… must name an entity and end ToState",
+	}
+	for name, want := range cases {
+		if got := checkName(name, "state.go", dataSourceStateMapperName); got != want {
+			t.Errorf("checkName(%q) in a data source = %q, want %q", name, got, want)
+		}
+	}
+	if got := checkStateMapperFile("MapRemoteStateToDataSource", "crud.go"); got != "MapRemoteStateToDataSource belongs in state.go" {
+		t.Errorf("checkStateMapperFile = %q", got)
 	}
 }

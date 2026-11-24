@@ -1,0 +1,11 @@
+package datasource
+
+// MapRemoteStateToDataSource is the standard data source state mapper.
+func MapRemoteStateToDataSource(values []string) []string {
+	return mapRemoteStateToDataSource(values)
+}
+
+// mapRemoteStateToDataSource is a lower-case variant of the data source mapper name.
+func mapRemoteStateToDataSource(values []string) []string {
+	return values
+}
