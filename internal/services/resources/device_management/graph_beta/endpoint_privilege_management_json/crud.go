@@ -181,9 +181,6 @@ func (r *EndpointPrivilegeManagementResource) Read(ctx context.Context, req reso
 		EndpointSuffix:    "/settings",
 		ResourceIDPattern: "('id')",
 		ResourceID:        object.ID.ValueString(),
-		QueryParameters: map[string]string{
-			"$expand": "children",
-		},
 	}
 
 	var settingsResponse []byte

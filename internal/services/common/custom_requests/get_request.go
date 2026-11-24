@@ -3,10 +3,7 @@ package customrequests
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"net/url"
 
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
@@ -23,8 +20,13 @@ type GetRequestConfig struct {
 	ResourceIDPattern string
 	// The ID of the resource
 	ResourceID string
-	// Optional query parameters to include in the request
+	// Optional query parameters to include in the request (e.g. {"$expand": "children"})
 	QueryParameters map[string]string
+	// Optional request headers (e.g. {"Prefer": "include-unknown-enum-members"})
+	Headers map[string]string
+	// Optional raw JSON response target: a pointer the response is decoded into with encoding/json. Every
+	// @odata.nextLink page is collected first. Use instead of a ParsableFactory.
+	RawResponse any
 }
 
 // ODataResponse represents the structure of an OData response
@@ -35,6 +37,11 @@ type ODataResponse struct {
 	NextLink string `json:"@odata.nextLink,omitempty"`
 }
 
+// GetRequest performs a custom GET of "<endpoint>[/<resourceID>][/<endpointSuffix>]".
+//
+// In Parsable mode the response is parsed with factory and returned. In raw JSON mode (config.RawResponse set and
+// factory nil) every @odata.nextLink page is collected, the result is decoded into config.RawResponse and the
+// returned Parsable is nil. A response with no body leaves config.RawResponse untouched.
 func GetRequest(
 	ctx context.Context,
 	adapter abstractions.RequestAdapter,
@@ -42,6 +49,10 @@ func GetRequest(
 	factory s.ParsableFactory,
 	errorMappings abstractions.ErrorMappings,
 ) (s.Parsable, error) {
+	if factory != nil && config.RawResponse != nil {
+		return nil, ErrMixedResponseModes
+	}
+
 	urlTemplate := endpointUrlTemplate(config.Endpoint)
 	if config.GetResourceID() != "" {
 		urlTemplate += "/" + config.GetResourceID()
@@ -50,12 +61,15 @@ func GetRequest(
 		urlTemplate += "/" + config.GetEndpointSuffix()
 	}
 
-	requestInfo := newGraphRequestInformation(adapter, abstractions.GET, urlTemplate, config.APIVersion)
+	requestInfo := newGraphRequestInformation(adapter, abstractions.GET, urlTemplate, config.APIVersion, config.QueryParameters, config.Headers)
 
-	if config.QueryParameters != nil {
-		for key, value := range config.QueryParameters {
-			requestInfo.QueryParameters[key] = value
+	if config.RawResponse != nil {
+		requestInfo.Headers.TryAdd("Accept", jsonContentType)
+		body, err := sendGraphGetCollectingPages(ctx, adapter, requestInfo, config.Headers, errorMappings)
+		if err != nil {
+			return nil, err
 		}
+		return nil, decodeRawResponse(body, config.RawResponse)
 	}
 
 	result, err := adapter.Send(ctx, requestInfo, factory, withODataErrorMappings(errorMappings))
@@ -90,6 +104,8 @@ func GetRequest(
 //   - ResourceIDPattern: The format for the resource ID (e.g., "('id')" or "(id)")
 //   - EndpointSuffix: Optional suffix to append after the resource ID (e.g., "/settings")
 //   - QueryParameters: Optional query parameters for the request
+//   - Headers: Optional request headers
+//   - RawResponse: Optional pointer the (combined) response is also decoded into
 //
 // Returns:
 //   - json.RawMessage: The raw JSON response from the GET request. For paginated responses,
@@ -116,87 +132,19 @@ func GetRequest(
 //
 //	fmt.Printf("Response: %+v\n", response)
 func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig GetRequestConfig) (json.RawMessage, error) {
+	requestInfo := newGraphRequestInformation(adapter, abstractions.GET, ByIDRequestUrlTemplate(reqConfig), reqConfig.APIVersion, reqConfig.QueryParameters, reqConfig.Headers)
+	requestInfo.Headers.TryAdd("Accept", jsonContentType)
 
-	requestInfo := newGraphRequestInformation(adapter, abstractions.GET, ByIDRequestUrlTemplate(reqConfig), reqConfig.APIVersion)
-	requestInfo.Headers.Add("Accept", "application/json")
-
-	if reqConfig.QueryParameters != nil {
-		for key, value := range reqConfig.QueryParameters {
-			requestInfo.QueryParameters[key] = value
-		}
-	}
-
-	body, err := sendGraphRequestForBytes(ctx, adapter, requestInfo)
+	body, err := sendGraphGetCollectingPages(ctx, adapter, requestInfo, reqConfig.Headers, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var firstResponse ODataResponse
-	if err := json.Unmarshal(body, &firstResponse); err != nil {
-		return body, nil
-	}
-
-	// If no NextLink or no Value array, this isn't a paginated response
-	if firstResponse.NextLink == "" || firstResponse.Value == nil {
-		return body, nil
-	}
-
-	var allResults []json.RawMessage
-	allResults = append(allResults, firstResponse.Value...)
-	nextLink := firstResponse.NextLink
-
-	tflog.Debug(ctx, "Pagination detected, retrieving additional pages", map[string]any{
-		"itemsRetrieved": len(allResults),
-	})
-
-	for nextLink != "" {
-		nextURL, err := url.Parse(nextLink)
-		if err != nil {
-			return nil, fmt.Errorf("error parsing @odata.nextLink %q: %w", nextLink, err)
-		}
-
-		requestInfo = abstractions.NewRequestInformation()
-		requestInfo.Method = abstractions.GET
-		requestInfo.SetUri(*nextURL)
-		requestInfo.Headers.Add("Accept", "application/json")
-
-		body, err = sendGraphRequestForBytes(ctx, adapter, requestInfo)
-		if err != nil {
+	if reqConfig.RawResponse != nil {
+		if err := decodeRawResponse(body, reqConfig.RawResponse); err != nil {
 			return nil, err
 		}
-
-		var pageResponse ODataResponse
-		if err := json.Unmarshal(body, &pageResponse); err != nil {
-			return nil, fmt.Errorf("error parsing paginated response: %w", err)
-		}
-
-		allResults = append(allResults, pageResponse.Value...)
-		nextLink = pageResponse.NextLink
-
-		tflog.Debug(ctx, "Retrieved additional page", map[string]any{
-			"itemsRetrieved": len(allResults),
-			"hasNextPage":    nextLink != "",
-		})
 	}
 
-	combinedResponse := map[string]any{
-		"value": allResults,
-	}
-
-	return json.Marshal(combinedResponse)
-}
-
-// sendGraphRequestForBytes sends requestInfo through the adapter's pipeline (authentication, retry, compression,
-// logging and status checks) and returns the raw response body. Any 4xx or 5xx response is returned as an ODataError.
-// A response with no body (e.g. 204 No Content) returns nil.
-func sendGraphRequestForBytes(ctx context.Context, adapter abstractions.RequestAdapter, requestInfo *abstractions.RequestInformation) ([]byte, error) {
-	tflog.Debug(ctx, "Making custom msgraph GET request", map[string]any{"url_template": requestInfo.UrlTemplate})
-
-	result, err := adapter.SendPrimitive(ctx, requestInfo, "[]byte", withODataErrorMappings(nil))
-	if err != nil {
-		return nil, err
-	}
-
-	body, _ := result.([]byte)
 	return body, nil
 }

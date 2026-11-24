@@ -190,9 +190,6 @@ func (r *SettingsCatalogJsonResource) Read(ctx context.Context, req resource.Rea
 		EndpointSuffix:    "/settings",
 		ResourceIDPattern: "('id')",
 		ResourceID:        object.ID.ValueString(),
-		QueryParameters: map[string]string{
-			"$expand": "children",
-		},
 	}
 
 	var settingsResponse []byte

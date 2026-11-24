@@ -2,7 +2,6 @@ package customrequests
 
 import (
 	"context"
-	"fmt"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
@@ -16,8 +15,16 @@ type PostRequestConfig struct {
 	Endpoint string
 	// The request body
 	RequestBody s.Parsable
+	// Optional raw JSON request body: a json.RawMessage or []byte sent as it is, or any value marshalled with
+	// encoding/json. Use instead of RequestBody; setting both is an error.
+	RawBody any
 	// Optional query parameters for the request
 	QueryParameters map[string]string
+	// Optional request headers (e.g. {"Prefer": "include-unknown-enum-members"})
+	Headers map[string]string
+	// Optional raw JSON response target: a pointer the response body is decoded into with encoding/json. A response
+	// with no body (e.g. 204 No Content) leaves it untouched.
+	RawResponse any
 	// Optional: the reference URL for ODATA - e.g. "https://graph.microsoft.com/beta/deviceAppManagement/mobileAppCategories/abc"
 	ReferenceURL string
 }
@@ -38,7 +45,8 @@ type PostRequestConfig struct {
 //   - errorMappings: Optional error mappings for custom error handling
 //
 // Returns:
-//   - s.Parsable: The parsed response model
+//   - s.Parsable: The parsed response model, or nil in raw JSON mode (config.RawResponse set and factory nil), where
+//     the response is decoded into config.RawResponse instead
 //   - error: Any error that occurred during the request
 func PostRequest(
 	ctx context.Context,
@@ -47,17 +55,18 @@ func PostRequest(
 	factory s.ParsableFactory,
 	errorMappings abstractions.ErrorMappings,
 ) (s.Parsable, error) {
-	requestInfo := newGraphRequestInformation(adapter, abstractions.POST, endpointUrlTemplate(config.Endpoint), config.APIVersion)
-
-	if config.QueryParameters != nil {
-		for key, value := range config.QueryParameters {
-			requestInfo.QueryParameters[key] = value
-		}
+	if factory != nil && config.RawResponse != nil {
+		return nil, ErrMixedResponseModes
 	}
 
-	err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", config.RequestBody)
-	if err != nil {
-		return nil, fmt.Errorf("error setting content: %v", err)
+	requestInfo := newGraphRequestInformation(adapter, abstractions.POST, endpointUrlTemplate(config.Endpoint), config.APIVersion, config.QueryParameters, config.Headers)
+
+	if err := setRequestContent(ctx, adapter, requestInfo, config.RequestBody, config.RawBody); err != nil {
+		return nil, err
+	}
+
+	if config.RawResponse != nil {
+		return nil, sendForRawResponseOrNoContent(ctx, adapter, requestInfo, config.RawResponse, errorMappings)
 	}
 
 	result, err := adapter.Send(ctx, requestInfo, factory, withODataErrorMappings(errorMappings))
@@ -78,22 +87,15 @@ func PostRequest(
 //   - error: Returns nil if the request was successful (204 No Content received),
 //     otherwise returns an error describing what went wrong
 func PostRequestNoContent(ctx context.Context, adapter abstractions.RequestAdapter, config PostRequestConfig) error {
-	requestInfo := newGraphRequestInformation(adapter, abstractions.POST, endpointUrlTemplate(config.Endpoint), config.APIVersion)
+	requestInfo := newGraphRequestInformation(adapter, abstractions.POST, endpointUrlTemplate(config.Endpoint), config.APIVersion, config.QueryParameters, config.Headers)
 
-	if config.QueryParameters != nil {
-		for key, value := range config.QueryParameters {
-			requestInfo.QueryParameters[key] = value
-		}
+	if err := setRequestContent(ctx, adapter, requestInfo, config.RequestBody, config.RawBody); err != nil {
+		return err
 	}
 
-	err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", config.RequestBody)
-	if err != nil {
-		return fmt.Errorf("error setting content: %v", err)
-	}
-
-	// Use SendNoContent for requests that don't return a response body
-	if err := adapter.SendNoContent(ctx, requestInfo, withODataErrorMappings(nil)); err != nil {
-		return fmt.Errorf("custom msgraph POST request failed: %w", err)
+	// SendNoContent discards the response body unless config.RawResponse asks for it
+	if err := sendForRawResponseOrNoContent(ctx, adapter, requestInfo, config.RawResponse, nil); err != nil {
+		return err
 	}
 
 	return nil

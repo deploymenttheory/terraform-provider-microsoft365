@@ -2,7 +2,6 @@ package customrequests
 
 import (
 	"context"
-	"fmt"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 )
@@ -19,6 +18,13 @@ type DeleteRequestConfig struct {
 	ResourceIDPattern string
 	// The ID of the resource
 	ResourceID string
+	// Optional query parameters to include in the request (e.g. {"$select": "id"})
+	QueryParameters map[string]string
+	// Optional request headers (e.g. {"Prefer": "include-unknown-enum-members"})
+	Headers map[string]string
+	// Optional raw JSON response target: a pointer the response body is decoded into with encoding/json. A response
+	// with no body (e.g. 204 No Content) leaves it untouched.
+	RawResponse any
 }
 
 // DeleteRequestByResourceId performs a custom DELETE request using the Microsoft Graph SDK
@@ -53,11 +59,11 @@ type DeleteRequestConfig struct {
 //		log.Fatalf("Error: %v", err)
 //	}
 func DeleteRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig DeleteRequestConfig) error {
-	requestInfo := newGraphRequestInformation(adapter, abstractions.DELETE, ByIDRequestUrlTemplate(reqConfig), reqConfig.APIVersion)
-	requestInfo.Headers.Add("Accept", "application/json")
+	requestInfo := newGraphRequestInformation(adapter, abstractions.DELETE, ByIDRequestUrlTemplate(reqConfig), reqConfig.APIVersion, reqConfig.QueryParameters, reqConfig.Headers)
+	requestInfo.Headers.TryAdd("Accept", jsonContentType)
 
-	if err := adapter.SendNoContent(ctx, requestInfo, withODataErrorMappings(nil)); err != nil {
-		return fmt.Errorf("custom msgraph DELETE request failed: %w", err)
+	if err := sendForRawResponseOrNoContent(ctx, adapter, requestInfo, reqConfig.RawResponse, nil); err != nil {
+		return err
 	}
 
 	return nil

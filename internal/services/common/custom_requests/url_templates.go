@@ -1,6 +1,8 @@
 package customrequests
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -63,14 +65,26 @@ func graphBaseURL(adapter abstractions.RequestAdapter, apiVersion GraphAPIVersio
 // newGraphRequestInformation builds a RequestInformation whose {+baseurl} resolves to the adapter's host and the given API version.
 // The resolved base URL is written into the template literally because the Kiota adapter overwrites the "baseurl" path
 // parameter with its own base URL (and so its own API version) on every send.
+// queryParameters are appended as a URI template query expansion so Kiota puts them on the wire (see
+// queryExpansionTemplate), and headers are added to the request. Both may be nil.
 func newGraphRequestInformation(
 	adapter abstractions.RequestAdapter,
 	method abstractions.HttpMethod,
 	urlTemplate string,
 	apiVersion GraphAPIVersion,
+	queryParameters map[string]string,
+	headers map[string]string,
 ) *abstractions.RequestInformation {
 	resolvedTemplate := strings.Replace(urlTemplate, "{+baseurl}", graphBaseURL(adapter, apiVersion), 1)
-	return abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, resolvedTemplate, map[string]string{})
+	queryTemplate, queryVariables := queryExpansionTemplate(resolvedTemplate, queryParameters)
+
+	requestInfo := abstractions.NewRequestInformationWithMethodAndUrlTemplateAndPathParameters(method, resolvedTemplate+queryTemplate, map[string]string{})
+	for name, value := range queryVariables {
+		requestInfo.QueryParameters[name] = value
+	}
+	addRequestHeaders(requestInfo, headers)
+
+	return requestInfo
 }
 
 // withODataErrorMappings returns errorMappings, or a mapping of every 4xx/5xx status to an ODataError when none are given.
@@ -142,4 +156,52 @@ func ByIDRequestUrlTemplate(reqConfig RequestUrlTemplateConfig) string {
 	}
 
 	return urlTemplate + reqConfig.GetEndpointSuffix()
+}
+
+// queryExpansionTemplate returns the RFC 6570 form-style query expansion (e.g. "{?%24expand,%24select}") for
+// queryParameters, and the template variables to set on the RequestInformation. Kiota only puts query parameters
+// on the wire when the URL template names them, so the expansion is what makes QueryParameters reach the URL.
+// Template variable names may only hold letters, digits and "_", so every other byte of a parameter name is
+// percent-encoded (e.g. "$expand" becomes "%24expand"), exactly as the generated SDK request builders name OData
+// query options. Keys are sorted so the URL is deterministic. When urlTemplate already holds a literal query string,
+// a form-style continuation ("{&...}") is used instead.
+func queryExpansionTemplate(urlTemplate string, queryParameters map[string]string) (string, map[string]string) {
+	if len(queryParameters) == 0 {
+		return "", nil
+	}
+
+	keys := make([]string, 0, len(queryParameters))
+	for key := range queryParameters {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	names := make([]string, 0, len(keys))
+	variables := make(map[string]string, len(keys))
+	for _, key := range keys {
+		name := uriTemplateVariableName(key)
+		names = append(names, name)
+		variables[name] = queryParameters[key]
+	}
+
+	operator := "?"
+	if strings.Contains(urlTemplate, "?") {
+		operator = "&"
+	}
+
+	return "{" + operator + strings.Join(names, ",") + "}", variables
+}
+
+// uriTemplateVariableName percent-encodes every byte of name that is not a letter, digit or "_".
+func uriTemplateVariableName(name string) string {
+	var builder strings.Builder
+	for i := 0; i < len(name); i++ {
+		c := name[i]
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' {
+			builder.WriteByte(c)
+			continue
+		}
+		fmt.Fprintf(&builder, "%%%02X", c)
+	}
+	return builder.String()
 }
