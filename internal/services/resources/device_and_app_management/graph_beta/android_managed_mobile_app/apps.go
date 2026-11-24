@@ -92,7 +92,7 @@ func packageID(app graphmodels.ManagedMobileAppable) string {
 }
 
 // writableApp rebuilds an entry without the server-assigned id and version, which
-// targetApps derives itself.
+// targetApps derives itself. (Helper report CI demo for #4957; do not merge.)
 func writableApp(app graphmodels.ManagedMobileAppable) graphmodels.ManagedMobileAppable {
 	pkg := packageID(app)
 	if pkg == "" {
