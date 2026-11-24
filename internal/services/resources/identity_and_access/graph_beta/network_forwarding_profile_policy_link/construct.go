@@ -1,33 +1,17 @@
 package graphBetaNetworkForwardingProfilePolicyLink
 
-import s "github.com/microsoft/kiota-abstractions-go/serialization"
+import (
+	"fmt"
 
-func constructResource(data *NetworkForwardingProfilePolicyLinkResourceModel) s.Parsable {
-	return &forwardingPolicyLinkStateRequestBody{
-		ODataType: forwardingPolicyLinkODataType,
-		State:     data.State.ValueString(),
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+)
+
+// constructResource builds the forwarding policy link PATCH body, which carries only the link state.
+func constructResource(data *NetworkForwardingProfilePolicyLinkResourceModel) (models.ForwardingPolicyLinkable, error) {
+	requestBody := models.NewForwardingPolicyLink()
+	if err := convert.FrameworkToGraphEnum(data.State, models.ParseStatus, requestBody.SetState); err != nil {
+		return nil, fmt.Errorf("failed to set state: %w", err)
 	}
-}
-
-type forwardingPolicyLinkStateRequestBody struct {
-	ODataType string
-	State     string
-}
-
-func (b *forwardingPolicyLinkStateRequestBody) Serialize(writer s.SerializationWriter) error {
-	if b.ODataType != "" {
-		if err := writer.WriteStringValue("@odata.type", &b.ODataType); err != nil {
-			return err
-		}
-	}
-	if b.State != "" {
-		if err := writer.WriteStringValue("state", &b.State); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (b *forwardingPolicyLinkStateRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
+	return requestBody, nil
 }
