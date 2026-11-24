@@ -3,8 +3,8 @@ package customrequests
 import (
 	"context"
 	"fmt"
-	"strings"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
@@ -68,44 +68,17 @@ type PatchResponse struct {
 //	}
 //	err := PatchRequestByResourceId(ctx, adapter, config)
 func PatchRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config PatchRequestConfig) error {
-	requestInfo := abstractions.NewRequestInformation()
-	requestInfo.Method = abstractions.PATCH
+	requestInfo := newGraphRequestInformation(adapter, abstractions.PATCH, ByIDRequestUrlTemplate(config), config.APIVersion)
 
-	endpoint := config.Endpoint
-	endpoint = strings.TrimPrefix(endpoint, "/")
-
-	var urlTemplate string
-	switch config.ResourceIDPattern {
-	case "/{id}":
-		urlTemplate = fmt.Sprintf("{+baseurl}/%s/%s", endpoint, config.ResourceID)
-	case "('id')":
-		urlTemplate = fmt.Sprintf("{+baseurl}/%s('%s')", endpoint, config.ResourceID)
-	default:
-		idPart := strings.ReplaceAll(config.ResourceIDPattern, "id", config.ResourceID)
-		urlTemplate = fmt.Sprintf("{+baseurl}/%s%s", endpoint, idPart)
-	}
-
-	if config.EndpointSuffix != "" {
-		urlTemplate += config.EndpointSuffix
-	}
-
-	requestInfo.UrlTemplate = urlTemplate
-	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
-	}
-
-	logUrl := strings.Replace(urlTemplate, "{+baseurl}",
-		fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion), 1)
-	fmt.Printf("Making custom msgraph PATCH request to: %s\n", logUrl)
+	tflog.Debug(ctx, "Making custom msgraph PATCH request", map[string]any{"url": requestInfo.UrlTemplate})
 
 	err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", config.RequestBody)
 	if err != nil {
 		return fmt.Errorf("error setting content: %v", err)
 	}
 
-	err = adapter.SendNoContent(ctx, requestInfo, nil)
-	if err != nil {
-		return err
+	if err := adapter.SendNoContent(ctx, requestInfo, withODataErrorMappings(nil)); err != nil {
+		return fmt.Errorf("custom msgraph PATCH request failed: %w", err)
 	}
 
 	return nil

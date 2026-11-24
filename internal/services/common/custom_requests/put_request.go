@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
 	s "github.com/microsoft/kiota-abstractions-go/serialization"
 )
@@ -68,26 +69,18 @@ type PutResponse struct {
 //	}
 //	err := PutRequestByResourceId(ctx, clients, config)
 func PutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config PutRequestConfig) error {
-	requestInfo := abstractions.NewRequestInformation()
-	requestInfo.Method = abstractions.PUT
-	requestInfo.UrlTemplate = "{+baseurl}" + config.Endpoint + "('{id}')"
-	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
-		"id":      config.ResourceID,
-	}
+	requestInfo := newGraphRequestInformation(adapter, abstractions.PUT, endpointUrlTemplate(config.Endpoint)+"('{id}')", config.APIVersion)
+	requestInfo.PathParameters["id"] = config.ResourceID
 
-	constructedUrl := fmt.Sprintf("https://graph.microsoft.com/%s%s('%s')",
-		config.APIVersion, config.Endpoint, config.ResourceID)
-	fmt.Printf("Making custom msgraph PUT request to: %s\n", constructedUrl)
+	tflog.Debug(ctx, "Making custom msgraph PUT request", map[string]any{"url_template": requestInfo.UrlTemplate, "id": config.ResourceID})
 
 	err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", config.RequestBody)
 	if err != nil {
 		return fmt.Errorf("error setting content: %v", err)
 	}
 
-	err = adapter.SendNoContent(ctx, requestInfo, nil)
-	if err != nil {
-		return err
+	if err := adapter.SendNoContent(ctx, requestInfo, withODataErrorMappings(nil)); err != nil {
+		return fmt.Errorf("custom msgraph PUT request failed: %w", err)
 	}
 
 	return nil

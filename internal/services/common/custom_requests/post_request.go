@@ -47,13 +47,7 @@ func PostRequest(
 	factory s.ParsableFactory,
 	errorMappings abstractions.ErrorMappings,
 ) (s.Parsable, error) {
-	requestInfo := abstractions.NewRequestInformation()
-	requestInfo.Method = abstractions.POST
-	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint
-
-	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
-	}
+	requestInfo := newGraphRequestInformation(adapter, abstractions.POST, endpointUrlTemplate(config.Endpoint), config.APIVersion)
 
 	if config.QueryParameters != nil {
 		for key, value := range config.QueryParameters {
@@ -66,7 +60,7 @@ func PostRequest(
 		return nil, fmt.Errorf("error setting content: %v", err)
 	}
 
-	result, err := adapter.Send(ctx, requestInfo, factory, errorMappings)
+	result, err := adapter.Send(ctx, requestInfo, factory, withODataErrorMappings(errorMappings))
 	if err != nil {
 		return nil, err
 	}
@@ -84,13 +78,7 @@ func PostRequest(
 //   - error: Returns nil if the request was successful (204 No Content received),
 //     otherwise returns an error describing what went wrong
 func PostRequestNoContent(ctx context.Context, adapter abstractions.RequestAdapter, config PostRequestConfig) error {
-	requestInfo := abstractions.NewRequestInformation()
-	requestInfo.Method = abstractions.POST
-	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint
-
-	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
-	}
+	requestInfo := newGraphRequestInformation(adapter, abstractions.POST, endpointUrlTemplate(config.Endpoint), config.APIVersion)
 
 	if config.QueryParameters != nil {
 		for key, value := range config.QueryParameters {
@@ -104,9 +92,8 @@ func PostRequestNoContent(ctx context.Context, adapter abstractions.RequestAdapt
 	}
 
 	// Use SendNoContent for requests that don't return a response body
-	err = adapter.SendNoContent(ctx, requestInfo, nil)
-	if err != nil {
-		return err
+	if err := adapter.SendNoContent(ctx, requestInfo, withODataErrorMappings(nil)); err != nil {
+		return fmt.Errorf("custom msgraph POST request failed: %w", err)
 	}
 
 	return nil
