@@ -2,8 +2,10 @@ package graphBetaDeviceAndAppManagementIosManagedAppProtection
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -126,12 +128,18 @@ func (r *IosManagedAppProtectionResource) Schema(ctx context.Context, req resour
 				Computed:            true,
 				Default:             stringdefault.StaticString("P30D"),
 				MarkdownDescription: "The period after which access is checked when the device is not connected to the internet. ISO 8601 duration format.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(constants.ISO8601DurationRegex), "must be an ISO 8601 duration, e.g. 'P30D' or 'PT30M'"),
+				},
 			},
 			"period_online_before_access_check": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
 				Default:             stringdefault.StaticString("PT30M"),
 				MarkdownDescription: "The period after which access is checked when the device is connected to the internet. ISO 8601 duration format.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(constants.ISO8601DurationRegex), "must be an ISO 8601 duration, e.g. 'P30D' or 'PT30M'"),
+				},
 			},
 			"allowed_inbound_data_transfer_sources": schema.StringAttribute{
 				Optional:            true,
@@ -195,6 +203,9 @@ func (r *IosManagedAppProtectionResource) Schema(ctx context.Context, req resour
 				Computed:            true,
 				Default:             stringdefault.StaticString("P90D"),
 				MarkdownDescription: "The amount of time an app is allowed to remain disconnected from the internet before all managed data is wiped. ISO 8601 duration format.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(constants.ISO8601DurationRegex), "must be an ISO 8601 duration, e.g. 'P30D' or 'PT30M'"),
+				},
 			},
 			"pin_required": schema.BoolAttribute{
 				Optional:            true,
@@ -234,6 +245,9 @@ func (r *IosManagedAppProtectionResource) Schema(ctx context.Context, req resour
 				Computed:            true,
 				Default:             stringdefault.StaticString("P365D"),
 				MarkdownDescription: "Time period before the app-level PIN must be reset if pin_required is true. ISO 8601 duration format.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(regexp.MustCompile(constants.ISO8601DurationRegex), "must be an ISO 8601 duration, e.g. 'P30D' or 'PT30M'"),
+				},
 			},
 			"allowed_data_storage_locations": schema.ListAttribute{
 				Optional:            true,
