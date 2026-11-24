@@ -1,0 +1,218 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assignments"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assignments"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assignments"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assignments"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assignments"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/settings"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/settings"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/settings"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/settings"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/settings"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/deviceManagement/inventoryPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Test inventory policy for settings without children",
+      "name": "Test Inventory Policy Empty Children - Unit",
+      "platforms": "windows10",
+      "roleScopeTagIds": [
+        "0"
+      ],
+      "settings": [
+        {
+          "settingInstance": {
+            "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+            "groupSettingCollectionValue": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingValue",
+                "children": [
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                    "choiceSettingValue": {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                      "children": [],
+                      "value": "windows_applicationinventory_applicationproperties_applicationkey_appname_24"
+                    },
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_appname"
+                  },
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
+                    "choiceSettingCollectionValue": [
+                      {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                        "children": [],
+                        "value": "windows_applicationinventory_applicationproperties_applicationkey_appversion_24"
+                      }
+                    ],
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_appversion"
+                  }
+                ]
+              },
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingValue",
+                "children": []
+              }
+            ],
+            "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey"
+          }
+        },
+        {
+          "settingInstance": {
+            "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+            "choiceSettingValue": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+              "children": [],
+              "value": "windows_applicationinventory_collectioninterval_24"
+            },
+            "settingDefinitionId": "windows_applicationinventory_collectioninterval"
+          }
+        }
+      ],
+      "technologies": "extensibility"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assign",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "assignments": []
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')/assign",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "assignments": []
+    }
+  },
+  {
+    "method": "PUT",
+    "url": "/beta/deviceManagement/inventoryPolicies('{uuid-1}')",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Test inventory policy for settings without children - updated",
+      "name": "Test Inventory Policy Empty Children - Unit",
+      "platforms": "windows10",
+      "roleScopeTagIds": [
+        "0"
+      ],
+      "settings": [
+        {
+          "settingInstance": {
+            "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingCollectionInstance",
+            "groupSettingCollectionValue": [
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingValue",
+                "children": [
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+                    "choiceSettingValue": {
+                      "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                      "children": [],
+                      "value": "windows_applicationinventory_applicationproperties_applicationkey_appname_24"
+                    },
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_appname"
+                  },
+                  {
+                    "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingCollectionInstance",
+                    "choiceSettingCollectionValue": [
+                      {
+                        "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+                        "children": [],
+                        "value": "windows_applicationinventory_applicationproperties_applicationkey_appversion_24"
+                      }
+                    ],
+                    "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey_appversion"
+                  }
+                ]
+              },
+              {
+                "@odata.type": "#microsoft.graph.deviceManagementConfigurationGroupSettingValue",
+                "children": []
+              }
+            ],
+            "settingDefinitionId": "windows_applicationinventory_applicationproperties_applicationkey"
+          }
+        },
+        {
+          "settingInstance": {
+            "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+            "choiceSettingValue": {
+              "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+              "children": [],
+              "value": "windows_applicationinventory_collectioninterval_24"
+            },
+            "settingDefinitionId": "windows_applicationinventory_collectioninterval"
+          }
+        }
+      ],
+      "technologies": "extensibility"
+    }
+  }
+]

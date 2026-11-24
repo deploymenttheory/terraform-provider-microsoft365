@@ -339,3 +339,66 @@ resource "microsoft365_graph_beta_device_management_settings_catalog_configurati
 `
 	return acceptance.ConfiguredM365ProviderBlock(config)
 }
+
+// TestAccResourceSettingsCatalogConfigurationPolicy_06_PassiveRemediation creates a choice setting collection and a choice
+// setting without children (#4956), then changes only the description and assignments so the update PUTs the same
+// settings again.
+func TestAccResourceSettingsCatalogConfigurationPolicy_06_PassiveRemediation(t *testing.T) {
+	policy := resourceType + ".passive_remediation"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(
+			30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: resourceType, TestResource: testResource},
+			destroy.ResourceTypeMapping{ResourceType: graphBetaGroup.ResourceName, TestResource: graphBetaGroup.GroupTestResource{}},
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+			"time": {
+				Source:            "hashicorp/time",
+				VersionConstraint: constants.ExternalProviderTimeVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSettingsCatalogConfigurationPolicyConfig("resource_06_passive_remediation.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr(policy, "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					resource.TestMatchResourceAttr(policy, "name", regexp.MustCompile(`^acc-test-06-passive-remediation-`)),
+					resource.TestCheckResourceAttr(policy, "description", "Acceptance test policy for Defender passive remediation"),
+					resource.TestCheckResourceAttr(policy, "settings_count", "2"),
+					resource.TestCheckResourceAttr(policy, "assignments.#", "1"),
+					resource.TestCheckResourceAttrPair(policy, "assignments.0.group_id", "microsoft365_graph_beta_groups_group.passive_remediation_group_1", "id"),
+				),
+			},
+			{
+				Config: testAccSettingsCatalogConfigurationPolicyConfig("resource_06_passive_remediation_updated.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(policy, "description", "Acceptance test policy for Defender passive remediation - updated"),
+					resource.TestCheckResourceAttr(policy, "settings_count", "2"),
+					resource.TestCheckResourceAttr(policy, "assignments.#", "1"),
+					resource.TestCheckResourceAttrPair(policy, "assignments.0.group_id", "microsoft365_graph_beta_groups_group.passive_remediation_group_2", "id"),
+				),
+			},
+			{
+				ResourceName:            policy,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}
+
+// testAccSettingsCatalogConfigurationPolicyConfig loads an acceptance test configuration from tests/terraform/acceptance.
+func testAccSettingsCatalogConfigurationPolicyConfig(filename string) string {
+	accTestConfig, err := helpers.ParseHCLFile("tests/terraform/acceptance/" + filename)
+	if err != nil {
+		log.Fatalf("Failed to load %s: %v", filename, err)
+	}
+	return acceptance.ConfiguredM365ProviderBlock(accTestConfig)
+}

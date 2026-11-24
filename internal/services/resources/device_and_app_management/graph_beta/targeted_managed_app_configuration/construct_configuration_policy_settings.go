@@ -92,14 +92,7 @@ func processSetting(ctx context.Context, setting Setting, settingsRequestPayload
 			convert.FrameworkToGraphString(setting.SettingInstance.ChoiceSettingValue.Value, choiceValue.SetValue)
 			setValueTemplateReference(choiceValue, setting.SettingInstance.ChoiceSettingValue.SettingValueTemplateReference)
 
-			if len(setting.SettingInstance.ChoiceSettingValue.Children) > 0 {
-				choiceChildren := handleChoiceSettingChildren(ctx, setting.SettingInstance.ChoiceSettingValue.Children)
-				choiceValue.SetChildren(choiceChildren)
-			} else {
-				// Always set children, even if empty (nil becomes empty array in JSON)
-				choiceValue.SetChildren(make([]graphmodels.DeviceManagementConfigurationSettingInstanceable, 0))
-			}
-
+			choiceValue.SetChildren(handleChoiceSettingChildren(ctx, setting.SettingInstance.ChoiceSettingValue.Children))
 			choiceInstance.SetChoiceSettingValue(choiceValue)
 		}
 		setInstanceTemplateReference(choiceInstance, setting.SettingInstance.SettingInstanceTemplateReference)
@@ -300,8 +293,10 @@ func handleSimpleSettingCollection(collectionValues []SimpleSettingCollectionStr
 //
 // Returns:
 // - []graphmodels.DeviceManagementConfigurationSettingInstanceable: A slice of processed setting instances.
+//
+// The returned slice is never nil, so a value without children is sent as "children": [] rather than null, which Graph rejects.
 func handleChoiceSettingChildren(ctx context.Context, children []ChoiceSettingChild) []graphmodels.DeviceManagementConfigurationSettingInstanceable {
-	var result []graphmodels.DeviceManagementConfigurationSettingInstanceable
+	result := make([]graphmodels.DeviceManagementConfigurationSettingInstanceable, 0, len(children))
 
 	for _, child := range children {
 		instance := handleSettingInstance(ctx, SettingInstance{
@@ -337,7 +332,8 @@ func handleGroupSettingCollection(ctx context.Context, groupValues []GroupSettin
 
 	for _, groupItem := range groupValues {
 		groupValue := graphmodels.NewDeviceManagementConfigurationGroupSettingValue()
-		var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
+		// Graph rejects "children": null, so start from an empty slice that serialises as [].
+		children := make([]graphmodels.DeviceManagementConfigurationSettingInstanceable, 0, len(groupItem.Children))
 
 		for _, child := range groupItem.Children {
 			instance := handleSettingInstance(ctx, SettingInstance{
@@ -372,7 +368,8 @@ func handleChoiceCollectionValue(ctx context.Context, collectionValues []ChoiceS
 		convert.FrameworkToGraphString(choiceItem.Value, choiceValue.SetValue)
 		setValueTemplateReference(choiceValue, choiceItem.SettingValueTemplateReference)
 
-		var children []graphmodels.DeviceManagementConfigurationSettingInstanceable
+		// Graph rejects "children": null, so start from an empty slice that serialises as [].
+		children := make([]graphmodels.DeviceManagementConfigurationSettingInstanceable, 0, len(choiceItem.Children))
 		for _, child := range choiceItem.Children {
 			instance, instanceType := createBaseInstance(ctx, child.ODataType, child.SettingDefinitionId)
 			if instance == nil {
@@ -439,10 +436,7 @@ func handleSettingInstance(ctx context.Context, instance SettingInstance) graphm
 			convert.FrameworkToGraphString(instance.ChoiceSettingValue.Value, choiceValue.SetValue)
 			setValueTemplateReference(choiceValue, instance.ChoiceSettingValue.SettingValueTemplateReference)
 
-			if len(instance.ChoiceSettingValue.Children) > 0 {
-				children := handleChoiceSettingChildren(ctx, instance.ChoiceSettingValue.Children)
-				choiceValue.SetChildren(children)
-			}
+			choiceValue.SetChildren(handleChoiceSettingChildren(ctx, instance.ChoiceSettingValue.Children))
 			choiceInstance.SetChoiceSettingValue(choiceValue)
 		}
 		setInstanceTemplateReference(choiceInstance, instance.SettingInstanceTemplateReference)

@@ -125,9 +125,8 @@ func ConstructSimpleChoiceSetting(
 	odataTypeValue := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
 	choiceValue.SetOdataType(&odataTypeValue)
 
-	// Set empty children array
-	var children []models.DeviceManagementConfigurationSettingInstanceable
-	choiceValue.SetChildren(children)
+	// Set an empty children array, because Graph rejects "children": null.
+	choiceValue.SetChildren([]models.DeviceManagementConfigurationSettingInstanceable{})
 
 	// Set optional value template reference
 	if valueTemplateRef := constructSettingValueTemplateReference(valueTemplateId); valueTemplateRef != nil {
@@ -191,9 +190,8 @@ func ConstructSimpleChoiceSettingWithTemplate(
 		choiceSettingValue.SetSettingValueTemplateReference(valueTemplateRef)
 	}
 
-	// Simple choice settings have no children
-	var children []models.DeviceManagementConfigurationSettingInstanceable
-	choiceSettingValue.SetChildren(children)
+	// Simple choice settings have no children. Send an empty array, because Graph rejects "children": null.
+	choiceSettingValue.SetChildren([]models.DeviceManagementConfigurationSettingInstanceable{})
 
 	settingInstance.SetChoiceSettingValue(choiceSettingValue)
 	setting.SetSettingInstance(settingInstance)
@@ -810,9 +808,8 @@ func ConstructChoiceWithBooleanSetting(
 	childChoiceOdataType := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
 	childChoiceValue.SetOdataType(&childChoiceOdataType)
 
-	// Boolean choices have no children of their own
-	var childChildren []models.DeviceManagementConfigurationSettingInstanceable
-	childChoiceValue.SetChildren(childChildren)
+	// Boolean choices have no children of their own. Send an empty array, because Graph rejects "children": null.
+	childChoiceValue.SetChildren([]models.DeviceManagementConfigurationSettingInstanceable{})
 
 	childInstance.SetChoiceSettingValue(childChoiceValue)
 
@@ -1105,9 +1102,8 @@ func ConstructChoiceCollectionSetting(
 		odataTypeValue := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
 		choiceValue.SetOdataType(&odataTypeValue)
 
-		// Choice collection values typically have no children
-		var children []models.DeviceManagementConfigurationSettingInstanceable
-		choiceValue.SetChildren(children)
+		// Choice collection values typically have no children. Send an empty array, because Graph rejects "children": null.
+		choiceValue.SetChildren([]models.DeviceManagementConfigurationSettingInstanceable{})
 
 		choiceSettingCollectionValues = append(choiceSettingCollectionValues, choiceValue)
 	}
@@ -1195,7 +1191,8 @@ func ConstructChoiceWithMultipleChoiceChildren(
 
 // Helper function to create children for choice settings
 func createChoiceChildren(ctx context.Context, childConfigs []ChoiceChildConfig) ([]models.DeviceManagementConfigurationSettingInstanceable, error) {
-	var children []models.DeviceManagementConfigurationSettingInstanceable
+	// Never nil, so a setting whose child list is empty is sent as "children": [] rather than null.
+	children := make([]models.DeviceManagementConfigurationSettingInstanceable, 0, len(childConfigs))
 
 	for _, childConfig := range childConfigs {
 		var childInstance models.DeviceManagementConfigurationSettingInstanceable
@@ -1227,9 +1224,8 @@ func createChoiceChildren(ctx context.Context, childConfigs []ChoiceChildConfig)
 				choiceValue.SetSettingValueTemplateReference(valueTemplateRef)
 			}
 
-			// Choice settings in this pattern typically have no children
-			var choiceChildren []models.DeviceManagementConfigurationSettingInstanceable
-			choiceValue.SetChildren(choiceChildren)
+			// Choice settings in this pattern typically have no children. Send an empty array, because Graph rejects "children": null.
+			choiceValue.SetChildren([]models.DeviceManagementConfigurationSettingInstanceable{})
 
 			choiceInstance.SetChoiceSettingValue(choiceValue)
 
@@ -1299,9 +1295,8 @@ func createChoiceChildren(ctx context.Context, childConfigs []ChoiceChildConfig)
 				choiceValueOdataType := "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue"
 				choiceValue.SetOdataType(&choiceValueOdataType)
 
-				// Choice collection values have no children
-				var choiceChildren []models.DeviceManagementConfigurationSettingInstanceable
-				choiceValue.SetChildren(choiceChildren)
+				// Choice collection values have no children. Send an empty array, because Graph rejects "children": null.
+				choiceValue.SetChildren([]models.DeviceManagementConfigurationSettingInstanceable{})
 
 				choiceCollectionValues = append(choiceCollectionValues, choiceValue)
 			}
@@ -1389,7 +1384,8 @@ func ConstructGroupCollectionSetting(
 
 // Helper function to create children for group settings
 func createGroupChildren(ctx context.Context, childConfigs []GroupChildConfig) ([]models.DeviceManagementConfigurationSettingInstanceable, error) {
-	var children []models.DeviceManagementConfigurationSettingInstanceable
+	// Never nil, so a setting whose child list is empty is sent as "children": [] rather than null.
+	children := make([]models.DeviceManagementConfigurationSettingInstanceable, 0, len(childConfigs))
 
 	for _, childConfig := range childConfigs {
 		var childInstance models.DeviceManagementConfigurationSettingInstanceable
@@ -1441,9 +1437,8 @@ func createGroupChildren(ctx context.Context, childConfigs []GroupChildConfig) (
 				}
 			}
 
-			// Choice settings in groups typically have no children
-			var choiceChildren []models.DeviceManagementConfigurationSettingInstanceable
-			choiceValue.SetChildren(choiceChildren)
+			// Choice settings in groups typically have no children. Send an empty array, because Graph rejects "children": null.
+			choiceValue.SetChildren([]models.DeviceManagementConfigurationSettingInstanceable{})
 
 			choiceInstance.SetChoiceSettingValue(choiceValue)
 
