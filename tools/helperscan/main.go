@@ -1,9 +1,10 @@
 // Command helperscan reports package-local helpers against the helper rule in docs/development/guide.md.
 //
-// For each function in a package that is not a CRUD, schema or metadata method, constructResource or MapRemoteStateToTerraform, it
+// For each function in a package that is not a CRUD, schema or metadata method or constructResource, it
 // reports the declaration's line span, how many places in the package reference it, which CRUD methods (Create, Read, Update, Delete,
 // ImportState, ModifyPlan) reference it directly, and whether its name follows the verb + Graph entity + qualifier convention. Kiota
-// interface methods and framework validator methods are counted but kept out of the helper table.
+// interface methods and framework validator methods are counted but kept out of the helper table. The package's Graph-to-state mapper,
+// MapRemoteStateToTerraform, is listed as a state-mapper: its file is checked, but the caller and line rules don't apply to it.
 //
 // Usage:
 //

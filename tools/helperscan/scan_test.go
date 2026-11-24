@@ -26,6 +26,7 @@ func TestScanDirReportsOnlyNonStandardFunctions(t *testing.T) {
 		"constructWidgetRequest", "settings", "SampleResource.refreshWidget", "lockWidget", "mapWidgetsToState", "waitForWidgetDeletion", "findWidgetByName",
 		"createWidgetResponseFromDiscriminatorValue", "widgetResponse.GetAdditionalData", "widgetResponse.GetFieldDeserializers", "widgetResponse.Serialize",
 		"widgetNameValidator.Description", "widgetNameValidator.MarkdownDescription", "widgetNameValidator.ValidateString",
+		"MapRemoteStateToTerraform",
 	}
 	if len(got) != len(want) {
 		t.Fatalf("got %d functions, want %d: %v", len(got), len(want), got)
@@ -48,6 +49,7 @@ func TestScanDirClassifiesKinds(t *testing.T) {
 		"widgetResponse.GetAdditionalData":           kindKiota,
 		"widgetNameValidator.Description":            kindFramework,
 		"widgetNameValidator.ValidateString":         kindFramework,
+		"MapRemoteStateToTerraform":                  kindStateMapper,
 	}
 	for name, kind := range cases {
 		if got[name].Kind != kind {
@@ -116,6 +118,8 @@ func TestScanDirAppliesRule(t *testing.T) {
 		"lockWidget":                   "fails: callers,lines,name",
 		"settings":                     "fails: callers,lines,name",
 		"widgetResponse.Serialize":     "excluded",
+		// The state mapper has no CRUD callers and 3 lines, but the caller and line rules don't apply to it.
+		"MapRemoteStateToTerraform": "exempt",
 	}
 	for name, want := range cases {
 		if rule := got[name].Rule(); rule != want {
@@ -165,5 +169,28 @@ func TestReceiverName(t *testing.T) {
 	want := map[string]string{"unwrapBoxValue": "box", "describePairKeys": "pair"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("receivers %v, want %v", got, want)
+	}
+}
+
+func TestScanDirChecksStateMapperNames(t *testing.T) {
+	funcs, err := scanDir(fixturePackage(t, "legacy"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]Func{}
+	for _, f := range funcs {
+		got[f.Name] = f
+	}
+	rename := "non-standard state mapper: rename to MapRemoteStateToTerraform"
+	cases := map[string]struct{ kind, name, rule string }{
+		"MapRemoteStateToTerraform":         {kindStateMapper, "MapRemoteStateToTerraform belongs in state.go", "fails: name"},
+		"MapRemoteResourceStateToTerraform": {kindHelper, rename, "fails: callers,lines,name"},
+		"mapRemoteState":                    {kindHelper, rename, "fails: callers,lines,name"},
+	}
+	for name, want := range cases {
+		f := got[name]
+		if f.Kind != want.kind || f.NameCheck != want.name || f.Rule() != want.rule {
+			t.Errorf("%s: kind %q, name %q, rule %q; want %q, %q, %q", name, f.Kind, f.NameCheck, f.Rule(), want.kind, want.name, want.rule)
+		}
 	}
 }

@@ -30,6 +30,13 @@ func TestCheckName(t *testing.T) {
 		{"constructTargetAppsRequest", "crud.go", "construct… belongs in construct.go"},
 		{"waitForPolicyDeletion", "state.go", "waitFor… belongs in crud.go"},
 		{"", "crud.go", "verb not in convention"},
+		{"MapRemoteResourceStateToTerraform", "state.go", "non-standard state mapper: rename to MapRemoteStateToTerraform"},
+		{"mapRemoteStateToTerraform", "state.go", "non-standard state mapper: rename to MapRemoteStateToTerraform"},
+		{"mapRemoteState", "state.go", "non-standard state mapper: rename to MapRemoteStateToTerraform"},
+		{"mapRemoteResourceStateToTerraform", "state.go", "non-standard state mapper: rename to MapRemoteStateToTerraform"},
+		{"MapRemoteStateToDataSource", "state.go", "map… must name an entity and end ToState"},
+		{"MapRemoteOwnersToTerraform", "state.go", "map… must name an entity and end ToState"},
+		{"mapRemoteOwnersToTerraform", "state.go", "map… must name an entity and end ToState"},
 	}
 	for _, c := range cases {
 		if got := checkName(c.name, c.file); got != c.want {
@@ -50,5 +57,14 @@ func TestSplitWords(t *testing.T) {
 		if got := splitWords(name); !reflect.DeepEqual(got, want) {
 			t.Errorf("splitWords(%q) = %q, want %q", name, got, want)
 		}
+	}
+}
+
+func TestCheckStateMapperFile(t *testing.T) {
+	if got := checkStateMapperFile("state.go"); got != nameOK {
+		t.Errorf("state.go: %q", got)
+	}
+	if got := checkStateMapperFile("crud.go"); got != "MapRemoteStateToTerraform belongs in state.go" {
+		t.Errorf("crud.go: %q", got)
 	}
 }

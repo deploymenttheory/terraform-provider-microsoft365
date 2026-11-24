@@ -1,6 +1,7 @@
 package main
 
 import (
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -10,6 +11,13 @@ const nameOK = "ok"
 // bannedNames are generic helper names the guide rules out.
 var bannedNames = map[string]bool{"matches": true, "settings": true, "requestBody": true, "tryClaim": true, "readbackOptions": true, "writableApp": true}
 
+// legacyStateMapper matches other spellings of the resource state mapper, such as MapRemoteResourceStateToTerraform or mapRemoteState.
+// Entity mappers such as MapRemoteOwnersToTerraform don't match and are checked against the map…ToState form instead.
+var legacyStateMapper = regexp.MustCompile(`(?i)^mapRemote(Resource)?State`)
+
+// dataSourceStateMapper matches data source mappers such as MapRemoteStateToDataSource, which the resource rename does not cover.
+var dataSourceStateMapper = regexp.MustCompile(`(?i)ToDataSource$`)
+
 // verbFiles maps each convention verb to the file its helpers belong in.
 var verbFiles = map[string]string{"construct": "construct.go", "map": "state.go", "find": "state.go", "waitFor": "crud.go", "lock": "crud.go"}
 
@@ -17,6 +25,9 @@ var verbFiles = map[string]string{"construct": "construct.go", "map": "state.go"
 func checkName(name, file string) string {
 	if bannedNames[name] {
 		return "banned generic name"
+	}
+	if legacyStateMapper.MatchString(name) && !dataSourceStateMapper.MatchString(name) {
+		return "non-standard state mapper: rename to " + stateMapperName
 	}
 	words := splitWords(name)
 	verb, rest := "", words
@@ -79,4 +90,12 @@ func indexOf(words []string, word string) int {
 		}
 	}
 	return -1
+}
+
+// checkStateMapperFile returns nameOK when MapRemoteStateToTerraform is in state.go, or the reason it is not.
+func checkStateMapperFile(file string) string {
+	if file != "state.go" {
+		return stateMapperName + " belongs in state.go"
+	}
+	return nameOK
 }

@@ -1,0 +1,6 @@
+package legacy
+
+// MapRemoteStateToTerraform has the standard name but sits in the wrong file.
+func MapRemoteStateToTerraform(values []string) []string {
+	return MapRemoteResourceStateToTerraform(values)
+}

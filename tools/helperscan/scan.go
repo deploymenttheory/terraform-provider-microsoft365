@@ -18,16 +18,21 @@ const (
 	kindHelper    = "helper"
 	kindKiota     = "kiota"
 	kindFramework = "framework"
+	// kindStateMapper is the package's required Graph-to-state mapper. Its name and file are checked; the caller and line rules don't apply.
+	kindStateMapper = "state-mapper"
 )
+
+// stateMapperName is the standard name of the package's Graph-to-state mapper.
+const stateMapperName = "MapRemoteStateToTerraform"
 
 // crudMethods are the resource methods whose direct calls are counted.
 var crudMethods = map[string]bool{"Create": true, "Read": true, "Update": true, "Delete": true, "ImportState": true, "ModifyPlan": true}
 
-// standardFuncs are left out of the report entirely: CRUD, schema and metadata methods and the standard mapping functions.
+// standardFuncs are left out of the report entirely: CRUD, schema and metadata methods and constructResource.
 var standardFuncs = map[string]bool{
 	"Create": true, "Read": true, "Update": true, "Delete": true, "ImportState": true, "ModifyPlan": true,
 	"Metadata": true, "Schema": true, "Configure": true, "ValidateConfig": true, "ConfigValidators": true, "UpgradeState": true, "IdentitySchema": true, "Exists": true,
-	"constructResource": true, "MapRemoteStateToTerraform": true,
+	"constructResource": true,
 }
 
 // kiotaMethods implement the Kiota Parsable, AdditionalDataHolder and BackedModel interfaces.
@@ -58,6 +63,12 @@ type Func struct {
 
 // Rule returns "pass" when a helper meets all three parts of the helper rule, or the parts it misses.
 func (f Func) Rule() string {
+	if f.Kind == kindStateMapper {
+		if f.NameCheck != nameOK {
+			return "fails: name"
+		}
+		return "exempt"
+	}
 	if f.Kind != kindHelper {
 		return "excluded"
 	}
@@ -191,8 +202,11 @@ func scanPackage(fset *token.FileSet, pkgName string, files []*ast.File) []Func 
 			f.CRUDCallers = append(f.CRUDCallers, caller)
 		}
 		sort.Strings(f.CRUDCallers)
-		if kind == kindHelper {
+		switch kind {
+		case kindHelper:
 			f.NameCheck = checkName(f.Name, f.File)
+		case kindStateMapper:
+			f.NameCheck = checkStateMapperFile(f.File)
 		}
 		funcs = append(funcs, f)
 	}
@@ -204,6 +218,9 @@ func classify(fd *ast.FuncDecl) (string, bool) {
 	name := fd.Name.Name
 	if standardFuncs[name] || (fd.Recv == nil && strings.HasPrefix(name, "New")) || name == "init" || name == "main" {
 		return "", false
+	}
+	if fd.Recv == nil && name == stateMapperName {
+		return kindStateMapper, true
 	}
 	if (fd.Recv != nil && kiotaMethods[name]) || (fd.Recv == nil && kiotaFactory.MatchString(name)) {
 		return kindKiota, true

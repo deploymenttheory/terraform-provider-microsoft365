@@ -1,0 +1,11 @@
+package legacy
+
+// MapRemoteResourceStateToTerraform is the legacy name for the state mapper.
+func MapRemoteResourceStateToTerraform(values []string) []string {
+	return mapRemoteState(values)
+}
+
+// mapRemoteState is a lower-case variant of the state mapper name.
+func mapRemoteState(values []string) []string {
+	return values
+}
