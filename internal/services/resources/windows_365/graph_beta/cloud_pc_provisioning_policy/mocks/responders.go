@@ -344,17 +344,12 @@ func (m *CloudPcProvisioningPolicyMock) RegisterMocks() {
 						for _, assignment := range assignmentList {
 							if assignmentMap, ok := assignment.(map[string]any); ok {
 								if target, hasTarget := assignmentMap["target"].(map[string]any); hasTarget {
-									// Check for groupId directly in target (not in additionalData)
-									if groupId, hasGroupId := target["groupId"].(string); hasGroupId {
-										// Create assignment in the format the API returns
-										// The API returns the group ID as the assignment ID
-										// and the target additionalData is empty on read (as per state logic comment)
+									if _, hasGroupId := target["groupId"].(string); hasGroupId {
+										// Graph returns the submitted target (groupId and Frontline allotment fields)
+										// under an assignment ID that differs from the group ID.
 										graphAssignment := map[string]any{
-											"id": groupId, // Use the actual group ID as the assignment ID
-											"target": map[string]any{
-												"@odata.type":    "#microsoft.graph.cloudPcManagementGroupAssignmentTarget",
-												"additionalData": map[string]any{}, // Empty on read
-											},
+											"id":     uuid.New().String(),
+											"target": target,
 										}
 										graphAssignments = append(graphAssignments, graphAssignment)
 									}
