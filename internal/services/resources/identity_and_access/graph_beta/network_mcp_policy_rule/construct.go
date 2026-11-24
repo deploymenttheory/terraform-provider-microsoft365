@@ -4,140 +4,118 @@ import (
 	"context"
 	"fmt"
 
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Explicit discriminators are required on PATCH: Graph can otherwise silently ignore fields.
-func constructResource(
-	ctx context.Context,
-	data *NetworkMCPPolicyRuleResourceModel,
-) (s.Parsable, error) {
-	b := &mcpPolicyRuleRequestBody{
-		name:           data.Name.ValueStringPointer(),
-		description:    data.Description.ValueStringPointer(),
-		descriptionSet: !data.Description.IsNull(),
-		action:         data.Action.ValueStringPointer(),
-		priority:       data.Priority.ValueInt32Pointer(),
-		settings:       ruleSettings(data.Enabled.ValueBool()),
-	}
-	conditions, err := ruleConditions(ctx, data)
-	b.conditions = conditions
-	b.conditionsSet = conditions != nil
-	return b, err
-}
+// mcpPolicyRuleODataType is the discriminator sent with every write: Graph can otherwise silently ignore fields on PATCH.
+const mcpPolicyRuleODataType = "#microsoft.graph.networkaccess.mcpPolicyRule"
 
-func constructUpdateResource(
-	ctx context.Context,
-	plan, state *NetworkMCPPolicyRuleResourceModel,
-) (*mcpPolicyRuleRequestBody, error) {
-	b := &mcpPolicyRuleRequestBody{}
-	if !plan.Name.Equal(state.Name) {
-		b.name = plan.Name.ValueStringPointer()
+// constructResource builds the MCP policy rule body. Create passes a nil state and sends every configured field. Update
+// passes the prior state and sends only the fields that changed, so a body holding only @odata.type means nothing Graph
+// stores has changed (for example a timeouts-only change). A cleared description or matching_conditions is sent as JSON
+// null. Conditions use explicit nulls at each supported level because Graph merges nested PATCH objects.
+//
+//nolint:gocyclo // The recursive condition encoder is a closure here: the helper rule allows no single-caller helper.
+func constructResource(ctx context.Context, plan, state *NetworkMCPPolicyRuleResourceModel) (map[string]any, error) {
+	body := map[string]any{"@odata.type": mcpPolicyRuleODataType}
+	if (state == nil || !plan.Name.Equal(state.Name)) && !plan.Name.IsNull() {
+		body["name"] = plan.Name.ValueString()
 	}
-	if !plan.Description.Equal(state.Description) {
-		b.description = plan.Description.ValueStringPointer()
-		b.descriptionSet = true
+	if state == nil && !plan.Description.IsNull() || state != nil && !plan.Description.Equal(state.Description) {
+		body["description"] = plan.Description.ValueStringPointer()
 	}
-	if !plan.Action.Equal(state.Action) {
-		b.action = plan.Action.ValueStringPointer()
+	if (state == nil || !plan.Action.Equal(state.Action)) && !plan.Action.IsNull() {
+		body["action"] = plan.Action.ValueString()
 	}
-	if !plan.Priority.Equal(state.Priority) {
-		b.priority = plan.Priority.ValueInt32Pointer()
+	if (state == nil || !plan.Priority.Equal(state.Priority)) && !plan.Priority.IsNull() {
+		body["priority"] = plan.Priority.ValueInt32()
 	}
-	if !plan.Enabled.Equal(state.Enabled) {
-		b.settings = ruleSettings(plan.Enabled.ValueBool())
-	}
-	if !plan.MatchingConditions.Equal(state.MatchingConditions) {
-		conditions, err := ruleConditions(ctx, plan)
-		if err != nil {
-			return nil, err
+	if state == nil || !plan.Enabled.Equal(state.Enabled) {
+		status := "disabled"
+		if plan.Enabled.ValueBool() {
+			status = "enabled"
 		}
-		b.conditions = conditions
-		b.conditionsSet = true
+		body["settings"] = map[string]any{"status": status}
 	}
-	return b, nil
-}
-
-func ruleSettings(enabled bool) *mcpPolicyRuleSettings {
-	status := "disabled"
-	if enabled {
-		status = "enabled"
+	if state != nil && plan.MatchingConditions.Equal(state.MatchingConditions) {
+		return body, nil
 	}
-	return &mcpPolicyRuleSettings{status: &status}
-}
-
-type mcpPolicyRuleRequestBody struct {
-	name, description, action *string
-	descriptionSet            bool
-	priority                  *int32
-	settings                  *mcpPolicyRuleSettings
-	conditions                *conditionPayload
-	conditionsSet             bool
-}
-
-func (b *mcpPolicyRuleRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-func (b *mcpPolicyRuleRequestBody) Serialize(w s.SerializationWriter) error {
-	discriminator := "#microsoft.graph.networkaccess.mcpPolicyRule"
-	if err := w.WriteStringValue("@odata.type", &discriminator); err != nil {
-		return wrapSerializationError(err)
+	if plan.MatchingConditions.IsNull() {
+		// Create omits absent conditions; Update clears them.
+		if state != nil {
+			body["matchingConditions"] = nil
+		}
+		return body, nil
 	}
-	if err := w.WriteStringValue("name", b.name); err != nil {
-		return wrapSerializationError(err)
+	if plan.MatchingConditions.IsUnknown() {
+		return nil, fmt.Errorf("%w: conditions are unknown", errInvalidConditions)
 	}
-	if b.descriptionSet {
-		if b.description == nil {
-			if err := w.WriteNullValue("description"); err != nil {
-				return wrapSerializationError(err)
+
+	// conditionFromObject converts a condition object to its Graph JSON, renaming match_type to matchType and sending
+	// null attributes as explicit nulls.
+	var conditionFromObject func(obj types.Object) (map[string]any, error)
+	conditionFromObject = func(obj types.Object) (map[string]any, error) {
+		if obj.IsUnknown() {
+			return nil, fmt.Errorf("%w: unknown object", errInvalidConditions)
+		}
+		out := map[string]any{}
+		for key, v := range obj.Attributes() {
+			apiKey := key
+			if key == "match_type" {
+				apiKey = "matchType"
 			}
-		} else if err := w.WriteStringValue("description", b.description); err != nil {
-			return wrapSerializationError(err)
+			if v.IsUnknown() {
+				return nil, fmt.Errorf("%w: %s is unknown", errInvalidConditions, key)
+			}
+			if v.IsNull() {
+				out[apiKey] = nil
+				continue
+			}
+			switch value := v.(type) {
+			case types.String:
+				out[apiKey] = value.ValueString()
+			case types.List:
+				values := []string{}
+				if d := value.ElementsAs(ctx, &values, false); d.HasError() {
+					return nil, fmt.Errorf("%w: %v", errInvalidConditions, d)
+				}
+				out[apiKey] = values
+			case types.Object:
+				child, err := conditionFromObject(value)
+				if err != nil {
+					return nil, err
+				}
+				out[apiKey] = child
+			default:
+				return nil, fmt.Errorf("%w: unsupported %s", errInvalidConditions, key)
+			}
+		}
+		return out, nil
+	}
+
+	destinations := map[string]any{}
+	for tf, api := range mcpConditionKeys {
+		v := plan.MatchingConditions.Attributes()[tf]
+		if v.IsNull() {
+			destinations[api] = nil
+			continue
+		}
+		switch value := v.(type) {
+		case types.String:
+			if value.IsUnknown() {
+				return nil, fmt.Errorf("%w: %s is unknown", errInvalidConditions, tf)
+			}
+			destinations[api] = value.ValueString()
+		case types.Object:
+			converted, err := conditionFromObject(value)
+			if err != nil {
+				return nil, err
+			}
+			destinations[api] = converted
+		default:
+			return nil, fmt.Errorf("%w: unsupported condition %s", errInvalidConditions, tf)
 		}
 	}
-	if err := w.WriteStringValue("action", b.action); err != nil {
-		return wrapSerializationError(err)
-	}
-	if err := w.WriteInt32Value("priority", b.priority); err != nil {
-		return wrapSerializationError(err)
-	}
-	if b.settings != nil {
-		if err := w.WriteObjectValue("settings", b.settings); err != nil {
-			return wrapSerializationError(err)
-		}
-	}
-	if b.conditionsSet {
-		if b.conditions == nil {
-			return wrapSerializationError(w.WriteNullValue("matchingConditions"))
-		}
-		if err := w.WriteObjectValue("matchingConditions", b.conditions); err != nil {
-			return wrapSerializationError(err)
-		}
-	}
-	return nil
-}
-
-type mcpPolicyRuleSettings struct{ status *string }
-
-func (b *mcpPolicyRuleSettings) Serialize(w s.SerializationWriter) error {
-	return wrapSerializationError(w.WriteStringValue("status", b.status))
-}
-
-func (b *mcpPolicyRuleSettings) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-// hasChanges excludes Terraform-only changes such as timeouts from empty Graph PATCH requests.
-func (b *mcpPolicyRuleRequestBody) hasChanges() bool {
-	return b.name != nil || b.descriptionSet || b.settings != nil || b.action != nil ||
-		b.priority != nil ||
-		b.conditionsSet
-}
-
-func wrapSerializationError(err error) error {
-	if err != nil {
-		return fmt.Errorf("serialize MCP policy rule: %w", err)
-	}
-	return nil
+	body["matchingConditions"] = map[string]any{"destinations": destinations}
+	return body, nil
 }

@@ -6,9 +6,27 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 	"github.com/stretchr/testify/require"
 )
+
+// conditionsResponse returns a valid rule response carrying raw as its matchingConditions.
+func conditionsResponse(raw string) *mcpPolicyRuleResponse {
+	id, name, action, odataType, status := "11111111-1111-1111-1111-111111111111", "test", "allow", mcpPolicyRuleODataType, "enabled"
+	priority := int64(1000)
+	remote := &mcpPolicyRuleResponse{ID: &id, ODataType: &odataType, Name: &name, Action: &action, Priority: &priority, Conditions: json.RawMessage(raw)}
+	remote.Settings = &struct {
+		Status *string `json:"status"`
+	}{Status: &status}
+	return remote
+}
+
+// conditionsToState maps raw matchingConditions JSON through MapRemoteStateToTerraform.
+func conditionsToState(t *testing.T, raw string) (types.Object, error) {
+	t.Helper()
+	model := testModel()
+	err := MapRemoteStateToTerraform(context.Background(), &model, conditionsResponse(raw))
+	return model.MatchingConditions, err
+}
 
 func TestUnitResourceNetworkMCPPolicyRule_22_ConditionRoundtrip(t *testing.T) {
 	for _, raw := range []string{
@@ -18,22 +36,20 @@ func TestUnitResourceNetworkMCPPolicyRule_22_ConditionRoundtrip(t *testing.T) {
 		`{"destinations":{"toolMatching":{"names":{"values":["tool_a","tool_b"],"matchType":"contains"},"methods":"list,call","classifications":null},"resourceMatching":{"names":{"values":[],"matchType":"notExactMatch"},"methods":"read"},"promptMatching":{"methods":"get"}}}`,
 	} {
 		t.Run(raw, func(t *testing.T) {
-			ctx := context.Background()
-			state, err := conditionsToState(ctx, json.RawMessage(raw))
+			state, err := conditionsToState(t, raw)
 			require.NoError(t, err)
 			model := testModel()
 			model.MatchingConditions = state
-			payload, err := ruleConditions(ctx, &model)
+			body, err := constructResource(context.Background(), &model, nil)
 			require.NoError(t, err)
-			if payload == nil {
+			payload, ok := body["matchingConditions"]
+			if !ok {
 				require.True(t, state.IsNull())
 				return
 			}
-			writer := jsonserialization.NewJsonSerializationWriter()
-			require.NoError(t, writer.WriteObjectValue("", payload))
-			encoded, err := writer.GetSerializedContent()
+			encoded, err := json.Marshal(payload)
 			require.NoError(t, err)
-			roundtrip, err := conditionsToState(ctx, encoded)
+			roundtrip, err := conditionsToState(t, string(encoded))
 			require.NoError(t, err)
 			require.True(t, state.Equal(roundtrip), "%s", encoded)
 		})
@@ -44,25 +60,15 @@ func TestUnitResourceNetworkMCPPolicyRule_23_ConditionRemoval(t *testing.T) {
 	ctx := context.Background()
 	state := testModel()
 	var err error
-	state.MatchingConditions, err = conditionsToState(
-		ctx,
-		json.RawMessage(
-			`{"destinations":{"toolMatching":{"names":{"values":["one"],"matchType":"exactMatch"},"methods":"call"}}}`,
-		),
-	)
+	state.MatchingConditions, err = conditionsToState(t, `{"destinations":{"toolMatching":{"names":{"values":["one"],"matchType":"exactMatch"},"methods":"call"}}}`)
 	require.NoError(t, err)
 	plan := state
-	plan.MatchingConditions, err = conditionsToState(
-		ctx,
-		json.RawMessage(`{"destinations":{"toolMatching":{"methods":"list,call"}}}`),
-	)
+	plan.MatchingConditions, err = conditionsToState(t, `{"destinations":{"toolMatching":{"methods":"list,call"}}}`)
 	require.NoError(t, err)
-	body, err := constructUpdateResource(ctx, &plan, &state)
+	body, err := constructResource(ctx, &plan, &state)
 	require.NoError(t, err)
-	require.True(t, body.hasChanges())
-	writer := jsonserialization.NewJsonSerializationWriter()
-	require.NoError(t, writer.WriteObjectValue("", body))
-	encoded, err := writer.GetSerializedContent()
+	require.Greater(t, len(body), 1)
+	encoded, err := json.Marshal(body)
 	require.NoError(t, err)
 	var patch map[string]any
 	require.NoError(t, json.Unmarshal(encoded, &patch))
@@ -73,13 +79,12 @@ func TestUnitResourceNetworkMCPPolicyRule_23_ConditionRemoval(t *testing.T) {
 	require.Equal(t, "list,call", tool["methods"])
 	require.Contains(t, dest, "serverUrls")
 	require.Nil(t, dest["serverUrls"])
-	plan.MatchingConditions = types.ObjectNull(conditionAttributeTypes())
-	body, err = constructUpdateResource(ctx, &plan, &state)
+	plan.MatchingConditions = types.ObjectNull(mcpConditionObjectType.AttrTypes)
+	body, err = constructResource(ctx, &plan, &state)
 	require.NoError(t, err)
-	writer = jsonserialization.NewJsonSerializationWriter()
-	require.NoError(t, writer.WriteObjectValue("", body))
-	encoded, err = writer.GetSerializedContent()
+	encoded, err = json.Marshal(body)
 	require.NoError(t, err)
+	patch = nil
 	require.NoError(t, json.Unmarshal(encoded, &patch))
 	require.Contains(t, patch, "matchingConditions")
 	require.Nil(t, patch["matchingConditions"])
@@ -97,11 +102,11 @@ func TestUnitResourceNetworkMCPPolicyRule_24_UnsupportedConditions(t *testing.T)
 		`{"destinations":{"serverUrls":{"values":[],"matchType":"future"}}}`,
 		`{"destinations":{"missingPrm":"future"}}`,
 	} {
-		_, err := conditionsToState(context.Background(), json.RawMessage(raw))
+		_, err := conditionsToState(t, raw)
 		require.Error(t, err, raw)
 	}
 	model := testModel()
-	model.MatchingConditions = types.ObjectUnknown(conditionAttributeTypes())
-	_, err := ruleConditions(context.Background(), &model)
+	model.MatchingConditions = types.ObjectUnknown(mcpConditionObjectType.AttrTypes)
+	_, err := constructResource(context.Background(), &model, nil)
 	require.Error(t, err)
 }
