@@ -40,6 +40,7 @@ func TestUnitDatasourceConditionalAccessTemplate_01_ByTemplateId(t *testing.T) {
 	_, catMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer catMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -83,6 +84,7 @@ func TestUnitDatasourceConditionalAccessTemplate_01_ByTemplateId(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/by_template_id.json")
 }
 
 func TestUnitDatasourceConditionalAccessTemplate_02_ByName(t *testing.T) {
@@ -140,6 +142,7 @@ func TestUnitDatasourceConditionalAccessTemplate_03_ValidationError(t *testing.T
 	_, catMock := setupErrorMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer catMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -150,6 +153,7 @@ func TestUnitDatasourceConditionalAccessTemplate_03_ValidationError(t *testing.T
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/validation_error.json")
 }
 
 func TestUnitDatasourceConditionalAccessTemplate_04_FuzzyMatchSuggestion(t *testing.T) {

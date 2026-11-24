@@ -13,6 +13,9 @@ resource "microsoft365_graph_beta_device_management_device_configuration_templat
 }
 
 resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "second_root" {
+  # Created after root so request-capture fixtures number the profile IDs in a fixed order.
+  depends_on = [microsoft365_graph_beta_device_management_device_configuration_templates_json.root]
+
   display_name       = "unit-test-ios-second-root"
   description        = "Device configuration template test"
   role_scope_tag_ids = ["0"]
@@ -27,6 +30,9 @@ resource "microsoft365_graph_beta_device_management_device_configuration_templat
 }
 
 resource "microsoft365_graph_beta_device_management_device_configuration_templates_json" "test" {
+  # Created after second_root so request-capture fixtures number the profile IDs in a fixed order.
+  depends_on = [microsoft365_graph_beta_device_management_device_configuration_templates_json.second_root]
+
   display_name       = "unit-test-ios-scep"
   description        = "Device configuration template test"
   role_scope_tag_ids = ["0"]

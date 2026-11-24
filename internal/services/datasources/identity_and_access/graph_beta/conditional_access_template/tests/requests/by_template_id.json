@@ -1,0 +1,14 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/templates"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/templates"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/templates"
+  }
+]

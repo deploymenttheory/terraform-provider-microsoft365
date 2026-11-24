@@ -110,6 +110,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_03_IosCustom(t *testing.T)
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 	config := loadUnitTestTerraform("resource_03_ios_custom.tf")
 	updated := strings.ReplaceAll(config, "Device configuration template test", "Updated template description")
 	resource.UnitTest(t, resource.TestCase{
@@ -127,6 +128,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_03_IosCustom(t *testing.T)
 			{Config: updated, PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/ios_custom.json")
 }
 
 func TestUnitResourceDeviceConfigurationTemplatesJson_04_IosRoot(t *testing.T) {
@@ -1182,6 +1184,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_54_SingletonRelationships(
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -1195,6 +1198,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_54_SingletonRelationships(
 			importStep(),
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/singleton_relationships.json")
 }
 
 func TestUnitResourceDeviceConfigurationTemplatesJson_55_CollectionRelationships(t *testing.T) {
@@ -1203,6 +1207,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_55_CollectionRelationships
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -1238,6 +1243,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_55_CollectionRelationships
 			{ResourceName: resourceType + ".test", ImportState: true, ImportStateVerify: true, ImportStateVerifyIgnore: []string{"timeouts", "settings"}, ImportStateCheck: checkImportedJSONSettings(&settingsBeforeImport)},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/collection_relationships.json")
 }
 
 func checkImportedJSONSettings(expected *string) resource.ImportStateCheckFunc {
@@ -1374,6 +1380,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_60_PaginatedRelationships(
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 	var endpoint, firstID, secondID string
 	config := loadUnitTestTerraform("resource_55_collection_multiple.tf")
 	resource.UnitTest(t, resource.TestCase{
@@ -1402,6 +1409,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_60_PaginatedRelationships(
 			}, Config: config, PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/paginated_relationships.json")
 }
 
 func TestUnitResourceDeviceConfigurationTemplatesJson_61_AssignmentsMinimalToMaximal(t *testing.T) {
@@ -1906,6 +1914,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_82_IosWiredNetwork(t *test
 	_, profileMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer profileMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 	config := loadUnitTestTerraform("resource_82_ios_wired_network.tf")
 	updated := loadUnitTestTerraform("resource_82_ios_wired_network_updated.tf")
 	resource.UnitTest(t, resource.TestCase{
@@ -1920,6 +1929,7 @@ func TestUnitResourceDeviceConfigurationTemplatesJson_82_IosWiredNetwork(t *test
 			{Config: updated, PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/ios_wired_network.json")
 }
 
 func TestUnitResourceDeviceConfigurationTemplatesJson_83_MacosDeviceFeatures(t *testing.T) {

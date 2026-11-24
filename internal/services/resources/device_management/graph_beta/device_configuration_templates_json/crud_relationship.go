@@ -7,7 +7,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
@@ -56,25 +55,32 @@ func (r *DeviceConfigurationTemplatesJsonResource) updateRelationships(
 		if err != nil {
 			return fmt.Errorf("read configured %s: %w", name, err)
 		}
-		route := r.ResourcePath + "/{id}/" + strings.TrimPrefix(typ, "#") + "/" + name
-		params := map[string]string{"id": id}
+		// e.g. "/microsoft.graph.iosScepCertificateProfile/rootCertificate", addressed below the profile ID.
+		route := "/" + strings.TrimPrefix(typ, "#") + "/" + name
 		for relatedID, binding := range after {
 			if _, exists := before[relatedID]; exists {
 				continue
 			}
-			method := abstractions.PUT
+			reference := map[string]string{"@odata.id": binding}
 			if collection {
-				method = abstractions.POST
+				postConfig := customrequests.PostRequestConfig{
+					APIVersion: customrequests.GraphAPIBeta,
+					Endpoint:   r.ResourcePath + "/" + id + route + "/$ref",
+					RawBody:    reference,
+				}
+				err = customrequests.PostRequestNoContent(ctx, r.client.GetAdapter(), postConfig)
+			} else {
+				putConfig := customrequests.PutRequestConfig{
+					APIVersion:        customrequests.GraphAPIBeta,
+					Endpoint:          r.ResourcePath,
+					ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+					ResourceID:        id,
+					EndpointSuffix:    route + "/$ref",
+					RawBody:           reference,
+				}
+				err = customrequests.PutRequestByResourceId(ctx, r.client.GetAdapter(), putConfig)
 			}
-			if err := customrequests.JSONRequest(
-				ctx,
-				r.client.GetAdapter(),
-				method,
-				route+"/$ref",
-				params,
-				map[string]string{"@odata.id": binding},
-				nil,
-			); err != nil {
+			if err != nil {
 				return fmt.Errorf("set %s reference: %w", name, err)
 			}
 		}
@@ -82,20 +88,19 @@ func (r *DeviceConfigurationTemplatesJsonResource) updateRelationships(
 			if _, exists := after[relatedID]; exists || (!collection && len(after) != 0) {
 				continue
 			}
-			deleteRoute := route + "/$ref"
+			// relatedID is a parsed GUID (see relationshipIDs), so it is safe to write into the URL.
+			suffix := route + "/$ref"
 			if collection {
-				deleteRoute = route + "/{relatedId}/$ref"
-				params["relatedId"] = relatedID
+				suffix = route + "/" + relatedID + "/$ref"
 			}
-			if err := customrequests.JSONRequest(
-				ctx,
-				r.client.GetAdapter(),
-				abstractions.DELETE,
-				deleteRoute,
-				params,
-				nil,
-				nil,
-			); err != nil {
+			deleteConfig := customrequests.DeleteRequestConfig{
+				APIVersion:        customrequests.GraphAPIBeta,
+				Endpoint:          r.ResourcePath,
+				ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+				ResourceID:        id,
+				EndpointSuffix:    suffix,
+			}
+			if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig); err != nil {
 				return fmt.Errorf("remove %s reference: %w", name, err)
 			}
 		}

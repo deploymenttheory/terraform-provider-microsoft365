@@ -33,10 +33,10 @@ or returns. Resources that hit these gaps need another way to send the request.
   and replaced the `ByIDRequestUrlTemplate` call in `DeleteRequestByResourceId` with an
   inline switch over the resource ID pattern
   ([47ce3efb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/47ce3efb)).
-  In September 2026 kenchan0130 added `JSONRequest` (`json_request.go`) inside the
+  In September 2026 kenchan0130 added a JSON request helper (`json_request.go`) inside the
   resource commit "feat: add network explicit forward proxy resource"
   ([f4900a42](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f4900a42)).
-  `JSONRequest` sends and decodes `encoding/json` values through the SDK adapter, for
+  The helper sends and decodes `encoding/json` values through the SDK adapter, for
   endpoints that have no generated model.
 
 ### The problem
@@ -47,7 +47,7 @@ ways. The AST scan of PR #4903 (head `90a6721b`) found:
 * 17 packages that build `RequestInformation` and call `adapter.Send*` themselves.
   Together they carry about 174 hand-written `Serialize`/`GetFieldDeserializers` methods,
   36 discriminator factories and most of 42 `decode…Response` functions.
-* Packages using `JSONRequest` (9 on `main` today) alongside packages using the Config
+* Packages using the `json_request.go` helper (9 on `main` today) alongside packages using the Config
   API, for the same kind of call.
 * SDK workarounds explained in free-form comments spread across `requests.go`,
   `construct.go` and `response.go`, with no common format and no stated condition for
@@ -71,7 +71,7 @@ The Config API also has defects of its own, which are fixed in #4935 and #4941:
 
 ### Kiota already supports raw JSON
 
-`JSONRequest` exists because the Config API only accepts Kiota `Parsable` bodies. Kiota
+The `json_request.go` helper exists because the Config API only accepts Kiota `Parsable` bodies. Kiota
 itself does not need that restriction:
 
 * kiota-abstractions-go v1.12.1 provides
@@ -108,7 +108,7 @@ transport.
   the 174 hand-written serializer methods and 36 discriminator factories above, and every
   package repeats the URL template, header and error-mapping code.
 
-* **`JSONRequest`.** A single function that marshals `encoding/json` values and sends them
+* **The `json_request.go` helper.** A single function that marshals `encoding/json` values and sends them
   through the adapter. It removes the hand-written models, but it is a second transport
   next to the Config API, with its own URL template convention, and it was added inside a
   resource commit rather than designed as part of `custom_requests`.
@@ -133,7 +133,7 @@ removes per-package Kiota models, and makes every bypass visible and removable.
   `internal/services/common/custom_requests`.
 * Raw JSON bodies use `RequestInformation.SetStreamContentAndContentType`. Raw JSON
   responses use `adapter.SendPrimitive(ctx, info, "[]byte", mappings)`.
-* `JSONRequest` is retired. Its callers move to the Config API (#4946, #4948) and
+* The `json_request.go` helper is retired. Its callers move to the Config API (#4946, #4948) and
   `json_request.go` is then deleted.
 * Resource packages must not build `RequestInformation` or call `adapter.Send*`
   themselves.
@@ -180,7 +180,7 @@ above the `package` clause. One block per deviation:
 
 ### 4. Alternatives considered
 
-Per-package Kiota models, `JSONRequest` and direct SDK use are rejected as the general
+Per-package Kiota models, the `json_request.go` helper and direct SDK use are rejected as the general
 approach, for the reasons under Considered Options. Direct SDK use remains the default
 wherever no deviation applies.
 
@@ -311,7 +311,7 @@ package graphBetaNetworkForwardingProfile
 
 Every request built by the Config API goes through the provider's Kiota adapter, so it
 gets the configured base URL, authentication, middleware, retry and ODataError mapping.
-Per-package request building and `JSONRequest` can also use the adapter, but each copy is
+Per-package request building and the `json_request.go` helper can also use the adapter, but each copy is
 a place where the base URL, headers or error mapping can drift.
 
 ### Raw JSON removes hand-written models
@@ -334,13 +334,13 @@ When the SDK is bumped, a search for `SDK deviation:` lists every package to re-
 * Hand-written Kiota models and per-package request code are removed from resource
   packages.
 * Every SDK bypass is documented in the same place and format, with a removal condition.
-* `JSONRequest` and its separate URL template convention are retired.
+* The `json_request.go` helper and its separate URL template convention are retired.
 
 ### Negative
 
 * The Config API has to grow raw JSON bodies, response bodies, headers and paging
   (#4941) before every caller can migrate.
-* Packages that currently work through per-package requests or `JSONRequest` must be
+* Packages that currently work through per-package requests or the `json_request.go` helper must be
   migrated (RWK tickets, #4948).
 * Raw JSON structs are not type-checked against Graph metadata. Request-capture and unit
   tests carry that check instead.
@@ -361,14 +361,14 @@ When the SDK is bumped, a search for `SDK deviation:` lists every package to re-
 * [ ] Add raw JSON bodies and responses, headers and paging to the Config API (#4941).
 * [ ] Migrate the per-package transports and add the comment block to each package that
   keeps a deviation (RWK tickets, #4943 to #4947).
-* [ ] Migrate the remaining `JSONRequest` callers and delete `json_request.go` (#4948).
+* [ ] Migrate the remaining `json_request.go` callers and delete `json_request.go` (#4948).
 
 ### Files
 
 | File | Purpose |
 |---|---|
 | `internal/services/common/custom_requests/` | The Config API: the only non-SDK Graph transport |
-| `internal/services/common/custom_requests/json_request.go` | `JSONRequest`, retired by this decision |
+| `internal/services/common/custom_requests/json_request.go` | The JSON request helper, retired by this decision and deleted in #4948 |
 | `<resource package>/crud.go`, or `<data source package>/read.go` | Package doc comment carrying the SDK deviation block |
 
 ## Validation
