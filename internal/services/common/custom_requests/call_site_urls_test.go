@@ -13,7 +13,7 @@ import (
 )
 
 // callSiteURL pins the URL one production call site sends. The rows mirror every custom_requests Config call in the
-// resource packages (69 calls in 25 packages at edfac419), with each endpoint expression resolved and realistic GUIDs
+// resource packages (69 calls in 25 packages at edfac419, plus the cloud_pc_provisioning_policy read for #4904), with each endpoint expression resolved and realistic GUIDs
 // substituted for runtime IDs. Every caller passes the beta client's adapter with GraphAPIBeta.
 // want is the URL sent with the public-cloud beta adapter. mainDiffers records the 4 rows whose URL changed from
 // origin/main (slash fixes); every other row is byte-identical to origin/main.
@@ -93,6 +93,7 @@ var productionCallSiteURLs = []callSiteURL{
 		{name: "device_management/windows_update_ring_action/crud.go:215", fn: "PostRequestNoContent", endpoint: "deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a/microsoft.graph.windowsUpdateForBusinessConfiguration/extendFeatureUpdatesPause", want: "POST https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a/microsoft.graph.windowsUpdateForBusinessConfiguration/extendFeatureUpdatesPause"},
 		{name: "m365_admin/m365_apps_installation_options/crud.go:59", fn: "PatchRequestByResourceId", endpoint: "/admin/microsoft365Apps/installationOptions", want: "PATCH https://graph.microsoft.com/beta/admin/microsoft365Apps/installationOptions"},
 		{name: "m365_admin/m365_apps_installation_options/crud.go:195", fn: "PatchRequestByResourceId", endpoint: "/admin/microsoft365Apps/installationOptions", want: "PATCH https://graph.microsoft.com/beta/admin/microsoft365Apps/installationOptions"},
+		{name: "windows_365/cloud_pc_provisioning_policy/crud.go:199", fn: "GetRequestByResourceId", endpoint: "deviceManagement/virtualEndpoint/provisioningPolicies", pattern: "/{id}", resourceID: "0b8a5d2e-7c41-4f8e-9a1b-3c6d2e9f1a07", suffix: "?$expand=assignments&$select=*", want: "GET https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies/0b8a5d2e-7c41-4f8e-9a1b-3c6d2e9f1a07?$expand=assignments&$select=*"},
 }
 
 func sendCallSite(ctx context.Context, adapter abstractions.RequestAdapter, c callSiteURL) error {
@@ -121,7 +122,7 @@ func sendCallSite(ctx context.Context, adapter abstractions.RequestAdapter, c ca
 // TestProductionCallSiteURLs proves every production call site sends the pinned URL, so the "/{id}", "('id')" and
 // no-ID formats each caller chose are preserved.
 func TestProductionCallSiteURLs(t *testing.T) {
-	require.Len(t, productionCallSiteURLs, 69)
+	require.Len(t, productionCallSiteURLs, 70)
 
 	for _, c := range productionCallSiteURLs {
 		t.Run(c.name, func(t *testing.T) {
