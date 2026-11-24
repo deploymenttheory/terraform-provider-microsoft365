@@ -27,6 +27,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	validate "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 )
@@ -131,6 +132,10 @@ func (r *ApplicationResource) ImportState(ctx context.Context, req resource.Impo
 				}
 			}
 		}
+	}
+
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "resource ID", resourceID, crud.ImportIDFormatGUID) {
+		return
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, prevent_duplicate_names: %t, hard_delete: %t", ResourceName, resourceID, preventDuplicateNames, hardDelete))

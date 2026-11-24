@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
@@ -87,7 +88,10 @@ func (r *DeviceEnrollmentNotificationResource) Configure(ctx context.Context, re
 
 // ImportState imports the resource state.
 func (r *DeviceEnrollmentNotificationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	crud.ImportStatePassthroughValidatedID(ctx, req, resp, crud.ImportIDFormatEnrollmentNotificationConfiguration)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	// Set a default value for branding_options since it's a required field for requests, but
 	// it's not returned returned by any api resp.

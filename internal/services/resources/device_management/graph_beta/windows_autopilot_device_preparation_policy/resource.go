@@ -26,6 +26,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	commonschemagraphbeta "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema/graph_beta/device_management"
@@ -105,6 +106,9 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) ImportState(
 	resp *resource.ImportStateResponse,
 ) {
 	resourceID := req.ID
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "import ID", resourceID, crud.ImportIDFormatGUID) {
+		return
+	}
 
 	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s", ResourceName, resourceID))
 
