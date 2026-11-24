@@ -2,6 +2,7 @@
 
 # Import an existing Agent Collection Assignment using the composite ID
 # Format: {agent_instance_id}/{agent_collection_id}
+# Both IDs must be GUIDs, for example 00000000-0000-0000-0000-000000000000.
 
 # The IDs can be found via the Graph API:
 # GET https://graph.microsoft.com/beta/agentRegistry/agentInstances

@@ -174,7 +174,9 @@ Import is supported using the following syntax:
 
 ```shell
 #!/bin/bash
-# Import using the LinuxPlatformScript ID
+
+# Import using the configuration policy ID.
+# The import ID must be a GUID, for example 00000000-0000-0000-0000-000000000000.
 terraform import microsoft365_graph_beta_device_management_linux_platform_script.example 00000000-0000-0000-0000-000000000000
 ```
 

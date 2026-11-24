@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -82,6 +83,13 @@ func (r *AgentIdentityBlueprintFederatedIdentityCredentialResource) ImportState(
 			"Invalid Import ID",
 			fmt.Sprintf("Expected import ID in format 'blueprint_id/credential_id', got: %s", req.ID),
 		)
+		return
+	}
+
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "blueprint_id", parts[0], crud.ImportIDFormatGUID) {
+		return
+	}
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "credential_id", parts[1], crud.ImportIDFormatGUID) {
 		return
 	}
 

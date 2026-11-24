@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -109,6 +110,10 @@ func (r *AgentIdentityBlueprintResource) ImportState(ctx context.Context, req re
 				}
 			}
 		}
+	}
+
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "resource ID", resourceID, crud.ImportIDFormatGUID) {
+		return
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, hard_delete: %t", ResourceName, resourceID, hardDelete))

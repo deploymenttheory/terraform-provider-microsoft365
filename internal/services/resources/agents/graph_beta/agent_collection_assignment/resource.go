@@ -8,6 +8,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -83,6 +84,13 @@ func (r *AgentCollectionAssignmentResource) ImportState(ctx context.Context, req
 
 	agentInstanceID := parts[0]
 	agentCollectionID := parts[1]
+
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "agent_instance_id", agentInstanceID, crud.ImportIDFormatGUID) {
+		return
+	}
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "agent_collection_id", agentCollectionID, crud.ImportIDFormatGUID) {
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("agent_instance_id"), agentInstanceID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("agent_collection_id"), agentCollectionID)...)

@@ -21,8 +21,8 @@ func TestGetRequiredLicensesForFeature(t *testing.T) {
 			wantMinCount: 1,
 		},
 		{
-			name:         "IntuneEndpointPrivilege requires licenses",
-			featureName:  "IntuneEndpointPrivilege",
+			name:         "IntuneEndpointPrivilegeManagement requires licenses",
+			featureName:  "IntuneEndpointPrivilegeManagement",
 			wantMinCount: 1,
 		},
 		{
@@ -65,8 +65,8 @@ func TestFormatRequiredLicensesMessage(t *testing.T) {
 			wantEmpty:   false,
 		},
 		{
-			name:        "IntuneEndpointPrivilege returns message",
-			featureName: "IntuneEndpointPrivilege",
+			name:        "IntuneEndpointPrivilegeManagement returns message",
+			featureName: "IntuneEndpointPrivilegeManagement",
 			wantEmpty:   false,
 		},
 		{

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -123,6 +124,13 @@ func (r *AgentIdentityResource) ImportState(ctx context.Context, req resource.Im
 
 	agentIdentityID := parts[0]
 	agentIdentityBlueprintID := parts[1]
+
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "agent_identity_id", agentIdentityID, crud.ImportIDFormatGUID) {
+		return
+	}
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "agent_identity_blueprint_id", agentIdentityBlueprintID, crud.ImportIDFormatGUID) {
+		return
+	}
 
 	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, blueprint_id: %s, hard_delete: %t",
 		ResourceName, agentIdentityID, agentIdentityBlueprintID, hardDelete))

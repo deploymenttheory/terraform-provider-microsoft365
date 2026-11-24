@@ -272,7 +272,7 @@ Import is supported using the following syntax:
 # The import ID format is: {agent_user_id}[:hard_delete=true|false]
 #
 # Where:
-# - {agent_user_id} is the unique identifier for the agent user
+# - {agent_user_id} is the Object ID of the agent user, a GUID such as 00000000-0000-0000-0000-000000000000
 # - hard_delete is optional (defaults to false for soft delete only)
 
 # Basic import (hard_delete defaults to false - soft delete only)

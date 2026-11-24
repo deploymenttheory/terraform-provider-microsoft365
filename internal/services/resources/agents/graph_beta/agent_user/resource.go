@@ -8,6 +8,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -105,6 +106,10 @@ func (r *AgentUserResource) ImportState(ctx context.Context, req resource.Import
 				}
 			}
 		}
+	}
+
+	if !crud.ValidateImportIDPart(&resp.Diagnostics, "agent_user_id", resourceID, crud.ImportIDFormatGUID) {
+		return
 	}
 
 	tflog.Info(ctx, fmt.Sprintf("Importing %s with ID: %s, hard_delete: %t", ResourceName, resourceID, hardDelete))

@@ -1,3 +1,6 @@
+# The import ID format is: {object_id}[:prevent_duplicate_names=true|false][:hard_delete=true|false]
+# {object_id} is the application's Object ID, a GUID such as 00000000-0000-0000-0000-000000000000.
+
 # Simple import - defaults to prevent_duplicate_names=false and hard_delete=false
 terraform import microsoft365_graph_beta_applications_application.example "00000000-0000-0000-0000-000000000000"
 
