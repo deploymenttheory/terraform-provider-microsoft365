@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -53,18 +52,12 @@ func (v filteringPolicyOnlyFieldsValidator) ValidateResource(
 		return
 	}
 
-	resp.Diagnostics.Append(validateFilteringPolicyOnlyFields(policyType, priority, loggingState)...)
-}
-
-func validateFilteringPolicyOnlyFields(policyType types.String, priority types.Int64, loggingState types.String) diag.Diagnostics {
-	var diags diag.Diagnostics
-
 	if policyType.IsNull() || policyType.IsUnknown() || policyType.ValueString() == policyTypeFiltering {
-		return diags
+		return
 	}
 
 	if !priority.IsNull() && !priority.IsUnknown() {
-		diags.AddAttributeError(
+		resp.Diagnostics.AddAttributeError(
 			path.Root("priority"),
 			"priority is only supported for filtering",
 			fmt.Sprintf("priority must be omitted when policy_type is %q. Microsoft Graph only accepts priority on filteringPolicyLink requests.", policyType.ValueString()),
@@ -72,12 +65,10 @@ func validateFilteringPolicyOnlyFields(policyType types.String, priority types.I
 	}
 
 	if !loggingState.IsNull() && !loggingState.IsUnknown() {
-		diags.AddAttributeError(
+		resp.Diagnostics.AddAttributeError(
 			path.Root("logging_state"),
 			"logging_state is only supported for filtering",
 			fmt.Sprintf("logging_state must be omitted when policy_type is %q. Microsoft Graph only accepts loggingState on filteringPolicyLink requests.", policyType.ValueString()),
 		)
 	}
-
-	return diags
 }

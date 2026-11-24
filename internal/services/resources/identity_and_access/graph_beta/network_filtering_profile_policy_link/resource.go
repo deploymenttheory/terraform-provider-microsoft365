@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
@@ -79,6 +79,11 @@ func (r *NetworkFilteringProfilePolicyLinkResource) ImportState(ctx context.Cont
 			"Invalid import ID",
 			fmt.Sprintf("Expected import ID in the format {filtering_profile_id}/{policy_link_id}, got %q.", req.ID),
 		)
+		return
+	}
+	// Both IDs are written into the custom_requests URL unescaped, so each must be a GUID.
+	profileIDValid := crud.ValidateImportIDPart(&resp.Diagnostics, "filtering_profile_id", parts[0], crud.ImportIDFormatGUID)
+	if !profileIDValid || !crud.ValidateImportIDPart(&resp.Diagnostics, "policy_link_id", parts[1], crud.ImportIDFormatGUID) {
 		return
 	}
 
@@ -185,11 +190,4 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Schema(ctx context.Context, 
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},
 	}
-}
-
-func compositeID(filteringProfileID, policyLinkID string) types.String {
-	if filteringProfileID == "" || policyLinkID == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(filteringProfileID + "/" + policyLinkID)
 }

@@ -1,0 +1,26 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/filteringProfiles/{uuid-1}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/filteringProfiles",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "name": "unit-test-filtering-profile-no-description",
+      "priority": 300,
+      "state": "enabled"
+    }
+  }
+]

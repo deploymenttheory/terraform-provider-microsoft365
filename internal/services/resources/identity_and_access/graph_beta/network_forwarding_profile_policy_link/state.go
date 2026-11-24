@@ -19,7 +19,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkForwardingProfi
 	policyLinkID := convert.GraphToFrameworkString(link.GetId())
 	data.ForwardingProfileID = types.StringValue(forwardingProfileID)
 	data.PolicyLinkID = policyLinkID
-	data.ID = compositeID(forwardingProfileID, policyLinkID.ValueString())
+	data.ID = types.StringNull()
+	if forwardingProfileID != "" && policyLinkID.ValueString() != "" {
+		data.ID = types.StringValue(forwardingProfileID + "/" + policyLinkID.ValueString())
+	}
 	data.State = convert.GraphToFrameworkEnum(link.GetState())
 	data.Version = convert.GraphToFrameworkString(link.GetVersion())
 

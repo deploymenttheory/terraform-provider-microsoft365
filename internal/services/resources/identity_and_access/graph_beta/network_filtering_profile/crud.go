@@ -1,3 +1,21 @@
+// Package graphBetaNetworkFilteringProfile manages Global Secure Access filtering profiles.
+//
+// SDK deviation: serializer sends read-only fields or nulls
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0 networkaccess.FilteringProfile serializes the
+//     read-only createdDateTime, lastModifiedDateTime and version fields of its Profile base, and NewFilteringProfile
+//     always writes the @odata.type discriminator.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/networkaccess-filteringprofile-update?view=graph-rest-beta
+//     lists name, description, priority and state as the updatable properties; Learn does not document create.
+//   - Observed: the previous implementation recorded that POST /networkAccess/filteringProfiles rejected the SDK body
+//     with "400 Invalid request parameters" and accepted a body of only name, description, priority and state. Not
+//     re-run on 2026-11-24, because the test tenant has no Global Secure Access licence. POST and PATCH go through
+//     custom_requests in raw JSON mode with APIVersion left empty, so they use the beta client's own base URL; GET and
+//     DELETE stay on the SDK.
+//
+// Removal condition: a live POST and PATCH with the SDK FilteringProfile model, setting only name, description,
+// priority and state, succeed.
 package graphBetaNetworkFilteringProfile
 
 import (
@@ -7,12 +25,17 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 )
+
+// filteringProfilesEndpoint is the filtering profile collection.
+const filteringProfilesEndpoint = "/networkAccess/filteringProfiles"
 
 // Create handles the Create operation for Filtering Profile resources.
 //
@@ -48,13 +71,22 @@ func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	baseResource, err := r.createFilteringProfile(ctx, requestBody)
+	postConfig := customrequests.PostRequestConfig{
+		Endpoint: filteringProfilesEndpoint,
+		RawBody:  requestBody,
+	}
+	baseResource, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), postConfig, models.CreateFilteringProfileFromDiscriminatorValue, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
+	profile, ok := baseResource.(models.FilteringProfileable)
+	if !ok {
+		resp.Diagnostics.AddError("Error creating filtering profile", fmt.Sprintf("The API returned %T, expected a filtering profile.", baseResource))
+		return
+	}
 
-	createdID := baseResource.GetId()
+	createdID := profile.GetId()
 	if createdID == nil {
 		resp.Diagnostics.AddError(
 			"Error creating filtering profile",
@@ -74,9 +106,7 @@ func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resour
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationCreate
-	opts.ResourceTypeName = ResourceName
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -187,7 +217,14 @@ func (r *NetworkFilteringProfileResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	if err := r.updateFilteringProfile(ctx, state.ID.ValueString(), requestBody); err != nil {
+	profileID := state.ID.ValueString()
+	patchConfig := customrequests.PatchRequestConfig{
+		Endpoint:          filteringProfilesEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        profileID,
+		RawBody:           requestBody,
+	}
+	if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -200,9 +237,7 @@ func (r *NetworkFilteringProfileResource) Update(ctx context.Context, req resour
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationUpdate
-	opts.ResourceTypeName = ResourceName
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

@@ -1,0 +1,63 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/webFilteringPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Updated unit test web filtering policy",
+      "name": "unit-test-web-filtering-policy-updated",
+      "settings": {
+        "defaultAction": {
+          "@odata.type": "#microsoft.graph.networkaccess.webFilteringActionBlock"
+        }
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/webFilteringPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Unit test web filtering policy",
+      "name": "unit-test-web-filtering-policy",
+      "policyRules": [],
+      "settings": {
+        "defaultAction": {
+          "@odata.type": "#microsoft.graph.networkaccess.webFilteringActionAllow"
+        }
+      }
+    }
+  }
+]

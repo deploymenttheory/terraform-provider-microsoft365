@@ -18,3 +18,18 @@ type NetworkFilteringProfilePolicyLinkResourceModel struct {
 	Version            types.String   `tfsdk:"version"`
 	Timeouts           timeouts.Value `tfsdk:"timeouts"`
 }
+
+// policyLinkRequest is the raw JSON policy link body sent to /networkAccess/filteringProfiles/{id}/policies.
+type policyLinkRequest struct {
+	ODataType    string           `json:"@odata.type,omitempty"` //nolint:tagliatelle // Graph requires the literal OData discriminator key.
+	Priority     *int64           `json:"priority,omitempty"`
+	State        string           `json:"state,omitempty"`
+	LoggingState string           `json:"loggingState,omitempty"`
+	Policy       *policyReference `json:"policy,omitempty"`
+}
+
+// policyReference references the existing policy a new link points to.
+type policyReference struct {
+	ID        string `json:"id,omitempty"`
+	ODataType string `json:"@odata.type,omitempty"` //nolint:tagliatelle // Graph requires the literal OData discriminator key.
+}

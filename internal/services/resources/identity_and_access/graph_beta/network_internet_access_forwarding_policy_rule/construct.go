@@ -2,10 +2,12 @@ package graphBetaNetworkInternetAccessForwardingPolicyRule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 const (
@@ -16,258 +18,115 @@ const (
 	ipSubnetODataType                     = "#microsoft.graph.networkaccess.ipSubnet"
 )
 
-// constructResource converts the Terraform resource model to a Microsoft Graph request body.
-func constructResource(ctx context.Context, data *NetworkInternetAccessForwardingPolicyRuleResourceModel, includeID bool) (s.Parsable, error) {
-	ports, err := stringSetValues(ctx, data.Ports)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read ports: %w", err)
+var (
+	errReadAttribute              = errors.New("failed to read")
+	errDestinationTypeMismatch    = errors.New("destination type must match rule_type")
+	errDestinationValueRequired   = errors.New("destination value is required")
+	errDestinationRangeRequired   = errors.New("begin_address and end_address are required")
+	errUnsupportedDestinationType = errors.New("unsupported destination type")
+	errNoDestinations             = errors.New("at least one destination must be specified")
+)
+
+// ruleTypeToGraph maps the Terraform rule and destination types to the Graph ruleType values.
+var ruleTypeToGraph = map[string]string{
+	ruleTypeFQDN:      "fqdn",
+	ruleTypeIPAddress: "ipAddress",
+	ruleTypeIPRange:   "ipRange",
+	ruleTypeIPSubnet:  "ipSubnet",
+}
+
+// constructResource converts the Terraform resource model to a Microsoft Graph request body. The update body carries
+// the rule id and leaves out name, action and clientFallbackAction, which Graph accepts only on create.
+func constructResource(ctx context.Context, data *NetworkInternetAccessForwardingPolicyRuleResourceModel, includeID bool) (networkaccess.InternetAccessForwardingRuleable, error) {
+	var ports []string
+	if !data.Ports.IsNull() && !data.Ports.IsUnknown() {
+		if diags := data.Ports.ElementsAs(ctx, &ports, false); diags.HasError() {
+			return nil, fmt.Errorf("%w ports: %s", errReadAttribute, diags.Errors()[0].Detail())
+		}
 	}
-	if err := validateDestinationsMatchRuleType(ctx, data.RuleType.ValueString(), data.Destinations); err != nil {
-		return nil, err
+
+	var terraformDestinations []RuleDestinationModel
+	if !data.Destinations.IsNull() && !data.Destinations.IsUnknown() {
+		if diags := data.Destinations.ElementsAs(ctx, &terraformDestinations, false); diags.HasError() {
+			return nil, fmt.Errorf("%w destinations: %s", errReadAttribute, diags.Errors()[0].Detail())
+		}
 	}
-	destinations, err := destinationValues(ctx, data.Destinations)
-	if err != nil {
-		return nil, err
+	for _, destination := range terraformDestinations {
+		if destination.Type.ValueString() != data.RuleType.ValueString() {
+			return nil, fmt.Errorf("%w: destination type %q, rule_type %q", errDestinationTypeMismatch, destination.Type.ValueString(), data.RuleType.ValueString())
+		}
+	}
+
+	destinations := make([]networkaccess.RuleDestinationable, 0, len(terraformDestinations))
+	for _, item := range terraformDestinations {
+		destinationType := item.Type.ValueString()
+		if destinationType == ruleTypeIPRange {
+			if item.BeginAddress.ValueString() == "" || item.EndAddress.ValueString() == "" {
+				return nil, fmt.Errorf("%w when destination type is %s", errDestinationRangeRequired, ruleTypeIPRange)
+			}
+			destination := networkaccess.NewIpRange()
+			destination.SetBeginAddress(item.BeginAddress.ValueStringPointer())
+			destination.SetEndAddress(item.EndAddress.ValueStringPointer())
+			destinations = append(destinations, destination)
+			continue
+		}
+
+		// fqdn, ipAddress and ipSubnet destinations all carry a single value.
+		var destination interface {
+			networkaccess.RuleDestinationable
+			SetValue(value *string)
+		}
+		switch destinationType {
+		case ruleTypeFQDN:
+			destination = networkaccess.NewFqdn()
+		case ruleTypeIPAddress:
+			destination = networkaccess.NewIpAddress()
+		case ruleTypeIPSubnet:
+			destination = networkaccess.NewIpSubnet()
+		default:
+			return nil, fmt.Errorf("%w %q", errUnsupportedDestinationType, destinationType)
+		}
+		if item.Value.ValueString() == "" {
+			return nil, fmt.Errorf("%w when type is %s", errDestinationValueRequired, destinationType)
+		}
+		destination.SetValue(item.Value.ValueStringPointer())
+		destinations = append(destinations, destination)
 	}
 	if len(destinations) == 0 {
-		return nil, fmt.Errorf("at least one destination must be specified")
+		return nil, errNoDestinations
 	}
 
-	body := &internetAccessForwardingRuleRequestBody{
-		ODataType:    internetAccessForwardingRuleODataType,
-		RuleType:     graphRuleType(data.RuleType.ValueString()),
-		Ports:        ports,
-		Protocol:     data.Protocol.ValueString(),
-		Destinations: destinations,
+	requestBody := networkaccess.NewInternetAccessForwardingRule()
+	requestBody.SetDestinations(destinations)
+	if len(ports) > 0 {
+		requestBody.SetPorts(ports)
 	}
-	if includeID && !data.ID.IsNull() && !data.ID.IsUnknown() {
-		body.ID = data.ID.ValueString()
-	}
-	if !includeID {
-		body.Name = data.Name.ValueString()
-		body.Action = data.Action.ValueString()
-		// Graph accepts clientFallbackAction only on create.
-		if !data.ClientFallbackAction.IsNull() && !data.ClientFallbackAction.IsUnknown() {
-			body.ClientFallbackAction = data.ClientFallbackAction.ValueString()
-		}
-	}
-	return body, nil
-}
-
-// stringSetValues converts a Terraform string set to request values.
-func stringSetValues(ctx context.Context, value types.Set) ([]string, error) {
-	if value.IsNull() || value.IsUnknown() {
-		return nil, nil
-	}
-	var result []string
-	diags := value.ElementsAs(ctx, &result, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
-	}
-	return result, nil
-}
-
-// destinationValues converts Terraform destinations to request values.
-func destinationValues(ctx context.Context, value types.List) ([]s.Parsable, error) {
-	if value.IsNull() || value.IsUnknown() {
-		return nil, nil
-	}
-	var terraformValues []RuleDestinationModel
-	diags := value.ElementsAs(ctx, &terraformValues, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
-	}
-
-	result := make([]s.Parsable, 0, len(terraformValues))
-	for _, item := range terraformValues {
-		destination, err := destinationRequestBody(item)
+	if ruleType, ok := ruleTypeToGraph[data.RuleType.ValueString()]; ok {
+		parsed, err := networkaccess.ParseNetworkDestinationType(ruleType)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to parse rule_type: %w", err)
 		}
-		result = append(result, destination)
+		requestBody.SetRuleType(parsed.(*networkaccess.NetworkDestinationType))
 	}
-	return result, nil
-}
+	if err := convert.FrameworkToGraphEnum(data.Protocol, networkaccess.ParseNetworkingProtocol, requestBody.SetProtocol); err != nil {
+		return nil, fmt.Errorf("failed to set protocol: %w", err)
+	}
 
-// validateDestinationsMatchRuleType validates that destinations match the configured forwarding rule type.
-func validateDestinationsMatchRuleType(ctx context.Context, ruleType string, destinations types.List) error {
-	if destinations.IsNull() || destinations.IsUnknown() {
-		return nil
-	}
-	var terraformValues []RuleDestinationModel
-	diags := destinations.ElementsAs(ctx, &terraformValues, false)
-	if diags.HasError() {
-		return fmt.Errorf("%s", diags.Errors()[0].Detail())
-	}
-	for _, destination := range terraformValues {
-		if destination.Type.ValueString() != ruleType {
-			return fmt.Errorf("destination type %q must match rule_type %q", destination.Type.ValueString(), ruleType)
+	if includeID {
+		if !data.ID.IsNull() && !data.ID.IsUnknown() {
+			requestBody.SetId(data.ID.ValueStringPointer())
 		}
+		return requestBody, nil
 	}
-	return nil
-}
 
-// destinationRequestBody builds a forwarding rule destination request.
-func destinationRequestBody(item RuleDestinationModel) (s.Parsable, error) {
-	switch item.Type.ValueString() {
-	case ruleTypeFQDN:
-		if item.Value.IsNull() || item.Value.ValueString() == "" {
-			return nil, fmt.Errorf("destination value is required when type is %s", ruleTypeFQDN)
-		}
-		return &ruleDestinationRequestBody{ODataType: fqdnODataType, Value: item.Value.ValueString()}, nil
-	case ruleTypeIPAddress:
-		if item.Value.IsNull() || item.Value.ValueString() == "" {
-			return nil, fmt.Errorf("destination value is required when type is %s", ruleTypeIPAddress)
-		}
-		return &ruleDestinationRequestBody{ODataType: ipAddressODataType, Value: item.Value.ValueString()}, nil
-	case ruleTypeIPSubnet:
-		if item.Value.IsNull() || item.Value.ValueString() == "" {
-			return nil, fmt.Errorf("destination value is required when type is %s", ruleTypeIPSubnet)
-		}
-		return &ruleDestinationRequestBody{ODataType: ipSubnetODataType, Value: item.Value.ValueString()}, nil
-	case ruleTypeIPRange:
-		if item.BeginAddress.IsNull() || item.BeginAddress.ValueString() == "" || item.EndAddress.IsNull() || item.EndAddress.ValueString() == "" {
-			return nil, fmt.Errorf("begin_address and end_address are required when destination type is %s", ruleTypeIPRange)
-		}
-		return &ruleDestinationRequestBody{
-			ODataType:    ipRangeODataType,
-			BeginAddress: item.BeginAddress.ValueString(),
-			EndAddress:   item.EndAddress.ValueString(),
-		}, nil
-	default:
-		return nil, fmt.Errorf("unsupported destination type %q", item.Type.ValueString())
+	requestBody.SetName(data.Name.ValueStringPointer())
+	if err := convert.FrameworkToGraphEnum(data.Action, networkaccess.ParseForwardingRuleAction, requestBody.SetAction); err != nil {
+		return nil, fmt.Errorf("failed to set action: %w", err)
 	}
-}
+	// Graph accepts clientFallbackAction only on create.
+	if err := convert.FrameworkToGraphEnum(data.ClientFallbackAction, networkaccess.ParseClientFallbackAction, requestBody.SetClientFallbackAction); err != nil {
+		return nil, fmt.Errorf("failed to set client_fallback_action: %w", err)
+	}
 
-// graphRuleType converts the Terraform forwarding rule type to its Microsoft Graph discriminator.
-func graphRuleType(value string) string {
-	switch value {
-	case ruleTypeIPAddress:
-		return "ipAddress"
-	case ruleTypeIPRange:
-		return "ipRange"
-	case ruleTypeIPSubnet:
-		return "ipSubnet"
-	default:
-		return value
-	}
-}
-
-// terraformRuleType converts the Microsoft Graph discriminator to the Terraform forwarding rule type.
-func terraformRuleType(value string) string {
-	switch value {
-	case "ipAddress":
-		return ruleTypeIPAddress
-	case "ipRange":
-		return ruleTypeIPRange
-	case "ipSubnet":
-		return ruleTypeIPSubnet
-	default:
-		return value
-	}
-}
-
-// internetAccessForwardingRuleRequestBody represents the writable fields of an internet access forwarding rule.
-type internetAccessForwardingRuleRequestBody struct {
-	ODataType string
-	ID        string
-	Name      string
-	RuleType  string
-	Action    string
-	// ClientFallbackAction is sent on create only.
-	ClientFallbackAction string
-	Ports                []string
-	Protocol             string
-	Destinations         []s.Parsable
-}
-
-// Serialize serializes the request body for Microsoft Graph.
-func (b *internetAccessForwardingRuleRequestBody) Serialize(writer s.SerializationWriter) error {
-	if b.ODataType != "" {
-		if err := writer.WriteStringValue("@odata.type", &b.ODataType); err != nil {
-			return err
-		}
-	}
-	if b.ID != "" {
-		if err := writer.WriteStringValue("id", &b.ID); err != nil {
-			return err
-		}
-	}
-	if b.Name != "" {
-		if err := writer.WriteStringValue("name", &b.Name); err != nil {
-			return err
-		}
-	}
-	if b.Action != "" {
-		if err := writer.WriteStringValue("action", &b.Action); err != nil {
-			return err
-		}
-	}
-	if b.ClientFallbackAction != "" {
-		if err := writer.WriteStringValue("clientFallbackAction", &b.ClientFallbackAction); err != nil {
-			return fmt.Errorf("failed to write clientFallbackAction: %w", err)
-		}
-	}
-	if b.RuleType != "" {
-		if err := writer.WriteStringValue("ruleType", &b.RuleType); err != nil {
-			return err
-		}
-	}
-	if len(b.Ports) > 0 {
-		if err := writer.WriteCollectionOfStringValues("ports", b.Ports); err != nil {
-			return err
-		}
-	}
-	if b.Protocol != "" {
-		if err := writer.WriteStringValue("protocol", &b.Protocol); err != nil {
-			return err
-		}
-	}
-	if len(b.Destinations) > 0 {
-		if err := writer.WriteCollectionOfObjectValues("destinations", b.Destinations); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// GetFieldDeserializers returns no deserializers because this request model is write-only.
-func (b *internetAccessForwardingRuleRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-// ruleDestinationRequestBody represents a forwarding rule destination in a Microsoft Graph request.
-type ruleDestinationRequestBody struct {
-	ODataType    string
-	Value        string
-	BeginAddress string
-	EndAddress   string
-}
-
-// Serialize serializes the request body for Microsoft Graph.
-func (b *ruleDestinationRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteStringValue("@odata.type", &b.ODataType); err != nil {
-		return err
-	}
-	if b.Value != "" {
-		if err := writer.WriteStringValue("value", &b.Value); err != nil {
-			return err
-		}
-	}
-	if b.BeginAddress != "" {
-		if err := writer.WriteStringValue("beginAddress", &b.BeginAddress); err != nil {
-			return err
-		}
-	}
-	if b.EndAddress != "" {
-		if err := writer.WriteStringValue("endAddress", &b.EndAddress); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// GetFieldDeserializers returns no deserializers because this request model is write-only.
-func (b *ruleDestinationRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
+	return requestBody, nil
 }

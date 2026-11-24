@@ -1,0 +1,15 @@
+[
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/filteringProfiles",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Test filtering profile for unit testing",
+      "name": "unit-test-filtering-profile-minimal",
+      "priority": 100,
+      "state": "enabled"
+    }
+  }
+]

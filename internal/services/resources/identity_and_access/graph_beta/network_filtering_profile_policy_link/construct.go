@@ -2,10 +2,11 @@ package graphBetaNetworkFilteringProfilePolicyLink
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const (
@@ -50,17 +51,12 @@ const (
 	tlsInspectionPolicyODataType          = "#microsoft.graph.networkaccess.tlsInspectionPolicy"
 )
 
+var errUnsupportedPolicyType = errors.New("unsupported policy_type")
+
+// policyODataTypes holds the OData types of a policy link and of the policy it links.
 type policyODataTypes struct {
 	link   string
 	policy string
-}
-
-func resolvePolicyODataTypes(data *NetworkFilteringProfilePolicyLinkResourceModel) (policyODataTypes, error) {
-	if odataTypes, ok := policyTypeToODataTypes[data.PolicyType.ValueString()]; ok {
-		return odataTypes, nil
-	}
-
-	return policyODataTypes{}, fmt.Errorf("unsupported policy_type %q", data.PolicyType.ValueString())
 }
 
 var policyTypeToODataTypes = map[string]policyODataTypes{
@@ -98,23 +94,17 @@ var policyTypeToODataTypes = map[string]policyODataTypes{
 	},
 }
 
-func policyTypeFromODataTypes(linkODataType, policyODataType string) (types.String, bool) {
-	for policyType, odataTypes := range policyTypeToODataTypes {
-		if linkODataType != "" && odataTypes.link == linkODataType {
-			return types.StringValue(policyType), true
-		}
-		if policyODataType != "" && odataTypes.policy == policyODataType {
-			return types.StringValue(policyType), true
-		}
-	}
+// constructResource builds the policy link body. The create body references the linked policy and, for filtering
+// links, carries priority and loggingState; the update body carries only the link type and state.
+//
+// It also fills the computed request fields on data so state matches what was sent: filtering links default
+// priority to 100 and logging_state to enabled, and every other link type has neither.
+func constructResource(ctx context.Context, data *NetworkFilteringProfilePolicyLinkResourceModel, includePolicy bool) (policyLinkRequest, error) {
+	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	return types.StringNull(), false
-}
-
-func populateComputedRequestFields(data *NetworkFilteringProfilePolicyLinkResourceModel) error {
-	_, err := resolvePolicyODataTypes(data)
-	if err != nil {
-		return err
+	odataTypes, ok := policyTypeToODataTypes[data.PolicyType.ValueString()]
+	if !ok {
+		return policyLinkRequest{}, fmt.Errorf("%w %q", errUnsupportedPolicyType, data.PolicyType.ValueString())
 	}
 
 	if data.PolicyType.ValueString() == policyTypeFiltering {
@@ -124,137 +114,23 @@ func populateComputedRequestFields(data *NetworkFilteringProfilePolicyLinkResour
 		if data.LoggingState.IsNull() || data.LoggingState.IsUnknown() {
 			data.LoggingState = types.StringValue("enabled")
 		}
-		return nil
+	} else {
+		data.Priority = types.Int64Null()
+		data.LoggingState = types.StringNull()
 	}
 
-	data.Priority = types.Int64Null()
-	data.LoggingState = types.StringNull()
-	return nil
-}
-
-func constructCreateResource(ctx context.Context, data *NetworkFilteringProfilePolicyLinkResourceModel) (s.Parsable, error) {
-	_ = ctx
-
-	odataTypes, err := resolvePolicyODataTypes(data)
-	if err != nil {
-		return nil, err
+	requestBody := policyLinkRequest{ODataType: odataTypes.link, State: data.State.ValueString()}
+	if !includePolicy {
+		return requestBody, nil
 	}
 
-	body := &policyLinkRequestBody{
-		State:           data.State.ValueString(),
-		PolicyID:        data.PolicyID.ValueString(),
-		ODataType:       odataTypes.link,
-		PolicyODataType: odataTypes.policy,
+	if data.PolicyID.ValueString() != "" {
+		requestBody.Policy = &policyReference{ID: data.PolicyID.ValueString(), ODataType: odataTypes.policy}
+	}
+	if data.PolicyType.ValueString() == policyTypeFiltering {
+		requestBody.Priority = data.Priority.ValueInt64Pointer()
+		requestBody.LoggingState = data.LoggingState.ValueString()
 	}
 
-	switch data.PolicyType.ValueString() {
-	case policyTypeFiltering:
-		body.Priority = int64Ptr(100)
-		if !data.Priority.IsNull() && !data.Priority.IsUnknown() {
-			body.Priority = int64Ptr(data.Priority.ValueInt64())
-		}
-		body.LoggingState = "enabled"
-		if !data.LoggingState.IsNull() && !data.LoggingState.IsUnknown() {
-			body.LoggingState = data.LoggingState.ValueString()
-		}
-	}
-
-	return body, nil
-}
-
-func constructUpdateResource(ctx context.Context, data *NetworkFilteringProfilePolicyLinkResourceModel) (s.Parsable, error) {
-	_ = ctx
-
-	odataTypes, err := resolvePolicyODataTypes(data)
-	if err != nil {
-		return nil, err
-	}
-
-	body := &policyLinkRequestBody{
-		State:     data.State.ValueString(),
-		ODataType: odataTypes.link,
-	}
-
-	return body, nil
-}
-
-type policyLinkRequestBody struct {
-	ODataType       string
-	State           string
-	Priority        *int64
-	LoggingState    string
-	PolicyID        string
-	PolicyODataType string
-}
-
-func (b *policyLinkRequestBody) Serialize(writer s.SerializationWriter) error {
-	if b.ODataType != "" {
-		if err := writer.WriteStringValue("@odata.type", &b.ODataType); err != nil {
-			return err
-		}
-	}
-	if b.Priority != nil {
-		if err := writer.WriteInt64Value("priority", b.Priority); err != nil {
-			return err
-		}
-	}
-	if b.State != "" {
-		if err := writer.WriteStringValue("state", &b.State); err != nil {
-			return err
-		}
-	}
-	if b.LoggingState != "" {
-		if err := writer.WriteStringValue("loggingState", &b.LoggingState); err != nil {
-			return err
-		}
-	}
-	if b.PolicyID != "" {
-		policy := &policyReferenceRequestBody{
-			ID:        b.PolicyID,
-			ODataType: b.PolicyODataType,
-		}
-		if err := writer.WriteObjectValue("policy", policy); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (b *policyLinkRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-func (b *policyLinkRequestBody) GetAdditionalData() map[string]any {
-	return nil
-}
-
-type policyReferenceRequestBody struct {
-	ID        string
-	ODataType string
-}
-
-func (b *policyReferenceRequestBody) Serialize(writer s.SerializationWriter) error {
-	if b.ID != "" {
-		if err := writer.WriteStringValue("id", &b.ID); err != nil {
-			return err
-		}
-	}
-	if b.ODataType != "" {
-		if err := writer.WriteStringValue("@odata.type", &b.ODataType); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (b *policyReferenceRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-func (b *policyReferenceRequestBody) GetAdditionalData() map[string]any {
-	return nil
-}
-
-func int64Ptr(v int64) *int64 {
-	return &v
+	return requestBody, nil
 }

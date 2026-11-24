@@ -38,6 +38,7 @@ func TestUnitResourceNetworkFilteringProfile_01_Basic(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	defer filteringProfileMock.CleanupMockState()
 
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -58,6 +59,7 @@ func TestUnitResourceNetworkFilteringProfile_01_Basic(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/basic.json")
 }
 
 func TestUnitResourceNetworkFilteringProfile_02_Update(t *testing.T) {
@@ -66,6 +68,7 @@ func TestUnitResourceNetworkFilteringProfile_02_Update(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	defer filteringProfileMock.CleanupMockState()
 
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -92,6 +95,7 @@ func TestUnitResourceNetworkFilteringProfile_02_Update(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/update.json")
 }
 
 func TestUnitResourceNetworkFilteringProfile_03_InvalidState(t *testing.T) {
@@ -117,6 +121,7 @@ func TestUnitResourceNetworkFilteringProfile_04_CreateError(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	defer filteringProfileMock.CleanupMockState()
 
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -126,6 +131,29 @@ func TestUnitResourceNetworkFilteringProfile_04_CreateError(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/create_error.json")
+}
+
+func TestUnitResourceNetworkFilteringProfile_05_NoDescription(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, filteringProfileMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer filteringProfileMock.CleanupMockState()
+
+	capture := mocks.CaptureGraphRequests(t)
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigHelper("resource_no_description.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceType+".test").Key("name").HasValue("unit-test-filtering-profile-no-description"),
+					check.That(resourceType+".test").Key("priority").HasValue("300"),
+				),
+			},
+		},
+	})
+	capture.AssertMatchesFixture(t, "tests/requests/no_description.json")
 }
 
 func testConfigHelper(filename string) string {

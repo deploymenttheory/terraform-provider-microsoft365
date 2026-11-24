@@ -10,6 +10,7 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -26,12 +27,23 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Create(ctx context.Context,
 	}
 	defer cancel()
 
-	if err := r.patchPolicyLinkState(ctx, object.ForwardingProfileID.ValueString(), object.PolicyLinkID.ValueString(), constructResource(&object)); err != nil {
+	// The link is Microsoft-managed, so Create adopts it by setting its state.
+	requestBody, err := constructResource(&object)
+	if err != nil {
+		resp.Diagnostics.AddError("Error constructing forwarding policy link", err.Error())
+		return
+	}
+	profileBuilder := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(object.ForwardingProfileID.ValueString())
+	linkBuilder := profileBuilder.Policies().ByPolicyLinkId(object.PolicyLinkID.ValueString())
+	if _, err := linkBuilder.Patch(ctx, requestBody, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
-	object.ID = compositeID(object.ForwardingProfileID.ValueString(), object.PolicyLinkID.ValueString())
+	object.ID = types.StringNull()
+	if object.ForwardingProfileID.ValueString() != "" && object.PolicyLinkID.ValueString() != "" {
+		object.ID = types.StringValue(object.ForwardingProfileID.ValueString() + "/" + object.PolicyLinkID.ValueString())
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -39,9 +51,7 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Create(ctx context.Context,
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationCreate
-	opts.ResourceTypeName = ResourceName
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName)
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading forwarding policy link state after create", err.Error())
 	}
@@ -77,7 +87,8 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Read(ctx context.Context, r
 		}
 	}
 
-	link, err := r.getPolicyLink(ctx, object.ForwardingProfileID.ValueString(), object.PolicyLinkID.ValueString())
+	profileBuilder := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(object.ForwardingProfileID.ValueString())
+	link, err := profileBuilder.Policies().ByPolicyLinkId(object.PolicyLinkID.ValueString()).Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -106,7 +117,14 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Update(ctx context.Context,
 	}
 	defer cancel()
 
-	if err := r.patchPolicyLinkState(ctx, state.ForwardingProfileID.ValueString(), state.PolicyLinkID.ValueString(), constructResource(&plan)); err != nil {
+	requestBody, err := constructResource(&plan)
+	if err != nil {
+		resp.Diagnostics.AddError("Error constructing forwarding policy link update", err.Error())
+		return
+	}
+	profileBuilder := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(state.ForwardingProfileID.ValueString())
+	linkBuilder := profileBuilder.Policies().ByPolicyLinkId(state.PolicyLinkID.ValueString())
+	if _, err := linkBuilder.Patch(ctx, requestBody, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -121,9 +139,7 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Update(ctx context.Context,
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationUpdate
-	opts.ResourceTypeName = ResourceName
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName)
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading forwarding policy link state after update", err.Error())
 	}

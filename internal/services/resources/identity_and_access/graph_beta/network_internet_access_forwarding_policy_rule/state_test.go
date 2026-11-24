@@ -5,31 +5,32 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 )
 
 func TestMapRemoteStateToTerraformInternetAccessForwardingRule(t *testing.T) {
 	id := "66f1c2ee-9f17-4681-a7bc-c324e7dff554"
 	name := "Custom Acquire policy internet rule"
-	ruleType := "fqdn"
-	action := "forward"
-	clientFallbackAction := "block"
-	protocol := "udp"
-	odataType := fqdnODataType
+	ruleType := networkaccess.FQDN_NETWORKDESTINATIONTYPE
+	action := networkaccess.FORWARD_FORWARDINGRULEACTION
+	clientFallbackAction := networkaccess.BLOCK_CLIENTFALLBACKACTION
+	protocol := networkaccess.UDP_NETWORKINGPROTOCOL
 	value := "example.com"
 
+	fqdn := networkaccess.NewFqdn()
+	fqdn.SetValue(&value)
+	remote := networkaccess.NewInternetAccessForwardingRule()
+	remote.SetId(&id)
+	remote.SetName(&name)
+	remote.SetRuleType(&ruleType)
+	remote.SetAction(&action)
+	remote.SetClientFallbackAction(&clientFallbackAction)
+	remote.SetPorts([]string{"80", "443"})
+	remote.SetProtocol(&protocol)
+	remote.SetDestinations([]networkaccess.RuleDestinationable{fqdn})
+
 	data := &NetworkInternetAccessForwardingPolicyRuleResourceModel{}
-	MapRemoteStateToTerraform(context.Background(), data, &internetAccessForwardingRuleResponse{
-		id:                   &id,
-		name:                 &name,
-		ruleType:             &ruleType,
-		action:               &action,
-		clientFallbackAction: &clientFallbackAction,
-		ports:                []string{"80", "443"},
-		protocol:             &protocol,
-		destinations: []ruleDestinationResponse{
-			{odataType: &odataType, value: &value},
-		},
-	})
+	MapRemoteStateToTerraform(context.Background(), data, remote)
 
 	if data.ID.ValueString() != id {
 		t.Fatalf("id = %q, want %q", data.ID.ValueString(), id)
@@ -37,8 +38,8 @@ func TestMapRemoteStateToTerraformInternetAccessForwardingRule(t *testing.T) {
 	if data.ClientFallbackAction.ValueString() != "block" {
 		t.Fatalf("client_fallback_action = %q, want block", data.ClientFallbackAction.ValueString())
 	}
-	if data.RuleType.ValueString() != ruleType {
-		t.Fatalf("rule_type = %q, want %q", data.RuleType.ValueString(), ruleType)
+	if data.RuleType.ValueString() != ruleTypeFQDN {
+		t.Fatalf("rule_type = %q, want %q", data.RuleType.ValueString(), ruleTypeFQDN)
 	}
 	if data.Ports.Elements()[0].String() != "\"80\"" || data.Ports.Elements()[1].String() != "\"443\"" {
 		t.Fatalf("ports = %#v, want 80 and 443", data.Ports.Elements())

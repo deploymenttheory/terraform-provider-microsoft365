@@ -18,3 +18,12 @@ type NetworkFilteringProfileResourceModel struct {
 	Version              types.String   `tfsdk:"version"`
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
 }
+
+// filteringProfileRequest is the raw JSON filtering profile body. It carries only the fields Graph accepts on create
+// and update.
+type filteringProfileRequest struct {
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	Priority    *int64  `json:"priority,omitempty"`
+	State       *string `json:"state,omitempty"`
+}

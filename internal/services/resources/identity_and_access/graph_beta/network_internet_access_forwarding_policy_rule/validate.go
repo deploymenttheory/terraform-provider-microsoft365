@@ -39,30 +39,22 @@ func (v portValidator) ValidateString(
 		return
 	}
 	value := req.ConfigValue.ValueString()
-	if !validPort(value) {
+	valid := false
+	if match := portRegex.FindStringSubmatch(value); match != nil {
+		begin, beginErr := strconv.Atoi(match[1])
+		end, endErr := begin, error(nil)
+		if match[2] != "" {
+			end, endErr = strconv.Atoi(match[2])
+		}
+		valid = beginErr == nil && endErr == nil && end <= 65535 && begin <= end
+	}
+	if !valid {
 		resp.Diagnostics.AddAttributeError(
 			req.Path,
 			"Invalid port",
 			fmt.Sprintf("Port %q %s.", value, v.Description(ctx)),
 		)
 	}
-}
-
-func validPort(value string) bool {
-	match := portRegex.FindStringSubmatch(value)
-	if match == nil {
-		return false
-	}
-	begin, err := strconv.Atoi(match[1])
-	if err != nil || begin > 65535 {
-		return false
-	}
-	if match[2] == "" {
-		return true
-	}
-	end, err := strconv.Atoi(match[2])
-
-	return err == nil && end <= 65535 && begin <= end
 }
 
 var _ validator.String = portValidator{}
@@ -93,6 +85,74 @@ func (v destinationsValidator) ValidateResource(
 		return
 	}
 
+	known := func(value types.String) bool {
+		return !value.IsNull() && !value.IsUnknown()
+	}
+	stringAttr := func(attrs map[string]attr.Value, name string) types.String {
+		if value, ok := attrs[name].(types.String); ok {
+			return value
+		}
+		return types.StringNull()
+	}
+	requireSet := func(value types.String, attrPath path.Path, destinationType string) {
+		if value.IsUnknown() || (!value.IsNull() && value.ValueString() != "") {
+			return
+		}
+		resp.Diagnostics.AddAttributeError(attrPath, "Missing destination field", fmt.Sprintf("This field is required when the destination type is %q.", destinationType))
+	}
+	requireUnset := func(value types.String, attrPath path.Path, destinationType string) {
+		if !known(value) {
+			return
+		}
+		resp.Diagnostics.AddAttributeError(attrPath, "Unexpected destination field", fmt.Sprintf("This field cannot be set when the destination type is %q.", destinationType))
+	}
+	parseIPv4 := func(value types.String, attrPath path.Path) (netip.Addr, bool) {
+		if !known(value) || value.ValueString() == "" {
+			return netip.Addr{}, false
+		}
+		addr, err := netip.ParseAddr(value.ValueString())
+		if err != nil || !addr.Is4() {
+			resp.Diagnostics.AddAttributeError(attrPath, "Invalid IP address", fmt.Sprintf("%q must be an IPv4 address; Graph rejects IPv6.", value.ValueString()))
+			return netip.Addr{}, false
+		}
+		return addr, true
+	}
+	checkDestinationFields := func(destinationType string, attrs map[string]attr.Value, itemPath path.Path) {
+		value := stringAttr(attrs, "value")
+		begin := stringAttr(attrs, "begin_address")
+		end := stringAttr(attrs, "end_address")
+
+		if destinationType == ruleTypeIPRange {
+			requireUnset(value, itemPath.AtName("value"), destinationType)
+			requireSet(begin, itemPath.AtName("begin_address"), destinationType)
+			requireSet(end, itemPath.AtName("end_address"), destinationType)
+			beginAddr, beginOK := parseIPv4(begin, itemPath.AtName("begin_address"))
+			endAddr, endOK := parseIPv4(end, itemPath.AtName("end_address"))
+			if beginOK && endOK && endAddr.Less(beginAddr) {
+				detail := fmt.Sprintf("end_address %s must not be lower than begin_address %s.", endAddr, beginAddr)
+				resp.Diagnostics.AddAttributeError(itemPath.AtName("end_address"), "Invalid IP range", detail)
+			}
+			return
+		}
+
+		requireSet(value, itemPath.AtName("value"), destinationType)
+		requireUnset(begin, itemPath.AtName("begin_address"), destinationType)
+		requireUnset(end, itemPath.AtName("end_address"), destinationType)
+		if !known(value) || value.ValueString() == "" {
+			return
+		}
+		switch destinationType {
+		case ruleTypeIPAddress:
+			parseIPv4(value, itemPath.AtName("value"))
+		case ruleTypeIPSubnet:
+			prefix, err := netip.ParsePrefix(value.ValueString())
+			if err != nil || !prefix.Addr().Is4() {
+				detail := fmt.Sprintf("%q must be an IPv4 CIDR such as 198.51.100.0/24; Graph rejects IPv6.", value.ValueString())
+				resp.Diagnostics.AddAttributeError(itemPath.AtName("value"), "Invalid IP subnet", detail)
+			}
+		}
+	}
+
 	for i, element := range destinations.Elements() {
 		destination, ok := element.(types.Object)
 		if !ok || destination.IsNull() || destination.IsUnknown() {
@@ -116,107 +176,8 @@ func (v destinationsValidator) ValidateResource(
 				),
 			)
 		}
-		validateDestinationFields(destinationType.ValueString(), attrs, itemPath, resp)
+		checkDestinationFields(destinationType.ValueString(), attrs, itemPath)
 	}
-}
-
-func validateDestinationFields(
-	destinationType string,
-	attrs map[string]attr.Value,
-	itemPath path.Path,
-	resp *resource.ValidateConfigResponse,
-) {
-	value := stringAttr(attrs, "value")
-	begin := stringAttr(attrs, "begin_address")
-	end := stringAttr(attrs, "end_address")
-
-	if destinationType == ruleTypeIPRange {
-		requireUnset(value, itemPath.AtName("value"), destinationType, resp)
-		requireSet(begin, itemPath.AtName("begin_address"), destinationType, resp)
-		requireSet(end, itemPath.AtName("end_address"), destinationType, resp)
-		beginAddr, beginOK := parseIPv4(begin, itemPath.AtName("begin_address"), resp)
-		endAddr, endOK := parseIPv4(end, itemPath.AtName("end_address"), resp)
-		if beginOK && endOK && endAddr.Less(beginAddr) {
-			resp.Diagnostics.AddAttributeError(
-				itemPath.AtName("end_address"),
-				"Invalid IP range",
-				fmt.Sprintf("end_address %s must not be lower than begin_address %s.", endAddr, beginAddr),
-			)
-		}
-		return
-	}
-
-	requireSet(value, itemPath.AtName("value"), destinationType, resp)
-	requireUnset(begin, itemPath.AtName("begin_address"), destinationType, resp)
-	requireUnset(end, itemPath.AtName("end_address"), destinationType, resp)
-	if !known(value) || value.ValueString() == "" {
-		return
-	}
-	switch destinationType {
-	case ruleTypeIPAddress:
-		parseIPv4(value, itemPath.AtName("value"), resp)
-	case ruleTypeIPSubnet:
-		prefix, err := netip.ParsePrefix(value.ValueString())
-		if err != nil || !prefix.Addr().Is4() {
-			resp.Diagnostics.AddAttributeError(
-				itemPath.AtName("value"),
-				"Invalid IP subnet",
-				fmt.Sprintf("%q must be an IPv4 CIDR such as 198.51.100.0/24; Graph rejects IPv6.", value.ValueString()),
-			)
-		}
-	}
-}
-
-func stringAttr(attrs map[string]attr.Value, name string) types.String {
-	value, ok := attrs[name].(types.String)
-	if !ok {
-		return types.StringNull()
-	}
-
-	return value
-}
-
-func known(value types.String) bool {
-	return !value.IsNull() && !value.IsUnknown()
-}
-
-func requireSet(value types.String, attrPath path.Path, destinationType string, resp *resource.ValidateConfigResponse) {
-	if value.IsUnknown() || (!value.IsNull() && value.ValueString() != "") {
-		return
-	}
-	resp.Diagnostics.AddAttributeError(
-		attrPath,
-		"Missing destination field",
-		fmt.Sprintf("This field is required when the destination type is %q.", destinationType),
-	)
-}
-
-func requireUnset(value types.String, attrPath path.Path, destinationType string, resp *resource.ValidateConfigResponse) {
-	if !known(value) {
-		return
-	}
-	resp.Diagnostics.AddAttributeError(
-		attrPath,
-		"Unexpected destination field",
-		fmt.Sprintf("This field cannot be set when the destination type is %q.", destinationType),
-	)
-}
-
-func parseIPv4(value types.String, attrPath path.Path, resp *resource.ValidateConfigResponse) (netip.Addr, bool) {
-	if !known(value) || value.ValueString() == "" {
-		return netip.Addr{}, false
-	}
-	addr, err := netip.ParseAddr(value.ValueString())
-	if err != nil || !addr.Is4() {
-		resp.Diagnostics.AddAttributeError(
-			attrPath,
-			"Invalid IP address",
-			fmt.Sprintf("%q must be an IPv4 address; Graph rejects IPv6.", value.ValueString()),
-		)
-		return netip.Addr{}, false
-	}
-
-	return addr, true
 }
 
 var _ resource.ConfigValidator = destinationsValidator{}

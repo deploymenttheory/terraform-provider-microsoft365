@@ -19,7 +19,10 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfil
 	policyLinkID := convert.GraphToFrameworkString(link.GetId())
 	data.FilteringProfileID = types.StringValue(filteringProfileID)
 	data.PolicyLinkID = policyLinkID
-	data.ID = compositeID(filteringProfileID, policyLinkID.ValueString())
+	data.ID = types.StringNull()
+	if filteringProfileID != "" && policyLinkID.ValueString() != "" {
+		data.ID = types.StringValue(filteringProfileID + "/" + policyLinkID.ValueString())
+	}
 	data.State = convert.GraphToFrameworkEnum(link.GetState())
 	data.Version = convert.GraphToFrameworkString(link.GetVersion())
 
@@ -35,9 +38,15 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfil
 	if odataType := link.GetOdataType(); odataType != nil {
 		linkODataType = *odataType
 	}
-	if policyType, ok := policyTypeFromODataTypes(linkODataType, policyODataType); ok {
-		data.PolicyType = policyType
-	} else {
+	matched := false
+	for policyType, odataTypes := range policyTypeToODataTypes {
+		if (linkODataType != "" && odataTypes.link == linkODataType) || (policyODataType != "" && odataTypes.policy == policyODataType) {
+			data.PolicyType = types.StringValue(policyType)
+			matched = true
+			break
+		}
+	}
+	if !matched {
 		tflog.Warn(ctx, "Remote policy link type is not supported by this Terraform resource version", map[string]any{
 			"link_odata_type":   linkODataType,
 			"policy_odata_type": policyODataType,
@@ -53,31 +62,4 @@ func MapRemoteStateToTerraform(ctx context.Context, data *NetworkFilteringProfil
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished stating %s with id %s", ResourceName, data.ID.ValueString()))
-}
-
-func findPolicyLink(profile models.FilteringProfileable, policyLinkID, policyID string) models.PolicyLinkable {
-	if profile == nil {
-		return nil
-	}
-
-	for _, link := range profile.GetPolicies() {
-		if link == nil {
-			continue
-		}
-		if policyLinkID != "" {
-			if id := link.GetId(); id != nil && *id == policyLinkID {
-				return link
-			}
-			continue
-		}
-		if policyID != "" {
-			if policy := link.GetPolicy(); policy != nil {
-				if id := policy.GetId(); id != nil && *id == policyID {
-					return link
-				}
-			}
-		}
-	}
-
-	return nil
 }

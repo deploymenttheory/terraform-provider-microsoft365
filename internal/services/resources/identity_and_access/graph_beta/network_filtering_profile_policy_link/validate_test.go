@@ -1,12 +1,16 @@
 package graphBetaNetworkFilteringProfilePolicyLink
 
 import (
+	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestValidateFilteringPolicyOnlyFields(t *testing.T) {
+func TestFilteringPolicyOnlyFieldsValidator(t *testing.T) {
 	tests := []struct {
 		name         string
 		policyType   types.String
@@ -74,9 +78,28 @@ func TestValidateFilteringPolicyOnlyFields(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			diags := validateFilteringPolicyOnlyFields(tt.policyType, tt.priority, tt.loggingState)
-			if len(diags) != tt.wantErrors {
-				t.Fatalf("diagnostics count = %d, want %d: %#v", len(diags), tt.wantErrors, diags)
+			ctx := context.Background()
+			schemaResp := &resource.SchemaResponse{}
+			(&NetworkFilteringProfilePolicyLinkResource{}).Schema(ctx, resource.SchemaRequest{}, schemaResp)
+			objectType := schemaResp.Schema.Type().TerraformType(ctx).(tftypes.Object)
+			attrs := map[string]tftypes.Value{}
+			for name, typ := range objectType.AttributeTypes {
+				attrs[name] = tftypes.NewValue(typ, nil)
+			}
+			for name, value := range map[string]interface {
+				ToTerraformValue(context.Context) (tftypes.Value, error)
+			}{"policy_type": tt.policyType, "priority": tt.priority, "logging_state": tt.loggingState} {
+				tfValue, err := value.ToTerraformValue(ctx)
+				if err != nil {
+					t.Fatalf("convert %s: %v", name, err)
+				}
+				attrs[name] = tfValue
+			}
+
+			resp := &resource.ValidateConfigResponse{}
+			filteringPolicyOnlyFieldsValidator{}.ValidateResource(ctx, resource.ValidateConfigRequest{Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: tftypes.NewValue(objectType, attrs)}}, resp)
+			if resp.Diagnostics.ErrorsCount() != tt.wantErrors {
+				t.Fatalf("diagnostics count = %d, want %d: %#v", resp.Diagnostics.ErrorsCount(), tt.wantErrors, resp.Diagnostics)
 			}
 		})
 	}

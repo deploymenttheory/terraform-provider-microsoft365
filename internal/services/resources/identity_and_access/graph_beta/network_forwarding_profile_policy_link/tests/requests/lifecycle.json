@@ -1,0 +1,48 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}/policies/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}/policies/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}/policies/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}/policies/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}/policies/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}/policies/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}/policies/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicyLink",
+      "state": "disabled"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}/policies/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.forwardingPolicyLink",
+      "state": "enabled"
+    }
+  }
+]

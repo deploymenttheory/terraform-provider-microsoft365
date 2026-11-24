@@ -1,3 +1,21 @@
+// Package graphBetaNetworkFilteringProfilePolicyLink manages the policy links of Global Secure Access filtering profiles.
+//
+// SDK deviation: missing type
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0 has no webFilteringPolicyLink, promptPolicyLink,
+//     filePolicyLink or securityProviderPolicyLink model in models/networkaccess, and CreatePolicyLinkFromDiscriminatorValue
+//     does not know those discriminators, so the SDK cannot send these link types.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-policylink?view=graph-rest-beta lists
+//     only the SDK's derived types; the portal-first link types are not in the beta $metadata.
+//   - Observed: the Entra admin centre links V2 web filtering policies by POSTing a webFilteringPolicyLink body to
+//     /networkAccess/filteringProfiles/{id}/policies, and its content policy option sends filePolicyLink/filePolicy.
+//     Checked against the SDK source on 2026-11-24; no live call, because the test tenant has no Global Secure Access
+//     licence. POST and PATCH go through custom_requests in raw JSON mode with APIVersion left empty, so they use the
+//     beta client's own base URL; the GET with $expand and the DELETE stay on the SDK.
+//
+// Removal condition: the beta SDK ships the webFilteringPolicyLink, promptPolicyLink, filePolicyLink and
+// securityProviderPolicyLink models in the policyLink discriminator.
 package graphBetaNetworkFilteringProfilePolicyLink
 
 import (
@@ -7,11 +25,13 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/networkaccess"
 )
 
@@ -31,30 +51,29 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Create(ctx context.Context, 
 	}
 	defer cancel()
 
-	requestBody, err := constructCreateResource(ctx, &object)
+	requestBody, err := constructResource(ctx, &object, true)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing policy link", err.Error())
 		return
 	}
-	if err := populateComputedRequestFields(&object); err != nil {
-		resp.Diagnostics.AddError("Error resolving policy link OData types", err.Error())
-		return
-	}
 
-	link, err := r.createPolicyLink(ctx, object.FilteringProfileID.ValueString(), requestBody)
+	postConfig := customrequests.PostRequestConfig{
+		Endpoint: "/networkAccess/filteringProfiles/" + object.FilteringProfileID.ValueString() + "/policies",
+		RawBody:  requestBody,
+	}
+	result, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), postConfig, models.CreatePolicyLinkFromDiscriminatorValue, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
-
-	createdID := link.GetId()
-	if createdID == nil {
+	link, ok := result.(models.PolicyLinkable)
+	if !ok || link.GetId() == nil {
 		resp.Diagnostics.AddError("Error creating policy link", "The API returned an invalid response without an id.")
 		return
 	}
 
-	object.PolicyLinkID = types.StringValue(*createdID)
-	object.ID = compositeID(object.FilteringProfileID.ValueString(), *createdID)
+	object.PolicyLinkID = types.StringValue(*link.GetId())
+	object.ID = types.StringValue(object.FilteringProfileID.ValueString() + "/" + *link.GetId())
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -63,9 +82,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Create(ctx context.Context, 
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationCreate
-	opts.ResourceTypeName = ResourceName
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName)
 
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading policy link state after create", err.Error())
@@ -131,7 +148,28 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Read(ctx context.Context, re
 		policyID = object.PolicyID.ValueString()
 	}
 
-	link := findPolicyLink(profile, policyLinkID, policyID)
+	// Match the link by its id, or by the linked policy id when the link id is not yet known.
+	var link models.PolicyLinkable
+	if profile != nil {
+		for _, candidate := range profile.GetPolicies() {
+			if candidate == nil {
+				continue
+			}
+			if policyLinkID != "" {
+				if id := candidate.GetId(); id != nil && *id == policyLinkID {
+					link = candidate
+					break
+				}
+				continue
+			}
+			if policy := candidate.GetPolicy(); policyID != "" && policy != nil {
+				if id := policy.GetId(); id != nil && *id == policyID {
+					link = candidate
+					break
+				}
+			}
+		}
+	}
 	if link == nil {
 		resp.State.RemoveResource(ctx)
 		return
@@ -158,17 +196,20 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Update(ctx context.Context, 
 	}
 	defer cancel()
 
-	requestBody, err := constructUpdateResource(ctx, &plan)
+	requestBody, err := constructResource(ctx, &plan, false)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing policy link update", err.Error())
 		return
 	}
-	if err := populateComputedRequestFields(&plan); err != nil {
-		resp.Diagnostics.AddError("Error resolving policy link OData types", err.Error())
-		return
-	}
 
-	if err := r.updatePolicyLink(ctx, state.FilteringProfileID.ValueString(), state.PolicyLinkID.ValueString(), requestBody); err != nil {
+	linksEndpoint := "/networkAccess/filteringProfiles/" + state.FilteringProfileID.ValueString() + "/policies"
+	patchConfig := customrequests.PatchRequestConfig{
+		Endpoint:          linksEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.PolicyLinkID.ValueString(),
+		RawBody:           requestBody,
+	}
+	if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -182,9 +223,7 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Update(ctx context.Context, 
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationUpdate
-	opts.ResourceTypeName = ResourceName
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName)
 
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading policy link state after update", err.Error())

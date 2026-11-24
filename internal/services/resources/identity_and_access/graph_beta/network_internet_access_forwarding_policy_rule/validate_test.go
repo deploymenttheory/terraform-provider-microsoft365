@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestValidPort(t *testing.T) {
+func TestPortValidator(t *testing.T) {
 	cases := map[string]bool{
 		"443":         true,
 		"0":           true,
@@ -37,8 +37,10 @@ func TestValidPort(t *testing.T) {
 		"0080-0090":   false,
 	}
 	for value, want := range cases {
-		if got := validPort(value); got != want {
-			t.Errorf("validPort(%q) = %v, expected %v", value, got, want)
+		resp := &validator.StringResponse{}
+		portValidator{}.ValidateString(context.Background(), validator.StringRequest{Path: path.Root("ports"), ConfigValue: types.StringValue(value)}, resp)
+		if got := !resp.Diagnostics.HasError(); got != want {
+			t.Errorf("portValidator(%q) valid = %v, expected %v", value, got, want)
 		}
 	}
 }
@@ -215,7 +217,7 @@ func timeoutAttrTypes(_ context.Context, schemaResp *resource.SchemaResponse) ma
 }
 
 func TestDestinationsValidatorSkipsUnknownValues(t *testing.T) {
-	objectType := destinationObjectType()
+	objectType := destinationObjectType
 	unknownFields := types.ObjectValueMust(objectType.AttrTypes, map[string]attr.Value{
 		"type":          types.StringValue(ruleTypeIPRange),
 		"value":         types.StringNull(),
