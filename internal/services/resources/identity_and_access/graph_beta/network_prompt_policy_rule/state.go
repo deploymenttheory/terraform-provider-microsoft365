@@ -2,6 +2,7 @@ package graphBetaNetworkPromptPolicyRule
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -12,103 +13,66 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
-func MapRemoteStateToTerraform(
-	ctx context.Context,
-	data *NetworkPromptPolicyRuleResourceModel,
-	remote *promptPolicyRuleResponse,
-) error {
-	if err := validateRemoteRule(remote); err != nil {
-		return err
+// MapRemoteStateToTerraform validates the response before replacing the last known state.
+func MapRemoteStateToTerraform(_ context.Context, data *NetworkPromptPolicyRuleResourceModel, remote *promptPolicyRuleResponse) error {
+	if remote == nil || remote.ID == nil || *remote.ID == "" || remote.Name == nil || remote.Action == nil ||
+		remote.Priority == nil || remote.Settings == nil || remote.Settings.Status == nil ||
+		remote.PromptLogging == nil || remote.ODataType == nil || remote.Conditions == nil ||
+		remote.Conditions.ScanResult == nil || len(remote.Conditions.ConversationSchemes) == 0 {
+		return fmt.Errorf("%w: missing required fields", errInvalidResponse)
 	}
-	if *remote.priority < 100 || *remote.priority > math.MaxInt32 {
-		return fmt.Errorf(
-			"%w: priority %d outside supported range",
-			errInvalidResponse,
-			*remote.priority,
-		)
+	if strings.TrimPrefix(*remote.ODataType, "#") != "microsoft.graph.networkaccess.promptRule" {
+		return fmt.Errorf("%w: unsupported rule type %q", errInvalidResponse, *remote.ODataType)
 	}
-	schemes := make([]attr.Value, 0, len(remote.conditions.schemes))
-	for _, scheme := range remote.conditions.schemes {
-		if scheme.odataType == nil {
+	status := *remote.Settings.Status
+	if status != "enabled" && status != "disabled" {
+		return fmt.Errorf("%w: unsupported status %q; enabled cannot be determined", errInvalidResponse, status)
+	}
+	if *remote.Priority < 100 || *remote.Priority > math.MaxInt32 {
+		return fmt.Errorf("%w: priority %d outside supported range", errInvalidResponse, *remote.Priority)
+	}
+	// A null conversationSchemes is present but empty, as it was for the Kiota parser this replaces.
+	var remoteSchemes []*conversationSchemeResponse
+	if err := json.Unmarshal(remote.Conditions.ConversationSchemes, &remoteSchemes); err != nil {
+		return fmt.Errorf("%w: conversationSchemes: %w", errInvalidResponse, err)
+	}
+	schemes := make([]attr.Value, 0, len(remoteSchemes))
+	for _, scheme := range remoteSchemes {
+		if scheme == nil {
+			return fmt.Errorf("%w: null conversation scheme", errInvalidResponse)
+		}
+		if scheme.ODataType == nil {
 			return fmt.Errorf("%w: scheme missing @odata.type", errInvalidResponse)
 		}
-		fields := map[string]attr.Value{
-			"type":        types.StringNull(),
-			"url":         types.StringNull(),
-			"json_path":   types.StringNull(),
-			"scheme_name": types.StringNull(),
-		}
-		switch strings.TrimPrefix(*scheme.odataType, "#") {
+		fields := map[string]attr.Value{"type": types.StringNull(), "url": types.StringNull(), "json_path": types.StringNull(), "scheme_name": types.StringNull()}
+		switch strings.TrimPrefix(*scheme.ODataType, "#") {
 		case "microsoft.graph.networkaccess.customConversationScheme":
-			if scheme.url == nil || *scheme.url == "" || scheme.jsonPath == nil {
+			if scheme.URL == nil || *scheme.URL == "" || scheme.JSONPath == nil {
 				return fmt.Errorf("%w: incomplete custom scheme", errInvalidResponse)
 			}
 			fields["type"] = types.StringValue(schemeTypeCustom)
-			fields["url"] = types.StringValue(*scheme.url)
-			fields["json_path"] = types.StringValue(*scheme.jsonPath)
+			fields["url"] = types.StringValue(*scheme.URL)
+			fields["json_path"] = types.StringValue(*scheme.JSONPath)
 		case "microsoft.graph.networkaccess.predefinedConversationScheme":
-			if scheme.schemeName == nil {
+			if scheme.SchemeName == nil {
 				return fmt.Errorf("%w: predefined scheme missing name", errInvalidResponse)
 			}
 			fields["type"] = types.StringValue(schemeTypePredefined)
-			fields["scheme_name"] = types.StringValue(*scheme.schemeName)
+			fields["scheme_name"] = types.StringValue(*scheme.SchemeName)
 		default:
-			return fmt.Errorf(
-				"%w: unsupported scheme type %q",
-				errInvalidResponse,
-				*scheme.odataType,
-			)
+			return fmt.Errorf("%w: unsupported scheme type %q", errInvalidResponse, *scheme.ODataType)
 		}
-		schemes = append(
-			schemes,
-			types.ObjectValueMust(conversationSchemeObjectType().AttrTypes, fields),
-		)
+		schemes = append(schemes, types.ObjectValueMust(conversationSchemeObjectType.AttrTypes, fields))
 	}
-	data.ID = convert.GraphToFrameworkString(remote.id)
-	data.Name = convert.GraphToFrameworkString(remote.name)
-	data.Description = convert.GraphToFrameworkString(remote.description)
-	data.Action = convert.GraphToFrameworkString(remote.action)
-	data.Priority = types.Int32Value(int32(*remote.priority))
-	data.Enabled = types.BoolValue(*remote.status == "enabled")
-	data.Status = types.StringValue(*remote.status)
-	data.PromptLogging = types.StringValue(*remote.promptLogging)
-	data.ScanResult = types.StringValue(*remote.conditions.scanResult)
-	data.ConversationSchemes = types.ListValueMust(conversationSchemeObjectType(), schemes)
-	return nil
-}
-
-func conversationSchemeObjectType() types.ObjectType {
-	return types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"type":        types.StringType,
-			"url":         types.StringType,
-			"json_path":   types.StringType,
-			"scheme_name": types.StringType,
-		},
-	}
-}
-
-func validateRemoteRule(remote *promptPolicyRuleResponse) error {
-	if remote == nil || remote.id == nil || *remote.id == "" || remote.name == nil ||
-		remote.action == nil ||
-		remote.priority == nil ||
-		remote.status == nil ||
-		remote.promptLogging == nil ||
-		remote.odataType == nil ||
-		remote.conditions == nil ||
-		remote.conditions.scanResult == nil ||
-		!remote.conditions.schemesPresent {
-		return fmt.Errorf("%w: missing required fields", errInvalidResponse)
-	}
-	if strings.TrimPrefix(*remote.odataType, "#") != "microsoft.graph.networkaccess.promptRule" {
-		return fmt.Errorf("%w: unsupported rule type %q", errInvalidResponse, *remote.odataType)
-	}
-	if *remote.status != "enabled" && *remote.status != "disabled" {
-		return fmt.Errorf(
-			"%w: unsupported status %q; enabled cannot be determined",
-			errInvalidResponse,
-			*remote.status,
-		)
-	}
+	data.ID = convert.GraphToFrameworkString(remote.ID)
+	data.Name = convert.GraphToFrameworkString(remote.Name)
+	data.Description = convert.GraphToFrameworkString(remote.Description)
+	data.Action = convert.GraphToFrameworkString(remote.Action)
+	data.Priority = types.Int32Value(int32(*remote.Priority))
+	data.Enabled = types.BoolValue(status == "enabled")
+	data.Status = types.StringValue(status)
+	data.PromptLogging = types.StringValue(*remote.PromptLogging)
+	data.ScanResult = types.StringValue(*remote.Conditions.ScanResult)
+	data.ConversationSchemes = types.ListValueMust(conversationSchemeObjectType, schemes)
 	return nil
 }

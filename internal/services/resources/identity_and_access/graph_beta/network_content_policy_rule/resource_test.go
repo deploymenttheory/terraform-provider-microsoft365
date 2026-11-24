@@ -32,6 +32,7 @@ func TestUnitResourceNetworkContentPolicyRule_01_CRUDAndImport(t *testing.T) {
 	ruleMock := setupMockEnvironment(false)
 	defer httpmock.DeactivateAndReset()
 	defer ruleMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -61,6 +62,7 @@ func TestUnitResourceNetworkContentPolicyRule_01_CRUDAndImport(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/crud_and_import.json")
 }
 
 func TestUnitResourceNetworkContentPolicyRule_02_InvalidAction(t *testing.T) {

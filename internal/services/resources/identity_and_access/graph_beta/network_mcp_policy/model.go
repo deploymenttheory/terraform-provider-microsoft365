@@ -5,6 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// mcpPoliciesEndpoint is the portal-backed Graph collection of MCP policies.
+const mcpPoliciesEndpoint = "networkaccess/mcpPolicies"
+
 // NetworkMCPPolicyResourceModel represents a Global Secure Access MCP policy.
 type NetworkMCPPolicyResourceModel struct {
 	ID                   types.String   `tfsdk:"id"`
@@ -14,4 +17,17 @@ type NetworkMCPPolicyResourceModel struct {
 	Version              types.String   `tfsdk:"version"`
 	LastModifiedDateTime types.String   `tfsdk:"last_modified_date_time"`
 	Timeouts             timeouts.Value `tfsdk:"timeouts"`
+}
+
+// mcpPolicyResponse is the JSON shape of an MCP policy returned by Graph. The SDK has no model for it (see the SDK
+// deviation in crud.go).
+type mcpPolicyResponse struct {
+	ID                   *string `json:"id"`
+	Name                 *string `json:"name"`
+	Description          *string `json:"description"`
+	Version              *string `json:"version"`
+	LastModifiedDateTime *string `json:"lastModifiedDateTime"`
+	Settings             *struct {
+		DefaultAction *string `json:"defaultAction"`
+	} `json:"settings"`
 }

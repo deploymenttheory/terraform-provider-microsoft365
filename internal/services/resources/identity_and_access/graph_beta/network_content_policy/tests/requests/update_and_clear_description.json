@@ -1,0 +1,51 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "",
+      "name": "unit-test-content-policy-updated"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/filePolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "managed by Terraform",
+      "name": "unit-test-content-policy-with-description",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  }
+]

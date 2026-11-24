@@ -28,7 +28,7 @@ func TestUnitResourceNetworkPromptPolicyRule_22_EmptySchemesPatch(t *testing.T) 
 	})
 	state := testState(t, r, testModel())
 	plan := testModel()
-	plan.ConversationSchemes = types.ListValueMust(conversationSchemeObjectType(), []attr.Value{})
+	plan.ConversationSchemes = types.ListValueMust(conversationSchemeObjectType, []attr.Value{})
 	resp := resource.UpdateResponse{State: state}
 	r.Update(context.Background(), resource.UpdateRequest{State: state, Plan: tfsdk.Plan{Schema: state.Schema, Raw: testState(t, r, plan).Raw}}, &resp)
 	require.False(t, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
@@ -69,7 +69,7 @@ func TestUnitResourceNetworkPromptPolicyRule_24_JSONPathDefault(t *testing.T) {
 		if omitted {
 			fields["json_path"] = types.StringNull()
 		}
-		model.ConversationSchemes = types.ListValueMust(conversationSchemeObjectType(), []attr.Value{types.ObjectValueMust(conversationSchemeObjectType().AttrTypes, fields)})
+		model.ConversationSchemes = types.ListValueMust(conversationSchemeObjectType, []attr.Value{types.ObjectValueMust(conversationSchemeObjectType.AttrTypes, fields)})
 		state := testState(t, r, model)
 		resp := resource.ReadResponse{State: state}
 		r.Read(context.Background(), resource.ReadRequest{State: state}, &resp)
@@ -102,7 +102,7 @@ func TestUnitResourceNetworkPromptPolicyRule_25_ConditionalValidation(t *testing
 	} {
 		r := NewNetworkPromptPolicyRuleResource().(*NetworkPromptPolicyRuleResource)
 		model := testModel()
-		model.ConversationSchemes = types.ListValueMust(conversationSchemeObjectType(), []attr.Value{types.ObjectValueMust(conversationSchemeObjectType().AttrTypes, map[string]attr.Value{"type": types.StringValue(tc.typ), "url": tc.url, "json_path": tc.jsonPath, "scheme_name": tc.schemeName})})
+		model.ConversationSchemes = types.ListValueMust(conversationSchemeObjectType, []attr.Value{types.ObjectValueMust(conversationSchemeObjectType.AttrTypes, map[string]attr.Value{"type": types.StringValue(tc.typ), "url": tc.url, "json_path": tc.jsonPath, "scheme_name": tc.schemeName})})
 		state := testState(t, r, model)
 		resp := resource.ValidateConfigResponse{}
 		r.ValidateConfig(context.Background(), resource.ValidateConfigRequest{Config: tfsdk.Config{Schema: state.Schema, Raw: state.Raw}}, &resp)

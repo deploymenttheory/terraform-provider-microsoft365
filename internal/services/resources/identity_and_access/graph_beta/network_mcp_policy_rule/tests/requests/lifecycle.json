@@ -1,0 +1,245 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": null,
+      "name": "tf-api-probe-policy-updated",
+      "settings": {
+        "defaultAction": "block"
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": null
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.mcpPolicyRule",
+      "action": "block",
+      "description": null,
+      "matchingConditions": {
+        "destinations": {
+          "insecureConnection": null,
+          "missingPrm": null,
+          "promptMatching": null,
+          "protocolVersions": null,
+          "resourceMatching": null,
+          "serverUrls": {
+            "matchType": "contains",
+            "values": [
+              "https://example.invalid/mcp"
+            ]
+          },
+          "toolMatching": null
+        }
+      },
+      "name": "tf-api-probe-rule-updated",
+      "priority": 65001,
+      "settings": {
+        "status": "disabled"
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.mcpPolicyRule",
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.mcpPolicyRule",
+      "description": null,
+      "matchingConditions": null,
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/mcpPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Initial description",
+      "name": "tf-api-probe-policy",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.mcpPolicyRule",
+      "action": "allow",
+      "description": "Initial description",
+      "matchingConditions": {
+        "destinations": {
+          "insecureConnection": null,
+          "missingPrm": null,
+          "promptMatching": null,
+          "protocolVersions": null,
+          "resourceMatching": null,
+          "serverUrls": null,
+          "toolMatching": {
+            "methods": "call",
+            "names": {
+              "matchType": "exactMatch",
+              "values": [
+                "tf_probe_tool"
+              ]
+            }
+          }
+        }
+      },
+      "name": "tf-api-probe-rule",
+      "priority": 1000,
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  }
+]

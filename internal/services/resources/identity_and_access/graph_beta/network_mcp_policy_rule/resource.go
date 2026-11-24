@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
@@ -37,6 +38,81 @@ var (
 	_ resource.ResourceWithImportState = &NetworkMCPPolicyRuleResource{}
 	_ resource.ResourceWithIdentity    = &NetworkMCPPolicyRuleResource{}
 )
+
+// mcpConditionKeys maps each matching_conditions attribute to its Graph property under matchingConditions.destinations.
+var mcpConditionKeys = map[string]string{
+	"server_urls":         "serverUrls",
+	"protocol_versions":   "protocolVersions",
+	"insecure_connection": "insecureConnection",
+	"missing_prm":         "missingPrm",
+	"tool_matching":       "toolMatching",
+	"resource_matching":   "resourceMatching",
+	"prompt_matching":     "promptMatching",
+}
+
+// mcpMatchConditionAttributes is a string matching condition. Live POST/PATCH followed by GET preserved both order and
+// duplicates for all five values arrays. Lists round-trip that configuration; sets would normalize it.
+var mcpMatchConditionAttributes = map[string]schema.Attribute{
+	"values": schema.ListAttribute{
+		MarkdownDescription: "Values in API order. Empty arrays are preserved and are distinct from an omitted condition. Pattern evaluation is performed by the service; regex or wildcard behavior is not guaranteed by this resource.",
+		Required:            true,
+		ElementType:         types.StringType,
+	},
+	"match_type": schema.StringAttribute{
+		MarkdownDescription: "Match operator: exactMatch, contains, notExactMatch, or notContains. Must be explicitly configured.",
+		Required:            true,
+		Validators:          []validator.String{stringvalidator.OneOf("exactMatch", "contains", "notExactMatch", "notContains")},
+	},
+}
+
+// mcpPrimitiveConditionAttributes is a tool, resource or prompt matching condition.
+var mcpPrimitiveConditionAttributes = map[string]schema.Attribute{
+	"names": schema.SingleNestedAttribute{
+		MarkdownDescription: "Primitive name matching.",
+		Optional:            true,
+		Attributes:          mcpMatchConditionAttributes,
+	},
+	"methods": schema.StringAttribute{
+		MarkdownDescription: "API method flags, for example call or list,call for tools, read for resources, or get for prompts. Values are sent unchanged; unsupported combinations return API diagnostics.",
+		Optional:            true,
+		Validators:          []validator.String{stringvalidator.LengthAtLeast(1)},
+	},
+}
+
+// mcpPropertyConditionAttribute is the insecure_connection and missing_prm condition.
+var mcpPropertyConditionAttribute = schema.StringAttribute{
+	MarkdownDescription: "Whether this property is required or excluded by the condition. Omission removes this constraint.",
+	Optional:            true,
+	Validators:          []validator.String{stringvalidator.OneOf("required", "excluded")},
+}
+
+// mcpPrimitiveConditionAttribute is the tool_matching, resource_matching and prompt_matching condition.
+var mcpPrimitiveConditionAttribute = schema.SingleNestedAttribute{
+	MarkdownDescription: "Primitive conditions applied to the rule. Multiple primitive types may be stored by the API; their combined traffic evaluation is not verified.",
+	Optional:            true,
+	Attributes:          mcpPrimitiveConditionAttributes,
+}
+
+// mcpStringConditionAttribute is the server_urls and protocol_versions condition.
+var mcpStringConditionAttribute = schema.SingleNestedAttribute{
+	MarkdownDescription: "String matching condition. Values are preserved without URL or case normalization.",
+	Optional:            true,
+	Attributes:          mcpMatchConditionAttributes,
+}
+
+// mcpConditionAttributes are the attributes of matching_conditions, one per key of mcpConditionKeys.
+var mcpConditionAttributes = map[string]schema.Attribute{
+	"server_urls":         mcpStringConditionAttribute,
+	"protocol_versions":   mcpStringConditionAttribute,
+	"insecure_connection": mcpPropertyConditionAttribute,
+	"missing_prm":         mcpPropertyConditionAttribute,
+	"tool_matching":       mcpPrimitiveConditionAttribute,
+	"resource_matching":   mcpPrimitiveConditionAttribute,
+	"prompt_matching":     mcpPrimitiveConditionAttribute,
+}
+
+// mcpConditionObjectType is the object type of matching_conditions.
+var mcpConditionObjectType = schema.SingleNestedAttribute{Attributes: mcpConditionAttributes}.GetType().(types.ObjectType)
 
 func NewNetworkMCPPolicyRuleResource() resource.Resource {
 	return &NetworkMCPPolicyRuleResource{
@@ -167,7 +243,7 @@ func (r *NetworkMCPPolicyRuleResource) Schema(
 			"matching_conditions": schema.SingleNestedAttribute{
 				MarkdownDescription: "MCP destination conditions. Omission clears all conditions. Arrays preserve input order; the provider does not normalize URLs or infer traffic matching semantics.",
 				Optional:            true,
-				Attributes:          conditionSchema(),
+				Attributes:          mcpConditionAttributes,
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
 		},

@@ -2,14 +2,16 @@ package graphBetaNetworkContentPolicyRule
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	commonattr "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/attr"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
+)
+
+var (
+	errReadDestinations           = errors.New("failed to read destinations")
+	errUnsupportedDestinationType = errors.New("unsupported destination type")
 )
 
 const (
@@ -19,209 +21,69 @@ const (
 	filePolicyURLDestinationODataType         = "#microsoft.graph.networkaccess.filePolicyUrlDestination"
 )
 
-func constructResource(ctx context.Context, data *NetworkContentPolicyRuleResourceModel) (s.Parsable, error) {
-	activities := commonattr.StringSetElements(data.Activities)
-	contentTypes := commonattr.StringSetElements(data.ContentTypes)
-	textContentTypes := commonattr.StringSetElements(data.TextContentTypes)
-	sessionTypes := commonattr.StringSetElements(data.SessionTypes)
-	destinations, err := contentPolicyRuleDestinationValues(ctx, data.Destinations)
-	if err != nil {
-		return nil, err
+// constructResource builds the complete file rule body observed from the portal. Create and Update both send it.
+// Activities and session types are sent as comma-separated strings, content types always as arrays (empty when unset),
+// and null values are left out of the body.
+func constructResource(ctx context.Context, data *NetworkContentPolicyRuleResourceModel) (map[string]any, error) {
+	settings := map[string]any{}
+	if !data.Status.IsNull() {
+		settings["status"] = data.Status.ValueString()
+	}
+	body := map[string]any{"@odata.type": fileRuleODataType, "settings": settings}
+	if !data.Name.IsNull() {
+		body["name"] = data.Name.ValueString()
+	}
+	if !data.Description.IsNull() {
+		body["description"] = data.Description.ValueString()
+	}
+	if !data.Action.IsNull() {
+		body["action"] = data.Action.ValueString()
+	}
+	if !data.Priority.IsNull() {
+		body["priority"] = data.Priority.ValueInt64()
 	}
 
-	body := &contentPolicyRuleRequestBody{
-		odataType:   fileRuleODataType,
-		name:        data.Name.ValueStringPointer(),
-		description: data.Description.ValueStringPointer(),
-		action:      data.Action.ValueStringPointer(),
-		priority:    data.Priority.ValueInt64Pointer(),
-		settings:    &contentPolicyRuleSettingsRequestBody{status: data.Status.ValueStringPointer()},
-		matchingConditions: &contentPolicyRuleMatchingConditionsRequestBody{
-			fileAttributes: &contentPolicyRuleFileAttributesRequestBody{
-				activities:       joinedContentPolicyRuleValues(activities),
-				contentTypes:     contentTypes,
-				textContentTypes: textContentTypes,
-			},
-			destinations: destinations,
-			sources: &contentPolicyRuleSourcesRequestBody{
-				sessionType: joinedContentPolicyRuleValues(sessionTypes),
-			},
-		},
+	fileAttributes := map[string]any{"contentTypes": []string{}, "textContentTypes": []string{}}
+	if activities := commonattr.StringSetElements(data.Activities); len(activities) > 0 {
+		fileAttributes["activities"] = strings.Join(activities, ",")
 	}
+	if contentTypes := commonattr.StringSetElements(data.ContentTypes); contentTypes != nil {
+		fileAttributes["contentTypes"] = contentTypes
+	}
+	if textContentTypes := commonattr.StringSetElements(data.TextContentTypes); textContentTypes != nil {
+		fileAttributes["textContentTypes"] = textContentTypes
+	}
+	sources := map[string]any{}
+	if sessionTypes := commonattr.StringSetElements(data.SessionTypes); len(sessionTypes) > 0 {
+		sources["sessionType"] = strings.Join(sessionTypes, ",")
+	}
+	conditions := map[string]any{"fileAttributes": fileAttributes, "sources": sources}
 
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), body); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]any{"error": err.Error()})
-	}
-	return body, nil
-}
-
-func contentPolicyRuleDestinationValues(ctx context.Context, value types.List) ([]s.Parsable, error) {
-	if value.IsNull() || value.IsUnknown() {
-		return nil, nil
-	}
-	var models []ContentPolicyRuleDestinationModel
-	diags := value.ElementsAs(ctx, &models, false)
-	if diags.HasError() {
-		return nil, fmt.Errorf("failed to read destinations: %s", diags.Errors()[0].Detail())
-	}
-	result := make([]s.Parsable, 0, len(models))
-	for _, model := range models {
-		values := commonattr.StringSetElements(model.Values)
-		odataType, err := graphContentPolicyRuleDestinationType(model.Type.ValueString())
-		if err != nil {
-			return nil, err
+	if !data.Destinations.IsNull() && !data.Destinations.IsUnknown() {
+		var models []ContentPolicyRuleDestinationModel
+		if diags := data.Destinations.ElementsAs(ctx, &models, false); diags.HasError() {
+			return nil, fmt.Errorf("%w: %s", errReadDestinations, diags.Errors()[0].Detail())
 		}
-		result = append(result, &contentPolicyRuleDestinationRequestBody{odataType: odataType, values: values})
+		destinations := make([]map[string]any, 0, len(models))
+		for _, model := range models {
+			destination := map[string]any{}
+			switch model.Type.ValueString() {
+			case destinationTypeWebCategory:
+				destination["@odata.type"] = filePolicyWebCategoryDestinationODataType
+			case destinationTypeFQDN:
+				destination["@odata.type"] = filePolicyFQDNDestinationODataType
+			case destinationTypeURL:
+				destination["@odata.type"] = filePolicyURLDestinationODataType
+			default:
+				return nil, fmt.Errorf("%w %q", errUnsupportedDestinationType, model.Type.ValueString())
+			}
+			if values := commonattr.StringSetElements(model.Values); values != nil {
+				destination["values"] = values
+			}
+			destinations = append(destinations, destination)
+		}
+		conditions["destinations"] = destinations
 	}
-	return result, nil
-}
-
-func graphContentPolicyRuleDestinationType(value string) (string, error) {
-	switch value {
-	case destinationTypeWebCategory:
-		return filePolicyWebCategoryDestinationODataType, nil
-	case destinationTypeFQDN:
-		return filePolicyFQDNDestinationODataType, nil
-	case destinationTypeURL:
-		return filePolicyURLDestinationODataType, nil
-	default:
-		return "", fmt.Errorf("unsupported destination type %q", value)
-	}
-}
-
-func terraformContentPolicyRuleDestinationType(value string) string {
-	switch value {
-	case filePolicyWebCategoryDestinationODataType:
-		return destinationTypeWebCategory
-	case filePolicyURLDestinationODataType:
-		return destinationTypeURL
-	default:
-		return destinationTypeFQDN
-	}
-}
-
-func joinedContentPolicyRuleValues(values []string) *string {
-	if len(values) == 0 {
-		return nil
-	}
-	value := helpers.JoinWithSeparator(values, ",")
-	return &value
-}
-
-type contentPolicyRuleRequestBody struct {
-	odataType          string
-	name               *string
-	description        *string
-	action             *string
-	priority           *int64
-	settings           *contentPolicyRuleSettingsRequestBody
-	matchingConditions *contentPolicyRuleMatchingConditionsRequestBody
-}
-
-func (b *contentPolicyRuleRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
-		return err
-	}
-	if err := writer.WriteStringValue("name", b.name); err != nil {
-		return err
-	}
-	if err := writer.WriteStringValue("description", b.description); err != nil {
-		return err
-	}
-	if err := writer.WriteStringValue("action", b.action); err != nil {
-		return err
-	}
-	if err := writer.WriteInt64Value("priority", b.priority); err != nil {
-		return err
-	}
-	if err := writer.WriteObjectValue("settings", b.settings); err != nil {
-		return err
-	}
-	return writer.WriteObjectValue("matchingConditions", b.matchingConditions)
-}
-
-func (b *contentPolicyRuleRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type contentPolicyRuleSettingsRequestBody struct{ status *string }
-
-func (b *contentPolicyRuleSettingsRequestBody) Serialize(writer s.SerializationWriter) error {
-	return writer.WriteStringValue("status", b.status)
-}
-func (b *contentPolicyRuleSettingsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type contentPolicyRuleMatchingConditionsRequestBody struct {
-	fileAttributes *contentPolicyRuleFileAttributesRequestBody
-	destinations   []s.Parsable
-	sources        *contentPolicyRuleSourcesRequestBody
-}
-
-func (b *contentPolicyRuleMatchingConditionsRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteObjectValue("fileAttributes", b.fileAttributes); err != nil {
-		return err
-	}
-	if err := writer.WriteCollectionOfObjectValues("destinations", b.destinations); err != nil {
-		return err
-	}
-	return writer.WriteObjectValue("sources", b.sources)
-}
-func (b *contentPolicyRuleMatchingConditionsRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type contentPolicyRuleFileAttributesRequestBody struct {
-	activities       *string
-	contentTypes     []string
-	textContentTypes []string
-}
-
-func (b *contentPolicyRuleFileAttributesRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteStringValue("activities", b.activities); err != nil {
-		return err
-	}
-	if err := writer.WriteCollectionOfStringValues("contentTypes", nonNilContentPolicyRuleValues(b.contentTypes)); err != nil {
-		return err
-	}
-	if err := writer.WriteCollectionOfStringValues("textContentTypes", nonNilContentPolicyRuleValues(b.textContentTypes)); err != nil {
-		return err
-	}
-	return nil
-}
-
-func nonNilContentPolicyRuleValues(values []string) []string {
-	if values == nil {
-		return []string{}
-	}
-	return values
-}
-
-func (b *contentPolicyRuleFileAttributesRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type contentPolicyRuleDestinationRequestBody struct {
-	odataType string
-	values    []string
-}
-
-func (b *contentPolicyRuleDestinationRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteStringValue("@odata.type", &b.odataType); err != nil {
-		return err
-	}
-	return writer.WriteCollectionOfStringValues("values", b.values)
-}
-func (b *contentPolicyRuleDestinationRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
-}
-
-type contentPolicyRuleSourcesRequestBody struct{ sessionType *string }
-
-func (b *contentPolicyRuleSourcesRequestBody) Serialize(writer s.SerializationWriter) error {
-	return writer.WriteStringValue("sessionType", b.sessionType)
-}
-func (b *contentPolicyRuleSourcesRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
+	body["matchingConditions"] = conditions
+	return body, nil
 }

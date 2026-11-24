@@ -1,3 +1,19 @@
+// Package graphBetaNetworkContentPolicy manages Global Secure Access content (file) policies.
+//
+// SDK deviation: missing type
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0 has no filePolicy model in
+//     models/networkaccess and no filePolicies request builder in networkaccess.
+//   - Learn: none. There is no networkaccess-filepolicy resource page; the Global Secure Access
+//     API overview does not list file policies.
+//   - Observed: the request and response shape for /networkaccess/filePolicies were taken from
+//     the Entra admin centre Global Secure Access content policy blade. Every call therefore goes
+//     through the custom_requests Config API in raw JSON mode, with APIVersion left empty so it
+//     uses the beta client's own base URL.
+//
+// Removal condition: the beta SDK ships a networkaccess filePolicy model and a
+// /networkAccess/filePolicies request builder.
 package graphBetaNetworkContentPolicy
 
 import (
@@ -5,12 +21,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 func (r *NetworkContentPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -24,29 +42,23 @@ func (r *NetworkContentPolicyResource) Create(ctx context.Context, req resource.
 		return
 	}
 	defer cancel()
-	body, err := constructResource(ctx, &object)
-	if err != nil {
-		resp.Diagnostics.AddError("Error constructing resource for Create Method", err.Error())
-		return
-	}
-	created, err := r.createContentPolicy(ctx, body)
-	if err != nil {
+	var created contentPolicyResponse
+	postConfig := customrequests.PostRequestConfig{Endpoint: contentPoliciesEndpoint, RawBody: constructResource(ctx, &object, nil), RawResponse: &created}
+	if _, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), postConfig, nil, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
-	if created.id == nil {
+	if created.ID == nil {
 		resp.Diagnostics.AddError("Error creating content policy", "The API returned an invalid response without an id.")
 		return
 	}
-	object.ID = types.StringValue(*created.id)
+	object.ID = types.StringValue(*created.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationCreate
-	opts.ResourceTypeName = ResourceName
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName)
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading resource state after create", fmt.Sprintf("Could not read resource state: %s", err))
 	}
@@ -75,12 +87,13 @@ func (r *NetworkContentPolicyResource) Read(ctx context.Context, req resource.Re
 			return
 		}
 	}
-	policy, err := r.getContentPolicy(ctx, object.ID.ValueString())
-	if err != nil {
+	var remote contentPolicyResponse
+	getConfig := customrequests.GetRequestConfig{Endpoint: contentPoliciesEndpoint + "/" + object.ID.ValueString(), RawResponse: &remote}
+	if _, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
-	MapRemoteStateToTerraform(ctx, &object, policy)
+	MapRemoteStateToTerraform(ctx, &object, &remote)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 }
 
@@ -96,12 +109,15 @@ func (r *NetworkContentPolicyResource) Update(ctx context.Context, req resource.
 		return
 	}
 	defer cancel()
-	body, err := constructUpdateResource(ctx, &plan, &state)
-	if err != nil {
-		resp.Diagnostics.AddError("Error constructing resource for Update Method", err.Error())
-		return
+	// The PATCH answers with the updated policy. An empty response is reported as a failed update.
+	var updated *contentPolicyResponse
+	endpoint := contentPoliciesEndpoint + "/" + state.ID.ValueString()
+	patchConfig := customrequests.PatchRequestConfig{Endpoint: endpoint, RawBody: constructResource(ctx, &plan, &state), RawResponse: &updated}
+	err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig)
+	if err == nil && updated == nil {
+		err = errEmptyUpdateResponse
 	}
-	if err := r.updateContentPolicy(ctx, state.ID.ValueString(), body); err != nil {
+	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
@@ -111,9 +127,7 @@ func (r *NetworkContentPolicyResource) Update(ctx context.Context, req resource.
 		return
 	}
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationUpdate
-	opts.ResourceTypeName = ResourceName
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName)
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading resource state after update", fmt.Sprintf("Could not read resource state: %s", err))
 	}
@@ -130,7 +144,8 @@ func (r *NetworkContentPolicyResource) Delete(ctx context.Context, req resource.
 		return
 	}
 	defer cancel()
-	if err := r.deleteContentPolicy(ctx, object.ID.ValueString()); err != nil {
+	deleteConfig := customrequests.DeleteRequestConfig{Endpoint: contentPoliciesEndpoint + "/" + object.ID.ValueString()}
+	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

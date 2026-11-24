@@ -1,0 +1,80 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/mcpPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": null,
+      "name": "tf-api-probe-policy-updated",
+      "settings": {
+        "defaultAction": "block"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/mcpPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Initial description",
+      "name": "tf-api-probe-policy",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  }
+]

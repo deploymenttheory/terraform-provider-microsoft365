@@ -35,7 +35,7 @@ func testModel() NetworkMCPPolicyRuleResourceModel {
 		Priority:           types.Int32Value(1000),
 		Enabled:            types.BoolValue(true),
 		Status:             types.StringValue("enabled"),
-		MatchingConditions: types.ObjectNull(conditionAttributeTypes()),
+		MatchingConditions: types.ObjectNull(mcpConditionObjectType.AttrTypes),
 		Timeouts: timeouts.Value{
 			Object: types.ObjectNull(
 				map[string]attr.Type{

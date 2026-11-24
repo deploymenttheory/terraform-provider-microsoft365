@@ -10,8 +10,12 @@ func MapRemoteStateToTerraform(_ context.Context, data *NetworkContentPolicyReso
 	if remote == nil {
 		return
 	}
-	data.ID = convert.GraphToFrameworkString(remote.id)
-	data.Name = convert.GraphToFrameworkString(remote.name)
-	data.Description = convert.GraphToFrameworkString(remote.description)
-	data.DefaultAction = convert.GraphToFrameworkString(remote.defaultAction)
+	var defaultAction *string
+	if remote.Settings != nil {
+		defaultAction = remote.Settings.DefaultAction
+	}
+	data.ID = convert.GraphToFrameworkString(remote.ID)
+	data.Name = convert.GraphToFrameworkString(remote.Name)
+	data.Description = convert.GraphToFrameworkString(remote.Description)
+	data.DefaultAction = convert.GraphToFrameworkString(defaultAction)
 }

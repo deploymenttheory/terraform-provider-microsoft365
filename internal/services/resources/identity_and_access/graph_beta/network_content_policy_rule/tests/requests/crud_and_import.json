@@ -1,0 +1,123 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.fileRule",
+      "action": "block",
+      "description": "updated by Terraform",
+      "matchingConditions": {
+        "destinations": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.filePolicyFqdnDestination",
+            "values": [
+              "updated.example.com"
+            ]
+          }
+        ],
+        "fileAttributes": {
+          "activities": "upload",
+          "contentTypes": [
+            "application/pdf"
+          ],
+          "textContentTypes": [
+            "html"
+          ]
+        },
+        "sources": {
+          "sessionType": "user"
+        }
+      },
+      "name": "unit-test-content-policy-rule-updated",
+      "priority": 102,
+      "settings": {
+        "status": "disabled"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/filePolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.fileRule",
+      "action": "scanPurview",
+      "description": "managed by Terraform",
+      "matchingConditions": {
+        "destinations": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.filePolicyWebCategoryDestination",
+            "values": [
+              "AlcoholAndTobacco"
+            ]
+          },
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.filePolicyFqdnDestination",
+            "values": [
+              "*.example.com",
+              "example.com"
+            ]
+          },
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.filePolicyUrlDestination",
+            "values": [
+              "https://example.com/path"
+            ]
+          }
+        ],
+        "fileAttributes": {
+          "activities": "download,upload",
+          "contentTypes": [
+            "application/pdf",
+            "text/csv"
+          ],
+          "textContentTypes": [
+            "json",
+            "plain"
+          ]
+        },
+        "sources": {
+          "sessionType": "agent,user"
+        }
+      },
+      "name": "unit-test-content-policy-rule",
+      "priority": 101,
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  }
+]

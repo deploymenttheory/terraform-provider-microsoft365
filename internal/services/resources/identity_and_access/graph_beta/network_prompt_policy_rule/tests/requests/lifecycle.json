@@ -1,0 +1,190 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": null,
+      "name": "tf-api-probe-policy-updated"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.promptRule",
+      "action": "block",
+      "description": null,
+      "matchingConditions": {
+        "conversationSchemes": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.predefinedConversationScheme",
+            "schemeName": "chatGpt"
+          }
+        ],
+        "scanResult": "maliciousPromptDetected"
+      },
+      "name": "tf-api-probe-rule-updated",
+      "priority": 65001,
+      "promptLogging": "onBlock",
+      "settings": {
+        "status": "disabled"
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.promptRule",
+      "description": "",
+      "matchingConditions": {
+        "conversationSchemes": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.customConversationScheme",
+            "jsonPath": "$.prompt",
+            "url": "https://example.com/chat"
+          }
+        ],
+        "scanResult": "maliciousPromptDetected"
+      },
+      "promptLogging": "never"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/promptPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Initial description",
+      "name": "tf-api-probe-policy",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.promptRule",
+      "action": "allow",
+      "description": "Initial description",
+      "matchingConditions": {
+        "conversationSchemes": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.customConversationScheme",
+            "jsonPath": "$.prompt",
+            "url": "https://example.com/chat"
+          }
+        ],
+        "scanResult": "maliciousPromptDetected"
+      },
+      "name": "tf-api-probe-rule",
+      "priority": 1000,
+      "promptLogging": "never",
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  }
+]
