@@ -18,3 +18,22 @@ type NetworkManagedTLSCertificateDataSourceModel struct {
 	Certificate           types.String   `tfsdk:"certificate"`
 	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 }
+
+// managedTLSCertificateResponse holds the managedCertificateAuthorityCertificate fields this data source reads.
+type managedTLSCertificateResponse struct {
+	ID               *string                                `json:"id"`
+	Name             *string                                `json:"name"`
+	CommonName       *string                                `json:"commonName"`
+	OrganizationName *string                                `json:"organizationName"`
+	ValidityMonths   *int32                                 `json:"validityMonths"`
+	Status           *string                                `json:"status"`
+	CreatedDateTime  *string                                `json:"createdDateTime"`
+	Certificate      *string                                `json:"certificate"`
+	Validity         *managedTLSCertificateValidityResponse `json:"validity"`
+}
+
+// managedTLSCertificateValidityResponse is the certificate's validity window.
+type managedTLSCertificateValidityResponse struct {
+	StartDateTime *string `json:"startDateTime"`
+	EndDateTime   *string `json:"endDateTime"`
+}

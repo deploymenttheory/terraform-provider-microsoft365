@@ -21,7 +21,7 @@ func TestMapRemoteStateToTerraformDerivesEnabledFromLifecycleStatus(t *testing.T
 	} {
 		t.Run(test.status, func(t *testing.T) {
 			model := &NetworkManagedTLSCertificateResourceModel{}
-			MapRemoteStateToTerraform(context.Background(), model, &managedTLSCertificateResponse{status: &test.status})
+			MapRemoteStateToTerraform(context.Background(), model, &managedTLSCertificateResponse{Status: &test.status})
 			if model.Status.ValueString() != test.status {
 				t.Fatalf("status = %q, want %q", model.Status.ValueString(), test.status)
 			}
