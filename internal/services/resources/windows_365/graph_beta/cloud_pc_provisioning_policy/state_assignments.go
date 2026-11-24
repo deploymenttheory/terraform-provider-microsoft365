@@ -82,18 +82,8 @@ func createAssignmentObject(ctx context.Context, assignment models.CloudPcProvis
 		"allotment_display_name":  types.StringNull(),
 	}
 
-	// For Cloud PC assignments, the API returns the group ID as the assignment ID
-	// The target additionalData is empty when reading back from the API
-	assignmentID := convert.GraphToFrameworkString(assignment.GetId())
-	if !assignmentID.IsNull() {
-		assignmentObj["group_id"] = assignmentID
-		tflog.Debug(ctx, "Set group_id from assignment ID (Cloud PC API behavior)", map[string]any{
-			"assignmentIndex": index,
-			"assignmentId":    assignmentID.ValueString(),
-		})
-	}
-
-	// Process target data for any additional fields (like frontline service plan info)
+	// The assignment ID is not the group ID (Graph can return a distinct ID), so group_id and the
+	// Frontline fields are read from the assignment target only.
 	target := assignment.GetTarget()
 	if target != nil {
 		mapTargetData(ctx, target, assignmentObj, index)
@@ -133,6 +123,23 @@ func mapTargetData(ctx context.Context, target models.CloudPcManagementAssignmen
 			"odataType":       odataType,
 		})
 	}
+
+	// The SDK deserializes cloudPcManagementGroupAssignmentTarget into a typed model, so its
+	// groupId and Frontline allotment fields are only available through the typed getters.
+	if groupTarget, ok := target.(models.CloudPcManagementGroupAssignmentTargetable); ok {
+		assignmentObj["group_id"] = convert.GraphToFrameworkString(groupTarget.GetGroupId())
+		assignmentObj["service_plan_id"] = convert.GraphToFrameworkString(groupTarget.GetServicePlanId())
+		assignmentObj["allotment_display_name"] = convert.GraphToFrameworkString(groupTarget.GetAllotmentDisplayName())
+		assignmentObj["allotment_license_count"] = convert.GraphToFrameworkInt32(groupTarget.GetAllotmentLicensesCount())
+		tflog.Debug(ctx, "Mapped typed group assignment target", map[string]any{
+			"assignmentIndex": index,
+			"groupId":         assignmentObj["group_id"],
+		})
+		return
+	}
+
+	// Target types the SDK does not model (such as cloudPcManagementExclusionGroupAssignmentTarget)
+	// deserialize into the base target, which keeps their properties in additionalData.
 	additionalData := target.GetAdditionalData()
 	if additionalData == nil {
 		tflog.Debug(ctx, "Target additionalData is nil", map[string]any{
