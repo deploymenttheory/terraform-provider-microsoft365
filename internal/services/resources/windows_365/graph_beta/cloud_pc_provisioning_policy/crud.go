@@ -1,18 +1,43 @@
+// Package graphBetaCloudPcProvisioningPolicy manages Windows 365 Cloud PC provisioning policies.
+//
+// SDK deviation: unknown enum value
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0, models.CloudPcRegionGroup.
+//     ParseCloudPcRegionGroup knows default through kenya and returns nil for uae, so the SDK cannot
+//     set regionGroup = uae and its deserialiser drops uae from a GET response.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/resources/cloudpcdomainjoinconfiguration?view=graph-rest-beta
+//     links the cloudPcRegionGroup enum without uae; https://learn.microsoft.com/en-us/windows-365/enterprise/enhanced-resiliency-mhn
+//     lists UAE as a region group of the Middle East geography.
+//   - Observed: Intune portal create request captured in #4904, POST /beta/deviceManagement/virtualEndpoint/provisioningPolicies
+//     with domainJoinConfigurations [{"type": "azureADJoin", "geographicLocationType": "middleEast", "regionName": "automatic",
+//     "regionGroup": "uae"}]. No live GET was available; the read path was checked against SDK source.
+//
+// Handling: construct.go writes a region group the SDK enum lacks into the domain join configuration's additionalData,
+// which the SDK serialiser writes as "regionGroup". Read fetches the policy as raw JSON through custom_requests,
+// decodes it with the SDK model and copies each raw regionGroup the SDK dropped into additionalData, where state.go reads it.
+//
+// Removal condition: models.CloudPcRegionGroup includes uae.
 package graphBetaCloudPcProvisioningPolicy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 // Create handles the Create operation for Cloud PC provisioning policy resources.
@@ -125,7 +150,7 @@ func (r *CloudPcProvisioningPolicyResource) Create(ctx context.Context, req reso
 //
 // Operation: Retrieves a Cloud PC provisioning policy including assignments
 // API Calls:
-//   - GET /deviceManagement/virtualEndpoint/provisioningPolicies/{id}?$expand=assignments
+//   - GET /deviceManagement/virtualEndpoint/provisioningPolicies/{id}?$expand=assignments&$select=* (raw JSON, see the package doc)
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/cloudpcprovisioningpolicy-get?view=graph-rest-beta
 func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -163,21 +188,49 @@ func (r *CloudPcProvisioningPolicyResource) Read(ctx context.Context, req resour
 
 	tflog.Debug(ctx, "Fetching provisioning policy with expanded assignments")
 
-	provisioningPolicy, err := r.client.
-		DeviceManagement().
-		VirtualEndpoint().
-		ProvisioningPolicies().
-		ByCloudPcProvisioningPolicyId(object.ID.ValueString()).
-		Get(ctx, &devicemanagement.VirtualEndpointProvisioningPoliciesCloudPcProvisioningPolicyItemRequestBuilderGetRequestConfiguration{
-			QueryParameters: &devicemanagement.VirtualEndpointProvisioningPoliciesCloudPcProvisioningPolicyItemRequestBuilderGetQueryParameters{
-				Expand: []string{"assignments"},
-				Select: []string{"*"},
-			},
-		})
-
+	// SDK deviation: unknown enum value. The policy is read as raw JSON so a region group the SDK enum lacks (uae) survives.
+	getConfig := customrequests.GetRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          "deviceManagement/virtualEndpoint/provisioningPolicies",
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        object.ID.ValueString(),
+		EndpointSuffix:    "?$expand=assignments&$select=*",
+	}
+	body, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
+	}
+
+	node, err := jsonserialization.NewJsonParseNodeFactory().GetRootParseNode("application/json", body)
+	if err != nil {
+		resp.Diagnostics.AddError("Error parsing resource", fmt.Sprintf("Could not parse %s response: %s", ResourceName, err.Error()))
+		return
+	}
+	parsed, err := node.GetObjectValue(models.CreateCloudPcProvisioningPolicyFromDiscriminatorValue)
+	if err != nil {
+		resp.Diagnostics.AddError("Error parsing resource", fmt.Sprintf("Could not decode %s response: %s", ResourceName, err.Error()))
+		return
+	}
+	provisioningPolicy, ok := parsed.(models.CloudPcProvisioningPolicyable)
+	if !ok || provisioningPolicy == nil {
+		resp.Diagnostics.AddError("Error parsing resource", fmt.Sprintf("Unexpected %s response type %T", ResourceName, parsed))
+		return
+	}
+
+	var rawRegionGroups struct {
+		DomainJoinConfigurations []struct {
+			RegionGroup string `json:"regionGroup"`
+		} `json:"domainJoinConfigurations"`
+	}
+	if err := json.Unmarshal(body, &rawRegionGroups); err != nil {
+		resp.Diagnostics.AddError("Error parsing resource", fmt.Sprintf("Could not decode %s region groups: %s", ResourceName, err.Error()))
+		return
+	}
+	for i, config := range provisioningPolicy.GetDomainJoinConfigurations() {
+		if config.GetRegionGroup() == nil && i < len(rawRegionGroups.DomainJoinConfigurations) && rawRegionGroups.DomainJoinConfigurations[i].RegionGroup != "" {
+			config.GetAdditionalData()["regionGroup"] = rawRegionGroups.DomainJoinConfigurations[i].RegionGroup
+		}
 	}
 
 	MapRemoteStateToTerraform(ctx, &object, provisioningPolicy)

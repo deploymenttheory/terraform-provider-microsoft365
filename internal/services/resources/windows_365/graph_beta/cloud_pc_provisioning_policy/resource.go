@@ -234,10 +234,45 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 								),
 							},
 						},
-						"region_group": schema.StringAttribute{
-							Required:            true,
-							MarkdownDescription: "The Cloud PC region group. Must be one of: default, australia, canada, usCentral, usEast, usWest, france, germany, europeUnion, unitedKingdom, japan, asia, india, southAmerica, euap, usGovernment, usGovernmentDOD, unknownFutureValue, norway, switzerland, southKorea, middleEast, mexico, australasia, europe, singapore, hongKong, ireland, sweden, poland, italy, spain, netherlands, brazil, israel, automatic, indonesia, taiwan, malaysia, newZealand, austria, denmark, belgium, kenya. The exported observations uae and southAfrica are not members of the current Graph enum and are not supported; no broader group is substituted.",
+						"geographic_location_type": schema.StringAttribute{
+							Optional: true,
+							Computed: true,
+							MarkdownDescription: "The Windows 365 geography that the region selection belongs to, as the Intune portal sends it (for example middleEast or africa). " +
+								"Set it with region_group = \"automatic\" and region_name = \"automatic\" to select every region group and region in the geography, " +
+								"or with a specific region_group (for example uae) to limit placement to that group within the geography. " +
+								"When omitted, the value Windows 365 reports is kept in state. Must be one of: default, asia, australasia, canada, europe, india, africa, usCentral, usEast, usWest, southAmerica, middleEast, centralAmerica, usGovernment, mexico, australiaNewZealand.",
 							Validators: []validator.String{
+								stringvalidator.OneOf(
+									"default",
+									"asia",
+									"australasia",
+									"canada",
+									"europe",
+									"india",
+									"africa",
+									"usCentral",
+									"usEast",
+									"usWest",
+									"southAmerica",
+									"middleEast",
+									"centralAmerica",
+									"usGovernment",
+									"mexico",
+									"australiaNewZealand",
+								),
+							},
+							PlanModifiers: []planmodifier.String{
+								stringplanmodifier.UseStateForUnknown(),
+							},
+						},
+						"region_group": schema.StringAttribute{
+							Required: true,
+							MarkdownDescription: "The Cloud PC region group. Must be one of: default, australia, canada, usCentral, usEast, usWest, france, germany, europeUnion, unitedKingdom, japan, asia, india, southAmerica, euap, usGovernment, usGovernmentDOD, unknownFutureValue, norway, switzerland, southKorea, mexico, australasia, europe, singapore, hongKong, ireland, sweden, poland, italy, spain, netherlands, brazil, israel, automatic, indonesia, taiwan, malaysia, newZealand, austria, denmark, belgium, kenya, uae. " +
+								"Use automatic together with geographic_location_type to select a whole geography. uae is the UAE region group of the middleEast geography as the Intune portal sends it; it is not yet in the Graph SDK enum. " +
+								"The legacy middleEast region group is rejected because Windows 365 maps it to the israel (Israel Central) group, which is narrower than the Middle East geography; use geographic_location_type = \"middleEast\" with region_group = \"automatic\" instead. " +
+								"southAfrica is not accepted: the Intune portal selects South Africa as geographic_location_type = \"africa\" with region_group = \"automatic\".",
+							Validators: []validator.String{
+								legacyMiddleEastRegionGroupValidator{},
 								stringvalidator.OneOf(
 									"default",
 									"australia",
@@ -283,6 +318,7 @@ func (r *CloudPcProvisioningPolicyResource) Schema(ctx context.Context, req reso
 									"denmark",
 									"belgium",
 									"kenya",
+									"uae",
 								),
 							},
 						},

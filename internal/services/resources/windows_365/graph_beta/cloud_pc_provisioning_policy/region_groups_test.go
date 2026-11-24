@@ -19,7 +19,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_RegionGroups(t *testing.T) {
 	var response resource.SchemaResponse
 	NewCloudPcProvisioningPolicyResource().Schema(ctx, resource.SchemaRequest{}, &response)
 	attribute := response.Schema.Attributes["domain_join_configurations"].(schema.ListNestedAttribute).NestedObject.Attributes["region_group"].(schema.StringAttribute)
-	for _, value := range []string{"default", "australia", "canada", "usCentral", "usEast", "usWest", "france", "germany", "europeUnion", "unitedKingdom", "japan", "asia", "india", "southAmerica", "euap", "usGovernment", "usGovernmentDOD", "unknownFutureValue", "norway", "switzerland", "southKorea", "middleEast", "mexico", "australasia", "europe", "singapore", "hongKong", "ireland", "sweden", "poland", "italy", "spain", "netherlands", "brazil", "israel", "automatic", "indonesia", "taiwan", "malaysia", "newZealand", "austria", "denmark", "belgium", "kenya"} {
+	for _, value := range []string{"default", "australia", "canada", "usCentral", "usEast", "usWest", "france", "germany", "europeUnion", "unitedKingdom", "japan", "asia", "india", "southAmerica", "euap", "usGovernment", "usGovernmentDOD", "unknownFutureValue", "norway", "switzerland", "southKorea", "mexico", "australasia", "europe", "singapore", "hongKong", "ireland", "sweden", "poland", "italy", "spain", "netherlands", "brazil", "israel", "automatic", "indonesia", "taiwan", "malaysia", "newZealand", "austria", "denmark", "belgium", "kenya", "uae"} {
 		t.Run(value, func(t *testing.T) {
 			var validation validator.StringResponse
 			for _, v := range attribute.Validators {
@@ -41,7 +41,7 @@ func TestUnitResourceCloudPcProvisioningPolicy_RegionGroups(t *testing.T) {
 			require.Equal(t, value, state.DomainJoinConfigurations[0].RegionGroup.ValueString())
 		})
 	}
-	for _, value := range []string{"uae", "southAfrica", "notARegion"} {
+	for _, value := range []string{"middleEast", "southAfrica", "qatar", "notARegion"} {
 		var validation validator.StringResponse
 		for _, v := range attribute.Validators {
 			v.ValidateString(ctx, validator.StringRequest{ConfigValue: types.StringValue(value)}, &validation)

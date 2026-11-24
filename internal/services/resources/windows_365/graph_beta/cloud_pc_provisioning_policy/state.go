@@ -83,11 +83,17 @@ func MapRemoteStateToTerraform(ctx context.Context, data *CloudPcProvisioningPol
 	if domainJoinConfigs := remoteResource.GetDomainJoinConfigurations(); len(domainJoinConfigs) > 0 {
 		data.DomainJoinConfigurations = make([]DomainJoinConfigurationModel, len(domainJoinConfigs))
 		for i, config := range domainJoinConfigs {
+			regionGroup := convert.GraphToFrameworkEnum(config.GetRegionGroup())
+			// SDK deviation: unknown enum value (see crud.go). Read keeps a region group the SDK enum drops (uae) in additionalData.
+			if raw, ok := config.GetAdditionalData()["regionGroup"].(string); ok && regionGroup.IsNull() && raw != "" {
+				regionGroup = types.StringValue(raw)
+			}
 			data.DomainJoinConfigurations[i] = DomainJoinConfigurationModel{
 				DomainJoinType:         convert.GraphToFrameworkEnum(config.GetDomainJoinType()),
 				OnPremisesConnectionId: convert.GraphToFrameworkString(config.GetOnPremisesConnectionId()),
 				RegionName:             convert.GraphToFrameworkString(config.GetRegionName()),
-				RegionGroup:            convert.GraphToFrameworkEnum(config.GetRegionGroup()),
+				GeographicLocationType: convert.GraphToFrameworkEnum(config.GetGeographicLocationType()),
+				RegionGroup:            regionGroup,
 			}
 		}
 	} else {
