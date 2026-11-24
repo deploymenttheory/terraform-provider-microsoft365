@@ -16,13 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
-	"github.com/microsoft/kiota-abstractions-go/store"
-	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 )
 
-func TestNewWebFilteringPolicyRuleRequestInformationSerializesObservedPortalPayload(t *testing.T) {
+func TestConstructResourceSerializesObservedPortalPayload(t *testing.T) {
 	ctx := context.Background()
 	urlsOrFqdns, diags := types.SetValueFrom(ctx, types.StringType, []string{"*.example.com", "www.MySite.com/a/*"})
 	if diags.HasError() {
@@ -56,22 +52,7 @@ func TestNewWebFilteringPolicyRuleRequestInformationSerializesObservedPortalPayl
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	requestInfo, err := newWebFilteringPolicyRuleRequestInformation(
-		ctx,
-		webFilteringPolicyRuleTestRequestAdapter{},
-		abstractions.POST,
-		"05bd8400-14ae-4eb0-b7d7-339cd312d8f2",
-		"",
-		body,
-	)
-	if err != nil {
-		t.Fatalf("newWebFilteringPolicyRuleRequestInformation returned error: %v", err)
-	}
-
-	var payload map[string]any
-	if err := json.Unmarshal(requestInfo.Content, &payload); err != nil {
-		t.Fatalf("failed to unmarshal request content: %v", err)
-	}
+	payload := marshalledRulePayload(t, body)
 
 	if payload["@odata.type"] != webFilteringRuleODataType {
 		t.Fatalf("@odata.type = %#v, expected %#v", payload["@odata.type"], webFilteringRuleODataType)
@@ -117,7 +98,7 @@ func TestNewWebFilteringPolicyRuleRequestInformationSerializesObservedPortalPayl
 	}
 }
 
-func TestNewWebFilteringPolicyRuleRequestInformationSerializesObservedCategoryOnlyPayload(t *testing.T) {
+func TestConstructResourceSerializesObservedCategoryOnlyPayload(t *testing.T) {
 	ctx := context.Background()
 	webCategories, diags := types.SetValueFrom(ctx, types.StringType, []string{"AIAgents"})
 	if diags.HasError() {
@@ -193,71 +174,23 @@ func serializedRulePayload(t *testing.T, ctx context.Context, model *NetworkWebF
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	requestInfo, err := newWebFilteringPolicyRuleRequestInformation(
-		ctx,
-		webFilteringPolicyRuleTestRequestAdapter{},
-		abstractions.POST,
-		"05bd8400-14ae-4eb0-b7d7-339cd312d8f2",
-		"",
-		body,
-	)
-	if err != nil {
-		t.Fatalf("newWebFilteringPolicyRuleRequestInformation returned error: %v", err)
-	}
+	return marshalledRulePayload(t, body)
+}
 
+// marshalledRulePayload returns the request body as custom_requests sends it, decoded into a generic map.
+func marshalledRulePayload(t *testing.T, body webFilteringRuleRequest) map[string]any {
+	t.Helper()
+
+	content, err := json.Marshal(body)
+	if err != nil {
+		t.Fatalf("failed to marshal request body: %v", err)
+	}
 	var payload map[string]any
-	if err := json.Unmarshal(requestInfo.Content, &payload); err != nil {
+	if err := json.Unmarshal(content, &payload); err != nil {
 		t.Fatalf("failed to unmarshal request content: %v", err)
 	}
 
 	return payload
-}
-
-type webFilteringPolicyRuleTestRequestAdapter struct{}
-
-func (webFilteringPolicyRuleTestRequestAdapter) Send(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) (s.Parsable, error) {
-	return nil, nil
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) SendEnum(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) (any, error) {
-	return nil, nil
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) SendCollection(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) ([]s.Parsable, error) {
-	return nil, nil
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) SendEnumCollection(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) ([]any, error) {
-	return nil, nil
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) SendPrimitive(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) (any, error) {
-	return nil, nil
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) SendPrimitiveCollection(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) ([]any, error) {
-	return nil, nil
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) SendNoContent(context.Context, *abstractions.RequestInformation, abstractions.ErrorMappings) error {
-	return nil
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) GetSerializationWriterFactory() s.SerializationWriterFactory {
-	return jsonserialization.NewJsonSerializationWriterFactory()
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) EnableBackingStore(store.BackingStoreFactory) {
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) SetBaseUrl(string) {}
-
-func (webFilteringPolicyRuleTestRequestAdapter) GetBaseUrl() string {
-	return "https://graph.microsoft.com/beta"
-}
-
-func (webFilteringPolicyRuleTestRequestAdapter) ConvertToNativeRequest(context.Context, *abstractions.RequestInformation) (any, error) {
-	return nil, nil
 }
 
 func TestConstructResourceSerializesCustomHeadersInOrder(t *testing.T) {
@@ -266,7 +199,7 @@ func TestConstructResourceSerializesCustomHeadersInOrder(t *testing.T) {
 	if diags.HasError() {
 		t.Fatalf("failed to build urls_or_fqdns set: %s", diags.Errors()[0].Detail())
 	}
-	headers, diags := types.ListValueFrom(ctx, customHeaderObjectType(), []CustomHeaderModel{
+	headers, diags := types.ListValueFrom(ctx, customHeaderObjectType, []CustomHeaderModel{
 		{Name: types.StringValue("test"), Value: types.StringValue("a1")},
 		{Name: types.StringValue("test2"), Value: types.StringValue("a2")},
 	})
@@ -310,7 +243,7 @@ func TestConstructResourceSendsNullHeaderSettingsWithoutCustomHeaders(t *testing
 		Priority:      types.Int64Value(100),
 		Status:        types.StringValue("enabled"),
 		WebCategories: webCategories,
-		CustomHeaders: types.ListNull(customHeaderObjectType()),
+		CustomHeaders: types.ListNull(customHeaderObjectType),
 	})
 
 	headerSettings, ok := payload["action"].(map[string]any)["headerSettings"]
@@ -352,17 +285,13 @@ func TestMapRemoteStateToTerraformReadsCustomHeaders(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			parseNode, err := jsonserialization.NewJsonParseNode([]byte(tc.body))
-			if err != nil {
-				t.Fatalf("failed to build parse node: %v", err)
-			}
-			parsed, err := parseNode.GetObjectValue(createWebFilteringPolicyRuleResponseFromDiscriminatorValue)
-			if err != nil {
+			var parsed webFilteringRule
+			if err := json.Unmarshal([]byte(tc.body), &parsed); err != nil {
 				t.Fatalf("failed to parse response: %v", err)
 			}
 
 			var data NetworkWebFilteringPolicyRuleResourceModel
-			MapRemoteStateToTerraform(ctx, &data, parsed.(*webFilteringPolicyRuleResponse))
+			MapRemoteStateToTerraform(ctx, &data, &parsed)
 
 			if tc.want == nil {
 				if !data.CustomHeaders.IsNull() {
@@ -403,7 +332,7 @@ func TestUniqueCustomHeaderNamesValidator(t *testing.T) {
 			for _, n := range tc.names {
 				headers = append(headers, CustomHeaderModel{Name: types.StringValue(n), Value: types.StringValue("v")})
 			}
-			list, diags := types.ListValueFrom(ctx, customHeaderObjectType(), headers)
+			list, diags := types.ListValueFrom(ctx, customHeaderObjectType, headers)
 			if diags.HasError() {
 				t.Fatalf("failed to build list: %s", diags.Errors()[0].Detail())
 			}
@@ -423,7 +352,7 @@ func TestUniqueCustomHeaderNamesValidator(t *testing.T) {
 
 func TestUniqueCustomHeaderNamesValidatorSkipsUnknownElements(t *testing.T) {
 	ctx := context.Background()
-	objectType := customHeaderObjectType()
+	objectType := customHeaderObjectType
 	known := func(name string) attr.Value {
 		return types.ObjectValueMust(objectType.AttrTypes, map[string]attr.Value{
 			"name":  types.StringValue(name),
@@ -469,7 +398,7 @@ func TestConstructResourceOmitsHeaderSettingsForBlock(t *testing.T) {
 		Priority:      types.Int64Value(100),
 		Status:        types.StringValue("enabled"),
 		WebCategories: webCategories,
-		CustomHeaders: types.ListNull(customHeaderObjectType()),
+		CustomHeaders: types.ListNull(customHeaderObjectType),
 	})
 
 	if _, ok := payload["action"].(map[string]any)["headerSettings"]; ok {
@@ -526,7 +455,7 @@ func TestConstructResourceRejectsCustomHeadersOnBlock(t *testing.T) {
 	if diags.HasError() {
 		t.Fatalf("failed to build web_categories set: %s", diags.Errors()[0].Detail())
 	}
-	headers, diags := types.ListValueFrom(ctx, customHeaderObjectType(), []CustomHeaderModel{
+	headers, diags := types.ListValueFrom(ctx, customHeaderObjectType, []CustomHeaderModel{
 		{Name: types.StringValue("X-Example"), Value: types.StringValue("v")},
 	})
 	if diags.HasError() {
@@ -573,26 +502,12 @@ func TestPatchWithoutCustomHeadersClearsThem(t *testing.T) {
 				Priority:      types.Int64Value(100),
 				Status:        types.StringValue("enabled"),
 				WebCategories: webCategories,
-				CustomHeaders: types.ListNull(customHeaderObjectType()),
+				CustomHeaders: types.ListNull(customHeaderObjectType),
 			})
 			if err != nil {
 				t.Fatalf("constructResource returned error: %v", err)
 			}
-			requestInfo, err := newWebFilteringPolicyRuleRequestInformation(
-				ctx,
-				webFilteringPolicyRuleTestRequestAdapter{},
-				abstractions.PATCH,
-				"05bd8400-14ae-4eb0-b7d7-339cd312d8f2",
-				"rule",
-				body,
-			)
-			if err != nil {
-				t.Fatalf("newWebFilteringPolicyRuleRequestInformation returned error: %v", err)
-			}
-			var payload map[string]any
-			if err := json.Unmarshal(requestInfo.Content, &payload); err != nil {
-				t.Fatalf("failed to unmarshal request content: %v", err)
-			}
+			payload := marshalledRulePayload(t, body)
 			headerSettings, present := payload["action"].(map[string]any)["headerSettings"]
 			if tc.wantNull && (!present || headerSettings != nil) {
 				t.Fatalf("action = %#v, expected explicit null headerSettings", payload["action"])
