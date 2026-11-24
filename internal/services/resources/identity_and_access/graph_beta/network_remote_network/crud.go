@@ -1,19 +1,58 @@
+// Package graphBetaIdentityAndAccessNetworkRemoteNetwork manages Global Secure Access remote networks.
+//
+// SDK deviation: missing type
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0,
+//     networkaccess.ConnectivityRemoteNetworksItemForwardingProfilesRequestBuilder has Get and Post but no Patch, so the
+//     $delta PATCH that replaces a remote network's forwarding profile associations cannot be sent through the SDK.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/networkaccess-remotenetwork-update?view=graph-rest-beta
+//     documents the entity PATCH only; the forwardingProfiles $delta PATCH is not documented.
+//   - Observed: when the resource was added (#4862) the entity PATCH rejected forwardingProfiles and the profile-side
+//     associations overwrote other remote networks, so associations are replaced with
+//     PATCH /networkaccess/connectivity/remoteNetworks/{id}/forwardingProfiles carrying {"@context":"#$delta","value":[...]}.
+//     Checked against the SDK source on 2026-11-24; no live call, because the test tenant has no Global Secure Access
+//     licence. The entity POST, GET, PATCH and DELETE use the same custom_requests raw JSON transport so their request
+//     bodies keep the live-verified shape (the generated models would add @odata.type annotations to the entity and to
+//     each forwarding profile reference). APIVersion is left empty so the requests use the beta client's own base URL,
+//     as the previous transport did.
+//
+// Removal condition: the beta SDK ships a Patch on ConnectivityRemoteNetworksItemForwardingProfilesRequestBuilder that
+// accepts a $delta collection of forwarding profile references.
 package graphBetaIdentityAndAccessNetworkRemoteNetwork
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
+
+// remoteNetworksEndpoint is the remote networks collection.
+const remoteNetworksEndpoint = "/networkaccess/connectivity/remoteNetworks"
+
+var (
+	errMissingID        = stderrors.New("graph did not return an ID for the created remote network")
+	errInvalidResponse  = stderrors.New("graph omitted required remote network fields")
+	errDeletionTimedOut = stderrors.New("stopped waiting for remote network deletion to finish")
+)
+
+// deletionPollInterval is a variable so unit tests can shorten it.
+var deletionPollInterval = 5 * time.Second
+
+// readbackPaths are the attributes the read-back after a write waits for. MaxRetries is raised so the operation
+// timeout, not the retry count, bounds the wait.
+var readbackPaths = crud.RootPaths("id", "name", "region", "forwarding_profile_ids")
 
 // Create handles the Create operation for remote network resources.
 //
@@ -38,13 +77,19 @@ func (r *NetworkRemoteNetworkResource) Create(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	profileIDs, diags := setStrings(ctx, plan.ForwardingProfileIDs)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	body, err := constructResource(ctx, plan)
+	var created *remoteNetworkResponse
+	if err == nil {
+		postConfig := customrequests.PostRequestConfig{
+			Endpoint:    remoteNetworksEndpoint,
+			RawBody:     body,
+			RawResponse: &created,
+		}
+		_, err = customrequests.PostRequest(ctx, r.client.GetAdapter(), postConfig, nil, nil)
 	}
-
-	created, err := r.create(ctx, plan.Name.ValueString(), plan.Region.ValueString(), profileIDs)
+	if err == nil && (created == nil || created.ID == nil || *created.ID == "") {
+		err = errMissingID
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -58,13 +103,10 @@ func (r *NetworkRemoteNetworkResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	if err := crud.ReadWithRetry(
-		ctx,
-		r.Read,
-		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
-		&crud.CreateResponseContainer{CreateResponse: resp},
-		readbackOptions(plan, constants.TfOperationCreate),
-	); err != nil {
+	predicate := crud.RequireStableReads(crud.AttributesMatchPredicate(req.Plan, crud.AttributeMatchOptions{Paths: readbackPaths}))
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithMaxRetries(1000), crud.ReadWithConsistencyPredicate(predicate))
+	readRequest := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	if err := crud.ReadWithRetry(ctx, r.Read, readRequest, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading resource state after create",
 			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
@@ -80,6 +122,9 @@ func (r *NetworkRemoteNetworkResource) Create(ctx context.Context, req resource.
 // Operation: Retrieves a remote network by ID
 // API Calls:
 //   - GET /networkaccess/connectivity/remoteNetworks/{id}
+//
+// The item GET is used because the forwardingProfiles navigation GET returns an empty collection even when profiles
+// are associated.
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/networkaccess-remotenetwork-get?view=graph-rest-beta
 func (r *NetworkRemoteNetworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -102,13 +147,20 @@ func (r *NetworkRemoteNetworkResource) Read(ctx context.Context, req resource.Re
 	}
 	defer cancel()
 
-	remote, err := r.get(ctx, state.ID.ValueString())
-	if err != nil {
+	// An empty or null body leaves remote nil, which MapRemoteStateToTerraform reports as an invalid response.
+	var remote *remoteNetworkResponse
+	getConfig := customrequests.GetRequestConfig{
+		Endpoint:          remoteNetworksEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID.ValueString(),
+		RawResponse:       &remote,
+	}
+	if _, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	if err := mapResponse(&state, remote); err != nil {
+	if err := MapRemoteStateToTerraform(&state, remote); err != nil {
 		resp.Diagnostics.AddError("Invalid Graph response", err.Error())
 		return
 	}
@@ -142,19 +194,45 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 	id := state.ID.ValueString()
 
 	if !plan.Name.Equal(state.Name) {
-		if err := r.updateName(ctx, id, plan.Name.ValueString()); err != nil {
+		// The name PATCH leaves the forwarding profiles unchanged.
+		patchConfig := customrequests.PatchRequestConfig{
+			Endpoint:          remoteNetworksEndpoint,
+			ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+			ResourceID:        id,
+			RawBody:           map[string]any{"name": plan.Name.ValueString()},
+		}
+		if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
 	}
 
 	if !plan.ForwardingProfileIDs.Equal(state.ForwardingProfileIDs) {
-		profileIDs, diags := setStrings(ctx, plan.ForwardingProfileIDs)
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
+		var profileIDs []string
+		if !plan.ForwardingProfileIDs.IsNull() && !plan.ForwardingProfileIDs.IsUnknown() {
+			resp.Diagnostics.Append(plan.ForwardingProfileIDs.ElementsAs(ctx, &profileIDs, false)...)
+			if resp.Diagnostics.HasError() {
+				return
+			}
 		}
-		if err := r.updateForwardingProfiles(ctx, id, profileIDs); err != nil {
+		// Send the full set as a $delta PATCH. The entity PATCH rejects forwardingProfiles, and the profile-side
+		// associations would overwrite other remote networks.
+		err := errNoForwardingProfiles
+		if len(profileIDs) > 0 {
+			refs := make([]map[string]string, 0, len(profileIDs))
+			for _, profileID := range profileIDs {
+				refs = append(refs, map[string]string{"id": profileID})
+			}
+			patchConfig := customrequests.PatchRequestConfig{
+				Endpoint:          remoteNetworksEndpoint,
+				ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+				ResourceID:        id,
+				EndpointSuffix:    "/forwardingProfiles",
+				RawBody:           map[string]any{"@context": "#$delta", "value": refs},
+			}
+			err = customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig)
+		}
+		if err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return
 		}
@@ -167,13 +245,10 @@ func (r *NetworkRemoteNetworkResource) Update(ctx context.Context, req resource.
 		return
 	}
 
-	if err := crud.ReadWithRetry(
-		ctx,
-		r.Read,
-		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
-		&crud.UpdateResponseContainer{UpdateResponse: resp},
-		readbackOptions(plan, constants.TfOperationUpdate),
-	); err != nil {
+	predicate := crud.RequireStableReads(crud.AttributesMatchPredicate(req.Plan, crud.AttributeMatchOptions{Paths: readbackPaths}))
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithMaxRetries(1000), crud.ReadWithConsistencyPredicate(predicate))
+	readRequest := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	if err := crud.ReadWithRetry(ctx, r.Read, readRequest, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading resource state after update",
 			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
@@ -206,7 +281,12 @@ func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.
 	}
 	defer cancel()
 
-	if err := r.delete(ctx, state.ID.ValueString()); err != nil {
+	deleteConfig := customrequests.DeleteRequestConfig{
+		Endpoint:          remoteNetworksEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID.ValueString(),
+	}
+	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig); err != nil {
 		// An earlier destroy may have started the deletion; wait for it anyway.
 		if errors.GraphError(ctx, err).StatusCode != 404 {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
@@ -214,29 +294,34 @@ func (r *NetworkRemoteNetworkResource) Delete(ctx context.Context, req resource.
 		}
 	}
 
-	if err := r.waitForDeletion(ctx, state.ID.ValueString()); err != nil {
+	// Graph deletes asynchronously. Until it finishes, GET returns 404 "... is on deletion process." and the name
+	// cannot be reused (409). The DELETE succeeded, so keep polling through transient errors.
+	err := crud.PollUntil(ctx, deletionPollInterval, func(ctx context.Context) (bool, error) {
+		getConfig := customrequests.GetRequestConfig{
+			Endpoint:          remoteNetworksEndpoint,
+			ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+			ResourceID:        state.ID.ValueString(),
+		}
+		_, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig)
+		if err == nil {
+			return false, nil
+		}
+		info := errors.GraphError(ctx, err)
+		switch info.StatusCode {
+		case 404:
+			return !strings.Contains(strings.ToLower(info.ErrorMessage), "deletion process"), nil
+		case 401, 403:
+			return false, &crud.FatalPollError{Err: err}
+		}
+		return false, nil
+	})
+	if err != nil && ctx.Err() != nil {
+		err = fmt.Errorf("%w: %w", errDeletionTimedOut, ctx.Err())
+	}
+	if err != nil {
 		resp.Diagnostics.AddError("Error waiting for remote network deletion", err.Error())
 		return
 	}
 
 	resp.State.RemoveResource(ctx)
-}
-
-// readbackOptions configures shared read retries to verify the preceding write.
-func readbackOptions(plan NetworkRemoteNetworkResourceModel, operation string) crud.ReadWithRetryOptions {
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = operation
-	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = stableConsistencyPredicate(plan)
-	opts.MaxRetries = 1000 // Bounded by the operation timeout instead.
-	return opts
-}
-
-func setStrings(ctx context.Context, set types.Set) ([]string, diag.Diagnostics) {
-	var values []string
-	if set.IsNull() || set.IsUnknown() {
-		return values, nil
-	}
-	diags := set.ElementsAs(ctx, &values, false)
-	return values, diags
 }
