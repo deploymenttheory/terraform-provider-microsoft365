@@ -60,7 +60,11 @@ func (r *NetworkWebFilteringPolicyResource) Create(ctx context.Context, req reso
 	defer cancel()
 
 	var created webFilteringPolicy
-	postConfig := customrequests.PostRequestConfig{Endpoint: webFilteringPoliciesEndpoint, RawBody: constructResource(ctx, &object, true), RawResponse: &created}
+	postConfig := customrequests.PostRequestConfig{
+		Endpoint:    webFilteringPoliciesEndpoint,
+		RawBody:     constructResource(ctx, &object, true),
+		RawResponse: &created,
+	}
 	if _, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), postConfig, nil, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -122,7 +126,13 @@ func (r *NetworkWebFilteringPolicyResource) Read(ctx context.Context, req resour
 	}
 
 	var policy webFilteringPolicy
-	getConfig := customrequests.GetRequestConfig{Endpoint: webFilteringPoliciesEndpoint, ResourceIDPattern: customrequests.ResourceIDPatternSegment, ResourceID: object.ID.ValueString(), RawResponse: &policy}
+	policyID := object.ID.ValueString()
+	getConfig := customrequests.GetRequestConfig{
+		Endpoint:          webFilteringPoliciesEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        policyID,
+		RawResponse:       &policy,
+	}
 	if _, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -155,7 +165,12 @@ func (r *NetworkWebFilteringPolicyResource) Update(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	patchConfig := customrequests.PatchRequestConfig{Endpoint: webFilteringPoliciesEndpoint, ResourceIDPattern: customrequests.ResourceIDPatternSegment, ResourceID: state.ID.ValueString(), RawBody: constructResource(ctx, &plan, false)}
+	patchConfig := customrequests.PatchRequestConfig{
+		Endpoint:          webFilteringPoliciesEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID.ValueString(),
+		RawBody:           constructResource(ctx, &plan, false),
+	}
 	if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
@@ -196,7 +211,11 @@ func (r *NetworkWebFilteringPolicyResource) Delete(ctx context.Context, req reso
 	}
 	defer cancel()
 
-	deleteConfig := customrequests.DeleteRequestConfig{Endpoint: webFilteringPoliciesEndpoint, ResourceIDPattern: customrequests.ResourceIDPatternSegment, ResourceID: object.ID.ValueString()}
+	deleteConfig := customrequests.DeleteRequestConfig{
+		Endpoint:          webFilteringPoliciesEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        object.ID.ValueString(),
+	}
 	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return

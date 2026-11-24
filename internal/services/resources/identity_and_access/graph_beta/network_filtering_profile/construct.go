@@ -2,10 +2,17 @@ package graphBetaNetworkFilteringProfile
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+)
+
+var (
+	errInvalidState     = errors.New("invalid filtering profile state")
+	errPriorityRequired = errors.New("filtering profile priority is required")
+	errStateRequired    = errors.New("filtering profile state is required")
 )
 
 // constructResource maps Terraform schema values to the minimal Graph payload: name, description, priority and
@@ -32,20 +39,20 @@ func constructResource(ctx context.Context, data *NetworkFilteringProfileResourc
 	if !data.State.IsNull() && !data.State.IsUnknown() {
 		parsed, err := models.ParseStatus(data.State.ValueString())
 		if err != nil {
-			return filteringProfileRequest{}, fmt.Errorf("invalid filtering profile state: %s", err)
+			return filteringProfileRequest{}, fmt.Errorf("%w: %w", errInvalidState, err)
 		}
 		if parsed == nil {
-			return filteringProfileRequest{}, fmt.Errorf("invalid filtering profile state: %s", data.State.ValueString())
+			return filteringProfileRequest{}, fmt.Errorf("%w: %s", errInvalidState, data.State.ValueString())
 		}
 		requestBody.State = data.State.ValueStringPointer()
 	}
 
 	if requestBody.Priority == nil {
-		return filteringProfileRequest{}, fmt.Errorf("filtering profile priority is required")
+		return filteringProfileRequest{}, errPriorityRequired
 	}
 
 	if requestBody.State == nil {
-		return filteringProfileRequest{}, fmt.Errorf("filtering profile state is required")
+		return filteringProfileRequest{}, errStateRequired
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))

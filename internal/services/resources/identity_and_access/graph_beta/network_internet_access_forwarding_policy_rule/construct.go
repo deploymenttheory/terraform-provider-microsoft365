@@ -2,10 +2,12 @@ package graphBetaNetworkInternetAccessForwardingPolicyRule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 const (
@@ -14,6 +16,15 @@ const (
 	ipAddressODataType                    = "#microsoft.graph.networkaccess.ipAddress"
 	ipRangeODataType                      = "#microsoft.graph.networkaccess.ipRange"
 	ipSubnetODataType                     = "#microsoft.graph.networkaccess.ipSubnet"
+)
+
+var (
+	errReadAttribute              = errors.New("failed to read")
+	errDestinationTypeMismatch    = errors.New("destination type must match rule_type")
+	errDestinationValueRequired   = errors.New("destination value is required")
+	errDestinationRangeRequired   = errors.New("begin_address and end_address are required")
+	errUnsupportedDestinationType = errors.New("unsupported destination type")
+	errNoDestinations             = errors.New("at least one destination must be specified")
 )
 
 // ruleTypeToGraph maps the Terraform rule and destination types to the Graph ruleType values.
@@ -30,59 +41,59 @@ func constructResource(ctx context.Context, data *NetworkInternetAccessForwardin
 	var ports []string
 	if !data.Ports.IsNull() && !data.Ports.IsUnknown() {
 		if diags := data.Ports.ElementsAs(ctx, &ports, false); diags.HasError() {
-			return nil, fmt.Errorf("failed to read ports: %s", diags.Errors()[0].Detail())
+			return nil, fmt.Errorf("%w ports: %s", errReadAttribute, diags.Errors()[0].Detail())
 		}
 	}
 
 	var terraformDestinations []RuleDestinationModel
 	if !data.Destinations.IsNull() && !data.Destinations.IsUnknown() {
 		if diags := data.Destinations.ElementsAs(ctx, &terraformDestinations, false); diags.HasError() {
-			return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
+			return nil, fmt.Errorf("%w destinations: %s", errReadAttribute, diags.Errors()[0].Detail())
 		}
 	}
 	for _, destination := range terraformDestinations {
 		if destination.Type.ValueString() != data.RuleType.ValueString() {
-			return nil, fmt.Errorf("destination type %q must match rule_type %q", destination.Type.ValueString(), data.RuleType.ValueString())
+			return nil, fmt.Errorf("%w: destination type %q, rule_type %q", errDestinationTypeMismatch, destination.Type.ValueString(), data.RuleType.ValueString())
 		}
 	}
 
 	destinations := make([]networkaccess.RuleDestinationable, 0, len(terraformDestinations))
 	for _, item := range terraformDestinations {
 		destinationType := item.Type.ValueString()
-		switch destinationType {
-		case ruleTypeFQDN, ruleTypeIPAddress, ruleTypeIPSubnet:
-			if item.Value.IsNull() || item.Value.ValueString() == "" {
-				return nil, fmt.Errorf("destination value is required when type is %s", destinationType)
+		if destinationType == ruleTypeIPRange {
+			if item.BeginAddress.ValueString() == "" || item.EndAddress.ValueString() == "" {
+				return nil, fmt.Errorf("%w when destination type is %s", errDestinationRangeRequired, ruleTypeIPRange)
 			}
-		case ruleTypeIPRange:
-			if item.BeginAddress.IsNull() || item.BeginAddress.ValueString() == "" || item.EndAddress.IsNull() || item.EndAddress.ValueString() == "" {
-				return nil, fmt.Errorf("begin_address and end_address are required when destination type is %s", ruleTypeIPRange)
-			}
-		default:
-			return nil, fmt.Errorf("unsupported destination type %q", destinationType)
-		}
-		switch destinationType {
-		case ruleTypeFQDN:
-			destination := networkaccess.NewFqdn()
-			destination.SetValue(item.Value.ValueStringPointer())
-			destinations = append(destinations, destination)
-		case ruleTypeIPAddress:
-			destination := networkaccess.NewIpAddress()
-			destination.SetValue(item.Value.ValueStringPointer())
-			destinations = append(destinations, destination)
-		case ruleTypeIPSubnet:
-			destination := networkaccess.NewIpSubnet()
-			destination.SetValue(item.Value.ValueStringPointer())
-			destinations = append(destinations, destination)
-		case ruleTypeIPRange:
 			destination := networkaccess.NewIpRange()
 			destination.SetBeginAddress(item.BeginAddress.ValueStringPointer())
 			destination.SetEndAddress(item.EndAddress.ValueStringPointer())
 			destinations = append(destinations, destination)
+			continue
 		}
+
+		// fqdn, ipAddress and ipSubnet destinations all carry a single value.
+		var destination interface {
+			networkaccess.RuleDestinationable
+			SetValue(value *string)
+		}
+		switch destinationType {
+		case ruleTypeFQDN:
+			destination = networkaccess.NewFqdn()
+		case ruleTypeIPAddress:
+			destination = networkaccess.NewIpAddress()
+		case ruleTypeIPSubnet:
+			destination = networkaccess.NewIpSubnet()
+		default:
+			return nil, fmt.Errorf("%w %q", errUnsupportedDestinationType, destinationType)
+		}
+		if item.Value.ValueString() == "" {
+			return nil, fmt.Errorf("%w when type is %s", errDestinationValueRequired, destinationType)
+		}
+		destination.SetValue(item.Value.ValueStringPointer())
+		destinations = append(destinations, destination)
 	}
 	if len(destinations) == 0 {
-		return nil, fmt.Errorf("at least one destination must be specified")
+		return nil, errNoDestinations
 	}
 
 	requestBody := networkaccess.NewInternetAccessForwardingRule()

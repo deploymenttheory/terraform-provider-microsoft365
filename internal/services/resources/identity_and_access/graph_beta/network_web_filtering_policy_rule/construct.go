@@ -23,6 +23,8 @@ const (
 )
 
 var (
+	errReadAttribute             = errors.New("failed to read")
+	errNoDestinations            = errors.New("at least one destination must be specified using urls_or_fqdns or web_categories")
 	errInvalidCustomHeaders      = errors.New("invalid custom_headers")
 	errCustomHeadersRequireAllow = errors.New(`custom_headers can only be set when action is "allow"`)
 )
@@ -53,13 +55,13 @@ var (
 func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleResourceModel) (webFilteringRuleRequest, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	setValues := func(value types.Set) ([]string, error) {
+	setValues := func(name string, value types.Set) ([]string, error) {
 		if value.IsNull() || value.IsUnknown() {
 			return nil, nil
 		}
 		var result []string
 		if diags := value.ElementsAs(ctx, &result, false); diags.HasError() {
-			return nil, fmt.Errorf("%s", diags.Errors()[0].Detail())
+			return nil, fmt.Errorf("%w %s: %s", errReadAttribute, name, diags.Errors()[0].Detail())
 		}
 		return result, nil
 	}
@@ -71,24 +73,24 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 		return &value
 	}
 
-	urlsOrFqdns, err := setValues(data.UrlsOrFqdns)
+	urlsOrFqdns, err := setValues("urls_or_fqdns", data.UrlsOrFqdns)
 	if err != nil {
-		return webFilteringRuleRequest{}, fmt.Errorf("failed to read urls_or_fqdns: %w", err)
+		return webFilteringRuleRequest{}, err
 	}
-	webCategories, err := setValues(data.WebCategories)
+	webCategories, err := setValues("web_categories", data.WebCategories)
 	if err != nil {
-		return webFilteringRuleRequest{}, fmt.Errorf("failed to read web_categories: %w", err)
+		return webFilteringRuleRequest{}, err
 	}
-	httpMethods, err := setValues(data.HTTPMethods)
+	httpMethods, err := setValues("http_methods", data.HTTPMethods)
 	if err != nil {
-		return webFilteringRuleRequest{}, fmt.Errorf("failed to read http_methods: %w", err)
+		return webFilteringRuleRequest{}, err
 	}
-	sessionTypes, err := setValues(data.SessionTypes)
+	sessionTypes, err := setValues("session_types", data.SessionTypes)
 	if err != nil {
-		return webFilteringRuleRequest{}, fmt.Errorf("failed to read session_types: %w", err)
+		return webFilteringRuleRequest{}, err
 	}
 	if len(urlsOrFqdns) == 0 && len(webCategories) == 0 {
-		return webFilteringRuleRequest{}, fmt.Errorf("at least one destination must be specified using urls_or_fqdns or web_categories")
+		return webFilteringRuleRequest{}, errNoDestinations
 	}
 
 	// The Entra portal and Graph endpoint reject rules without a destination.
@@ -118,7 +120,12 @@ func constructResource(ctx context.Context, data *NetworkWebFilteringPolicyRuleR
 		if len(customHeaders) > 0 {
 			allow.HeaderSettings = &webFilteringHeaderSettings{Modifications: make([]webFilteringHeaderModification, 0, len(customHeaders))}
 			for _, header := range customHeaders {
-				allow.HeaderSettings.Modifications = append(allow.HeaderSettings.Modifications, webFilteringHeaderModification{ODataType: headerModificationAddODataType, HeaderName: header.Name.ValueString(), HeaderValue: header.Value.ValueString()})
+				modification := webFilteringHeaderModification{
+					ODataType:   headerModificationAddODataType,
+					HeaderName:  header.Name.ValueString(),
+					HeaderValue: header.Value.ValueString(),
+				}
+				allow.HeaderSettings.Modifications = append(allow.HeaderSettings.Modifications, modification)
 			}
 		}
 		action = allow

@@ -71,7 +71,10 @@ func (r *NetworkFilteringProfileResource) Create(ctx context.Context, req resour
 		return
 	}
 
-	postConfig := customrequests.PostRequestConfig{Endpoint: filteringProfilesEndpoint, RawBody: requestBody}
+	postConfig := customrequests.PostRequestConfig{
+		Endpoint: filteringProfilesEndpoint,
+		RawBody:  requestBody,
+	}
 	baseResource, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), postConfig, models.CreateFilteringProfileFromDiscriminatorValue, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
@@ -214,7 +217,13 @@ func (r *NetworkFilteringProfileResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	patchConfig := customrequests.PatchRequestConfig{Endpoint: filteringProfilesEndpoint, ResourceIDPattern: customrequests.ResourceIDPatternSegment, ResourceID: state.ID.ValueString(), RawBody: requestBody}
+	profileID := state.ID.ValueString()
+	patchConfig := customrequests.PatchRequestConfig{
+		Endpoint:          filteringProfilesEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        profileID,
+		RawBody:           requestBody,
+	}
 	if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return

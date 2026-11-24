@@ -57,7 +57,10 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Create(ctx context.Context, 
 		return
 	}
 
-	postConfig := customrequests.PostRequestConfig{Endpoint: "/networkAccess/filteringProfiles/" + object.FilteringProfileID.ValueString() + "/policies", RawBody: requestBody}
+	postConfig := customrequests.PostRequestConfig{
+		Endpoint: "/networkAccess/filteringProfiles/" + object.FilteringProfileID.ValueString() + "/policies",
+		RawBody:  requestBody,
+	}
 	result, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), postConfig, models.CreatePolicyLinkFromDiscriminatorValue, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
@@ -199,7 +202,13 @@ func (r *NetworkFilteringProfilePolicyLinkResource) Update(ctx context.Context, 
 		return
 	}
 
-	patchConfig := customrequests.PatchRequestConfig{Endpoint: "/networkAccess/filteringProfiles/" + state.FilteringProfileID.ValueString() + "/policies", ResourceIDPattern: customrequests.ResourceIDPatternSegment, ResourceID: state.PolicyLinkID.ValueString(), RawBody: requestBody}
+	linksEndpoint := "/networkAccess/filteringProfiles/" + state.FilteringProfileID.ValueString() + "/policies"
+	patchConfig := customrequests.PatchRequestConfig{
+		Endpoint:          linksEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.PolicyLinkID.ValueString(),
+		RawBody:           requestBody,
+	}
 	if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return

@@ -129,7 +129,8 @@ func (v destinationsValidator) ValidateResource(
 			beginAddr, beginOK := parseIPv4(begin, itemPath.AtName("begin_address"))
 			endAddr, endOK := parseIPv4(end, itemPath.AtName("end_address"))
 			if beginOK && endOK && endAddr.Less(beginAddr) {
-				resp.Diagnostics.AddAttributeError(itemPath.AtName("end_address"), "Invalid IP range", fmt.Sprintf("end_address %s must not be lower than begin_address %s.", endAddr, beginAddr))
+				detail := fmt.Sprintf("end_address %s must not be lower than begin_address %s.", endAddr, beginAddr)
+				resp.Diagnostics.AddAttributeError(itemPath.AtName("end_address"), "Invalid IP range", detail)
 			}
 			return
 		}
@@ -146,7 +147,8 @@ func (v destinationsValidator) ValidateResource(
 		case ruleTypeIPSubnet:
 			prefix, err := netip.ParsePrefix(value.ValueString())
 			if err != nil || !prefix.Addr().Is4() {
-				resp.Diagnostics.AddAttributeError(itemPath.AtName("value"), "Invalid IP subnet", fmt.Sprintf("%q must be an IPv4 CIDR such as 198.51.100.0/24; Graph rejects IPv6.", value.ValueString()))
+				detail := fmt.Sprintf("%q must be an IPv4 CIDR such as 198.51.100.0/24; Graph rejects IPv6.", value.ValueString())
+				resp.Diagnostics.AddAttributeError(itemPath.AtName("value"), "Invalid IP subnet", detail)
 			}
 		}
 	}

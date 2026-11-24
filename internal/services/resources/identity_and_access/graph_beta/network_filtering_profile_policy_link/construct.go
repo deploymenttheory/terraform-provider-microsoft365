@@ -2,6 +2,7 @@ package graphBetaNetworkFilteringProfilePolicyLink
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -49,6 +50,8 @@ const (
 	tlsInspectionPolicyLinkODataType      = "#microsoft.graph.networkaccess.tlsInspectionPolicyLink"
 	tlsInspectionPolicyODataType          = "#microsoft.graph.networkaccess.tlsInspectionPolicy"
 )
+
+var errUnsupportedPolicyType = errors.New("unsupported policy_type")
 
 // policyODataTypes holds the OData types of a policy link and of the policy it links.
 type policyODataTypes struct {
@@ -101,7 +104,7 @@ func constructResource(ctx context.Context, data *NetworkFilteringProfilePolicyL
 
 	odataTypes, ok := policyTypeToODataTypes[data.PolicyType.ValueString()]
 	if !ok {
-		return policyLinkRequest{}, fmt.Errorf("unsupported policy_type %q", data.PolicyType.ValueString())
+		return policyLinkRequest{}, fmt.Errorf("%w %q", errUnsupportedPolicyType, data.PolicyType.ValueString())
 	}
 
 	if data.PolicyType.ValueString() == policyTypeFiltering {

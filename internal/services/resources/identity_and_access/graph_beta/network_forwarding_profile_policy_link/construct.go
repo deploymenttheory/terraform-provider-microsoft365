@@ -3,8 +3,9 @@ package graphBetaNetworkForwardingProfilePolicyLink
 import (
 	"fmt"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // constructResource builds the forwarding policy link PATCH body, which carries only the link state.

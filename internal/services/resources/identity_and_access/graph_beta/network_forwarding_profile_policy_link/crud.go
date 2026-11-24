@@ -33,7 +33,9 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Create(ctx context.Context,
 		resp.Diagnostics.AddError("Error constructing forwarding policy link", err.Error())
 		return
 	}
-	if _, err := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(object.ForwardingProfileID.ValueString()).Policies().ByPolicyLinkId(object.PolicyLinkID.ValueString()).Patch(ctx, requestBody, nil); err != nil {
+	profileBuilder := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(object.ForwardingProfileID.ValueString())
+	linkBuilder := profileBuilder.Policies().ByPolicyLinkId(object.PolicyLinkID.ValueString())
+	if _, err := linkBuilder.Patch(ctx, requestBody, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
@@ -85,7 +87,8 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Read(ctx context.Context, r
 		}
 	}
 
-	link, err := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(object.ForwardingProfileID.ValueString()).Policies().ByPolicyLinkId(object.PolicyLinkID.ValueString()).Get(ctx, nil)
+	profileBuilder := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(object.ForwardingProfileID.ValueString())
+	link, err := profileBuilder.Policies().ByPolicyLinkId(object.PolicyLinkID.ValueString()).Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -119,7 +122,9 @@ func (r *NetworkForwardingProfilePolicyLinkResource) Update(ctx context.Context,
 		resp.Diagnostics.AddError("Error constructing forwarding policy link update", err.Error())
 		return
 	}
-	if _, err := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(state.ForwardingProfileID.ValueString()).Policies().ByPolicyLinkId(state.PolicyLinkID.ValueString()).Patch(ctx, requestBody, nil); err != nil {
+	profileBuilder := r.client.NetworkAccess().ForwardingProfiles().ByForwardingProfileId(state.ForwardingProfileID.ValueString())
+	linkBuilder := profileBuilder.Policies().ByPolicyLinkId(state.PolicyLinkID.ValueString())
+	if _, err := linkBuilder.Patch(ctx, requestBody, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}

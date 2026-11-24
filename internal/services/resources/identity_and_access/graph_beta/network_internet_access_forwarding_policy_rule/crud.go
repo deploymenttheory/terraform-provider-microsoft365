@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
 // Create handles the Create operation for network internet access forwarding policy rule resources.
@@ -47,9 +48,16 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Create(ctx context.C
 	post := func(ctx context.Context) error {
 		var err error
 		created, err = r.client.NetworkAccess().ForwardingPolicies().ByForwardingPolicyId(object.ForwardingPolicyID.ValueString()).PolicyRules().Post(ctx, requestBody, nil)
-		return err
+		if err != nil {
+			return fmt.Errorf("create internet access forwarding policy rule: %w", err)
+		}
+		return nil
 	}
-	retryOptions := crud.PreconditionRetryOptions{Operation: constants.TfOperationCreate, ResourceTypeName: ResourceName, LogFields: map[string]any{"policy_id": object.ForwardingPolicyID.ValueString()}}
+	retryOptions := crud.PreconditionRetryOptions{
+		Operation:        constants.TfOperationCreate,
+		ResourceTypeName: ResourceName,
+		LogFields:        map[string]any{"policy_id": object.ForwardingPolicyID.ValueString()},
+	}
 	if err := crud.WriteWithPreconditionRetry(ctx, post, retryOptions); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -110,7 +118,9 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Read(ctx context.Con
 		}
 	}
 
-	remoteResource, err := r.client.NetworkAccess().ForwardingPolicies().ByForwardingPolicyId(object.ForwardingPolicyID.ValueString()).PolicyRules().ByPolicyRuleId(object.ID.ValueString()).Get(ctx, nil)
+	policyBuilder := r.client.NetworkAccess().ForwardingPolicies().ByForwardingPolicyId(object.ForwardingPolicyID.ValueString())
+	ruleBuilder := policyBuilder.PolicyRules().ByPolicyRuleId(object.ID.ValueString())
+	remoteResource, err := ruleBuilder.Get(ctx, nil)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -122,7 +132,8 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Read(ctx context.Con
 	// The SDK picks the model from @odata.type; any other rule type cannot be mapped to this resource.
 	rule, ok := remoteResource.(networkaccess.InternetAccessForwardingRuleable)
 	if !ok {
-		resp.Diagnostics.AddError("Error reading internet access forwarding policy rule", fmt.Sprintf("The API returned %T, expected an internet access forwarding rule.", remoteResource))
+		detail := fmt.Sprintf("The API returned %T, expected an internet access forwarding rule.", remoteResource)
+		resp.Diagnostics.AddError("Error reading internet access forwarding policy rule", detail)
 		return
 	}
 
@@ -160,10 +171,18 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Update(ctx context.C
 	}
 
 	patch := func(ctx context.Context) error {
-		_, err := r.client.NetworkAccess().ForwardingPolicies().ByForwardingPolicyId(state.ForwardingPolicyID.ValueString()).PolicyRules().ByPolicyRuleId(state.ID.ValueString()).Patch(ctx, requestBody, nil)
-		return err
+		policyBuilder := r.client.NetworkAccess().ForwardingPolicies().ByForwardingPolicyId(state.ForwardingPolicyID.ValueString())
+		ruleBuilder := policyBuilder.PolicyRules().ByPolicyRuleId(state.ID.ValueString())
+		if _, err := ruleBuilder.Patch(ctx, requestBody, nil); err != nil {
+			return fmt.Errorf("update internet access forwarding policy rule: %w", err)
+		}
+		return nil
 	}
-	retryOptions := crud.PreconditionRetryOptions{Operation: constants.TfOperationUpdate, ResourceTypeName: ResourceName, LogFields: map[string]any{"policy_id": state.ForwardingPolicyID.ValueString(), "rule_id": state.ID.ValueString()}}
+	retryOptions := crud.PreconditionRetryOptions{
+		Operation:        constants.TfOperationUpdate,
+		ResourceTypeName: ResourceName,
+		LogFields:        map[string]any{"policy_id": state.ForwardingPolicyID.ValueString(), "rule_id": state.ID.ValueString()},
+	}
 	if err := crud.WriteWithPreconditionRetry(ctx, patch, retryOptions); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
@@ -204,9 +223,18 @@ func (r *NetworkInternetAccessForwardingPolicyRuleResource) Delete(ctx context.C
 	defer cancel()
 
 	remove := func(ctx context.Context) error {
-		return r.client.NetworkAccess().ForwardingPolicies().ByForwardingPolicyId(object.ForwardingPolicyID.ValueString()).PolicyRules().ByPolicyRuleId(object.ID.ValueString()).Delete(ctx, nil)
+		policyBuilder := r.client.NetworkAccess().ForwardingPolicies().ByForwardingPolicyId(object.ForwardingPolicyID.ValueString())
+		ruleBuilder := policyBuilder.PolicyRules().ByPolicyRuleId(object.ID.ValueString())
+		if err := ruleBuilder.Delete(ctx, nil); err != nil {
+			return fmt.Errorf("delete internet access forwarding policy rule: %w", err)
+		}
+		return nil
 	}
-	retryOptions := crud.PreconditionRetryOptions{Operation: constants.TfOperationDelete, ResourceTypeName: ResourceName, LogFields: map[string]any{"policy_id": object.ForwardingPolicyID.ValueString(), "rule_id": object.ID.ValueString()}}
+	retryOptions := crud.PreconditionRetryOptions{
+		Operation:        constants.TfOperationDelete,
+		ResourceTypeName: ResourceName,
+		LogFields:        map[string]any{"policy_id": object.ForwardingPolicyID.ValueString(), "rule_id": object.ID.ValueString()},
+	}
 	if err := crud.WriteWithPreconditionRetry(ctx, remove, retryOptions); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return

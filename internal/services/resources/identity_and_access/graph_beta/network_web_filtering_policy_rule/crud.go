@@ -68,7 +68,12 @@ func (r *NetworkWebFilteringPolicyRuleResource) Create(ctx context.Context, req 
 	}
 
 	var created webFilteringRule
-	postConfig := customrequests.PostRequestConfig{Endpoint: webFilteringPoliciesEndpoint + "/" + object.WebFilteringPolicyID.ValueString() + "/policyRules", RawBody: requestBody, RawResponse: &created}
+	rulesEndpoint := webFilteringPoliciesEndpoint + "/" + object.WebFilteringPolicyID.ValueString() + "/policyRules"
+	postConfig := customrequests.PostRequestConfig{
+		Endpoint:    rulesEndpoint,
+		RawBody:     requestBody,
+		RawResponse: &created,
+	}
 	if _, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), postConfig, nil, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -130,7 +135,13 @@ func (r *NetworkWebFilteringPolicyRuleResource) Read(ctx context.Context, req re
 	}
 
 	var rule webFilteringRule
-	getConfig := customrequests.GetRequestConfig{Endpoint: webFilteringPoliciesEndpoint + "/" + object.WebFilteringPolicyID.ValueString() + "/policyRules", ResourceIDPattern: customrequests.ResourceIDPatternSegment, ResourceID: object.ID.ValueString(), RawResponse: &rule}
+	rulesEndpoint := webFilteringPoliciesEndpoint + "/" + object.WebFilteringPolicyID.ValueString() + "/policyRules"
+	getConfig := customrequests.GetRequestConfig{
+		Endpoint:          rulesEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        object.ID.ValueString(),
+		RawResponse:       &rule,
+	}
 	if _, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -171,8 +182,18 @@ func (r *NetworkWebFilteringPolicyRuleResource) Update(ctx context.Context, req 
 
 	// Graph can return 412 when Terraform writes several rules of the same policy in parallel; retrying lets the
 	// policy settle.
-	patchConfig := customrequests.PatchRequestConfig{Endpoint: webFilteringPoliciesEndpoint + "/" + state.WebFilteringPolicyID.ValueString() + "/policyRules", ResourceIDPattern: customrequests.ResourceIDPatternSegment, ResourceID: state.ID.ValueString(), RawBody: requestBody}
-	retryOptions := crud.PreconditionRetryOptions{Operation: constants.TfOperationUpdate, ResourceTypeName: ResourceName, LogFields: map[string]any{"policy_id": state.WebFilteringPolicyID.ValueString(), "rule_id": state.ID.ValueString()}}
+	rulesEndpoint := webFilteringPoliciesEndpoint + "/" + state.WebFilteringPolicyID.ValueString() + "/policyRules"
+	patchConfig := customrequests.PatchRequestConfig{
+		Endpoint:          rulesEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID.ValueString(),
+		RawBody:           requestBody,
+	}
+	retryOptions := crud.PreconditionRetryOptions{
+		Operation:        constants.TfOperationUpdate,
+		ResourceTypeName: ResourceName,
+		LogFields:        map[string]any{"policy_id": state.WebFilteringPolicyID.ValueString(), "rule_id": state.ID.ValueString()},
+	}
 	patch := func(ctx context.Context) error {
 		return customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig)
 	}
@@ -216,8 +237,17 @@ func (r *NetworkWebFilteringPolicyRuleResource) Delete(ctx context.Context, req 
 	}
 	defer cancel()
 
-	deleteConfig := customrequests.DeleteRequestConfig{Endpoint: webFilteringPoliciesEndpoint + "/" + object.WebFilteringPolicyID.ValueString() + "/policyRules", ResourceIDPattern: customrequests.ResourceIDPatternSegment, ResourceID: object.ID.ValueString()}
-	retryOptions := crud.PreconditionRetryOptions{Operation: constants.TfOperationDelete, ResourceTypeName: ResourceName, LogFields: map[string]any{"policy_id": object.WebFilteringPolicyID.ValueString(), "rule_id": object.ID.ValueString()}}
+	rulesEndpoint := webFilteringPoliciesEndpoint + "/" + object.WebFilteringPolicyID.ValueString() + "/policyRules"
+	deleteConfig := customrequests.DeleteRequestConfig{
+		Endpoint:          rulesEndpoint,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        object.ID.ValueString(),
+	}
+	retryOptions := crud.PreconditionRetryOptions{
+		Operation:        constants.TfOperationDelete,
+		ResourceTypeName: ResourceName,
+		LogFields:        map[string]any{"policy_id": object.WebFilteringPolicyID.ValueString(), "rule_id": object.ID.ValueString()},
+	}
 	remove := func(ctx context.Context) error {
 		return customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig)
 	}
