@@ -11,12 +11,10 @@ import (
 // that verifies the conditional access policy write has propagated across Microsoft Entra replicas
 // before accepting the read as authoritative.
 //
-// prevModified is the modified_date_time value captured from state immediately before the write:
-//   - For Create: pass types.StringNull() — the predicate accepts once modified_date_time is
-//     populated, confirming the new policy is visible on the responding replica.
-//   - For Update: pass state.ModifiedDateTime — the predicate accepts once modified_date_time
-//     differs from the pre-update value, confirming the replica returned the updated version
-//     and not a stale cached copy from before the PATCH.
+// prevModified is the modified_date_time value captured from state immediately before the PATCH. The predicate
+// accepts once modified_date_time differs from it, confirming the replica returned the updated version and not a
+// stale cached copy from before the PATCH. Create sets no predicate: a new policy has no earlier version to confuse
+// with, and ReadWithRetry already retries the 404 a lagging replica returns.
 //
 // See: https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/
 func conditionalAccessPolicyConsistencyPredicate(
@@ -38,7 +36,7 @@ func conditionalAccessPolicyConsistencyPredicate(
 			return false
 		}
 
-		// For update: the timestamp must have advanced past the pre-update value.
+		// The timestamp must have advanced past the pre-update value.
 		// A stale replica returns the old object, which still carries the old modified_date_time.
 		if !prevModified.IsNull() && !prevModified.IsUnknown() && prevModified.ValueString() != "" {
 			if actual.ModifiedDateTime.ValueString() == prevModified.ValueString() {

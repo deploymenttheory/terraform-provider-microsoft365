@@ -1,3 +1,23 @@
+// Package graphBetaConditionalAccessPolicy manages Microsoft Entra conditional access policies.
+//
+// SDK deviation: unknown enum value
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0, models.SignInFrequencyInterval.
+//     ParseSignInFrequencyInterval knows timeBased, everyTime and unknownFutureValue, and returns nil for
+//     anything else, so the SDK model drops sessionControls.signInFrequency.frequencyInterval "everyTimeStrict".
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/resources/signinfrequencysessioncontrol?view=graph-rest-beta
+//     lists timeBased, everyTime and unknownFutureValue only. everyTimeStrict is the Entra admin centre's
+//     "Every time strict (preview)" option, documented at
+//     https://learn.microsoft.com/en-us/entra/global-secure-access/how-to-configure-sign-in-every-time
+//   - Observed: 2026-11-24, POST /beta/identity/conditionalAccess/policies with
+//     "frequencyInterval": "everyTimeStrict" returned 201, and GET /beta/identity/conditionalAccess/policies/{id}
+//     returned "frequencyInterval": "everyTimeStrict". Read therefore GETs the policy through
+//     custom_requests.GetRequestByResourceId, parses the body with the SDK model and takes frequencyInterval from
+//     the raw JSON. constructResource writes everyTimeStrict through the SDK model's additional data.
+//
+// Removal condition: models.SignInFrequencyInterval includes everyTimeStrict, so the GET can use
+// ConditionalAccessPolicyItemRequestBuilder.Get and the value can be set with SetFrequencyInterval.
 package graphBetaConditionalAccessPolicy
 
 import (
@@ -6,12 +26,16 @@ import (
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
 // Create handles the Create operation for conditional access policy resources.
@@ -97,7 +121,7 @@ func (r *ConditionalAccessPolicyResource) Create(ctx context.Context, req resour
 //
 // Operation: Retrieves a conditional access policy by ID
 // API Calls:
-//   - GET /identity/conditionalAccess/policies/{id} (read as raw bytes so enum values missing from the SDK are kept)
+//   - GET /identity/conditionalAccess/policies/{id} (raw JSON through custom_requests, see the package doc)
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/conditionalaccesspolicy-get?view=graph-rest-beta
 func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -135,21 +159,48 @@ func (r *ConditionalAccessPolicyResource) Read(ctx context.Context, req resource
 		}
 	}
 
-	remoteResource, body, err := getConditionalAccessPolicy(ctx, r.client, object.ID.ValueString())
+	// SDK deviation: unknown enum value (see the package doc). The policy is read as raw JSON so a frequencyInterval
+	// the SDK enum lacks (everyTimeStrict) survives.
+	var rawPolicy struct {
+		SessionControls struct {
+			SignInFrequency struct {
+				FrequencyInterval *string `json:"frequencyInterval"`
+			} `json:"signInFrequency"`
+		} `json:"sessionControls"`
+	}
+	getConfig := customrequests.GetRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          "identity/conditionalAccess/policies",
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        object.ID.ValueString(),
+		RawResponse:       &rawPolicy,
+	}
+	body, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
-	object = MapRemoteResourceStateToTerraform(ctx, object, remoteResource)
+	node, err := jsonserialization.NewJsonParseNodeFactory().GetRootParseNode("application/json", body)
+	if err != nil {
+		resp.Diagnostics.AddError("Error parsing resource", fmt.Sprintf("Could not parse %s response: %s", ResourceName, err.Error()))
+		return
+	}
+	parsed, err := node.GetObjectValue(graphmodels.CreateConditionalAccessPolicyFromDiscriminatorValue)
+	if err != nil {
+		resp.Diagnostics.AddError("Error parsing resource", fmt.Sprintf("Could not decode %s response: %s", ResourceName, err.Error()))
+		return
+	}
+	remoteResource, ok := parsed.(graphmodels.ConditionalAccessPolicyable)
+	if !ok || remoteResource == nil {
+		resp.Diagnostics.AddError("Error parsing resource", fmt.Sprintf("Unexpected %s response type %T", ResourceName, parsed))
+		return
+	}
+
+	object = MapRemoteStateToTerraform(ctx, object, remoteResource)
 
 	if object.SessionControls != nil && object.SessionControls.SignInFrequency != nil {
-		interval, err := rawSignInFrequencyInterval(body)
-		if err != nil {
-			resp.Diagnostics.AddError("Error mapping resource state", err.Error())
-			return
-		}
-		object.SessionControls.SignInFrequency.FrequencyInterval = interval
+		object.SessionControls.SignInFrequency.FrequencyInterval = convert.GraphToFrameworkString(rawPolicy.SessionControls.SignInFrequency.FrequencyInterval)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)

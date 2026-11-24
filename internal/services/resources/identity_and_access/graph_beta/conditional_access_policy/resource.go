@@ -31,6 +31,10 @@ const (
 	DeleteTimeout = 180
 )
 
+// signInFrequencyIntervalEveryTimeStrict is the Graph beta frequencyInterval behind the "Every time strict (preview)"
+// sign-in frequency option. The SDK enum doesn't include it; see the SDK deviation in the package doc of crud.go.
+const signInFrequencyIntervalEveryTimeStrict = "everyTimeStrict"
+
 var (
 	// Basic resource interface (CRUD operations)
 	_ resource.Resource = &ConditionalAccessPolicyResource{}

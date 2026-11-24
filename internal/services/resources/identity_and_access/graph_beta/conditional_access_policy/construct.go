@@ -595,7 +595,11 @@ func constructSessionControls(ctx context.Context, data *ConditionalAccessSessio
 			return nil, fmt.Errorf("failed to set authentication type: %w", err)
 		}
 
-		if err := setSignInFrequencyInterval(data.SignInFrequency.FrequencyInterval, signInFrequency); err != nil {
+		// SDK deviation: unknown enum value (see the package doc in crud.go). everyTimeStrict is not in the SDK enum,
+		// so it is written through additional data.
+		if data.SignInFrequency.FrequencyInterval.ValueString() == signInFrequencyIntervalEveryTimeStrict {
+			signInFrequency.SetAdditionalData(map[string]any{"frequencyInterval": signInFrequencyIntervalEveryTimeStrict})
+		} else if err := convert.FrameworkToGraphEnum(data.SignInFrequency.FrequencyInterval, graphmodels.ParseSignInFrequencyInterval, signInFrequency.SetFrequencyInterval); err != nil {
 			return nil, fmt.Errorf("failed to set frequency interval: %w", err)
 		}
 
