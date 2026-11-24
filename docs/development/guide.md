@@ -40,6 +40,7 @@ This guide describes the recommended workflow and best practices for developing 
    - **Do not build API request bodies directly in the CRUD functions.** Instead, delegate request construction to separate functions (e.g., `constructResource`). The CRUD functions should focus on the API calls and the overall logic flow, not on the details of request assembly.
    - Use the `crud.HandleTimeout` helper for operation timeouts.
    - Use `ReadWithRetry` for consistent state refresh after create and update.
+   - Use the Graph SDK for every call it can make. Calls the SDK cannot make go through the Config API in `internal/services/common/custom_requests`, and only for one of the four SDK deviations, documented with the comment block in the package doc of `crud.go`. Never build `RequestInformation` or call `adapter.Send*` in a resource package. See [ADR-004](./adr/adr_004_custom_requests_transport.md).
    - Example (Create):
      ```go
      // Create handles the Create operation for the resource.
