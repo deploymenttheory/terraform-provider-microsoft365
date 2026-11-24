@@ -1,0 +1,28 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/forwardingProfiles"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/forwardingProfiles",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "isCustomProfile": true,
+      "name": "unit-minimal",
+      "priority": 150,
+      "state": "disabled",
+      "trafficForwardingType": "private"
+    }
+  }
+]

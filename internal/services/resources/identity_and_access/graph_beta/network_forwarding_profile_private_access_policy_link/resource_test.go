@@ -65,6 +65,7 @@ func removals(m *testmocks.Mock) int {
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_01_UserLifecycle(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	m.StaleReads = 2
 	var firstLinkID string
 	resource.UnitTest(t, resource.TestCase{
@@ -124,6 +125,7 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_01_UserLife
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/user_lifecycle.json")
 	links := m.Links(testmocks.UserCollection, testmocks.UserProfileID)
 	require.Len(t, links, 1)
 	require.Equal(t, testmocks.AutoLinkID, links[0].ID)
@@ -131,6 +133,7 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_01_UserLife
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_02_AdoptAutoLink(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -150,12 +153,14 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_02_AdoptAut
 			{Config: config(t, "adopt_auto_link"), PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/adopt_auto_link.json")
 	require.Empty(t, m.Links(testmocks.UserCollection, testmocks.UserProfileID))
 	require.Equal(t, 1, removals(m))
 }
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_03_ReplaceMismatchedAutoLink(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -177,10 +182,12 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_03_ReplaceM
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/replace_mismatched_auto_link.json")
 }
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_04_LinkIDChangesOutOfBand(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	const reAddedID = "cccccccc-0000-0000-0000-000000000001"
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -200,10 +207,12 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_04_LinkIDCh
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/link_id_changes_out_of_band.json")
 }
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_05_DeviceProfile(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -224,12 +233,14 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_05_DevicePr
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/device_profile.json")
 	require.Empty(t, m.Links(testmocks.DeviceCollection, testmocks.DeviceProfileID))
 	require.Len(t, m.Links(testmocks.UserCollection, testmocks.UserProfileID), 1)
 }
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_06_RemovedOutOfBand(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -252,6 +263,7 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_06_RemovedO
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/removed_out_of_band.json")
 }
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_07_Validation(t *testing.T) {
@@ -278,6 +290,7 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_07_Validati
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_08_GraphErrors(t *testing.T) {
 	setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -287,10 +300,12 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_08_GraphErr
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/graph_errors.json")
 }
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_09_Forbidden(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	m.RegisterErrorMocks()
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -301,10 +316,12 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_09_Forbidde
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/forbidden.json")
 }
 
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_10_InvalidImportID(t *testing.T) {
 	setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -317,11 +334,13 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_10_InvalidI
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/invalid_import_id.json")
 }
 
 // A failed add after removing a mismatched link restores the old link.
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_11_RestoresLinkWhenAddFails(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	m.FailAdds = 1
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -332,6 +351,7 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_11_Restores
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/restores_link_when_add_fails.json")
 	links := m.Profiles[testmocks.Key(testmocks.UserCollection, testmocks.UserProfileID)]
 	require.Len(t, links, 1)
 	require.Equal(t, testmocks.AutoLinkedPolicyID, links[0].PolicyID)
@@ -342,6 +362,7 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_11_Restores
 // A link with a different config type is reported, not removed.
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_12_ConfigTypeMismatch(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -351,12 +372,14 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_12_ConfigTy
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/config_type_mismatch.json")
 	require.Empty(t, m.Patches)
 }
 
 // Import IDs are lowercased to match Graph.
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_13_ImportLowercasesIDs(t *testing.T) {
 	setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -371,12 +394,14 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_13_ImportLo
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/import_lowercases_ids.json")
 }
 
 // Under create_before_destroy, deleting the deposed link must not remove the
 // replacement's link for the same policy.
 func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_14_CreateBeforeDestroy(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -398,4 +423,5 @@ func TestUnitResourceNetworkForwardingProfilePrivateAccessPolicyLink_14_CreateBe
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/create_before_destroy.json")
 }

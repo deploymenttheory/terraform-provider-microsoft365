@@ -38,6 +38,7 @@ func hcl(t *testing.T, name string) string {
 
 func TestUnitResourceNetworkDeviceForwardingProfile_01_Lifecycle(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	initial := hcl(t, "resource.tf")
 	updated := hcl(t, "resource_updated.tf")
 	addr := resourceType + ".test"
@@ -77,6 +78,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_01_Lifecycle(t *testing.T) {
 			{Config: updated, PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/lifecycle.json")
 
 	require.Len(t, m.Posts, 1)
 	require.Equal(t, true, m.Posts[0]["isCustomProfile"])
@@ -103,6 +105,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_01_Lifecycle(t *testing.T) {
 
 func TestUnitResourceNetworkDeviceForwardingProfile_02_MinimalKeepsServerDefaults(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	minimal := hcl(t, "resource_minimal.tf")
 	addr := resourceType + ".test"
 	resource.UnitTest(t, resource.TestCase{
@@ -120,6 +123,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_02_MinimalKeepsServerDefault
 			{Config: minimal, PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/minimal.json")
 	require.Len(t, m.Posts, 1)
 	for _, key := range []string{"assignmentRules", "localNetworkSettings", "forwardingSourceMatching", "clientFallbackAction", "description"} {
 		require.NotContains(t, m.Posts[0], key)
@@ -131,6 +135,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03_AdoptsProfileCreatedBefor
 	t *testing.T,
 ) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.PostFailures = 1
 	minimal := hcl(t, "resource_minimal.tf")
@@ -143,6 +148,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03_AdoptsProfileCreatedBefor
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/adopt_after_gateway_timeout.json")
 	require.Len(t, m.Posts, 1, "the timed-out POST is not retried")
 	require.Equal(t, 1, m.Deletes)
 }
@@ -152,6 +158,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03b_AdoptsProfileAfterRetrie
 	t *testing.T,
 ) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.PostDuplicates = 1
 	resource.UnitTest(t, resource.TestCase{
@@ -163,12 +170,14 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03b_AdoptsProfileAfterRetrie
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/adopt_after_duplicate.json")
 	require.Equal(t, 1, m.Deletes)
 }
 
 // A profile that existed before the POST is never adopted.
 func TestUnitResourceNetworkDeviceForwardingProfile_03c_DoesNotAdoptExistingProfile(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.Existing = map[string]any{
 		"id":                    "99999999-8888-7777-6666-555555555555",
@@ -187,12 +196,14 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03c_DoesNotAdoptExistingProf
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/no_adopt_existing.json")
 	require.Zero(t, m.Deletes, "the pre-existing profile must not be adopted and destroyed")
 }
 
 // A profile another resource created in the same apply is not adopted.
 func TestUnitResourceNetworkDeviceForwardingProfile_03f_DoesNotAdoptProfileClaimedInSameApply(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	target.ClaimProfile(testmocks.ProfileID)
 	m.PostDuplicates = 1
@@ -205,11 +216,13 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03f_DoesNotAdoptProfileClaim
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/no_adopt_claimed.json")
 }
 
 // Without the list before the POST, a failed create is reported, not adopted.
 func TestUnitResourceNetworkDeviceForwardingProfile_03d_NoAdoptionWithoutPriorList(t *testing.T) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.ListFailures = 1
 	m.PostFailures = 1
@@ -222,6 +235,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03d_NoAdoptionWithoutPriorLi
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/no_adopt_without_list.json")
 	require.Len(t, m.Posts, 1)
 }
 
@@ -230,6 +244,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03e_KeepsPollingAfterListTra
 	t *testing.T,
 ) {
 	m := setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	t.Cleanup(target.ShortenCreatedLookup())
 	m.PostFailures = 1
 	m.ListResetsAfterCreate = 1
@@ -242,6 +257,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_03e_KeepsPollingAfterListTra
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/adopt_after_list_transport_error.json")
 	require.Equal(t, 1, m.Deletes)
 }
 
@@ -262,6 +278,7 @@ func TestUnitResourceNetworkDeviceForwardingProfile_04_ValidationErrors(t *testi
 
 func TestUnitResourceNetworkDeviceForwardingProfile_05_RejectsBuiltInProfileImport(t *testing.T) {
 	setup(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -274,4 +291,5 @@ func TestUnitResourceNetworkDeviceForwardingProfile_05_RejectsBuiltInProfileImpo
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/reject_built_in_profile_import.json")
 }

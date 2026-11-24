@@ -1,0 +1,116 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/deviceForwardingProfiles/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "assignmentRules": {
+        "assignments": {
+          "@odata.type": "#microsoft.graph.networkaccess.forwardingProfileAssignmentsAllMembership"
+        },
+        "devicePropertyFilters": {
+          "platforms": "windows,android,iOS"
+        }
+      },
+      "clientFallbackAction": "block",
+      "description": null,
+      "localNetworkSettings": {
+        "allowLocalSubnetBypass": false
+      },
+      "name": "unit-home-network-updated",
+      "priority": 152,
+      "state": "enabled"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/deviceForwardingProfiles",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "assignmentRules": {
+        "assignments": {
+          "@odata.type": "#microsoft.graph.networkaccess.forwardingProfileAssignmentsEnumeratedMembership",
+          "devices": [],
+          "groups": [
+            {
+              "id": "{uuid-1}"
+            }
+          ],
+          "users": []
+        },
+        "devicePropertyFilters": {
+          "platforms": "windows,macOS"
+        }
+      },
+      "description": "unit test",
+      "isCustomProfile": true,
+      "localNetworkSettings": {
+        "allowLocalSubnetBypass": true
+      },
+      "name": "unit-home-network",
+      "priority": 150,
+      "state": "disabled",
+      "trafficForwardingType": "private"
+    }
+  }
+]

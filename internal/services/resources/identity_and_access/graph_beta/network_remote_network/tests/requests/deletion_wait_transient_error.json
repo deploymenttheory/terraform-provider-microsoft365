@@ -1,0 +1,114 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks/{uuid-3}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "forwardingProfiles": [
+        {
+          "id": "{uuid-1}"
+        }
+      ],
+      "name": "unit-test-remote-network",
+      "region": "eastUS"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/connectivity/remoteNetworks",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "forwardingProfiles": [
+        {
+          "id": "{uuid-1}"
+        }
+      ],
+      "name": "unit-test-remote-network",
+      "region": "westEurope"
+    }
+  }
+]

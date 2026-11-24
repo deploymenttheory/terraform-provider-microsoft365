@@ -1,0 +1,6 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/forwardingProfiles/{uuid-1}?$expand=policies($expand=policy)"
+  }
+]
