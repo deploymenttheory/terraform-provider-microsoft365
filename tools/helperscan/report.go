@@ -78,7 +78,7 @@ func (s summary) lines() []string {
 		fmt.Sprintf("Non-standard functions: %d (Kiota interface methods %d, framework validator methods %d, helpers %d)", s.Total, s.Kiota, s.Framework, s.Helpers),
 		fmt.Sprintf("All non-standard functions: referenced at most once %d; %d lines or fewer %d; both %d", s.SingleRef, maxShortLines, s.Short, s.ShortSingleRef),
 		fmt.Sprintf("Helpers: %s; name fails convention %d; meet the helper rule %d", callers, s.NameFails, s.Pass),
-		fmt.Sprintf("State mappers (%s, exempt from the caller and line rules): %d", stateMapperName, s.StateMappers),
+		fmt.Sprintf("State mappers (%s or %s, exempt from the caller and line rules): %d", stateMapperName, dataSourceStateMapperName, s.StateMappers),
 	}
 }
 

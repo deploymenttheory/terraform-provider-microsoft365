@@ -1,0 +1,11 @@
+package datasource
+
+// MapRemoteResourceStateToTerraform is a resource-style name used in a data source.
+func MapRemoteResourceStateToTerraform(values []string) []string {
+	return values
+}
+
+// MapRemoteStateToTerraform is the resource mapper name, which a data source should not use.
+func MapRemoteStateToTerraform(values []string) []string {
+	return values
+}

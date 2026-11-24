@@ -31,7 +31,7 @@ func TestWriteText(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := out.String()
-	for _, want := range []string{"Packages scanned: 1", "PACKAGE", "constructWidgetRequest", "3 Read,Create,Update", "SampleResource.refreshWidget", "fails: callers,lines,name", "State mappers (MapRemoteStateToTerraform, exempt from the caller and line rules): 1", "MapRemoteStateToTerraform", "exempt"} {
+	for _, want := range []string{"Packages scanned: 1", "PACKAGE", "constructWidgetRequest", "3 Read,Create,Update", "SampleResource.refreshWidget", "fails: callers,lines,name", "State mappers (MapRemoteStateToTerraform or MapRemoteStateToDataSource, exempt from the caller and line rules): 1", "MapRemoteStateToTerraform", "exempt"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("text report missing %q:\n%s", want, text)
 		}

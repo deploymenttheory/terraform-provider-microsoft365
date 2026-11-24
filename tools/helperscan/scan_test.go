@@ -194,3 +194,60 @@ func TestScanDirChecksStateMapperNames(t *testing.T) {
 		}
 	}
 }
+
+func scanByName(t *testing.T, dir string) map[string]Func {
+	t.Helper()
+	funcs, err := scanDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]Func{}
+	for _, f := range funcs {
+		got[f.Name] = f
+	}
+	return got
+}
+
+func TestScanDirChecksDataSourceStateMapperNames(t *testing.T) {
+	parent := filepath.Join(t.TempDir(), "internal", "services", "datasources", "example", "graph_beta")
+	got := scanByName(t, fixturePackageAt(t, "datasource", parent))
+	rename := "non-standard state mapper: rename to MapRemoteStateToDataSource"
+	cases := map[string]struct{ kind, name, rule string }{
+		// One reference and 3 lines, but exempt from the caller and line rules.
+		"MapRemoteStateToDataSource":        {kindStateMapper, nameOK, "exempt"},
+		"mapRemoteStateToDataSource":        {kindHelper, rename, "fails: callers,lines,name"},
+		"MapRemoteResourceStateToTerraform": {kindHelper, rename, "fails: callers,lines,name"},
+		"MapRemoteStateToTerraform":         {kindHelper, rename, "fails: callers,lines,name"},
+	}
+	for name, want := range cases {
+		f := got[name]
+		if f.Kind != want.kind || f.NameCheck != want.name || f.Rule() != want.rule {
+			t.Errorf("%s: kind %q, name %q, rule %q; want %q, %q, %q", name, f.Kind, f.NameCheck, f.Rule(), want.kind, want.name, want.rule)
+		}
+	}
+}
+
+func TestScanDirKeepsResourceRuleOutsideDataSources(t *testing.T) {
+	parent := filepath.Join(t.TempDir(), "internal", "services", "resources", "example", "graph_beta")
+	got := scanByName(t, fixturePackageAt(t, "datasource", parent))
+	if f := got["MapRemoteStateToTerraform"]; f.Kind != kindStateMapper || f.NameCheck != "MapRemoteStateToTerraform belongs in state.go" {
+		t.Errorf("MapRemoteStateToTerraform in a resource package: kind %q, name %q", f.Kind, f.NameCheck)
+	}
+	if f := got["MapRemoteStateToDataSource"]; f.Kind != kindHelper || f.NameCheck == "non-standard state mapper: rename to MapRemoteStateToTerraform" {
+		t.Errorf("MapRemoteStateToDataSource in a resource package: kind %q, name %q", f.Kind, f.NameCheck)
+	}
+}
+
+func TestStateMapperFor(t *testing.T) {
+	cases := map[string]string{
+		"internal/services/datasources/identity_and_access/graph_beta/x": dataSourceStateMapperName,
+		"internal/services/datasources":                                  dataSourceStateMapperName,
+		"internal/services/resources/identity_and_access/graph_beta/x":   stateMapperName,
+		"internal/services/datasources_extra/x":                          stateMapperName,
+	}
+	for dir, want := range cases {
+		if got := stateMapperFor(filepath.FromSlash(dir)); got != want {
+			t.Errorf("stateMapperFor(%q) = %q, want %q", dir, got, want)
+		}
+	}
+}

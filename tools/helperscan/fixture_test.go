@@ -11,12 +11,18 @@ import (
 // The fixtures are stored as .go.fixture so the pipeline's changed-package selection never treats them as packages to lint.
 func fixturePackage(t *testing.T, name string) string {
 	t.Helper()
+	return fixturePackageAt(t, name, t.TempDir())
+}
+
+// fixturePackageAt copies the fixture package into parent/<name>, creating parent as needed.
+func fixturePackageAt(t *testing.T, name, parent string) string {
+	t.Helper()
 	sources, err := filepath.Glob(filepath.Join("testdata", name, "*.go.fixture"))
 	if err != nil || len(sources) == 0 {
 		t.Fatalf("no fixtures for %s: %v", name, err)
 	}
-	dir := filepath.Join(t.TempDir(), name)
-	if err := os.Mkdir(dir, 0o750); err != nil {
+	dir := filepath.Join(parent, name)
+	if err := os.MkdirAll(dir, 0o750); err != nil {
 		t.Fatal(err)
 	}
 	for _, source := range sources {

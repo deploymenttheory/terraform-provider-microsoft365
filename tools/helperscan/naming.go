@@ -11,23 +11,25 @@ const nameOK = "ok"
 // bannedNames are generic helper names the guide rules out.
 var bannedNames = map[string]bool{"matches": true, "settings": true, "requestBody": true, "tryClaim": true, "readbackOptions": true, "writableApp": true}
 
-// legacyStateMapper matches other spellings of the resource state mapper, such as MapRemoteResourceStateToTerraform or mapRemoteState.
+// legacyStateMapper matches other spellings of the state mapper, such as MapRemoteResourceStateToTerraform or mapRemoteState.
 // Entity mappers such as MapRemoteOwnersToTerraform don't match and are checked against the map…ToState form instead.
 var legacyStateMapper = regexp.MustCompile(`(?i)^mapRemote(Resource)?State`)
 
-// dataSourceStateMapper matches data source mappers such as MapRemoteStateToDataSource, which the resource rename does not cover.
+// dataSourceStateMapper matches data source mapper spellings. In a resource package they are left alone, because the data source
+// name may belong to a data source mapper kept next to the resource.
 var dataSourceStateMapper = regexp.MustCompile(`(?i)ToDataSource$`)
 
 // verbFiles maps each convention verb to the file its helpers belong in.
 var verbFiles = map[string]string{"construct": "construct.go", "map": "state.go", "find": "state.go", "waitFor": "crud.go", "lock": "crud.go"}
 
 // checkName applies the verb + Graph entity + qualifier convention and returns nameOK or the reason the name fails.
-func checkName(name, file string) string {
+// mapper is the package's standard state mapper name; other spellings of it are flagged for renaming.
+func checkName(name, file, mapper string) string {
 	if bannedNames[name] {
 		return "banned generic name"
 	}
-	if legacyStateMapper.MatchString(name) && !dataSourceStateMapper.MatchString(name) {
-		return "non-standard state mapper: rename to " + stateMapperName
+	if isLegacyStateMapper(name, mapper) {
+		return "non-standard state mapper: rename to " + mapper
 	}
 	words := splitWords(name)
 	verb, rest := "", words
@@ -92,10 +94,18 @@ func indexOf(words []string, word string) int {
 	return -1
 }
 
-// checkStateMapperFile returns nameOK when MapRemoteStateToTerraform is in state.go, or the reason it is not.
-func checkStateMapperFile(file string) string {
+// isLegacyStateMapper reports whether name is another spelling of the package's standard state mapper.
+func isLegacyStateMapper(name, mapper string) bool {
+	if name == mapper || !legacyStateMapper.MatchString(name) {
+		return false
+	}
+	return mapper == dataSourceStateMapperName || !dataSourceStateMapper.MatchString(name)
+}
+
+// checkStateMapperFile returns nameOK when the state mapper is in state.go, or the reason it is not.
+func checkStateMapperFile(name, file string) string {
 	if file != "state.go" {
-		return stateMapperName + " belongs in state.go"
+		return name + " belongs in state.go"
 	}
 	return nameOK
 }

@@ -22,8 +22,26 @@ const (
 	kindStateMapper = "state-mapper"
 )
 
-// stateMapperName is the standard name of the package's Graph-to-state mapper.
-const stateMapperName = "MapRemoteStateToTerraform"
+// Standard names of the package's Graph-to-state mapper, for resource and data source packages.
+const (
+	stateMapperName           = "MapRemoteStateToTerraform"
+	dataSourceStateMapperName = "MapRemoteStateToDataSource"
+)
+
+// dataSourcesPath marks a data source package: any package under internal/services/datasources/.
+const dataSourcesPath = "/internal/services/datasources/"
+
+// stateMapperFor returns the standard state mapper name for the package in dir.
+func stateMapperFor(dir string) string {
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		abs = dir
+	}
+	if strings.Contains(filepath.ToSlash(abs)+"/", dataSourcesPath) {
+		return dataSourceStateMapperName
+	}
+	return stateMapperName
+}
 
 // crudMethods are the resource methods whose direct calls are counted.
 var crudMethods = map[string]bool{"Create": true, "Read": true, "Update": true, "Delete": true, "ImportState": true, "ModifyPlan": true}
@@ -115,8 +133,9 @@ func scanDir(dir string) ([]Func, error) {
 		byPackage[file.Name.Name] = append(byPackage[file.Name.Name], file)
 	}
 	var funcs []Func
+	mapper := stateMapperFor(dir)
 	for _, files := range byPackage {
-		funcs = append(funcs, scanPackage(fset, filepath.Base(dir), files)...)
+		funcs = append(funcs, scanPackage(fset, filepath.Base(dir), files, mapper)...)
 	}
 	sort.Slice(funcs, func(i, j int) bool {
 		if funcs[i].File != funcs[j].File {
@@ -131,7 +150,7 @@ func scanDir(dir string) ([]Func, error) {
 }
 
 // scanPackage type-checks one package without its imports, so that references to its own functions and methods resolve exactly.
-func scanPackage(fset *token.FileSet, pkgName string, files []*ast.File) []Func {
+func scanPackage(fset *token.FileSet, pkgName string, files []*ast.File, mapper string) []Func {
 	info := &types.Info{Defs: map[*ast.Ident]types.Object{}, Uses: map[*ast.Ident]types.Object{}}
 	conf := types.Config{Importer: stubImporter{}, Error: func(error) {}}
 	// Imports are stubbed, so type errors are expected; the Error handler keeps checking going and they are ignored.
@@ -192,7 +211,7 @@ func scanPackage(fset *token.FileSet, pkgName string, files []*ast.File) []Func 
 
 	var funcs []Func
 	for i, d := range decls {
-		kind, report := classify(d.fd)
+		kind, report := classify(d.fd, mapper)
 		if !report {
 			continue
 		}
@@ -204,22 +223,22 @@ func scanPackage(fset *token.FileSet, pkgName string, files []*ast.File) []Func 
 		sort.Strings(f.CRUDCallers)
 		switch kind {
 		case kindHelper:
-			f.NameCheck = checkName(f.Name, f.File)
+			f.NameCheck = checkName(f.Name, f.File, mapper)
 		case kindStateMapper:
-			f.NameCheck = checkStateMapperFile(f.File)
+			f.NameCheck = checkStateMapperFile(f.Name, f.File)
 		}
 		funcs = append(funcs, f)
 	}
 	return funcs
 }
 
-// classify reports whether a function belongs in the report and, if so, its kind.
-func classify(fd *ast.FuncDecl) (string, bool) {
+// classify reports whether a function belongs in the report and, if so, its kind. mapper is the package's standard state mapper name.
+func classify(fd *ast.FuncDecl, mapper string) (string, bool) {
 	name := fd.Name.Name
 	if standardFuncs[name] || (fd.Recv == nil && strings.HasPrefix(name, "New")) || name == "init" || name == "main" {
 		return "", false
 	}
-	if fd.Recv == nil && name == stateMapperName {
+	if fd.Recv == nil && name == mapper {
 		return kindStateMapper, true
 	}
 	if (fd.Recv != nil && kiotaMethods[name]) || (fd.Recv == nil && kiotaFactory.MatchString(name)) {
