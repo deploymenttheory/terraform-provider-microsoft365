@@ -3,6 +3,8 @@ package errors
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -151,6 +153,20 @@ func odataErrorParityFixtures() map[string]odataErrorFixture {
 	}
 }
 
+// assertSameGraphErrorInfo compares two GraphErrorInfo values. RequestDetails is built by iterating
+// the response header map, so its line order is not stable and is compared as a sorted set.
+func assertSameGraphErrorInfo(t *testing.T, expected, actual GraphErrorInfo) {
+	t.Helper()
+	sortedLines := func(details string) string {
+		lines := strings.Split(details, "\n")
+		slices.Sort(lines)
+		return strings.Join(lines, "\n")
+	}
+	expected.RequestDetails = sortedLines(expected.RequestDetails)
+	actual.RequestDetails = sortedLines(actual.RequestDetails)
+	assert.Equal(t, expected, actual)
+}
+
 // TestUnitGraphError_BetaODataErrorParity asserts that a beta ODataError yields the same
 // GraphErrorInfo as the equivalent v1.0 ODataError, directly and when wrapped.
 func TestUnitGraphError_BetaODataErrorParity(t *testing.T) {
@@ -161,7 +177,7 @@ func TestUnitGraphError_BetaODataErrorParity(t *testing.T) {
 			v1Info := GraphError(ctx, fixture.v1())
 			betaInfo := GraphError(ctx, fixture.beta())
 
-			assert.Equal(t, v1Info, betaInfo)
+			assertSameGraphErrorInfo(t, v1Info, betaInfo)
 			assert.Equal(t, fixture.statusCode, betaInfo.StatusCode)
 			assert.Equal(t, fixture.code, betaInfo.ErrorCode)
 			assert.Equal(t, fixture.message, betaInfo.ErrorMessage)
@@ -170,7 +186,7 @@ func TestUnitGraphError_BetaODataErrorParity(t *testing.T) {
 
 			wrappedV1Info := GraphError(ctx, fmt.Errorf("wrapped: %w", fixture.v1()))
 			wrappedBetaInfo := GraphError(ctx, fmt.Errorf("wrapped: %w", fixture.beta()))
-			assert.Equal(t, wrappedV1Info, wrappedBetaInfo)
+			assertSameGraphErrorInfo(t, wrappedV1Info, wrappedBetaInfo)
 			assert.Equal(t, fixture.code, wrappedBetaInfo.ErrorCode)
 		})
 	}
@@ -230,7 +246,7 @@ func TestUnitGraphError_GraphResponseErrorInterfaceParity(t *testing.T) {
 	v1Info := GraphError(ctx, &graphResponseErrorStub[odataerrors.MainErrorable]{statusCode: 404, mainError: v1Main})
 	betaInfo := GraphError(ctx, &graphResponseErrorStub[betaodataerrors.MainErrorable]{statusCode: 404, mainError: betaMain})
 
-	assert.Equal(t, v1Info, betaInfo)
+	assertSameGraphErrorInfo(t, v1Info, betaInfo)
 	assert.Equal(t, 404, betaInfo.StatusCode)
 	assert.Equal(t, "Request_ResourceNotFound", betaInfo.ErrorCode)
 	assert.Equal(t, "not found", betaInfo.ErrorMessage)
