@@ -1,0 +1,47 @@
+package graphBetaNetworkFilteringProfile_test
+
+import (
+	"regexp"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/jarcoal/httpmock"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	graphBetaNetworkFilteringProfile "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/network_filtering_profile"
+)
+
+// TestUnitResourceNetworkFilteringProfile_ImportRejectsInvalidID checks that ImportState rejects an ID that
+// doesn't match the resource's ID format, before the ID can reach a Graph request URL.
+func TestUnitResourceNetworkFilteringProfile_ImportRejectsInvalidID(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	mocks.NewMocks().AuthMocks.RegisterMocks()
+
+	tests := []struct {
+		name     string
+		importID string
+	}{
+		{name: "not a GUID", importID: "not-a-guid"},
+		{name: "query string", importID: "00000000-0000-0000-0000-000000000001?$select=id"},
+		{name: "path traversal", importID: "../00000000-0000-0000-0000-000000000001"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resource.UnitTest(t, resource.TestCase{
+				ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+				Steps: []resource.TestStep{
+					{
+						Config:        `resource "` + graphBetaNetworkFilteringProfile.ResourceName + `" "test" {}`,
+						ResourceName:  graphBetaNetworkFilteringProfile.ResourceName + ".test",
+						ImportState:   true,
+						ImportStateId: tt.importID,
+						ExpectError:   regexp.MustCompile(`Invalid Import ID`),
+					},
+				},
+			})
+		})
+	}
+}

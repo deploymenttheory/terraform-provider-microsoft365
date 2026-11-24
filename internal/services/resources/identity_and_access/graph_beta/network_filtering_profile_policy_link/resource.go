@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -78,6 +79,11 @@ func (r *NetworkFilteringProfilePolicyLinkResource) ImportState(ctx context.Cont
 			"Invalid import ID",
 			fmt.Sprintf("Expected import ID in the format {filtering_profile_id}/{policy_link_id}, got %q.", req.ID),
 		)
+		return
+	}
+	// Both IDs are written into the custom_requests URL unescaped, so each must be a GUID.
+	profileIDValid := crud.ValidateImportIDPart(&resp.Diagnostics, "filtering_profile_id", parts[0], crud.ImportIDFormatGUID)
+	if !profileIDValid || !crud.ValidateImportIDPart(&resp.Diagnostics, "policy_link_id", parts[1], crud.ImportIDFormatGUID) {
 		return
 	}
 

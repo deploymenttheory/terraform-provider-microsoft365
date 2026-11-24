@@ -4,10 +4,10 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -70,7 +70,8 @@ func (r *NetworkFilteringProfileResource) Configure(ctx context.Context, req res
 
 // ImportState imports the resource state.
 func (r *NetworkFilteringProfileResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	// The ID is written into the custom_requests PATCH URL unescaped, so it must be a GUID.
+	crud.ImportStatePassthroughValidatedID(ctx, req, resp, crud.ImportIDFormatGUID)
 }
 
 // IdentitySchema defines the identity schema for this resource, used by list operations to uniquely identify instances
