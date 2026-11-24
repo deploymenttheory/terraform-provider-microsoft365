@@ -286,8 +286,9 @@ func handleSimpleSettingCollection(collectionValues []sharedmodels.SimpleSetting
 // - children: A slice of sharedmodels.ChoiceSettingChild representing the choice setting children to process.
 //
 // Returns:
-// - []graphmodels.DeviceManagementConfigurationSettingInstanceable: A slice of processed setting instances. It is never
-//   nil, so a value without children is sent as "children": [] rather than null, which Graph rejects.
+// - []graphmodels.DeviceManagementConfigurationSettingInstanceable: A slice of processed setting instances.
+//
+// The returned slice is never nil, so a value without children is sent as "children": [] rather than null, which Graph rejects.
 func handleChoiceSettingChildren(ctx context.Context, children []sharedmodels.ChoiceSettingChild) []graphmodels.DeviceManagementConfigurationSettingInstanceable {
 	result := make([]graphmodels.DeviceManagementConfigurationSettingInstanceable, 0, len(children))
 
