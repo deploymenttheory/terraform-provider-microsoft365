@@ -9,7 +9,7 @@ import (
 
 func scanSample(t *testing.T) map[string]Func {
 	t.Helper()
-	funcs, err := scanDir(filepath.Join("testdata", "sample"))
+	funcs, err := scanDir(fixturePackage(t, "sample"))
 	if err != nil {
 		t.Fatalf("scanDir: %v", err)
 	}
@@ -128,7 +128,7 @@ func TestScanDirAppliesRule(t *testing.T) {
 }
 
 func TestScanDirErrors(t *testing.T) {
-	if _, err := scanDir(filepath.Join("testdata", "broken")); err == nil {
+	if _, err := scanDir(fixturePackage(t, "broken")); err == nil {
 		t.Error("expected a parse error for the broken fixture")
 	}
 	if _, err := scanDir(filepath.Join("testdata", "missing")); err == nil {

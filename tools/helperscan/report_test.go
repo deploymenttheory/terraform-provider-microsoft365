@@ -3,14 +3,13 @@ package main
 import (
 	"bytes"
 	"errors"
-	"path/filepath"
 	"strings"
 	"testing"
 )
 
 func sampleFuncs(t *testing.T) []Func {
 	t.Helper()
-	funcs, err := scanDir(filepath.Join("testdata", "sample"))
+	funcs, err := scanDir(fixturePackage(t, "sample"))
 	if err != nil {
 		t.Fatal(err)
 	}
