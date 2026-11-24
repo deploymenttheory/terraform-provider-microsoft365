@@ -2,10 +2,14 @@ package graphBetaDeviceAndAppManagementAndroidManagedMobileApp
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
@@ -15,6 +19,24 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// managedAppPolicyTargetAppsLockScope serializes targetApps writes per policy.
+//
+// The androidManagedAppProtections/{id}/apps collection supports only a GET of the
+// whole list; per-app GET, POST and PATCH return "No OData route exists". Writes go
+// through managedAppPolicies/{id}/targetApps, which REPLACES the policy's entire
+// app list. Every write therefore reads the list, changes one entry and posts the
+// full result while holding this lock for the policy, so resources that share a
+// policy cannot overwrite each other's apps.
+const managedAppPolicyTargetAppsLockScope = "managed_app_policy_target_apps"
+
+var (
+	errAppAlreadyTargeted = stderrors.New("the app is already targeted by this policy")
+	errAppWaitTimeout     = stderrors.New("timed out waiting for the policy app list to reflect the change")
+
+	// appPollInterval is how often the app list is re-read after a write.
+	appPollInterval = 2 * time.Second
+)
+
 // Create adds the app to the policy's targeted apps.
 //
 // API Calls:
@@ -22,11 +44,7 @@ import (
 //   - POST /deviceAppManagement/managedAppPolicies/{id}/targetApps
 //
 // Reference: https://learn.microsoft.com/en-us/graph/api/intune-mam-targetedmanagedappprotection-targetapps?view=graph-rest-beta
-func (r *AndroidManagedMobileAppResource) Create(
-	ctx context.Context,
-	req resource.CreateRequest,
-	resp *resource.CreateResponse,
-) {
+func (r *AndroidManagedMobileAppResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object AndroidManagedMobileAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting creation of resource: %s", ResourceName))
@@ -36,12 +54,7 @@ func (r *AndroidManagedMobileAppResource) Create(
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(
-		ctx,
-		object.Timeouts.Create,
-		CreateTimeout*time.Second,
-		&resp.Diagnostics,
-	)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
@@ -57,58 +70,60 @@ func (r *AndroidManagedMobileAppResource) Create(
 	}
 
 	policyID := object.ManagedAppProtectionId.ValueString()
-	pkg := packageID(newApp)
+	pkg := object.MobileAppIdentifier.PackageId.ValueString()
 
-	unlock, err := lockPolicy(ctx, policyID)
+	// Serialize with sibling apps targeting the same policy (see managedAppPolicyTargetAppsLockScope).
+	unlock, err := crud.AcquireKeyedLock(ctx, managedAppPolicyTargetAppsLockScope, policyID)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating resource", err.Error())
 		return
 	}
 	defer unlock()
 
-	currentApps, err := r.listPolicyApps(ctx, policyID)
+	appsResponse, err := r.client.DeviceAppManagement().AndroidManagedAppProtections().ByAndroidManagedAppProtectionId(policyID).Apps().Get(ctx, nil)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, fmt.Errorf("list policy apps: %w", err), resp, constants.TfOperationCreate, r.ReadPermissions)
 		return
 	}
+	currentApps := appsResponse.GetValue()
 
-	if existing := findByPackage(currentApps, pkg); existing != nil {
+	if existing := findTargetedAppByPackageID(currentApps, pkg); existing != nil {
 		existingID := pkg + ".android"
 		if existing.GetId() != nil {
 			existingID = *existing.GetId()
 		}
 		resp.Diagnostics.AddError(
 			"Error creating resource",
-			fmt.Sprintf(
-				"%s: package %q in policy %s. Import it with ID \"%s/%s\" instead.",
-				errAppAlreadyTargeted, pkg, policyID, policyID, existingID,
-			),
+			fmt.Sprintf("%s: package %q in policy %s. Import it with ID \"%s/%s\" instead.", errAppAlreadyTargeted, pkg, policyID, policyID, existingID),
 		)
 		return
 	}
 
-	desired := make([]graphmodels.ManagedMobileAppable, 0, len(currentApps)+1)
-	for _, app := range currentApps {
-		desired = append(desired, writableApp(app))
-	}
-	desired = append(desired, newApp)
+	desired := append(slices.Clone(currentApps), newApp)
 
-	if err := r.setPolicyApps(ctx, policyID, desired); err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationCreate,
-			r.WritePermissions,
-		)
+	if err := r.client.DeviceAppManagement().ManagedAppPolicies().ByManagedAppPolicyId(policyID).TargetApps().Post(ctx, constructTargetAppsRequest(desired), nil); err != nil {
+		errors.HandleKiotaGraphError(ctx, fmt.Errorf("set policy target apps: %w", err), resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
-	// targetApps returns no content; Intune assigns the id, so wait for the entry.
-	apps, err := r.waitForApps(ctx, policyID, func(apps []graphmodels.ManagedMobileAppable) bool {
-		created := findByPackage(apps, pkg)
-		return created != nil && created.GetId() != nil
+	// targetApps returns no content and Intune assigns the id, so poll the list until the entry has one.
+	pollReadFailed := false
+	err = crud.PollUntil(ctx, appPollInterval, func(ctx context.Context) (bool, error) {
+		response, readErr := r.client.DeviceAppManagement().AndroidManagedAppProtections().ByAndroidManagedAppProtectionId(policyID).Apps().Get(ctx, nil)
+		if readErr != nil {
+			pollReadFailed = true
+			return false, &crud.FatalPollError{Err: fmt.Errorf("list policy apps: %w", readErr)}
+		}
+		created := findTargetedAppByPackageID(response.GetValue(), pkg)
+		if created == nil || created.GetId() == nil {
+			return false, nil
+		}
+		object.ID = types.StringValue(*created.GetId())
+		return true, nil
 	})
+	if err != nil && ctx.Err() != nil && !pollReadFailed {
+		err = fmt.Errorf("%w: %w", errAppWaitTimeout, ctx.Err())
+	}
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading resource state after create",
@@ -117,19 +132,20 @@ func (r *AndroidManagedMobileAppResource) Create(
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, findByPackage(apps, pkg))
-
-	if resp.Identity != nil {
-		resp.Diagnostics.Append(
-			resp.Identity.Set(ctx, sharedmodels.ResourceIdentity{ID: object.ID.ValueString()})...,
-		)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
+
+	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error reading resource state after create",
+			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
+		)
 		return
 	}
 
@@ -142,11 +158,7 @@ func (r *AndroidManagedMobileAppResource) Create(
 //
 // API Calls:
 //   - GET /deviceAppManagement/androidManagedAppProtections/{id}/apps
-func (r *AndroidManagedMobileAppResource) Read(
-	ctx context.Context,
-	req resource.ReadRequest,
-	resp *resource.ReadResponse,
-) {
+func (r *AndroidManagedMobileAppResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var object AndroidManagedMobileAppResourceModel
 	var identity sharedmodels.ResourceIdentity
 
@@ -157,34 +169,32 @@ func (r *AndroidManagedMobileAppResource) Read(
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(
-		ctx,
-		object.Timeouts.Read,
-		ReadTimeout*time.Second,
-		&resp.Diagnostics,
-	)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Read, ReadTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
-	apps, err := r.listPolicyApps(ctx, object.ManagedAppProtectionId.ValueString())
+	policyID := object.ManagedAppProtectionId.ValueString()
+	appID := object.ID.ValueString()
+
+	appsResponse, err := r.client.DeviceAppManagement().AndroidManagedAppProtections().ByAndroidManagedAppProtectionId(policyID).Apps().Get(ctx, nil)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, fmt.Errorf("list policy apps: %w", err), resp, constants.TfOperationRead, r.ReadPermissions)
 		return
 	}
+	apps := appsResponse.GetValue()
 
-	app := findByID(apps, object.ID.ValueString())
-	if app == nil {
-		tflog.Warn(ctx, fmt.Sprintf(
-			"%s with ID %s is no longer targeted by policy %s, removing from state",
-			ResourceName, object.ID.ValueString(), object.ManagedAppProtectionId.ValueString(),
-		))
+	index := slices.IndexFunc(apps, func(app graphmodels.ManagedMobileAppable) bool {
+		return app != nil && app.GetId() != nil && strings.EqualFold(*app.GetId(), appID)
+	})
+	if index < 0 {
+		tflog.Warn(ctx, fmt.Sprintf("%s with ID %s is no longer targeted by policy %s, removing from state", ResourceName, appID, policyID))
 		resp.State.RemoveResource(ctx)
 		return
 	}
 
-	MapRemoteStateToTerraform(ctx, &object, app)
+	MapRemoteStateToTerraform(ctx, &object, apps[index])
 
 	identity.ID = object.ID.ValueString()
 	if resp.Identity != nil {
@@ -203,12 +213,9 @@ func (r *AndroidManagedMobileAppResource) Read(
 }
 
 // Update only applies Terraform-side changes such as timeouts. Every attribute sent
-// to Graph forces replacement, and Intune assigns version itself.
-func (r *AndroidManagedMobileAppResource) Update(
-	ctx context.Context,
-	req resource.UpdateRequest,
-	resp *resource.UpdateResponse,
-) {
+// to Graph forces replacement and Intune assigns version itself, so the prior state is
+// kept and only the planned timeouts are applied to it.
+func (r *AndroidManagedMobileAppResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan AndroidManagedMobileAppResourceModel
 	var state AndroidManagedMobileAppResourceModel
 
@@ -218,10 +225,9 @@ func (r *AndroidManagedMobileAppResource) Update(
 		return
 	}
 
-	plan.ID = state.ID
-	plan.Version = state.Version
+	state.Timeouts = plan.Timeouts
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
@@ -230,11 +236,7 @@ func (r *AndroidManagedMobileAppResource) Update(
 // API Calls:
 //   - GET  /deviceAppManagement/androidManagedAppProtections/{id}/apps
 //   - POST /deviceAppManagement/managedAppPolicies/{id}/targetApps
-func (r *AndroidManagedMobileAppResource) Delete(
-	ctx context.Context,
-	req resource.DeleteRequest,
-	resp *resource.DeleteResponse,
-) {
+func (r *AndroidManagedMobileAppResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var object AndroidManagedMobileAppResourceModel
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
@@ -244,64 +246,56 @@ func (r *AndroidManagedMobileAppResource) Delete(
 		return
 	}
 
-	ctx, cancel := crud.HandleTimeout(
-		ctx,
-		object.Timeouts.Delete,
-		DeleteTimeout*time.Second,
-		&resp.Diagnostics,
-	)
+	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
 
 	policyID := object.ManagedAppProtectionId.ValueString()
-	appID := object.ID.ValueString()
+	pkg := object.MobileAppIdentifier.PackageId.ValueString()
 
-	unlock, err := lockPolicy(ctx, policyID)
+	// Serialize with sibling apps targeting the same policy (see managedAppPolicyTargetAppsLockScope).
+	unlock, err := crud.AcquireKeyedLock(ctx, managedAppPolicyTargetAppsLockScope, policyID)
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting resource", err.Error())
 		return
 	}
 	defer unlock()
 
-	currentApps, err := r.listPolicyApps(ctx, policyID)
+	appsResponse, err := r.client.DeviceAppManagement().AndroidManagedAppProtections().ByAndroidManagedAppProtectionId(policyID).Apps().Get(ctx, nil)
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.ReadPermissions)
+		errors.HandleKiotaGraphError(ctx, fmt.Errorf("list policy apps: %w", err), resp, constants.TfOperationDelete, r.ReadPermissions)
 		return
 	}
+	currentApps := appsResponse.GetValue()
 
-	if findByID(currentApps, appID) != nil {
-		remaining := make([]graphmodels.ManagedMobileAppable, 0, len(currentApps))
-		for _, app := range currentApps {
-			if app.GetId() == nil || *app.GetId() != appID {
-				remaining = append(remaining, writableApp(app))
-			}
-		}
+	if target := findTargetedAppByPackageID(currentApps, pkg); target != nil {
+		remaining := slices.DeleteFunc(slices.Clone(currentApps), func(app graphmodels.ManagedMobileAppable) bool { return app == target })
 
-		if err := r.setPolicyApps(ctx, policyID, remaining); err != nil {
-			errors.HandleKiotaGraphError(
-				ctx,
-				err,
-				resp,
-				constants.TfOperationDelete,
-				r.WritePermissions,
-			)
+		requestBody := constructTargetAppsRequest(remaining)
+
+		if err := r.client.DeviceAppManagement().ManagedAppPolicies().ByManagedAppPolicyId(policyID).TargetApps().Post(ctx, requestBody, nil); err != nil {
+			errors.HandleKiotaGraphError(ctx, fmt.Errorf("set policy target apps: %w", err), resp, constants.TfOperationDelete, r.WritePermissions)
 			return
 		}
 
-		_, err = r.waitForApps(ctx, policyID, func(apps []graphmodels.ManagedMobileAppable) bool {
-			return findByID(apps, appID) == nil
+		pollReadFailed := false
+		err = crud.PollUntil(ctx, appPollInterval, func(ctx context.Context) (bool, error) {
+			response, readErr := r.client.DeviceAppManagement().AndroidManagedAppProtections().ByAndroidManagedAppProtectionId(policyID).Apps().Get(ctx, nil)
+			if readErr != nil {
+				pollReadFailed = true
+				return false, &crud.FatalPollError{Err: fmt.Errorf("list policy apps: %w", readErr)}
+			}
+			return findTargetedAppByPackageID(response.GetValue(), pkg) == nil, nil
 		})
+		if err != nil && ctx.Err() != nil && !pollReadFailed {
+			err = fmt.Errorf("%w: %w", errAppWaitTimeout, ctx.Err())
+		}
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error verifying resource deletion",
-				fmt.Sprintf(
-					"App %s is still targeted by policy %s: %s",
-					appID,
-					policyID,
-					err.Error(),
-				),
+				fmt.Sprintf("Package %q is still targeted by policy %s: %s", pkg, policyID, err.Error()),
 			)
 			return
 		}

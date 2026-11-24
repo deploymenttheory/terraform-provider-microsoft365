@@ -50,3 +50,18 @@ func MapRemoteStateToTerraform(
 		fmt.Sprintf("Finished stating resource %s with id %s", ResourceName, data.ID.ValueString()),
 	)
 }
+
+// findTargetedAppByPackageID returns the policy's targeted app entry for the Android package,
+// matched case-insensitively, or nil when the policy does not target it.
+func findTargetedAppByPackageID(apps []graphmodels.ManagedMobileAppable, packageID string) graphmodels.ManagedMobileAppable {
+	for _, app := range apps {
+		if app == nil {
+			continue
+		}
+		identifier, ok := app.GetMobileAppIdentifier().(graphmodels.AndroidMobileAppIdentifierable)
+		if ok && identifier.GetPackageId() != nil && strings.EqualFold(*identifier.GetPackageId(), packageID) {
+			return app
+		}
+	}
+	return nil
+}
