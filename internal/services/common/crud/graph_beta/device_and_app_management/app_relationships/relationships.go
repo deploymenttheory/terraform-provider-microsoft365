@@ -6,31 +6,32 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/google/uuid"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/deviceappmanagement"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 )
 
 var (
 	ErrIncompleteCollection = errors.New("graph returned an incomplete app relationship collection")
 	ErrNotFound             = errors.New("app relationship not found (404)")
-	appLocks                sync.Map
 )
+
+// appRelationshipsLockScope is shared by dependency and supersedence writers so both
+// serialise on the same source app.
+const appRelationshipsLockScope = "app_relationships"
 
 // Lock serializes collection writes across dependency and supersedence resources.
 // Callers hold the lock through read-back so the next writer sees the completed write.
 func Lock(ctx context.Context, sourceID string) (func(), error) {
-	value, _ := appLocks.LoadOrStore(strings.ToLower(sourceID), make(chan struct{}, 1))
-	lock := value.(chan struct{})
-	select {
-	case lock <- struct{}{}:
-		return func() { <-lock }, nil
-	case <-ctx.Done():
-		return nil, fmt.Errorf("wait for app relationship lock: %w", ctx.Err())
+	unlock, err := crud.AcquireKeyedLock(ctx, appRelationshipsLockScope, sourceID)
+	if err != nil {
+		return nil, fmt.Errorf("wait for app relationship lock: %w", err)
 	}
+	return unlock, nil
 }
 
 // SourceID extracts the app ID from Graph's source_target relationship identifier.
