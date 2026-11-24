@@ -1,0 +1,6 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/templates"
+  }
+]
