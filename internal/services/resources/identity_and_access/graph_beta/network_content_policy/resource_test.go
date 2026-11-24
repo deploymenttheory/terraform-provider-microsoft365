@@ -37,6 +37,7 @@ func TestUnitResourceNetworkContentPolicy_01_BasicAndImport(t *testing.T) {
 	_, contentPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer contentPolicyMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -57,6 +58,7 @@ func TestUnitResourceNetworkContentPolicy_01_BasicAndImport(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/basic_and_import.json")
 }
 
 func TestUnitResourceNetworkContentPolicy_02_UpdateAndClearDescription(t *testing.T) {
@@ -64,6 +66,7 @@ func TestUnitResourceNetworkContentPolicy_02_UpdateAndClearDescription(t *testin
 	_, contentPolicyMock := setupMockEnvironment()
 	defer httpmock.DeactivateAndReset()
 	defer contentPolicyMock.CleanupMockState()
+	capture := mocks.CaptureGraphRequests(t)
 
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
@@ -83,6 +86,7 @@ func TestUnitResourceNetworkContentPolicy_02_UpdateAndClearDescription(t *testin
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/update_and_clear_description.json")
 }
 
 func TestUnitResourceNetworkContentPolicy_03_InvalidDefaultAction(t *testing.T) {

@@ -1,0 +1,77 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkaccess/promptPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": null,
+      "name": "tf-api-probe-policy-updated"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/promptPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "description": "Initial description",
+      "name": "tf-api-probe-policy",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  }
+]
