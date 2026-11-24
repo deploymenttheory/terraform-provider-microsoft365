@@ -27,7 +27,7 @@ import (
 )
 
 func testModel() NetworkPromptPolicyRuleResourceModel {
-	return NetworkPromptPolicyRuleResourceModel{ID: types.StringValue("11111111-1111-1111-1111-111111111111"), Name: types.StringValue("test"), Description: types.StringNull(), PromptPolicyID: types.StringValue("22222222-2222-2222-2222-222222222222"), Action: types.StringValue("allow"), Priority: types.Int32Value(1000), Enabled: types.BoolValue(true), Status: types.StringValue("enabled"), PromptLogging: types.StringValue("never"), ScanResult: types.StringValue("maliciousPromptDetected"), ConversationSchemes: types.ListValueMust(conversationSchemeObjectType(), []attr.Value{types.ObjectValueMust(conversationSchemeObjectType().AttrTypes, map[string]attr.Value{"type": types.StringValue("custom"), "url": types.StringValue("https://example.com/chat"), "json_path": types.StringValue("$.prompt"), "scheme_name": types.StringNull()})}),
+	return NetworkPromptPolicyRuleResourceModel{ID: types.StringValue("11111111-1111-1111-1111-111111111111"), Name: types.StringValue("test"), Description: types.StringNull(), PromptPolicyID: types.StringValue("22222222-2222-2222-2222-222222222222"), Action: types.StringValue("allow"), Priority: types.Int32Value(1000), Enabled: types.BoolValue(true), Status: types.StringValue("enabled"), PromptLogging: types.StringValue("never"), ScanResult: types.StringValue("maliciousPromptDetected"), ConversationSchemes: types.ListValueMust(conversationSchemeObjectType, []attr.Value{types.ObjectValueMust(conversationSchemeObjectType.AttrTypes, map[string]attr.Value{"type": types.StringValue("custom"), "url": types.StringValue("https://example.com/chat"), "json_path": types.StringValue("$.prompt"), "scheme_name": types.StringNull()})}),
 		Timeouts: timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{"create": types.StringType, "read": types.StringType, "update": types.StringType, "delete": types.StringType})}}
 }
 func testState(t *testing.T, r *NetworkPromptPolicyRuleResource, model NetworkPromptPolicyRuleResourceModel) tfsdk.State {
@@ -377,38 +377,26 @@ func TestPromptPolicyRuleRequestsRetryThrottledResponses(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	model := testModel()
-	createBody, err := constructResource(ctx, &model)
-	require.NoError(t, err)
-	_, err = r.createPromptPolicyRule(ctx, model.PromptPolicyID.ValueString(), createBody)
-	require.NoError(t, err)
+	state := testState(t, r, testModel())
+	createResp := resource.CreateResponse{State: tfsdk.State{Schema: state.Schema}}
+	r.Create(ctx, resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &createResp)
+	require.False(t, createResp.Diagnostics.HasError(), "%v", createResp.Diagnostics)
 
-	_, err = r.getPromptPolicyRule(
-		ctx,
-		model.PromptPolicyID.ValueString(),
-		model.ID.ValueString(),
-	)
-	require.NoError(t, err)
-
-	previous := model
+	previous := testModel()
 	previous.Name = types.StringValue("previous")
-	updateBody, err := constructUpdateResource(ctx, &model, &previous)
-	require.NoError(t, err)
-	require.NoError(t, r.updatePromptPolicyRule(
-		ctx,
-		model.PromptPolicyID.ValueString(),
-		model.ID.ValueString(),
-		updateBody,
-	))
-	require.NoError(t, r.deletePromptPolicyRule(
-		ctx,
-		model.PromptPolicyID.ValueString(),
-		model.ID.ValueString(),
-	))
+	prior := testState(t, r, previous)
+	updateResp := resource.UpdateResponse{State: prior}
+	r.Update(ctx, resource.UpdateRequest{State: prior, Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &updateResp)
+	require.False(t, updateResp.Diagnostics.HasError(), "%v", updateResp.Diagnostics)
 
+	deleteResp := resource.DeleteResponse{State: state}
+	r.Delete(ctx, resource.DeleteRequest{State: state}, &deleteResp)
+	require.False(t, deleteResp.Diagnostics.HasError(), "%v", deleteResp.Diagnostics)
+
+	// Only the first request of each method is throttled; Create and Update readbacks add further GETs.
+	require.GreaterOrEqual(t, attempts[http.MethodGet], 2)
 	for _, method := range []string{
 		http.MethodPost,
-		http.MethodGet,
 		http.MethodPatch,
 		http.MethodDelete,
 	} {

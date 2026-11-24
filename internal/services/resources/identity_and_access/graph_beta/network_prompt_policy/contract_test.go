@@ -312,25 +312,26 @@ func TestPromptPolicyRequestsRetryThrottledResponses(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	model := testModel()
-	createBody, err := constructResource(ctx, &model)
-	require.NoError(t, err)
-	_, err = r.createPromptPolicy(ctx, createBody)
-	require.NoError(t, err)
+	state := testState(t, r, testModel())
+	createResp := resource.CreateResponse{State: tfsdk.State{Schema: state.Schema}}
+	r.Create(ctx, resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &createResp)
+	require.False(t, createResp.Diagnostics.HasError(), "%v", createResp.Diagnostics)
 
-	_, err = r.getPromptPolicy(ctx, model.ID.ValueString())
-	require.NoError(t, err)
-
-	previous := model
+	previous := testModel()
 	previous.Name = types.StringValue("previous")
-	updateBody, err := constructUpdateResource(ctx, &model, &previous)
-	require.NoError(t, err)
-	require.NoError(t, r.updatePromptPolicy(ctx, model.ID.ValueString(), updateBody))
-	require.NoError(t, r.deletePromptPolicy(ctx, model.ID.ValueString()))
+	prior := testState(t, r, previous)
+	updateResp := resource.UpdateResponse{State: prior}
+	r.Update(ctx, resource.UpdateRequest{State: prior, Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &updateResp)
+	require.False(t, updateResp.Diagnostics.HasError(), "%v", updateResp.Diagnostics)
 
+	deleteResp := resource.DeleteResponse{State: state}
+	r.Delete(ctx, resource.DeleteRequest{State: state}, &deleteResp)
+	require.False(t, deleteResp.Diagnostics.HasError(), "%v", deleteResp.Diagnostics)
+
+	// Only the first request of each method is throttled; Create and Update readbacks add further GETs.
+	require.GreaterOrEqual(t, attempts[http.MethodGet], 2)
 	for _, method := range []string{
 		http.MethodPost,
-		http.MethodGet,
 		http.MethodPatch,
 		http.MethodDelete,
 	} {

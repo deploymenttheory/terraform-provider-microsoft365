@@ -7,22 +7,16 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
-func MapRemoteStateToTerraform(
-	_ context.Context,
-	data *NetworkPromptPolicyResourceModel,
-	remote *promptPolicyResponse,
-) error {
-	if remote == nil || remote.id == nil || *remote.id == "" || remote.name == nil ||
-		remote.defaultAction == nil ||
-		remote.version == nil ||
-		remote.lastModifiedDateTime == nil {
+func MapRemoteStateToTerraform(_ context.Context, data *NetworkPromptPolicyResourceModel, remote *promptPolicyResponse) error {
+	if remote == nil || remote.ID == nil || *remote.ID == "" || remote.Name == nil || remote.Settings == nil ||
+		remote.Settings.DefaultAction == nil || remote.Version == nil || remote.LastModifiedDateTime == nil {
 		return fmt.Errorf("%w: missing required fields", errInvalidResponse)
 	}
-	data.ID = convert.GraphToFrameworkString(remote.id)
-	data.Name = convert.GraphToFrameworkString(remote.name)
-	data.Description = convert.GraphToFrameworkString(remote.description)
-	data.DefaultAction = convert.GraphToFrameworkString(remote.defaultAction)
-	data.Version = convert.GraphToFrameworkString(remote.version)
-	data.LastModifiedDateTime = convert.GraphToFrameworkString(remote.lastModifiedDateTime)
+	data.ID = convert.GraphToFrameworkString(remote.ID)
+	data.Name = convert.GraphToFrameworkString(remote.Name)
+	data.Description = convert.GraphToFrameworkString(remote.Description)
+	data.DefaultAction = convert.GraphToFrameworkString(remote.Settings.DefaultAction)
+	data.Version = convert.GraphToFrameworkString(remote.Version)
+	data.LastModifiedDateTime = convert.GraphToFrameworkString(remote.LastModifiedDateTime)
 	return nil
 }
