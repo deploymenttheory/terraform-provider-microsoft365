@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
+	"net/url"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -43,19 +42,15 @@ func GetRequest(
 	factory s.ParsableFactory,
 	errorMappings abstractions.ErrorMappings,
 ) (s.Parsable, error) {
-	requestInfo := abstractions.NewRequestInformation()
-	requestInfo.Method = abstractions.GET
-	requestInfo.UrlTemplate = "{+baseurl}/" + config.Endpoint
+	urlTemplate := endpointUrlTemplate(config.Endpoint)
 	if config.GetResourceID() != "" {
-		requestInfo.UrlTemplate += "/" + config.GetResourceID()
+		urlTemplate += "/" + config.GetResourceID()
 	}
 	if config.GetEndpointSuffix() != "" {
-		requestInfo.UrlTemplate += "/" + config.GetEndpointSuffix()
+		urlTemplate += "/" + config.GetEndpointSuffix()
 	}
 
-	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", config.APIVersion),
-	}
+	requestInfo := newGraphRequestInformation(adapter, abstractions.GET, urlTemplate, config.APIVersion)
 
 	if config.QueryParameters != nil {
 		for key, value := range config.QueryParameters {
@@ -63,7 +58,7 @@ func GetRequest(
 		}
 	}
 
-	result, err := adapter.Send(ctx, requestInfo, factory, errorMappings)
+	result, err := adapter.Send(ctx, requestInfo, factory, withODataErrorMappings(errorMappings))
 	if err != nil {
 		return nil, err
 	}
@@ -122,12 +117,7 @@ func GetRequest(
 //	fmt.Printf("Response: %+v\n", response)
 func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig GetRequestConfig) (json.RawMessage, error) {
 
-	requestInfo := abstractions.NewRequestInformation()
-	requestInfo.Method = abstractions.GET
-	requestInfo.UrlTemplate = ByIDRequestUrlTemplate(reqConfig)
-	requestInfo.PathParameters = map[string]string{
-		"baseurl": fmt.Sprintf("https://graph.microsoft.com/%s", reqConfig.APIVersion),
-	}
+	requestInfo := newGraphRequestInformation(adapter, abstractions.GET, ByIDRequestUrlTemplate(reqConfig), reqConfig.APIVersion)
 	requestInfo.Headers.Add("Accept", "application/json")
 
 	if reqConfig.QueryParameters != nil {
@@ -136,7 +126,7 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 		}
 	}
 
-	body, err := makeRequest(ctx, adapter, requestInfo)
+	body, err := sendGraphRequestForBytes(ctx, adapter, requestInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -160,12 +150,17 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 	})
 
 	for nextLink != "" {
+		nextURL, err := url.Parse(nextLink)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing @odata.nextLink %q: %w", nextLink, err)
+		}
+
 		requestInfo = abstractions.NewRequestInformation()
 		requestInfo.Method = abstractions.GET
-		requestInfo.UrlTemplate = nextLink
+		requestInfo.SetUri(*nextURL)
 		requestInfo.Headers.Add("Accept", "application/json")
 
-		body, err = makeRequest(ctx, adapter, requestInfo)
+		body, err = sendGraphRequestForBytes(ctx, adapter, requestInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -191,46 +186,17 @@ func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAda
 	return json.Marshal(combinedResponse)
 }
 
-// makeRequest executes an HTTP request using the provided Kiota request adapter and request information.
-// This helper function handles the conversion of Kiota's RequestInformation into a native HTTP request,
-// executes the request, and returns the raw response body.
-//
-// Parameters:
-//   - ctx: The context for the request, which can be used for cancellation and timeout
-//   - adapter: The Kiota request adapter that converts RequestInformation to a native request
-//   - requestInfo: The Kiota RequestInformation containing the request configuration
-//
-// Returns:
-//   - []byte: The raw response body from the HTTP request
-//   - error: Returns nil if the request was successful, otherwise an error describing what went wrong
-//
-// The function performs the following steps:
-// 1. Converts the Kiota RequestInformation to a native HTTP request
-// 2. Executes the HTTP request using a standard http.Client
-// 3. Reads and returns the complete response body
-func makeRequest(ctx context.Context, adapter abstractions.RequestAdapter, requestInfo *abstractions.RequestInformation) ([]byte, error) {
-	nativeReq, err := adapter.ConvertToNativeRequest(ctx, requestInfo)
-	if err != nil {
-		return nil, fmt.Errorf("error converting to native HTTP request: %w", err)
-	}
+// sendGraphRequestForBytes sends requestInfo through the adapter's pipeline (authentication, retry, compression,
+// logging and status checks) and returns the raw response body. Any 4xx or 5xx response is returned as an ODataError.
+// A response with no body (e.g. 204 No Content) returns nil.
+func sendGraphRequestForBytes(ctx context.Context, adapter abstractions.RequestAdapter, requestInfo *abstractions.RequestInformation) ([]byte, error) {
+	tflog.Debug(ctx, "Making custom msgraph GET request", map[string]any{"url_template": requestInfo.UrlTemplate})
 
-	httpReq := nativeReq.(*http.Request)
-	client := &http.Client{}
-
-	tflog.Debug(ctx, "Making request", map[string]any{
-		"url": httpReq.URL.String(),
-	})
-
-	resp, err := client.Do(httpReq)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
+	result, err := adapter.SendPrimitive(ctx, requestInfo, "[]byte", withODataErrorMappings(nil))
 	if err != nil {
 		return nil, err
 	}
 
+	body, _ := result.([]byte)
 	return body, nil
 }
