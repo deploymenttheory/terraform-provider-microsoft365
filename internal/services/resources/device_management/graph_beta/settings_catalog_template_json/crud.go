@@ -209,9 +209,6 @@ func (r *DeviceManagementTemplateJsonResource) Read(
 		EndpointSuffix:    "/settings",
 		ResourceIDPattern: "('id')",
 		ResourceID:        object.ID.ValueString(),
-		QueryParameters: map[string]string{
-			"$expand": "children",
-		},
 	}
 
 	var settingsResponse []byte
