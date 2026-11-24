@@ -111,7 +111,8 @@ resource "microsoft365_graph_beta_groups_group" "cal006_include" {
 # Propagation Delay for Named Locations
 # ==============================================================================
 
-# Allow time for named locations to propagate in Microsoft Entra ID
+# Allow time for named locations to propagate in Microsoft Entra ID, and for the
+# policy deletion to propagate before the named locations are deleted
 resource "time_sleep" "wait_for_named_locations" {
   depends_on = [
     microsoft365_graph_beta_identity_and_access_named_location.allowed_apac_office_only,
@@ -120,6 +121,11 @@ resource "time_sleep" "wait_for_named_locations" {
   ]
 
   create_duration = "30s"
+
+  # Graph rejects deleting a named location for a few seconds after the policy that used it is deleted
+  # (400, inner error 1178: still referenced by a Conditional Access policy). The policy depends on this
+  # resource, so on destroy it is removed first and this wait runs before the named locations are deleted.
+  destroy_duration = "30s"
 }
 
 # ==============================================================================
