@@ -1,3 +1,23 @@
+// Package graphBetaConditionalAccessTemplate reads Microsoft Entra conditional access policy templates.
+//
+// SDK deviation: unknown enum value
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0, models.ConditionalAccessGrantControl and
+//     models.TemplateScenarios. ParseConditionalAccessGrantControl knows block, mfa, compliantDevice, domainJoinedDevice,
+//     approvedApplication, compliantApplication, passwordChange, unknownFutureValue and riskRemediation, and returns nil
+//     for anything else, so verifiedID comes back as block. ParseTemplateScenarios returns nil for the whole flags value
+//     when one flag is unknown, so a template with aiAgents loses its scenarios.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccesstemplate?view=graph-rest-beta
+//   - Observed: 2026-11-24, GET /beta/identity/conditionalAccess/templates returns the "Secure account recovery with
+//     identity verification (Preview)" template with builtInControls ["verifiedID"] and the "Block high risk agent
+//     identities from accessing resources" template with scenarios "aiAgents" (acceptance tests 20 and 21).
+//
+// The template list is read through custom_requests in raw JSON mode, and templateResponse keeps scenarios and
+// builtInControls as strings while the SDK model parses every other field.
+//
+// Removal condition: models.ConditionalAccessGrantControl includes verifiedID and models.TemplateScenarios includes
+// aiAgents, or the SDK keeps unknown enum members instead of dropping them.
 package graphBetaConditionalAccessTemplate
 
 import (

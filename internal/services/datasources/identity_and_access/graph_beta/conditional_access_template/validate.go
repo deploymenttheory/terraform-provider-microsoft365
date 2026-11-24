@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/lithammer/fuzzysearch/fuzzy"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
@@ -20,8 +19,12 @@ func (d *ConditionalAccessTemplateDataSource) validateRequest(ctx context.Contex
 	var templates struct {
 		Value []*templateResponse `json:"value"`
 	}
-	err := customrequests.JSONRequest(ctx, d.client.GetAdapter(), abstractions.GET,
-		"/identity/conditionalAccess/templates", nil, nil, &templates)
+	getConfig := customrequests.GetRequestConfig{
+		APIVersion:  customrequests.GraphAPIBeta,
+		Endpoint:    "identity/conditionalAccess/templates",
+		RawResponse: &templates,
+	}
+	_, err := customrequests.GetRequest(ctx, d.client.GetAdapter(), getConfig, nil, nil)
 
 	if err != nil {
 		resp.Diagnostics.AddError(
