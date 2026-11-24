@@ -98,6 +98,52 @@ func (r *NetworkCloudFirewallPolicyRuleResource) ImportState(ctx context.Context
 }
 
 func (r *NetworkCloudFirewallPolicyRuleResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	// matchingSchema builds the sources and destinations attributes, which differ only in their address types and protocols.
+	matchingSchema := func(destination bool) schema.SingleNestedAttribute {
+		addressTypes := []string{"ip"}
+		description := "Source conditions. Omit this object to leave source matching unspecified."
+		if destination {
+			addressTypes = append(addressTypes, "fqdn")
+			description = "Destination conditions. Omit this object to leave destination matching unspecified. FQDN conditions apply to Global Secure Access client traffic but not to remote-network traffic, and do not match direct-IP connections without a destination FQDN."
+		}
+		attrs := map[string]schema.Attribute{
+			"addresses": schema.SetNestedAttribute{
+				MarkdownDescription: "Address groups, at most one per type. Each group's values are matched with OR. Terraform defaults to an empty set.",
+				Optional:            true,
+				Computed:            true,
+				Default:             setdefault.StaticValue(types.SetValueMust(addressObjectType, nil)),
+				NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
+					"type": schema.StringAttribute{
+						MarkdownDescription: "Address type: `ip` for IPv4 addresses, CIDRs or ranges; destinations also support `fqdn`.",
+						Required:            true,
+						Validators:          []validator.String{stringvalidator.OneOf(addressTypes...)},
+					},
+					"values": schema.SetAttribute{
+						MarkdownDescription: "Address values. IPv4 examples: `192.0.2.1`, `192.0.2.0/24`, `192.0.2.1-192.0.2.10`. FQDN example: `api.example.com`; a standalone `*` is accepted, but `*.example.com` is not. Case and CIDR host bits are preserved.",
+						Required:            true,
+						ElementType:         types.StringType,
+					},
+				}},
+			},
+			"ports": schema.SetAttribute{
+				MarkdownDescription: "Ports as decimal strings in 0–65535 or inclusive ascending ranges such as `1000-1002`. Leading zeros and wildcard strings are not accepted. Terraform defaults to an empty set.",
+				Optional:            true,
+				Computed:            true,
+				ElementType:         types.StringType,
+				Default:             setdefault.StaticValue(types.SetValueMust(types.StringType, nil)),
+				Validators:          []validator.Set{setvalidator.ValueStringsAre(portValidator{})},
+			},
+		}
+		if destination {
+			attrs["protocols"] = schema.SetAttribute{
+				MarkdownDescription: "Protocols to match: `tcp`, `udp`, or both. Required whenever destinations is specified; null is not sent to the API.",
+				Required:            true,
+				ElementType:         types.StringType,
+				Validators:          []validator.Set{setvalidator.SizeAtLeast(1), setvalidator.ValueStringsAre(stringvalidator.OneOf("tcp", "udp"))},
+			}
+		}
+		return schema.SingleNestedAttribute{MarkdownDescription: description, Optional: true, Attributes: attrs}
+	}
 	resp.Schema = schema.Schema{MarkdownDescription: "Manages an independent rule in a [Microsoft Entra Global Secure Access cloud firewall policy](https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-cloudfirewallrule?view=graph-rest-beta). Uses `/beta/networkaccess/cloudFirewallPolicies/{policy_id}/policyRules`. Creating a rule does not link its policy to traffic. Matching collections are sets: ordering and duplicates do not produce Terraform differences. Rules containing branch conditions are not currently supported.", Attributes: map[string]schema.Attribute{
 		"id":          schema.StringAttribute{MarkdownDescription: "The rule ID.", Computed: true, PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
 		"policy_id":   schema.StringAttribute{MarkdownDescription: "The parent cloud firewall policy ID. Changing the parent replaces this rule, including when the new parent's ID is not yet known.", Required: true, Validators: []validator.String{stringvalidator.RegexMatches(regexp.MustCompile(constants.GuidRegex), "must be a UUID")}, PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()}},
@@ -109,24 +155,4 @@ func (r *NetworkCloudFirewallPolicyRuleResource) Schema(ctx context.Context, _ r
 		"status":      schema.StringAttribute{MarkdownDescription: "The observed service status, enabled or disabled. This does not confirm propagation to traffic enforcement.", Computed: true},
 		"sources":     matchingSchema(false), "destinations": matchingSchema(true), "timeouts": commonschema.ResourceTimeouts(ctx),
 	}}
-}
-
-func matchingSchema(destination bool) schema.SingleNestedAttribute {
-	addressTypes := []string{"ip"}
-	description := "Source conditions. Omit this object to leave source matching unspecified."
-	if destination {
-		addressTypes = append(addressTypes, "fqdn")
-		description = "Destination conditions. Omit this object to leave destination matching unspecified. FQDN conditions apply to Global Secure Access client traffic but not to remote-network traffic, and do not match direct-IP connections without a destination FQDN."
-	}
-	attrs := map[string]schema.Attribute{
-		"addresses": schema.SetNestedAttribute{MarkdownDescription: "Address groups, at most one per type. Each group's values are matched with OR. Terraform defaults to an empty set.", Optional: true, Computed: true, Default: setdefault.StaticValue(types.SetValueMust(addressObjectType(), nil)), NestedObject: schema.NestedAttributeObject{Attributes: map[string]schema.Attribute{
-			"type":   schema.StringAttribute{MarkdownDescription: "Address type: `ip` for IPv4 addresses, CIDRs or ranges; destinations also support `fqdn`.", Required: true, Validators: []validator.String{stringvalidator.OneOf(addressTypes...)}},
-			"values": schema.SetAttribute{MarkdownDescription: "Address values. IPv4 examples: `192.0.2.1`, `192.0.2.0/24`, `192.0.2.1-192.0.2.10`. FQDN example: `api.example.com`; a standalone `*` is accepted, but `*.example.com` is not. Case and CIDR host bits are preserved.", Required: true, ElementType: types.StringType},
-		}}},
-		"ports": schema.SetAttribute{MarkdownDescription: "Ports as decimal strings in 0–65535 or inclusive ascending ranges such as `1000-1002`. Leading zeros and wildcard strings are not accepted. Terraform defaults to an empty set.", Optional: true, Computed: true, ElementType: types.StringType, Default: setdefault.StaticValue(types.SetValueMust(types.StringType, nil)), Validators: []validator.Set{setvalidator.ValueStringsAre(portValidator{})}},
-	}
-	if destination {
-		attrs["protocols"] = schema.SetAttribute{MarkdownDescription: "Protocols to match: `tcp`, `udp`, or both. Required whenever destinations is specified; null is not sent to the API.", Required: true, ElementType: types.StringType, Validators: []validator.Set{setvalidator.SizeAtLeast(1), setvalidator.ValueStringsAre(stringvalidator.OneOf("tcp", "udp"))}}
-	}
-	return schema.SingleNestedAttribute{MarkdownDescription: description, Optional: true, Attributes: attrs}
 }

@@ -29,6 +29,7 @@ func setupMockEnvironment(t *testing.T) *settingsmocks.ConditionalAccessSettings
 
 func TestUnitResourceNetworkConditionalAccessSettings_01_Lifecycle(t *testing.T) {
 	m := setupMockEnvironment(t)
+	capture := mocks.CaptureGraphRequests(t)
 	resource.UnitTest(t, resource.TestCase{
 		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
@@ -52,6 +53,7 @@ func TestUnitResourceNetworkConditionalAccessSettings_01_Lifecycle(t *testing.T)
 			{Config: mocks.LoadUnitTerraformConfig("disabled.tf"), PlanOnly: true},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/lifecycle.json")
 	m.Lock()
 	defer m.Unlock()
 	require.Equal(t, "disabled", m.Status, "destroy must preserve the remote settings")
@@ -66,6 +68,7 @@ func TestUnitResourceNetworkConditionalAccessSettings_02_NoDefault(t *testing.T)
 	for _, initial := range []string{"enabled", "disabled"} {
 		t.Run(initial, func(t *testing.T) {
 			m := setupMockEnvironment(t)
+			capture := mocks.CaptureGraphRequests(t)
 			m.Status = initial
 			resource.UnitTest(
 				t,
@@ -88,6 +91,7 @@ func TestUnitResourceNetworkConditionalAccessSettings_02_NoDefault(t *testing.T)
 					},
 				},
 			)
+			capture.AssertMatchesFixture(t, "tests/requests/no_default_"+initial+".json")
 			require.Empty(t, m.Requests)
 			require.Equal(t, initial, m.Status)
 		})

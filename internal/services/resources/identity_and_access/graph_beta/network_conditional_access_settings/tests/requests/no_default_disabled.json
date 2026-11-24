@@ -1,0 +1,18 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  }
+]

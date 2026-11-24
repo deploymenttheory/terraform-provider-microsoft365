@@ -2,8 +2,12 @@ package graphBetaNetworkTLSInspectionPolicyRule
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// tlsInspectionPolicyRuleDestinationObjectType is the Terraform type of one destinations entry.
+var tlsInspectionPolicyRuleDestinationObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{"type": types.StringType, "values": types.SetType{ElemType: types.StringType}}}
 
 type NetworkTLSInspectionPolicyRuleResourceModel struct {
 	ID                    types.String   `tfsdk:"id"`

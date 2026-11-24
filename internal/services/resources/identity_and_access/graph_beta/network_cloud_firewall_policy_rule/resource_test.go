@@ -25,6 +25,7 @@ func TestUnitResourceNetworkCloudFirewallPolicyRule_01_Lifecycle(t *testing.T) {
 	mocks.NewMocks().AuthMocks.RegisterMocks()
 	mock := &cloudMocks.CloudFirewallMock{}
 	mock.RegisterMocks()
+	capture := mocks.CaptureGraphRequests(t)
 	defer mock.CleanupMockState()
 	config, err := helpers.ParseHCLFile("tests/terraform/unit/resource.tf")
 	if err != nil {
@@ -68,6 +69,7 @@ func TestUnitResourceNetworkCloudFirewallPolicyRule_01_Lifecycle(t *testing.T) {
 		)},
 		{Config: clearedMatching, PlanOnly: true},
 	}})
+	capture.AssertMatchesFixture(t, "tests/requests/lifecycle.json")
 }
 
 func TestUnitResourceNetworkCloudFirewallPolicyRule_04_SetNoOpAndParentReplacement(t *testing.T) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/netip"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -45,35 +46,45 @@ func (v portValidator) ValidateString(ctx context.Context, req validator.StringR
 	}
 }
 
-func validIPv4(value string) bool {
-	if strings.Contains(value, "/") {
-		p, err := netip.ParsePrefix(value)
-		return err == nil && p.Addr().Is4()
-	}
-	if strings.Contains(value, "-") {
-		parts := strings.Split(value, "-")
-		if len(parts) != 2 {
-			return false
-		}
-		a, e1 := netip.ParseAddr(parts[0])
-		b, e2 := netip.ParseAddr(parts[1])
-		return e1 == nil && e2 == nil && a.Is4() && b.Is4() && a.Compare(b) <= 0
-	}
-	a, err := netip.ParseAddr(value)
-	return err == nil && a.Is4()
-}
-
 func (r *NetworkCloudFirewallPolicyRuleResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var data NetworkCloudFirewallPolicyRuleResourceModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	// validIPv4 accepts an IPv4 address, CIDR or ascending range.
+	validIPv4 := func(value string) bool {
+		if strings.Contains(value, "/") {
+			p, err := netip.ParsePrefix(value)
+			return err == nil && p.Addr().Is4()
+		}
+		if strings.Contains(value, "-") {
+			parts := strings.Split(value, "-")
+			if len(parts) != 2 {
+				return false
+			}
+			a, e1 := netip.ParseAddr(parts[0])
+			b, e2 := netip.ParseAddr(parts[1])
+			return e1 == nil && e2 == nil && a.Is4() && b.Is4() && a.Compare(b) <= 0
+		}
+		a, err := netip.ParseAddr(value)
+		return err == nil && a.Is4()
+	}
 	for key, object := range map[string]types.Object{"sources": data.Sources, "destinations": data.Destinations} {
 		if object.IsNull() || object.IsUnknown() {
 			continue
 		}
-		validateCollectionElements(object, key, resp)
+		for _, field := range []string{"ports", "protocols"} {
+			value, exists := object.Attributes()[field]
+			if !exists || value.IsNull() || value.IsUnknown() {
+				continue
+			}
+			for _, element := range value.(types.Set).Elements() {
+				if element.IsNull() {
+					resp.Diagnostics.AddAttributeError(path.Root(key).AtName(field), "Null condition element", "Collection elements must not be null.")
+				}
+			}
+		}
 		addressSet := object.Attributes()["addresses"].(types.Set)
 		if addressSet.IsUnknown() || addressSet.IsNull() {
 			continue
@@ -87,11 +98,13 @@ func (r *NetworkCloudFirewallPolicyRuleResource) ValidateConfig(ctx context.Cont
 		if unknown {
 			continue
 		}
-		addresses, err := addressModels(ctx, object)
-		if err != nil {
+		var addresses []ruleAddressModel
+		if diags := addressSet.ElementsAs(ctx, &addresses, false); diags.HasError() {
+			err := fmt.Errorf("%w: invalid addresses: %s", errInvalidRequest, diags.Errors()[0].Detail())
 			resp.Diagnostics.AddAttributeError(path.Root(key), "Invalid address groups", err.Error())
 			continue
 		}
+		sort.Slice(addresses, func(i, j int) bool { return addresses[i].Type.ValueString() < addresses[j].Type.ValueString() })
 		seen := map[string]bool{}
 		for _, address := range addresses {
 			if address.Type.IsUnknown() {
@@ -121,20 +134,6 @@ func (r *NetworkCloudFirewallPolicyRuleResource) ValidateConfig(ctx context.Cont
 				if typ == "fqdn" && value != "*" && (strings.ContainsAny(value, " \t\r\n/*") || !strings.Contains(value, ".") || strings.HasSuffix(value, ".")) {
 					resp.Diagnostics.AddAttributeError(path.Root(key).AtName("addresses"), "Invalid FQDN condition", "Use a fully qualified domain name without a scheme, trailing dot, whitespace, or wildcard prefix, or a standalone *.")
 				}
-			}
-		}
-	}
-}
-
-func validateCollectionElements(object types.Object, key string, resp *resource.ValidateConfigResponse) {
-	for _, field := range []string{"ports", "protocols"} {
-		value, exists := object.Attributes()[field]
-		if !exists || value.IsNull() || value.IsUnknown() {
-			continue
-		}
-		for _, element := range value.(types.Set).Elements() {
-			if element.IsNull() {
-				resp.Diagnostics.AddAttributeError(path.Root(key).AtName(field), "Null condition element", "Collection elements must not be null.")
 			}
 		}
 	}

@@ -30,6 +30,7 @@ func setupMockEnvironment(t *testing.T) *policyMocks.ThreatIntelligencePolicyMoc
 
 func TestUnitResourceNetworkThreatIntelligencePolicy_01_Lifecycle(t *testing.T) {
 	m := setupMockEnvironment(t)
+	capture := mocks.CaptureGraphRequests(t)
 	var savedID string
 	sameID := func(s *terraform.State) error {
 		id := s.RootModule().Resources[resourceType+".test"].Primary.ID
@@ -71,6 +72,7 @@ func TestUnitResourceNetworkThreatIntelligencePolicy_01_Lifecycle(t *testing.T) 
 			},
 		},
 	)
+	capture.AssertMatchesFixture(t, "tests/requests/lifecycle.json")
 	m.Lock()
 	defer m.Unlock()
 	if len(m.Policies) != 0 || len(m.Rules) != 0 {

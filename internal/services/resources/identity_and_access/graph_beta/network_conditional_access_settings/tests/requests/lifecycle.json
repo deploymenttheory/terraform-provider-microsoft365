@@ -1,0 +1,54 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/settings/conditionalAccess"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/settings/conditionalAccess",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "signalingStatus": "disabled"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/settings/conditionalAccess",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "signalingStatus": "enabled"
+    }
+  }
+]

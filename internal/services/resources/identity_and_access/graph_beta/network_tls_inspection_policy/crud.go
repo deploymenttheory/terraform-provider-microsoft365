@@ -1,3 +1,16 @@
+// SDK deviation: missing property
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0, models/networkaccess.TlsInspectionPolicySettings — the model
+//     has no defaultAction property, so the generated serializer cannot send it and the parser leaves it in additional data.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-tlsinspectionpolicysettings?view=graph-rest-beta
+//     documents settings.defaultAction (bypass or inspect).
+//   - Observed: checked by reading the SDK source on 2026-11-24 (no live call: the test tenant has no Global Secure Access
+//     licence). The resource keeps the generated request builders and TlsInspectionPolicy model, writes defaultAction into
+//     settings' additional data in constructResource, and reads it back from additional data in MapRemoteStateToTerraform.
+//
+// Removal condition: TlsInspectionPolicySettings gains GetDefaultAction/SetDefaultAction, so defaultAction can be set and read
+// through the generated model.
 package graphBetaNetworkTLSInspectionPolicy
 
 import (
@@ -32,12 +45,15 @@ func (r *NetworkTLSInspectionPolicyResource) Create(
 		return
 	}
 	defer cancel()
-	body, err := constructResource(ctx, &object)
+	body, err := constructResource(ctx, &object, nil)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing TLS inspection resource", err.Error())
 		return
 	}
-	created, err := r.createTLSInspectionPolicy(ctx, body)
+	created, err := r.client.NetworkAccess().TlsInspectionPolicies().Post(ctx, body, nil)
+	if err == nil && created == nil {
+		err = errEmptyResponse
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -68,7 +84,10 @@ func (r *NetworkTLSInspectionPolicyResource) Create(
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	remote, err := r.getTLSInspectionPolicy(ctx, object.ID.ValueString())
+	remote, err := r.client.NetworkAccess().TlsInspectionPolicies().ByTlsInspectionPolicyId(object.ID.ValueString()).Get(ctx, nil)
+	if err == nil && remote == nil {
+		err = errEmptyResponse
+	}
 	// This is a create readback, not a refresh: even a 404 must retain the created id.
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
@@ -101,7 +120,10 @@ func (r *NetworkTLSInspectionPolicyResource) Read(
 		return
 	}
 	defer cancel()
-	remote, err := r.getTLSInspectionPolicy(ctx, object.ID.ValueString())
+	remote, err := r.client.NetworkAccess().TlsInspectionPolicies().ByTlsInspectionPolicyId(object.ID.ValueString()).Get(ctx, nil)
+	if err == nil && remote == nil {
+		err = errEmptyResponse
+	}
 	if err != nil {
 		errors.HandleKiotaGraphErrorWithOptions(
 			ctx,
@@ -146,13 +168,13 @@ func (r *NetworkTLSInspectionPolicyResource) Update(
 		return
 	}
 	defer cancel()
-	body, err := constructUpdateResource(ctx, &plan, &state)
+	body, err := constructResource(ctx, &plan, &state)
 	if err != nil {
 		resp.Diagnostics.AddError("Error constructing TLS inspection update", err.Error())
 		return
 	}
-	if hasUpdateChanges(&plan, &state) {
-		if err := r.updateTLSInspectionPolicy(ctx, state.ID.ValueString(), body); err != nil {
+	if !plan.Name.Equal(state.Name) || !plan.Description.Equal(state.Description) || !plan.DefaultAction.Equal(state.DefaultAction) {
+		if _, err := r.client.NetworkAccess().TlsInspectionPolicies().ByTlsInspectionPolicyId(state.ID.ValueString()).Patch(ctx, body, nil); err != nil {
 			errors.HandleKiotaGraphError(
 				ctx,
 				err,
@@ -167,7 +189,10 @@ func (r *NetworkTLSInspectionPolicyResource) Update(
 	resp.State = req.State
 	object := plan
 	object.ID = state.ID
-	remote, err := r.getTLSInspectionPolicy(ctx, object.ID.ValueString())
+	remote, err := r.client.NetworkAccess().TlsInspectionPolicies().ByTlsInspectionPolicyId(object.ID.ValueString()).Get(ctx, nil)
+	if err == nil && remote == nil {
+		err = errEmptyResponse
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.ReadPermissions)
 		return
@@ -204,7 +229,7 @@ func (r *NetworkTLSInspectionPolicyResource) Delete(
 		return
 	}
 	defer cancel()
-	if err := r.deleteTLSInspectionPolicy(ctx, object.ID.ValueString()); err != nil {
+	if err := r.client.NetworkAccess().TlsInspectionPolicies().ByTlsInspectionPolicyId(object.ID.ValueString()).Delete(ctx, nil); err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
 			err,

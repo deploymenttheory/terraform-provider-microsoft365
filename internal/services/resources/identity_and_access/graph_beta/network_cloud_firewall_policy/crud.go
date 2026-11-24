@@ -2,14 +2,18 @@ package graphBetaNetworkCloudFirewallPolicy
 
 import (
 	"context"
+	"net/http"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+	"github.com/microsoftgraph/msgraph-beta-sdk-go/networkaccess"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *NetworkCloudFirewallPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -23,7 +27,13 @@ func (r *NetworkCloudFirewallPolicyResource) Create(ctx context.Context, req res
 		return
 	}
 	defer cancel()
-	created, err := r.createPolicy(ctx, constructResource(ctx, &object))
+	// Retry explicit throttling only: ambiguous server failures can leave an untracked duplicate.
+	createRetryOptions := r.retryOptions
+	createRetryOptions.ShouldRetry = func(_ time.Duration, _ int, _ *http.Request, response *http.Response) bool {
+		return response.StatusCode == http.StatusTooManyRequests
+	}
+	createConfig := &networkaccess.CloudFirewallPoliciesRequestBuilderPostRequestConfiguration{Options: []abstractions.RequestOption{&createRetryOptions}}
+	created, err := r.client.NetworkAccess().CloudFirewallPolicies().Post(ctx, constructResource(ctx, &object, nil), createConfig)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -92,8 +102,8 @@ func (r *NetworkCloudFirewallPolicyResource) Update(ctx context.Context, req res
 		return
 	}
 	defer cancel()
-	body := constructPolicy(&plan, &state)
-	if body.changed {
+	if !plan.Name.Equal(state.Name) || !plan.Description.Equal(state.Description) || !plan.DefaultAction.Equal(state.DefaultAction) {
+		body := constructResource(ctx, &plan, &state)
 		if _, err := r.client.NetworkAccess().CloudFirewallPolicies().ByCloudFirewallPolicyId(state.ID.ValueString()).Patch(ctx, body, nil); err != nil {
 			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 			return

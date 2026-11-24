@@ -21,12 +21,8 @@ func (r NetworkTLSInspectionPolicyRuleTestResource) Exists(
 		ctx,
 		state,
 		func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, state *terraform.InstanceState) error {
-			resource := &NetworkTLSInspectionPolicyRuleResource{client: client}
-			_, err := resource.getTLSInspectionPolicyRule(
-				ctx,
-				state.Attributes["tls_inspection_policy_id"],
-				state.ID,
-			)
+			policy := client.NetworkAccess().TlsInspectionPolicies().ByTlsInspectionPolicyId(state.Attributes["tls_inspection_policy_id"])
+			_, err := policy.PolicyRules().ByPolicyRuleId(state.ID).Get(ctx, nil)
 			return err
 		},
 	)

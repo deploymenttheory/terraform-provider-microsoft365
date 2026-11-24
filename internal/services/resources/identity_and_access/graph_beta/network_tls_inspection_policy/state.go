@@ -18,8 +18,15 @@ func MapRemoteStateToTerraform(
 		remote.GetSettings() == nil || remote.GetVersion() == nil || remote.GetLastModifiedDateTime() == nil {
 		return fmt.Errorf("%w: missing required fields", errInvalidResponse)
 	}
-	defaultAction, ok := additionalString(remote.GetSettings().GetAdditionalData(), "defaultAction")
-	if !ok {
+	// defaultAction is read from additional data because the SDK model lacks it (see the SDK deviation in crud.go).
+	var defaultAction *string
+	switch value := remote.GetSettings().GetAdditionalData()["defaultAction"].(type) {
+	case string:
+		defaultAction = &value
+	case *string:
+		defaultAction = value
+	}
+	if defaultAction == nil {
 		return fmt.Errorf("%w: settings.defaultAction is missing or invalid", errInvalidResponse)
 	}
 	data.ID = convert.GraphToFrameworkString(remote.GetId())
@@ -29,18 +36,4 @@ func MapRemoteStateToTerraform(
 	data.Version = convert.GraphToFrameworkString(remote.GetVersion())
 	data.LastModifiedDateTime = convert.GraphToFrameworkTime(remote.GetLastModifiedDateTime())
 	return nil
-}
-
-func additionalString(values map[string]any, key string) (*string, bool) {
-	if values == nil {
-		return nil, false
-	}
-	switch value := values[key].(type) {
-	case string:
-		return &value, true
-	case *string:
-		return value, value != nil
-	default:
-		return nil, false
-	}
 }

@@ -30,14 +30,18 @@ type ruleAddressModel struct {
 	Values types.Set    `tfsdk:"values"`
 }
 
-func addressObjectType() types.ObjectType {
-	return types.ObjectType{AttrTypes: map[string]attr.Type{"type": types.StringType, "values": types.SetType{ElemType: types.StringType}}}
-}
+// addressObjectType is the Terraform type of one address group.
+var addressObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{"type": types.StringType, "values": types.SetType{ElemType: types.StringType}}}
 
-func matchingObjectType(destination bool) types.ObjectType {
-	attrs := map[string]attr.Type{"addresses": types.SetType{ElemType: addressObjectType()}, "ports": types.SetType{ElemType: types.StringType}}
-	if destination {
-		attrs["protocols"] = types.SetType{ElemType: types.StringType}
-	}
-	return types.ObjectType{AttrTypes: attrs}
-}
+// sourceMatchingObjectType is the Terraform type of the sources object.
+var sourceMatchingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"addresses": types.SetType{ElemType: addressObjectType},
+	"ports":     types.SetType{ElemType: types.StringType},
+}}
+
+// destinationMatchingObjectType is the Terraform type of the destinations object.
+var destinationMatchingObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"addresses": types.SetType{ElemType: addressObjectType},
+	"ports":     types.SetType{ElemType: types.StringType},
+	"protocols": types.SetType{ElemType: types.StringType},
+}}
