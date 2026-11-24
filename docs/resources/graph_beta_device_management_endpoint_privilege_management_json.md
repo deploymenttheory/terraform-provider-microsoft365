@@ -468,6 +468,9 @@ Optional:
 Import is supported using the following syntax:
 
 ```shell
-# {resource_id}
-terraform import microsoft365_graph_beta_device_and_app_management_endpoint_privilege_management.example epm-policy-id
+#!/bin/bash
+
+# Import using the configuration policy ID.
+# The import ID must be a GUID, for example 00000000-0000-0000-0000-000000000000.
+terraform import microsoft365_graph_beta_device_management_endpoint_privilege_management_json.example 00000000-0000-0000-0000-000000000000
 ```

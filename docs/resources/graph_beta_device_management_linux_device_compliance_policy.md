@@ -245,6 +245,7 @@ Import is supported using the following syntax:
 ```shell
 #!/bin/bash
 
-# Import using the resource ID
+# Import using the compliance policy ID.
+# The import ID must be a GUID, for example 00000000-0000-0000-0000-000000000000.
 terraform import microsoft365_graph_beta_device_management_linux_device_compliance_policy.example 00000000-0000-0000-0000-000000000000
 ```

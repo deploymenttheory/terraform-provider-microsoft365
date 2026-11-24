@@ -1,16 +1,8 @@
 #!/bin/bash
 
-# Import examples for Microsoft 365 Graph Beta Device Management Notification Message Template
-
-# Basic import using template ID
-# Replace "12345678-1234-1234-1234-123456789012" with the actual notification message template ID from Microsoft Graph
-terraform import microsoft365_graph_beta_device_management_notification_message_template.basic "12345678-1234-1234-1234-123456789012"
-
-# Import multilingual template
-terraform import microsoft365_graph_beta_device_management_notification_message_template.multilingual "87654321-4321-4321-4321-210987654321"
-
-# Import advanced template
-terraform import microsoft365_graph_beta_device_management_notification_message_template.advanced "11111111-2222-3333-4444-555555555555"
+# Import using the notification message template ID.
+# The import ID must be a GUID, for example 12345678-1234-1234-1234-123456789012.
+terraform import microsoft365_graph_beta_device_management_device_compliance_notification_template.example "12345678-1234-1234-1234-123456789012"
 
 # To find existing notification message template IDs, you can use Microsoft Graph Explorer:
 # https://developer.microsoft.com/en-us/graph/graph-explorer
