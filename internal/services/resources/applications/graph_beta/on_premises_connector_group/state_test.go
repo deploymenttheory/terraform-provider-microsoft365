@@ -2,41 +2,55 @@ package graphBetaApplicationsOnPremisesConnectorGroup
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestMapRemoteResourceStateToTerraformPreservesRawRegion(t *testing.T) {
-	id := "00000000-0000-0000-0000-000000000000"
-	name := "unit-test-connector-group"
-	connectorGroupType := "applicationProxy"
-	isDefault := false
-	region := "japan"
-	remote := &connectorGroupResponse{
-		id:                 &id,
-		name:               &name,
-		connectorGroupType: &connectorGroupType,
-		isDefault:          &isDefault,
-		region:             &region,
+func TestMapRemoteStateToTerraformPreservesRawEnumValues(t *testing.T) {
+	tests := []struct {
+		name           string
+		fixture        string
+		expectedName   string
+		expectedRegion string
+	}{
+		{name: "create", fixture: "tests/responses/validate_create/post_connector_group_success.json", expectedName: "unit-test-connector-group", expectedRegion: "japan"},
+		{name: "read", fixture: "tests/responses/validate_get/get_connector_group_success.json", expectedName: "unit-test-connector-group", expectedRegion: "nam"},
+		{name: "update", fixture: "tests/responses/validate_update/patch_connector_group_success.json", expectedName: "unit-test-connector-group-renamed", expectedRegion: "eur"},
 	}
 
-	data := &OnPremisesConnectorGroupResourceModel{}
-	MapRemoteResourceStateToTerraform(context.Background(), data, remote)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			responseJSON, err := os.ReadFile(tt.fixture)
+			if err != nil {
+				t.Fatalf("failed to read response fixture: %v", err)
+			}
 
-	if data.ID.ValueString() != id {
-		t.Fatalf("ID = %q, expected %q", data.ID.ValueString(), id)
-	}
-	if data.Name.ValueString() != name {
-		t.Fatalf("Name = %q, expected %q", data.Name.ValueString(), name)
-	}
-	if data.ConnectorGroupType.ValueString() != connectorGroupType {
-		t.Fatalf("ConnectorGroupType = %q, expected %q", data.ConnectorGroupType.ValueString(), connectorGroupType)
-	}
-	if data.IsDefault != types.BoolValue(false) {
-		t.Fatalf("IsDefault = %#v, expected false", data.IsDefault)
-	}
-	if data.Region.ValueString() != "japan" {
-		t.Fatalf("Region = %q, expected japan", data.Region.ValueString())
+			var remote connectorGroupResponse
+			if err := json.Unmarshal(responseJSON, &remote); err != nil {
+				t.Fatalf("failed to decode response fixture: %v", err)
+			}
+
+			data := &OnPremisesConnectorGroupResourceModel{}
+			MapRemoteStateToTerraform(context.Background(), data, &remote)
+
+			if data.ID.ValueString() != "00000000-0000-0000-0000-000000000000" {
+				t.Fatalf("ID = %q, expected fixture id", data.ID.ValueString())
+			}
+			if data.Name.ValueString() != tt.expectedName {
+				t.Fatalf("Name = %q, expected %q", data.Name.ValueString(), tt.expectedName)
+			}
+			if data.ConnectorGroupType.ValueString() != "applicationProxy" {
+				t.Fatalf("ConnectorGroupType = %q, expected applicationProxy", data.ConnectorGroupType.ValueString())
+			}
+			if data.IsDefault != types.BoolValue(false) {
+				t.Fatalf("IsDefault = %#v, expected false", data.IsDefault)
+			}
+			if data.Region.ValueString() != tt.expectedRegion {
+				t.Fatalf("Region = %q, expected %q", data.Region.ValueString(), tt.expectedRegion)
+			}
+		})
 	}
 }
