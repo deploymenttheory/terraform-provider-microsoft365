@@ -55,12 +55,19 @@ ways. The AST scan of PR #4903 (head `90a6721b`) found:
 
 The Config API also has defects of its own, which are fixed in #4935 and #4941:
 
-* It hard-codes `https://graph.microsoft.com/<version>` as the base URL, which breaks
-  national clouds.
-* `GetRequestByResourceId` sends through a bare `http.Client{}` and does not check the
-  status code ([#1647](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1647)).
+* `GetRequestByResourceId` and `DeleteRequestByResourceId` send through `makeRequest`,
+  which uses a bare `http.Client{}` instead of the adapter. The request therefore keeps
+  the hard-coded `https://graph.microsoft.com/<version>` base URL, which breaks national
+  clouds, and its status code is not checked
+  ([#1647](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/1647)).
+* The other five functions (`PostRequest`, `PostRequestNoContent`, `GetRequest`,
+  `PatchRequestByResourceId` and `PutRequestByResourceId`) send through `adapter.Send*`.
+  Kiota replaces the `baseurl` path parameter with the adapter's base URL on every send,
+  so they already reach the correct cloud, but they silently ignore `APIVersion`.
 * `ByIDRequestUrlTemplate` turns the pattern `/{id}` into `/{<guid>}`, which Kiota
-  expands as an empty template variable.
+  expands as an empty template variable. No live call reaches this case:
+  `PatchRequestByResourceId` and `DeleteRequestByResourceId` handle `/{id}` and `('id')`
+  explicitly, and every `GetRequestByResourceId` caller uses `('id')` or no pattern.
 
 ### Kiota already supports raw JSON
 
