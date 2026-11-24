@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -19,7 +18,7 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
-// userLicenseLocks serializes assignLicense operations per user.
+// licenseAssignmentLockScope serializes assignLicense operations per user.
 //
 // The assignLicense endpoint mutates the user's whole license set
 // (https://learn.microsoft.com/en-us/graph/api/user-assignlicense?view=graph-rest-beta),
@@ -30,23 +29,12 @@ import (
 // set, concurrent POSTs from multiple Terraform resources targeting the same user
 // (Terraform applies resources in parallel by default) risk losing adds or removes, the
 // same failure mode observed in the field for the group variant of this resource.
-// Each Create/Update/Delete takes the user's lock and holds it until the change is
-// confirmed by a read-back.
-var userLicenseLocks sync.Map // user id -> *sync.Mutex
-
-// lockUserLicense acquires the per-user license lock and returns the unlock func.
-// Callers acquire it before starting their operation timeout so time spent waiting on
-// sibling license assignments does not consume the resource's own timeout budget.
-func lockUserLicense(ctx context.Context, userID string) func() {
-	m, _ := userLicenseLocks.LoadOrStore(userID, &sync.Mutex{})
-	mu := m.(*sync.Mutex)
-	start := time.Now()
-	mu.Lock()
-	if waited := time.Since(start); waited > time.Second {
-		tflog.Debug(ctx, fmt.Sprintf("Waited %s for the license assignment lock on user %s", waited, userID))
-	}
-	return mu.Unlock
-}
+// Each Create/Update/Delete takes the user's lock (crud.AcquireKeyedLock keyed by user ID)
+// and holds it until the change is confirmed by a read-back.
+//
+// The lock is acquired before the operation timeout starts so time spent waiting on sibling
+// license assignments does not consume the resource's own timeout budget.
+const licenseAssignmentLockScope = "user_license_assignment"
 
 // Create handles the Create operation for user license assignment resources.
 //
@@ -66,8 +54,12 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	// Serialize with sibling license assignments targeting the same user (see userLicenseLocks).
-	unlock := lockUserLicense(ctx, object.UserId.ValueString())
+	// Serialize with sibling license assignments targeting the same user (see licenseAssignmentLockScope).
+	unlock, err := crud.AcquireKeyedLock(ctx, licenseAssignmentLockScope, object.UserId.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock user license assignments", err.Error())
+		return
+	}
 	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
@@ -232,8 +224,12 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	// Serialize with sibling license assignments targeting the same user (see userLicenseLocks).
-	unlock := lockUserLicense(ctx, plan.UserId.ValueString())
+	// Serialize with sibling license assignments targeting the same user (see licenseAssignmentLockScope).
+	unlock, err := crud.AcquireKeyedLock(ctx, licenseAssignmentLockScope, plan.UserId.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock user license assignments", err.Error())
+		return
+	}
 	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
@@ -308,8 +304,12 @@ func (r *UserLicenseAssignmentResource) Delete(ctx context.Context, req resource
 		return
 	}
 
-	// Serialize with sibling license assignments targeting the same user (see userLicenseLocks).
-	unlock := lockUserLicense(ctx, object.UserId.ValueString())
+	// Serialize with sibling license assignments targeting the same user (see licenseAssignmentLockScope).
+	unlock, err := crud.AcquireKeyedLock(ctx, licenseAssignmentLockScope, object.UserId.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock user license assignments", err.Error())
+		return
+	}
 	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -19,7 +18,7 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// groupLicenseLocks serializes assignLicense operations per group.
+// licenseAssignmentLockScope serializes assignLicense operations per group.
 //
 // The assignLicense endpoint mutates the group's whole license set and is asynchronous:
 // it returns 202 Accepted and the actual add/remove is applied later by the backend
@@ -38,23 +37,12 @@ import (
 // to silently lose adds or removes. Serializing per group is therefore a defensive measure
 // consistent with Microsoft's eventual-consistency guidance for Entra
 // (https://devblogs.microsoft.com/identity/designing-for-eventual-consistency-for-microsoft-entra/):
-// each Create/Update/Delete takes the group's lock and holds it until the change is
-// confirmed by a read-back.
-var groupLicenseLocks sync.Map // group id -> *sync.Mutex
-
-// lockGroupLicense acquires the per-group license lock and returns the unlock func.
-// Callers acquire it before starting their operation timeout so time spent waiting on
-// sibling license assignments does not consume the resource's own timeout budget.
-func lockGroupLicense(ctx context.Context, groupID string) func() {
-	m, _ := groupLicenseLocks.LoadOrStore(groupID, &sync.Mutex{})
-	mu := m.(*sync.Mutex)
-	start := time.Now()
-	mu.Lock()
-	if waited := time.Since(start); waited > time.Second {
-		tflog.Debug(ctx, fmt.Sprintf("Waited %s for the license assignment lock on group %s", waited, groupID))
-	}
-	return mu.Unlock
-}
+// each Create/Update/Delete takes the group's lock (crud.AcquireKeyedLock keyed by group ID)
+// and holds it until the change is confirmed by a read-back.
+//
+// The lock is acquired before the operation timeout starts so time spent waiting on sibling
+// license assignments does not consume the resource's own timeout budget.
+const licenseAssignmentLockScope = "group_license_assignment"
 
 // Create handles the Create operation for Group License Assignment resources.
 //
@@ -73,8 +61,12 @@ func (r *GroupLicenseAssignmentResource) Create(ctx context.Context, req resourc
 		return
 	}
 
-	// Serialize with sibling license assignments targeting the same group (see groupLicenseLocks).
-	unlock := lockGroupLicense(ctx, object.GroupId.ValueString())
+	// Serialize with sibling license assignments targeting the same group (see licenseAssignmentLockScope).
+	unlock, err := crud.AcquireKeyedLock(ctx, licenseAssignmentLockScope, object.GroupId.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock group license assignments", err.Error())
+		return
+	}
 	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Create, CreateTimeout*time.Second, &resp.Diagnostics)
@@ -241,8 +233,12 @@ func (r *GroupLicenseAssignmentResource) Update(ctx context.Context, req resourc
 		return
 	}
 
-	// Serialize with sibling license assignments targeting the same group (see groupLicenseLocks).
-	unlock := lockGroupLicense(ctx, plan.GroupId.ValueString())
+	// Serialize with sibling license assignments targeting the same group (see licenseAssignmentLockScope).
+	unlock, err := crud.AcquireKeyedLock(ctx, licenseAssignmentLockScope, plan.GroupId.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock group license assignments", err.Error())
+		return
+	}
 	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, plan.Timeouts.Update, UpdateTimeout*time.Second, &resp.Diagnostics)
@@ -330,8 +326,12 @@ func (r *GroupLicenseAssignmentResource) Delete(ctx context.Context, req resourc
 		return
 	}
 
-	// Serialize with sibling license assignments targeting the same group (see groupLicenseLocks).
-	unlock := lockGroupLicense(ctx, object.GroupId.ValueString())
+	// Serialize with sibling license assignments targeting the same group (see licenseAssignmentLockScope).
+	unlock, err := crud.AcquireKeyedLock(ctx, licenseAssignmentLockScope, object.GroupId.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Unable to lock group license assignments", err.Error())
+		return
+	}
 	defer unlock()
 
 	ctx, cancel := crud.HandleTimeout(ctx, object.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
