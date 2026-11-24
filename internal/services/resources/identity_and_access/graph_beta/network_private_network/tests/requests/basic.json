@@ -1,0 +1,51 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkaccess/privateNetworks/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/privateNetworks/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/privateNetworks/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/privateNetworks/{uuid-1}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkaccess/privateNetworks",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.privateNetwork",
+      "appIds": [],
+      "name": "unit-test-private-network-minimal",
+      "networkIdentifications": [
+        {
+          "@odata.type": "#microsoft.graph.networkaccess.dnsResolutionIdentification",
+          "expectedIpResolutions": [
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.ipAddress",
+              "value": "192.168.1.10"
+            }
+          ],
+          "fqdnToResolve": {
+            "@odata.type": "#microsoft.graph.networkaccess.fqdn",
+            "value": "example.com"
+          },
+          "serverAddresses": [
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.ipAddress",
+              "value": "8.8.8.8"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

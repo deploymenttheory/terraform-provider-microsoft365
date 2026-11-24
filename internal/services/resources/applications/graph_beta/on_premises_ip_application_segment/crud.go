@@ -1,43 +1,55 @@
+// Package graphBetaApplicationsOnPremisesIpApplicationSegment manages IP application segments of applications
+// published through application proxy.
+//
+// SDK deviation: missing type
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0 has no request builder for
+//     /applications/{id}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments.
+//     The applications package stops at the application item, and onpremisespublishingprofiles only builds the
+//     tenant-level /onPremisesPublishingProfiles/{id}/applicationSegments collection.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/onpremisespublishingprofile-post-applicationsegments?view=graph-rest-beta
+//   - Observed: read from the SDK source; the application-scoped path is the one Learn documents for create, update and
+//     delete, and the one the resource has always called.
+//
+// Removal condition: the beta SDK ships a request builder for the application-scoped
+// segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments collection and item.
+//
+// SDK deviation: unknown enum value
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0, models.IpApplicationSegment.destinationType uses
+//     models.PrivateNetworkDestinationType, whose parser knows ipAddress, ipRange, ipRangeCidr, fqdn, dnsSuffix,
+//     unknownFutureValue and servicePrincipalName, but not "ip".
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/resources/ipapplicationsegment?view=graph-rest-beta
+//   - Observed: 2026-07, POST of a single IP segment with destinationType "ipAddress" returned
+//     400 InvalidJson_BadRequest, while "ip" succeeded and GET returned "destinationType": "ip". The request and
+//     response bodies are therefore plain structs (see model.go) sent through custom_requests in raw JSON mode.
+//
+// Removal condition: models.PrivateNetworkDestinationType includes "ip", or the endpoint accepts and returns
+// "ipAddress" as Learn documents, and the missing type deviation above is removed.
 package graphBetaApplicationsOnPremisesIpApplicationSegment
 
 import (
 	"context"
 	"fmt"
-	"sync"
+	"net/http"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	abstractions "github.com/microsoft/kiota-abstractions-go"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
-// ipApplicationSegmentApplicationLocks serializes segment writes per application.
-// Concurrent writes to the same application can return a segment id that then
-// 404s on read, so the write and its read-back are kept together.
-var ipApplicationSegmentApplicationLocks sync.Map // application object id -> chan struct{}
-
-// lockIpApplicationSegmentWrites acquires the per-application segment lock and returns the unlock func.
-// Callers acquire it before starting their operation timeout so time spent waiting on
-// sibling segments does not consume the resource's own timeout budget. The wait ends
-// early if ctx is cancelled.
-func lockIpApplicationSegmentWrites(ctx context.Context, applicationObjectID string) (func(), error) {
-	actual, _ := ipApplicationSegmentApplicationLocks.LoadOrStore(applicationObjectID, make(chan struct{}, 1))
-	lock := actual.(chan struct{})
-	start := time.Now()
-	select {
-	case lock <- struct{}{}:
-	case <-ctx.Done():
-		return nil, fmt.Errorf("waiting for the ip application segment lock on application %s: %w", applicationObjectID, ctx.Err())
-	}
-	if waited := time.Since(start); waited > time.Second {
-		tflog.Debug(ctx, fmt.Sprintf("Waited %s for the ip application segment lock on application %s", waited, applicationObjectID))
-	}
-	return func() { <-lock }, nil
-}
+// segmentsEndpointSuffix follows the application ID in every segment request path.
+const segmentsEndpointSuffix = "/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments"
 
 // Create handles the Create operation for IP application segment resources.
 //
@@ -56,8 +68,10 @@ func (r *OnPremisesIpApplicationSegmentResource) Create(ctx context.Context, req
 		return
 	}
 
-	// Serialize with sibling segments on the same application (see ipApplicationSegmentApplicationLocks).
-	unlock, err := lockIpApplicationSegmentWrites(ctx, object.ApplicationObjectID.ValueString())
+	// Concurrent writes to the same application can return a segment id that then 404s on read, so sibling
+	// segments are written one at a time, each with its read-back. The lock is taken before the operation timeout
+	// starts, so time spent waiting on sibling segments does not consume this resource's own timeout.
+	unlock, err := crud.AcquireKeyedLock(ctx, ResourceName, object.ApplicationObjectID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error waiting for ip application segment lock", err.Error())
 		return
@@ -72,28 +86,35 @@ func (r *OnPremisesIpApplicationSegmentResource) Create(ctx context.Context, req
 
 	requestBody, err := constructResource(ctx, &object)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing ip application segment",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-		)
+		resp.Diagnostics.AddError("Error constructing ip application segment", fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()))
 		return
 	}
 
-	createdIpApplicationSegment, err := r.createIpApplicationSegment(ctx, object.ApplicationObjectID.ValueString(), requestBody)
-	if err != nil {
+	// Retry explicit throttling only: ambiguous server failures can leave an untracked duplicate.
+	createRetryOptions := r.retryOptions
+	createRetryOptions.ShouldRetry = func(_ time.Duration, _ int, _ *http.Request, response *http.Response) bool {
+		return response != nil && response.StatusCode == http.StatusTooManyRequests
+	}
+
+	var created ipApplicationSegmentResponse
+	createConfig := customrequests.PostRequestConfig{
+		APIVersion:     customrequests.GraphAPIBeta,
+		Endpoint:       "applications/" + object.ApplicationObjectID.ValueString() + segmentsEndpointSuffix,
+		RawBody:        requestBody,
+		RawResponse:    &created,
+		RequestOptions: []abstractions.RequestOption{&createRetryOptions},
+	}
+	if _, err := customrequests.PostRequest(ctx, r.client.GetAdapter(), createConfig, nil, nil); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
-	if createdIpApplicationSegment.id == nil {
-		resp.Diagnostics.AddError(
-			"Error creating ip application segment",
-			"The API returned an invalid response without an id.",
-		)
+	if created.ID == nil {
+		resp.Diagnostics.AddError("Error creating ip application segment", "The API returned an invalid response without an id.")
 		return
 	}
 
-	object.ID = types.StringValue(*createdIpApplicationSegment.id)
+	object.ID = types.StringValue(*created.ID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -101,18 +122,9 @@ func (r *OnPremisesIpApplicationSegmentResource) Create(ctx context.Context, req
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
-
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationCreate
-	opts.ResourceTypeName = ResourceName
-
-	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading resource state after create",
-			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
-		)
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName)
+	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
+		resp.Diagnostics.AddError("Error reading resource state after create", fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()))
 		return
 	}
 
@@ -160,22 +172,26 @@ func (r *OnPremisesIpApplicationSegmentResource) Read(ctx context.Context, req r
 		}
 	}
 
-	ipApplicationSegment, err := r.getIpApplicationSegment(ctx, object.ApplicationObjectID.ValueString(), object.ID.ValueString())
-
-	if err != nil {
+	// A response with no body leaves ipApplicationSegment nil.
+	var ipApplicationSegment *ipApplicationSegmentResponse
+	getConfig := customrequests.GetRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          "applications/" + object.ApplicationObjectID.ValueString() + segmentsEndpointSuffix,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        object.ID.ValueString(),
+		RawResponse:       &ipApplicationSegment,
+	}
+	if _, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
 
 	if ipApplicationSegment == nil {
-		resp.Diagnostics.AddError(
-			"Error reading ip application segment",
-			fmt.Sprintf("Received nil ip application segment for ID: %s", object.ID.ValueString()),
-		)
+		resp.Diagnostics.AddError("Error reading ip application segment", fmt.Sprintf("Received nil ip application segment for ID: %s", object.ID.ValueString()))
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, ipApplicationSegment)
+	MapRemoteStateToTerraform(ctx, &object, ipApplicationSegment)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
@@ -210,8 +226,8 @@ func (r *OnPremisesIpApplicationSegmentResource) Update(ctx context.Context, req
 
 	tflog.Debug(ctx, fmt.Sprintf("Starting update of resource: %s with ID: %s", ResourceName, state.ID.ValueString()))
 
-	// Serialize with sibling segments on the same application (see ipApplicationSegmentApplicationLocks).
-	unlock, err := lockIpApplicationSegmentWrites(ctx, state.ApplicationObjectID.ValueString())
+	// Serialize with sibling segments on the same application (see Create).
+	unlock, err := crud.AcquireKeyedLock(ctx, ResourceName, state.ApplicationObjectID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error waiting for ip application segment lock", err.Error())
 		return
@@ -226,39 +242,35 @@ func (r *OnPremisesIpApplicationSegmentResource) Update(ctx context.Context, req
 
 	requestBody, err := constructResource(ctx, &plan)
 	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing ip application segment",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-		)
+		resp.Diagnostics.AddError("Error constructing ip application segment", fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()))
 		return
 	}
 
-	if err := r.updateIpApplicationSegment(ctx, state.ApplicationObjectID.ValueString(), state.ID.ValueString(), requestBody); err != nil {
+	patchConfig := customrequests.PatchRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          "applications/" + state.ApplicationObjectID.ValueString() + segmentsEndpointSuffix,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID.ValueString(),
+		RawBody:           requestBody,
+	}
+	if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
 		return
 	}
 
-	plan.ID = state.ID
-	plan.ApplicationObjectID = state.ApplicationObjectID
+	// Keep the prior known state if the read-back fails after a successful update.
+	object := state
+	object.Timeouts = plan.Timeouts
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
-
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationUpdate
-	opts.ResourceTypeName = ResourceName
-
-	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading resource state after update",
-			fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()),
-		)
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName)
+	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
+		resp.Diagnostics.AddError("Error reading resource state after update", fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()))
 		return
 	}
 
@@ -282,8 +294,8 @@ func (r *OnPremisesIpApplicationSegmentResource) Delete(ctx context.Context, req
 		return
 	}
 
-	// Serialize with sibling segments on the same application (see ipApplicationSegmentApplicationLocks).
-	unlock, err := lockIpApplicationSegmentWrites(ctx, data.ApplicationObjectID.ValueString())
+	// Serialize with sibling segments on the same application (see Create).
+	unlock, err := crud.AcquireKeyedLock(ctx, ResourceName, data.ApplicationObjectID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Error waiting for ip application segment lock", err.Error())
 		return
@@ -296,7 +308,13 @@ func (r *OnPremisesIpApplicationSegmentResource) Delete(ctx context.Context, req
 	}
 	defer cancel()
 
-	if err := r.deleteIpApplicationSegment(ctx, data.ApplicationObjectID.ValueString(), data.ID.ValueString()); err != nil {
+	deleteConfig := customrequests.DeleteRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          "applications/" + data.ApplicationObjectID.ValueString() + segmentsEndpointSuffix,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        data.ID.ValueString(),
+	}
+	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

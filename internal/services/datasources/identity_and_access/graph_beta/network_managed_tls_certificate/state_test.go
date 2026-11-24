@@ -13,7 +13,7 @@ func TestMapRemoteStateToDataSourcePreservesConfiguredID(t *testing.T) {
 		ID: types.StringValue(configuredID),
 	}
 
-	mapRemoteStateToDataSource(data, &managedTLSCertificateResponse{id: &remoteID})
+	MapRemoteStateToDataSource(data, &managedTLSCertificateResponse{ID: &remoteID})
 
 	if data.ID.ValueString() != configuredID {
 		t.Fatalf("id = %q, want configured value %q", data.ID.ValueString(), configuredID)

@@ -21,6 +21,7 @@ func TestUnitDatasourceNetworkManagedTLSCertificate_01_ByID(t *testing.T) {
 
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
+	capture := mocks.CaptureGraphRequests(t)
 	response, err := helpers.ParseJSONFile("tests/responses/get_managed_tls_certificate.json")
 	if err != nil {
 		t.Fatalf("failed to load response fixture: %v", err)
@@ -44,6 +45,7 @@ func TestUnitDatasourceNetworkManagedTLSCertificate_01_ByID(t *testing.T) {
 			),
 		}},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/by_id.json")
 }
 
 func TestUnitDatasourceNetworkManagedTLSCertificate_02_NotFound(t *testing.T) {
@@ -77,6 +79,7 @@ func TestUnitDatasourceNetworkManagedTLSCertificate_03_DisabledStatus(t *testing
 
 	mockClient := mocks.NewMocks()
 	mockClient.AuthMocks.RegisterMocks()
+	capture := mocks.CaptureGraphRequests(t)
 	httpmock.RegisterResponder(
 		"GET",
 		"https://graph.microsoft.com/beta/networkaccess/tls/managedCertificateAuthorityCertificates/00000000-0000-0000-0000-000000000301",
@@ -100,6 +103,7 @@ func TestUnitDatasourceNetworkManagedTLSCertificate_03_DisabledStatus(t *testing
 			Check:  check.That("data."+dataSourceType+".test").Key("status").HasValue("disabled"),
 		}},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/disabled_status.json")
 }
 
 func dataSourceTestConfig(t *testing.T) string {

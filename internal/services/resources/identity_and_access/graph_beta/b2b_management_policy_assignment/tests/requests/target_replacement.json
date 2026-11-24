@@ -1,0 +1,70 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/applications/{uuid-3}/policies/{uuid-1}/$ref"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/servicePrincipals/{uuid-2}/policies/{uuid-1}/$ref"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/directoryObjects/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/directoryObjects/{uuid-3}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/policies/b2bManagementPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/policies/b2bManagementPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/policies/b2bManagementPolicies/{uuid-1}/appliesTo"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/policies/b2bManagementPolicies/{uuid-1}/appliesTo"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/policies/b2bManagementPolicies/{uuid-1}/appliesTo"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/policies/b2bManagementPolicies/{uuid-1}/appliesTo"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/policies/b2bManagementPolicies/{uuid-1}/appliesTo"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/policies/b2bManagementPolicies/{uuid-1}/appliesTo"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/applications/{uuid-3}/policies/$ref",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.id": "https://graph.microsoft.com/beta/policies/b2bManagementPolicies/{uuid-1}"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/servicePrincipals/{uuid-2}/policies/$ref",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.id": "https://graph.microsoft.com/beta/policies/b2bManagementPolicies/{uuid-1}"
+    }
+  }
+]

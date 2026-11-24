@@ -13,3 +13,19 @@ type B2bManagementPolicyAssignmentResourceModel struct {
 	DirectoryObjectType   types.String   `tfsdk:"directory_object_type"`
 	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 }
+
+// policyReference is the body of POST /{applications|servicePrincipals}/{id}/policies/$ref.
+type policyReference struct {
+	ODataID string `json:"@odata.id"` //nolint:tagliatelle // OData annotation name.
+}
+
+// directoryObjectResponse holds the fields of an appliesTo directory object this resource reads.
+type directoryObjectResponse struct {
+	ID        *string `json:"id"`
+	ODataType *string `json:"@odata.type"` //nolint:tagliatelle // OData annotation name.
+}
+
+// directoryObjectCollectionResponse is the appliesTo collection, with every @odata.nextLink page collected.
+type directoryObjectCollectionResponse struct {
+	Value []directoryObjectResponse `json:"value"`
+}

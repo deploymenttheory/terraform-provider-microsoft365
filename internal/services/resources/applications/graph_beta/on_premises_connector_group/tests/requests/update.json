@@ -1,0 +1,47 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "name": "unit-test-connector-group-renamed",
+      "region": "eur"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/onPremisesPublishingProfiles/applicationProxy/connectorGroups",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "name": "unit-test-connector-group"
+    }
+  }
+]

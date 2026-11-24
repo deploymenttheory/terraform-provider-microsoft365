@@ -1,0 +1,23 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkaccess/tls/managedCertificateAuthorityCertificates/{uuid-1}",
+    "headers": {
+      "Prefer": "include-unknown-enum-members"
+    }
+  }
+]

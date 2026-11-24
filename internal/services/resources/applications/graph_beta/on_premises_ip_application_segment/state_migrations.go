@@ -3,6 +3,7 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 import (
 	"context"
 	"regexp"
+	"strings"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
@@ -30,50 +31,8 @@ type onPremisesIpApplicationSegmentResourceModelV0 struct {
 
 // UpgradeState returns state migrations for prior IP application segment schemas.
 func (r *OnPremisesIpApplicationSegmentResource) UpgradeState(ctx context.Context) map[int64]resource.StateUpgrader {
-	return map[int64]resource.StateUpgrader{
-		0: {
-			PriorSchema:   onPremisesIpApplicationSegmentSchemaV0(ctx),
-			StateUpgrader: upgradeOnPremisesIpApplicationSegmentStateV0toV1,
-		},
-	}
-}
-
-func upgradeOnPremisesIpApplicationSegmentStateV0toV1(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
-	var priorState onPremisesIpApplicationSegmentResourceModelV0
-	resp.Diagnostics.Append(req.State.Get(ctx, &priorState)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	protocol := types.SetNull(types.StringType)
-	switch {
-	case priorState.Protocol.IsUnknown():
-		protocol = types.SetUnknown(types.StringType)
-	case !priorState.Protocol.IsNull():
-		var diags diag.Diagnostics
-		protocol, diags = types.SetValueFrom(ctx, types.StringType, terraformProtocols(priorState.Protocol.ValueString()))
-		resp.Diagnostics.Append(diags...)
-		if resp.Diagnostics.HasError() {
-			return
-		}
-	}
-
-	upgradedState := OnPremisesIpApplicationSegmentResourceModel{
-		ID:                  priorState.ID,
-		ApplicationObjectID: priorState.ApplicationObjectID,
-		DestinationHost:     priorState.DestinationHost,
-		DestinationType:     priorState.DestinationType,
-		Ports:               priorState.Ports,
-		Protocol:            protocol,
-		Timeouts:            priorState.Timeouts,
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &upgradedState)...)
-}
-
-// onPremisesIpApplicationSegmentSchemaV0 is the immutable schema used before
-// protocol changed from string to set(string).
-func onPremisesIpApplicationSegmentSchemaV0(ctx context.Context) *schema.Schema {
-	return &schema.Schema{
+	// The version 0 schema is the immutable schema used before protocol changed from string to set(string).
+	priorSchema := &schema.Schema{
 		MarkdownDescription: "Manages an IP application segment for on-premises publishing. " +
 			"IP application segments define the destination hosts, ports, and protocols for applications published through Azure AD Application Proxy.",
 		Attributes: map[string]schema.Attribute{
@@ -123,6 +82,50 @@ func onPremisesIpApplicationSegmentSchemaV0(ctx context.Context) *schema.Schema 
 				},
 			},
 			"timeouts": commonschema.ResourceTimeouts(ctx),
+		},
+	}
+
+	return map[int64]resource.StateUpgrader{
+		0: {
+			PriorSchema: priorSchema,
+			StateUpgrader: func(ctx context.Context, req resource.UpgradeStateRequest, resp *resource.UpgradeStateResponse) {
+				var priorState onPremisesIpApplicationSegmentResourceModelV0
+				resp.Diagnostics.Append(req.State.Get(ctx, &priorState)...)
+				if resp.Diagnostics.HasError() {
+					return
+				}
+
+				protocol := types.SetNull(types.StringType)
+				switch {
+				case priorState.Protocol.IsUnknown():
+					protocol = types.SetUnknown(types.StringType)
+				case !priorState.Protocol.IsNull():
+					// The prior protocol string held the protocols comma-separated, e.g. "tcp,udp".
+					var protocols []string
+					for part := range strings.SplitSeq(priorState.Protocol.ValueString(), ",") {
+						if value := strings.TrimSpace(part); value != "" {
+							protocols = append(protocols, value)
+						}
+					}
+					var diags diag.Diagnostics
+					protocol, diags = types.SetValueFrom(ctx, types.StringType, protocols)
+					resp.Diagnostics.Append(diags...)
+					if resp.Diagnostics.HasError() {
+						return
+					}
+				}
+
+				upgradedState := OnPremisesIpApplicationSegmentResourceModel{
+					ID:                  priorState.ID,
+					ApplicationObjectID: priorState.ApplicationObjectID,
+					DestinationHost:     priorState.DestinationHost,
+					DestinationType:     priorState.DestinationType,
+					Ports:               priorState.Ports,
+					Protocol:            protocol,
+					Timeouts:            priorState.Timeouts,
+				}
+				resp.Diagnostics.Append(resp.State.Set(ctx, &upgradedState)...)
+			},
 		},
 	}
 }

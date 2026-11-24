@@ -21,3 +21,32 @@ type NetworkManagedTLSCertificateResourceModel struct {
 	Certificate           types.String   `tfsdk:"certificate"`
 	Timeouts              timeouts.Value `tfsdk:"timeouts"`
 }
+
+// managedTLSCertificateRequest is the managedCertificateAuthorityCertificate create body, and the status-only update
+// body. Fields left nil are omitted, as the Entra portal omits status on create.
+type managedTLSCertificateRequest struct {
+	Name             *string `json:"name,omitempty"`
+	CommonName       *string `json:"commonName,omitempty"`
+	OrganizationName *string `json:"organizationName,omitempty"`
+	ValidityMonths   *int32  `json:"validityMonths,omitempty"`
+	Status           *string `json:"status,omitempty"`
+}
+
+// managedTLSCertificateResponse holds the managedCertificateAuthorityCertificate fields this resource reads.
+type managedTLSCertificateResponse struct {
+	ID               *string                                `json:"id"`
+	Name             *string                                `json:"name"`
+	CommonName       *string                                `json:"commonName"`
+	OrganizationName *string                                `json:"organizationName"`
+	ValidityMonths   *int32                                 `json:"validityMonths"`
+	Status           *string                                `json:"status"`
+	CreatedDateTime  *string                                `json:"createdDateTime"`
+	Certificate      *string                                `json:"certificate"`
+	Validity         *managedTLSCertificateValidityResponse `json:"validity"`
+}
+
+// managedTLSCertificateValidityResponse is the certificate's validity window.
+type managedTLSCertificateValidityResponse struct {
+	StartDateTime *string `json:"startDateTime"`
+	EndDateTime   *string `json:"endDateTime"`
+}

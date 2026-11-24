@@ -6,51 +6,21 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
-func constructResource(ctx context.Context, data *OnPremisesIpApplicationSegmentResourceModel) (s.Parsable, error) {
+// constructResource builds the ipApplicationSegment create and update body.
+func constructResource(ctx context.Context, data *OnPremisesIpApplicationSegmentResourceModel) (ipApplicationSegmentRequest, error) {
 	tflog.Debug(ctx, fmt.Sprintf("Constructing %s resource from model", ResourceName))
 
-	requestBody := &ipApplicationSegmentRequestBody{
-		port: 0,
-	}
+	var requestBody ipApplicationSegmentRequest
 
 	if !data.DestinationHost.IsNull() && !data.DestinationHost.IsUnknown() {
-		requestBody.destinationHost = data.DestinationHost.ValueString()
+		requestBody.DestinationHost = data.DestinationHost.ValueString()
 	}
 
-	if !data.DestinationType.IsNull() && !data.DestinationType.IsUnknown() {
-		requestBody.destinationType = graphDestinationType(data.DestinationType.ValueString())
-	}
-
-	if err := convert.FrameworkToGraphStringSet(ctx, data.Ports, func(ports []string) {
-		requestBody.ports = ports
-	}); err != nil {
-		return nil, fmt.Errorf("failed to set ports: %w", err)
-	}
-
-	if err := convert.FrameworkToGraphStringSet(ctx, data.Protocol, func(protocols []string) {
-		requestBody.protocol = graphProtocols(protocols)
-	}); err != nil {
-		return nil, fmt.Errorf("failed to set protocol: %w", err)
-	}
-
-	if err := constructors.DebugLogGraphObject(ctx, fmt.Sprintf("Final JSON to be sent to Graph API for resource %s", ResourceName), requestBody); err != nil {
-		tflog.Error(ctx, "Failed to debug log object", map[string]any{
-			"error": err.Error(),
-		})
-	}
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName))
-
-	return requestBody, nil
-}
-
-func graphDestinationType(destinationType string) string {
 	// Microsoft Learn documents ipApplicationSegment.destinationType values as
 	// "ipAddress", "ipRange", "ipRangeCidr", "fqdn", and "dnsSuffix":
 	// https://learn.microsoft.com/en-us/graph/api/resources/ipapplicationsegment?view=graph-rest-beta
@@ -77,51 +47,28 @@ func graphDestinationType(destinationType string) string {
 	// "*.internal.example.com" are supported when sent as destinationType fqdn.
 	// Keep Terraform's public schema aligned with Learn, but send the literal
 	// accepted by Graph.
-	if destinationType == "ipAddress" {
-		return "ip"
+	if !data.DestinationType.IsNull() && !data.DestinationType.IsUnknown() {
+		requestBody.DestinationType = data.DestinationType.ValueString()
+		if requestBody.DestinationType == "ipAddress" {
+			requestBody.DestinationType = "ip"
+		}
 	}
 
-	return destinationType
-}
-
-func graphProtocols(protocols []string) string {
-	sort.Strings(protocols)
-	return strings.Join(protocols, ",")
-}
-
-type ipApplicationSegmentRequestBody struct {
-	destinationHost string
-	destinationType string
-	// Learn marks "port" as deprecated / DO NOT USE, but its create example
-	// still includes "port": 0. The real beta endpoint also returns "port": 0
-	// together with "ports": ["443-443"] for segments created by Terraform.
-	// Include the scalar field to match the endpoint's accepted wire shape while
-	// using "ports" for the actual range values in Terraform state.
-	port     int32
-	ports    []string
-	protocol string
-}
-
-func (b *ipApplicationSegmentRequestBody) Serialize(writer s.SerializationWriter) error {
-	if err := writer.WriteStringValue("destinationHost", &b.destinationHost); err != nil {
-		return err
-	}
-	if err := writer.WriteStringValue("destinationType", &b.destinationType); err != nil {
-		return err
-	}
-	if err := writer.WriteInt32Value("port", &b.port); err != nil {
-		return err
-	}
-	if err := writer.WriteCollectionOfStringValues("ports", b.ports); err != nil {
-		return err
-	}
-	if err := writer.WriteStringValue("protocol", &b.protocol); err != nil {
-		return err
+	if err := convert.FrameworkToGraphStringSet(ctx, data.Ports, func(ports []string) {
+		requestBody.Ports = ports
+	}); err != nil {
+		return requestBody, fmt.Errorf("failed to set ports: %w", err)
 	}
 
-	return nil
-}
+	// Graph takes the protocols as one comma-separated string, e.g. "tcp,udp".
+	if err := convert.FrameworkToGraphStringSet(ctx, data.Protocol, func(protocols []string) {
+		sort.Strings(protocols)
+		requestBody.Protocol = strings.Join(protocols, ",")
+	}); err != nil {
+		return requestBody, fmt.Errorf("failed to set protocol: %w", err)
+	}
 
-func (b *ipApplicationSegmentRequestBody) GetFieldDeserializers() map[string]func(s.ParseNode) error {
-	return map[string]func(s.ParseNode) error{}
+	tflog.Debug(ctx, fmt.Sprintf("Finished constructing %s resource", ResourceName), map[string]any{"request_body": requestBody})
+
+	return requestBody, nil
 }

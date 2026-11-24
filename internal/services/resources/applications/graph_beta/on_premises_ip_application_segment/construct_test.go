@@ -2,13 +2,20 @@ package graphBetaApplicationsOnPremisesIpApplicationSegment
 
 import (
 	"context"
+	"encoding/json"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func TestGraphDestinationType(t *testing.T) {
+func TestConstructResourceSendsGraphDestinationType(t *testing.T) {
 	tests := map[string]string{
 		"ipAddress":   "ip",
 		"ipRange":     "ipRange",
@@ -17,13 +24,17 @@ func TestGraphDestinationType(t *testing.T) {
 	}
 
 	for input, expected := range tests {
-		if got := graphDestinationType(input); got != expected {
-			t.Fatalf("graphDestinationType(%q) = %q, expected %q", input, got, expected)
+		body, err := constructResource(context.Background(), &OnPremisesIpApplicationSegmentResourceModel{DestinationType: types.StringValue(input), Ports: types.SetNull(types.StringType), Protocol: types.SetNull(types.StringType)})
+		if err != nil {
+			t.Fatalf("constructResource(%q) returned error: %v", input, err)
+		}
+		if body.DestinationType != expected {
+			t.Fatalf("destinationType for %q = %q, expected %q", input, body.DestinationType, expected)
 		}
 	}
 }
 
-func TestTerraformDestinationType(t *testing.T) {
+func TestMapRemoteStateToTerraformMapsTerraformDestinationType(t *testing.T) {
 	tests := map[string]string{
 		"ip":          "ipAddress",
 		"ipRange":     "ipRange",
@@ -32,21 +43,51 @@ func TestTerraformDestinationType(t *testing.T) {
 	}
 
 	for input, expected := range tests {
-		if got := terraformDestinationType(input); got != expected {
-			t.Fatalf("terraformDestinationType(%q) = %q, expected %q", input, got, expected)
+		data := &OnPremisesIpApplicationSegmentResourceModel{}
+		MapRemoteStateToTerraform(context.Background(), data, &ipApplicationSegmentResponse{DestinationType: &input})
+		if data.DestinationType.ValueString() != expected {
+			t.Fatalf("destination_type for %q = %q, expected %q", input, data.DestinationType.ValueString(), expected)
 		}
 	}
 }
 
-func TestValidateIpRangeHost(t *testing.T) {
+func TestMapRemoteStateToTerraformParsesObservedGraphResponse(t *testing.T) {
+	responseJSON, err := os.ReadFile("tests/responses/validate_get/get_ip_application_segment_maximal.json")
+	if err != nil {
+		t.Fatalf("failed to read response fixture: %v", err)
+	}
+
+	var remote ipApplicationSegmentResponse
+	if err := json.Unmarshal(responseJSON, &remote); err != nil {
+		t.Fatalf("failed to decode response fixture: %v", err)
+	}
+
+	data := &OnPremisesIpApplicationSegmentResourceModel{}
+	MapRemoteStateToTerraform(context.Background(), data, &remote)
+
+	if data.ID.IsNull() || data.ID.ValueString() == "" {
+		t.Fatal("id was not mapped")
+	}
+	if data.DestinationHost.IsNull() || data.DestinationType.IsNull() {
+		t.Fatalf("destination was not mapped: host %s, type %s", data.DestinationHost, data.DestinationType)
+	}
+	if len(data.Ports.Elements()) == 0 {
+		t.Fatal("ports were not mapped")
+	}
+	if len(data.Protocol.Elements()) == 0 {
+		t.Fatal("protocol was not mapped")
+	}
+}
+
+func TestValidateConfigRequiresIpRangeStartEndHost(t *testing.T) {
 	valid := []string{
 		"192.168.1.1..192.168.1.10",
 		"192.168.1.5..192.168.1.5",
 		"10.0.0.0..10.255.255.255",
 	}
 	for _, host := range valid {
-		if err := validateIpRangeHost(host); err != nil {
-			t.Fatalf("validateIpRangeHost(%q) = %v, expected nil", host, err)
+		if diags := validateIpRangeConfig(t, host); diags.HasError() {
+			t.Fatalf("ValidateConfig(%q) = %v, expected no error", host, diags)
 		}
 	}
 
@@ -63,50 +104,43 @@ func TestValidateIpRangeHost(t *testing.T) {
 		"",
 	}
 	for _, host := range invalid {
-		if err := validateIpRangeHost(host); err == nil {
-			t.Fatalf("validateIpRangeHost(%q) = nil, expected error", host)
+		if diags := validateIpRangeConfig(t, host); !diags.HasError() {
+			t.Fatalf("ValidateConfig(%q) returned no error, expected one", host)
 		}
 	}
 }
 
-func TestConstructResourceMapsIpAddressForGraph(t *testing.T) {
-	ports, diags := types.SetValue(types.StringType, []attr.Value{types.StringValue("443-443")})
-	if diags.HasError() {
-		t.Fatalf("failed to build ports set: %v", diags)
-	}
-	protocols, diags := types.SetValue(types.StringType, []attr.Value{
-		types.StringValue("udp"),
-		types.StringValue("tcp"),
-	})
-	if diags.HasError() {
-		t.Fatalf("failed to build protocol set: %v", diags)
+// validateIpRangeConfig runs ValidateConfig for an ipRange segment with destinationHost host.
+func validateIpRangeConfig(t *testing.T, host string) diag.Diagnostics {
+	t.Helper()
+	ctx := context.Background()
+	r := &OnPremisesIpApplicationSegmentResource{}
+
+	var schemaResponse resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &schemaResponse)
+	if schemaResponse.Diagnostics.HasError() {
+		t.Fatalf("failed to obtain schema: %v", schemaResponse.Diagnostics)
 	}
 
-	body, err := constructResource(context.Background(), &OnPremisesIpApplicationSegmentResourceModel{
-		DestinationHost: types.StringValue("10.10.10.10"),
-		DestinationType: types.StringValue("ipAddress"),
-		Ports:           ports,
-		Protocol:        protocols,
-	})
-	if err != nil {
-		t.Fatalf("constructResource returned error: %v", err)
+	stringSet := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("80-80")})
+	protocolSet := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("tcp")})
+	config := tfsdk.Config{Schema: schemaResponse.Schema, Raw: tftypes.NewValue(schemaResponse.Schema.Type().TerraformType(ctx), nil)}
+	model := OnPremisesIpApplicationSegmentResourceModel{
+		ID:                  types.StringNull(),
+		ApplicationObjectID: types.StringValue("12345678-1234-1234-1234-123456789012"),
+		DestinationHost:     types.StringValue(host),
+		DestinationType:     types.StringValue("ipRange"),
+		Ports:               stringSet,
+		Protocol:            protocolSet,
+		Timeouts:            timeouts.Value{Object: types.ObjectNull(map[string]attr.Type{"create": types.StringType, "read": types.StringType, "update": types.StringType, "delete": types.StringType})},
 	}
+	state := tfsdk.State{Schema: schemaResponse.Schema, Raw: config.Raw}
+	if setDiags := state.Set(ctx, &model); setDiags.HasError() {
+		t.Fatalf("failed to build config: %v", setDiags)
+	}
+	config.Raw = state.Raw
 
-	segmentBody, ok := body.(*ipApplicationSegmentRequestBody)
-	if !ok {
-		t.Fatalf("constructResource returned %T, expected *ipApplicationSegmentRequestBody", body)
-	}
-
-	if segmentBody.destinationType != "ip" {
-		t.Fatalf("destinationType = %q, expected %q", segmentBody.destinationType, "ip")
-	}
-	if segmentBody.port != 0 {
-		t.Fatalf("port = %d, expected 0", segmentBody.port)
-	}
-	if len(segmentBody.ports) != 1 || segmentBody.ports[0] != "443-443" {
-		t.Fatalf("ports = %#v, expected [443-443]", segmentBody.ports)
-	}
-	if segmentBody.protocol != "tcp,udp" {
-		t.Fatalf("protocol = %q, expected %q", segmentBody.protocol, "tcp,udp")
-	}
+	var response resource.ValidateConfigResponse
+	r.ValidateConfig(ctx, resource.ValidateConfigRequest{Config: config}, &response)
+	return response.Diagnostics
 }

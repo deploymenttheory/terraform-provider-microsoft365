@@ -27,6 +27,7 @@ func testCheckExists(resourceName string) resource.TestCheckFunc {
 func TestUnitResourceConnectorGroup_01_Minimal(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, connectorGroupMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer connectorGroupMock.CleanupMockState()
 
@@ -52,11 +53,13 @@ func TestUnitResourceConnectorGroup_01_Minimal(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/minimal.json")
 }
 
 func TestUnitResourceConnectorGroup_02_WithRegion(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, connectorGroupMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer connectorGroupMock.CleanupMockState()
 
@@ -75,11 +78,13 @@ func TestUnitResourceConnectorGroup_02_WithRegion(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/with_region.json")
 }
 
 func TestUnitResourceConnectorGroup_03_Update(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, connectorGroupMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer connectorGroupMock.CleanupMockState()
 
@@ -102,11 +107,13 @@ func TestUnitResourceConnectorGroup_03_Update(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/update.json")
 }
 
 func TestUnitResourceConnectorGroup_04_ImportDefaultRemovesStateOnlyOnDestroy(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, connectorGroupMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer connectorGroupMock.CleanupMockState()
 
@@ -127,6 +134,7 @@ func TestUnitResourceConnectorGroup_04_ImportDefaultRemovesStateOnlyOnDestroy(t 
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/import_default.json")
 }
 
 func testConfigConnectorGroupMinimal() string {

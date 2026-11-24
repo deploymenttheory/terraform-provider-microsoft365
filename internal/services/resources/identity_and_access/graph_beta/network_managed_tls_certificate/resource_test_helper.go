@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
@@ -18,8 +19,14 @@ func (NetworkManagedTLSCertificateTestResource) Exists(ctx context.Context, _ an
 		return nil, err
 	}
 
-	resource := NetworkManagedTLSCertificateResource{client: graphClient}
-	_, err = resource.getManagedTLSCertificate(ctx, state.ID)
+	getConfig := customrequests.GetRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          "networkaccess/tls/managedCertificateAuthorityCertificates",
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID,
+		Headers:           managedTLSCertificateHeaders,
+	}
+	_, err = customrequests.GetRequestByResourceId(ctx, graphClient.GetAdapter(), getConfig)
 	if err != nil {
 		errorInfo := errors.GraphError(ctx, err)
 		if errorInfo.StatusCode == 404 ||

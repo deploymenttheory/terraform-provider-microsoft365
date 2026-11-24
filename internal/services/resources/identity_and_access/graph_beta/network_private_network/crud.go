@@ -1,18 +1,39 @@
+// Package graphBetaNetworkPrivateNetwork manages Global Secure Access private networks.
+//
+// SDK deviation: missing type
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0 has no request builder for
+//     /networkaccess/privateNetworks and no privateNetwork or dnsResolutionIdentification model in
+//     models/networkaccess.
+//   - Learn: the endpoint is not documented on Microsoft Learn; it is the endpoint the Entra Global Secure Access
+//     private network blade calls.
+//   - Observed: the Entra portal sends @odata.type on create only, and types every network identification, server
+//     address, FQDN and expected IP resolution with its networkaccess @odata.type. Requests go through
+//     custom_requests in raw JSON mode with the plain structs in model.go, which keep that payload shape.
+//
+// Removal condition: the beta SDK ships a request builder for networkaccess/privateNetworks and models for
+// privateNetwork, dnsResolutionIdentification and its ipAddress, ipSubnet, ipRange and fqdn values.
 package graphBetaNetworkPrivateNetwork
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"time"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
-	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
+	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
+
+var errEmptyCreateResponse = stderrors.New("create private network returned nil response")
 
 func (r *NetworkPrivateNetworkResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkPrivateNetworkResourceModel
@@ -36,29 +57,31 @@ func (r *NetworkPrivateNetworkResource) Create(ctx context.Context, req resource
 		return
 	}
 
-	created, err := r.createPrivateNetwork(ctx, requestBody)
+	// A response with no body leaves created nil.
+	var created *privateNetworkResponse
+	createConfig := customrequests.PostRequestConfig{APIVersion: customrequests.GraphAPIBeta, Endpoint: r.ResourcePath, RawBody: requestBody, RawResponse: &created}
+	_, err = customrequests.PostRequest(ctx, r.client.GetAdapter(), createConfig, nil, nil)
+	if err == nil && created == nil {
+		err = errEmptyCreateResponse
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
-	if created.id == nil {
+	if created.ID == nil {
 		resp.Diagnostics.AddError("Error creating private network", "The API returned an invalid response without an id.")
 		return
 	}
 
-	object.ID = types.StringValue(*created.id)
+	object.ID = types.StringValue(*created.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationCreate
-	opts.ResourceTypeName = ResourceName
-
-	if err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts); err != nil {
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName)
+	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading resource state after create", fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()))
 	}
 }
@@ -93,8 +116,16 @@ func (r *NetworkPrivateNetworkResource) Read(ctx context.Context, req resource.R
 		}
 	}
 
-	privateNetwork, err := r.getPrivateNetwork(ctx, object.ID.ValueString())
-	if err != nil {
+	// A response with no body leaves privateNetwork nil, and the state is kept as it is.
+	var privateNetwork *privateNetworkResponse
+	getConfig := customrequests.GetRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        object.ID.ValueString(),
+		RawResponse:       &privateNetwork,
+	}
+	if _, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
 	}
@@ -125,24 +156,30 @@ func (r *NetworkPrivateNetworkResource) Update(ctx context.Context, req resource
 		return
 	}
 
-	if _, err := r.updatePrivateNetwork(ctx, state.ID.ValueString(), requestBody); err != nil {
+	patchConfig := customrequests.PatchRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        state.ID.ValueString(),
+		RawBody:           requestBody,
+	}
+	if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 
-	plan.ID = state.ID
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	// Keep the prior known state if the read-back fails after a successful update.
+	object := state
+	object.Timeouts = plan.Timeouts
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = constants.TfOperationUpdate
-	opts.ResourceTypeName = ResourceName
-
-	if err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts); err != nil {
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName)
+	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading resource state after update", fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()))
 	}
 }
@@ -161,7 +198,13 @@ func (r *NetworkPrivateNetworkResource) Delete(ctx context.Context, req resource
 	}
 	defer cancel()
 
-	if err := r.deletePrivateNetwork(ctx, object.ID.ValueString()); err != nil {
+	deleteConfig := customrequests.DeleteRequestConfig{
+		APIVersion:        customrequests.GraphAPIBeta,
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+		ResourceID:        object.ID.ValueString(),
+	}
+	if err := customrequests.DeleteRequestByResourceId(ctx, r.client.GetAdapter(), deleteConfig); err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}

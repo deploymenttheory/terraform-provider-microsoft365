@@ -81,7 +81,7 @@ func (r *B2bManagementPolicyAssignmentResource) ImportState(ctx context.Context,
 
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("b2b_management_policy_id"), parts[0])...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("directory_object_id"), parts[1])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), compositeID(parts[0], parts[1]))...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 }
 
 func (r *B2bManagementPolicyAssignmentResource) IdentitySchema(ctx context.Context, req resource.IdentitySchemaRequest, resp *resource.IdentitySchemaResponse) {

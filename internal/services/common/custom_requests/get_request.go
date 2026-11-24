@@ -27,6 +27,9 @@ type GetRequestConfig struct {
 	// Optional raw JSON response target: a pointer the response is decoded into with encoding/json. Every
 	// @odata.nextLink page is collected first. Use instead of a ParsableFactory.
 	RawResponse any
+	// Optional per-request middleware options, e.g. a kiota RetryHandlerOptions that narrows which responses the
+	// retry middleware retries for this request only.
+	RequestOptions []abstractions.RequestOption
 }
 
 // ODataResponse represents the structure of an OData response
@@ -62,10 +65,11 @@ func GetRequest(
 	}
 
 	requestInfo := newGraphRequestInformation(adapter, abstractions.GET, urlTemplate, config.APIVersion, config.QueryParameters, config.Headers)
+	requestInfo.AddRequestOptions(config.RequestOptions)
 
 	if config.RawResponse != nil {
 		requestInfo.Headers.TryAdd("Accept", jsonContentType)
-		body, err := sendGraphGetCollectingPages(ctx, adapter, requestInfo, config.Headers, errorMappings)
+		body, err := sendGraphGetCollectingPages(ctx, adapter, requestInfo, config.Headers, config.RequestOptions, errorMappings)
 		if err != nil {
 			return nil, err
 		}
@@ -106,6 +110,7 @@ func GetRequest(
 //   - QueryParameters: Optional query parameters for the request
 //   - Headers: Optional request headers
 //   - RawResponse: Optional pointer the (combined) response is also decoded into
+//   - RequestOptions: Optional per-request middleware options, sent with every page
 //
 // Returns:
 //   - json.RawMessage: The raw JSON response from the GET request. For paginated responses,
@@ -133,9 +138,10 @@ func GetRequest(
 //	fmt.Printf("Response: %+v\n", response)
 func GetRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig GetRequestConfig) (json.RawMessage, error) {
 	requestInfo := newGraphRequestInformation(adapter, abstractions.GET, ByIDRequestUrlTemplate(reqConfig), reqConfig.APIVersion, reqConfig.QueryParameters, reqConfig.Headers)
+	requestInfo.AddRequestOptions(reqConfig.RequestOptions)
 	requestInfo.Headers.TryAdd("Accept", jsonContentType)
 
-	body, err := sendGraphGetCollectingPages(ctx, adapter, requestInfo, reqConfig.Headers, nil)
+	body, err := sendGraphGetCollectingPages(ctx, adapter, requestInfo, reqConfig.Headers, reqConfig.RequestOptions, nil)
 	if err != nil {
 		return nil, err
 	}

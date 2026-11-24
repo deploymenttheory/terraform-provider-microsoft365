@@ -138,38 +138,28 @@ func (r *OnPremisesIpApplicationSegmentResource) ValidateConfig(ctx context.Cont
 		return
 	}
 
-	if err := validateIpRangeHost(data.DestinationHost.ValueString()); err != nil {
+	// destination_host must be an IPv4 "start..end" range with start <= end.
+	host := data.DestinationHost.ValueString()
+	var problem string
+	parts := strings.Split(host, "..")
+	switch {
+	case len(parts) != 2:
+		problem = fmt.Sprintf("destination_host %q is not in \"start..end\" format", host)
+	case net.ParseIP(parts[0]).To4() == nil:
+		problem = fmt.Sprintf("start address %q is not a valid IPv4 address", parts[0])
+	case net.ParseIP(parts[1]).To4() == nil:
+		problem = fmt.Sprintf("end address %q is not a valid IPv4 address", parts[1])
+	case bytes.Compare(net.ParseIP(parts[0]).To4(), net.ParseIP(parts[1]).To4()) > 0:
+		problem = fmt.Sprintf("start address %q is greater than end address %q", parts[0], parts[1])
+	}
+	if problem != "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("destination_host"),
 			"Invalid IP Range Destination Host",
 			fmt.Sprintf("%s. When destination_type is \"ipRange\", destination_host must be an IPv4 start and end address separated by \"..\" with start <= end, for example \"192.168.1.1..192.168.1.10\". "+
-				"Use destination_type \"ipRangeCidr\" for CIDR notation, \"ipAddress\" for a single IP address, or \"fqdn\" for hostnames.", err),
+				"Use destination_type \"ipRangeCidr\" for CIDR notation, \"ipAddress\" for a single IP address, or \"fqdn\" for hostnames.", problem),
 		)
 	}
-}
-
-// validateIpRangeHost returns an error unless host is an IPv4 "start..end"
-// range with start <= end.
-func validateIpRangeHost(host string) error {
-	parts := strings.Split(host, "..")
-	if len(parts) != 2 {
-		return fmt.Errorf("destination_host %q is not in \"start..end\" format", host)
-	}
-
-	start := net.ParseIP(parts[0])
-	end := net.ParseIP(parts[1])
-	if start == nil || start.To4() == nil {
-		return fmt.Errorf("start address %q is not a valid IPv4 address", parts[0])
-	}
-	if end == nil || end.To4() == nil {
-		return fmt.Errorf("end address %q is not a valid IPv4 address", parts[1])
-	}
-
-	if bytes.Compare(start.To4(), end.To4()) > 0 {
-		return fmt.Errorf("start address %q is greater than end address %q", parts[0], parts[1])
-	}
-
-	return nil
 }
 
 // Schema defines the schema for the resource.

@@ -155,8 +155,9 @@ decision.
 
 ### 3. The required comment block
 
-Each package with a deviation documents it in the package doc comment of `crud.go`, the
-comment directly above the `package` clause. One block per deviation:
+Each package with a deviation documents it in the package doc comment of `crud.go` for
+resources, or of `read.go` for data sources, which have no `crud.go`: the comment directly
+above the `package` clause. One block per deviation:
 
 ```go
 // SDK deviation: <category label>
@@ -368,7 +369,7 @@ When the SDK is bumped, a search for `SDK deviation:` lists every package to re-
 |---|---|
 | `internal/services/common/custom_requests/` | The Config API: the only non-SDK Graph transport |
 | `internal/services/common/custom_requests/json_request.go` | `JSONRequest`, retired by this decision |
-| `<resource package>/crud.go` | Package doc comment carrying the SDK deviation block |
+| `<resource package>/crud.go`, or `<data source package>/read.go` | Package doc comment carrying the SDK deviation block |
 
 ## Validation
 
@@ -376,7 +377,8 @@ When the SDK is bumped, a search for `SDK deviation:` lists every package to re-
   `custom_requests` and the generated SDK.
 * `json_request.go` no longer exists.
 * Every package that uses the Config API instead of the SDK has an `SDK deviation:` block
-  in the package doc of its `crud.go`, using one of the four labels.
+  in the package doc of its `crud.go` for resources, or of its `read.go` for data sources,
+  which have no `crud.go`, using one of the four labels.
 
 ## References
 

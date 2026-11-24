@@ -27,6 +27,9 @@ type PostRequestConfig struct {
 	RawResponse any
 	// Optional: the reference URL for ODATA - e.g. "https://graph.microsoft.com/beta/deviceAppManagement/mobileAppCategories/abc"
 	ReferenceURL string
+	// Optional per-request middleware options, e.g. a kiota RetryHandlerOptions that narrows which responses the
+	// retry middleware retries for this request only.
+	RequestOptions []abstractions.RequestOption
 }
 
 // PostRequest performs a custom POST request using the Microsoft Graph SDK when the operation
@@ -60,6 +63,7 @@ func PostRequest(
 	}
 
 	requestInfo := newGraphRequestInformation(adapter, abstractions.POST, endpointUrlTemplate(config.Endpoint), config.APIVersion, config.QueryParameters, config.Headers)
+	requestInfo.AddRequestOptions(config.RequestOptions)
 
 	if err := setRequestContent(ctx, adapter, requestInfo, config.RequestBody, config.RawBody); err != nil {
 		return nil, err
@@ -88,6 +92,7 @@ func PostRequest(
 //     otherwise returns an error describing what went wrong
 func PostRequestNoContent(ctx context.Context, adapter abstractions.RequestAdapter, config PostRequestConfig) error {
 	requestInfo := newGraphRequestInformation(adapter, abstractions.POST, endpointUrlTemplate(config.Endpoint), config.APIVersion, config.QueryParameters, config.Headers)
+	requestInfo.AddRequestOptions(config.RequestOptions)
 
 	if err := setRequestContent(ctx, adapter, requestInfo, config.RequestBody, config.RawBody); err != nil {
 		return err

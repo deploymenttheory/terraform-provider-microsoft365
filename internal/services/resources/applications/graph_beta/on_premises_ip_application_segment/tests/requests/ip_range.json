@@ -1,0 +1,30 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/applications/{uuid-1}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/applications/{uuid-1}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/applications/{uuid-1}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments/{uuid-2}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/applications/{uuid-1}/onPremisesPublishing/segmentsConfiguration/microsoft.graph.ipSegmentConfiguration/applicationSegments",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "destinationHost": "192.168.1.0/24",
+      "destinationType": "ipRangeCidr",
+      "port": 0,
+      "ports": [
+        "443-443"
+      ],
+      "protocol": "tcp"
+    }
+  }
+]
