@@ -264,6 +264,30 @@ def _handle_network_error(error: urllib.error.URLError, attempt: int, total_atte
     return attempt < total_attempts
 
 
+# Codecov answers 403 "Github API rate limit error" when its own GitHub API quota is
+# exhausted. The quota resets within the hour, so wait for it instead of failing.
+RATE_LIMIT_RETRY_DELAY_SECONDS = 60
+RATE_LIMIT_MAX_RETRIES = 25
+
+
+def _is_codecov_rate_limit(error: Exception) -> bool:
+    """Return True when Codecov rejected the request because of a GitHub API rate limit.
+
+    Args:
+        error: The exception raised by the request.
+
+    Returns:
+        True for a 403 whose body names a rate limit, False otherwise.
+    """
+    if not isinstance(error, urllib.error.HTTPError) or error.code != 403:
+        return False
+    try:
+        body = error.read().decode("utf-8", errors="replace")
+    except (OSError, AttributeError):
+        return False
+    return "rate limit" in body.lower()
+
+
 # ============================================================================
 # Retry Logic
 # ============================================================================
@@ -311,7 +335,11 @@ def _retry_with_backoff(
     Returns:
         Coverage statistics dict or None if all retries exhausted.
     """
-    for attempt, delay in enumerate(delays, 1):
+    attempt = 0
+    rate_limit_retries = 0
+    while attempt < len(delays):
+        delay = delays[attempt]
+        attempt += 1
         elapsed = int(time.time() - start_time)
 
         try:
@@ -345,6 +373,22 @@ def _retry_with_backoff(
             )
 
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
+            if _is_codecov_rate_limit(e):
+                rate_limit_retries += 1
+                if rate_limit_retries > RATE_LIMIT_MAX_RETRIES:
+                    print(
+                        "\n❌ Codecov is still rate limited by the GitHub API "
+                        f"after {RATE_LIMIT_MAX_RETRIES} retries"
+                    )
+                    return None
+                print(
+                    f"⏳ [{elapsed}s] Codecov is rate limited by the GitHub API "
+                    f"(retry {rate_limit_retries}/{RATE_LIMIT_MAX_RETRIES}); "
+                    f"retrying in {RATE_LIMIT_RETRY_DELAY_SECONDS}s"
+                )
+                attempt -= 1
+                time.sleep(RATE_LIMIT_RETRY_DELAY_SECONDS)
+                continue
             if not _handle_error(e, elapsed, attempt, len(delays)):
                 return None
 

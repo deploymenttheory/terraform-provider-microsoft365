@@ -265,6 +265,49 @@ class CodecovCoverageTests(unittest.TestCase):
                     self.assertEqual(len(requests), 1)
 
 
+    def test_codecov_rate_limit_waits_and_then_passes(self):
+        """A 403 GitHub API rate limit from Codecov is retried until coverage arrives."""
+        def rate_limited():
+            error = HTTPError(
+                "https://api.codecov.io/example",
+                403,
+                "Forbidden",
+                {},
+                io.BytesIO(b'{"detail":"Github API rate limit error: Forbidden"}'),
+            )
+            self.addCleanup(error.close)
+            return error
+
+        ready = {
+            "head_commit": "current-head",
+            "totals": {"patch": {"hits": 9, "misses": 1, "partials": 0, "coverage": 90.0}},
+            "files": [],
+        }
+        result, requests = self.run_gate(
+            [rate_limited(), rate_limited(), rate_limited(), ready], commit="current-head"
+        )
+        self.assertEqual(result, 0)
+        self.assertEqual(len(requests), 4)
+
+    def test_codecov_rate_limit_gives_up_after_retry_budget(self):
+        """A rate limit that never clears fails after the retry budget."""
+        from lib.get_codecov_coverage import RATE_LIMIT_MAX_RETRIES
+
+        errors = []
+        for _ in range(RATE_LIMIT_MAX_RETRIES + 1):
+            error = HTTPError(
+                "https://api.codecov.io/example",
+                403,
+                "Forbidden",
+                {},
+                io.BytesIO(b'{"detail":"Github API rate limit error: Forbidden"}'),
+            )
+            self.addCleanup(error.close)
+            errors.append(error)
+        result, requests = self.run_gate(errors, commit="current-head")
+        self.assertEqual(result, 1)
+        self.assertEqual(len(requests), RATE_LIMIT_MAX_RETRIES + 1)
+
 class MockOnlyCoverageTests(RepositoryTest):
     """Use real Git diffs and runtime import graphs before accepting an empty mock patch."""
 
