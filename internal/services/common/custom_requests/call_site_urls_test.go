@@ -13,7 +13,8 @@ import (
 )
 
 // callSiteURL pins the URL one production call site sends. The rows mirror every custom_requests Config call in the
-// resource packages (69 calls in 25 packages at edfac419, plus the cloud_pc_provisioning_policy read for #4904), with each endpoint expression resolved and realistic GUIDs
+// resource packages (69 calls in 25 packages at edfac419, plus the cloud_pc_provisioning_policy read for #4904 and the 7 calls
+// moved to the Config API in #4948), with each endpoint expression resolved and realistic GUIDs
 // substituted for runtime IDs. Every caller passes the beta client's adapter with GraphAPIBeta.
 // want is the URL sent with the public-cloud beta adapter. mainDiffers records the 4 rows whose URL changed from
 // origin/main (slash fixes); every other row is byte-identical to origin/main.
@@ -94,6 +95,13 @@ var productionCallSiteURLs = []callSiteURL{
 		{name: "m365_admin/m365_apps_installation_options/crud.go:59", fn: "PatchRequestByResourceId", endpoint: "/admin/microsoft365Apps/installationOptions", want: "PATCH https://graph.microsoft.com/beta/admin/microsoft365Apps/installationOptions"},
 		{name: "m365_admin/m365_apps_installation_options/crud.go:195", fn: "PatchRequestByResourceId", endpoint: "/admin/microsoft365Apps/installationOptions", want: "PATCH https://graph.microsoft.com/beta/admin/microsoft365Apps/installationOptions"},
 		{name: "windows_365/cloud_pc_provisioning_policy/crud.go:199", fn: "GetRequestByResourceId", endpoint: "deviceManagement/virtualEndpoint/provisioningPolicies", pattern: "/{id}", resourceID: "0b8a5d2e-7c41-4f8e-9a1b-3c6d2e9f1a07", suffix: "?$expand=assignments&$select=*", want: "GET https://graph.microsoft.com/beta/deviceManagement/virtualEndpoint/provisioningPolicies/0b8a5d2e-7c41-4f8e-9a1b-3c6d2e9f1a07?$expand=assignments&$select=*"},
+		{name: "identity_and_access/conditional_access_template/validate.go:22", fn: "GetRequest", endpoint: "identity/conditionalAccess/templates", want: "GET https://graph.microsoft.com/beta/identity/conditionalAccess/templates"},
+		{name: "device_management/device_configuration_templates_json/crud.go:227", fn: "GetRequest", endpoint: "/deviceManagement/deviceConfigurations", resourceID: "9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a", want: "GET https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a"},
+		{name: "device_management/device_configuration_templates_json/crud_relationship.go:67", fn: "PostRequestNoContent", endpoint: "/deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a/microsoft.graph.iosEnterpriseWiFiConfiguration/rootCertificatesForServerValidation/$ref", want: "POST https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a/microsoft.graph.iosEnterpriseWiFiConfiguration/rootCertificatesForServerValidation/$ref"},
+		{name: "device_management/device_configuration_templates_json/crud_relationship.go:69", fn: "PutRequestByResourceId", endpoint: "/deviceManagement/deviceConfigurations", pattern: "/{id}", resourceID: "9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a", suffix: "/microsoft.graph.iosScepCertificateProfile/rootCertificate/$ref", want: "PUT https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a/microsoft.graph.iosScepCertificateProfile/rootCertificate/$ref"},
+		{name: "device_management/device_configuration_templates_json/crud_relationship.go:84 single", fn: "DeleteRequestByResourceId", endpoint: "/deviceManagement/deviceConfigurations", pattern: "/{id}", resourceID: "9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a", suffix: "/microsoft.graph.iosScepCertificateProfile/rootCertificate/$ref", want: "DELETE https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a/microsoft.graph.iosScepCertificateProfile/rootCertificate/$ref"},
+		{name: "device_management/device_configuration_templates_json/crud_relationship.go:84 collection", fn: "DeleteRequestByResourceId", endpoint: "/deviceManagement/deviceConfigurations", pattern: "/{id}", resourceID: "9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a", suffix: "/microsoft.graph.iosEnterpriseWiFiConfiguration/rootCertificatesForServerValidation/4f93da7a-431b-4d48-bbce-1660aa8b0be7/$ref", want: "DELETE https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a/microsoft.graph.iosEnterpriseWiFiConfiguration/rootCertificatesForServerValidation/4f93da7a-431b-4d48-bbce-1660aa8b0be7/$ref"},
+		{name: "device_management/device_configuration_templates_json/state_relationship.go:194", fn: "GetRequest", endpoint: "/deviceManagement/deviceConfigurations", resourceID: "9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a", suffix: "microsoft.graph.iosScepCertificateProfile/rootCertificate", want: "GET https://graph.microsoft.com/beta/deviceManagement/deviceConfigurations/9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a/microsoft.graph.iosScepCertificateProfile/rootCertificate"},
 }
 
 func sendCallSite(ctx context.Context, adapter abstractions.RequestAdapter, c callSiteURL) error {
@@ -112,7 +120,7 @@ func sendCallSite(ctx context.Context, adapter abstractions.RequestAdapter, c ca
 	case "PatchRequestByResourceId":
 		return PatchRequestByResourceId(ctx, adapter, PatchRequestConfig{APIVersion: GraphAPIBeta, Endpoint: c.endpoint, ResourceIDPattern: c.pattern, ResourceID: c.resourceID, EndpointSuffix: c.suffix, RequestBody: newTestBody()})
 	case "PutRequestByResourceId":
-		return PutRequestByResourceId(ctx, adapter, PutRequestConfig{APIVersion: GraphAPIBeta, Endpoint: c.endpoint, ResourceID: c.resourceID, RequestBody: newTestBody()})
+		return PutRequestByResourceId(ctx, adapter, PutRequestConfig{APIVersion: GraphAPIBeta, Endpoint: c.endpoint, ResourceIDPattern: c.pattern, ResourceID: c.resourceID, EndpointSuffix: c.suffix, RequestBody: newTestBody()})
 	case "DeleteRequestByResourceId":
 		return DeleteRequestByResourceId(ctx, adapter, DeleteRequestConfig{APIVersion: GraphAPIBeta, Endpoint: c.endpoint, ResourceIDPattern: c.pattern, ResourceID: c.resourceID, EndpointSuffix: c.suffix})
 	}
@@ -122,7 +130,7 @@ func sendCallSite(ctx context.Context, adapter abstractions.RequestAdapter, c ca
 // TestProductionCallSiteURLs proves every production call site sends the pinned URL, so the "/{id}", "('id')" and
 // no-ID formats each caller chose are preserved.
 func TestProductionCallSiteURLs(t *testing.T) {
-	require.Len(t, productionCallSiteURLs, 70)
+	require.Len(t, productionCallSiteURLs, 77)
 
 	for _, c := range productionCallSiteURLs {
 		t.Run(c.name, func(t *testing.T) {
