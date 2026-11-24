@@ -2,7 +2,6 @@ package customrequests
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -27,6 +26,16 @@ type PutRequestConfig struct {
 	ResourceID string
 	// The request body
 	RequestBody s.Parsable
+	// Optional raw JSON request body: a json.RawMessage or []byte sent as it is, or any value marshalled with
+	// encoding/json. Use instead of RequestBody; setting both is an error.
+	RawBody any
+	// Optional query parameters to include in the request (e.g. {"$select": "id"})
+	QueryParameters map[string]string
+	// Optional request headers (e.g. {"Prefer": "include-unknown-enum-members"})
+	Headers map[string]string
+	// Optional raw JSON response target: a pointer the response body is decoded into with encoding/json. A response
+	// with no body (e.g. 204 No Content) leaves it untouched.
+	RawResponse any
 }
 
 type PutResponse struct {
@@ -69,18 +78,17 @@ type PutResponse struct {
 //	}
 //	err := PutRequestByResourceId(ctx, clients, config)
 func PutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config PutRequestConfig) error {
-	requestInfo := newGraphRequestInformation(adapter, abstractions.PUT, endpointUrlTemplate(config.Endpoint)+"('{id}')", config.APIVersion)
+	requestInfo := newGraphRequestInformation(adapter, abstractions.PUT, endpointUrlTemplate(config.Endpoint)+"('{id}')", config.APIVersion, config.QueryParameters, config.Headers)
 	requestInfo.PathParameters["id"] = config.ResourceID
 
 	tflog.Debug(ctx, "Making custom msgraph PUT request", map[string]any{"url_template": requestInfo.UrlTemplate, "id": config.ResourceID})
 
-	err := requestInfo.SetContentFromParsable(ctx, adapter, "application/json", config.RequestBody)
-	if err != nil {
-		return fmt.Errorf("error setting content: %v", err)
+	if err := setRequestContent(ctx, adapter, requestInfo, config.RequestBody, config.RawBody); err != nil {
+		return err
 	}
 
-	if err := adapter.SendNoContent(ctx, requestInfo, withODataErrorMappings(nil)); err != nil {
-		return fmt.Errorf("custom msgraph PUT request failed: %w", err)
+	if err := sendForRawResponseOrNoContent(ctx, adapter, requestInfo, config.RawResponse, nil); err != nil {
+		return err
 	}
 
 	return nil
