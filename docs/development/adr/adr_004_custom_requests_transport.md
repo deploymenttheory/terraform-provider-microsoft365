@@ -23,16 +23,18 @@ or returns. Resources that hit these gaps need another way to send the request.
   structs in late 2024, inside the client package. In June 2025 ShocOne moved them into
   their own package, `internal/services/common/custom_requests`
   ([356f0901](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/356f0901)),
-  and fixed the URL template handling in `PatchRequestByResourceId`
+  and the same day reworked the URL template code in `PatchRequestByResourceId` as part
+  of a bug-fix and unit-test commit
   ([44bb11a8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/44bb11a8)).
-* **kenchan0130's additions.** In November 2025 kenchan0130 added `GetRequest`, a
-  collection GET that follows `@odata.nextLink`
+* **kenchan0130's additions.** In November 2025 kenchan0130 added `GetRequest`, a GET
+  that sends through `adapter.Send` and returns a Kiota `Parsable` from a caller-supplied
+  factory
   ([9e33a72c](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9e33a72c)),
   and replaced the `ByIDRequestUrlTemplate` call in `DeleteRequestByResourceId` with an
   inline switch over the resource ID pattern
   ([47ce3efb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/47ce3efb)).
-  In September 2026 `JSONRequest` (`json_request.go`) was added as part of the resource
-  commit "feat: add network explicit forward proxy resource"
+  In September 2026 kenchan0130 added `JSONRequest` (`json_request.go`) inside the
+  resource commit "feat: add network explicit forward proxy resource"
   ([f4900a42](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/f4900a42)).
   `JSONRequest` sends and decodes `encoding/json` values through the SDK adapter, for
   endpoints that have no generated model.
