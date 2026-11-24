@@ -193,3 +193,21 @@ func TestUnitResourceAndroidManagedAppProtection_05_ErrorHandling(t *testing.T) 
 		},
 	})
 }
+
+// A malformed ISO 8601 duration is rejected at plan time instead of failing in the Graph SDK parser at apply.
+func TestUnitResourceAndroidManagedAppProtection_06_InvalidDuration(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, amapMock := setupMockEnvironment()
+	defer httpmock.DeactivateAndReset()
+	defer amapMock.CleanupMockState()
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      loadUnitTestTerraform("006_invalid_duration.tf"),
+				ExpectError: regexp.MustCompile(`must\s+be\s+an\s+ISO\s+8601\s+duration`),
+			},
+		},
+	})
+}
