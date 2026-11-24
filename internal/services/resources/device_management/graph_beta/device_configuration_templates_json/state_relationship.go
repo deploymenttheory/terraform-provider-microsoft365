@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
 
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	kiotaerrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
@@ -190,10 +189,16 @@ func (r *DeviceConfigurationTemplatesJsonResource) readRelationships(
 	}
 	typ, _ := settings["@odata.type"].(string)
 	for name, collection := range deviceConfigurationRelationships[typ] {
+		// A raw GET follows every @odata.nextLink, so a collection arrives as one {"value": [...]} document.
 		var response map[string]any
-		err := customrequests.JSONRequest(ctx, r.client.GetAdapter(), abstractions.GET,
-			r.ResourcePath+"/{id}/"+strings.TrimPrefix(typ, "#")+"/"+name,
-			map[string]string{"id": id}, nil, &response)
+		getConfig := customrequests.GetRequestConfig{
+			APIVersion:     customrequests.GraphAPIBeta,
+			Endpoint:       r.ResourcePath,
+			ResourceID:     id,
+			EndpointSuffix: strings.TrimPrefix(typ, "#") + "/" + name,
+			RawResponse:    &response,
+		}
+		_, err := customrequests.GetRequest(ctx, r.client.GetAdapter(), getConfig, nil, nil)
 		if err != nil {
 			if kiotaerrors.GraphError(ctx, err).StatusCode == 404 {
 				continue
@@ -201,9 +206,21 @@ func (r *DeviceConfigurationTemplatesJsonResource) readRelationships(
 			return fmt.Errorf("read %s relationship: %w", name, err)
 		}
 		if collection {
-			bindings, err := r.readRelationshipCollection(ctx, name, response)
-			if err != nil {
-				return err
+			values, ok := response["value"].([]any)
+			if !ok {
+				return fmt.Errorf("%w: %s must return a collection", errInvalidProfileResponse, name)
+			}
+			bindings := make([]string, 0, len(values))
+			for _, value := range values {
+				related, ok := value.(map[string]any)
+				if !ok {
+					return fmt.Errorf("%w: %s contains an invalid reference", errInvalidProfileResponse, name)
+				}
+				binding, err := r.relationshipBinding(related)
+				if err != nil {
+					return err
+				}
+				bindings = append(bindings, binding)
 			}
 			if len(bindings) > 0 {
 				sort.Strings(bindings)
@@ -244,59 +261,4 @@ func (r *DeviceConfigurationTemplatesJsonResource) relationshipBinding(
 		return "", fmt.Errorf("%w: relationship response has no id", errInvalidProfileResponse)
 	}
 	return r.client.GetAdapter().GetBaseUrl() + r.ResourcePath + "('" + id + "')", nil
-}
-
-func (r *DeviceConfigurationTemplatesJsonResource) readRelationshipCollection(
-	ctx context.Context,
-	name string,
-	response map[string]any,
-) ([]string, error) {
-	bindings := []string{}
-	seenPages := make(map[string]bool)
-	for {
-		values, ok := response["value"].([]any)
-		if !ok {
-			return nil, fmt.Errorf(
-				"%w: %s must return a collection",
-				errInvalidProfileResponse,
-				name,
-			)
-		}
-		for _, value := range values {
-			related, ok := value.(map[string]any)
-			if !ok {
-				return nil, fmt.Errorf(
-					"%w: %s contains an invalid reference",
-					errInvalidProfileResponse,
-					name,
-				)
-			}
-			binding, err := r.relationshipBinding(related)
-			if err != nil {
-				return nil, err
-			}
-			bindings = append(bindings, binding)
-		}
-		next, _ := response["@odata.nextLink"].(string)
-		if next == "" {
-			return bindings, nil
-		}
-		base := r.client.GetAdapter().GetBaseUrl()
-		if !strings.HasPrefix(next, base+"/") || seenPages[next] {
-			return nil, fmt.Errorf("%w: invalid next page for %s", errInvalidProfileResponse, name)
-		}
-		seenPages[next] = true
-		response = nil
-		if err := customrequests.JSONRequest(
-			ctx,
-			r.client.GetAdapter(),
-			abstractions.GET,
-			strings.TrimPrefix(next, base),
-			nil,
-			nil,
-			&response,
-		); err != nil {
-			return nil, fmt.Errorf("read next %s relationship page: %w", name, err)
-		}
-	}
 }

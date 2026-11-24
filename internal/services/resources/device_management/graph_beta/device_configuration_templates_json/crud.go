@@ -1,3 +1,37 @@
+// Package graphBetaDeviceConfigurationTemplatesJson manages Intune device configuration profiles from raw JSON settings.
+//
+// SDK deviation: missing type
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0, devicemanagement.DeviceConfigurationItemRequestBuilder
+//     has no request builder for a derived-type cast such as microsoft.graph.iosScepCertificateProfile, so the
+//     certificate navigation properties (rootCertificate, identityCertificateForClientAuthentication,
+//     rootCertificatesForServerValidation and the others in deviceConfigurationRelationships) and their $ref routes
+//     cannot be reached through the SDK.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/resources/intune-deviceconfig-iosscepcertificateprofile?view=graph-rest-beta
+//     lists rootCertificate as a relationship of the derived type.
+//   - Observed: 2026-11-24, GET, PUT, POST and DELETE on
+//     /beta/deviceManagement/deviceConfigurations/{id}/microsoft.graph.<type>/<relationship>[/{relatedId}]/$ref
+//     succeed (acceptance tests 54 and 55). The relationship reads and writes go through custom_requests in raw JSON
+//     mode.
+//
+// Removal condition: the beta SDK ships cast request builders under deviceConfigurations/{id} that expose these
+// certificate navigation properties and their $ref operations.
+//
+// SDK deviation: unknown enum value
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0. The derived deviceConfiguration models parse enum
+//     properties with Parse<Enum> functions that return nil for any value they don't know (for example
+//     models.ParseWiFiSecurityType), so a typed GET drops enum values that Intune adds before the SDK does, and the
+//     settings would drift.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/intune-deviceconfig-deviceconfiguration-get?view=graph-rest-beta
+//   - Observed: checked by reading the SDK source on 2026-11-24. The resource accepts any deviceConfiguration derived
+//     type as JSON, so Read gets the profile through custom_requests in raw JSON mode and keeps every property as Graph
+//     returns it. Create, Update, Delete, assignments and encrypted OMA values use the SDK.
+//
+// Removal condition: the derived deviceConfiguration models keep enum values they don't know, so a typed GET returns
+// every property Graph sent.
 package graphBetaDeviceConfigurationTemplatesJson
 
 import (
@@ -11,7 +45,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -191,8 +224,13 @@ func (r *DeviceConfigurationTemplatesJsonResource) Read(ctx context.Context, req
 		}
 	}
 
-	err := customrequests.JSONRequest(ctx, r.client.GetAdapter(), abstractions.GET,
-		r.ResourcePath+"/{id}", map[string]string{"id": object.ID.ValueString()}, nil, &respResource)
+	getConfig := customrequests.GetRequestConfig{
+		APIVersion:  customrequests.GraphAPIBeta,
+		Endpoint:    r.ResourcePath,
+		ResourceID:  object.ID.ValueString(),
+		RawResponse: &respResource,
+	}
+	_, err := customrequests.GetRequest(ctx, r.client.GetAdapter(), getConfig, nil, nil)
 	if err != nil {
 		kiotaerrors.HandleKiotaGraphErrorWithOptions(ctx, err, resp, operation, r.ReadPermissions,
 			kiotaerrors.GraphErrorOptions{PreserveStateOnReadBadRequest: true})
