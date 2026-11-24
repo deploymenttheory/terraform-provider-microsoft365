@@ -22,8 +22,15 @@ func MapRemoteStateToTerraform(
 		remote.GetSettings().GetStatus() == nil {
 		return fmt.Errorf("%w: missing required fields", errInvalidResponse)
 	}
-	action, ok := additionalString(remote.GetAdditionalData(), "action")
-	if !ok {
+	// action is read from additional data because the SDK model lacks it (see the SDK deviation in crud.go).
+	var action *string
+	switch value := remote.GetAdditionalData()["action"].(type) {
+	case string:
+		action = &value
+	case *string:
+		action = value
+	}
+	if action == nil {
 		return fmt.Errorf("%w: action is missing or invalid", errInvalidResponse)
 	}
 	priority := *remote.GetPriority()
@@ -75,7 +82,7 @@ func MapRemoteStateToTerraform(
 		destinations = append(
 			destinations,
 			types.ObjectValueMust(
-				tlsInspectionPolicyRuleDestinationObjectType().AttrTypes,
+				tlsInspectionPolicyRuleDestinationObjectType.AttrTypes,
 				map[string]attr.Value{"type": types.StringValue(destinationType), "values": values},
 			),
 		)
@@ -88,31 +95,8 @@ func MapRemoteStateToTerraform(
 	data.Priority = types.Int32Value(int32(priority))
 	data.Enabled = types.BoolValue(status == models.ENABLED_SECURITYRULESTATUS.String())
 	data.Destinations = types.ListValueMust(
-		tlsInspectionPolicyRuleDestinationObjectType(),
+		tlsInspectionPolicyRuleDestinationObjectType,
 		destinations,
 	)
 	return nil
-}
-
-func additionalString(values map[string]any, key string) (*string, bool) {
-	if values == nil {
-		return nil, false
-	}
-	switch value := values[key].(type) {
-	case string:
-		return &value, true
-	case *string:
-		return value, value != nil
-	default:
-		return nil, false
-	}
-}
-
-func tlsInspectionPolicyRuleDestinationObjectType() types.ObjectType {
-	return types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"type":   types.StringType,
-			"values": types.SetType{ElemType: types.StringType},
-		},
-	}
 }
