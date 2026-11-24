@@ -8,13 +8,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
-	s "github.com/microsoft/kiota-abstractions-go/serialization"
-	store "github.com/microsoft/kiota-abstractions-go/store"
 	jsonserialization "github.com/microsoft/kiota-serialization-json-go"
 )
 
-func TestNewInternetAccessForwardingRuleRequestInformationSerializesObservedFQDNPayload(t *testing.T) {
+func TestConstructResourceSerializesObservedFQDNPayload(t *testing.T) {
 	payload := serializedRulePayload(t, context.Background(), &NetworkInternetAccessForwardingPolicyRuleResourceModel{
 		Name:     types.StringValue("Custom Acquire policy internet rule"),
 		Action:   types.StringValue("forward"),
@@ -166,20 +163,17 @@ func serializedRulePayload(t *testing.T, ctx context.Context, model *NetworkInte
 		t.Fatalf("constructResource returned error: %v", err)
 	}
 
-	requestInfo, err := newInternetAccessForwardingRuleRequestInformation(
-		ctx,
-		internetAccessForwardingPolicyRuleTestRequestAdapter{},
-		abstractions.POST,
-		"dad2a411-e330-440d-a7c7-2c830dce5991",
-		"",
-		body,
-	)
+	writer := jsonserialization.NewJsonSerializationWriter()
+	if err := writer.WriteObjectValue("", body); err != nil {
+		t.Fatalf("failed to serialize request body: %v", err)
+	}
+	content, err := writer.GetSerializedContent()
 	if err != nil {
-		t.Fatalf("newInternetAccessForwardingRuleRequestInformation returned error: %v", err)
+		t.Fatalf("failed to read serialized request body: %v", err)
 	}
 
 	var payload map[string]any
-	if err := json.Unmarshal(requestInfo.Content, &payload); err != nil {
+	if err := json.Unmarshal(content, &payload); err != nil {
 		t.Fatalf("failed to unmarshal request content: %v", err)
 	}
 	return payload
@@ -190,14 +184,14 @@ func destinationsForTest(t *testing.T, destinations []map[string]string) types.L
 
 	values := make([]attr.Value, 0, len(destinations))
 	for _, destination := range destinations {
-		values = append(values, types.ObjectValueMust(destinationObjectType().AttrTypes, map[string]attr.Value{
+		values = append(values, types.ObjectValueMust(destinationObjectType.AttrTypes, map[string]attr.Value{
 			"type":          types.StringValue(destination["type"]),
 			"value":         optionalStringValue(destination["value"]),
 			"begin_address": optionalStringValue(destination["begin_address"]),
 			"end_address":   optionalStringValue(destination["end_address"]),
 		}))
 	}
-	return types.ListValueMust(destinationObjectType(), values)
+	return types.ListValueMust(destinationObjectType, values)
 }
 
 func optionalStringValue(value string) types.String {
@@ -231,40 +225,4 @@ func assertRuleJSONMapEqual(t *testing.T, expected, actual map[string]any) {
 	if string(expectedJSON) != string(actualJSON) {
 		t.Fatalf("unexpected JSON\nexpected: %s\nactual:   %s", expectedJSON, actualJSON)
 	}
-}
-
-type internetAccessForwardingPolicyRuleTestRequestAdapter struct{}
-
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) Send(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) (s.Parsable, error) {
-	return nil, nil
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) SendEnum(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) (any, error) {
-	return nil, nil
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) SendCollection(context.Context, *abstractions.RequestInformation, s.ParsableFactory, abstractions.ErrorMappings) ([]s.Parsable, error) {
-	return nil, nil
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) SendEnumCollection(context.Context, *abstractions.RequestInformation, s.EnumFactory, abstractions.ErrorMappings) ([]any, error) {
-	return nil, nil
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) SendPrimitive(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) (any, error) {
-	return nil, nil
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) SendPrimitiveCollection(context.Context, *abstractions.RequestInformation, string, abstractions.ErrorMappings) ([]any, error) {
-	return nil, nil
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) SendNoContent(context.Context, *abstractions.RequestInformation, abstractions.ErrorMappings) error {
-	return nil
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) GetSerializationWriterFactory() s.SerializationWriterFactory {
-	return jsonserialization.NewJsonSerializationWriterFactory()
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) EnableBackingStore(store.BackingStoreFactory) {
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) SetBaseUrl(string) {}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) GetBaseUrl() string {
-	return "https://graph.microsoft.com/beta"
-}
-func (internetAccessForwardingPolicyRuleTestRequestAdapter) ConvertToNativeRequest(context.Context, *abstractions.RequestInformation) (any, error) {
-	return nil, nil
 }
