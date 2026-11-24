@@ -38,7 +38,7 @@ func TestByIDRequestUrlTemplate(t *testing.T) {
 				ResourceIDPattern: "('id')",
 				ResourceID:        "12345",
 			},
-			expected: "{+baseurl}deviceManagement/configurationPolicies('12345')",
+			expected: "{+baseurl}/deviceManagement/configurationPolicies('12345')",
 		},
 		{
 			name: "endpoint with different ID pattern format",
@@ -106,12 +106,49 @@ func TestByIDRequestUrlTemplate(t *testing.T) {
 			},
 			expected: "{+baseurl}/deviceManagement/configurationPolicies('')",
 		},
+		{
+			name: "slash brace pattern writes the ID literally",
+			config: GetRequestConfig{
+				Endpoint:          "/applications",
+				ResourceIDPattern: "/{id}",
+				ResourceID:        "d557c813-b8e5-4efc-b00e-9c0bd5fd10df",
+			},
+			expected: "{+baseurl}/applications/d557c813-b8e5-4efc-b00e-9c0bd5fd10df",
+		},
+		{
+			name: "slash brace pattern with suffix",
+			config: GetRequestConfig{
+				Endpoint:          "applications/abc/owners",
+				ResourceIDPattern: "/{id}",
+				ResourceID:        "d557c813-b8e5-4efc-b00e-9c0bd5fd10df",
+				EndpointSuffix:    "/$ref",
+			},
+			expected: "{+baseurl}/applications/abc/owners/d557c813-b8e5-4efc-b00e-9c0bd5fd10df/$ref",
+		},
+		{
+			name: "quoted brace pattern",
+			config: GetRequestConfig{
+				Endpoint:          "/deviceManagement/configurationPolicies",
+				ResourceIDPattern: "('{id}')",
+				ResourceID:        "12345",
+			},
+			expected: "{+baseurl}/deviceManagement/configurationPolicies('12345')",
+		},
+		{
+			name: "no pattern keeps the endpoint",
+			config: GetRequestConfig{
+				Endpoint: "/applications/abc/microsoft.graph.agentIdentityBlueprint/sponsors",
+			},
+			expected: "{+baseurl}/applications/abc/microsoft.graph.agentIdentityBlueprint/sponsors",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := ByIDRequestUrlTemplate(tt.config)
 			assert.Equal(t, tt.expected, result, "URL template should match expected value")
+			assert.Equal(t, tt.expected, ByIDRequestUrlTemplate(DeleteRequestConfig{Endpoint: tt.config.Endpoint, ResourceIDPattern: tt.config.ResourceIDPattern, ResourceID: tt.config.ResourceID, EndpointSuffix: tt.config.EndpointSuffix}), "DELETE must build the same template")
+			assert.Equal(t, tt.expected, ByIDRequestUrlTemplate(PatchRequestConfig{Endpoint: tt.config.Endpoint, ResourceIDPattern: tt.config.ResourceIDPattern, ResourceID: tt.config.ResourceID, EndpointSuffix: tt.config.EndpointSuffix}), "PATCH must build the same template")
 		})
 	}
 }
