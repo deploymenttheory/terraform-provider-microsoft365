@@ -258,6 +258,140 @@ A typical resource package in this provider is organized as follows:
 describe the code. The code should be self explanatory. Use docstrings to explain the purpose of each function instead.
 - For complex resources, break out logic into multiple files as needed to maintain readability and maintainability.
 
+## Helpers
+
+These rules decide when a helper may exist, where it lives and what it is called. The standard functions (the CRUD methods, `constructResource`, `MapRemoteStateToTerraform`, and the schema and metadata methods) are not helpers.
+
+### DRY: shared mechanics go to common packages
+
+- Generic, configurable CRUD mechanics go in `internal/services/common/crud`: retries, read-back after a write, per-key write locks, precondition retries. If two resource packages need the same mechanism, add it there with options for the parts that differ, instead of copying it.
+- Every Graph call the SDK cannot make goes through the Config API in `internal/services/common/custom_requests`. A resource package never builds `RequestInformation` or calls `adapter.Send*`. See [ADR-004](./adr/adr_004_custom_requests_transport.md).
+- Logic specific to one resource stays in that resource's package.
+
+### When a new common package is justified
+
+Only for a genuinely new class of helper, one that fits neither `crud` nor `custom_requests` nor an existing package under `internal/services/common`. A helper that two resources happen to share is not a new class: generalise it into the package that already owns that kind of mechanism.
+
+### The local helper rule
+
+A package-local helper may exist only if it meets all three conditions:
+
+1. It is called directly from 2 or more CRUD methods (`Create`, `Read`, `Update`, `Delete`, `ImportState`, `ModifyPlan`). A call from another helper doesn't count.
+2. It holds about 10 or more lines of logic.
+3. Its name follows the naming convention below.
+
+Otherwise the code stays inline in the CRUD method, even if that makes the method longer.
+
+### Naming: verb + Graph entity + qualifier
+
+A helper's name is a verb, then the Graph entity it works on, then a qualifier, for example `findTargetedAppByPackageID` or `constructTargetAppsRequest`. The verb decides the file:
+
+| Verb | Form | File |
+| --- | --- | --- |
+| `construct` | `construct<Entity><Qualifier>`, e.g. `constructTargetAppsRequest` | `construct.go` |
+| `map` | `map<Entity>ToState`, e.g. `mapAssignmentsToState` | `state.go` |
+| `find` | `find<Entity>By<Key>`, e.g. `findTargetedAppByPackageID` | `state.go` |
+| `waitFor` | `waitFor<Entity><Qualifier>`, e.g. `waitForPolicyDeletion` | `crud.go` |
+| `lock` | `lock<Entity><Qualifier>`, e.g. `lockPolicyTargetApps` | `crud.go` |
+
+Generic names are banned, for example `matches`, `settings`, `requestBody`, `tryClaim`, `readbackOptions` and `writableApp`. They say nothing about the Graph entity, so a reader has to open the function to learn what it does.
+
+### Before and after: Android managed mobile app
+
+Before, the Android managed mobile app resource had two helpers for one request. `writableApp` has a banned generic name, and `constructPolicyApps` is a five-line wrapper:
+
+```go
+// construct.go
+
+// writableApp rebuilds an entry without the server-assigned id and version, which
+// targetApps derives itself.
+func writableApp(app graphmodels.ManagedMobileAppable) graphmodels.ManagedMobileAppable {
+	pkg := packageID(app)
+	if pkg == "" {
+		return app
+	}
+	identifier := graphmodels.NewAndroidMobileAppIdentifier()
+	identifier.SetPackageId(&pkg)
+	entry := graphmodels.NewManagedMobileApp()
+	entry.SetMobileAppIdentifier(identifier)
+	return entry
+}
+
+// constructPolicyApps builds the complete targetApps replacement request.
+func constructPolicyApps(apps []graphmodels.ManagedMobileAppable) *deviceappmanagement.ManagedAppPoliciesItemTargetAppsPostRequestBody {
+	body := deviceappmanagement.NewManagedAppPoliciesItemTargetAppsPostRequestBody()
+	body.SetApps(apps)
+	return body
+}
+
+// crud.go (Create; Delete repeats the loop)
+desired := make([]graphmodels.ManagedMobileAppable, 0, len(currentApps)+1)
+for _, app := range currentApps {
+	desired = append(desired, writableApp(app))
+}
+desired = append(desired, newApp)
+
+if err := r.client.DeviceAppManagement().ManagedAppPolicies().ByManagedAppPolicyId(policyID).TargetApps().Post(ctx, constructPolicyApps(desired), nil); err != nil {
+```
+
+After, one helper builds the whole request. It is called from `Create` and `Delete`, holds the logic of both old helpers, and is named for the Graph entity and what it builds:
+
+```go
+// construct.go
+
+// constructTargetAppsRequest builds the targetApps replacement request. Graph assigns each
+// entry's id and version itself, so Android entries are rebuilt with only their package ID.
+func constructTargetAppsRequest(apps []graphmodels.ManagedMobileAppable) *deviceappmanagement.ManagedAppPoliciesItemTargetAppsPostRequestBody {
+	entries := make([]graphmodels.ManagedMobileAppable, 0, len(apps))
+	for _, app := range apps {
+		identifier, ok := app.GetMobileAppIdentifier().(graphmodels.AndroidMobileAppIdentifierable)
+		if !ok || identifier.GetPackageId() == nil {
+			entries = append(entries, app)
+			continue
+		}
+		packageID := graphmodels.NewAndroidMobileAppIdentifier()
+		packageID.SetPackageId(identifier.GetPackageId())
+		entry := graphmodels.NewManagedMobileApp()
+		entry.SetMobileAppIdentifier(packageID)
+		entries = append(entries, entry)
+	}
+	body := deviceappmanagement.NewManagedAppPoliciesItemTargetAppsPostRequestBody()
+	body.SetApps(entries)
+	return body
+}
+
+// crud.go (Create)
+desired := append(slices.Clone(currentApps), newApp)
+
+if err := r.client.DeviceAppManagement().ManagedAppPolicies().ByManagedAppPolicyId(policyID).TargetApps().Post(ctx, constructTargetAppsRequest(desired), nil); err != nil {
+
+// crud.go (Delete)
+remaining := make([]graphmodels.ManagedMobileAppable, 0, len(currentApps))
+for _, app := range currentApps {
+	if app.GetId() == nil || *app.GetId() != appID {
+		remaining = append(remaining, app)
+	}
+}
+
+if err := r.client.DeviceAppManagement().ManagedAppPolicies().ByManagedAppPolicyId(policyID).TargetApps().Post(ctx, constructTargetAppsRequest(remaining), nil); err != nil {
+```
+
+### The helper report
+
+Every PR that changes a package under `internal/services` runs `tools/helperscan` on the changed packages, except the shared packages in `internal/services/common`. The report appears in the log of the "Plan test partitions" job and in its step summary. It is report-only for now and never fails the job. For each helper it shows:
+
+- `LINES`: the span of the declaration, from `func` to the closing brace. A helper of 10 lines or fewer counts as short.
+- `REFS`: how many places in the package's non-test files reference it. Recursive calls don't count.
+- `CRUD CALLERS`: the distinct CRUD methods that reference it directly. Calls inside a closure in a CRUD method count for that method.
+- `NAME`: `ok`, or why the name fails the convention above.
+- `RULE`: `pass`, or which parts of the helper rule it misses (`callers`, `lines`, `name`).
+
+Kiota interface methods (`Serialize`, `GetFieldDeserializers`, `GetAdditionalData`, the `create…FromDiscriminatorValue` factories) and framework validator methods (`Description`, `MarkdownDescription`, `Validate…`, `PlanModify…`) are counted in the summary but left out of the table. Run it locally with:
+
+```sh
+go run ./tools/helperscan internal/services/resources/<path to package>
+```
+
 ## Architecture Diagram
 
 See the [diagram](./resource_architecture.mmd) for a visual overview of function relationships and flow in a complex resource package.
