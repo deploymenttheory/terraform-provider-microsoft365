@@ -153,12 +153,13 @@ func sendGraphRequestForBytes(
 
 // sendGraphGetCollectingPages sends a GET and, when the response is an OData collection with an @odata.nextLink,
 // follows every next link through the adapter and returns one {"value": [...]} document holding every page's items.
-// headers are sent with every page. Any other response body is returned as it is.
+// headers and options are sent with every page. Any other response body is returned as it is.
 func sendGraphGetCollectingPages(
 	ctx context.Context,
 	adapter abstractions.RequestAdapter,
 	requestInfo *abstractions.RequestInformation,
 	headers map[string]string,
+	options []abstractions.RequestOption,
 	errorMappings abstractions.ErrorMappings,
 ) ([]byte, error) {
 	body, err := sendGraphRequestForBytes(ctx, adapter, requestInfo, errorMappings)
@@ -191,6 +192,7 @@ func sendGraphGetCollectingPages(
 		pageRequest.Method = abstractions.GET
 		pageRequest.SetUri(*nextURL)
 		addRequestHeaders(pageRequest, headers)
+		pageRequest.AddRequestOptions(options)
 		pageRequest.Headers.TryAdd("Accept", jsonContentType)
 
 		body, err = sendGraphRequestForBytes(ctx, adapter, pageRequest, errorMappings)

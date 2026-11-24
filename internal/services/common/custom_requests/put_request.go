@@ -36,6 +36,9 @@ type PutRequestConfig struct {
 	// Optional raw JSON response target: a pointer the response body is decoded into with encoding/json. A response
 	// with no body (e.g. 204 No Content) leaves it untouched.
 	RawResponse any
+	// Optional per-request middleware options, e.g. a kiota RetryHandlerOptions that narrows which responses the
+	// retry middleware retries for this request only.
+	RequestOptions []abstractions.RequestOption
 }
 
 type PutResponse struct {
@@ -80,6 +83,7 @@ type PutResponse struct {
 func PutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config PutRequestConfig) error {
 	requestInfo := newGraphRequestInformation(adapter, abstractions.PUT, endpointUrlTemplate(config.Endpoint)+"('{id}')", config.APIVersion, config.QueryParameters, config.Headers)
 	requestInfo.PathParameters["id"] = config.ResourceID
+	requestInfo.AddRequestOptions(config.RequestOptions)
 
 	tflog.Debug(ctx, "Making custom msgraph PUT request", map[string]any{"url_template": requestInfo.UrlTemplate, "id": config.ResourceID})
 

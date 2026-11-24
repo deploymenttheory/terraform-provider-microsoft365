@@ -32,6 +32,9 @@ type PatchRequestConfig struct {
 	// Optional raw JSON response target: a pointer the response body is decoded into with encoding/json. A response
 	// with no body (e.g. 204 No Content) leaves it untouched.
 	RawResponse any
+	// Optional per-request middleware options, e.g. a kiota RetryHandlerOptions that narrows which responses the
+	// retry middleware retries for this request only.
+	RequestOptions []abstractions.RequestOption
 }
 
 type PatchResponse struct {
@@ -78,6 +81,7 @@ type PatchResponse struct {
 //	err := PatchRequestByResourceId(ctx, adapter, config)
 func PatchRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config PatchRequestConfig) error {
 	requestInfo := newGraphRequestInformation(adapter, abstractions.PATCH, ByIDRequestUrlTemplate(config), config.APIVersion, config.QueryParameters, config.Headers)
+	requestInfo.AddRequestOptions(config.RequestOptions)
 
 	tflog.Debug(ctx, "Making custom msgraph PATCH request", map[string]any{"url": requestInfo.UrlTemplate})
 

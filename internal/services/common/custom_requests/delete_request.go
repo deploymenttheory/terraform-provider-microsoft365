@@ -25,6 +25,9 @@ type DeleteRequestConfig struct {
 	// Optional raw JSON response target: a pointer the response body is decoded into with encoding/json. A response
 	// with no body (e.g. 204 No Content) leaves it untouched.
 	RawResponse any
+	// Optional per-request middleware options, e.g. a kiota RetryHandlerOptions that narrows which responses the
+	// retry middleware retries for this request only.
+	RequestOptions []abstractions.RequestOption
 }
 
 // DeleteRequestByResourceId performs a custom DELETE request using the Microsoft Graph SDK
@@ -60,6 +63,7 @@ type DeleteRequestConfig struct {
 //	}
 func DeleteRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, reqConfig DeleteRequestConfig) error {
 	requestInfo := newGraphRequestInformation(adapter, abstractions.DELETE, ByIDRequestUrlTemplate(reqConfig), reqConfig.APIVersion, reqConfig.QueryParameters, reqConfig.Headers)
+	requestInfo.AddRequestOptions(reqConfig.RequestOptions)
 	requestInfo.Headers.TryAdd("Accept", jsonContentType)
 
 	if err := sendForRawResponseOrNoContent(ctx, adapter, requestInfo, reqConfig.RawResponse, nil); err != nil {
