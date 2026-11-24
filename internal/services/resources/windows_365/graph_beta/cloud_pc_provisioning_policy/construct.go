@@ -156,7 +156,15 @@ func constructResource(ctx context.Context, data *CloudPcProvisioningPolicyResou
 			convert.FrameworkToGraphString(config.OnPremisesConnectionId, domainJoinConfig.SetOnPremisesConnectionId)
 			convert.FrameworkToGraphString(config.RegionName, domainJoinConfig.SetRegionName)
 
-			if err := convert.FrameworkToGraphEnum(config.RegionGroup, models.ParseCloudPcRegionGroup, domainJoinConfig.SetRegionGroup); err != nil {
+			err := convert.FrameworkToGraphEnum(config.GeographicLocationType, models.ParseCloudPcGeographicLocationType, domainJoinConfig.SetGeographicLocationType)
+			if err != nil {
+				return nil, fmt.Errorf("failed to set geographic location type: %w", err)
+			}
+
+			// SDK deviation: unknown enum value (see crud.go). A region group the SDK enum lacks (uae) is sent as raw JSON.
+			if parsed, _ := models.ParseCloudPcRegionGroup(config.RegionGroup.ValueString()); parsed == nil && !config.RegionGroup.IsNull() && !config.RegionGroup.IsUnknown() {
+				domainJoinConfig.GetAdditionalData()["regionGroup"] = config.RegionGroup.ValueString()
+			} else if err := convert.FrameworkToGraphEnum(config.RegionGroup, models.ParseCloudPcRegionGroup, domainJoinConfig.SetRegionGroup); err != nil {
 				return nil, fmt.Errorf("failed to set region group: %v", err)
 			}
 

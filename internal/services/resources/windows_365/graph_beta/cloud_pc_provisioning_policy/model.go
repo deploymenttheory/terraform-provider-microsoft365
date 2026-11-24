@@ -37,6 +37,7 @@ type DomainJoinConfigurationModel struct {
 	DomainJoinType         types.String `tfsdk:"domain_join_type"`
 	OnPremisesConnectionId types.String `tfsdk:"on_premises_connection_id"`
 	RegionName             types.String `tfsdk:"region_name"`
+	GeographicLocationType types.String `tfsdk:"geographic_location_type"`
 	RegionGroup            types.String `tfsdk:"region_group"`
 }
 
