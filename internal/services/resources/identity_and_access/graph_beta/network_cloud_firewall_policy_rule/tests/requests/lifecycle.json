@@ -1,0 +1,291 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallPolicy",
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallPolicy",
+      "description": "Updated description"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallPolicy",
+      "description": null
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallRule",
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallRule",
+      "description": null
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallRule",
+      "matchingConditions": {
+        "destinations": null,
+        "sources": null
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallRule",
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/cloudFirewallPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallPolicy",
+      "description": "Managed by Terraform",
+      "name": "tf-api-probe-cfw-01a07bf8-cloud-firewall-policy",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallRule",
+      "action": "block",
+      "description": "Match example destination addresses",
+      "matchingConditions": {
+        "destinations": {
+          "addresses": [
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallDestinationIpAddress",
+              "values": [
+                "198.51.100.1",
+                "198.51.100.2"
+              ]
+            }
+          ],
+          "ports": [
+            "443"
+          ],
+          "protocols": "tcp,udp"
+        },
+        "sources": {
+          "addresses": [
+            {
+              "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallSourceIpAddress",
+              "values": [
+                "192.0.2.0/24"
+              ]
+            }
+          ],
+          "branchIds": [],
+          "ports": [
+            "1024-65535"
+          ]
+        }
+      },
+      "name": "tf-api-probe-cfw-01a07bf8-cloud-firewall-rule",
+      "priority": 100,
+      "settings": {
+        "status": "disabled"
+      }
+    }
+  }
+]

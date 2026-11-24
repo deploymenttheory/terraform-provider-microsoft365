@@ -1,0 +1,80 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.threatIntelligencePolicy",
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.threatIntelligencePolicy",
+      "description": null,
+      "name": "tf-api-probe-policy-updated"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/threatIntelligencePolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.threatIntelligencePolicy",
+      "description": "Initial description",
+      "name": "tf-api-probe-policy",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  }
+]

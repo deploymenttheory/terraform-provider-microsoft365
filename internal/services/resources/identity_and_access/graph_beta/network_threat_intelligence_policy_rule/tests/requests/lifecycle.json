@@ -1,0 +1,168 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.threatIntelligenceRule",
+      "description": "",
+      "matchingConditions": {
+        "destinations": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.threatIntelligenceFqdnDestination",
+            "values": [
+              "example.org",
+              "Example.COM"
+            ]
+          }
+        ],
+        "severity": "high"
+      },
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.threatIntelligenceRule",
+      "description": null,
+      "matchingConditions": {
+        "destinations": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.threatIntelligenceFqdnDestination",
+            "values": [
+              "example.org",
+              "Example.COM",
+              "example.org"
+            ]
+          }
+        ],
+        "severity": "high"
+      },
+      "priority": 65001,
+      "settings": {
+        "status": "disabled"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/threatIntelligencePolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.threatIntelligencePolicy",
+      "name": "tf-api-probe-parent",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/threatIntelligencePolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.threatIntelligenceRule",
+      "action": "allow",
+      "description": "Initial description",
+      "matchingConditions": {
+        "destinations": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.threatIntelligenceFqdnDestination",
+            "values": [
+              "Example.COM",
+              "example.org",
+              "Example.COM"
+            ]
+          }
+        ],
+        "severity": "high"
+      },
+      "name": "tf-api-probe-rule",
+      "priority": 1000,
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  }
+]

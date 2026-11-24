@@ -1,0 +1,87 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallPolicy",
+      "description": "Updated description"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/cloudFirewallPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallPolicy",
+      "description": null
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/cloudFirewallPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.cloudFirewallPolicy",
+      "description": "Managed by Terraform",
+      "name": "tf-api-probe-cfw-01a07bf8-cloud-firewall-policy",
+      "settings": {
+        "defaultAction": "allow"
+      }
+    }
+  }
+]

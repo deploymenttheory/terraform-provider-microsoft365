@@ -1,0 +1,192 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "DELETE",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionPolicy",
+      "description": ""
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionPolicy",
+      "description": null,
+      "name": "tf-api-probe-policy-updated",
+      "settings": {
+        "defaultAction": "bypass"
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionRule",
+      "action": "bypass",
+      "description": null,
+      "matchingConditions": {
+        "destinations": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionFqdnDestination",
+            "values": [
+              "example.net"
+            ]
+          },
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionWebCategoryDestination",
+            "values": [
+              "Finance",
+              "HealthAndMedicine"
+            ]
+          }
+        ]
+      },
+      "name": "tf-api-probe-rule-updated",
+      "priority": 65001,
+      "settings": {
+        "status": "disabled"
+      }
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules/{uuid-2}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionRule",
+      "description": ""
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/tlsInspectionPolicies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionPolicy",
+      "description": "Initial description",
+      "name": "tf-api-probe-policy",
+      "settings": {
+        "defaultAction": "inspect"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/networkAccess/tlsInspectionPolicies/{uuid-1}/policyRules",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionRule",
+      "action": "inspect",
+      "description": "Initial description",
+      "matchingConditions": {
+        "destinations": [
+          {
+            "@odata.type": "#microsoft.graph.networkaccess.tlsInspectionFqdnDestination",
+            "values": [
+              "*.example.org",
+              "example.com"
+            ]
+          }
+        ]
+      },
+      "name": "tf-api-probe-rule",
+      "priority": 1000,
+      "settings": {
+        "status": "enabled"
+      }
+    }
+  }
+]

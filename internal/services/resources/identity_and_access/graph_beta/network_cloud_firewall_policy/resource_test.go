@@ -24,6 +24,7 @@ func TestUnitResourceNetworkCloudFirewallPolicy_01_Lifecycle(t *testing.T) {
 	mocks.NewMocks().AuthMocks.RegisterMocks()
 	mock := &cloudMocks.CloudFirewallMock{}
 	mock.RegisterMocks()
+	capture := mocks.CaptureGraphRequests(t)
 	defer mock.CleanupMockState()
 	config, err := helpers.ParseHCLFile("tests/terraform/unit/resource.tf")
 	if err != nil {
@@ -52,4 +53,5 @@ func TestUnitResourceNetworkCloudFirewallPolicy_01_Lifecycle(t *testing.T) {
 		{ResourceName: resourceType + ".test", ImportState: true, ImportStateKind: resource.ImportBlockWithResourceIdentity, ImportPlanChecks: resource.ImportPlanChecks{PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(resourceType+".test", plancheck.ResourceActionNoop)}}},
 		{Config: noDescription, PlanOnly: true},
 	}})
+	capture.AssertMatchesFixture(t, "tests/requests/lifecycle.json")
 }
