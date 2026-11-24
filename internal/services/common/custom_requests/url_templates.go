@@ -32,6 +32,12 @@ func (d DeleteRequestConfig) GetResourceID() string        { return d.ResourceID
 func (d DeleteRequestConfig) GetEndpoint() string          { return d.Endpoint }
 func (d DeleteRequestConfig) GetEndpointSuffix() string    { return d.EndpointSuffix }
 
+// PutRequestConfig implements RequestUrlTemplateConfig interface
+func (p PutRequestConfig) GetResourceIDPattern() string { return p.ResourceIDPattern }
+func (p PutRequestConfig) GetResourceID() string        { return p.ResourceID }
+func (p PutRequestConfig) GetEndpoint() string          { return p.Endpoint }
+func (p PutRequestConfig) GetEndpointSuffix() string    { return p.EndpointSuffix }
+
 // Implement RequestUrlTemplateConfig interface for PatchRequestConfig
 func (p PatchRequestConfig) GetResourceIDPattern() string { return p.ResourceIDPattern }
 func (p PatchRequestConfig) GetResourceID() string        { return p.ResourceID }

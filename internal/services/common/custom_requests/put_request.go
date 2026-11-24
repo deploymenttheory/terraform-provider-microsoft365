@@ -24,6 +24,12 @@ type PutRequestConfig struct {
 	Endpoint string
 	// The ID of the resource
 	ResourceID string
+	// Optional resource ID syntax format (e.g. ResourceIDPatternSegment "/{id}"). When empty the ID is written as
+	// "('<id>')" and expanded (escaped) by Kiota, the original PUT form; any other pattern builds the URL with
+	// ByIDRequestUrlTemplate, exactly as PATCH and DELETE do.
+	ResourceIDPattern string
+	// Optional endpoint suffix appended after the ID (e.g. "/microsoft.graph.iosScepCertificateProfile/rootCertificate/$ref")
+	EndpointSuffix string
 	// The request body
 	RequestBody s.Parsable
 	// Optional raw JSON request body: a json.RawMessage or []byte sent as it is, or any value marshalled with
@@ -65,6 +71,8 @@ type PutResponse struct {
 //   - APIVersion: The Graph API version to use (Beta or V1.0)
 //   - Endpoint: The resource endpoint path (e.g., "deviceManagement/configurationPolicies")
 //   - ResourceID: The ID of the resource to update
+//   - ResourceIDPattern: Optional ID format; empty keeps "('<id>')"
+//   - EndpointSuffix: Optional suffix appended after the ID
 //   - RequestBody: The body of the PUT request implementing serialization.Parsable
 //
 // Returns:
@@ -81,7 +89,12 @@ type PutResponse struct {
 //	}
 //	err := PutRequestByResourceId(ctx, clients, config)
 func PutRequestByResourceId(ctx context.Context, adapter abstractions.RequestAdapter, config PutRequestConfig) error {
-	requestInfo := newGraphRequestInformation(adapter, abstractions.PUT, endpointUrlTemplate(config.Endpoint)+"('{id}')", config.APIVersion, config.QueryParameters, config.Headers)
+	urlTemplate := endpointUrlTemplate(config.Endpoint) + "('{id}')" + config.EndpointSuffix
+	if config.ResourceIDPattern != "" {
+		urlTemplate = ByIDRequestUrlTemplate(config)
+	}
+
+	requestInfo := newGraphRequestInformation(adapter, abstractions.PUT, urlTemplate, config.APIVersion, config.QueryParameters, config.Headers)
 	requestInfo.PathParameters["id"] = config.ResourceID
 	requestInfo.AddRequestOptions(config.RequestOptions)
 
