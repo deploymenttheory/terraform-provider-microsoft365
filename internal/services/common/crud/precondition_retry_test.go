@@ -181,10 +181,10 @@ func TestWriteWithPreconditionRetry_CustomCodes(t *testing.T) {
 	assert.Equal(t, 1, calls, "custom codes replace the defaults")
 }
 
-// The network policy rule packages map Graph errors to the beta SDK ODataError, from which
-// errors.GraphError reads the status code but not the OData error code. For those callers only
-// the 412 status triggers a retry, exactly as in their current wrappers.
-func TestWriteWithPreconditionRetry_BetaODataErrorMatchesOnStatusOnly(t *testing.T) {
+// The network policy rule packages map Graph errors to the beta SDK ODataError. errors.GraphError
+// reads both its status code and its OData error code, so either a 412 status or a
+// PreconditionFailed code triggers a retry, the same as for v1.0 errors.
+func TestWriteWithPreconditionRetry_BetaODataErrorMatchesOnStatusAndCode(t *testing.T) {
 	newBetaGraphError := func(statusCode int, code string) error {
 		message := "policy changed"
 		mainError := betaodataerrors.NewMainError()
@@ -210,5 +210,13 @@ func TestWriteWithPreconditionRetry_BetaODataErrorMatchesOnStatusOnly(t *testing
 		return newBetaGraphError(409, "PreconditionFailed")
 	}, fastPreconditionRetryOptions())
 	require.Error(t, err)
-	assert.Equal(t, 1, calls, "the beta OData error code is not visible to errors.GraphError")
+	assert.Equal(t, 4, calls, "the beta OData error code PreconditionFailed is retried")
+
+	calls = 0
+	err = WriteWithPreconditionRetry(context.Background(), func(ctx context.Context) error {
+		calls++
+		return newBetaGraphError(409, "Conflict")
+	}, fastPreconditionRetryOptions())
+	require.Error(t, err)
+	assert.Equal(t, 1, calls, "a beta error that matches neither the status nor the code is not retried")
 }
