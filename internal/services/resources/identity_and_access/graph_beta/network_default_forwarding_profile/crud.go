@@ -1,19 +1,46 @@
+// Package graphBetaNetworkDefaultForwardingProfile manages the built-in Global Secure Access forwarding profiles.
+//
+// SDK deviation: missing property
+//
+// Evidence:
+//   - SDK: github.com/microsoftgraph/msgraph-beta-sdk-go@v0.168.0, models/networkaccess.ForwardingProfile (through
+//     ForwardingProfileBase and Profile) has no clientFallbackAction, localNetworkSettings, forwardingSourceMatching or
+//     assignmentRules property, so the generated serializer cannot send them and the parser leaves them in additional data.
+//   - Learn: https://learn.microsoft.com/en-us/graph/api/resources/networkaccess-forwardingprofile?view=graph-rest-beta
+//     does not list these properties either; they are not in the beta $metadata.
+//   - Observed: the property shapes follow the Entra admin centre's forwarding profile v2 requests to
+//     /networkaccess/forwardingProfiles (see https://learn.microsoft.com/en-us/entra/global-secure-access/concept-traffic-forwarding).
+//     Checked by reading the SDK source on 2026-11-24; no live call, because the test tenant has no Global Secure Access
+//     licence. The list, GET and PATCH go through custom_requests in raw JSON mode with sharedmodels.ForwardingProfileWire.
+//     APIVersion is left empty so the requests use the beta client's own base URL, as the previous transport did.
+//
+// Removal condition: networkaccess.ForwardingProfile exposes clientFallbackAction, localNetworkSettings,
+// forwardingSourceMatching and assignmentRules.
 package graphBetaNetworkDefaultForwardingProfile
 
 import (
 	"context"
+	stderrors "errors"
+	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta/identity_and_access"
 )
+
+var (
+	errDefaultProfileNotFound = stderrors.New("default forwarding profile not found; the tenant must be onboarded to Global Secure Access and use traffic forwarding profiles v2")
+	errEmptyProfileResponse   = stderrors.New("graph returned an empty forwarding profile response")
+)
+
+// readbackPaths are the settings the read-back after a write waits for.
+var readbackPaths = crud.RootPaths("state", "client_fallback_action", "forwarding_source_matching", "local_network_settings", "assignment_rules")
 
 // Create handles the Create operation for network default forwarding profile resources.
 //
@@ -44,46 +71,63 @@ func (r *NetworkDefaultForwardingProfileResource) Create(
 	}
 	defer cancel()
 
-	remote, err := r.findDefault(ctx, plan.TrafficForwardingType.ValueString())
+	// The built-in profile's ID varies by tenant, so find it by traffic type.
+	var profiles struct {
+		Value []sharedmodels.ForwardingProfileWire `json:"value"`
+	}
+	getConfig := customrequests.GetRequestConfig{
+		Endpoint:          r.ResourcePath,
+		ResourceIDPattern: customrequests.ResourceIDPatternNone,
+		RawResponse:       &profiles,
+	}
+	_, err := customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig)
+	var remote *sharedmodels.ForwardingProfileWire
+	if err == nil {
+		err = fmt.Errorf("%w: %q", errDefaultProfileNotFound, plan.TrafficForwardingType.ValueString())
+		for i, p := range profiles.Value {
+			if p.TrafficForwardingType != nil && *p.TrafficForwardingType == plan.TrafficForwardingType.ValueString() && p.IsCustomProfile != nil && !*p.IsCustomProfile {
+				remote, err = &profiles.Value[i], nil
+				break
+			}
+		}
+	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.ReadPermissions)
 		return
 	}
 	var current NetworkDefaultForwardingProfileResourceModel
 	current.TrafficForwardingType = plan.TrafficForwardingType
-	resp.Diagnostics.Append(mapRemoteStateToTerraform(ctx, &current, remote)...)
+	resp.Diagnostics.Append(MapRemoteStateToTerraform(ctx, &current, remote)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	// Send only configured values that differ from the adopted profile.
-	body := map[string]any{}
-	prior := current.settings()
-	resp.Diagnostics.Append(sharedmodels.SettingsPatch(ctx, body, plan.settings(), &prior)...)
+	body, diags := constructResource(ctx, plan, current)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := r.patch(ctx, *remote.ID, body); err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationCreate,
-			r.WritePermissions,
-		)
-		return
+	if len(body) > 0 {
+		patchConfig := customrequests.PatchRequestConfig{
+			Endpoint:          r.ResourcePath,
+			ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+			ResourceID:        *remote.ID,
+			RawBody:           body,
+		}
+		if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+			return
+		}
 	}
 	plan.ID = types.StringPointerValue(remote.ID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := crud.ReadWithRetry(
-		ctx,
-		r.Read,
-		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
-		&crud.CreateResponseContainer{CreateResponse: resp},
-		readbackOptions(plan, constants.TfOperationCreate),
-	); err != nil {
+	predicate := crud.RequireStableReads(crud.AttributesMatchPredicate(req.Plan, crud.AttributeMatchOptions{Paths: readbackPaths}))
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(predicate))
+	readRequest := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	if err := crud.ReadWithRetry(ctx, r.Read, readRequest, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading default forwarding profile after initial apply",
 			err.Error(),
@@ -120,21 +164,45 @@ func (r *NetworkDefaultForwardingProfileResource) Read(
 	}
 	defer cancel()
 
-	var (
-		remote *sharedmodels.ForwardingProfileWire
-		err    error
-	)
+	var remote *sharedmodels.ForwardingProfileWire
+	var err error
 	if state.ID.IsNull() || state.ID.IsUnknown() {
-		// Imported by traffic type.
-		remote, err = r.findDefault(ctx, state.TrafficForwardingType.ValueString())
+		// Imported by traffic type: the built-in profile's ID varies by tenant.
+		var profiles struct {
+			Value []sharedmodels.ForwardingProfileWire `json:"value"`
+		}
+		getConfig := customrequests.GetRequestConfig{
+			Endpoint:          r.ResourcePath,
+			ResourceIDPattern: customrequests.ResourceIDPatternNone,
+			RawResponse:       &profiles,
+		}
+		_, err = customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig)
+		if err == nil {
+			err = fmt.Errorf("%w: %q", errDefaultProfileNotFound, state.TrafficForwardingType.ValueString())
+			for i, p := range profiles.Value {
+				if p.TrafficForwardingType != nil && *p.TrafficForwardingType == state.TrafficForwardingType.ValueString() && p.IsCustomProfile != nil && !*p.IsCustomProfile {
+					remote, err = &profiles.Value[i], nil
+					break
+				}
+			}
+		}
 	} else {
-		remote, err = r.get(ctx, state.ID.ValueString())
+		getConfig := customrequests.GetRequestConfig{
+			Endpoint:          r.ResourcePath,
+			ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+			ResourceID:        state.ID.ValueString(),
+			RawResponse:       &remote,
+		}
+		_, err = customrequests.GetRequestByResourceId(ctx, r.client.GetAdapter(), getConfig)
+		if err == nil && remote == nil {
+			err = errEmptyProfileResponse
+		}
 	}
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationRead, r.ReadPermissions)
 		return
 	}
-	resp.Diagnostics.Append(mapRemoteStateToTerraform(ctx, &state, remote)...)
+	resp.Diagnostics.Append(MapRemoteStateToTerraform(ctx, &state, remote)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -170,34 +238,32 @@ func (r *NetworkDefaultForwardingProfileResource) Update(
 	}
 	defer cancel()
 
-	body := map[string]any{}
-	prior := state.settings()
-	resp.Diagnostics.Append(sharedmodels.SettingsPatch(ctx, body, plan.settings(), &prior)...)
+	body, diags := constructResource(ctx, plan, state)
+	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := r.patch(ctx, state.ID.ValueString(), body); err != nil {
-		errors.HandleKiotaGraphError(
-			ctx,
-			err,
-			resp,
-			constants.TfOperationUpdate,
-			r.WritePermissions,
-		)
-		return
+	if len(body) > 0 {
+		patchConfig := customrequests.PatchRequestConfig{
+			Endpoint:          r.ResourcePath,
+			ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+			ResourceID:        state.ID.ValueString(),
+			RawBody:           body,
+		}
+		if err := customrequests.PatchRequestByResourceId(ctx, r.client.GetAdapter(), patchConfig); err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+			return
+		}
 	}
 	plan.ID = state.ID
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if err := crud.ReadWithRetry(
-		ctx,
-		r.Read,
-		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
-		&crud.UpdateResponseContainer{UpdateResponse: resp},
-		readbackOptions(plan, constants.TfOperationUpdate),
-	); err != nil {
+	predicate := crud.RequireStableReads(crud.AttributesMatchPredicate(req.Plan, crud.AttributeMatchOptions{Paths: readbackPaths}))
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(predicate))
+	readRequest := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
+	if err := crud.ReadWithRetry(ctx, r.Read, readRequest, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading default forwarding profile after update",
 			err.Error(),
@@ -218,31 +284,4 @@ func (r *NetworkDefaultForwardingProfileResource) Delete(
 	resp *resource.DeleteResponse,
 ) {
 	resp.State.RemoveResource(ctx)
-}
-
-// readbackOptions configures shared read retries to verify the preceding write.
-func readbackOptions(
-	plan NetworkDefaultForwardingProfileResourceModel,
-	operation string,
-) crud.ReadWithRetryOptions {
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = operation
-	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = crud.RequireStableReads(func(ctx context.Context, s tfsdk.State) bool {
-		var actual NetworkDefaultForwardingProfileResourceModel
-		if s.Get(ctx, &actual).HasError() {
-			return false
-		}
-		return matches(plan.State, actual.State) &&
-			matches(plan.ClientFallbackAction, actual.ClientFallbackAction) &&
-			matches(plan.ForwardingSourceMatching, actual.ForwardingSourceMatching) &&
-			matches(plan.LocalNetworkSettings, actual.LocalNetworkSettings) &&
-			matches(plan.AssignmentRules, actual.AssignmentRules)
-	})
-	return opts
-}
-
-// matches checks whether remote state matches the configured settings.
-func matches(planned, actual attr.Value) bool {
-	return planned.IsUnknown() || planned.Equal(actual)
 }

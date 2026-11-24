@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	abstractions "github.com/microsoft/kiota-abstractions-go"
 	"github.com/stretchr/testify/require"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
@@ -33,8 +32,8 @@ func TestAccResourceNetworkDefaultForwardingProfile_01_Lifecycle(t *testing.T) {
 	var profiles struct {
 		Value []map[string]any `json:"value"`
 	}
-	require.NoError(t, customrequests.JSONRequest(ctx, client.GetAdapter(), abstractions.GET,
-		"/networkaccess/forwardingProfiles", nil, nil, &profiles))
+	_, err = customrequests.GetRequestByResourceId(ctx, client.GetAdapter(), customrequests.GetRequestConfig{Endpoint: "/networkaccess/forwardingProfiles", RawResponse: &profiles})
+	require.NoError(t, err)
 	var original map[string]any
 	for _, p := range profiles.Value {
 		if p["trafficForwardingType"] == "private" && p["isCustomProfile"] == false {
@@ -50,18 +49,13 @@ func TestAccResourceNetworkDefaultForwardingProfile_01_Lifecycle(t *testing.T) {
 			"localNetworkSettings":     original["localNetworkSettings"],
 			"forwardingSourceMatching": original["forwardingSourceMatching"],
 		}
-		require.NoError(
-			t,
-			customrequests.JSONRequest(
-				restoreCtx,
-				client.GetAdapter(),
-				abstractions.PATCH,
-				"/networkaccess/forwardingProfiles/{id}",
-				map[string]string{"id": fmt.Sprint(original["id"])},
-				restore,
-				nil,
-			),
-		)
+		patchConfig := customrequests.PatchRequestConfig{
+			Endpoint:          "/networkaccess/forwardingProfiles",
+			ResourceIDPattern: customrequests.ResourceIDPatternSegment,
+			ResourceID:        fmt.Sprint(original["id"]),
+			RawBody:           restore,
+		}
+		require.NoError(t, customrequests.PatchRequestByResourceId(restoreCtx, client.GetAdapter(), patchConfig))
 	})
 
 	source, err := helpers.ParseHCLFile("tests/terraform/acceptance/resource.tf")
