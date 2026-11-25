@@ -1,0 +1,77 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "All"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser",
+          "mobileAppsAndDesktopClients"
+        ],
+        "platforms": {
+          "excludePlatforms": [],
+          "includePlatforms": [
+            "macOS",
+            "windows"
+          ]
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-1}",
+            "{uuid-2}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [
+            "{uuid-3}"
+          ],
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAD015-All: Grant access for All users when Browser and Modern Auth Clients and Compliant on Windows and macOS-v1.0",
+      "grantControls": {
+        "builtInControls": [
+          "compliantDevice",
+          "domainJoinedDevice"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

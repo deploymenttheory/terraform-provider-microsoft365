@@ -1,0 +1,76 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "Office365"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser"
+        ],
+        "devices": {
+          "deviceFilter": {
+            "mode": "exclude",
+            "rule": "device.isCompliant -eq True -or device.trustType -eq \"ServerAD\""
+          }
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-1}",
+            "{uuid-2}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "includeRoles": [],
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "displayName": "CAD004-O365: Grant Require MFA for All users when Browser and Non-Compliant-v1.3",
+      "grantControls": {
+        "authenticationStrength": {
+          "@odata.type": "#microsoft.graph.authenticationStrengthPolicy",
+          "id": "{uuid-3}"
+        },
+        "builtInControls": [],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

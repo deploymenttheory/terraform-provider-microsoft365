@@ -317,6 +317,18 @@ func GraphToFrameworkEnumSlice[T fmt.Stringer](value []T) []types.String {
 	return result
 }
 
+// GraphToFrameworkEnumSetPreserveEmpty converts a Graph SDK enum slice to a Terraform Framework set of strings,
+// using each value's String method. A nil or empty slice becomes an empty set rather than null, for set attributes
+// whose schema default is an empty set.
+func GraphToFrameworkEnumSetPreserveEmpty[T fmt.Stringer](value []T) types.Set {
+	elements := make([]attr.Value, len(value))
+	for i, v := range value {
+		elements[i] = types.StringValue(v.String())
+	}
+
+	return types.SetValueMust(types.StringType, elements)
+}
+
 // GraphToFrameworkEnumPtrSlice converts a Graph SDK enum pointer slice to a slice of Terraform Framework strings.
 // Uses the String() method of the enum type to convert each value to a string.
 // Returns types.StringNull() for nil pointers in the slice.

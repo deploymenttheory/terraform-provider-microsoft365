@@ -1,0 +1,73 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "{uuid-1}"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser",
+          "mobileAppsAndDesktopClients"
+        ],
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-2}",
+            "{uuid-3}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "includeGuestsOrExternalUsers": {
+            "externalTenants": {
+              "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants"
+            },
+            "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider"
+          },
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU003-Selected: Block unapproved apps for guests when Browser and Modern Auth Clients-v1.0",
+      "grantControls": {
+        "builtInControls": [
+          "block"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

@@ -11,8 +11,12 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteResourceStateToTerraform maps the remote conditional access policy from Kiota SDK to Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data ConditionalAccessPolicyResourceModel, remoteResource graphmodels.ConditionalAccessPolicyable) ConditionalAccessPolicyResourceModel {
+// MapRemoteStateToTerraform maps the remote conditional access policy from Kiota SDK to Terraform state
+func MapRemoteStateToTerraform(
+	ctx context.Context,
+	data ConditionalAccessPolicyResourceModel,
+	remoteResource graphmodels.ConditionalAccessPolicyable,
+) ConditionalAccessPolicyResourceModel {
 	if remoteResource == nil {
 		tflog.Debug(ctx, "Remote resource is nil")
 		return data
@@ -61,20 +65,15 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data ConditionalAcce
 		data.Conditions = nil
 	}
 
-	// Map grant controls
-	if grantControls := remoteResource.GetGrantControls(); grantControls != nil {
+	// Map grant controls. Graph stores a grant with no control as null, so both read back as no block.
+	grantControls := remoteResource.GetGrantControls()
+	if grantControls != nil && (len(grantControls.GetBuiltInControls()) > 0 || len(grantControls.GetCustomAuthenticationFactors()) > 0 ||
+		len(grantControls.GetTermsOfUse()) > 0 || grantControls.GetAuthenticationStrength() != nil) {
 		tflog.Debug(ctx, "Mapping grantControls")
 		data.GrantControls = mapGrantControls(ctx, grantControls)
-	} else if data.GrantControls != nil {
-		tflog.Debug(ctx, "grantControls null, keeping an empty grant controls object to match the configured block")
-		// Graph returns null for an empty grant_controls block, so keep the configured empty object.
-		data.GrantControls = &ConditionalAccessGrantControls{
-			Operator:                    data.GrantControls.Operator,
-			BuiltInControls:             types.SetValueMust(types.StringType, []attr.Value{}),
-			CustomAuthenticationFactors: types.SetValueMust(types.StringType, []attr.Value{}),
-			TermsOfUse:                  types.SetValueMust(types.StringType, []attr.Value{}),
-			AuthenticationStrength:      nil,
-		}
+	} else {
+		tflog.Debug(ctx, "grantControls null or without controls")
+		data.GrantControls = nil
 	}
 
 	// Map session controls
@@ -93,12 +92,12 @@ func MapRemoteResourceStateToTerraform(ctx context.Context, data ConditionalAcce
 func stateConditions(ctx context.Context, conditions graphmodels.ConditionalAccessConditionSetable) *ConditionalAccessConditions {
 	result := &ConditionalAccessConditions{}
 
-	result.ClientAppTypes = mapEnumCollectionToSet(ctx, conditions.GetClientAppTypes(), "clientAppTypes")
-	result.SignInRiskLevels = mapEnumCollectionToSet(ctx, conditions.GetSignInRiskLevels(), "signInRiskLevels")
+	result.ClientAppTypes = convert.GraphToFrameworkEnumSetPreserveEmpty(conditions.GetClientAppTypes())
+	result.SignInRiskLevels = convert.GraphToFrameworkEnumSetPreserveEmpty(conditions.GetSignInRiskLevels())
 	// UserRiskLevels: Preserve empty arrays to match Terraform config
-	result.UserRiskLevels = mapEnumCollectionToSet(ctx, conditions.GetUserRiskLevels(), "userRiskLevels")
+	result.UserRiskLevels = convert.GraphToFrameworkEnumSetPreserveEmpty(conditions.GetUserRiskLevels())
 	// ServicePrincipalRiskLevels: Preserve empty arrays to match Terraform config
-	result.ServicePrincipalRiskLevels = mapEnumCollectionToSet(ctx, conditions.GetServicePrincipalRiskLevels(), "servicePrincipalRiskLevels")
+	result.ServicePrincipalRiskLevels = convert.GraphToFrameworkEnumSetPreserveEmpty(conditions.GetServicePrincipalRiskLevels())
 	// AgentIdRiskLevels: Bitmask enum, will be empty set if not present
 	if agentRiskEnum := conditions.GetAgentIdRiskLevels(); agentRiskEnum != nil {
 		result.AgentIdRiskLevels = convert.GraphToFrameworkBitmaskEnumAsSet(ctx, agentRiskEnum)
@@ -216,8 +215,8 @@ func stateLocations(ctx context.Context, locations graphmodels.ConditionalAccess
 func statePlatforms(ctx context.Context, platforms graphmodels.ConditionalAccessPlatformsable) *ConditionalAccessPlatforms {
 	result := &ConditionalAccessPlatforms{}
 
-	result.IncludePlatforms = mapEnumCollectionToSet(ctx, platforms.GetIncludePlatforms(), "includePlatforms")
-	result.ExcludePlatforms = mapEnumCollectionToSet(ctx, platforms.GetExcludePlatforms(), "excludePlatforms")
+	result.IncludePlatforms = convert.GraphToFrameworkEnumSetPreserveEmpty(platforms.GetIncludePlatforms())
+	result.ExcludePlatforms = convert.GraphToFrameworkEnumSetPreserveEmpty(platforms.GetExcludePlatforms())
 
 	return result
 }
@@ -399,9 +398,9 @@ func mapGrantControls(ctx context.Context, grantControls graphmodels.Conditional
 	result := &ConditionalAccessGrantControls{}
 
 	result.Operator = convert.GraphToFrameworkString(grantControls.GetOperator())
-	result.BuiltInControls = mapEnumCollectionToSet(ctx, grantControls.GetBuiltInControls(), "builtInControls")
-	result.CustomAuthenticationFactors = mapStringSliceToSetPreserveEmpty(ctx, grantControls.GetCustomAuthenticationFactors())
-	result.TermsOfUse = mapStringSliceToSetPreserveEmpty(ctx, grantControls.GetTermsOfUse())
+	result.BuiltInControls = convert.GraphToFrameworkEnumSetPreserveEmpty(grantControls.GetBuiltInControls())
+	result.CustomAuthenticationFactors = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, grantControls.GetCustomAuthenticationFactors())
+	result.TermsOfUse = convert.GraphToFrameworkStringSetPreserveEmpty(ctx, grantControls.GetTermsOfUse())
 
 	if authenticationStrength := grantControls.GetAuthenticationStrength(); authenticationStrength != nil {
 		result.AuthenticationStrength = mapAuthenticationStrength(ctx, authenticationStrength)
@@ -540,7 +539,7 @@ func mapAuthenticationStrength(ctx context.Context, authenticationStrength graph
 	result.Description = convert.GraphToFrameworkString(authenticationStrength.GetDescription())
 	result.PolicyType = convert.GraphToFrameworkEnum(authenticationStrength.GetPolicyType())
 	result.RequirementsSatisfied = convert.GraphToFrameworkEnum(authenticationStrength.GetRequirementsSatisfied())
-	result.AllowedCombinations = mapEnumCollectionToSet(ctx, authenticationStrength.GetAllowedCombinations(), "allowedCombinations")
+	result.AllowedCombinations = convert.GraphToFrameworkEnumSetPreserveEmpty(authenticationStrength.GetAllowedCombinations())
 
 	return result
 }

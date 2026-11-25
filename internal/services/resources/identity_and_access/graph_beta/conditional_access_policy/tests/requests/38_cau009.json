@@ -1,0 +1,70 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "{uuid-1}",
+            "MicrosoftAdminPortals"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser",
+          "mobileAppsAndDesktopClients"
+        ],
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-2}",
+            "{uuid-3}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "includeRoles": [],
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "displayName": "CAU009-Management: Grant Require MFA for Admin Portals for All Users when Browser and Modern Auth Clients-v1.2",
+      "grantControls": {
+        "builtInControls": [
+          "mfa"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

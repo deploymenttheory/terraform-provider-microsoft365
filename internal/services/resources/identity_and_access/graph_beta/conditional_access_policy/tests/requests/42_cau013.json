@@ -1,0 +1,73 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-6}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-6}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-6}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-6}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [
+            "{uuid-1}"
+          ],
+          "includeApplications": [
+            "All"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser",
+          "mobileAppsAndDesktopClients"
+        ],
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-2}",
+            "{uuid-3}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [
+            "{uuid-4}"
+          ],
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU013-All: Grant Require phishing resistant MFA for All users when Browser and Modern Auth Clients-v1.0",
+      "grantControls": {
+        "authenticationStrength": {
+          "@odata.type": "#microsoft.graph.authenticationStrengthPolicy",
+          "id": "{uuid-5}"
+        },
+        "builtInControls": [],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

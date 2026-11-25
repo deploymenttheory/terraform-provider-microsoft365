@@ -1,0 +1,69 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-4}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "All"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser",
+          "mobileAppsAndDesktopClients"
+        ],
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-1}",
+            "{uuid-2}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "includeRoles": [],
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "displayName": "CAU010-All: Grant Require ToU for All Users when Browser and Modern Auth Clients-v1.2",
+      "grantControls": {
+        "builtInControls": [],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": [
+          "{uuid-3}"
+        ]
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

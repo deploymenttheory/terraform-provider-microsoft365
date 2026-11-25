@@ -123,6 +123,24 @@ func TestGraphToFrameworkEnumSlice(t *testing.T) {
 	assert.Equal(t, expected, result, "Should convert slice of enums to slice of types.String")
 }
 
+func TestGraphToFrameworkEnumSetPreserveEmpty(t *testing.T) {
+	// Case: Nil input slice
+	var nilInput []mockEnum
+	result := GraphToFrameworkEnumSetPreserveEmpty(nilInput)
+	assert.False(t, result.IsNull(), "Should return an empty set, not null, for nil input")
+	assert.Equal(t, 0, len(result.Elements()), "Should return an empty set for nil input")
+
+	// Case: Empty input slice
+	result = GraphToFrameworkEnumSetPreserveEmpty([]mockEnum{})
+	assert.False(t, result.IsNull(), "Should return an empty set, not null, for empty input")
+	assert.Equal(t, 0, len(result.Elements()), "Should return an empty set for empty input")
+
+	// Case: Non-empty input slice
+	result = GraphToFrameworkEnumSetPreserveEmpty([]mockEnum{"one", "two"})
+	expected := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("one"), types.StringValue("two")})
+	assert.True(t, expected.Equal(result), "Should convert enums to a set of their String values")
+}
+
 func TestGraphToFrameworkBool(t *testing.T) {
 	// Case: Nil bool pointer
 	var nilInput *bool

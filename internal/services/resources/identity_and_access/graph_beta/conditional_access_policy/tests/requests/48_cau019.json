@@ -1,0 +1,84 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-12}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-12}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-12}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-12}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [
+            "{uuid-1}",
+            "{uuid-2}",
+            "{uuid-3}",
+            "{uuid-4}",
+            "{uuid-5}",
+            "{uuid-6}",
+            "{uuid-7}",
+            "{uuid-8}",
+            "Office365",
+            "{uuid-9}"
+          ],
+          "includeApplications": [
+            "All"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser",
+          "mobileAppsAndDesktopClients"
+        ],
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-10}",
+            "{uuid-11}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "includeGuestsOrExternalUsers": {
+            "externalTenants": {
+              "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants"
+            },
+            "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser"
+          },
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU019-Selected: Only allow approved apps for guests when Browser and Modern Auth Clients-v1.0",
+      "grantControls": {
+        "builtInControls": [
+          "block"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

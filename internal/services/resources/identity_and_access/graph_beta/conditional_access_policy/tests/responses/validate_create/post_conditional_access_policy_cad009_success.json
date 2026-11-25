@@ -41,14 +41,7 @@
       }
     }
   },
-  "grantControls": {
-    "@odata.type": "#microsoft.graph.conditionalAccessGrantControls",
-    "operator": "OR",
-    "builtInControls": [],
-    "customAuthenticationFactors": [],
-    "termsOfUse": [],
-    "authenticationStrength": null
-  },
+  "grantControls": null,
   "sessionControls": {
     "@odata.type": "#microsoft.graph.conditionalAccessSessionControls",
     "persistentBrowser": {

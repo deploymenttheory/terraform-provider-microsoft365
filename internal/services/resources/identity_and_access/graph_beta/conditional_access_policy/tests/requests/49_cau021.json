@@ -1,0 +1,361 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "{uuid-1}"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "platforms": {
+          "excludePlatforms": [],
+          "includePlatforms": [
+            "windows"
+          ]
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-2}",
+            "{uuid-3}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [
+            "{uuid-4}"
+          ],
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU021-Selected: Session require sign-in every time strict for Private Access apps-v1.0",
+      "grantControls": null,
+      "sessionControls": {
+        "signInFrequency": {
+          "@odata.type": "#microsoft.graph.signInFrequencySessionControl",
+          "authenticationType": "primaryAndSecondaryAuthentication",
+          "frequencyInterval": "everyTimeStrict",
+          "isEnabled": true
+        }
+      },
+      "state": "disabled"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "{uuid-1}"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "platforms": {
+          "excludePlatforms": [],
+          "includePlatforms": [
+            "windows"
+          ]
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-2}",
+            "{uuid-3}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [
+            "{uuid-4}"
+          ],
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU021-Selected: Session require sign-in every time strict for Private Access apps-v1.0",
+      "grantControls": {
+        "builtInControls": [
+          "compliantDevice",
+          "mfa"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "AND",
+        "termsOfUse": []
+      },
+      "sessionControls": {
+        "signInFrequency": {
+          "@odata.type": "#microsoft.graph.signInFrequencySessionControl",
+          "authenticationType": "primaryAndSecondaryAuthentication",
+          "frequencyInterval": "everyTime",
+          "isEnabled": true
+        }
+      },
+      "state": "disabled"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "{uuid-1}"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "platforms": {
+          "excludePlatforms": [],
+          "includePlatforms": [
+            "windows"
+          ]
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-2}",
+            "{uuid-3}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [
+            "{uuid-4}"
+          ],
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU021-Selected: Session require sign-in every time strict for Private Access apps-v1.0",
+      "grantControls": {
+        "builtInControls": [
+          "mfa"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "disabled"
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-5}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "{uuid-1}"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "platforms": {
+          "excludePlatforms": [],
+          "includePlatforms": [
+            "windows"
+          ]
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-2}",
+            "{uuid-3}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [
+            "{uuid-4}"
+          ],
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU021-Selected: Session require sign-in every time strict for Private Access apps-v1.0",
+      "grantControls": {
+        "builtInControls": [
+          "mfa"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": {
+        "signInFrequency": {
+          "@odata.type": "#microsoft.graph.signInFrequencySessionControl",
+          "authenticationType": "primaryAndSecondaryAuthentication",
+          "frequencyInterval": "everyTimeStrict",
+          "isEnabled": true
+        }
+      },
+      "state": "disabled"
+    }
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "{uuid-1}"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "all"
+        ],
+        "platforms": {
+          "excludePlatforms": [],
+          "includePlatforms": [
+            "windows"
+          ]
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-2}",
+            "{uuid-3}"
+          ],
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [
+            "{uuid-4}"
+          ],
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU021-Selected: Session require sign-in every time strict for Private Access apps-v1.0",
+      "grantControls": null,
+      "sessionControls": {
+        "signInFrequency": {
+          "@odata.type": "#microsoft.graph.signInFrequencySessionControl",
+          "authenticationType": "primaryAndSecondaryAuthentication",
+          "frequencyInterval": "everyTimeStrict",
+          "isEnabled": true
+        }
+      },
+      "state": "disabled"
+    }
+  }
+]

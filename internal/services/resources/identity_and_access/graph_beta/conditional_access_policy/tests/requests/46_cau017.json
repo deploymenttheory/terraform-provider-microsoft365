@@ -1,0 +1,105 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-29}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-29}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-29}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-29}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/roleManagement/directory/roleDefinitions"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "All"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser"
+        ],
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-1}",
+            "{uuid-2}"
+          ],
+          "excludeGuestsOrExternalUsers": {
+            "externalTenants": {
+              "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants"
+            },
+            "guestOrExternalUserTypes": "serviceProvider"
+          },
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "includeRoles": [
+            "{uuid-3}",
+            "{uuid-4}",
+            "{uuid-5}",
+            "{uuid-6}",
+            "{uuid-7}",
+            "{uuid-8}",
+            "{uuid-9}",
+            "{uuid-10}",
+            "{uuid-11}",
+            "{uuid-12}",
+            "{uuid-13}",
+            "{uuid-14}",
+            "{uuid-15}",
+            "{uuid-16}",
+            "{uuid-17}",
+            "{uuid-18}",
+            "{uuid-19}",
+            "{uuid-20}",
+            "{uuid-21}",
+            "{uuid-22}",
+            "{uuid-23}",
+            "{uuid-24}",
+            "{uuid-25}",
+            "{uuid-26}",
+            "{uuid-27}",
+            "{uuid-28}"
+          ],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAU017-All: Session set Sign-in Frequency for Admins when Browser-v1.0",
+      "grantControls": null,
+      "sessionControls": {
+        "signInFrequency": {
+          "@odata.type": "#microsoft.graph.signInFrequencySessionControl",
+          "authenticationType": "primaryAndSecondaryAuthentication",
+          "frequencyInterval": "timeBased",
+          "isEnabled": true,
+          "type": "hours",
+          "value": 10
+        }
+      },
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

@@ -1,0 +1,105 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-27}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-27}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-27}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-27}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/roleManagement/directory/roleDefinitions"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "All"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "browser",
+          "mobileAppsAndDesktopClients"
+        ],
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-1}",
+            "{uuid-2}"
+          ],
+          "excludeGuestsOrExternalUsers": {
+            "externalTenants": {
+              "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants"
+            },
+            "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider"
+          },
+          "excludeRoles": [
+            "{uuid-3}",
+            "{uuid-4}",
+            "{uuid-5}",
+            "{uuid-6}",
+            "{uuid-7}",
+            "{uuid-8}",
+            "{uuid-9}",
+            "{uuid-10}",
+            "{uuid-11}",
+            "{uuid-12}",
+            "{uuid-13}",
+            "{uuid-14}",
+            "{uuid-15}",
+            "{uuid-16}",
+            "{uuid-17}",
+            "{uuid-18}",
+            "{uuid-19}",
+            "{uuid-20}",
+            "{uuid-21}",
+            "{uuid-22}",
+            "{uuid-23}",
+            "{uuid-24}",
+            "{uuid-25}"
+          ],
+          "excludeUsers": [],
+          "includeGroups": [],
+          "includeRoles": [],
+          "includeUsers": [
+            "All"
+          ]
+        }
+      },
+      "displayName": "CAU002-All: Grant Require MFA for All users when Browser and Modern Auth Clients-v1.5",
+      "grantControls": {
+        "authenticationStrength": {
+          "@odata.type": "#microsoft.graph.authenticationStrengthPolicy",
+          "id": "{uuid-26}"
+        },
+        "builtInControls": [],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]

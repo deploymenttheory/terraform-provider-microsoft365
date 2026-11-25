@@ -1,0 +1,84 @@
+[
+  {
+    "method": "DELETE",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-9}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-9}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-9}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/identity/conditionalAccess/policies/{uuid-9}"
+  },
+  {
+    "method": "POST",
+    "url": "/beta/identity/conditionalAccess/policies",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.conditionalAccessPolicy",
+      "conditions": {
+        "applications": {
+          "excludeApplications": [],
+          "includeApplications": [
+            "{uuid-1}",
+            "{uuid-2}",
+            "{uuid-3}",
+            "{uuid-4}",
+            "{uuid-5}"
+          ],
+          "includeAuthenticationContextClassReferences": [],
+          "includeUserActions": []
+        },
+        "clientAppTypes": [
+          "mobileAppsAndDesktopClients"
+        ],
+        "platforms": {
+          "excludePlatforms": [],
+          "includePlatforms": [
+            "windows"
+          ]
+        },
+        "servicePrincipalRiskLevels": [],
+        "signInRiskLevels": [],
+        "userRiskLevels": [],
+        "users": {
+          "excludeGroups": [
+            "{uuid-6}",
+            "{uuid-7}"
+          ],
+          "excludeGuestsOrExternalUsers": {
+            "externalTenants": {
+              "@odata.type": "#microsoft.graph.conditionalAccessAllExternalTenants"
+            },
+            "guestOrExternalUserTypes": "internalGuest,b2bCollaborationGuest,b2bCollaborationMember,b2bDirectConnectUser,otherExternalUser,serviceProvider"
+          },
+          "excludeRoles": [],
+          "excludeUsers": [],
+          "includeGroups": [
+            "{uuid-8}"
+          ],
+          "includeRoles": [],
+          "includeUsers": []
+        }
+      },
+      "displayName": "CAD016-EXO_SPO_CloudPC: Require token protection when Modern Auth Clients on Windows-v1.2",
+      "grantControls": {
+        "builtInControls": [
+          "block"
+        ],
+        "customAuthenticationFactors": [],
+        "operator": "OR",
+        "termsOfUse": []
+      },
+      "sessionControls": null,
+      "state": "enabledForReportingButNotEnforced"
+    }
+  }
+]
