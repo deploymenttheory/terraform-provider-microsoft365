@@ -93,7 +93,7 @@ func (r *ApplicationOwnerResource) Create(ctx context.Context, req resource.Crea
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = applicationOwnerConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

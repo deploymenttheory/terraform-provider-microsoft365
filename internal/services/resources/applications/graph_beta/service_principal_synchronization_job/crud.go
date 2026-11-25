@@ -68,7 +68,7 @@ func (r *ServicePrincipalSynchronizationJobResource) Create(ctx context.Context,
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = jobConsistencyPredicate(&data)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,
@@ -168,7 +168,7 @@ func (r *ServicePrincipalSynchronizationJobResource) Update(ctx context.Context,
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = jobConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,

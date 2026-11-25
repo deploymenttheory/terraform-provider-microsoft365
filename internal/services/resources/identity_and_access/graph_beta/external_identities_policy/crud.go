@@ -88,7 +88,7 @@ func (r *ExternalIdentitiesPolicyResource) Create(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = stableConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if deadline, ok := ctx.Deadline(); ok {
 		opts.MaxRetries = int(time.Until(deadline) / opts.RetryInterval)
 	}
@@ -227,7 +227,7 @@ func (r *ExternalIdentitiesPolicyResource) Update(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = stableConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if deadline, ok := ctx.Deadline(); ok {
 		opts.MaxRetries = int(time.Until(deadline) / opts.RetryInterval)
 	}

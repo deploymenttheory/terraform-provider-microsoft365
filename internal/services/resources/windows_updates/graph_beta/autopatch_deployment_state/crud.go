@@ -77,7 +77,7 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Create(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = autopatchDeploymentStateConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -210,7 +210,7 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Update(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = autopatchDeploymentStateConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

@@ -61,7 +61,7 @@ func (r *AdminConsentRequestPolicyResource) Create(ctx context.Context, req reso
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = policyConsistencyPredicate(&data)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,
@@ -163,7 +163,7 @@ func (r *AdminConsentRequestPolicyResource) Update(ctx context.Context, req reso
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = policyConsistencyPredicate(&data)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,

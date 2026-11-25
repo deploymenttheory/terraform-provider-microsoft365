@@ -82,7 +82,7 @@ func (r *OAuth2PermissionGrantResource) Create(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = grantConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.RequireConsecutiveReads(5, crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if err = crud.ReadWithRetry(ctx, r.Read, readReq, container, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading delegated permission grant after create", err.Error())
 	}
@@ -206,7 +206,7 @@ func (r *OAuth2PermissionGrantResource) Update(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = grantConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.RequireConsecutiveReads(5, crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if err = crud.ReadWithRetry(ctx, r.Read, readReq, container, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading delegated permission grant after update", err.Error())
 	}

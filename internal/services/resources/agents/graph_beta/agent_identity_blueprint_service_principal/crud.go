@@ -73,7 +73,7 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Create(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = agentIdentityBlueprintServicePrincipalConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -206,7 +206,7 @@ func (r *AgentIdentityBlueprintServicePrincipalResource) Update(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = agentIdentityBlueprintServicePrincipalConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

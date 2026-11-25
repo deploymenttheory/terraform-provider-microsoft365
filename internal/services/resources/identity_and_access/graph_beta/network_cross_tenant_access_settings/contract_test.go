@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -169,7 +170,7 @@ func TestUnitResourceNetworkCrossTenantAccessSettings_15_ImportID(t *testing.T) 
 func TestUnitResourceNetworkCrossTenantAccessSettings_16_Consistency(t *testing.T) {
 	r := NewNetworkCrossTenantAccessSettingsResource().(*NetworkCrossTenantAccessSettingsResource)
 	expected := testModel()
-	predicate := consistencyPredicate(&expected)
+	predicate := crud.AttributesMatchPredicate(testState(t, r, expected), readbackMatch)
 	require.True(t, predicate(context.Background(), testState(t, r, expected)))
 	stale := testModel()
 	stale.NetworkPacketTaggingStatus = types.StringValue("enabled")

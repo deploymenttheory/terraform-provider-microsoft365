@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
@@ -73,13 +72,7 @@ func (r *DirectoryRoleAssignmentResource) Create(ctx context.Context, req resour
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
-		var actual DirectoryRoleAssignmentResourceModel
-		if state.Get(ctx, &actual).HasError() {
-			return false
-		}
-		return actual.PrincipalID.Equal(data.PrincipalID) && actual.RoleDefinitionID.Equal(data.RoleDefinitionID) && actual.DirectoryScopeID.ValueString() == "/"
-	}
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,

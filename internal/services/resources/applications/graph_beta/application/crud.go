@@ -17,9 +17,16 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// readbackAttributes are the attributes readbackMatch compares.
+var readbackAttributes = []string{
+	"display_name", "description", "sign_in_audience", "notes", "is_device_only_auth_supported", "is_fallback_public_client",
+	"service_management_reference", "tags", "group_membership_claims", "owner_user_ids", "api", "app_roles", "info", "optional_claims",
+	"parental_control_settings", "public_client", "required_resource_access", "spa", "web", "sign_in_audience_restrictions",
+}
+
 // readbackMatch is what the read-back after a write waits for: a populated id and app id, and the written fields. Elements of the listed sets must match exactly, nulls included.
 var readbackMatch = crud.AttributeMatchOptions{
-	Paths:              crud.RootPaths("display_name", "description", "sign_in_audience", "notes", "is_device_only_auth_supported", "is_fallback_public_client", "service_management_reference", "tags", "group_membership_claims", "owner_user_ids", "api", "app_roles", "info", "optional_claims", "parental_control_settings", "public_client", "required_resource_access", "spa", "web", "sign_in_audience_restrictions"),
+	Paths:              crud.RootPaths(readbackAttributes...),
 	RequireKnown:       crud.RootPaths("id", "app_id"),
 	IgnoreNullExpected: true,
 	Overrides: []crud.AttributeMatchOverride{
@@ -87,7 +94,7 @@ func (r *ApplicationResource) Create(ctx context.Context, req resource.CreateReq
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = applicationConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -337,7 +344,7 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = applicationConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

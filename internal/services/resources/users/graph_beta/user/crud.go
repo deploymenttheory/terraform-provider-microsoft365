@@ -17,9 +17,17 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
+// readbackAttributes are the attributes readbackMatch compares.
+var readbackAttributes = []string{
+	"display_name", "account_enabled", "age_group", "business_phones", "city", "company_name", "consent_provided_for_minor", "country", "department",
+	"employee_hire_date", "employee_id", "employee_type", "fax_number", "given_name", "job_title", "mail_nickname", "manager_id", "mobile_phone",
+	"office_location", "on_premises_immutable_id", "other_mails", "password_policies", "postal_code", "preferred_data_location", "preferred_language",
+	"preferred_name", "show_in_address_list", "state", "street_address", "surname", "usage_location", "user_principal_name", "user_type",
+}
+
 // readbackMatch is what the read-back after Update waits for: a populated id and user principal name, and the written fields.
 var readbackMatch = crud.AttributeMatchOptions{
-	Paths:              crud.RootPaths("display_name", "account_enabled", "age_group", "business_phones", "city", "company_name", "consent_provided_for_minor", "country", "department", "employee_hire_date", "employee_id", "employee_type", "fax_number", "given_name", "job_title", "mail_nickname", "manager_id", "mobile_phone", "office_location", "on_premises_immutable_id", "other_mails", "password_policies", "postal_code", "preferred_data_location", "preferred_language", "preferred_name", "show_in_address_list", "state", "street_address", "surname", "usage_location", "user_principal_name", "user_type"),
+	Paths:              crud.RootPaths(readbackAttributes...),
 	RequireKnown:       crud.RootPaths("id", "user_principal_name"),
 	IgnoreNullExpected: true,
 }
@@ -260,7 +268,7 @@ func (r *UserResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = userConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(req.Plan, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

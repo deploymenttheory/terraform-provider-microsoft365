@@ -9,6 +9,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
@@ -104,7 +105,11 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = agentIdentityBlueprintIdentifierUriConsistencyPredicate(&object)
+	match := readbackMatch
+	if object.Scope != nil {
+		match.RequireKnown = []path.Path{path.Root("scope").AtName("id")}
+	}
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, match)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

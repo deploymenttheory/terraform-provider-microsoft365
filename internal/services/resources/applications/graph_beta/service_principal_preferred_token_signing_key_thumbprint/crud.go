@@ -62,7 +62,7 @@ func (r *ServicePrincipalPreferredTokenSigningKeyThumbprintResource) Create(ctx 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = preferredTokenSigningKeyThumbprintConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -187,7 +187,7 @@ func (r *ServicePrincipalPreferredTokenSigningKeyThumbprintResource) Update(ctx 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = preferredTokenSigningKeyThumbprintConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

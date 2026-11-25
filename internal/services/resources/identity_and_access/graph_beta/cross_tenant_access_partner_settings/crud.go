@@ -12,9 +12,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackAttributes are the attributes readbackMatch compares.
+var readbackAttributes = []string{
+	"tenant_id", "b2b_collaboration_inbound", "b2b_collaboration_outbound", "b2b_direct_connect_inbound", "b2b_direct_connect_outbound", "inbound_trust",
+	"automatic_user_consent_settings", "tenant_restrictions",
+}
+
 // readbackMatch is what the read-back after a write waits for: a populated id, the partner tenant and the written settings. With enforce_default_inheritance, an unset setting must read back null.
 var readbackMatch = crud.AttributeMatchOptions{
-	Paths:        crud.RootPaths("tenant_id", "b2b_collaboration_inbound", "b2b_collaboration_outbound", "b2b_direct_connect_inbound", "b2b_direct_connect_outbound", "inbound_trust", "automatic_user_consent_settings", "tenant_restrictions"),
+	Paths:        crud.RootPaths(readbackAttributes...),
 	RequireKnown: crud.RootPaths("id"),
 }
 
@@ -82,7 +88,10 @@ func (r *CrossTenantAccessPartnerSettingsResource) Create(ctx context.Context, r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = crossTenantAccessPartnerSettingsConsistencyPredicate(&object)
+	// Without enforce_default_inheritance an unset setting keeps its remote value.
+	match := readbackMatch
+	match.IgnoreNullExpected = !object.EnforceDefaultInheritance.ValueBool()
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, match)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -216,7 +225,10 @@ func (r *CrossTenantAccessPartnerSettingsResource) Update(ctx context.Context, r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = crossTenantAccessPartnerSettingsConsistencyPredicate(&plan)
+	// Without enforce_default_inheritance an unset setting keeps its remote value.
+	match := readbackMatch
+	match.IgnoreNullExpected = !plan.EnforceDefaultInheritance.ValueBool()
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, match)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

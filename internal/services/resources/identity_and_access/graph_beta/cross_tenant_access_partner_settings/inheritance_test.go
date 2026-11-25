@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -100,11 +101,13 @@ func TestUnitResourceCrossTenantAccessPartnerSettings_InheritanceConsistency(t *
 	if diags := state.Set(ctx, &actual); diags.HasError() {
 		t.Fatal(diags)
 	}
-	if crossTenantAccessPartnerSettingsConsistencyPredicate(&expected)(ctx, state) {
+	match := readbackMatch
+	if crud.AttributesMatchPredicate(expectedState(t, state, expected), match)(ctx, state) {
 		t.Fatal("stale override must not satisfy enforced inheritance")
 	}
 	expected.EnforceDefaultInheritance = types.BoolValue(false)
-	if !crossTenantAccessPartnerSettingsConsistencyPredicate(&expected)(ctx, state) {
+	match.IgnoreNullExpected = true
+	if !crud.AttributesMatchPredicate(expectedState(t, state, expected), match)(ctx, state) {
 		t.Fatal("legacy null settings should accept the remote override")
 	}
 }
@@ -164,4 +167,13 @@ func TestUnitResourceCrossTenantAccessPartnerSettings_InheritancePlanning(t *tes
 			}
 		}
 	}
+}
+
+// expectedState returns a copy of state that holds the expected model.
+func expectedState(t *testing.T, state tfsdk.State, expected CrossTenantAccessPartnerSettingsResourceModel) tfsdk.State {
+	t.Helper()
+	if diags := state.Set(t.Context(), &expected); diags.HasError() {
+		t.Fatal(diags)
+	}
+	return state
 }

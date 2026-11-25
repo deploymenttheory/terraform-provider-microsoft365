@@ -81,7 +81,7 @@ func (r *AdministrativeUnitMembershipResource) Create(ctx context.Context, req r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = administrativeUnitMembershipConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -293,7 +293,7 @@ func (r *AdministrativeUnitMembershipResource) Update(ctx context.Context, req r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = administrativeUnitMembershipConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(req.Plan, readbackMatch)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

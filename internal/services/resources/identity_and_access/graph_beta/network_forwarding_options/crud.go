@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	models "github.com/microsoftgraph/msgraph-beta-sdk-go/models/networkaccess"
 
@@ -65,7 +64,7 @@ func (r *NetworkForwardingOptionsResource) Create(
 		r.Read,
 		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
 		&crud.CreateResponseContainer{CreateResponse: resp},
-		readbackOptions(plan, constants.TfOperationCreate),
+		crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(resp.State, readbackMatch))),
 	); err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading forwarding options after initial apply",
@@ -171,7 +170,7 @@ func (r *NetworkForwardingOptionsResource) Update(
 		r.Read,
 		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
 		&crud.UpdateResponseContainer{UpdateResponse: resp},
-		readbackOptions(plan, constants.TfOperationUpdate),
+		crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(resp.State, readbackMatch))),
 	); err != nil {
 		resp.Diagnostics.AddError("Error reading forwarding options after update", err.Error())
 	}
@@ -209,22 +208,4 @@ func (r *NetworkForwardingOptionsResource) patch(
 		return fmt.Errorf("patch forwarding options: %w", err)
 	}
 	return nil
-}
-
-func readbackOptions(
-	plan NetworkForwardingOptionsResourceModel,
-	operation string,
-) crud.ReadWithRetryOptions {
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = operation
-	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
-		var actual NetworkForwardingOptionsResourceModel
-		if state.Get(ctx, &actual).HasError() {
-			return false
-		}
-		return actual.ID.ValueString() == singletonID &&
-			actual.SkipDNSLookupState.Equal(plan.SkipDNSLookupState)
-	}
-	return opts
 }

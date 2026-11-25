@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -228,7 +229,7 @@ func TestUnitResourceNetworkForwardingOptions_14_Import(t *testing.T) {
 func TestUnitResourceNetworkForwardingOptions_15_ConsistencyPredicate(t *testing.T) {
 	r := NewNetworkForwardingOptionsResource().(*NetworkForwardingOptionsResource)
 	model := testModel()
-	p := readbackOptions(model, "Create").ConsistencyPredicate
+	p := crud.AttributesMatchPredicate(testState(t, r, model), readbackMatch)
 	require.True(t, p(context.Background(), testState(t, r, model)))
 	model.SkipDNSLookupState = types.StringValue("enabled")
 	require.False(t, p(context.Background(), testState(t, r, model)))

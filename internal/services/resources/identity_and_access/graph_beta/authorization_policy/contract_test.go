@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -299,7 +300,7 @@ func TestUnitResourceAuthorizationPolicy_15_ReadFixture(t *testing.T) {
 func TestUnitResourceAuthorizationPolicy_16_Consistency(t *testing.T) {
 	r := NewAuthorizationPolicyResource().(*AuthorizationPolicyResource)
 	expected := testModel()
-	predicate := consistencyPredicate(&expected)
+	predicate := crud.AttributesMatchPredicate(testState(t, r, expected), readbackMatch)
 	require.True(t, predicate(context.Background(), testState(t, r, expected)))
 	for _, mutate := range []func(*AuthorizationPolicyResourceModel){
 		func(m *AuthorizationPolicyResourceModel) { m.AllowedToUseSSPR = types.BoolValue(false) },
@@ -317,7 +318,7 @@ func TestUnitResourceAuthorizationPolicy_16_Consistency(t *testing.T) {
 	expected.EnabledPreviewFeatures = types.SetValueMust(types.StringType, []attr.Value{})
 	require.False(
 		t,
-		consistencyPredicate(&expected)(context.Background(), testState(t, r, testModel())),
+		crud.AttributesMatchPredicate(testState(t, r, expected), readbackMatch)(context.Background(), testState(t, r, testModel())),
 	)
 }
 
@@ -366,7 +367,7 @@ func TestUnitResourceAuthorizationPolicy_18_StableReads(t *testing.T) {
 	staleModel := testModel()
 	staleModel.BlockMsolPowerShell = types.BoolValue(false)
 	stale := testState(t, r, staleModel)
-	predicate := stableConsistencyPredicate(&expected)
+	predicate := crud.RequireStableReads(crud.AttributesMatchPredicate(testState(t, r, expected), readbackMatch))
 	ctx := context.Background()
 	require.False(t, predicate(ctx, current))
 	require.False(t, predicate(ctx, current))

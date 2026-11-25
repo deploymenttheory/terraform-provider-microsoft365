@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -201,7 +202,13 @@ func (r *DeviceRegistrationPolicyResource) Update(ctx context.Context, req resou
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = deviceRegistrationPolicyConsistencyPredicate(MapRemoteResourceStateToTerraform(ctx, plan, requestBody))
+	// The read-back must reflect the request body as Graph applies it, not the plan.
+	expected := tfsdk.State{Schema: resp.State.Schema}
+	resp.Diagnostics.Append(expected.Set(ctx, MapRemoteResourceStateToTerraform(ctx, plan, requestBody))...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(expected, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

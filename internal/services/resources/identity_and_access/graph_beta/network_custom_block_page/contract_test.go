@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -170,11 +171,11 @@ func TestUnitResourceNetworkCustomBlockPage_ConsistencyAndImport(t *testing.T) {
 	expected := testModel()
 	actual := expected
 	actual.Configuration = testConfiguration("stale")
-	opts := readOptions(&expected, "Update")
-	require.False(t, opts.ConsistencyPredicate(context.Background(), testState(t, r, actual)))
-	require.True(t, opts.ConsistencyPredicate(context.Background(), testState(t, r, expected)))
+	predicate := crud.AttributesMatchPredicate(testState(t, r, expected), readbackMatch)
+	require.False(t, predicate(context.Background(), testState(t, r, actual)))
+	require.True(t, predicate(context.Background(), testState(t, r, expected)))
 	actual.Configuration = types.ObjectNull(configurationAttrTypes)
-	require.False(t, opts.ConsistencyPredicate(context.Background(), testState(t, r, actual)))
+	require.False(t, predicate(context.Background(), testState(t, r, actual)))
 	state := testState(t, r, expected)
 	resp := resource.ImportStateResponse{State: state}
 	r.ImportState(context.Background(), resource.ImportStateRequest{ID: "wrong-id"}, &resp)
