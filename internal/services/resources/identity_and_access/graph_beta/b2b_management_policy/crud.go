@@ -16,6 +16,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and the written policy.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("display_name", "definition", "is_organization_default"), RequireKnown: crud.RootPaths("id")}
+
 // Create handles the Create operation for B2B Management Policy resources.
 //
 // Operation: Creates a new B2B management policy

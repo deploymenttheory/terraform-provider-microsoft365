@@ -13,6 +13,9 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written self-service sign-up setting.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "self_service_sign_up")}
+
 // Create configures the authentication flows policy.
 //
 // The authenticationFlowsPolicy resource is a singleton that always exists in the tenant; there is no documented

@@ -13,6 +13,9 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written settings.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "allow_external_identities_to_leave", "allow_deleted_identities_data_removal")}
+
 // Create configures the external identities policy.
 //
 // The externalIdentitiesPolicy resource is a singleton that always exists in the tenant; there is no documented

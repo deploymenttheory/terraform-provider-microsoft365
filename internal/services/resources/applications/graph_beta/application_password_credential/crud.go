@@ -15,6 +15,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after Create waits for: the key id returned by the POST.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("key_id"), RequireKnown: crud.RootPaths("key_id"), IgnoreNullExpected: true}
+
 // Create handles the Create operation for application password credential resources.
 //
 // Operation: Adds a password credential to an application

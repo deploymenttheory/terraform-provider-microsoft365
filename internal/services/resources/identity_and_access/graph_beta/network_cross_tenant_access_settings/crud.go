@@ -12,6 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written packet tagging status.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "network_packet_tagging_status")}
+
 // Create configures the network cross-tenant access settings.
 //
 // The crossTenantAccess resource is a singleton that always exists in the tenant; there is no documented

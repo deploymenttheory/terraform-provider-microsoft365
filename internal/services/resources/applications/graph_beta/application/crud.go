@@ -10,11 +10,28 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/directory"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
+
+// readbackMatch is what the read-back after a write waits for: a populated id and app id, and the written fields. Elements of the listed sets must match exactly, nulls included.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("display_name", "description", "sign_in_audience", "notes", "is_device_only_auth_supported", "is_fallback_public_client", "service_management_reference", "tags", "group_membership_claims", "owner_user_ids", "api", "app_roles", "info", "optional_claims", "parental_control_settings", "public_client", "required_resource_access", "spa", "web", "sign_in_audience_restrictions"),
+	RequireKnown:       crud.RootPaths("id", "app_id"),
+	IgnoreNullExpected: true,
+	Overrides: []crud.AttributeMatchOverride{
+		{Path: path.MatchRoot("app_roles").AtAnySetValue(), IgnoreNullExpected: new(false)},
+		{Path: path.MatchRoot("required_resource_access").AtAnySetValue(), IgnoreNullExpected: new(false)},
+		{Path: path.MatchRoot("api").AtName("oauth2_permission_scopes").AtAnySetValue(), IgnoreNullExpected: new(false)},
+		{Path: path.MatchRoot("api").AtName("pre_authorized_applications").AtAnySetValue(), IgnoreNullExpected: new(false)},
+		{Path: path.MatchRoot("optional_claims").AtName("access_token").AtAnySetValue(), IgnoreNullExpected: new(false)},
+		{Path: path.MatchRoot("optional_claims").AtName("id_token").AtAnySetValue(), IgnoreNullExpected: new(false)},
+		{Path: path.MatchRoot("optional_claims").AtName("saml2_token").AtAnySetValue(), IgnoreNullExpected: new(false)},
+	},
+}
 
 // Create handles the Create operation for application resources.
 //

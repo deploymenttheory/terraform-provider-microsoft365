@@ -31,6 +31,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("name", "description", "default_action"), RequireKnown: crud.RootPaths("id")}
+
 func (r *NetworkPromptPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkPromptPolicyResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)

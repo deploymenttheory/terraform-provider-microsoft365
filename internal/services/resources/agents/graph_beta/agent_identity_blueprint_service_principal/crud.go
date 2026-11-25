@@ -15,6 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id, the app id and the written tags.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("app_id", "tags"), RequireKnown: crud.RootPaths("id"), IgnoreNullExpected: true}
+
 // Create handles the Create operation for agent identity blueprint service principal resources.
 //
 // Operation: Creates a service principal for an agent identity blueprint

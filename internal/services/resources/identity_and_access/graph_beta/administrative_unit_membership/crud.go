@@ -14,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id, the administrative unit and the written members.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("administrative_unit_id", "members"), RequireKnown: crud.RootPaths("id"), NullMatchesEmpty: true}
+
 // Create handles the Create operation for administrative unit membership resources.
 //
 // Operation: Adds members to an administrative unit

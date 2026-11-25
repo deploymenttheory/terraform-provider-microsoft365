@@ -5,10 +5,36 @@ import (
 	"fmt"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
+
+// constructDefaultSettingsReadbackMatch returns readbackMatch for the planned settings. Once any setting is planned,
+// Graph stops reporting the service defaults, so a read with is_service_default still true is stale.
+func constructDefaultSettingsReadbackMatch(data *CrossTenantAccessDefaultSettingsResourceModel) crud.AttributeMatchOptions {
+	match := readbackMatch
+	settings := []types.Object{
+		data.B2bCollaborationInbound,
+		data.B2bCollaborationOutbound,
+		data.B2bDirectConnectInbound,
+		data.B2bDirectConnectOutbound,
+		data.InboundTrust,
+		data.InvitationRedemptionIdentityProviderConfiguration,
+		data.TenantRestrictions,
+		data.AutomaticUserConsentSettings,
+	}
+	for _, setting := range settings {
+		if !setting.IsNull() {
+			match.RejectValues = []crud.RejectedAttributeValues{{Path: path.Root("is_service_default"), Values: []attr.Value{types.BoolValue(true)}}}
+			break
+		}
+	}
+	return match
+}
 
 // constructResource converts the Terraform resource model to a CrossTenantAccessPolicyConfigurationDefault SDK request body.
 // Reference: https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationdefault-update?view=graph-rest-beta

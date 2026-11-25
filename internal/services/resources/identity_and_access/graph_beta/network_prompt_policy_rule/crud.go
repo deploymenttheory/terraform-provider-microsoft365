@@ -31,6 +31,13 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and the written fields. Graph returns an unset custom scheme JSON path as an empty string.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:        crud.RootPaths("name", "description", "action", "priority", "enabled", "prompt_logging", "scan_result", "conversation_schemes"),
+	RequireKnown: crud.RootPaths("id"),
+	Overrides:    []crud.AttributeMatchOverride{{Path: path.MatchRoot("conversation_schemes").AtAnyListIndex().AtName("json_path"), NullMatchesEmpty: new(true)}},
+}
+
 func (r *NetworkPromptPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkPromptPolicyRuleResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)

@@ -11,12 +11,21 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/groups"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
+
+// readbackMatch is what the read-back after a write waits for: a populated id and group name, the written group and SKU, and the disabled plans in any case.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:            crud.RootPaths("group_id", "sku_id", "disabled_plans"),
+	RequireKnown:     crud.RootPaths("id", "display_name"),
+	NullMatchesEmpty: true,
+	Overrides:        []crud.AttributeMatchOverride{{Path: path.MatchRoot("disabled_plans"), CaseInsensitiveStrings: new(true)}},
+}
 
 // licenseAssignmentLockScope serializes assignLicense operations per group.
 //

@@ -13,6 +13,12 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written settings.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("id", "allowed_to_sign_up_email_based_subscriptions", "allowed_to_use_sspr", "allow_email_verified_users_to_join_organization", "allow_invites_from", "allow_user_consent_for_risky_apps", "block_msol_powershell", "description", "display_name", "enabled_preview_features", "guest_user_role_id", "permission_grant_policy_ids_assigned_to_default_user_role", "default_user_role_permissions"),
+	IgnoreNullExpected: true,
+}
+
 // Create configures the authorization policy.
 //
 // The authorizationPolicy resource is a singleton that always exists in the tenant; there is no documented

@@ -12,6 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and effective value, the deployment and the requested value.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("deployment_id", "requested_value"),
+	RequireKnown:       crud.RootPaths("id", "effective_value"),
+	IgnoreNullExpected: true,
+}
+
 // Create handles the Create operation for Windows Updates autopatch deployment state resources.
 //
 // Operation: Sets the state of a deployment (e.g., scheduled, offering, paused)

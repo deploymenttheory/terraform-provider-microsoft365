@@ -15,6 +15,9 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// readbackMatch is what the read-back after Create waits for: a populated id and the written ids.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("service_principal_id", "token_lifetime_policy_id"), RequireKnown: crud.RootPaths("id")}
+
 // Create handles the Create operation for Service Principal Token Lifetime Policy Assignment resources.
 //
 // Operation: Assigns a token lifetime policy to a service principal

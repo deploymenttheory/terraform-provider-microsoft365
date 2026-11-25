@@ -38,6 +38,9 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written signaling status.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "signaling_status")}
+
 var errInvalidSettingsResponse = stderrors.New("invalid conditional access settings response")
 
 // Create adopts the existing singleton and PATCHes only explicitly configured settings.

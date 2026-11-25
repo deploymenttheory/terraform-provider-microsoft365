@@ -13,6 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and display name, and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("display_name", "allowed_cloud_endpoints"),
+	RequireKnown:       crud.RootPaths("id", "display_name"),
+	IgnoreNullExpected: true,
+}
+
 // Create configures the cross-tenant access policy.
 //
 // The crossTenantAccessPolicy resource is a singleton that always exists in the tenant; there is no

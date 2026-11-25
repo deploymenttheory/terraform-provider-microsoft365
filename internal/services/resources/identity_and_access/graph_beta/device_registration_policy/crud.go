@@ -18,6 +18,12 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after Update waits for: a populated id and the written settings.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:        crud.RootPaths("user_device_quota", "multi_factor_auth_configuration", "local_admin_password", "azure_ad_registration", "azure_ad_join"),
+	RequireKnown: crud.RootPaths("id"),
+}
+
 // Create handles the Create operation for device registration policy resources.
 //
 // Operation: The deviceRegistrationPolicy is a singleton that always exists in the tenant and has no POST

@@ -13,6 +13,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for: the job id, template and enabled state.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "template_id", "enabled")}
+
 // Create handles the Create operation for service principal synchronization job resources.
 //
 // Operation: Creates a disabled provisioning job and starts it only when enabled is true

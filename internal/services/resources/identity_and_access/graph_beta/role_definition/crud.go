@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -14,6 +15,16 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
+
+// readbackMatch is what the read-back after Update waits for: a populated id and the written fields. Graph returns resource actions in its own case.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:            crud.RootPaths("display_name", "description", "version", "is_enabled", "role_permissions"),
+	RequireKnown:     crud.RootPaths("id"),
+	NullMatchesEmpty: true,
+	Overrides: []crud.AttributeMatchOverride{
+		{Path: path.MatchRoot("role_permissions").AtAnySetValue().AtName("allowed_resource_actions"), CaseInsensitiveStrings: new(true)},
+	},
+}
 
 // Create handles the Create operation for role definition resources.
 //

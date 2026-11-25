@@ -18,6 +18,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for. A matching read can be followed by a stale scope response, so 5 reads in a row must match.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "client_id", "resource_id", "consent_type", "principal_id", "scopes")}
+
 const grantPollInterval = 2 * time.Second
 
 var errGrantResponse = errors.New("delegated permission grant or grant ID missing from Microsoft Graph response")

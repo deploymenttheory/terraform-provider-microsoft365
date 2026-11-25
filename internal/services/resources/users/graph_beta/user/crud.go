@@ -17,6 +17,13 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
 
+// readbackMatch is what the read-back after Update waits for: a populated id and user principal name, and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("display_name", "account_enabled", "age_group", "business_phones", "city", "company_name", "consent_provided_for_minor", "country", "department", "employee_hire_date", "employee_id", "employee_type", "fax_number", "given_name", "job_title", "mail_nickname", "manager_id", "mobile_phone", "office_location", "on_premises_immutable_id", "other_mails", "password_policies", "postal_code", "preferred_data_location", "preferred_language", "preferred_name", "show_in_address_list", "state", "street_address", "surname", "usage_location", "user_principal_name", "user_type"),
+	RequireKnown:       crud.RootPaths("id", "user_principal_name"),
+	IgnoreNullExpected: true,
+}
+
 // Create handles the Create operation for user resources.
 //
 // Operation: Creates a new user

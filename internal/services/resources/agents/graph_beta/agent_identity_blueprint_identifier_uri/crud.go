@@ -14,6 +14,9 @@ import (
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
 )
 
+// readbackMatch is what the read-back after Create waits for: the written blueprint and identifier URI. Create also requires scope.id when scope is configured.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("blueprint_id", "identifier_uri")}
+
 // Create handles the Create operation for agent identity blueprint identifier URI resources.
 //
 // Operation: Adds an identifier URI and optional scope to an agent identity blueprint

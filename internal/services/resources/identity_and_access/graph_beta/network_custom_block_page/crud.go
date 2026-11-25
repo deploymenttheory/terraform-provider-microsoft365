@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -13,6 +14,15 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	grapherrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
+
+// readbackMatch is what the read-back after a write waits for: the singleton id, the written state and, when set, the configuration.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths: crud.RootPaths("id", "state", "configuration"),
+	Overrides: []crud.AttributeMatchOverride{
+		{Path: path.MatchRoot("configuration"), IgnoreNullExpected: new(true)},
+		{Path: path.MatchRoot("configuration").AtName("body"), IgnoreNullExpected: new(false)},
+	},
+}
 
 // Create adopts and PATCHes the existing singleton; there is no create API.
 func (r *NetworkCustomBlockPageResource) Create(

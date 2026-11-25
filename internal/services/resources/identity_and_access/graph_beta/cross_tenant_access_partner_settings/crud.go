@@ -12,6 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id, the partner tenant and the written settings. With enforce_default_inheritance, an unset setting must read back null.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:        crud.RootPaths("tenant_id", "b2b_collaboration_inbound", "b2b_collaboration_outbound", "b2b_direct_connect_inbound", "b2b_direct_connect_outbound", "inbound_trust", "automatic_user_consent_settings", "tenant_restrictions"),
+	RequireKnown: crud.RootPaths("id"),
+}
+
 // Create creates a new partner-specific cross-tenant access configuration.
 //
 // API Calls:

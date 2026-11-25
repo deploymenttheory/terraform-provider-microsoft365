@@ -13,6 +13,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and service default flag, and the written settings.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("b2b_collaboration_inbound", "b2b_collaboration_outbound", "b2b_direct_connect_inbound", "b2b_direct_connect_outbound", "inbound_trust", "invitation_redemption_identity_provider_configuration", "tenant_restrictions", "automatic_user_consent_settings"),
+	RequireKnown:       crud.RootPaths("id", "is_service_default"),
+	IgnoreNullExpected: true,
+}
+
 // Create configures the cross-tenant access default settings.
 //
 // The crossTenantAccessPolicyConfigurationDefault resource is a singleton that always exists in the tenant; there is no

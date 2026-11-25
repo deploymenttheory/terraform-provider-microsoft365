@@ -18,6 +18,9 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and the written apps and dependency type.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("source_id", "target_id", "dependency_type"), RequireKnown: crud.RootPaths("id")}
+
 // Create handles the Create operation for Mobile App Dependency resources.
 //
 // Operation: Creates a mobile app dependency while preserving other app relationships

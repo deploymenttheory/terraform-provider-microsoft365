@@ -10,11 +10,20 @@ import (
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
+
+// readbackMatch is what the read-back after a write waits for: a populated id and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("blueprint_id", "name", "issuer", "subject", "audiences", "description", "claims_matching_expression"),
+	RequireKnown:       crud.RootPaths("id"),
+	IgnoreNullExpected: true,
+	Overrides:          []crud.AttributeMatchOverride{{Path: path.MatchRoot("subject"), IgnoreNullExpected: new(false)}},
+}
 
 // Create handles the Create operation for agent identity blueprint federated identity credential resources.
 //

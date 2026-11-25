@@ -16,6 +16,9 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written DNS lookup state.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "skip_dns_lookup_state")}
+
 var (
 	errMissingDNSState = stderrors.New("skip_dns_lookup_state must be explicitly configured")
 	errInvalidDNSState = stderrors.New("skip_dns_lookup_state must be enabled or disabled")

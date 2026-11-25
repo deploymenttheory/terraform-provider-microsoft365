@@ -16,6 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and service principal type, and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("display_name", "account_enabled", "sponsor_ids", "owner_ids"),
+	RequireKnown:       crud.RootPaths("id", "service_principal_type"),
+	IgnoreNullExpected: true,
+}
+
 // Create handles the Create operation for agent identity resources.
 //
 // Operation: Creates a new agent identity service principal

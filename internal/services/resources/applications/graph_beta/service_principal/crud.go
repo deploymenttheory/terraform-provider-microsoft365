@@ -10,10 +10,22 @@ import (
 	directory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/directory"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+// readbackMatch is what the read-back after Update waits for: a populated id and the written fields. SAML settings and the token encryption key must match even when null.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("app_id", "account_enabled", "app_role_assignment_required", "description", "login_url", "notes", "notification_email_addresses", "preferred_single_sign_on_mode", "tags", "alternative_names", "saml_single_sign_on_settings", "token_encryption_key_id"),
+	RequireKnown:       crud.RootPaths("id"),
+	IgnoreNullExpected: true,
+	Overrides: []crud.AttributeMatchOverride{
+		{Path: path.MatchRoot("saml_single_sign_on_settings"), IgnoreNullExpected: new(false)},
+		{Path: path.MatchRoot("token_encryption_key_id"), IgnoreNullExpected: new(false)},
+	},
+}
 
 // Create handles the Create operation for Service Principal resources.
 //

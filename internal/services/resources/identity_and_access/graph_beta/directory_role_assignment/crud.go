@@ -18,6 +18,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after Create waits for: the written principal and role, at the directory scope.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("principal_id", "role_definition_id", "directory_scope_id")}
+
 var errEmptyAssignment = errors.New("empty directory role assignment response during deletion verification")
 
 // Create handles the Create operation for directory role assignment resources.
