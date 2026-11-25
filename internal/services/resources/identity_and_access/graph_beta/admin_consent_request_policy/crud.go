@@ -15,6 +15,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for: the written policy settings.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("is_enabled", "notify_reviewers", "reminders_enabled", "request_duration_in_days", "reviewers")}
+
 // Create handles the Create operation for admin consent request policy resources.
 //
 // Operation: Applies the complete writable configuration to the existing tenant singleton
@@ -58,7 +61,7 @@ func (r *AdminConsentRequestPolicyResource) Create(ctx context.Context, req reso
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = policyConsistencyPredicate(&data)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,
@@ -160,7 +163,7 @@ func (r *AdminConsentRequestPolicyResource) Update(ctx context.Context, req reso
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = policyConsistencyPredicate(&data)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,

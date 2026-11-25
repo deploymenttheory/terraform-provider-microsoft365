@@ -13,6 +13,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackAttributes are the attributes readbackMatch compares.
+var readbackAttributes = []string{
+	"b2b_collaboration_inbound", "b2b_collaboration_outbound", "b2b_direct_connect_inbound", "b2b_direct_connect_outbound", "inbound_trust",
+	"invitation_redemption_identity_provider_configuration", "tenant_restrictions", "automatic_user_consent_settings",
+}
+
+// readbackMatch is what the read-back after a write waits for: a populated id and service default flag, and the written settings.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths(readbackAttributes...),
+	RequireKnown:       crud.RootPaths("id", "is_service_default"),
+	IgnoreNullExpected: true,
+}
+
 // Create configures the cross-tenant access default settings.
 //
 // The crossTenantAccessPolicyConfigurationDefault resource is a singleton that always exists in the tenant; there is no
@@ -82,7 +95,7 @@ func (r *CrossTenantAccessDefaultSettingsResource) Create(ctx context.Context, r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = crossTenantAccessDefaultSettingsConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, constructDefaultSettingsReadbackMatch(&object))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -209,7 +222,7 @@ func (r *CrossTenantAccessDefaultSettingsResource) Update(ctx context.Context, r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = crossTenantAccessDefaultSettingsConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, constructDefaultSettingsReadbackMatch(&plan))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

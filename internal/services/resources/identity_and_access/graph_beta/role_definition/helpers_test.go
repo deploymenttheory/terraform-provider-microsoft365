@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -50,27 +51,32 @@ func TestMapOptionalString(t *testing.T) {
 	}
 }
 
-func TestPermissionsKeyIsOrderAndCaseIndependent(t *testing.T) {
-	a := append(testPermissions("microsoft.directory/groups/standard/read", "microsoft.directory/applications/standard/read"), testPermissions("microsoft.directory/devices/standard/read")...)
-	b := append(testPermissions("microsoft.directory/devices/standard/read"), testPermissions("Microsoft.Directory/Applications/Standard/Read", "microsoft.directory/groups/standard/read")...)
+func TestRoleDefinitionReadbackIgnoresPermissionOrderAndCase(t *testing.T) {
+	ctx := context.Background()
+	schemaResp := schemaResponse(ctx, &RoleDefinitionResource{})
+	stateFor := func(model RoleDefinitionResourceModel) tfsdk.State {
+		state := tfsdk.State{Schema: schemaResp}
+		if diags := state.Set(ctx, &model); diags.HasError() {
+			t.Fatalf("set state: %v", diags)
+		}
+		return state
+	}
 
-	if permissionsKey(a) != permissionsKey(b) {
-		t.Errorf("expected equal keys, got %q and %q", permissionsKey(a), permissionsKey(b))
-	}
-	if permissionsKey(a) == permissionsKey(testPermissions("microsoft.directory/devices/standard/read")) {
-		t.Error("expected different keys for different permissions")
-	}
-}
+	expected := *testModel()
+	expected.ResourceScopes = types.SetNull(types.StringType)
+	expected.Timeouts = timeoutsNull()
+	expected.RolePermissions = append(testPermissions("microsoft.directory/groups/standard/read", "microsoft.directory/applications/standard/read"), testPermissions("microsoft.directory/devices/standard/read")...)
+	current := expected
+	current.ID = types.StringValue("33333333-3333-3333-3333-333333333333")
+	current.RolePermissions = append(testPermissions("microsoft.directory/devices/standard/read"), testPermissions("Microsoft.Directory/Applications/Standard/Read", "microsoft.directory/groups/standard/read")...)
 
-func TestStringMatches(t *testing.T) {
-	if !stringMatches(types.StringNull(), types.StringValue("")) {
-		t.Error("null and empty should match")
+	predicate := crud.AttributesMatchPredicate(stateFor(expected), readbackMatch)
+	if !predicate(ctx, stateFor(current)) {
+		t.Error("expected predicate to accept reordered permissions that differ only in case")
 	}
-	if !stringMatches(types.StringUnknown(), types.StringValue("anything")) {
-		t.Error("unknown should match any value")
-	}
-	if stringMatches(types.StringValue("new"), types.StringValue("old")) {
-		t.Error("different values should not match")
+	current.RolePermissions = testPermissions("microsoft.directory/devices/standard/read")
+	if predicate(ctx, stateFor(current)) {
+		t.Error("expected predicate to reject different permissions")
 	}
 }
 
@@ -81,6 +87,8 @@ func TestRoleDefinitionConsistencyPredicate(t *testing.T) {
 
 	expected := testModel()
 	expected.Description = types.StringValue("new")
+	expected.ResourceScopes = types.SetNull(types.StringType)
+	expected.Timeouts = timeoutsNull()
 
 	stateFor := func(model RoleDefinitionResourceModel) tfsdk.State {
 		state := tfsdk.State{Schema: schemaResp}
@@ -97,7 +105,7 @@ func TestRoleDefinitionConsistencyPredicate(t *testing.T) {
 	current.IsPrivileged = types.BoolValue(false)
 	current.Timeouts = timeoutsNull()
 
-	predicate := roleDefinitionConsistencyPredicate(expected)
+	predicate := crud.AttributesMatchPredicate(stateFor(*expected), readbackMatch)
 	if !predicate(ctx, stateFor(current)) {
 		t.Error("expected predicate to accept a read matching the plan")
 	}
@@ -118,5 +126,12 @@ func TestRoleDefinitionConsistencyPredicate(t *testing.T) {
 	missingID.ID = types.StringNull()
 	if predicate(ctx, stateFor(missingID)) {
 		t.Error("expected predicate to reject a read without an ID")
+	}
+
+	missingEnabled := current
+	missingEnabled.IsEnabled = types.BoolNull()
+	expected.IsEnabled = types.BoolValue(false)
+	if crud.AttributesMatchPredicate(stateFor(*expected), readbackMatch)(ctx, stateFor(missingEnabled)) {
+		t.Error("expected predicate to reject a read without is_enabled")
 	}
 }

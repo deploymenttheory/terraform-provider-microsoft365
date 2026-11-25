@@ -12,6 +12,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and effective value, the deployment and the requested value.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("deployment_id", "requested_value"),
+	RequireKnown:       crud.RootPaths("id", "effective_value"),
+	IgnoreNullExpected: true,
+}
+
 // Create handles the Create operation for Windows Updates autopatch deployment state resources.
 //
 // Operation: Sets the state of a deployment (e.g., scheduled, offering, paused)
@@ -70,7 +77,7 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Create(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = autopatchDeploymentStateConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -203,7 +210,7 @@ func (r *WindowsUpdatesAutopatchDeploymentStateResource) Update(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = autopatchDeploymentStateConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

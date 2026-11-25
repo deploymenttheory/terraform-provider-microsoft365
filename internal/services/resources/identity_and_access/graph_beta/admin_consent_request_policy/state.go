@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
@@ -33,17 +32,4 @@ func MapRemoteStateToTerraform(ctx context.Context, data *AdminConsentRequestPol
 	var diags diag.Diagnostics
 	data.Reviewers, diags = types.SetValueFrom(ctx, types.ObjectType{AttrTypes: reviewerAttributeTypes}, selections)
 	return diags
-}
-
-// policyConsistencyPredicate checks that the tenant policy matches the written configuration.
-func policyConsistencyPredicate(expected *AdminConsentRequestPolicyResourceModel) func(context.Context, tfsdk.State) bool {
-	return func(ctx context.Context, state tfsdk.State) bool {
-		var actual AdminConsentRequestPolicyResourceModel
-		if state.Get(ctx, &actual).HasError() {
-			return false
-		}
-		return actual.IsEnabled.Equal(expected.IsEnabled) && actual.NotifyReviewers.Equal(expected.NotifyReviewers) && actual.RemindersEnabled.Equal(expected.RemindersEnabled) &&
-			actual.RequestDurationInDays.Equal(expected.RequestDurationInDays) &&
-			actual.Reviewers.Equal(expected.Reviewers)
-	}
 }

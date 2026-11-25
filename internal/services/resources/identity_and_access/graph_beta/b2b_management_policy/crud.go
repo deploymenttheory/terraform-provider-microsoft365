@@ -16,6 +16,13 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and the written policy.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("display_name", "definition", "is_organization_default"), RequireKnown: crud.RootPaths("id")}
+
+// policyRetryInterval paces the read-back. The four matching reads it waits for span at least 15 seconds;
+// curl probes showed two current reads followed by old values again.
+var policyRetryInterval = 5 * time.Second
+
 // Create handles the Create operation for B2B Management Policy resources.
 //
 // Operation: Creates a new B2B management policy
@@ -82,7 +89,7 @@ func (r *B2bManagementPolicyResource) Create(ctx context.Context, req resource.C
 	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60
 	opts.RetryInterval = policyRetryInterval
-	opts.ConsistencyPredicate = stableConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.RequireConsecutiveReads(4, crud.AttributesMatchPredicate(resp.State, readbackMatch))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -229,7 +236,7 @@ func (r *B2bManagementPolicyResource) Update(ctx context.Context, req resource.U
 	opts.ResourceTypeName = ResourceName
 	opts.MaxRetries = 60
 	opts.RetryInterval = policyRetryInterval
-	opts.ConsistencyPredicate = stableConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.RequireConsecutiveReads(4, crud.AttributesMatchPredicate(resp.State, readbackMatch))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

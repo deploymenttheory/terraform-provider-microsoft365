@@ -18,6 +18,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for. A matching read can be followed by a stale scope response, so 5 reads in a row must match.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "client_id", "resource_id", "consent_type", "principal_id", "scopes")}
+
 const grantPollInterval = 2 * time.Second
 
 var errGrantResponse = errors.New("delegated permission grant or grant ID missing from Microsoft Graph response")
@@ -79,7 +82,7 @@ func (r *OAuth2PermissionGrantResource) Create(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = grantConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.RequireConsecutiveReads(5, crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if err = crud.ReadWithRetry(ctx, r.Read, readReq, container, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading delegated permission grant after create", err.Error())
 	}
@@ -203,7 +206,7 @@ func (r *OAuth2PermissionGrantResource) Update(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = grantConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.RequireConsecutiveReads(5, crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if err = crud.ReadWithRetry(ctx, r.Read, readReq, container, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading delegated permission grant after update", err.Error())
 	}

@@ -12,11 +12,13 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
+
+// readbackMatch is what the read-back after a write waits for: a populated id and the written apps and dependency type.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("source_id", "target_id", "dependency_type"), RequireKnown: crud.RootPaths("id")}
 
 // Create handles the Create operation for Mobile App Dependency resources.
 //
@@ -75,18 +77,7 @@ func (r *MobileAppDependencyResource) Create(ctx context.Context, req resource.C
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
-		var refreshedState MobileAppDependencyResourceModel
-		if state.Get(ctx, &refreshedState).HasError() {
-			return false
-		}
-
-		return !refreshedState.ID.IsNull() && !refreshedState.ID.IsUnknown() &&
-			refreshedState.ID.ValueString() != "" &&
-			refreshedState.SourceID.Equal(object.SourceID) &&
-			refreshedState.TargetID.Equal(object.TargetID) &&
-			refreshedState.DependencyType.Equal(object.DependencyType)
-	}
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -265,17 +256,7 @@ func (r *MobileAppDependencyResource) Update(ctx context.Context, req resource.U
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
-		var object MobileAppDependencyResourceModel
-		if state.Get(ctx, &object).HasError() {
-			return false
-		}
-
-		return !object.ID.IsNull() && !object.ID.IsUnknown() && object.ID.ValueString() != "" &&
-			object.SourceID.Equal(plan.SourceID) &&
-			object.TargetID.Equal(plan.TargetID) &&
-			object.DependencyType.Equal(plan.DependencyType)
-	}
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

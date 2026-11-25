@@ -38,6 +38,9 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written signaling status.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "signaling_status")}
+
 var errInvalidSettingsResponse = stderrors.New("invalid conditional access settings response")
 
 // Create adopts the existing singleton and PATCHes only explicitly configured settings.
@@ -100,7 +103,7 @@ func (r *NetworkConditionalAccessSettingsResource) Create(ctx context.Context, r
 	if config.SignalingStatus.IsNull() || resp.Diagnostics.HasError() {
 		return
 	}
-	predicate := crud.ReadWithConsistencyPredicate(consistencyPredicate(plan.SignalingStatus))
+	predicate := crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, predicate)
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
@@ -183,7 +186,7 @@ func (r *NetworkConditionalAccessSettingsResource) Update(ctx context.Context, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	predicate := crud.ReadWithConsistencyPredicate(consistencyPredicate(plan.SignalingStatus))
+	predicate := crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, predicate)
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {

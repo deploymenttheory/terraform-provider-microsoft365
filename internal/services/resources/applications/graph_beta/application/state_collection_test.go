@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -85,14 +86,14 @@ func TestUnitApplicationAPIConsistencyIgnoresUnconfiguredScalars(t *testing.T) {
 	attributes["accept_mapped_claims"] = types.BoolUnknown()
 	attributes["requested_access_token_version"] = types.Int32Unknown()
 	expected.Api = types.ObjectValueMust(ApplicationApiAttrTypes, attributes)
-	require.True(t, applicationConsistencyPredicate(&expected)(ctx, state), "unconfigured computed scalar values must not prevent accepting an otherwise matching API")
+	require.True(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "unconfigured computed scalar values must not prevent accepting an otherwise matching API")
 	attributes["requested_access_token_version"] = types.Int32Value(2)
 	expected.Api = types.ObjectValueMust(ApplicationApiAttrTypes, attributes)
-	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "a stale configured scalar must still trigger a retry")
+	require.False(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "a stale configured scalar must still trigger a retry")
 	attributes["requested_access_token_version"] = types.Int32Value(1)
 	attributes["known_client_applications"] = types.SetValueMust(types.StringType, []attr.Value{types.StringValue("33333333-3333-4333-8333-333333333333")})
 	expected.Api = types.ObjectValueMust(ApplicationApiAttrTypes, attributes)
-	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "a stale collection must still trigger a retry")
+	require.False(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "a stale collection must still trigger a retry")
 
 	actual.ParentalControlSettings = types.ObjectValueMust(ApplicationParentalControlSettingsAttrTypes, map[string]attr.Value{
 		"countries_blocked_for_minors": types.SetNull(types.StringType), "legal_age_group_rule": types.StringValue("Allow"),
@@ -102,10 +103,10 @@ func TestUnitApplicationAPIConsistencyIgnoresUnconfiguredScalars(t *testing.T) {
 	parentalAttributes := actual.ParentalControlSettings.Attributes()
 	parentalAttributes["countries_blocked_for_minors"] = types.SetUnknown(types.StringType)
 	expected.ParentalControlSettings = types.ObjectValueMust(ApplicationParentalControlSettingsAttrTypes, parentalAttributes)
-	require.True(t, applicationConsistencyPredicate(&expected)(ctx, state), "unconfigured computed collections must not block a metadata update")
+	require.True(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "unconfigured computed collections must not block a metadata update")
 	parentalAttributes["legal_age_group_rule"] = types.StringValue("BlockMinors")
 	expected.ParentalControlSettings = types.ObjectValueMust(ApplicationParentalControlSettingsAttrTypes, parentalAttributes)
-	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "known nested values must still trigger a retry when stale")
+	require.False(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "known nested values must still trigger a retry when stale")
 
 	implicitGrant := types.ObjectValueMust(ImplicitGrantSettingsAttrTypes, map[string]attr.Value{
 		"enable_access_token_issuance": types.BoolValue(false), "enable_id_token_issuance": types.BoolValue(false),
@@ -121,17 +122,25 @@ func TestUnitApplicationAPIConsistencyIgnoresUnconfiguredScalars(t *testing.T) {
 	grantAttributes["enable_id_token_issuance"] = types.BoolUnknown()
 	webAttributes["implicit_grant_settings"] = types.ObjectValueMust(ImplicitGrantSettingsAttrTypes, grantAttributes)
 	expected.Web = types.ObjectValueMust(ApplicationWebAttrTypes, webAttributes)
-	require.True(t, applicationConsistencyPredicate(&expected)(ctx, state), "a computed field inside a nested object must not block consistency")
+	require.True(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "a computed field inside a nested object must not block consistency")
 	grantAttributes["enable_access_token_issuance"] = types.BoolValue(true)
 	webAttributes["implicit_grant_settings"] = types.ObjectValueMust(ImplicitGrantSettingsAttrTypes, grantAttributes)
 	expected.Web = types.ObjectValueMust(ApplicationWebAttrTypes, webAttributes)
-	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "a stale known field inside a nested object must trigger a retry")
+	require.False(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "a stale known field inside a nested object must trigger a retry")
 	missingWebAttributes := actual.Web.Attributes()
 	missingWebAttributes["implicit_grant_settings"] = types.ObjectNull(ImplicitGrantSettingsAttrTypes)
 	actual.Web = types.ObjectValueMust(ApplicationWebAttrTypes, missingWebAttributes)
 	require.False(t, state.Set(ctx, &actual).HasError())
-	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "a missing nested object must trigger a retry")
+	require.False(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "a missing nested object must trigger a retry")
 	actual.Web = types.ObjectNull(ApplicationWebAttrTypes)
 	require.False(t, state.Set(ctx, &actual).HasError())
-	require.False(t, applicationConsistencyPredicate(&expected)(ctx, state), "a missing configured object must trigger a retry")
+	require.False(t, readbackAccepts(t, schemaResponse.Schema, expected, state), "a missing configured object must trigger a retry")
+}
+
+// readbackAccepts reports whether the read-back predicate accepts actual for the expected model.
+func readbackAccepts(t *testing.T, s schema.Schema, expected ApplicationResourceModel, actual tfsdk.State) bool {
+	t.Helper()
+	expectedState := tfsdk.State{Schema: s}
+	require.False(t, expectedState.Set(context.Background(), &expected).HasError())
+	return crud.AttributesMatchPredicate(expectedState, readbackMatch)(context.Background(), actual)
 }

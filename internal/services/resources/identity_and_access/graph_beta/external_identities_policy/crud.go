@@ -13,6 +13,9 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written settings.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "allow_external_identities_to_leave", "allow_deleted_identities_data_removal")}
+
 // Create configures the external identities policy.
 //
 // The externalIdentitiesPolicy resource is a singleton that always exists in the tenant; there is no documented
@@ -85,7 +88,7 @@ func (r *ExternalIdentitiesPolicyResource) Create(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = stableConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if deadline, ok := ctx.Deadline(); ok {
 		opts.MaxRetries = int(time.Until(deadline) / opts.RetryInterval)
 	}
@@ -224,7 +227,7 @@ func (r *ExternalIdentitiesPolicyResource) Update(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = stableConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if deadline, ok := ctx.Deadline(); ok {
 		opts.MaxRetries = int(time.Until(deadline) / opts.RetryInterval)
 	}

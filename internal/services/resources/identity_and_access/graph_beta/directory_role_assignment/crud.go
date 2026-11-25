@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
@@ -17,6 +16,9 @@ import (
 	grapherrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
+
+// readbackMatch is what the read-back after Create waits for: the written principal and role, at the directory scope.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("principal_id", "role_definition_id", "directory_scope_id")}
 
 var errEmptyAssignment = errors.New("empty directory role assignment response during deletion verification")
 
@@ -70,13 +72,7 @@ func (r *DirectoryRoleAssignmentResource) Create(ctx context.Context, req resour
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
-		var actual DirectoryRoleAssignmentResourceModel
-		if state.Get(ctx, &actual).HasError() {
-			return false
-		}
-		return actual.PrincipalID.Equal(data.PrincipalID) && actual.RoleDefinitionID.Equal(data.RoleDefinitionID) && actual.DirectoryScopeID.ValueString() == "/"
-	}
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,

@@ -9,10 +9,19 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+// readbackMatch is what the read-back after a write waits for: a populated id and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("application_id", "name", "issuer", "subject", "audiences", "description", "claims_matching_expression"),
+	RequireKnown:       crud.RootPaths("id"),
+	IgnoreNullExpected: true,
+	Overrides:          []crud.AttributeMatchOverride{{Path: path.MatchRoot("subject"), IgnoreNullExpected: new(false)}},
+}
 
 // Create handles the Create operation for application federated identity credential resources.
 //
@@ -83,7 +92,7 @@ func (r *ApplicationFederatedIdentityCredentialResource) Create(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = applicationFederatedIdentityCredentialConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -240,7 +249,7 @@ func (r *ApplicationFederatedIdentityCredentialResource) Update(ctx context.Cont
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = applicationFederatedIdentityCredentialConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

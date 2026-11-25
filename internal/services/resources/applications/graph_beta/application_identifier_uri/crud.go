@@ -15,6 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after Create waits for: a populated id and the written application and identifier URI.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("application_id", "identifier_uri"), RequireKnown: crud.RootPaths("id")}
+
 // Create handles the Create operation for Application Identifier URI resources.
 //
 // Operation: Adds an identifier URI to an application
@@ -95,7 +98,7 @@ func (r *ApplicationIdentifierUriResource) Create(ctx context.Context, req resou
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = applicationIdentifierUriConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

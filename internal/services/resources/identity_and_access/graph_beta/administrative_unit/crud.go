@@ -15,6 +15,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackAttributes are the attributes readbackMatch compares.
+var readbackAttributes = []string{
+	"display_name", "description", "is_member_management_restricted", "membership_rule", "membership_rule_processing_state", "membership_type",
+	"visibility",
+}
+
+// readbackMatch is what the read-back after a write waits for: a populated id and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths(readbackAttributes...),
+	RequireKnown:       crud.RootPaths("id"),
+	IgnoreNullExpected: true,
+}
+
 // Create handles the Create operation for administrative unit resources.
 //
 // Operation: Creates a new administrative unit
@@ -87,7 +100,7 @@ func (r *AdministrativeUnitResource) Create(ctx context.Context, req resource.Cr
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = administrativeUnitConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -213,7 +226,7 @@ func (r *AdministrativeUnitResource) Update(ctx context.Context, req resource.Up
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = administrativeUnitConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(req.Plan, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

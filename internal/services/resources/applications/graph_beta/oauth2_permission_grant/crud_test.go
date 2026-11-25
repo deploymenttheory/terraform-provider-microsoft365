@@ -8,6 +8,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -126,7 +127,9 @@ func TestUnitOAuth2PermissionGrantConsistencyRequiresStableReads(t *testing.T) {
 	r := NewOAuth2PermissionGrantResource().(*OAuth2PermissionGrantResource)
 	state := grantTestState(t, r)
 	expected := grantTestModel()
-	predicate := grantConsistencyPredicate(&expected)
+	expectedState := tfsdk.State{Schema: state.Schema}
+	require.False(t, expectedState.Set(ctx, &expected).HasError())
+	predicate := crud.RequireConsecutiveReads(5, crud.AttributesMatchPredicate(expectedState, readbackMatch))
 	for range 4 {
 		require.False(t, predicate(ctx, state))
 	}

@@ -9,11 +9,19 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
+
+// readbackMatch is what the read-back after Create waits for: a populated id, the written ids, and an owner type other than the Unknown placeholder.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:        crud.RootPaths("service_principal_id", "owner_id"),
+	RequireKnown: crud.RootPaths("id"),
+	RejectValues: []crud.RejectedAttributeValues{crud.RejectStrings(path.Root("owner_type"), "Unknown")},
+}
 
 // Create handles the Create operation for Service Principal Owner resources.
 //
@@ -82,7 +90,7 @@ func (r *ServicePrincipalOwnerResource) Create(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = servicePrincipalOwnerConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

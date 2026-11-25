@@ -31,6 +31,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("name", "description", "default_action"), RequireKnown: crud.RootPaths("id")}
+
 func (r *NetworkPromptPolicyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkPromptPolicyResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
@@ -69,7 +72,7 @@ func (r *NetworkPromptPolicyResource) Create(ctx context.Context, req resource.C
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(promptPolicyConsistencyPredicate(&object)))
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(resp.State, readbackMatch)))
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading resource state after create", fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()))
 	}
@@ -142,7 +145,7 @@ func (r *NetworkPromptPolicyResource) Update(ctx context.Context, req resource.U
 		return
 	}
 	readReq := resource.ReadRequest{State: readState, ProviderMeta: req.ProviderMeta}
-	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(promptPolicyConsistencyPredicate(&plan)))
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(readState, readbackMatch)))
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading resource state after update", fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()))
 	}

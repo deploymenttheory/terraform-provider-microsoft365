@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	abstractions "github.com/microsoft/kiota-abstractions-go"
@@ -17,6 +18,12 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
+
+// readbackMatch is what the read-back after Update waits for: a populated id and the written settings.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:        crud.RootPaths("user_device_quota", "multi_factor_auth_configuration", "local_admin_password", "azure_ad_registration", "azure_ad_join"),
+	RequireKnown: crud.RootPaths("id"),
+}
 
 // Create handles the Create operation for device registration policy resources.
 //
@@ -195,7 +202,13 @@ func (r *DeviceRegistrationPolicyResource) Update(ctx context.Context, req resou
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = deviceRegistrationPolicyConsistencyPredicate(MapRemoteResourceStateToTerraform(ctx, plan, requestBody))
+	// The read-back must reflect the request body as Graph applies it, not the plan.
+	expected := tfsdk.State{Schema: resp.State.Schema}
+	resp.Diagnostics.Append(expected.Set(ctx, MapRemoteResourceStateToTerraform(ctx, plan, requestBody))...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(expected, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

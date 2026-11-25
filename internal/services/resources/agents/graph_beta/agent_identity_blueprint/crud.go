@@ -16,6 +16,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and app id, and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths("display_name", "description", "sign_in_audience", "tags", "sponsor_user_ids", "owner_user_ids"),
+	RequireKnown:       crud.RootPaths("id", "app_id"),
+	IgnoreNullExpected: true,
+}
+
 // Create handles the Create operation for agent identity blueprint resources.
 //
 // Operation: Creates a new agent identity blueprint application
@@ -79,7 +86,7 @@ func (r *AgentIdentityBlueprintResource) Create(ctx context.Context, req resourc
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = agentIdentityBlueprintConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -301,7 +308,7 @@ func (r *AgentIdentityBlueprintResource) Update(ctx context.Context, req resourc
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = agentIdentityBlueprintConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

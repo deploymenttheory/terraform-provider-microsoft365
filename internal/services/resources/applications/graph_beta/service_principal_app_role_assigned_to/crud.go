@@ -14,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after Create waits for: the id returned by the POST and a populated resource display name.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id"), RequireKnown: crud.RootPaths("id", "resource_display_name"), IgnoreNullExpected: true}
+
 // Create handles the Create operation for service principal app role assignment resources.
 //
 // Operation: Assigns an app role to a service principal
@@ -72,7 +75,7 @@ func (r *ServicePrincipalAppRoleAssignedToResource) Create(ctx context.Context, 
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = servicePrincipalAppRoleAssignedToConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

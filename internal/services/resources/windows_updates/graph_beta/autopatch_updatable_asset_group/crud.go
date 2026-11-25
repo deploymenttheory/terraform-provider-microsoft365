@@ -17,6 +17,9 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and the written device ids.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("entra_device_object_ids"), RequireKnown: crud.RootPaths("id"), NullMatchesEmpty: true}
+
 // Create handles the Create operation for Windows Updates autopatch updatable asset group resources.
 //
 // Operation: Creates a new updatable asset group then adds any configured device members.
@@ -112,7 +115,7 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Create(ctx context.
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = autopatchUpdatableAssetGroupConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -349,7 +352,7 @@ func (r *WindowsUpdatesAutopatchUpdatableAssetGroupResource) Update(ctx context.
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = autopatchUpdatableAssetGroupConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

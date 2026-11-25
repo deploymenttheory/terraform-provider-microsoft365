@@ -5,15 +5,34 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	directory "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud/graph_beta/directory"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
+
+// readbackAttributes are the attributes readbackMatch compares.
+var readbackAttributes = []string{
+	"app_id", "account_enabled", "app_role_assignment_required", "description", "login_url", "notes", "notification_email_addresses",
+	"preferred_single_sign_on_mode", "tags", "alternative_names", "saml_single_sign_on_settings", "token_encryption_key_id",
+}
+
+// readbackMatch is what the read-back after Update waits for: a populated id and the written fields. SAML settings and the token encryption key must match even when null.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths(readbackAttributes...),
+	RequireKnown:       crud.RootPaths("id"),
+	IgnoreNullExpected: true,
+	Overrides: []crud.AttributeMatchOverride{
+		{Path: path.MatchRoot("saml_single_sign_on_settings"), IgnoreNullExpected: new(false)},
+		{Path: path.MatchRoot("token_encryption_key_id"), IgnoreNullExpected: new(false)},
+	},
+}
 
 // Create handles the Create operation for Service Principal resources.
 //
@@ -204,7 +223,7 @@ func (r *ServicePrincipalResource) Update(ctx context.Context, req resource.Upda
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = servicePrincipalConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

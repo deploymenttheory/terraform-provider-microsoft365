@@ -14,6 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id, the administrative unit and the written members.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("administrative_unit_id", "members"), RequireKnown: crud.RootPaths("id"), NullMatchesEmpty: true}
+
 // Create handles the Create operation for administrative unit membership resources.
 //
 // Operation: Adds members to an administrative unit
@@ -78,7 +81,7 @@ func (r *AdministrativeUnitMembershipResource) Create(ctx context.Context, req r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = administrativeUnitMembershipConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -290,7 +293,7 @@ func (r *AdministrativeUnitMembershipResource) Update(ctx context.Context, req r
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = administrativeUnitMembershipConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(req.Plan, readbackMatch)
 
 	err := crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

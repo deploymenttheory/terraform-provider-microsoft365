@@ -13,6 +13,9 @@ import (
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 )
 
+// readbackMatch is what the read-back after a write waits for: the job id, template and enabled state.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("id", "template_id", "enabled")}
+
 // Create handles the Create operation for service principal synchronization job resources.
 //
 // Operation: Creates a disabled provisioning job and starts it only when enabled is true
@@ -65,7 +68,7 @@ func (r *ServicePrincipalSynchronizationJobResource) Create(ctx context.Context,
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = jobConsistencyPredicate(&data)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,
@@ -165,7 +168,7 @@ func (r *ServicePrincipalSynchronizationJobResource) Update(ctx context.Context,
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = jobConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 	if err = crud.ReadWithRetry(
 		ctx,
 		r.Read,

@@ -1,10 +1,7 @@
 package graphBetaServicePrincipalSynchronizationJob
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
@@ -30,15 +27,4 @@ func MapRemoteStateToTerraform(data *ServicePrincipalSynchronizationJobResourceM
 		data.StatusCode = convert.GraphToFrameworkEnum(remote.GetStatus().GetCode())
 	}
 	return nil
-}
-
-// jobConsistencyPredicate checks that the job template and enabled state match the written configuration.
-func jobConsistencyPredicate(expected *ServicePrincipalSynchronizationJobResourceModel) func(context.Context, tfsdk.State) bool {
-	return func(ctx context.Context, state tfsdk.State) bool {
-		var actual ServicePrincipalSynchronizationJobResourceModel
-		if state.Get(ctx, &actual).HasError() {
-			return false
-		}
-		return actual.ID.Equal(expected.ID) && actual.TemplateID.Equal(expected.TemplateID) && actual.Enabled.Equal(expected.Enabled)
-	}
 }

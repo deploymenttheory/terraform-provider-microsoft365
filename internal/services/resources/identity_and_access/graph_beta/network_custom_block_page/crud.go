@@ -5,14 +5,23 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	grapherrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
+
+// readbackMatch is what the read-back after a write waits for: the singleton id, the written state and, when set, the configuration.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths: crud.RootPaths("id", "state", "configuration"),
+	Overrides: []crud.AttributeMatchOverride{
+		{Path: path.MatchRoot("configuration"), IgnoreNullExpected: new(true)},
+		{Path: path.MatchRoot("configuration").AtName("body"), IgnoreNullExpected: new(false)},
+	},
+}
 
 // Create adopts and PATCHes the existing singleton; there is no create API.
 func (r *NetworkCustomBlockPageResource) Create(
@@ -62,7 +71,7 @@ func (r *NetworkCustomBlockPageResource) Create(
 		r.Read,
 		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
 		&crud.CreateResponseContainer{CreateResponse: resp},
-		readOptions(&data, constants.TfOperationCreate),
+		crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(resp.State, readbackMatch))),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading custom block page after apply", err.Error())
@@ -160,7 +169,7 @@ func (r *NetworkCustomBlockPageResource) Update(
 		r.Read,
 		resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
 		&crud.UpdateResponseContainer{UpdateResponse: resp},
-		readOptions(&data, constants.TfOperationUpdate),
+		crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(resp.State, readbackMatch))),
 	)
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading custom block page after update", err.Error())
@@ -174,25 +183,4 @@ func (r *NetworkCustomBlockPageResource) Delete(
 	resp *resource.DeleteResponse,
 ) {
 	resp.State.RemoveResource(ctx)
-}
-
-func readOptions(
-	expected *NetworkCustomBlockPageResourceModel,
-	operation string,
-) crud.ReadWithRetryOptions {
-	opts := crud.DefaultReadWithRetryOptions()
-	opts.Operation = operation
-	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = func(ctx context.Context, state tfsdk.State) bool {
-		var actual NetworkCustomBlockPageResourceModel
-		if state.Get(ctx, &actual).HasError() {
-			return false
-		}
-		if actual.ID.ValueString() != singletonID || !actual.State.Equal(expected.State) {
-			return false
-		}
-		return expected.Configuration.IsNull() || expected.Configuration.IsUnknown() ||
-			actual.Configuration.Equal(expected.Configuration)
-	}
-	return opts
 }

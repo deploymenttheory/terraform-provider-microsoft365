@@ -21,6 +21,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackMatch is what the read-back after Create waits for: a populated id, the service principal and the key id returned by the POST.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("service_principal_id", "key_id"), RequireKnown: crud.RootPaths("id")}
+
 const (
 	// staleReadMaxAttempts and staleReadRetryDelay bound the wait for a consistent read
 	// of the credential lists before the destructive full-list PATCH on delete.
@@ -94,7 +97,7 @@ func (r *ServicePrincipalTokenSigningCertificateResource) Create(ctx context.Con
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = tokenSigningCertificateConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

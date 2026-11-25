@@ -15,6 +15,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
+// readbackAttributes are the attributes readbackMatch compares.
+var readbackAttributes = []string{
+	"display_name", "account_enabled", "mail_nickname", "given_name", "surname", "job_title", "department", "company_name", "office_location", "city",
+	"state", "country", "postal_code", "street_address", "usage_location", "preferred_language", "sponsor_ids",
+}
+
+// readbackMatch is what the read-back after a write waits for: a populated id and user principal name, and the written fields.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths(readbackAttributes...),
+	RequireKnown:       crud.RootPaths("id", "user_principal_name"),
+	IgnoreNullExpected: true,
+}
+
 // Create handles the Create operation for agent user resources.
 //
 // Operation: Creates a new agent user
@@ -77,7 +90,7 @@ func (r *AgentUserResource) Create(ctx context.Context, req resource.CreateReque
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = agentUserConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -250,7 +263,7 @@ func (r *AgentUserResource) Update(ctx context.Context, req resource.UpdateReque
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = agentUserConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

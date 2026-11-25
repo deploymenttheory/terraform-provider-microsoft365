@@ -13,6 +13,19 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackAttributes are the attributes readbackMatch compares.
+var readbackAttributes = []string{
+	"id", "allowed_to_sign_up_email_based_subscriptions", "allowed_to_use_sspr", "allow_email_verified_users_to_join_organization", "allow_invites_from",
+	"allow_user_consent_for_risky_apps", "block_msol_powershell", "description", "display_name", "enabled_preview_features", "guest_user_role_id",
+	"permission_grant_policy_ids_assigned_to_default_user_role", "default_user_role_permissions",
+}
+
+// readbackMatch is what the read-back after a write waits for: the singleton id and the written settings.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:              crud.RootPaths(readbackAttributes...),
+	IgnoreNullExpected: true,
+}
+
 // Create configures the authorization policy.
 //
 // The authorizationPolicy resource is a singleton that always exists in the tenant; there is no documented
@@ -86,7 +99,7 @@ func (r *AuthorizationPolicyResource) Create(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = stableConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if deadline, ok := ctx.Deadline(); ok {
 		opts.MaxRetries = int(time.Until(deadline) / opts.RetryInterval)
 	}
@@ -226,7 +239,7 @@ func (r *AuthorizationPolicyResource) Update(
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = stableConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 	if deadline, ok := ctx.Deadline(); ok {
 		opts.MaxRetries = int(time.Until(deadline) / opts.RetryInterval)
 	}

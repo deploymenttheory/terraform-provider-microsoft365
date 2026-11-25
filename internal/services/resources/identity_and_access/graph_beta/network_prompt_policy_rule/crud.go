@@ -31,6 +31,13 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 )
 
+// readbackMatch is what the read-back after a write waits for: a populated id and the written fields. Graph returns an unset custom scheme JSON path as an empty string.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:        crud.RootPaths("name", "description", "action", "priority", "enabled", "prompt_logging", "scan_result", "conversation_schemes"),
+	RequireKnown: crud.RootPaths("id"),
+	Overrides:    []crud.AttributeMatchOverride{{Path: path.MatchRoot("conversation_schemes").AtAnyListIndex().AtName("json_path"), NullMatchesEmpty: new(true)}},
+}
+
 func (r *NetworkPromptPolicyRuleResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var object NetworkPromptPolicyRuleResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &object)...)
@@ -73,7 +80,7 @@ func (r *NetworkPromptPolicyRuleResource) Create(ctx context.Context, req resour
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
-	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(promptPolicyRuleConsistencyPredicate(&object)))
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName, crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(resp.State, readbackMatch)))
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.CreateResponseContainer{CreateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading resource state after create", fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()))
 	}
@@ -156,7 +163,7 @@ func (r *NetworkPromptPolicyRuleResource) Update(ctx context.Context, req resour
 		return
 	}
 	readReq := resource.ReadRequest{State: readState, ProviderMeta: req.ProviderMeta}
-	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(promptPolicyRuleConsistencyPredicate(&plan)))
+	opts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName, crud.ReadWithConsistencyPredicate(crud.AttributesMatchPredicate(readState, readbackMatch)))
 	if err := crud.ReadWithRetry(ctx, r.Read, readReq, &crud.UpdateResponseContainer{UpdateResponse: resp}, opts); err != nil {
 		resp.Diagnostics.AddError("Error reading resource state after update", fmt.Sprintf("Could not read resource state: %s: %s", ResourceName, err.Error()))
 	}

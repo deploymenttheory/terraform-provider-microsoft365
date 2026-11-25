@@ -9,10 +9,14 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/applications"
 )
+
+// readbackMatch is what the read-back after Create waits for: the written blueprint and identifier URI. Create also requires scope.id when scope is configured.
+var readbackMatch = crud.AttributeMatchOptions{Paths: crud.RootPaths("blueprint_id", "identifier_uri")}
 
 // Create handles the Create operation for agent identity blueprint identifier URI resources.
 //
@@ -101,7 +105,11 @@ func (r *AgentIdentityBlueprintIdentifierUriResource) Create(ctx context.Context
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = agentIdentityBlueprintIdentifierUriConsistencyPredicate(&object)
+	match := readbackMatch
+	if object.Scope != nil {
+		match.RequireKnown = []path.Path{path.Root("scope").AtName("id")}
+	}
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, match)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

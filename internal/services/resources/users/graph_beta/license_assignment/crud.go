@@ -11,12 +11,21 @@ import (
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sharedmodels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/shared_models/graph_beta"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/users"
 )
+
+// readbackMatch is what the read-back after a write waits for: a populated id and user principal name, the written user and SKU, and the disabled plans in any case.
+var readbackMatch = crud.AttributeMatchOptions{
+	Paths:            crud.RootPaths("user_id", "sku_id", "disabled_plans"),
+	RequireKnown:     crud.RootPaths("id", "user_principal_name"),
+	NullMatchesEmpty: true,
+	Overrides:        []crud.AttributeMatchOverride{{Path: path.MatchRoot("disabled_plans"), CaseInsensitiveStrings: new(true)}},
+}
 
 // licenseAssignmentLockScope serializes assignLicense operations per user.
 //
@@ -109,7 +118,7 @@ func (r *UserLicenseAssignmentResource) Create(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = licenseAssignmentConsistencyPredicate(&object)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -272,7 +281,7 @@ func (r *UserLicenseAssignmentResource) Update(ctx context.Context, req resource
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = licenseAssignmentConsistencyPredicate(&plan)
+	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
