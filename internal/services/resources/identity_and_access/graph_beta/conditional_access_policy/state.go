@@ -65,20 +65,15 @@ func MapRemoteStateToTerraform(
 		data.Conditions = nil
 	}
 
-	// Map grant controls
-	if grantControls := remoteResource.GetGrantControls(); grantControls != nil {
+	// Map grant controls. Graph stores a grant with no control as null, so both read back as no block.
+	grantControls := remoteResource.GetGrantControls()
+	if grantControls != nil && (len(grantControls.GetBuiltInControls()) > 0 || len(grantControls.GetCustomAuthenticationFactors()) > 0 ||
+		len(grantControls.GetTermsOfUse()) > 0 || grantControls.GetAuthenticationStrength() != nil) {
 		tflog.Debug(ctx, "Mapping grantControls")
 		data.GrantControls = mapGrantControls(ctx, grantControls)
-	} else if data.GrantControls != nil {
-		tflog.Debug(ctx, "grantControls null, keeping an empty grant controls object to match the configured block")
-		// Graph returns null for an empty grant_controls block, so keep the configured empty object.
-		data.GrantControls = &ConditionalAccessGrantControls{
-			Operator:                    data.GrantControls.Operator,
-			BuiltInControls:             types.SetValueMust(types.StringType, []attr.Value{}),
-			CustomAuthenticationFactors: types.SetValueMust(types.StringType, []attr.Value{}),
-			TermsOfUse:                  types.SetValueMust(types.StringType, []attr.Value{}),
-			AuthenticationStrength:      nil,
-		}
+	} else {
+		tflog.Debug(ctx, "grantControls null or without controls")
+		data.GrantControls = nil
 	}
 
 	// Map session controls

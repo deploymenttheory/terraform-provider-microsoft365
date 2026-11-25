@@ -3159,3 +3159,105 @@ func TestAccResourceConditionalAccessPolicy_49_CAU020(t *testing.T) {
 		},
 	})
 }
+
+// Grant controls lifecycle: a session-only policy gains a grant control, then loses it again. Graph stores a grant
+// with no control as null, so each step must plan clean and import clean with no grant_controls block.
+func TestAccResourceConditionalAccessPolicy_52_GrantControlsLifecycle(t *testing.T) {
+	resourceName := resourceType + ".grant_controls_lifecycle"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		CheckDestroy: destroy.CheckDestroyedAllFunc(
+			testResource,
+			resourceType,
+			30*time.Second,
+		),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				Source:            "hashicorp/random",
+				VersionConstraint: constants.ExternalProviderRandomVersion,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Creating session-only policy")
+				},
+				Config: loadAcceptanceTestTerraform("resource_grant_controls_lifecycle-session_only.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceName).Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
+					check.That(resourceName).Key("state").HasValue("disabled"),
+					check.That(resourceName).Key("grant_controls.operator").DoesNotExist(),
+					check.That(resourceName).Key("session_controls.application_enforced_restrictions.is_enabled").HasValue("true"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing session-only policy")
+				},
+				Config:                  loadAcceptanceTestTerraform("resource_grant_controls_lifecycle-session_only.tf"),
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Adding the mfa grant control")
+				},
+				Config: loadAcceptanceTestTerraform("resource_grant_controls_lifecycle-mfa.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceName).Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceName).Key("grant_controls.built_in_controls.#").HasValue("1"),
+					check.That(resourceName).Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("mfa"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing policy with the mfa grant control")
+				},
+				Config:                  loadAcceptanceTestTerraform("resource_grant_controls_lifecycle-mfa.tf"),
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Removing the grant_controls block")
+				},
+				Config: loadAcceptanceTestTerraform("resource_grant_controls_lifecycle-session_only.tf"),
+				Check: resource.ComposeTestCheckFunc(
+					func(_ *terraform.State) error {
+						testlog.WaitForConsistency("conditional access policy", 30*time.Second)
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+					check.That(resourceName).Key("grant_controls.operator").DoesNotExist(),
+					check.That(resourceName).Key("session_controls.application_enforced_restrictions.is_enabled").HasValue("true"),
+				),
+			},
+			{
+				PreConfig: func() {
+					testlog.StepAction(resourceType, "Importing session-only policy after removing the grant")
+				},
+				Config:                  loadAcceptanceTestTerraform("resource_grant_controls_lifecycle-session_only.tf"),
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"timeouts"},
+			},
+		},
+	})
+}

@@ -2598,10 +2598,10 @@ func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
 				),
 			},
 			{
-				// Graph returns null for an empty grant block; the configured block must survive the update.
-				Config: cau021Config(`grant_controls = { operator = "AND" }`, "everyTime"),
+				Config: cau021Config(`grant_controls = { operator = "AND", built_in_controls = ["mfa", "compliantDevice"] }`, "everyTime"),
 				Check: resource.ComposeTestCheckFunc(
 					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.operator").HasValue("AND"),
+					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("grant_controls.built_in_controls.#").HasValue("2"),
 					check.That(resourceType+".cau021_private_access_sign_in_every_time").Key("session_controls.sign_in_frequency.frequency_interval").HasValue("everyTime"),
 				),
 			},
@@ -2635,6 +2635,90 @@ func TestUnitResourceConditionalAccessPolicy_49_CAU021(t *testing.T) {
 		},
 	})
 	capture.AssertMatchesFixture(t, "tests/requests/49_cau021.json")
+}
+
+// Grant controls lifecycle: session-only, then a grant control added, then the block removed. Graph stores a grant
+// with no control as null, so every step must plan clean and import clean.
+func TestUnitResourceConditionalAccessPolicy_50_GrantControlsLifecycle(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
+	defer httpmock.DeactivateAndReset()
+	defer conditionalAccessPolicyMock.CleanupMockState()
+
+	resourceName := resourceType + ".cau021_private_access_sign_in_every_time"
+	sessionOnly := loadUnitTestTerraform("resource_cau021-selected.tf")
+	withMFA := cau021Config(`grant_controls = { operator = "OR", built_in_controls = ["mfa"] }`, "everyTimeStrict")
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: sessionOnly,
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceName).Key("grant_controls.operator").DoesNotExist(),
+				),
+			},
+			{
+				Config:            sessionOnly,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: withMFA,
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceName).Key("grant_controls.operator").HasValue("OR"),
+					check.That(resourceName).Key("grant_controls.built_in_controls.*").ContainsTypeSetElement("mfa"),
+				),
+			},
+			{
+				Config:            withMFA,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: sessionOnly,
+				Check: resource.ComposeTestCheckFunc(
+					check.That(resourceName).Key("grant_controls.operator").DoesNotExist(),
+				),
+			},
+			{
+				Config:            sessionOnly,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+	capture.AssertMatchesFixture(t, "tests/requests/50_grantcontrolslifecycle.json")
+}
+
+// A grant_controls block that sets no control is rejected at plan, because Graph would store it as nothing.
+func TestUnitResourceConditionalAccessPolicy_51_EmptyGrantControlsRejected(t *testing.T) {
+	mocks.SetupUnitTestEnvironment(t)
+	_, conditionalAccessPolicyMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
+	defer httpmock.DeactivateAndReset()
+	defer conditionalAccessPolicyMock.CleanupMockState()
+
+	expectedError := regexp.MustCompile(`grant_controls sets no control`)
+
+	resource.UnitTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testUnitTestProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      cau021Config(`grant_controls = { operator = "OR" }`, "everyTimeStrict"),
+				ExpectError: expectedError,
+			},
+			{
+				Config:      cau021Config(`grant_controls = { operator = "OR", built_in_controls = [] }`, "everyTimeStrict"),
+				ExpectError: expectedError,
+			},
+		},
+	})
+	capture.AssertMatchesFixture(t, "tests/requests/51_emptygrantcontrolsrejected.json")
 }
 
 // cau021Config adds a grant_controls block and sets frequency_interval on the CAU021 config.

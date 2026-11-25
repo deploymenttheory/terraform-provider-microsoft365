@@ -7,6 +7,7 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/validate/attribute"
 	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
@@ -878,8 +879,17 @@ func (r *ConditionalAccessPolicyResource) Schema(ctx context.Context, req resour
 				},
 			},
 			"grant_controls": schema.SingleNestedAttribute{
-				MarkdownDescription: "Controls for granting access. Either `grant_controls` or `session_controls` or both must be specified.",
-				Optional:            true,
+				MarkdownDescription: "Controls for granting access. Either `grant_controls` or `session_controls` or both must be specified. " +
+					"When set, the block must set at least one of `built_in_controls`, `custom_authentication_factors`, `terms_of_use` or `authentication_strength`. " +
+					"Graph stores a grant with no control as nothing, so for a session-only policy leave `grant_controls` out.",
+				Optional: true,
+				Validators: []validator.Object{
+					attribute.AtLeastOneOfNonEmpty(
+						"grant_controls sets no control. Graph stores a grant with no control as nothing, so the block cannot be kept. Remove the grant_controls block, "+
+							"or set at least one of built_in_controls, custom_authentication_factors, terms_of_use or authentication_strength.",
+						"built_in_controls", "custom_authentication_factors", "terms_of_use", "authentication_strength",
+					),
+				},
 				Attributes: map[string]schema.Attribute{
 					"operator": schema.StringAttribute{
 						MarkdownDescription: "Operator to apply to the controls. Possible values are: AND, OR. When setting a singular operator, use 'OR'.",
