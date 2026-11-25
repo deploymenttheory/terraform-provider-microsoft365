@@ -1,0 +1,51 @@
+[
+  {
+    "method": "GET",
+    "url": "/beta/applications/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/applications/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/applications/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/applications/{uuid-1}"
+  },
+  {
+    "method": "GET",
+    "url": "/beta/applications/{uuid-1}"
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/applications/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.application",
+      "keyCredentials": []
+    }
+  },
+  {
+    "method": "PATCH",
+    "url": "/beta/applications/{uuid-1}",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "@odata.type": "#microsoft.graph.application",
+      "keyCredentials": [
+        {
+          "displayName": "unit-test-certificate-hex",
+          "key": "MIIDxzCCAq+gAwIBAgIUddqlJnxJ9H+1bEujS/CnVeI7NzkwDQYJKoZIhvcNAQELBQAwczELMAkGA1UEBhMCVVMxDTALBgNVBAgMBFRlc3QxDTALBgNVBAcMBFRlc3QxGjAYBgNVBAoMEVRlc3QgT3JnYW5pemF0aW9uMSowKAYDVQQDDCFBZ2VudCBJZGVudGl0eSBCbHVlcHJpbnQgSGV4IFRlc3QwHhcNMjUxMjA2MTE1ODM4WhcNMjYxMjA2MTE1ODM4WjBzMQswCQYDVQQGEwJVUzENMAsGA1UECAwEVGVzdDENMAsGA1UEBwwEVGVzdDEaMBgGA1UECgwRVGVzdCBPcmdhbml6YXRpb24xKjAoBgNVBAMMIUFnZW50IElkZW50aXR5IEJsdWVwcmludCBIZXggVGVzdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK9lsN6Ln9PfQ9N2C1g1eH6f77L+iMSi8ZBoANWIA2Eb+YaLJ7mGoAwQtXeuokraSLSr/6sSLte9H368/SXdcUWTkGqR7/LzJQLJ5AYjygb+ZekVXRuxVXy2UJlIrTd0yX0P6/teQAPUiENtdbr9f9Y3zfxsFqx61m5RrOekW4XMGpO5Jgchl1RpJETns4bAg8L3I+g06jDjkU1SSqs28mkrUg8ksqah7HzoJYxdoasboi2srUf9bfUhlq4XTmKVrbNgtP6IWksjMa2GuLumJ2ut2/QJNQGntrLptruTOKMVHGOXhl41DmK6jlKmcw2VFmo98yfDq9QTSK3U1nKlL1MCAwEAAaNTMFEwHQYDVR0OBBYEFAuOkBzwWRpVXmOJ1gf3uyMDLiCZMB8GA1UdIwQYMBaAFAuOkBzwWRpVXmOJ1gf3uyMDLiCZMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAFOrZ9lOYTp1JevXeYhnwfq9rpC6rOO0fprsqOk6VqGAuuP18lc+/28fW9/as8c6Ns7nDsFyZiCM0RU52n/GQJyWyholko4NxcOL4z+pvgKubbPtKVUfIL6enbfRO5ejE1BBLvFov9zuxFMwPGVlF8hr43kPXG/v0u7rkGAx+IhS5Ml/8PuSxNujkwqyMv1VfrEMuAfDLTl9iutLdu9uUTeoIVnAw6wqRK/D1pVgr4g7fhCC3Zs+fTYdJUuWOMS8d7B8rcL14Ud8CfFfkf/zzQ34g78K3iKGD+Fkh8kfMUC8Sy+oFzAGiehqIDP6Kl3HxnMRePVpdCVeexSlH/Yj8H8=",
+          "type": "AsymmetricX509Cert",
+          "usage": "Verify"
+        }
+      ]
+    }
+  }
+]

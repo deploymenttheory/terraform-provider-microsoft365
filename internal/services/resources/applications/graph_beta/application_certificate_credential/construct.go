@@ -77,7 +77,8 @@ func constructDeleteResource(ctx context.Context, keyIDToRemove string, existing
 
 	application := graphmodels.NewApplication()
 
-	var keyCredentials []graphmodels.KeyCredentialable
+	// Never nil, so removing the last credential sends "keyCredentials": [] rather than null, which Graph rejects with 400.
+	keyCredentials := make([]graphmodels.KeyCredentialable, 0, len(existingCredentials))
 
 	for _, cred := range existingCredentials {
 		if cred.GetKeyId() != nil && cred.GetKeyId().String() != keyIDToRemove {

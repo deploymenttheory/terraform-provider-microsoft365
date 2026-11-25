@@ -11,8 +11,8 @@ import (
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 )
 
-// MapRemoteResourceStateToTerraform maps the key credential to the Terraform state
-func MapRemoteResourceStateToTerraform(ctx context.Context, data *ApplicationCertificateCredentialResourceModel, credential graphmodels.KeyCredentialable) {
+// MapRemoteStateToTerraform maps the key credential to the Terraform state
+func MapRemoteStateToTerraform(ctx context.Context, data *ApplicationCertificateCredentialResourceModel, credential graphmodels.KeyCredentialable) {
 	tflog.Debug(ctx, fmt.Sprintf("Mapping credential to state for %s", ResourceName))
 
 	data.KeyID = convert.GraphToFrameworkUUID(credential.GetKeyId())
