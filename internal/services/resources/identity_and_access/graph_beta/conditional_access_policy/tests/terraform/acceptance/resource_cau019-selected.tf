@@ -24,7 +24,7 @@ data "microsoft365_graph_beta_applications_service_principal" "microsoft_approva
 }
 
 data "microsoft365_graph_beta_applications_service_principal" "aad_reporting" {
-  display_name = "Azure Active Directory Graph"
+  app_id = "1b912ec3-a9dd-4c4d-a53e-76aa7adb28d7" # AADReporting
 }
 
 data "microsoft365_graph_beta_applications_service_principal" "azure_credential_configuration_endpoint_service" {
