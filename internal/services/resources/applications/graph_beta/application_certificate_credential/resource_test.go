@@ -54,6 +54,7 @@ func setupErrorMockEnvironment() (*mocks.Mocks, *certificateCredentialMocks.Appl
 func TestUnitResourceApplicationCertificateCredential_01_Base64(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, certificateMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer certificateMock.CleanupMockState()
 
@@ -73,11 +74,13 @@ func TestUnitResourceApplicationCertificateCredential_01_Base64(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/base64.json")
 }
 
 func TestUnitResourceApplicationCertificateCredential_02_DER(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, certificateMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer certificateMock.CleanupMockState()
 
@@ -97,11 +100,13 @@ func TestUnitResourceApplicationCertificateCredential_02_DER(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/der.json")
 }
 
 func TestUnitResourceApplicationCertificateCredential_03_HEX(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, certificateMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer certificateMock.CleanupMockState()
 
@@ -121,11 +126,13 @@ func TestUnitResourceApplicationCertificateCredential_03_HEX(t *testing.T) {
 			},
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/hex.json")
 }
 
 func TestUnitResourceApplicationCertificateCredential_04_PEM(t *testing.T) {
 	mocks.SetupUnitTestEnvironment(t)
 	_, certificateMock := setupMockEnvironment()
+	capture := mocks.CaptureGraphRequests(t)
 	defer httpmock.DeactivateAndReset()
 	defer certificateMock.CleanupMockState()
 
@@ -146,4 +153,5 @@ func TestUnitResourceApplicationCertificateCredential_04_PEM(t *testing.T) {
 			// Note: Import is not supported for certificate credentials
 		},
 	})
+	capture.AssertMatchesFixture(t, "tests/requests/pem.json")
 }

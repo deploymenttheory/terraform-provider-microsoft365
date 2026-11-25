@@ -241,7 +241,7 @@ func (r *ApplicationCertificateCredentialResource) Read(ctx context.Context, req
 		return
 	}
 
-	MapRemoteResourceStateToTerraform(ctx, &object, credential)
+	MapRemoteStateToTerraform(ctx, &object, credential)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
