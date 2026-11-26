@@ -54,6 +54,9 @@ func TestUnitResourceWin32App_CreateFailureRetainsDeletableApplication(t *testin
 	values := map[string]tftypes.Value{}
 	for name, kind := range objectType.AttributeTypes {
 		values[name] = tftypes.NewValue(kind, nil)
+		if attribute, ok := schema.Schema.Attributes[name]; ok && attribute.IsComputed() {
+			values[name] = tftypes.NewValue(kind, tftypes.UnknownValue)
+		}
 	}
 	values["display_name"] = tftypes.NewValue(tftypes.String, "owned failed-create fixture")
 	source := writePlainZipFixture(t, "payload.zip", map[string][]byte{"setup.cmd": []byte("exit /b 0")})
@@ -69,6 +72,7 @@ func TestUnitResourceWin32App_CreateFailureRetainsDeletableApplication(t *testin
 	require.True(t, created, "base application must have been created")
 	require.True(t, contentFailed, "failure must occur after Graph allocated the application")
 	require.True(t, response.Diagnostics.HasError(), response.Diagnostics)
+	require.True(t, response.State.Raw.IsFullyKnown(), "failed Create state must contain no unknown planned values")
 	var retainedID string
 	require.False(t, response.State.GetAttribute(ctx, path.Root("id"), &retainedID).HasError(), "failed Create must retain its application ID")
 	require.Equal(t, appID, retainedID)

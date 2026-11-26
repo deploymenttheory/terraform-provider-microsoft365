@@ -78,7 +78,7 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 	object.ID = types.StringValue(*baseResource.GetId())
 	// Retain the allocated app if category assignment or content publication
 	// fails, so Terraform can destroy the partial resource on retry or cleanup.
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
+	resp.Diagnostics.Append(crud.SetPartialState(ctx, &resp.State, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -101,11 +101,6 @@ func (r *Win32LobAppResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	if !r.publishContentVersion(ctx, object.ID.ValueString(), installerPackage, resp, constants.TfOperationCreate) {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
-	if resp.Diagnostics.HasError() {
 		return
 	}
 
