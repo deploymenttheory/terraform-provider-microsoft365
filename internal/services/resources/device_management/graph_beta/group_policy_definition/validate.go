@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
-	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 )
 
 // ValidateValues validates user-provided values against the Graph API catalog
@@ -82,6 +82,10 @@ func validateValueForType(ctx context.Context, label, value, odataType string) e
 			tflog.Warn(ctx, fmt.Sprintf("[VALIDATE] Textbox '%s' has empty value", label))
 		}
 
+	case "#microsoft.graph.groupPolicyPresentationListBox":
+		if _, err := parseListBoxValue(value); err != nil {
+			return fmt.Errorf("invalid ListBox value for '%s': %w", label, err)
+		}
 	case "#microsoft.graph.groupPolicyPresentationMultiTextBox":
 		// For multi-text, we expect comma-separated or newline-separated values
 		// Any string is technically valid
@@ -140,138 +144,4 @@ func GetPresentationTypeName(odataType string) string {
 	default:
 		return "Unknown"
 	}
-}
-
-// ConvertValueForType converts a string value to the appropriate type for the Graph API
-func ConvertValueForType(ctx context.Context, label, value, odataType string) (graphmodels.GroupPolicyPresentationValueable, error) {
-	// Map presentation types to presentation VALUE types
-	var valueOdataType string
-
-	switch odataType {
-	case "#microsoft.graph.groupPolicyPresentationCheckBox":
-		valueOdataType = "#microsoft.graph.groupPolicyPresentationValueBoolean"
-		boolVal, err := strconv.ParseBool(value)
-		if err != nil {
-			return nil, fmt.Errorf("invalid boolean value for checkbox '%s': %w", label, err)
-		}
-		presValue := graphmodels.NewGroupPolicyPresentationValueBoolean()
-		presValue.SetOdataType(&valueOdataType)
-		presValue.SetValue(&boolVal)
-		return presValue, nil
-
-	case "#microsoft.graph.groupPolicyPresentationTextBox":
-		valueOdataType = "#microsoft.graph.groupPolicyPresentationValueText"
-		presValue := graphmodels.NewGroupPolicyPresentationValueText()
-		presValue.SetOdataType(&valueOdataType)
-		presValue.SetValue(&value)
-		return presValue, nil
-
-	case "#microsoft.graph.groupPolicyPresentationMultiTextBox":
-		valueOdataType = "#microsoft.graph.groupPolicyPresentationValueMultiText"
-		presValue := graphmodels.NewGroupPolicyPresentationValueMultiText()
-		presValue.SetOdataType(&valueOdataType)
-		// Split by newline or comma for multi-text
-		values := splitMultiTextValue(value)
-		presValue.SetValues(values)
-		return presValue, nil
-
-	case "#microsoft.graph.groupPolicyPresentationDecimalTextBox":
-		valueOdataType = "#microsoft.graph.groupPolicyPresentationValueDecimal"
-		intVal, err := strconv.ParseInt(value, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("invalid numeric value for decimal textbox '%s': %w", label, err)
-		}
-		presValue := graphmodels.NewGroupPolicyPresentationValueDecimal()
-		presValue.SetOdataType(&valueOdataType)
-		presValue.SetValue(&intVal)
-		return presValue, nil
-
-	case "#microsoft.graph.groupPolicyPresentationDropdownList",
-		"#microsoft.graph.groupPolicyPresentationComboBox":
-		// Both dropdown and combobox use text value type
-		valueOdataType = "#microsoft.graph.groupPolicyPresentationValueText"
-		presValue := graphmodels.NewGroupPolicyPresentationValueText()
-		presValue.SetOdataType(&valueOdataType)
-		presValue.SetValue(&value)
-		return presValue, nil
-
-	default:
-		return nil, fmt.Errorf("%w: '%s' for label '%s'", sentinels.ErrUnsupportedPresentationType, odataType, label)
-	}
-}
-
-// splitMultiTextValue splits a multi-text value by newlines or commas
-func splitMultiTextValue(value string) []string {
-	// First try splitting by newline
-	if strings.Contains(value, "\n") {
-		lines := strings.Split(value, "\n")
-		result := make([]string, 0, len(lines))
-		for _, line := range lines {
-			trimmed := strings.TrimSpace(line)
-			if trimmed != "" {
-				result = append(result, trimmed)
-			}
-		}
-		return result
-	}
-
-	// Fall back to comma-separated
-	if strings.Contains(value, ",") {
-		parts := strings.Split(value, ",")
-		result := make([]string, 0, len(parts))
-		for _, part := range parts {
-			trimmed := strings.TrimSpace(part)
-			if trimmed != "" {
-				result = append(result, trimmed)
-			}
-		}
-		return result
-	}
-
-	// Single value
-	return []string{value}
-}
-
-// ExtractValueFromPresentation extracts the string value from a presentation value for state mapping
-func ExtractValueFromPresentation(presValue graphmodels.GroupPolicyPresentationValueable) string {
-	if presValue == nil {
-		return ""
-	}
-
-	odataType := presValue.GetOdataType()
-	if odataType == nil {
-		return ""
-	}
-
-	switch *odataType {
-	case "#microsoft.graph.groupPolicyPresentationValueBoolean":
-		if boolVal, ok := presValue.(graphmodels.GroupPolicyPresentationValueBooleanable); ok {
-			if val := boolVal.GetValue(); val != nil {
-				return strconv.FormatBool(*val)
-			}
-		}
-
-	case "#microsoft.graph.groupPolicyPresentationValueText":
-		if textVal, ok := presValue.(graphmodels.GroupPolicyPresentationValueTextable); ok {
-			if val := textVal.GetValue(); val != nil {
-				return *val
-			}
-		}
-
-	case "#microsoft.graph.groupPolicyPresentationValueMultiText":
-		if multiTextVal, ok := presValue.(graphmodels.GroupPolicyPresentationValueMultiTextable); ok {
-			if vals := multiTextVal.GetValues(); vals != nil {
-				return strings.Join(vals, "\n")
-			}
-		}
-
-	case "#microsoft.graph.groupPolicyPresentationValueDecimal":
-		if decimalVal, ok := presValue.(graphmodels.GroupPolicyPresentationValueDecimalable); ok {
-			if val := decimalVal.GetValue(); val != nil {
-				return strconv.FormatInt(int64(*val), 10)
-			}
-		}
-	}
-
-	return ""
 }
