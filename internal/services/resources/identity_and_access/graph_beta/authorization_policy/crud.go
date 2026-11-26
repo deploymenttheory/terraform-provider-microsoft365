@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
@@ -70,7 +69,18 @@ func (r *AuthorizationPolicyResource) Create(
 		return
 	}
 
-	err = r.patchSettings(ctx, requestBody)
+	// The permanent singleton can briefly return 404 while a preceding write replicates.
+	writeOpts := crud.PreconditionRetryOptions{
+		MaxRetries: 15, RetryInterval: 2 * time.Second, StatusCodes: []int{404},
+		ResourceTypeName: ResourceName, Operation: constants.TfOperationCreate,
+	}
+	err = crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+		_, patchErr := r.client.Policies().AuthorizationPolicy().ByAuthorizationPolicyId(singletonID).Patch(ctx, requestBody, nil)
+		if patchErr != nil {
+			return fmt.Errorf("patch authorization policy: %w", patchErr)
+		}
+		return nil
+	}, writeOpts)
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -91,10 +101,44 @@ func (r *AuthorizationPolicyResource) Create(
 		return
 	}
 
-	err = r.completeInvitationWrite(ctx, requestBody, resp.State)
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
-		return
+	// Graph can queue role-permission changes and overwrite invitations afterwards.
+	// Confirm those settings first, then apply the configured invitations separately.
+	if requestBody.GetAllowInvitesFrom() != nil && requestBody.GetDefaultUserRolePermissions() != nil {
+		names := make([]string, 0, len(readbackAttributes))
+		for _, name := range readbackAttributes {
+			if name != "allow_invites_from" {
+				names = append(names, name)
+			}
+		}
+		settingsMatch := readbackMatch
+		settingsMatch.Paths = crud.RootPaths(names...)
+		settingsOpts := crud.NewReadWithRetryOptions(constants.TfOperationCreate, ResourceName,
+			crud.ReadWithConsistencyPredicate(crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, settingsMatch))))
+		if deadline, ok := ctx.Deadline(); ok {
+			settingsOpts.MaxRetries = int(time.Until(deadline) / settingsOpts.RetryInterval)
+		}
+		// Keep intermediate invitation values out of the desired final state.
+		pending := &resource.CreateResponse{State: resp.State}
+		err = crud.ReadWithRetry(ctx, r.Read,
+			resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
+			&crud.CreateResponseContainer{CreateResponse: pending}, settingsOpts)
+		if err != nil {
+			resp.Diagnostics.AddError("Error confirming authorization settings before invitations", err.Error())
+			return
+		}
+		invitations := graphmodels.NewAuthorizationPolicy()
+		invitations.SetAllowInvitesFrom(requestBody.GetAllowInvitesFrom())
+		err = crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+			_, patchErr := r.client.Policies().AuthorizationPolicy().ByAuthorizationPolicyId(singletonID).Patch(ctx, invitations, nil)
+			if patchErr != nil {
+				return fmt.Errorf("patch authorization invitations: %w", patchErr)
+			}
+			return nil
+		}, writeOpts)
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
+			return
+		}
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -215,7 +259,18 @@ func (r *AuthorizationPolicyResource) Update(
 		return
 	}
 
-	err = r.patchSettings(ctx, requestBody)
+	// The permanent singleton can briefly return 404 while a preceding write replicates.
+	writeOpts := crud.PreconditionRetryOptions{
+		MaxRetries: 15, RetryInterval: 2 * time.Second, StatusCodes: []int{404},
+		ResourceTypeName: ResourceName, Operation: constants.TfOperationUpdate,
+	}
+	err = crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+		_, patchErr := r.client.Policies().AuthorizationPolicy().ByAuthorizationPolicyId(singletonID).Patch(ctx, requestBody, nil)
+		if patchErr != nil {
+			return fmt.Errorf("patch authorization policy: %w", patchErr)
+		}
+		return nil
+	}, writeOpts)
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -233,10 +288,44 @@ func (r *AuthorizationPolicyResource) Update(
 		return
 	}
 
-	err = r.completeInvitationWrite(ctx, requestBody, resp.State)
-	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
-		return
+	// Graph can queue role-permission changes and overwrite invitations afterwards.
+	// Confirm those settings first, then apply the configured invitations separately.
+	if requestBody.GetAllowInvitesFrom() != nil && requestBody.GetDefaultUserRolePermissions() != nil {
+		names := make([]string, 0, len(readbackAttributes))
+		for _, name := range readbackAttributes {
+			if name != "allow_invites_from" {
+				names = append(names, name)
+			}
+		}
+		settingsMatch := readbackMatch
+		settingsMatch.Paths = crud.RootPaths(names...)
+		settingsOpts := crud.NewReadWithRetryOptions(constants.TfOperationUpdate, ResourceName,
+			crud.ReadWithConsistencyPredicate(crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, settingsMatch))))
+		if deadline, ok := ctx.Deadline(); ok {
+			settingsOpts.MaxRetries = int(time.Until(deadline) / settingsOpts.RetryInterval)
+		}
+		// Keep intermediate invitation values out of the desired final state.
+		pending := &resource.UpdateResponse{State: resp.State}
+		err = crud.ReadWithRetry(ctx, r.Read,
+			resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta},
+			&crud.UpdateResponseContainer{UpdateResponse: pending}, settingsOpts)
+		if err != nil {
+			resp.Diagnostics.AddError("Error confirming authorization settings before invitations", err.Error())
+			return
+		}
+		invitations := graphmodels.NewAuthorizationPolicy()
+		invitations.SetAllowInvitesFrom(requestBody.GetAllowInvitesFrom())
+		err = crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+			_, patchErr := r.client.Policies().AuthorizationPolicy().ByAuthorizationPolicyId(singletonID).Patch(ctx, invitations, nil)
+			if patchErr != nil {
+				return fmt.Errorf("patch authorization invitations: %w", patchErr)
+			}
+			return nil
+		}, writeOpts)
+		if err != nil {
+			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
+			return
+		}
 	}
 
 	readReq := resource.ReadRequest{State: resp.State, ProviderMeta: req.ProviderMeta}
@@ -267,25 +356,4 @@ func (r *AuthorizationPolicyResource) Delete(
 	resp *resource.DeleteResponse,
 ) {
 	resp.State.RemoveResource(ctx)
-}
-
-// completeInvitationWrite waits for the settings write to become visible before
-// applying invitations. A successful PATCH can still be queued by Graph.
-func (r *AuthorizationPolicyResource) completeInvitationWrite(
-	ctx context.Context,
-	body graphmodels.AuthorizationPolicyable,
-	desired tfsdk.State,
-) error {
-	if body.GetAllowInvitesFrom() == nil || body.GetDefaultUserRolePermissions() == nil {
-		return nil
-	}
-	if err := r.waitForPolicySettings(ctx, desired); err != nil {
-		return fmt.Errorf("wait for authorization settings before invitations: %w", err)
-	}
-	invitations := graphmodels.NewAuthorizationPolicy()
-	invitations.SetAllowInvitesFrom(body.GetAllowInvitesFrom())
-	if err := r.patchSettings(ctx, invitations); err != nil {
-		return fmt.Errorf("update invitation settings: %w", err)
-	}
-	return nil
 }
