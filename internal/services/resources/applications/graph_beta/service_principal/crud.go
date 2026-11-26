@@ -3,6 +3,7 @@ package graphBetaServicePrincipal
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -69,6 +70,23 @@ func (r *ServicePrincipalResource) Create(ctx context.Context, req resource.Crea
 	createdResource, err := r.client.
 		ServicePrincipals().
 		Post(ctx, requestBody, nil)
+
+	// A newly created backing application can be missing from another directory
+	// replica. This specific 400 is safe to retry: no principal was created.
+	// Other validation errors must still fail immediately.
+	for attempt := 0; err != nil && attempt < 15; attempt++ {
+		info := errors.GraphError(ctx, err)
+		if info.StatusCode != 400 || !strings.Contains(info.ErrorMessage, "does not reference a valid application") {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			resp.Diagnostics.AddError("Timed out waiting for backing application", ctx.Err().Error())
+			return
+		case <-time.After(2 * time.Second):
+		}
+		createdResource, err = r.client.ServicePrincipals().Post(ctx, requestBody, nil)
+	}
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
