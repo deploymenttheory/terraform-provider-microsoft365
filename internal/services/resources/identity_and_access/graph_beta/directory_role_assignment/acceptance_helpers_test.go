@@ -62,7 +62,7 @@ func directoryRoleAcceptancePrincipal(t *testing.T) string {
 			return true, nil
 		}
 		info := grapherrors.GraphError(ctx, postErr)
-		if info.StatusCode == 404 || (info.StatusCode == 400 && strings.Contains(strings.ToLower(info.ErrorMessage), "not found")) {
+		if info.StatusCode == 404 || (info.StatusCode == 400 && (strings.Contains(strings.ToLower(info.ErrorMessage), "not found") || strings.Contains(info.ErrorMessage, "does not reference a valid application object"))) {
 			return false, fmt.Errorf("waiting for fixture application replication: %w", postErr)
 		}
 		return false, &crud.FatalPollError{Err: postErr}
