@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	winget "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/win_get_app"
+	preparation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_device_preparation_policy"
+	group "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
@@ -30,6 +35,9 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_01_ListAll(t *test
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("01_list_all.tf"),
@@ -48,11 +56,17 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_02_ByPolicyId(t *t
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
+			"time": {Source: "hashicorp/time", VersionConstraint: constants.ExternalProviderTimeVersion},
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: preparation.ResourceName, TestResource: preparation.WindowsAutopilotDevicePreparationPolicyTestResource{}},
+			destroy.ResourceTypeMapping{ResourceType: group.ResourceName, TestResource: group.GroupTestResource{}},
+			destroy.ResourceTypeMapping{ResourceType: winget.ResourceName, TestResource: winget.WinGetAppTestResource{}},
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("02_by_policy_id.tf"),
@@ -79,11 +93,17 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_03_ByName(t *testi
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
+			"time": {Source: "hashicorp/time", VersionConstraint: constants.ExternalProviderTimeVersion},
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: preparation.ResourceName, TestResource: preparation.WindowsAutopilotDevicePreparationPolicyTestResource{}},
+			destroy.ResourceTypeMapping{ResourceType: group.ResourceName, TestResource: group.GroupTestResource{}},
+			destroy.ResourceTypeMapping{ResourceType: winget.ResourceName, TestResource: winget.WinGetAppTestResource{}},
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("03_by_name.tf"),
@@ -107,6 +127,9 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_04_ODataQuery(t *t
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("04_odata_query.tf"),
@@ -124,6 +147,9 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_05_WithAssignments
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("05_with_assignments.tf"),
