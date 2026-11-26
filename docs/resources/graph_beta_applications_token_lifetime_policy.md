@@ -20,7 +20,6 @@ Manages token lifetime policies in Microsoft Entra ID using the `/policies/token
 
 resource "microsoft365_graph_beta_applications_token_lifetime_policy" "example" {
   display_name = "example-token-lifetime-policy"
-  description  = "Sets access token lifetime to 1 hour"
 
   definition = [
     "{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"01:00:00\"}}"
@@ -34,10 +33,9 @@ resource "microsoft365_graph_beta_applications_token_lifetime_policy" "example" 
 
 resource "microsoft365_graph_beta_applications_token_lifetime_policy" "org_default" {
   display_name = "organization-default-token-lifetime-policy"
-  description  = "Organization-wide default token lifetime policy"
 
   definition = [
-    "{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"01:00:00\",\"MaxInactiveTime\":\"90.00:00:00\",\"MaxAgeSingleFactor\":\"until-revoked\",\"MaxAgeMultiFactor\":\"until-revoked\",\"MaxAgeSessionSingleFactor\":\"until-revoked\",\"MaxAgeSessionMultiFactor\":\"until-revoked\"}}"
+    "{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"01:00:00\"}}"
   ]
 
   is_organization_default = true
@@ -54,13 +52,15 @@ resource "microsoft365_graph_beta_applications_token_lifetime_policy" "org_defau
 
 ### Optional
 
-- `description` (String) The description of the token lifetime policy.
 - `is_organization_default` (Boolean) If `true`, this is the default policy for the organization. There can only be one organization default token lifetime policy. Defaults to `false`.
 - `timeouts` (Attributes) (see [below for nested schema](#nestedatt--timeouts))
 
 ### Read-Only
 
+- `description` (String) Read-only inherited policy description. Microsoft Graph does not support writing this property for token lifetime policies; omit it from configuration.
+
 - `deleted_date_time` (String) The date and time the policy was deleted. Null if the policy has not been deleted.
+- `description` (String) Read-only inherited policy description. Microsoft Graph does not support writing this property for token lifetime policies; omit it from configuration.
 - `id` (String) The unique identifier of the token lifetime policy.
 
 <a id="nestedatt--timeouts"></a>

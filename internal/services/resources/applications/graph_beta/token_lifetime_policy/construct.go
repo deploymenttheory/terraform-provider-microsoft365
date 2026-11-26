@@ -17,7 +17,6 @@ func constructResource(ctx context.Context, data *TokenLifetimePolicyResourceMod
 	requestBody := graphmodels.NewTokenLifetimePolicy()
 
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
-	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 
 	if err := convert.FrameworkToGraphStringList(ctx, data.Definition, requestBody.SetDefinition); err != nil {
 		return nil, fmt.Errorf("failed to set definition: %w", err)

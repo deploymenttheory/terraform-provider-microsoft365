@@ -96,8 +96,7 @@ func (r *TokenLifetimePolicyResource) Schema(ctx context.Context, req resource.S
 				Required:            true,
 			},
 			"description": schema.StringAttribute{
-				MarkdownDescription: "The description of the token lifetime policy.",
-				Optional:            true,
+				MarkdownDescription: "Read-only inherited policy description. Microsoft Graph does not support writing this property for token lifetime policies; omit it from configuration.",
 				Computed:            true,
 			},
 			"definition": schema.ListAttribute{

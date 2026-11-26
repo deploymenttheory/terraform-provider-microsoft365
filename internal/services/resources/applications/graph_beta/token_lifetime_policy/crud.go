@@ -142,6 +142,22 @@ func (r *TokenLifetimePolicyResource) Read(ctx context.Context, req resource.Rea
 		ByTokenLifetimePolicyId(object.ID.ValueString()).
 		Get(ctx, nil)
 
+	// A policy can be visible after create and still return 404 from another
+	// replica during Terraform's refresh. Only treat a persistent 404 as a
+	// deletion; otherwise a valid policy is removed from state and recreated.
+	for attempt := 0; err != nil && attempt < 30; attempt++ {
+		if errors.GraphError(ctx, err).StatusCode != 404 {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			resp.Diagnostics.AddError("Error reading token lifetime policy", ctx.Err().Error())
+			return
+		case <-time.After(2 * time.Second):
+		}
+		policy, err = r.client.Policies().TokenLifetimePolicies().ByTokenLifetimePolicyId(object.ID.ValueString()).Get(ctx, nil)
+	}
+
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
