@@ -21,11 +21,11 @@ import (
 var errUnexpectedAzureUploadStatus = errors.New("unexpected status")
 
 const (
-	blockSize          = 8 * 1024 * 1024  // 8 MiB chunks
-	blockUploadTimeout = 60 * time.Second // Individual block upload timeout
-	retryMaxAttempts   = 3                // Number of retry attempts per block
-	retryMinWait       = 5 * time.Second  // Minimum wait between retries
-	retryMaxWait       = 10 * time.Second // Maximum wait between retries
+	blockSize                = 8 * 1024 * 1024  // 8 MiB chunks
+	blockUploadTimeout       = 60 * time.Second // Individual block upload timeout
+	retryMaxAttempts         = 3                // Number of retry attempts per block
+	retryBackoffAllowance    = 10 * time.Second // Allowance for SDK retry scheduling
+	sasPolicyPropagationWait = 30 * time.Second // Azure stored access policy propagation limit
 )
 
 // UploadToAzureStorage handles the chunked upload of large files to Azure Blob Storage.
@@ -108,7 +108,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		// Each attempt may consume the full request timeout. Give all configured
 		// attempts room to run, bounded by the caller's operation deadline.
 		attempts := 0
-		retryBudget := time.Duration(retryMaxAttempts)*blockUploadTimeout + time.Duration(retryMaxAttempts-1)*retryMaxWait
+		retryBudget := time.Duration(retryMaxAttempts)*blockUploadTimeout + time.Duration(retryMaxAttempts-1)*(sasPolicyPropagationWait+retryBackoffAllowance)
 		retryBlockError := func(err error) *retry.RetryError {
 			if ctx.Err() != nil || attempts >= retryMaxAttempts {
 				return retry.NonRetryableError(err)
@@ -158,7 +158,27 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 					"status_code":  resp.StatusCode,
 					"response":     string(body),
 				})
-				return retryBlockError(fmt.Errorf("%w: %d - %s", errUnexpectedAzureUploadStatus, resp.StatusCode, string(body)))
+				statusError := fmt.Errorf("%w: %d - %s", errUnexpectedAzureUploadStatus, resp.StatusCode, string(body))
+				// Azure may issue a SAS before its stored access policy has
+				// propagated. Replay the same block after that documented window
+				// instead of exhausting fast retries and renewing a fresh URI.
+				// https://learn.microsoft.com/en-us/rest/api/storageservices/define-stored-access-policy
+				missingPolicy := resp.StatusCode == http.StatusForbidden && strings.Contains(string(body), "SAS identifier cannot be found for specified signed identifier")
+				if missingPolicy && attempts < retryMaxAttempts && ctx.Err() == nil {
+					resp.Body.Close()
+					tflog.Warn(ctx, "Waiting for Azure stored access policy propagation", map[string]any{
+						"block_number": blockNum + 1,
+						"wait":         sasPolicyPropagationWait.String(),
+					})
+					timer := time.NewTimer(sasPolicyPropagationWait)
+					select {
+					case <-ctx.Done():
+						timer.Stop()
+						return retry.NonRetryableError(fmt.Errorf("%w: %w", statusError, ctx.Err()))
+					case <-timer.C:
+					}
+				}
+				return retryBlockError(statusError)
 			}
 
 			tflog.Debug(ctx, "Block upload successful", map[string]any{
