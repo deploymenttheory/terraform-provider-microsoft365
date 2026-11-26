@@ -19,6 +19,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 )
 
 const (
@@ -201,16 +202,22 @@ func getRawSchema(ctx context.Context, client *msgraphbetasdk.GraphServiceClient
 	return schema, nil
 }
 
-// waitForRawSchema reads the schema of a new synchronization job, retrying while the job replicates.
+// waitForRawSchema requires consecutive successful reads: a fresh replica can be followed by transient 401/403/404 responses.
 func waitForRawSchema(ctx context.Context, client *msgraphbetasdk.GraphServiceClient, servicePrincipalId, jobId string) (map[string]any, error) {
+	consecutive := 0
 	for {
 		schema, err := getRawSchema(ctx, client, servicePrincipalId, jobId)
-		if err == nil {
-			return schema, nil
-		}
 		status := statusCode(err)
-		if status != 401 && status != 403 && status != 404 {
-			return nil, fmt.Errorf("read synchronization schema (HTTP %d): %w", status, err)
+		if err == nil {
+			consecutive++
+			if consecutive >= crud.StableReads {
+				return schema, nil
+			}
+		} else {
+			consecutive = 0
+			if status != 401 && status != 403 && status != 404 {
+				return nil, fmt.Errorf("read synchronization schema (HTTP %d): %w", status, err)
+			}
 		}
 		select {
 		case <-ctx.Done():
