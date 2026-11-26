@@ -79,6 +79,22 @@ func (r *ServicePrincipalTokenSigningCertificateResource) Create(ctx context.Con
 		AddTokenSigningCertificate().
 		Post(ctx, requestBody, nil)
 
+	// A missing newly created principal has no certificate side effect, so this
+	// specific 404 can be retried without issuing duplicate certificates.
+	for attempt := 0; err != nil && attempt < 15; attempt++ {
+		info := errors.GraphError(ctx, err)
+		if info.StatusCode != 404 || !strings.Contains(info.ErrorMessage, servicePrincipalID) {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			resp.Diagnostics.AddError("Timed out waiting for service principal", ctx.Err().Error())
+			return
+		case <-time.After(2 * time.Second):
+		}
+		certificate, err = r.client.ServicePrincipals().ByServicePrincipalId(servicePrincipalID).AddTokenSigningCertificate().Post(ctx, requestBody, nil)
+	}
+
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
