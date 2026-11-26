@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
@@ -29,6 +30,9 @@ func MapSelfSignedCertificateToTerraform(ctx context.Context, data *ServicePrinc
 	data.EndDateTime = mapTimeKeepingConfiguredValue(data.EndDateTime, convert.GraphToFrameworkTime(certificate.GetEndDateTime()))
 	data.StartDateTime = convert.GraphToFrameworkTime(certificate.GetStartDateTime())
 	data.Thumbprint = convert.GraphToFrameworkString(certificate.GetThumbprint())
+	if !data.Thumbprint.IsNull() {
+		data.Thumbprint = types.StringValue(strings.ToLower(data.Thumbprint.ValueString()))
+	}
 
 	if keyId := certificate.GetKeyId(); keyId != nil {
 		data.KeyId = types.StringValue(keyId.String())
@@ -114,7 +118,7 @@ func thumbprintFromCustomKeyIdentifier(customKeyIdentifier []byte) string {
 		return ""
 	}
 	if thumbprintRegex.Match(customKeyIdentifier) {
-		return string(customKeyIdentifier)
+		return strings.ToLower(string(customKeyIdentifier))
 	}
 	if encoded := hex.EncodeToString(customKeyIdentifier); thumbprintRegex.MatchString(encoded) {
 		return encoded
