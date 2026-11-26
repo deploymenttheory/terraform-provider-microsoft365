@@ -94,7 +94,7 @@ func (r *ApplicationResource) Create(ctx context.Context, req resource.CreateReq
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -155,6 +155,17 @@ func (r *ApplicationResource) Read(ctx context.Context, req resource.ReadRequest
 		Applications().
 		ByApplicationId(object.Id.ValueString()).
 		Get(ctx, nil)
+	// A new application can be missing from another directory replica.
+	// Retry before interpreting a 404 as remote deletion.
+	for attempt := 0; err != nil && errors.GraphError(ctx, err).StatusCode == 404 && attempt < 15; attempt++ {
+		select {
+		case <-ctx.Done():
+			resp.Diagnostics.AddError("Timed out reading application", ctx.Err().Error())
+			return
+		case <-time.After(2 * time.Second):
+		}
+		application, err = r.client.Applications().ByApplicationId(object.Id.ValueString()).Get(ctx, nil)
+	}
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
@@ -168,9 +179,22 @@ func (r *ApplicationResource) Read(ctx context.Context, req resource.ReadRequest
 		ByApplicationId(object.Id.ValueString()).
 		Owners().
 		Get(ctx, nil)
+	// A missing owners collection does not prove the application is gone.
+	for attempt := 0; err != nil && errors.GraphError(ctx, err).StatusCode == 404 && attempt < 15; attempt++ {
+		select {
+		case <-ctx.Done():
+			resp.Diagnostics.AddError("Timed out reading application owners", ctx.Err().Error())
+			return
+		case <-time.After(2 * time.Second):
+		}
+		owners, err = r.client.Applications().ByApplicationId(object.Id.ValueString()).Owners().Get(ctx, nil)
+	}
 
 	if err != nil {
-		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
+		errors.HandleKiotaGraphErrorWithOptions(
+			ctx, err, resp, operation, r.ReadPermissions,
+			errors.GraphErrorOptions{PreserveStateOnReadNotFound: true, PreserveStateOnReadBadRequest: true},
+		)
 		return
 	}
 
@@ -344,7 +368,7 @@ func (r *ApplicationResource) Update(ctx context.Context, req resource.UpdateReq
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
-	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, readbackMatch)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, readbackMatch))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {

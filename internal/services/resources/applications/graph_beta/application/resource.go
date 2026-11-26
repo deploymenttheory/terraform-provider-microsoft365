@@ -243,11 +243,15 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: "Specifies whether this application supports device authentication without a user. Defaults to `false` when creating an application. Existing applications retain the value returned by Microsoft Graph, including `null`.",
 				Optional:            true,
 				Computed:            true,
+
+				PlanModifiers: []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			"is_fallback_public_client": schema.BoolAttribute{
 				MarkdownDescription: "Specifies the fallback application type as public client, such as an installed application running on a mobile device. Defaults to `false` when creating an application, which means the fallback application type is confidential client such as a web app. Existing applications retain the value returned by Microsoft Graph, including `null`. There are certain scenarios where Microsoft Entra ID can't determine the client application type. For example, the ROPC flow where the application is configured without specifying a redirect URI. In those cases Microsoft Entra ID interprets the application type based on the value of this property.",
 				Optional:            true,
 				Computed:            true,
+
+				PlanModifiers: []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
 			},
 			// "oauth2_require_post_response": schema.BoolAttribute{
 			// 	MarkdownDescription: "Specifies whether, as part of OAuth 2.0 token requests, Microsoft Entra ID allows POST requests, as opposed to GET requests. The default is false, which specifies that only GET requests are allowed.",
@@ -490,9 +494,6 @@ func (r *ApplicationResource) Schema(ctx context.Context, req resource.SchemaReq
 						"origin": schema.StringAttribute{
 							MarkdownDescription: "Specifies if the app role is defined on the application object or on the servicePrincipal entity. Must not be included in any POST or PATCH requests. Read-only.",
 							Computed:            true,
-							PlanModifiers: []planmodifier.String{
-								stringplanmodifier.UseStateForUnknown(),
-							},
 						},
 						"value": schema.StringAttribute{
 							MarkdownDescription: "Specifies the value to include in the roles claim in ID tokens and access tokens authenticating an assigned user or service principal. Must not exceed 120 characters in length. Allowed characters are : ! # $ % & ' ( ) * + , - . / : ;  =  ? @ [ ] ^ + _  {  } ~, and characters in the ranges 0-9, A-Z and a-z. Any other character, including the space character, aren't allowed. May not begin with `.`. Nullable.",
