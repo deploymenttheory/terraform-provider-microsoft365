@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
-	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
-	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -19,6 +16,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	"github.com/microsoftgraph/msgraph-beta-sdk-go/devicemanagement"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
+	planmodifiers "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/plan_modifiers"
+	commonschema "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/schema"
 )
 
 const (
@@ -169,7 +170,6 @@ func (r *GroupPolicyDefinitionResource) ImportState(ctx context.Context, req res
 				Expand: []string{"definition"},
 			},
 		})
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing resource",
@@ -230,7 +230,6 @@ func (r *GroupPolicyDefinitionResource) ImportState(ctx context.Context, req res
 		GroupPolicyDefinitions().
 		ByGroupPolicyDefinitionId(definitionID).
 		Get(ctx, nil)
-
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error importing resource",
@@ -351,7 +350,7 @@ func (r *GroupPolicyDefinitionResource) Schema(ctx context.Context, req resource
 						},
 						"value": schema.StringAttribute{
 							Required:            true,
-							MarkdownDescription: "The value for this presentation as a string. Format depends on presentation type: 'true'/'false' for checkboxes, numeric strings for decimal fields, plain text for textboxes, etc. The resource validates and converts this based on the presentation type",
+							MarkdownDescription: "The value for this presentation as a string. Format depends on presentation type: 'true'/'false' for checkboxes, numeric strings for decimal fields, plain text for textboxes, and a JSON array of objects with string `name` and `value` fields for ListBox presentations (use `jsonencode([{ name = \"site\", value = \"2\" }])`). ListBox entry order is preserved. The resource validates and converts this based on the presentation type",
 						},
 					},
 				},

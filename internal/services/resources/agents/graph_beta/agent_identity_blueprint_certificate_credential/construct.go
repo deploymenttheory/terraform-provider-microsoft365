@@ -85,7 +85,7 @@ func constructDeleteResource(ctx context.Context, keyIDToRemove string, existing
 	application.SetOdataType(&odataType)
 
 	// Build the keyCredentials array without the credential being deleted
-	var keyCredentials []graphmodels.KeyCredentialable
+	keyCredentials := make([]graphmodels.KeyCredentialable, 0, len(existingCredentials))
 
 	for _, cred := range existingCredentials {
 		if cred.GetKeyId() != nil && cred.GetKeyId().String() != keyIDToRemove {
