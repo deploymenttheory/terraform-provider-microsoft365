@@ -19,7 +19,7 @@ func ValidateGroupOwnerAssignment(ctx context.Context, client *msgraphbetasdk.Gr
 	// Validate that the group exists and get its properties
 	group, err := client.Groups().ByGroupId(groupId).Get(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve group %s: %v", groupId, err)
+		return fmt.Errorf("failed to retrieve group %s: %w", groupId, err)
 	}
 
 	if group == nil {
@@ -72,7 +72,7 @@ func ValidateGroupOwnerAssignment(ctx context.Context, client *msgraphbetasdk.Gr
 			Get(ctx, nil)
 
 		if err != nil {
-			return fmt.Errorf("failed to retrieve user %s: %v", ownerId, err)
+			return fmt.Errorf("failed to retrieve user %s: %w", ownerId, err)
 		}
 		if user == nil {
 			return fmt.Errorf("user %s not found", ownerId)
@@ -86,7 +86,7 @@ func ValidateGroupOwnerAssignment(ctx context.Context, client *msgraphbetasdk.Gr
 			Get(ctx, nil)
 
 		if err != nil {
-			return fmt.Errorf("failed to retrieve service principal %s: %v", ownerId, err)
+			return fmt.Errorf("failed to retrieve service principal %s: %w", ownerId, err)
 		}
 
 		if sp == nil {

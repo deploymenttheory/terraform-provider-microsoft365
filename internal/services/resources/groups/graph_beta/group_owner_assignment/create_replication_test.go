@@ -25,12 +25,14 @@ func TestUnitGroupOwnerAssignmentCreateReplication(t *testing.T) {
 		deadline                   time.Duration
 		wantCalls                  int
 		wantError                  bool
+		groupMisses                int
 	}{
-		{"new group", 1, 0, 404, 0, 2, false},
-		{"owner reference settling", 0, 2, 404, 0, 1, false},
-		{"persistent missing group", 99, 0, 404, 0, 16, true},
-		{"forbidden", 1, 0, 403, 0, 1, true},
-		{"parent deadline", 99, 0, 404, time.Second, 1, true},
+		{"validation group replication", 0, 0, 404, 0, 1, false, 1},
+		{"new group", 1, 0, 404, 0, 2, false, 0},
+		{"owner reference settling", 0, 2, 404, 0, 1, false, 0},
+		{"persistent missing group", 99, 0, 404, 0, 16, true, 0},
+		{"forbidden", 1, 0, 403, 0, 1, true, 0},
+		{"parent deadline", 99, 0, 404, time.Second, 1, true, 0},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			synctest.Test(t, func(t *testing.T) {
@@ -45,7 +47,14 @@ func TestUnitGroupOwnerAssignmentCreateReplication(t *testing.T) {
 				ownerID := "22222222-2222-4222-8222-222222222222"
 				base := "https://graph.microsoft.com/beta"
 				transport := httpmock.NewMockTransport()
-				transport.RegisterResponder("GET", base+"/groups/"+groupID, httpmock.NewJsonResponderOrPanic(200, map[string]any{"id": groupID, "mailEnabled": false, "securityEnabled": true, "groupTypes": []string{}}))
+				groupReads := 0
+				transport.RegisterResponder("GET", base+"/groups/"+groupID, func(req *http.Request) (*http.Response, error) {
+					groupReads++
+					if groupReads <= test.groupMisses {
+						return httpmock.NewJsonResponse(404, map[string]any{"error": map[string]any{"code": "Request_ResourceNotFound", "message": "Group validation not yet replicated"}})
+					}
+					return httpmock.NewJsonResponse(200, map[string]any{"id": groupID, "mailEnabled": false, "securityEnabled": true, "groupTypes": []string{}})
+				})
 				owner := map[string]any{"@odata.type": "#microsoft.graph.servicePrincipal", "id": ownerID, "displayName": "owned fixture principal"}
 				transport.RegisterResponder("GET", base+"/servicePrincipals/"+ownerID, httpmock.NewJsonResponderOrPanic(200, owner))
 				calls, reads := 0, 0

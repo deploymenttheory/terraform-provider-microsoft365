@@ -44,18 +44,13 @@ func (r *GroupOwnerAssignmentResource) Create(ctx context.Context, req resource.
 
 	tflog.Debug(ctx, fmt.Sprintf("Adding owner of type %s to group %s", ownerObjectType, groupId))
 
-	requestBody, err := constructResource(ctx, &object, r.client)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error constructing resource for Create method",
-			fmt.Sprintf("Could not construct resource: %s: %s", ResourceName, err.Error()),
-		)
-		return
-	}
-
-	// A newly created group can be readable before its owner-reference endpoint
-	// is replicated. Retry only that transient 404 through the shared write helper.
-	err = crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+	// Validation and owner-reference writes can reach different replicas of a
+	// newly created group. Retry transient 404s across the complete write flow.
+	err := crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+		requestBody, err := constructResource(ctx, &object, r.client)
+		if err != nil {
+			return fmt.Errorf("construct group owner reference: %w", err)
+		}
 		if err := r.client.Groups().ByGroupId(groupId).Owners().Ref().Post(ctx, requestBody, nil); err != nil {
 			return fmt.Errorf("add group owner reference: %w", err)
 		}
