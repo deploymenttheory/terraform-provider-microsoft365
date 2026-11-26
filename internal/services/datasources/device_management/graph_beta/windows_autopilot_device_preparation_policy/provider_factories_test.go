@@ -6,18 +6,20 @@ import (
 	providercore "github.com/deploymenttheory/terraform-provider-microsoft365/internal/provider/core"
 	testProvider0 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/applications/graph_beta/service_principal"
 	testProvider1 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/device_management/graph_beta/windows_autopilot_device_preparation_policy"
-	testProvider2 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_device_preparation_policy"
-	testProvider3 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
-	testProvider4 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_owner_assignment"
+	testProvider2 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/winget_app"
+	testProvider3 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_device_preparation_policy"
+	testProvider4 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
+	testProvider5 "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group_owner_assignment"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var testProviderRegistry = providercore.Registry{
 	Resources: []func() resource.Resource{
-		testProvider2.NewWindowsAutopilotDevicePreparationPolicyResource,
-		testProvider3.NewGroupResource,
-		testProvider4.NewGroupOwnerAssignmentResource,
+		testProvider2.NewWinGetAppResource,
+		testProvider3.NewWindowsAutopilotDevicePreparationPolicyResource,
+		testProvider4.NewGroupResource,
+		testProvider5.NewGroupOwnerAssignmentResource,
 	},
 	DataSources: []func() datasource.DataSource{
 		testProvider0.NewServicePrincipalDataSource,
