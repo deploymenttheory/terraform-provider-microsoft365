@@ -3,6 +3,7 @@ package graphBetaServicePrincipalPreferredTokenSigningKeyThumbprint
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
@@ -271,6 +272,22 @@ func (r *ServicePrincipalPreferredTokenSigningKeyThumbprintResource) patchThumbp
 		ServicePrincipals().
 		ByServicePrincipalId(servicePrincipalID).
 		Patch(ctx, requestBody, nil)
+
+	// A newly created principal may not yet be visible on the PATCH replica.
+	// Retry only create-time missing-principal responses; updates fail normally.
+	for attempt := 0; err != nil && operation == constants.TfOperationCreate && attempt < 15; attempt++ {
+		info := errors.GraphError(ctx, err)
+		if info.StatusCode != 404 || !strings.Contains(info.ErrorMessage, servicePrincipalID) {
+			break
+		}
+		select {
+		case <-ctx.Done():
+			diagnostics.AddError("Timed out waiting for service principal", ctx.Err().Error())
+			return fmt.Errorf("waiting for service principal: %w", ctx.Err())
+		case <-time.After(2 * time.Second):
+		}
+		_, err = r.client.ServicePrincipals().ByServicePrincipalId(servicePrincipalID).Patch(ctx, requestBody, nil)
+	}
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.WritePermissions)
