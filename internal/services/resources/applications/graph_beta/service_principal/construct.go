@@ -31,15 +31,15 @@ func constructResource(ctx context.Context, data *ServicePrincipalResourceModel,
 	convert.FrameworkToGraphString(data.PreferredSingleSignOnMode, requestBody.SetPreferredSingleSignOnMode)
 
 	// Optional collection fields using helpers
-	if err := convert.FrameworkToGraphStringSet(ctx, data.Tags, requestBody.SetTags); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.Tags, requestBody.SetTags); err != nil {
 		return nil, fmt.Errorf("failed to set tags: %w", err)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.NotificationEmailAddresses, requestBody.SetNotificationEmailAddresses); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.NotificationEmailAddresses, requestBody.SetNotificationEmailAddresses); err != nil {
 		return nil, fmt.Errorf("failed to set notification_email_addresses: %w", err)
 	}
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.AlternativeNames, requestBody.SetAlternativeNames); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.AlternativeNames, requestBody.SetAlternativeNames); err != nil {
 		return nil, fmt.Errorf("failed to set alternative_names: %w", err)
 	}
 
