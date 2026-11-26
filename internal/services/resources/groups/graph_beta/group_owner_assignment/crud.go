@@ -53,12 +53,17 @@ func (r *GroupOwnerAssignmentResource) Create(ctx context.Context, req resource.
 		return
 	}
 
-	err = r.client.
-		Groups().
-		ByGroupId(groupId).
-		Owners().
-		Ref().
-		Post(ctx, requestBody, nil)
+	// A newly created group can be readable before its owner-reference endpoint
+	// is replicated. Retry only that transient 404 through the shared write helper.
+	err = crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+		if err := r.client.Groups().ByGroupId(groupId).Owners().Ref().Post(ctx, requestBody, nil); err != nil {
+			return fmt.Errorf("add group owner reference: %w", err)
+		}
+		return nil
+	}, crud.PreconditionRetryOptions{
+		MaxRetries: 15, RetryInterval: 2 * time.Second, StatusCodes: []int{404},
+		ResourceTypeName: ResourceName, Operation: constants.TfOperationCreate,
+	})
 
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
@@ -71,7 +76,7 @@ func (r *GroupOwnerAssignmentResource) Create(ctx context.Context, req resource.
 	compositeID := fmt.Sprintf("%s/%s", groupId, ownerId)
 	object.ID = types.StringValue(compositeID)
 
-	object.OwnerType = types.StringValue("Unknown") // Will be updated in the read operation
+	object.OwnerType = types.StringValue(ownerObjectType) // Expected owner type for post-write verification.
 	object.OwnerDisplayName = types.StringValue("")
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
@@ -85,6 +90,9 @@ func (r *GroupOwnerAssignmentResource) Create(ctx context.Context, req resource.
 	opts := crud.DefaultReadWithRetryOptions()
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, crud.AttributeMatchOptions{
+		Paths: crud.RootPaths("owner_type"),
+	}))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
