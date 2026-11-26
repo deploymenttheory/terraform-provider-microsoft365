@@ -96,7 +96,22 @@ func (r *Win32LobAppResource) publishContentVersion(ctx context.Context, appID s
 		GraphWin32LobApp().
 		ContentVersions()
 
-	contentVersion, err := contentBuilder.Post(ctx, graphmodels.NewMobileAppContent(), nil)
+	// Intune can reject the next content version with ConditionNotMet/412
+	// while the preceding app write settles. Retry only this rejected POST;
+	// file creation and package transfer start after a version is accepted.
+	var contentVersion graphmodels.MobileAppContentable
+	versionWriteOpts := crud.DefaultPreconditionRetryOptions()
+	versionWriteOpts.Operation = operation
+	versionWriteOpts.ResourceTypeName = ResourceName
+	versionWriteOpts.LogFields = map[string]any{"app_id": appID}
+	err := crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+		var postErr error
+		contentVersion, postErr = contentBuilder.Post(ctx, graphmodels.NewMobileAppContent(), nil)
+		if postErr != nil {
+			return fmt.Errorf("create content version: %w", postErr)
+		}
+		return nil
+	}, versionWriteOpts)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, response, operation, r.WritePermissions)
 		return false
