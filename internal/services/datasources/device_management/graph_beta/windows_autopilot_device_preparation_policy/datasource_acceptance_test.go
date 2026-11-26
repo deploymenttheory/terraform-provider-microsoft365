@@ -1,17 +1,25 @@
 package graphBetaWindowsAutopilotDevicePreparationPolicy_test
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/destroy"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/exists"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	winget "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_and_app_management/graph_beta/winget_app"
+	preparation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/device_management/graph_beta/windows_autopilot_device_preparation_policy"
+	group "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/groups/graph_beta/group"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 )
 
 const dataSourceType = "data.microsoft365_graph_beta_device_management_windows_autopilot_device_preparation_policy"
@@ -30,6 +38,9 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_01_ListAll(t *test
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("01_list_all.tf"),
@@ -48,11 +59,17 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_02_ByPolicyId(t *t
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
+			"time": {Source: "hashicorp/time", VersionConstraint: constants.ExternalProviderTimeVersion},
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: preparation.ResourceName, TestResource: preparation.WindowsAutopilotDevicePreparationPolicyTestResource{}},
+			destroy.ResourceTypeMapping{ResourceType: group.ResourceName, TestResource: group.GroupTestResource{}},
+			destroy.ResourceTypeMapping{ResourceType: winget.ResourceName, TestResource: ownedWinGetAppFixture{}},
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("02_by_policy_id.tf"),
@@ -79,11 +96,17 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_03_ByName(t *testi
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{
+			"time": {Source: "hashicorp/time", VersionConstraint: constants.ExternalProviderTimeVersion},
 			"random": {
 				Source:            "hashicorp/random",
 				VersionConstraint: constants.ExternalProviderRandomVersion,
 			},
 		},
+		CheckDestroy: destroy.CheckDestroyedTypesFunc(30*time.Second,
+			destroy.ResourceTypeMapping{ResourceType: preparation.ResourceName, TestResource: preparation.WindowsAutopilotDevicePreparationPolicyTestResource{}},
+			destroy.ResourceTypeMapping{ResourceType: group.ResourceName, TestResource: group.GroupTestResource{}},
+			destroy.ResourceTypeMapping{ResourceType: winget.ResourceName, TestResource: ownedWinGetAppFixture{}},
+		),
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("03_by_name.tf"),
@@ -107,6 +130,9 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_04_ODataQuery(t *t
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("04_odata_query.tf"),
@@ -124,6 +150,9 @@ func TestAccDatasourceWindowsAutopilotDevicePreparationPolicy_05_WithAssignments
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { mocks.TestAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {Source: "hashicorp/random", VersionConstraint: constants.ExternalProviderRandomVersion},
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: loadAcceptanceTestTerraform("05_with_assignments.tf"),
@@ -170,4 +199,21 @@ func testCheckAllItemsAreDevicePreparationPolicies(resourceName string) resource
 
 		return nil
 	}
+}
+
+// Verify only the managed WinGet fixture IDs, through the shared mobileApps endpoint.
+type ownedWinGetAppFixture struct{}
+
+func (ownedWinGetAppFixture) Exists(ctx context.Context, _ any, state *terraform.InstanceState) (*bool, error) {
+	found, err := exists.CheckResourceExists(ctx, state, func(client *msgraphbetasdk.GraphServiceClient, ctx context.Context, state *terraform.InstanceState) error {
+		_, err := client.DeviceAppManagement().MobileApps().ByMobileAppId(state.ID).Get(ctx, nil)
+		if err != nil {
+			return fmt.Errorf("read owned WinGet fixture: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("verify owned WinGet fixture: %w", err)
+	}
+	return found, nil
 }
