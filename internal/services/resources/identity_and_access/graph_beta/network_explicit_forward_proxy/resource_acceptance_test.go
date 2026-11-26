@@ -12,6 +12,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	customrequests "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/custom_requests"
@@ -85,6 +86,12 @@ func TestAccResourceNetworkExplicitForwardProxy_01_Lifecycle(t *testing.T) {
 		t,
 		resource.TestCase{
 			ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+			ExternalProviders: map[string]resource.ExternalProvider{
+				"random": {
+					Source:            "hashicorp/random",
+					VersionConstraint: constants.ExternalProviderRandomVersion,
+				},
+			},
 			Steps: []resource.TestStep{
 				{
 					Config: config,
