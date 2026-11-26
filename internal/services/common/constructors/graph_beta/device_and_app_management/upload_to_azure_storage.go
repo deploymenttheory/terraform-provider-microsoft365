@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"math"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -15,6 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
+
+var errUnexpectedAzureUploadStatus = errors.New("unexpected status")
 
 const (
 	blockSize          = 8 * 1024 * 1024  // 8 MiB chunks
@@ -101,12 +105,24 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		// Create the block URL with the SAS token and the new block ID
 		blockURL := fmt.Sprintf("%s&comp=block&blockid=%s", sasUri, blockID)
 
-		err = retry.RetryContext(ctx, blockUploadTimeout, func() *retry.RetryError {
+		// Each attempt may consume the full request timeout. Give all configured
+		// attempts room to run, bounded by the caller's operation deadline.
+		attempts := 0
+		retryBudget := time.Duration(retryMaxAttempts)*blockUploadTimeout + time.Duration(retryMaxAttempts-1)*retryMaxWait
+		retryBlockError := func(err error) *retry.RetryError {
+			if ctx.Err() != nil || attempts >= retryMaxAttempts {
+				return retry.NonRetryableError(err)
+			}
+			return retry.RetryableError(err)
+		}
+		err = retry.RetryContext(ctx, retryBudget, func() *retry.RetryError {
+			attempts++
 			uploadCtx, cancel := context.WithTimeout(ctx, blockUploadTimeout)
 			defer cancel()
 
 			req, err := http.NewRequestWithContext(uploadCtx, "PUT", blockURL, bytes.NewReader(buffer[:n]))
 			if err != nil {
+				err = azureStorageRequestError(err)
 				tflog.Error(ctx, "Failed to create block upload request", map[string]any{
 					"block_number": blockNum + 1,
 					"error":        err.Error(),
@@ -118,7 +134,8 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
-				if err == context.DeadlineExceeded {
+				err = azureStorageRequestError(err)
+				if errors.Is(err, context.DeadlineExceeded) {
 					tflog.Error(ctx, "Block upload timed out", map[string]any{
 						"block_number": blockNum + 1,
 						"timeout":      blockUploadTimeout.String(),
@@ -130,7 +147,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 						"error":        err.Error(),
 					})
 				}
-				return retry.RetryableError(err)
+				return retryBlockError(err)
 			}
 			defer resp.Body.Close()
 
@@ -141,7 +158,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 					"status_code":  resp.StatusCode,
 					"response":     string(body),
 				})
-				return retry.RetryableError(fmt.Errorf("unexpected status: %d - %s", resp.StatusCode, string(body)))
+				return retryBlockError(fmt.Errorf("%w: %d - %s", errUnexpectedAzureUploadStatus, resp.StatusCode, string(body)))
 			}
 
 			tflog.Debug(ctx, "Block upload successful", map[string]any{
@@ -153,7 +170,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 		})
 
 		if err != nil {
-			return fmt.Errorf("failed to upload block %d after %d attempts: %v", blockNum+1, retryMaxAttempts, err)
+			return fmt.Errorf("failed to upload block %d after %d attempts: %w", blockNum+1, attempts, err)
 		}
 
 		blockList = append(blockList, blockID)
@@ -180,16 +197,17 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 
 	req, err := http.NewRequestWithContext(commitCtx, "PUT", commitURL, strings.NewReader(blockListXML))
 	if err != nil {
-		return fmt.Errorf("failed to create commit request: %v", err)
+		return fmt.Errorf("failed to create commit request: %w", azureStorageRequestError(err))
 	}
 	req.Header.Set("Content-Type", "application/xml")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		if err == context.DeadlineExceeded {
-			return fmt.Errorf("commit request timed out after %s", blockUploadTimeout)
+		err = azureStorageRequestError(err)
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("commit request timed out after %s: %w", blockUploadTimeout, err)
 		}
-		return fmt.Errorf("failed to commit blocks: %v", err)
+		return fmt.Errorf("failed to commit blocks: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -207,4 +225,14 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 	})
 
 	return nil
+}
+
+// URL errors contain the complete signed query. Keep the transport cause for
+// cancellation/retry handling while excluding the SAS credential from diagnostics.
+func azureStorageRequestError(err error) error {
+	var requestError *url.Error
+	if errors.As(err, &requestError) {
+		return fmt.Errorf("azure storage %s failed: %w", requestError.Op, requestError.Err)
+	}
+	return err
 }
