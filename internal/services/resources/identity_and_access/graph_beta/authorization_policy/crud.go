@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
@@ -265,4 +267,25 @@ func (r *AuthorizationPolicyResource) Delete(
 	resp *resource.DeleteResponse,
 ) {
 	resp.State.RemoveResource(ctx)
+}
+
+// completeInvitationWrite waits for the settings write to become visible before
+// applying invitations. A successful PATCH can still be queued by Graph.
+func (r *AuthorizationPolicyResource) completeInvitationWrite(
+	ctx context.Context,
+	body graphmodels.AuthorizationPolicyable,
+	desired tfsdk.State,
+) error {
+	if body.GetAllowInvitesFrom() == nil || body.GetDefaultUserRolePermissions() == nil {
+		return nil
+	}
+	if err := r.waitForPolicySettings(ctx, desired); err != nil {
+		return fmt.Errorf("wait for authorization settings before invitations: %w", err)
+	}
+	invitations := graphmodels.NewAuthorizationPolicy()
+	invitations.SetAllowInvitesFrom(body.GetAllowInvitesFrom())
+	if err := r.patchSettings(ctx, invitations); err != nil {
+		return fmt.Errorf("update invitation settings: %w", err)
+	}
+	return nil
 }

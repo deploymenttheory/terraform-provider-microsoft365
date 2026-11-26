@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
@@ -26,6 +27,8 @@ func TestUnitResourceAuthorizationPolicy_22_WriteErrorsAndOmittedInvitations(t *
 		{"invitation_only", true, false, 0, 1},
 	} {
 		t.Run(test.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer cancel()
 			calls := 0
 			remote := map[string]any{"id": singletonID}
 			r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
@@ -67,9 +70,9 @@ func TestUnitResourceAuthorizationPolicy_22_WriteErrorsAndOmittedInvitations(t *
 			body, err := constructResource(context.Background(), &model)
 			require.NoError(t, err)
 			state := testState(t, r, model)
-			err = r.patchSettings(context.Background(), body)
+			err = r.patchSettings(ctx, body)
 			if err == nil {
-				err = r.completeInvitationWrite(context.Background(), body, state)
+				err = r.completeInvitationWrite(ctx, body, state)
 			}
 			if test.failAt != 0 {
 				require.Error(t, err)

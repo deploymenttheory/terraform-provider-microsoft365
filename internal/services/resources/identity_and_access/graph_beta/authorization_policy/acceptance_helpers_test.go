@@ -17,7 +17,7 @@ import (
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
-	grapherrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 )
 
 // authorizationPolicyPreCheck preserves the tenant settings for acceptance-test cleanup.
@@ -211,18 +211,11 @@ func patchAuthorizationPolicyForCleanup(
 	client *msgraphbetasdk.GraphServiceClient,
 	body graphmodels.AuthorizationPolicyable,
 ) error {
-	for attempt := 0; ; attempt++ {
+	return crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
 		_, err := client.Policies().AuthorizationPolicy().ByAuthorizationPolicyId("authorizationPolicy").Patch(ctx, body, nil)
-		if err == nil {
-			return nil
-		}
-		if grapherrors.GraphError(ctx, err).StatusCode != 404 || attempt >= 15 {
-			return fmt.Errorf("restore authorization policy: %w", err)
-		}
-		select {
-		case <-ctx.Done():
-			return fmt.Errorf("wait for policy restore: %w", ctx.Err())
-		case <-time.After(2 * time.Second):
-		}
-	}
+		return err
+	}, crud.PreconditionRetryOptions{
+		MaxRetries: 15, RetryInterval: 2 * time.Second, StatusCodes: []int{404},
+		ResourceTypeName: "authorization_policy", Operation: "restore",
+	})
 }
