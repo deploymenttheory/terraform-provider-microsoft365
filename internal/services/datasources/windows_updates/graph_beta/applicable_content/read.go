@@ -68,7 +68,7 @@ func (d *ApplicableContentDataSource) Read(ctx context.Context, req datasource.R
 	if respList != nil && respList.GetValue() != nil {
 		for _, content := range respList.GetValue() {
 			mappedContent := MapRemoteStateToDataSource(ctx, content)
-
+			
 			// Apply client-side filters
 			if shouldIncludeContent(ctx, mappedContent, &object) {
 				applicableContent = append(applicableContent, mappedContent)
@@ -163,7 +163,7 @@ func shouldIncludeContent(ctx context.Context, content ApplicableContent, config
 
 // contains is a helper function for case-insensitive substring matching
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || 
 		(len(s) > 0 && len(substr) > 0 && containsHelper(s, substr)))
 }
 
