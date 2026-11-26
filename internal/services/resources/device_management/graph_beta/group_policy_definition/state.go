@@ -2,17 +2,27 @@ package graphBetaGroupPolicyDefinition
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/convert"
 )
 
 // MapRemoteStateToTerraform maps the remote state from Graph API to the Terraform resource model
-func MapRemoteStateToTerraform(ctx context.Context, data *GroupPolicyDefinitionResourceModel, presentationValues []graphmodels.GroupPolicyPresentationValueable, definitionValue graphmodels.GroupPolicyDefinitionValueable) {
+func MapRemoteStateToTerraform(
+	ctx context.Context,
+	data *GroupPolicyDefinitionResourceModel,
+	presentationValues []graphmodels.GroupPolicyPresentationValueable,
+	definitionValue graphmodels.GroupPolicyDefinitionValueable,
+) {
 	tflog.Debug(ctx, "Starting to map remote state to Terraform state", map[string]any{
 		"presentationValueCount": len(presentationValues),
 	})
@@ -59,6 +69,21 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupPolicyDefinitionR
 				if *presValueID == resolved.InstanceID {
 					// Extract the value as a string based on type
 					valueStr := ExtractValueFromPresentation(presValue)
+					// Preserve equivalent JSON formatting from configuration while still detecting remote drift.
+					if resolved.Type == "#microsoft.graph.groupPolicyPresentationListBox" {
+						var configured []PresentationValue
+						data.Values.ElementsAs(ctx, &configured, false)
+						remote, remoteErr := parseListBoxValue(valueStr)
+						for _, entry := range configured {
+							if entry.Label.ValueString() != resolved.Label {
+								continue
+							}
+							previous, err := parseListBoxValue(entry.Value.ValueString())
+							if err == nil && remoteErr == nil && reflect.DeepEqual(previous, remote) {
+								valueStr = entry.Value.ValueString()
+							}
+						}
+					}
 
 					mappedValue := PresentationValue{
 						ID:    types.StringValue(resolved.TemplateID),
@@ -105,4 +130,59 @@ func MapRemoteStateToTerraform(ctx context.Context, data *GroupPolicyDefinitionR
 	} else {
 		tflog.Warn(ctx, "[STATE] No values were mapped - keeping existing values")
 	}
+}
+
+// ExtractValueFromPresentation extracts the string value from a presentation value for state mapping
+func ExtractValueFromPresentation(presValue graphmodels.GroupPolicyPresentationValueable) string {
+	if presValue == nil {
+		return ""
+	}
+
+	odataType := presValue.GetOdataType()
+	if odataType == nil {
+		return ""
+	}
+
+	switch *odataType {
+	case "#microsoft.graph.groupPolicyPresentationValueBoolean":
+		if boolVal, ok := presValue.(graphmodels.GroupPolicyPresentationValueBooleanable); ok {
+			if val := boolVal.GetValue(); val != nil {
+				return strconv.FormatBool(*val)
+			}
+		}
+
+	case "#microsoft.graph.groupPolicyPresentationValueText":
+		if textVal, ok := presValue.(graphmodels.GroupPolicyPresentationValueTextable); ok {
+			if val := textVal.GetValue(); val != nil {
+				return *val
+			}
+		}
+
+	case "#microsoft.graph.groupPolicyPresentationValueMultiText":
+		if multiTextVal, ok := presValue.(graphmodels.GroupPolicyPresentationValueMultiTextable); ok {
+			if vals := multiTextVal.GetValues(); vals != nil {
+				return strings.Join(vals, "\n")
+			}
+		}
+
+	case "#microsoft.graph.groupPolicyPresentationValueList":
+		if list, ok := presValue.(graphmodels.GroupPolicyPresentationValueListable); ok {
+			pairs := make([]listBoxPair, 0, len(list.GetValues()))
+			for _, pair := range list.GetValues() {
+				if pair != nil {
+					pairs = append(pairs, listBoxPair{Name: pair.GetName(), Value: pair.GetValue()})
+				}
+			}
+			encoded, _ := json.Marshal(pairs)
+			return string(encoded)
+		}
+	case "#microsoft.graph.groupPolicyPresentationValueDecimal":
+		if decimalVal, ok := presValue.(graphmodels.GroupPolicyPresentationValueDecimalable); ok {
+			if val := decimalVal.GetValue(); val != nil {
+				return strconv.FormatInt(int64(*val), 10)
+			}
+		}
+	}
+
+	return ""
 }
