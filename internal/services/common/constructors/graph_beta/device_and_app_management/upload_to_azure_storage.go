@@ -22,7 +22,8 @@ var errUnexpectedAzureUploadStatus = errors.New("unexpected status")
 
 const (
 	blockSize                = 8 * 1024 * 1024  // 8 MiB chunks
-	blockUploadTimeout       = 60 * time.Second // Individual block upload timeout
+	blockUploadTimeout       = 2 * time.Minute  // Permit slower 8 MiB body writes within the caller deadline
+	blockListCommitTimeout   = time.Minute      // Keep the small block-list request independently bounded
 	retryMaxAttempts         = 3                // Number of retry attempts per block
 	retryBackoffAllowance    = 10 * time.Second // Allowance for SDK retry scheduling
 	sasPolicyPropagationWait = 30 * time.Second // Azure stored access policy propagation limit
@@ -212,7 +213,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 
 	commitURL := fmt.Sprintf("%s&comp=blocklist", sasUri)
 
-	commitCtx, cancel := context.WithTimeout(ctx, blockUploadTimeout)
+	commitCtx, cancel := context.WithTimeout(ctx, blockListCommitTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(commitCtx, "PUT", commitURL, strings.NewReader(blockListXML))
@@ -225,7 +226,7 @@ func UploadToAzureStorage(ctx context.Context, sasUri string, filePath string) e
 	if err != nil {
 		err = azureStorageRequestError(err)
 		if errors.Is(err, context.DeadlineExceeded) {
-			return fmt.Errorf("commit request timed out after %s: %w", blockUploadTimeout, err)
+			return fmt.Errorf("commit request timed out after %s: %w", blockListCommitTimeout, err)
 		}
 		return fmt.Errorf("failed to commit blocks: %w", err)
 	}

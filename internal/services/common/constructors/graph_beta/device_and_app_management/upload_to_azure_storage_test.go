@@ -160,3 +160,36 @@ func TestUnitAzureStorageStoredAccessPolicyPropagation(t *testing.T) {
 		})
 	}
 }
+
+func TestUnitAzureStorageSlowBlockWithinOperationDeadline(t *testing.T) {
+	synctest.Test(t, func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+		source := filepath.Join(t.TempDir(), "package.bin")
+		require.NoError(t, os.WriteFile(source, []byte("slow encrypted block"), 0600))
+		previous := http.DefaultClient
+		defer func() { http.DefaultClient = previous }()
+		blocks, commits := 0, 0
+		http.DefaultClient = &http.Client{Transport: azureUploadTimeoutTransport(func(req *http.Request) (*http.Response, error) {
+			if req.URL.Query().Get("comp") == "block" {
+				blocks++
+				// Model a healthy receiver draining an 8 MiB request slowly. Its body
+				// completes within the resource deadline, without an authentication error.
+				select {
+				case <-time.After(90 * time.Second):
+				case <-req.Context().Done():
+					return nil, req.Context().Err()
+				}
+				data, err := io.ReadAll(req.Body)
+				require.NoError(t, err)
+				require.Equal(t, "slow encrypted block", string(data))
+			} else {
+				commits++
+			}
+			return &http.Response{StatusCode: http.StatusCreated, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(""))}, nil
+		})}
+		require.NoError(t, UploadToAzureStorage(ctx, "https://storage.example.test/package?sig=synthetic-signed-token", source))
+		require.Equal(t, 1, blocks, "a healthy slower block must not be repeatedly cancelled")
+		require.Equal(t, 1, commits)
+	})
+}
