@@ -62,7 +62,8 @@ func (d *ApplicableContentDataSource) Read(ctx context.Context, req datasource.R
 		return
 	}
 
-	var applicableContent []ApplicableContent
+	// A successful query with no matches is an empty collection, not null.
+	applicableContent := make([]ApplicableContent, 0)
 
 	if respList != nil && respList.GetValue() != nil {
 		for _, content := range respList.GetValue() {
