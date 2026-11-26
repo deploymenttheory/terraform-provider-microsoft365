@@ -103,6 +103,17 @@ func (r *DirectoryRoleAssignmentResource) Read(ctx context.Context, req resource
 	}
 	defer cancel()
 	remote, err := r.client.RoleManagement().Directory().RoleAssignments().ByUnifiedRoleAssignmentId(data.ID.ValueString()).Get(ctx, nil)
+	// Fresh assignments can alternate between populated and missing replicas.
+	// Allow a bounded replication window before allowing refresh to remove state.
+	for missing := 1; err != nil && grapherrors.GraphError(ctx, err).StatusCode == 404 && missing < 16; missing++ {
+		select {
+		case <-ctx.Done():
+			resp.Diagnostics.AddError("Timed out confirming directory role assignment", ctx.Err().Error())
+			return
+		case <-time.After(2 * time.Second):
+		}
+		remote, err = r.client.RoleManagement().Directory().RoleAssignments().ByUnifiedRoleAssignmentId(data.ID.ValueString()).Get(ctx, nil)
+	}
 	if err != nil {
 		operation := constants.TfOperationRead
 		if op, ok := ctx.Value("retry_operation").(string); ok {
