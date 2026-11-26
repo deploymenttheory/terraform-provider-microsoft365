@@ -23,7 +23,7 @@ func constructResource(ctx context.Context, data *AgentIdentityBlueprintResource
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 	convert.FrameworkToGraphString(data.SignInAudience, requestBody.SetSignInAudience)
 
-	if err := convert.FrameworkToGraphStringSet(ctx, data.Tags, requestBody.SetTags); err != nil {
+	if err := convert.FrameworkToGraphStringSetOmitUnset(ctx, data.Tags, requestBody.SetTags); err != nil {
 		return nil, fmt.Errorf("failed to set tags: %w", err)
 	}
 
