@@ -180,7 +180,7 @@ func mapSettingsToState(
 			if isUserDriven {
 				extractIntValue(ctx, settingInstance, &stateModel.OOBESettings.TimeoutInMinutes)
 			}
-		case "enrollment_autopilot_dpp_custonerror":
+		case SettingDefCustomErrorMessage, "enrollment_autopilot_dpp_custonerror":
 			if isUserDriven {
 				extractStringValue(
 					ctx,
@@ -314,6 +314,13 @@ func extractBoolValue(
 	if settingInstance == nil {
 		tflog.Warn(ctx, "Setting instance is nil when extracting bool value")
 		return
+	}
+
+	if choice, ok := settingInstance.(models.DeviceManagementConfigurationChoiceSettingInstanceable); ok {
+		if value := choice.GetChoiceSettingValue(); value != nil && settingInstance.GetSettingDefinitionId() != nil {
+			*target = convert.GraphToFrameworkBoolChoice(value.GetValue(), *settingInstance.GetSettingDefinitionId())
+			return
+		}
 	}
 
 	// The SDK doesn't seem to have a specific DeviceManagementConfigurationBooleanSettingValueable type

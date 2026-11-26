@@ -275,6 +275,35 @@ func (r *WindowsAutopilotDevicePreparationPolicyResource) Read(
 
 	mapAssignmentsToState(ctx, &object, assignmentsResponse)
 
+	// Enrollment membership is stored separately from the settings catalog. Read it
+	// explicitly so import and refresh recover the group without a prior plan.
+	// Use the shared raw GET adapter: this backend action accepts GET rather than
+	// the POST generated from Graph metadata, as with the other enrollment policies.
+	var membershipTarget struct {
+		Statuses []struct {
+			TargetID string `json:"targetId"`
+		} `json:"enrollmentTimeDeviceMembershipTargetValidationStatuses"`
+	}
+	_, err = customrequest.GetRequestByResourceId(ctx, r.client.GetAdapter(), customrequest.GetRequestConfig{
+		APIVersion: customrequest.GraphAPIBeta, Endpoint: "deviceManagement/configurationPolicies",
+		ResourceID: object.ID.ValueString(), ResourceIDPattern: "('id')",
+		EndpointSuffix: "/retrieveEnrollmentTimeDeviceMembershipTarget", RawResponse: &membershipTarget,
+	})
+	if err != nil {
+		// The parent GET succeeded. A missing child action must not remove the policy from state.
+		diagnosticResponse := &resource.UpdateResponse{}
+		errors.HandleKiotaGraphError(ctx, err, diagnosticResponse, operation, r.ReadPermissions)
+		resp.Diagnostics.Append(diagnosticResponse.Diagnostics...)
+		return
+	}
+	object.DeviceSecurityGroup = types.StringNull()
+	for _, target := range membershipTarget.Statuses {
+		if target.TargetID != "" {
+			object.DeviceSecurityGroup = types.StringValue(target.TargetID)
+			break
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
 		return
