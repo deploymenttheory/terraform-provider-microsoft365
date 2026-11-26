@@ -23,10 +23,10 @@ const (
 
 // AuthorizationPolicyMock retains the singleton across Terraform create, update and destroy.
 type AuthorizationPolicyMock struct {
-	mu        sync.Mutex
-	policy    map[string]any
-	patches   int
-	lastPatch map[string]any
+	mu                sync.Mutex
+	policy            map[string]any
+	patches           int
+	lastSettingsPatch map[string]any
 }
 
 var _ mocks.MockRegistrar = (*AuthorizationPolicyMock)(nil)
@@ -89,7 +89,9 @@ func (m *AuthorizationPolicyMock) RegisterMocks() {
 		}
 		m.mu.Lock()
 		defer m.mu.Unlock()
-		m.lastPatch = sent
+		if _, settings := body["defaultUserRolePermissions"]; settings {
+			m.lastSettingsPatch = sent
+		}
 		for key, value := range body {
 			if key == "@odata.type" || value == nil {
 				continue
@@ -147,14 +149,14 @@ func (m *AuthorizationPolicyMock) CleanupMockState() {
 	defer m.mu.Unlock()
 	m.policy = nil
 	m.patches = 0
-	m.lastPatch = nil
+	m.lastSettingsPatch = nil
 }
 
-// LastPatch returns a copy of the most recent PATCH body as sent by the provider.
-func (m *AuthorizationPolicyMock) LastPatch() map[string]any {
+// LastSettingsPatch returns the latest settings PATCH, excluding the invitation-only follow-up.
+func (m *AuthorizationPolicyMock) LastSettingsPatch() map[string]any {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return maps.Clone(m.lastPatch)
+	return maps.Clone(m.lastSettingsPatch)
 }
 
 func (m *AuthorizationPolicyMock) Snapshot() (string, int) {

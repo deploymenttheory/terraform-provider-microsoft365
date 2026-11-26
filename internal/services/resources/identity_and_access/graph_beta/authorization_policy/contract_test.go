@@ -11,6 +11,7 @@ import (
 	"os"
 	"testing"
 
+	providerclient "github.com/deploymenttheory/terraform-provider-microsoft365/internal/client"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -104,7 +105,7 @@ const (
 func TestUnitResourceAuthorizationPolicy_10_RequestContract(t *testing.T) {
 	for _, operation := range []string{"create", "update"} {
 		t.Run(operation, func(t *testing.T) {
-			var patch map[string]any
+			patch := map[string]any{}
 			requests := []string{}
 			r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
 				requests = append(requests, q.Method+" "+q.URL.Path)
@@ -117,7 +118,11 @@ func TestUnitResourceAuthorizationPolicy_10_RequestContract(t *testing.T) {
 						defer compressed.Close()
 						reader = compressed
 					}
-					require.NoError(t, json.NewDecoder(reader).Decode(&patch))
+					var sent map[string]any
+					require.NoError(t, json.NewDecoder(reader).Decode(&sent))
+					for key, value := range sent {
+						patch[key] = value
+					}
 					reply(w, 204, "")
 					return
 				}
@@ -160,9 +165,9 @@ func TestUnitResourceAuthorizationPolicy_10_RequestContract(t *testing.T) {
 				t,
 				[]string{
 					"PATCH " + patchPath,
-					"GET " + readPath,
-					"GET " + readPath,
-					"GET " + readPath,
+					"GET " + readPath, "GET " + readPath, "GET " + readPath,
+					"PATCH " + patchPath,
+					"GET " + readPath, "GET " + readPath, "GET " + readPath,
 				},
 				requests,
 			)
@@ -408,4 +413,89 @@ func TestUnitResourceAuthorizationPolicy_19_RiskyAppConsentPayload(t *testing.T)
 			}
 		})
 	}
+}
+
+// TestUnitResourceAuthorizationPolicy_20_CollectionPayload checks the serialized Graph contract.
+func TestUnitResourceAuthorizationPolicy_20_CollectionPayload(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		value types.Set
+		want  []any
+		sent  bool
+	}{
+		{"null", types.SetNull(types.StringType), nil, false},
+		{"unknown", types.SetUnknown(types.StringType), nil, false},
+		{"empty", types.SetValueMust(types.StringType, []attr.Value{}), []any{}, true},
+		{"populated", types.SetValueMust(types.StringType, []attr.Value{types.StringValue("policy-id")}), []any{"policy-id"}, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			model := testModel()
+			model.AllowInvitesFrom = types.StringValue("adminsGuestInvitersAndAllMembers")
+			model.EnabledPreviewFeatures = test.value
+			model.PermissionGrantPolicyIdsAssignedToDefaultUserRole = test.value
+			body, err := constructResource(context.Background(), &model)
+			require.NoError(t, err)
+			client := providerclient.NewMockGraphClients(&http.Client{}).MockBetaClient
+			request, err := client.Policies().AuthorizationPolicy().ByAuthorizationPolicyId(singletonID).ToPatchRequestInformation(context.Background(), body, nil)
+			require.NoError(t, err)
+			content := request.Content
+			var payload map[string]any
+			require.NoError(t, json.Unmarshal(content, &payload))
+			require.Equal(t, "adminsGuestInvitersAndAllMembers", payload["allowInvitesFrom"])
+			for _, key := range []string{"enabledPreviewFeatures", "permissionGrantPolicyIdsAssignedToDefaultUserRole"} {
+				value, sent := payload[key]
+				require.Equal(t, test.sent, sent, key)
+				if test.sent {
+					require.Equal(t, test.want, value, key)
+				}
+			}
+		})
+	}
+}
+
+func TestUnitResourceAuthorizationPolicy_21_InvitationAfterPermissions(t *testing.T) {
+	remote := map[string]any{"id": singletonID}
+	patches := 0
+	pendingPermissions := false
+	r := testClient(t, func(w http.ResponseWriter, q *http.Request) {
+		if q.Method == http.MethodPatch {
+			patches++
+			var reader io.Reader = q.Body
+			if q.Header.Get("Content-Encoding") == "gzip" {
+				compressed, err := gzip.NewReader(q.Body)
+				require.NoError(t, err)
+				defer compressed.Close()
+				reader = compressed
+			}
+			var payload map[string]any
+			require.NoError(t, json.NewDecoder(reader).Decode(&payload))
+			for key, value := range payload {
+				remote[key] = value
+			}
+			if _, changed := payload["defaultUserRolePermissions"]; changed {
+				pendingPermissions = true
+			}
+			reply(w, 204, "")
+			return
+		}
+		if pendingPermissions {
+			remote["allowInvitesFrom"] = "none"
+			pendingPermissions = false
+		}
+		encoded, err := json.Marshal(map[string]any{"value": []any{remote}})
+		require.NoError(t, err)
+		reply(w, 200, string(encoded))
+	})
+	model := testModel()
+	model.AllowInvitesFrom = types.StringValue("adminsGuestInvitersAndAllMembers")
+	model.Timeouts = timeouts.Value{Object: types.ObjectValueMust(
+		map[string]attr.Type{"create": types.StringType, "read": types.StringType, "update": types.StringType, "delete": types.StringType},
+		map[string]attr.Value{"create": types.StringValue("20s"), "read": types.StringNull(), "update": types.StringNull(), "delete": types.StringNull()},
+	)}
+	state := testState(t, r, model)
+	response := resource.CreateResponse{State: tfsdk.State{Schema: state.Schema}}
+	r.Create(context.Background(), resource.CreateRequest{Plan: tfsdk.Plan{Schema: state.Schema, Raw: state.Raw}}, &response)
+	require.False(t, response.Diagnostics.HasError(), response.Diagnostics)
+	require.Equal(t, 2, patches)
+	require.Equal(t, "adminsGuestInvitersAndAllMembers", remote["allowInvitesFrom"])
 }

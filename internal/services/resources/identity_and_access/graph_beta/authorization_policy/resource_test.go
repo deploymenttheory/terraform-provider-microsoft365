@@ -84,7 +84,7 @@ func TestUnitResourceAuthorizationPolicy_01_Lifecycle(t *testing.T) {
 	})
 	invites, patches := m.Snapshot()
 	require.Equal(t, "none", invites)
-	require.Equal(t, 3, patches)
+	require.Equal(t, 6, patches)
 	for _, url := range []string{policymocks.URL, policymocks.PatchURL} {
 		require.Zero(t, httpmock.GetCallCountInfo()["DELETE "+url])
 		require.Zero(t, httpmock.GetCallCountInfo()["POST "+url])
@@ -189,7 +189,7 @@ func TestUnitResourceAuthorizationPolicy_06_NullRiskyAppConsent(t *testing.T) {
 					check.That(address).Key("allow_invites_from").HasValue("none"),
 					check.That(address).Key("allow_user_consent_for_risky_apps").DoesNotExist(),
 					func(*terraform.State) error {
-						if _, ok := m.LastPatch()["allowUserConsentForRiskyApps"]; ok {
+						if _, ok := m.LastSettingsPatch()["allowUserConsentForRiskyApps"]; ok {
 							return fmt.Errorf("PATCH must omit allowUserConsentForRiskyApps")
 						}
 						return nil
@@ -202,7 +202,7 @@ func TestUnitResourceAuthorizationPolicy_06_NullRiskyAppConsent(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(address).Key("allow_user_consent_for_risky_apps").HasValue("false"),
 					func(*terraform.State) error {
-						if value, ok := m.LastPatch()["allowUserConsentForRiskyApps"]; !ok || value != false {
+						if value, ok := m.LastSettingsPatch()["allowUserConsentForRiskyApps"]; !ok || value != false {
 							return fmt.Errorf("PATCH must send allowUserConsentForRiskyApps=false, got %v", value)
 						}
 						return nil
@@ -215,7 +215,7 @@ func TestUnitResourceAuthorizationPolicy_06_NullRiskyAppConsent(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					check.That(address).Key("allow_user_consent_for_risky_apps").HasValue("false"),
 					func(*terraform.State) error {
-						if _, patches := m.Snapshot(); patches != 2 {
+						if _, patches := m.Snapshot(); patches != 4 {
 							return fmt.Errorf("expected no PATCH after removing the attribute, got %d PATCHes", patches)
 						}
 						return nil

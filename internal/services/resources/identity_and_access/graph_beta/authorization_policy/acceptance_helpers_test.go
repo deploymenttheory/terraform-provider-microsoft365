@@ -2,18 +2,22 @@ package graphBetaAuthorizationPolicy_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"maps"
 	"reflect"
 	"slices"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	msgraphbetasdk "github.com/microsoftgraph/msgraph-beta-sdk-go"
 	graphmodels "github.com/microsoftgraph/msgraph-beta-sdk-go/models"
 	"github.com/stretchr/testify/require"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 )
 
 // authorizationPolicyPreCheck preserves the tenant settings for acceptance-test cleanup.
@@ -33,36 +37,59 @@ func authorizationPolicyPreCheck(t *testing.T) {
 	original := response.GetValue()[0]
 	require.NotNil(t, original)
 	expected := authorizationPolicySnapshot(original)
-	restore := authorizationPolicyRestoreBody(original)
 
 	t.Cleanup(func() {
 		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cleanupCancel()
-		_, err := client.Policies().
-			AuthorizationPolicy().
-			ByAuthorizationPolicyId("authorizationPolicy").
-			Patch(cleanupCtx, restore, nil)
-		if err != nil {
+		restore := authorizationPolicyRestoreBody(original)
+		if err := patchAuthorizationPolicyForCleanup(cleanupCtx, client, restore); err != nil {
 			t.Errorf("restore original authorization policy: %v", err)
 			return
 		}
-		consecutive := 0
+		primaryExpected := maps.Clone(expected)
+		delete(primaryExpected, "allowInvitesFrom")
+		primaryMatches, consecutive := 0, 0
+		invitationsWritten := false
+		var observed map[string]any
 		for {
 			response, err := client.Policies().AuthorizationPolicy().Get(cleanupCtx, nil)
-			if err == nil && response != nil && len(response.GetValue()) == 1 &&
-				reflect.DeepEqual(expected, authorizationPolicySnapshot(response.GetValue()[0])) {
-				consecutive++
-				if consecutive >= 3 {
-					return
+			if err == nil && response != nil && len(response.GetValue()) == 1 {
+				observed = authorizationPolicySnapshot(response.GetValue()[0])
+				if !invitationsWritten {
+					primaryObserved := maps.Clone(observed)
+					delete(primaryObserved, "allowInvitesFrom")
+					if reflect.DeepEqual(primaryExpected, primaryObserved) {
+						primaryMatches++
+					} else {
+						primaryMatches = 0
+					}
+					if primaryMatches >= 3 {
+						if original.GetAllowInvitesFrom() != nil {
+							invitations := graphmodels.NewAuthorizationPolicy()
+							invitations.SetAllowInvitesFrom(original.GetAllowInvitesFrom())
+							if err := patchAuthorizationPolicyForCleanup(cleanupCtx, client, invitations); err != nil {
+								t.Errorf("restore original invitation settings: %v", err)
+								return
+							}
+						}
+						invitationsWritten = true
+					}
+				} else if reflect.DeepEqual(expected, observed) {
+					consecutive++
+					if consecutive >= 3 {
+						return
+					}
+				} else {
+					consecutive = 0
 				}
 			} else {
-				consecutive = 0
+				primaryMatches, consecutive = 0, 0
 			}
 			select {
 			case <-cleanupCtx.Done():
-				t.Error(
-					"authorization policy did not return to its original settings after acceptance testing",
-				)
+				expectedJSON, _ := json.Marshal(expected)
+				observedJSON, _ := json.Marshal(observed)
+				t.Errorf("authorization policy did not return to its original settings: expected %s; last read %s; error %v", expectedJSON, observedJSON, err)
 				return
 			case <-time.After(2 * time.Second):
 			}
@@ -177,4 +204,18 @@ func checkRiskyAppConsentMatchesGraph(address string) func(*terraform.State) err
 		}
 		return nil
 	}
+}
+
+func patchAuthorizationPolicyForCleanup(
+	ctx context.Context,
+	client *msgraphbetasdk.GraphServiceClient,
+	body graphmodels.AuthorizationPolicyable,
+) error {
+	return crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+		_, err := client.Policies().AuthorizationPolicy().ByAuthorizationPolicyId("authorizationPolicy").Patch(ctx, body, nil)
+		return err
+	}, crud.PreconditionRetryOptions{
+		MaxRetries: 15, RetryInterval: 2 * time.Second, StatusCodes: []int{404},
+		ResourceTypeName: "authorization_policy", Operation: "restore",
+	})
 }
