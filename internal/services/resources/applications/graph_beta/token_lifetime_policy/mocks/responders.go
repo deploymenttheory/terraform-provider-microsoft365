@@ -73,6 +73,10 @@ func (m *TokenLifetimePolicyMock) createTokenLifetimePolicyResponder() httpmock.
 			return httpmock.NewStringResponse(400, `{"error":{"code":"BadRequest","message":"Invalid JSON"}}`), nil
 		}
 
+		if _, exists := requestBody["description"]; exists {
+			return httpmock.NewStringResponse(404, `{"error":{"code":"Request_ResourceNotFound","message":"Token lifetime policies do not support description writes"}}`), nil
+		}
+
 		jsonContent, err := helpers.ParseJSONFile(filepath.Join("..", "tests", "responses", "validate_create", "post_token_lifetime_policy_success.json"))
 		if err != nil {
 			return httpmock.NewStringResponse(500, `{"error":{"code":"InternalServerError","message":"Failed to load mock response"}}`), nil
@@ -89,11 +93,6 @@ func (m *TokenLifetimePolicyMock) createTokenLifetimePolicyResponder() httpmock.
 
 		if displayName, ok := requestBody["displayName"]; ok {
 			response["displayName"] = displayName
-		}
-		if description, ok := requestBody["description"]; ok {
-			response["description"] = description
-		} else {
-			response["description"] = nil
 		}
 		if definition, ok := requestBody["definition"]; ok {
 			response["definition"] = definition

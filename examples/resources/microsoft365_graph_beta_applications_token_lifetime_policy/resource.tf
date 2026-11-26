@@ -5,7 +5,6 @@
 
 resource "microsoft365_graph_beta_applications_token_lifetime_policy" "example" {
   display_name = "example-token-lifetime-policy"
-  description  = "Sets access token lifetime to 1 hour"
 
   definition = [
     "{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"01:00:00\"}}"
@@ -19,10 +18,9 @@ resource "microsoft365_graph_beta_applications_token_lifetime_policy" "example" 
 
 resource "microsoft365_graph_beta_applications_token_lifetime_policy" "org_default" {
   display_name = "organization-default-token-lifetime-policy"
-  description  = "Organization-wide default token lifetime policy"
 
   definition = [
-    "{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"01:00:00\",\"MaxInactiveTime\":\"90.00:00:00\",\"MaxAgeSingleFactor\":\"until-revoked\",\"MaxAgeMultiFactor\":\"until-revoked\",\"MaxAgeSessionSingleFactor\":\"until-revoked\",\"MaxAgeSessionMultiFactor\":\"until-revoked\"}}"
+    "{\"TokenLifetimePolicy\":{\"Version\":1,\"AccessTokenLifetime\":\"01:00:00\"}}"
   ]
 
   is_organization_default = true

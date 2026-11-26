@@ -35,7 +35,6 @@ func TestUnitResourceTokenLifetimePolicy_01_Minimal(t *testing.T) {
 				Config: testConfigMinimal(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceType+".minimal", "display_name", "unit-test-token-lifetime-policy-min"),
-					resource.TestCheckResourceAttr(resourceType+".minimal", "description", "Unit test minimal token lifetime policy"),
 					resource.TestCheckResourceAttr(resourceType+".minimal", "is_organization_default", "false"),
 					resource.TestCheckResourceAttr(resourceType+".minimal", "definition.#", "1"),
 					resource.TestMatchResourceAttr(resourceType+".minimal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
@@ -63,7 +62,6 @@ func TestUnitResourceTokenLifetimePolicy_02_Maximal(t *testing.T) {
 				Config: testConfigMaximal(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceType+".maximal", "display_name", "unit-test-token-lifetime-policy-max"),
-					resource.TestCheckResourceAttr(resourceType+".maximal", "description", "Unit test maximal token lifetime policy"),
 					resource.TestCheckResourceAttr(resourceType+".maximal", "is_organization_default", "true"),
 					resource.TestCheckResourceAttr(resourceType+".maximal", "definition.#", "1"),
 					resource.TestMatchResourceAttr(resourceType+".maximal", "id", regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
