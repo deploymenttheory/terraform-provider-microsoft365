@@ -216,7 +216,7 @@ func TestAccResourceApplicationFederatedIdentityCredential_04_ClaimsMatchingExpr
 					check.That(resourceType+".test_claims_matching").Key("application_id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".test_claims_matching").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-fic-claims-[a-z0-9]+$`)),
 					check.That(resourceType+".test_claims_matching").Key("issuer").HasValue("https://token.actions.githubusercontent.com"),
-					check.That(resourceType+".test_claims_matching").Key("claims_matching_expression").HasValue("claims['sub'] matches 'repo:deploymenttheory/*'"),
+					check.That(resourceType+".test_claims_matching").Key("claims_matching_expression").HasValue("claims['sub'] matches 'repo:deploymenttheory/*' and claims['repository_owner_id'] eq '103241062'"),
 					check.That(resourceType+".test_claims_matching").Key("subject").DoesNotExist(),
 					check.That(resourceType+".test_claims_matching").Key("audiences.#").HasValue("1"),
 				),
