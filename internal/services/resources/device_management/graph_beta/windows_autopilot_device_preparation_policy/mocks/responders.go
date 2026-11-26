@@ -18,6 +18,7 @@ var mockState struct {
 	sync.Mutex
 	autopilotPolicies map[string]map[string]any
 	policySettings    map[string][]any // policy ID -> settings array stored from POST/PUT body
+	policyTargets     map[string][]any
 	policyAssignments map[string][]any // policy ID -> assignments in GET response format
 }
 
@@ -25,6 +26,7 @@ func init() {
 	mockState.autopilotPolicies = make(map[string]map[string]any)
 	mockState.policySettings = make(map[string][]any)
 	mockState.policyAssignments = make(map[string][]any)
+	mockState.policyTargets = make(map[string][]any)
 	httpmock.RegisterNoResponder(
 		httpmock.NewStringResponder(
 			404,
@@ -46,6 +48,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 	mockState.autopilotPolicies = make(map[string]map[string]any)
 	mockState.policySettings = make(map[string][]any)
 	mockState.policyAssignments = make(map[string][]any)
+	mockState.policyTargets = make(map[string][]any)
 	mockState.Unlock()
 
 	// 0a. Mobile apps - called during validateAllowedApps
@@ -173,12 +176,34 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 		},
 	)
 
-	// 3. Set enrollment time device membership target - POST /deviceManagement/configurationPolicies/{id}/setEnrollmentTimeDeviceMembershipTarget
+	// Enrollment target is a separate action, not a settings-catalog value.
 	httpmock.RegisterResponder(
 		"POST",
-		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/[0-9a-fA-F-]+/setEnrollmentTimeDeviceMembershipTarget$`,
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies/([0-9a-fA-F-]+)/setEnrollmentTimeDeviceMembershipTarget$`,
 		func(req *http.Request) (*http.Response, error) {
+			var body map[string][]any
+			if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+				return httpmock.NewStringResponse(400, err.Error()), nil
+			}
+			id := httpmock.MustGetSubmatch(req, 1)
+			mockState.Lock()
+			mockState.policyTargets[id] = body["enrollmentTimeDeviceMembershipTargets"]
+			mockState.Unlock()
 			return httpmock.NewStringResponse(204, ""), nil
+		},
+	)
+	httpmock.RegisterResponder(
+		"GET",
+		`=~^https://graph\.microsoft\.com/beta/deviceManagement/configurationPolicies\('([0-9a-fA-F-]+)'\)/retrieveEnrollmentTimeDeviceMembershipTarget$`,
+		func(req *http.Request) (*http.Response, error) {
+			id := httpmock.MustGetSubmatch(req, 1)
+			mockState.Lock()
+			defer mockState.Unlock()
+			targets := mockState.policyTargets[id]
+			if targets == nil {
+				targets = []any{}
+			}
+			return httpmock.NewJsonResponse(200, map[string]any{"enrollmentTimeDeviceMembershipTargetValidationStatuses": targets})
 		},
 	)
 
@@ -386,6 +411,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterMocks() {
 			mockState.Lock()
 			delete(mockState.autopilotPolicies, id)
 			delete(mockState.policySettings, id)
+			delete(mockState.policyTargets, id)
 			delete(mockState.policyAssignments, id)
 			mockState.Unlock()
 
@@ -427,6 +453,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) RegisterErrorMocks() {
 	mockState.autopilotPolicies = make(map[string]map[string]any)
 	mockState.policySettings = make(map[string][]any)
 	mockState.policyAssignments = make(map[string][]any)
+	mockState.policyTargets = make(map[string][]any)
 	mockState.Unlock()
 
 	// Mobile apps - allow validateAllowedApps to pass so POST is reached
@@ -504,6 +531,7 @@ func (m *WindowsAutopilotDevicePreparationPolicyMock) CleanupMockState() {
 	}
 	for id := range mockState.policySettings {
 		delete(mockState.policySettings, id)
+		delete(mockState.policyTargets, id)
 	}
 	for id := range mockState.policyAssignments {
 		delete(mockState.policyAssignments, id)

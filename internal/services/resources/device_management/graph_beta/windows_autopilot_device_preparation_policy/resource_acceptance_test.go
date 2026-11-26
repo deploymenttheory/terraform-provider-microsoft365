@@ -222,7 +222,7 @@ func TestAccResourceWindowsAutopilotDevicePreparationPolicy_04_UserDrivenMaximal
 					check.That(resourceType+".ud_maximal").Key("id").MatchesRegex(regexp.MustCompile(`^[0-9a-fA-F-]+$`)),
 					check.That(resourceType+".ud_maximal").Key("name").MatchesRegex(regexp.MustCompile(`^acc-test-autopilot-dpp-ud-maximal-[a-z0-9]{8}$`)),
 					check.That(resourceType+".ud_maximal").Key("deployment_settings.deployment_type").HasValue("enrollment_autopilot_dpp_deploymenttype_0"),
-					check.That(resourceType+".ud_maximal").Key("deployment_settings.deployment_mode").HasValue("enrollment_autopilot_dpp_deploymentmode_1"),
+					check.That(resourceType+".ud_maximal").Key("deployment_settings.deployment_mode").HasValue("enrollment_autopilot_dpp_deploymentmode_0"),
 					check.That(resourceType+".ud_maximal").Key("oobe_settings.allow_skip").HasValue("true"),
 					check.That(resourceType+".ud_maximal").Key("allowed_apps.#").HasValue("1"),
 					check.That(resourceType+".ud_maximal").Key("allowed_scripts.#").HasValue("1"),
