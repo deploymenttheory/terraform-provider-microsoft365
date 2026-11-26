@@ -8,6 +8,7 @@ import (
 	"time"
 
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sentinels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -102,6 +103,17 @@ func (r *Win32LobAppResource) publishContentVersion(ctx context.Context, appID s
 	}
 	tflog.Debug(ctx, fmt.Sprintf("Content version created with ID: %s", *contentVersion.GetId()))
 
+	// Intune allocates policies in a shared storage container. Concurrent file
+	// allocation can return success while losing one policy. Coordinate only
+	// allocation and URI polling for resources sharing this configured client;
+	// release before transferring the package so uploads remain concurrent.
+	releaseAllocation, err := crud.AcquireKeyedLock(ctx, "intune-content-file-allocation", fmt.Sprintf("%p", r.client))
+	if err != nil {
+		addContentDiagnostic(response, "Error waiting to allocate application content file", err)
+		return false
+	}
+	defer releaseAllocation()
+
 	createdFile, err := contentBuilder.
 		ByMobileAppContentId(*contentVersion.GetId()).
 		Files().
@@ -151,6 +163,8 @@ func (r *Win32LobAppResource) publishContentVersion(ctx context.Context, appID s
 		errors.HandleKiotaGraphError(ctx, sentinels.ErrAzureStorageURINil, response, operation, r.WritePermissions)
 		return false
 	}
+
+	releaseAllocation()
 
 	tflog.Debug(ctx, fmt.Sprintf("Uploading prepared encrypted package content: %s", installer.fileName))
 	fileBuilder := contentBuilder.
