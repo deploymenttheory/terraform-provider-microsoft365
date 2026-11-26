@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	errInvalidPolicyState      = errors.New("invalid authorization policy state")
 	errInvalidPolicyCollection = errors.New(
 		"expected exactly one authorization policy in the response",
 	)

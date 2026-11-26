@@ -68,11 +68,7 @@ func (r *AuthorizationPolicyResource) Create(
 		return
 	}
 
-	_, err = r.client.
-		Policies().
-		AuthorizationPolicy().
-		ByAuthorizationPolicyId(singletonID).
-		Patch(ctx, requestBody, nil)
+	err = r.patchSettings(ctx, requestBody)
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -90,6 +86,12 @@ func (r *AuthorizationPolicyResource) Create(
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &object)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err = r.completeInvitationWrite(ctx, requestBody, resp.State)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
 	}
 
@@ -211,11 +213,7 @@ func (r *AuthorizationPolicyResource) Update(
 		return
 	}
 
-	_, err = r.client.
-		Policies().
-		AuthorizationPolicy().
-		ByAuthorizationPolicyId(singletonID).
-		Patch(ctx, requestBody, nil)
+	err = r.patchSettings(ctx, requestBody)
 	if err != nil {
 		errors.HandleKiotaGraphError(
 			ctx,
@@ -230,6 +228,12 @@ func (r *AuthorizationPolicyResource) Update(
 	plan.ID = types.StringValue(singletonID)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err = r.completeInvitationWrite(ctx, requestBody, resp.State)
+	if err != nil {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
 	}
 

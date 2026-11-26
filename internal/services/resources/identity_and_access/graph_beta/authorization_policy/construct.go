@@ -41,7 +41,7 @@ func constructResource(
 	convert.FrameworkToGraphBool(data.BlockMsolPowerShell, requestBody.SetBlockMsolPowerShell)
 	convert.FrameworkToGraphString(data.Description, requestBody.SetDescription)
 	convert.FrameworkToGraphString(data.DisplayName, requestBody.SetDisplayName)
-	if err := convert.FrameworkToGraphStringSet(
+	if err := convert.FrameworkToGraphStringSetOmitUnset(
 		ctx,
 		data.EnabledPreviewFeatures,
 		requestBody.SetEnabledPreviewFeatures,
@@ -54,7 +54,7 @@ func constructResource(
 	); err != nil {
 		return nil, fmt.Errorf("failed to set guest_user_role_id: %w", err)
 	}
-	if err := convert.FrameworkToGraphStringSet(
+	if err := convert.FrameworkToGraphStringSetOmitUnset(
 		ctx,
 		data.PermissionGrantPolicyIdsAssignedToDefaultUserRole,
 		requestBody.SetPermissionGrantPolicyIdsAssignedToDefaultUserRole,
