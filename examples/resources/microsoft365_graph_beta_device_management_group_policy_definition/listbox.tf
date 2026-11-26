@@ -24,4 +24,3 @@ resource "microsoft365_graph_beta_device_management_group_policy_definition" "li
     delete = "3m"
   }
 }
-
