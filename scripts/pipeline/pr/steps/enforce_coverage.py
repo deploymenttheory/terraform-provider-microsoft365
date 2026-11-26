@@ -35,7 +35,10 @@ from lib.git_operations import get_changed_files  # noqa: E402
 from lib.github import write_output  # noqa: E402
 from lib.partitions import production_import_closure  # noqa: E402
 from lib.patch_lines import added_go_lines, measure_patch  # noqa: E402
-from lib.registry_changes import verified_declaration_only_files, verified_registry_additions  # noqa: E402
+from lib.registry_changes import (  # noqa: E402
+    verified_declaration_only_files,
+    verified_registry_additions,
+)
 
 # pylint: enable=wrong-import-position
 
@@ -99,7 +102,7 @@ def _verify_test_only_changes(base_ref):
 
 
 def _recover_patch_coverage(args):
-    """Use exact-head executable line data and the real PR diff when aggregate totals are empty."""
+    """Recover exact-head patch coverage without comparison totals."""
     try:
         added = added_go_lines(args.base_ref, args.commit_sha)
         mocks = [name for name in added if "mocks" in Path(name).parts[:-1]]
@@ -110,7 +113,8 @@ def _recover_patch_coverage(args):
             raise ValueError("Cannot verify changed CI tools are excluded from runtime")
         registries = verified_registry_additions(added, args.base_ref, args.commit_sha)
         runtime = {
-            name: lines for name, lines in added.items()
+            name: lines
+            for name, lines in added.items()
             if name not in mocks and name not in registries and name not in tools
         }
         if registries:
@@ -122,7 +126,9 @@ def _recover_patch_coverage(args):
                 present = {item.get("name") for item in files}
                 missing = {name: lines for name, lines in runtime.items() if name not in present}
                 declarations = verified_declaration_only_files(missing, args.commit_sha)
-                runtime = {name: lines for name, lines in runtime.items() if name not in declarations}
+                runtime = {
+                    name: lines for name, lines in runtime.items() if name not in declarations
+                }
                 if declarations:
                     print("Verified declaration-only Go files: " + ", ".join(sorted(declarations)))
         stats = measure_patch(report, runtime, args.commit_sha)
@@ -139,6 +145,19 @@ def _recover_patch_coverage(args):
     ) as error:
         print(f"❌ ERROR: Cannot verify PR executable line coverage: {error}")
         return None
+
+
+def _locally_verified_empty_patch(args):
+    """Prove an exact-head test-only diff before depending on remote coverage."""
+    if not args.base_ref or not args.commit_sha:
+        return False
+    try:
+        return not added_go_lines(args.base_ref, args.commit_sha) and _verify_test_only_changes(
+            args.base_ref
+        )
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+        print(f"Cannot verify local coverage applicability: {error}")
+        return False
 
 
 def main():
@@ -164,27 +183,36 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.codecov_token:
-        print("No Codecov API token supplied; requesting public repository coverage")
-
     config = load_pr_checks_config(args.config)
 
-    # Fetch coverage from Codecov
-    print("\n📊 Fetching coverage from Codecov...")
-    stats = fetch_codecov_coverage(
-        args.repo_slug, args.pr_number, args.codecov_token, expected_commit=args.commit_sha
-    )
-
-    if not stats:
-        print("❌ ERROR: Could not fetch coverage from Codecov")
-        return 1
-
-    no_executable_changes = stats.get("no_executable_changes", False)
-    if no_executable_changes and not _verify_test_only_changes(args.base_ref):
+    stats = None
+    if _locally_verified_empty_patch(args):
+        stats = {
+            "coverage_pct": None,
+            "total_lines": 0,
+            "covered_lines": 0,
+            "no_executable_changes": True,
+        }
+        print("Verified the exact-head Git diff has no production Go changes")
+    elif args.base_ref and args.commit_sha:
         stats = _recover_patch_coverage(args)
-        if stats is None:
-            return 1
-        no_executable_changes = stats.get("no_executable_changes", False)
+
+    if stats is None:
+        if not args.codecov_token:
+            print("No Codecov API token supplied; requesting public repository coverage")
+        print("\n📊 Fetching coverage from Codecov...")
+        stats = fetch_codecov_coverage(
+            args.repo_slug, args.pr_number, args.codecov_token, expected_commit=args.commit_sha
+        )
+        if not stats or (
+            stats.get("no_executable_changes", False)
+            and not _verify_test_only_changes(args.base_ref)
+        ):
+            stats = _recover_patch_coverage(args)
+    if stats is None:
+        print("❌ ERROR: Could not verify coverage from Codecov")
+        return 1
+    no_executable_changes = stats.get("no_executable_changes", False)
     coverage_pct = "N/A" if no_executable_changes else stats["coverage_pct"]
 
     print(f"\n{'='*60}")
