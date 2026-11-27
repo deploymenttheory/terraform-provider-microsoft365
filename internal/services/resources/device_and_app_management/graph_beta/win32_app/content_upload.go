@@ -8,6 +8,7 @@ import (
 	"time"
 
 	construct "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/constructors/graph_beta/device_and_app_management"
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	sentinels "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/sentinels"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -95,12 +96,38 @@ func (r *Win32LobAppResource) publishContentVersion(ctx context.Context, appID s
 		GraphWin32LobApp().
 		ContentVersions()
 
-	contentVersion, err := contentBuilder.Post(ctx, graphmodels.NewMobileAppContent(), nil)
+	// Intune can reject the next content version with ConditionNotMet/412
+	// while the preceding app write settles. Retry only this rejected POST;
+	// file creation and package transfer start after a version is accepted.
+	var contentVersion graphmodels.MobileAppContentable
+	versionWriteOpts := crud.DefaultPreconditionRetryOptions()
+	versionWriteOpts.Operation = operation
+	versionWriteOpts.ResourceTypeName = ResourceName
+	versionWriteOpts.LogFields = map[string]any{"app_id": appID}
+	err := crud.WriteWithPreconditionRetry(ctx, func(ctx context.Context) error {
+		var postErr error
+		contentVersion, postErr = contentBuilder.Post(ctx, graphmodels.NewMobileAppContent(), nil)
+		if postErr != nil {
+			return fmt.Errorf("create content version: %w", postErr)
+		}
+		return nil
+	}, versionWriteOpts)
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, response, operation, r.WritePermissions)
 		return false
 	}
 	tflog.Debug(ctx, fmt.Sprintf("Content version created with ID: %s", *contentVersion.GetId()))
+
+	// Intune allocates policies in a shared storage container. Concurrent file
+	// allocation can return success while losing one policy. Coordinate only
+	// allocation and URI polling for resources sharing this configured client;
+	// release before transferring the package so uploads remain concurrent.
+	releaseAllocation, err := crud.AcquireKeyedLock(ctx, "intune-content-file-allocation", fmt.Sprintf("%p", r.client))
+	if err != nil {
+		addContentDiagnostic(response, "Error waiting to allocate application content file", err)
+		return false
+	}
+	defer releaseAllocation()
 
 	createdFile, err := contentBuilder.
 		ByMobileAppContentId(*contentVersion.GetId()).
@@ -151,6 +178,8 @@ func (r *Win32LobAppResource) publishContentVersion(ctx context.Context, appID s
 		errors.HandleKiotaGraphError(ctx, sentinels.ErrAzureStorageURINil, response, operation, r.WritePermissions)
 		return false
 	}
+
+	releaseAllocation()
 
 	tflog.Debug(ctx, fmt.Sprintf("Uploading prepared encrypted package content: %s", installer.fileName))
 	fileBuilder := contentBuilder.

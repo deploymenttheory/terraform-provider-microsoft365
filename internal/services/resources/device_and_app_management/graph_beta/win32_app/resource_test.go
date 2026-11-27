@@ -19,6 +19,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -756,4 +758,200 @@ func TestUnitResourceWin32App_15_RenewRejectedUploadURI(t *testing.T) {
 	assert.False(t, response.Diagnostics.HasError(), "%v", response.Diagnostics)
 	assert.True(t, renewed, "the rejected SAS URI must be renewed")
 	assert.Equal(t, encryptedContent, uploadedContent)
+}
+
+// File allocation changes a shared stored-policy collection. Simulate a backend
+// losing the newer policy when two file allocations overlap, while allowing the
+// rest of both publication flows to run concurrently.
+func TestUnitResourceWin32App_16_ConcurrentContentAllocation(t *testing.T) {
+	metadata := validIntuneWinMetadata()
+	installer, err := extractIntuneWinPackage(writeIntuneWinFixture(t, metadata, map[string][]byte{
+		"IntuneWinPackage/Contents/" + metadata.FileName: []byte("concurrent publication payload"),
+	}))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, installer.cleanup()) })
+	var active, nextID atomic.Int32
+	var rejected, committed sync.Map
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		writeJSON := func(value any) {
+			w.Header().Set("Content-Type", "application/json")
+			if err := json.NewEncoder(w).Encode(value); err != nil {
+				t.Errorf("encode response: %v", err)
+			}
+		}
+		switch {
+		case req.Method == http.MethodPost && strings.HasSuffix(req.URL.Path, "/contentVersions"):
+			writeJSON(map[string]any{"id": "2"})
+		case req.Method == http.MethodPost && strings.HasSuffix(req.URL.Path, "/2/files"):
+			id := fmt.Sprint(nextID.Add(1))
+			if active.Add(1) > 1 {
+				rejected.Store(id, true)
+			}
+			time.Sleep(500 * time.Millisecond)
+			active.Add(-1)
+			writeJSON(map[string]any{"id": id})
+		case req.Method == http.MethodGet && strings.Contains(req.URL.Path, "/2/files/"):
+			id := req.URL.Path[strings.LastIndex(req.URL.Path, "/")+1:]
+			state := "azureStorageUriRequestSuccess"
+			if _, ok := committed.Load(id); ok {
+				state = "commitFileSuccess"
+			}
+			writeJSON(map[string]any{"id": id, "uploadState": state, "azureStorageUri": server.URL + "/blob/" + id + "?sig=test"})
+		case req.Method == http.MethodPut && strings.HasPrefix(req.URL.Path, "/blob/"):
+			id := strings.TrimPrefix(req.URL.Path, "/blob/")
+			if _, bad := rejected.Load(id); bad {
+				w.Header().Set("Content-Type", "application/xml")
+				w.WriteHeader(http.StatusForbidden)
+				_, _ = io.WriteString(w, `<Error><Code>AuthenticationFailed</Code><AuthenticationErrorDetail>SAS identifier cannot be found for specified signed identifier</AuthenticationErrorDetail></Error>`)
+			} else {
+				w.WriteHeader(http.StatusCreated)
+			}
+		case req.Method == http.MethodPost && strings.HasSuffix(req.URL.Path, "/commit"):
+			parts := strings.Split(req.URL.Path, "/")
+			committed.Store(parts[len(parts)-2], true)
+			w.WriteHeader(http.StatusNoContent)
+		case req.Method == http.MethodPatch && strings.HasPrefix(req.URL.Path, "/deviceAppManagement/mobileApps/"):
+			writeJSON(map[string]any{"@odata.type": "#microsoft.graph.win32LobApp", "id": "published-app"})
+		default:
+			t.Errorf("unexpected operation: %s %s", req.Method, req.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(server.Close)
+	adapter, err := kiotahttp.NewNetHttpRequestAdapter(&authentication.AnonymousAuthenticationProvider{})
+	require.NoError(t, err)
+	adapter.SetBaseUrl(server.URL)
+	r := &Win32LobAppResource{client: msgraphbetasdk.NewGraphServiceClient(adapter)}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	start := make(chan struct{})
+	outcomes := make(chan string, 2)
+	for _, appID := range []string{"application-one", "application-two"} {
+		go func() {
+			<-start
+			response := &resource.UpdateResponse{}
+			resourceUnderTest := &Win32LobAppResource{client: r.client}
+			if resourceUnderTest.publishContentVersion(ctx, appID, installer, response, constants.TfOperationUpdate) && !response.Diagnostics.HasError() {
+				outcomes <- ""
+			} else {
+				outcomes <- fmt.Sprint(response.Diagnostics)
+			}
+		}()
+	}
+	close(start)
+	for range 2 {
+		assert.Empty(t, <-outcomes, "both concurrent publications must obtain usable upload policies")
+	}
+	assert.Equal(t, int32(2), nextID.Load(), "each publication must use one content file")
+}
+
+// The original #4984 response identifies POST contentVersions, not PATCH or
+// Azure upload. Rejected creation must be retried without duplicating later work.
+func TestUnitResourceWin32App_17_ContentVersionPrecondition(t *testing.T) {
+	metadata := validIntuneWinMetadata()
+	payload := []byte("content retained across rejected version creation")
+	installer, err := extractIntuneWinPackage(writeIntuneWinFixture(t, metadata, map[string][]byte{
+		"IntuneWinPackage/Contents/" + metadata.FileName: payload,
+	}))
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, installer.cleanup()) })
+	for _, tc := range []struct {
+		name         string
+		status       int
+		rejected     int32
+		timeout      time.Duration
+		wantAttempts int32
+		success      bool
+		cancelled    bool
+	}{
+		{name: "412_then_success", status: http.StatusPreconditionFailed, rejected: 1, timeout: 30 * time.Second, wantAttempts: 2, success: true},
+		{name: "412_retry_limit", status: http.StatusPreconditionFailed, rejected: 100, timeout: 30 * time.Second, wantAttempts: 4},
+		{name: "403_is_immediate", status: http.StatusForbidden, rejected: 100, timeout: 30 * time.Second, wantAttempts: 1},
+		{name: "caller_deadline", status: http.StatusPreconditionFailed, rejected: 100, timeout: 300 * time.Millisecond, wantAttempts: 1, cancelled: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var versionPosts, filePosts, commitPosts, publishPatches atomic.Int32
+			var uploaded atomic.Int64
+			var committed atomic.Bool
+			const appID = "existing-app"
+			versionPath := "/deviceAppManagement/mobileApps/" + appID + "/graph.win32LobApp/contentVersions"
+			filePath := versionPath + "/2/files/file-id"
+			var server *httptest.Server
+			server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+				writeJSON := func(value any) {
+					w.Header().Set("Content-Type", "application/json")
+					if encodeErr := json.NewEncoder(w).Encode(value); encodeErr != nil {
+						t.Errorf("encode response: %v", encodeErr)
+					}
+				}
+				switch {
+				case req.Method == http.MethodPost && req.URL.Path == versionPath:
+					if versionPosts.Add(1) <= tc.rejected {
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(tc.status)
+						code := "ConditionNotMet"
+						if tc.status == http.StatusForbidden {
+							code = "Authorization_RequestDenied"
+						}
+						writeJSON(map[string]any{"error": map[string]any{"code": code, "message": "content version creation rejected"}})
+					} else {
+						writeJSON(map[string]any{"id": "2"})
+					}
+				case req.Method == http.MethodPost && req.URL.Path == versionPath+"/2/files":
+					filePosts.Add(1)
+					writeJSON(map[string]any{"id": "file-id"})
+				case req.Method == http.MethodGet && req.URL.Path == filePath:
+					state := "azureStorageUriRequestSuccess"
+					if committed.Load() {
+						state = "commitFileSuccess"
+					}
+					writeJSON(map[string]any{"id": "file-id", "uploadState": state, "azureStorageUri": server.URL + "/blob?sig=test"})
+				case req.Method == http.MethodPut && req.URL.Path == "/blob":
+					if req.URL.Query().Get("comp") == "block" {
+						content, readErr := io.ReadAll(req.Body)
+						if readErr != nil {
+							t.Errorf("read uploaded block: %v", readErr)
+						}
+						uploaded.Add(int64(len(content)))
+					}
+					w.WriteHeader(http.StatusCreated)
+				case req.Method == http.MethodPost && req.URL.Path == filePath+"/commit":
+					commitPosts.Add(1)
+					committed.Store(true)
+					w.WriteHeader(http.StatusNoContent)
+				case req.Method == http.MethodPatch && req.URL.Path == "/deviceAppManagement/mobileApps/"+appID:
+					publishPatches.Add(1)
+					writeJSON(map[string]any{"@odata.type": "#microsoft.graph.win32LobApp", "id": appID})
+				default:
+					t.Errorf("unexpected Graph operation: %s %s", req.Method, req.URL.Path)
+					w.WriteHeader(http.StatusNotFound)
+				}
+			}))
+			t.Cleanup(server.Close)
+			adapter, adapterErr := kiotahttp.NewNetHttpRequestAdapter(&authentication.AnonymousAuthenticationProvider{})
+			require.NoError(t, adapterErr)
+			adapter.SetBaseUrl(server.URL)
+			r := &Win32LobAppResource{client: msgraphbetasdk.NewGraphServiceClient(adapter)}
+			ctx, cancel := context.WithTimeout(context.Background(), tc.timeout)
+			defer cancel()
+			response := &resource.UpdateResponse{}
+			assert.Equal(t, tc.success, r.publishContentVersion(ctx, appID, installer, response, constants.TfOperationUpdate))
+			assert.Equal(t, !tc.success, response.Diagnostics.HasError(), "%v", response.Diagnostics)
+			assert.Equal(t, tc.wantAttempts, versionPosts.Load())
+			if tc.success {
+				assert.Equal(t, int32(1), filePosts.Load())
+				assert.Equal(t, int32(1), commitPosts.Load())
+				assert.Equal(t, int32(1), publishPatches.Load())
+				assert.Equal(t, int64(len(payload)), uploaded.Load())
+			} else {
+				assert.Zero(t, filePosts.Load())
+				assert.Zero(t, commitPosts.Load())
+				assert.Zero(t, publishPatches.Load())
+			}
+			if tc.cancelled {
+				assert.ErrorIs(t, ctx.Err(), context.DeadlineExceeded)
+			}
+		})
+	}
 }
