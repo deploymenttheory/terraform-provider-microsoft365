@@ -1,0 +1,1 @@
+terraform import microsoft365_graph_beta_agents_agent_card_manifest.example existing-manifest-id
