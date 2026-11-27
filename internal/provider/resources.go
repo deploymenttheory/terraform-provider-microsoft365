@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 
 	// Graph Beta - Agents
+	graphBetaAgentCardManifest "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_card_manifest"
 	graphBetaAgentCollection "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_collection"
 	graphBetaAgentCollectionAssignment "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_collection_assignment"
 	graphBetaAgentIdentity "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/agents/graph_beta/agent_identity"
@@ -301,6 +302,7 @@ func (p *M365Provider) Resources(ctx context.Context) []func() resource.Resource
 		graphBetaAgentCollectionAssignment.NewAgentCollectionAssignmentResource,
 		graphBetaAgentIdentity.NewAgentIdentityResource,
 		graphBetaAgentInstance.NewAgentInstanceResource,
+		graphBetaAgentCardManifest.NewAgentCardManifestResource,
 		graphBetaAgentUser.NewAgentUserResource,
 		graphBetaApplicationsAgentIdentityBlueprint.NewAgentIdentityBlueprintResource,
 		graphBetaAgentIdentityBlueprintFederatedIdentityCredential.NewAgentIdentityBlueprintFederatedIdentityCredentialResource,
