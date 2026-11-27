@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.7.0...v1.8.0) (2026-11-27)
+
+
+### Features
+
+* **agents:** add agent card manifest resource ([#5020](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5020)) ([6e1dbd1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6e1dbd187ebdcab31ebe29321734c1edeb871432))
+* **tenants:** add tenant information data source ([#5019](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5019)) ([afb5039](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/afb5039dedb91a0c8836f223dbc79f66e844c39b))
+
+
+### Bug Fixes
+
+* **agent-blueprint-certificate:** clear final credential on delete ([#5010](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5010)) ([1670b3b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1670b3ba9a4474f711abd2d2d8059da14a23bb27))
+* **agent-blueprint-certificate:** send empty array when removing last key ([1670b3b](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1670b3ba9a4474f711abd2d2d8059da14a23bb27))
+* **agent-blueprint-principal:** omit unset tags in Graph requests ([#5008](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5008)) ([9a56d1e](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/9a56d1e470a071f7c5382d83f10516883aa52848))
+* **agent-identity-blueprint:** omit unset tags in Graph requests ([#5007](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5007)) ([bf92a23](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/bf92a23ffdfe1ddb7e52212e2519dfcab7152e55))
+* **applicable-content:** repair acceptance fixtures and empty results ([#4992](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4992)) ([8e93599](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8e935999b4504823f1c782be73870575465a75a7))
+* **application:** resolve role, owner, and import acceptance failures ([#5005](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5005)) ([b28df65](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b28df65a43fdc34c21aca234ac20612b45dfa838))
+* **application:** stabilize acceptance state and owner removal ([b28df65](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/b28df65a43fdc34c21aca234ac20612b45dfa838))
+* **authorization-policy:** sequence writes and restore original settings ([#5009](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5009)) ([82bd924](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/82bd924e2016743ceb2006dfb942ae600c9b5777))
+* **autopilot-preparation:** restore complete policy state on import ([#5012](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5012)) ([e6eb1f4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/e6eb1f481c3a06aef715ef8a38d06a9769e53bf4))
+* **ci:** verify patch coverage without PR comparison metadata ([#5004](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5004)) ([1e4e1bb](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/1e4e1bbc43dbd61aa98d7627a4f5a7c019788af0))
+* **cross-tenant-default-settings:** wait for stable policy readback ([#5017](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5017)) ([a6fa3f1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/a6fa3f13fb6a226ed41db28b656de82d305a8e72))
+* **cross-tenant:** purge partner settings from policy deleted items ([#5022](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5022)) ([76f03a8](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/76f03a883c067ad773ca9fdf1c65f367c073aabe))
+* **directory-role-assignment:** tolerate directory replica delays ([#5003](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5003)) ([d408083](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/d40808323f30c9fdeff7efea59a3b22382a9df90))
+* **federated-identity:** include immutable owner in acceptance claims ([#4994](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4994)) ([43cdea3](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/43cdea3a8c85982462d8bfcc34dc094bc5986584))
+* **group-owner-assignment:** wait for newly created groups to replicate ([#5014](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5014)) ([0fb172a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0fb172a64cbe5f03b2fa880a179677ed7a00a919))
+* **group-policy-definition:** support ListBox presentations ([#5011](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5011)) ([8f5517a](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/8f5517af84f44d1e87626f28d5d45459a9b4aa98))
+* **group:** require stable metadata after directory writes ([c2432aa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c2432aac1d1223e04e5b0727cc09910a62a3c231))
+* **group:** stabilize generated import metadata updates ([#5006](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5006)) ([c2432aa](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/c2432aac1d1223e04e5b0727cc09910a62a3c231))
+* **network-default-forwarding-profile:** declare acceptance random provider ([#5016](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5016)) ([6f3d875](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/6f3d87574e62a6a34dd8d5682388234e5d1b2789))
+* **preferred-thumbprint:** retry new service principal replication ([#4998](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4998)) ([881e9d1](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/881e9d162d6ac806d1dd58140f86c62d86858df9))
+* **service-principal:** omit unset collections and retry app replication ([0a090a4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0a090a40b5f5785a6cce0620fcae3a62ae0cce7c))
+* **service-principal:** omit unset collections and retry application replication ([#4996](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4996)) ([0a090a4](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/0a090a40b5f5785a6cce0620fcae3a62ae0cce7c))
+* **token-lifetime-policy:** align Graph contract and handle replica lag ([#4993](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4993)) ([42ef765](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/42ef765dd683348875bb9cfbe16e39bff8f3adfe))
+* **token-signing-certificate:** stabilize creation and import thumbprints ([#4997](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/4997)) ([5def0af](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/5def0af36859e0c4e2ddc2efe2ec544bc6549f5b))
+* **win32-app:** retry content publication and retain failed creates ([#5013](https://github.com/deploymenttheory/terraform-provider-microsoft365/issues/5013)) ([76dc574](https://github.com/deploymenttheory/terraform-provider-microsoft365/commit/76dc574377710301a01e6e7dc85293e2ad3d8392))
+
 ## [1.7.0](https://github.com/deploymenttheory/terraform-provider-microsoft365/compare/v1.6.0...v1.7.0) (2026-11-25)
 
 
