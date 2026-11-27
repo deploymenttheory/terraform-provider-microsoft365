@@ -57,6 +57,9 @@ import (
 	graphBetaMultitenantManagementAggregatedPolicyCompliances "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/multitenant_management/graph_beta/aggregated_policy_compliances"
 	graphBetaMultitenantManagementAuditEvents "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/multitenant_management/graph_beta/audit_events"
 
+	// Graph Beta - Tenants datasources
+	graphBetaTenantsTenantInformation "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/tenants/tenant_information"
+
 	// Graph Beta - Users datasources
 	graphBetaUsersUser "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/datasources/users/graph_beta/user"
 
@@ -156,6 +159,9 @@ func (p *M365Provider) DataSources(ctx context.Context) []func() datasource.Data
 		// Graph Beta - Multitenant Management datasources
 		graphBetaMultitenantManagementAggregatedPolicyCompliances.NewAggregatedPolicyCompliancesDataSource,
 		graphBetaMultitenantManagementAuditEvents.NewAuditEventsDataSource,
+
+		// Graph Beta - Tenants datasources
+		graphBetaTenantsTenantInformation.NewTenantInformationDataSource,
 		// Graph Beta - Users datasources
 		graphBetaUsersUser.NewUserDataSource,
 		// Graph Beta - Windows 365 datasources

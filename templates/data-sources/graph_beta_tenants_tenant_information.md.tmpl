@@ -1,0 +1,26 @@
+---
+page_title: "{{.Name}} {{.Type}} - {{.ProviderName}}"
+subcategory: "Tenants"
+description: |-
+{{ .Description | plainmarkdown | trimspace | prefixlines "  " }}
+---
+
+# {{.Name}} ({{.Type}})
+
+{{ .Description | trimspace }}
+
+## Microsoft Documentation
+
+- [Tenant information](https://learn.microsoft.com/en-us/graph/api/resources/tenantinformation?view=graph-rest-beta)
+- [Find by tenant ID](https://learn.microsoft.com/en-us/graph/api/tenantrelationship-findtenantinformationbytenantid?view=graph-rest-beta)
+- [Find by domain name](https://learn.microsoft.com/en-us/graph/api/tenantrelationship-findtenantinformationbydomainname?view=graph-rest-beta)
+
+## Microsoft Graph API Permissions
+
+Application permission: CrossTenantInformation.ReadBasic.All.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/microsoft365_graph_beta_tenants_tenant_information/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
