@@ -8,19 +8,22 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 	"github.com/jarcoal/httpmock"
+
+	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
 )
 
 var mockState struct {
 	sync.Mutex
-	partnerSettings map[string]map[string]any
-	deletedTenants  map[string]bool
+	partnerSettings      map[string]map[string]any
+	deletedTenants       map[string]bool
+	policyDeletedTenants map[string]bool
 }
 
 func init() {
 	mockState.partnerSettings = make(map[string]map[string]any)
 	mockState.deletedTenants = make(map[string]bool)
+	mockState.policyDeletedTenants = make(map[string]bool)
 	httpmock.RegisterNoResponder(httpmock.NewStringResponder(404, `{"error":{"code":"ResourceNotFound","message":"Resource not found"}}`))
 	mocks.GlobalRegistry.Register("cross_tenant_access_partner_settings", &CrossTenantAccessPartnerSettingsMock{})
 }
@@ -62,6 +65,7 @@ func (m *CrossTenantAccessPartnerSettingsMock) RegisterMocks() {
 	mockState.Lock()
 	mockState.partnerSettings = make(map[string]map[string]any)
 	mockState.deletedTenants = make(map[string]bool)
+	mockState.policyDeletedTenants = make(map[string]bool)
 	mockState.Unlock()
 
 	m.registerTenantValidationMock()
@@ -94,6 +98,8 @@ func (m *CrossTenantAccessPartnerSettingsMock) RegisterMocks() {
 		baseResponse["tenantId"] = tenantID
 
 		mockState.partnerSettings[tenantID] = baseResponse
+		delete(mockState.deletedTenants, tenantID)
+		delete(mockState.policyDeletedTenants, tenantID)
 
 		resp, err := httpmock.NewJsonResponse(201, baseResponse)
 		if err != nil {
@@ -139,55 +145,85 @@ func (m *CrossTenantAccessPartnerSettingsMock) RegisterMocks() {
 	})
 
 	// PATCH /policies/crossTenantAccessPolicy/partners/{tenantId} - Update partner configuration
-	httpmock.RegisterResponder("PATCH", `=~^https://graph\.microsoft\.com/beta/policies/crossTenantAccessPolicy/partners/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
-		tenantID := httpmock.MustGetSubmatch(req, 1)
+	httpmock.RegisterResponder(
+		"PATCH",
+		`=~^https://graph\.microsoft\.com/beta/policies/crossTenantAccessPolicy/partners/([^/]+)$`,
+		func(req *http.Request) (*http.Response, error) {
+			tenantID := httpmock.MustGetSubmatch(req, 1)
 
-		var requestBody map[string]any
-		if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
-			return httpmock.NewStringResponse(400, fmt.Sprintf(`{"error":{"code":"BadRequest","message":"Invalid request body: %s"}}`, err.Error())), nil
-		}
+			var requestBody map[string]any
+			if err := json.NewDecoder(req.Body).Decode(&requestBody); err != nil {
+				return httpmock.NewStringResponse(400, fmt.Sprintf(`{"error":{"code":"BadRequest","message":"Invalid request body: %s"}}`, err.Error())), nil
+			}
 
-		mockState.Lock()
-		defer mockState.Unlock()
+			mockState.Lock()
+			defer mockState.Unlock()
 
-		if settings, exists := mockState.partnerSettings[tenantID]; exists {
-			mergeSettings(settings, requestBody)
+			if settings, exists := mockState.partnerSettings[tenantID]; exists {
+				mergeSettings(settings, requestBody)
+				return httpmock.NewStringResponse(204, ""), nil
+			}
+
+			// If not in state, load base and merge
+			baseResponse, err := loadJSONResponse("get_partner_settings_success.json")
+			if err != nil {
+				return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Partner configuration not found"}}`), nil
+			}
+
+			baseResponse["tenantId"] = tenantID
+			mergeSettings(baseResponse, requestBody)
+			mockState.partnerSettings[tenantID] = baseResponse
+
 			return httpmock.NewStringResponse(204, ""), nil
-		}
-
-		// If not in state, load base and merge
-		baseResponse, err := loadJSONResponse("get_partner_settings_success.json")
-		if err != nil {
-			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Partner configuration not found"}}`), nil
-		}
-
-		baseResponse["tenantId"] = tenantID
-		mergeSettings(baseResponse, requestBody)
-		mockState.partnerSettings[tenantID] = baseResponse
-
-		return httpmock.NewStringResponse(204, ""), nil
-	})
+		},
+	)
 
 	// DELETE /policies/crossTenantAccessPolicy/partners/{tenantId} - Delete partner configuration
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/policies/crossTenantAccessPolicy/partners/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
-		tenantID := httpmock.MustGetSubmatch(req, 1)
+	httpmock.RegisterResponder(
+		"DELETE",
+		`=~^https://graph\.microsoft\.com/beta/policies/crossTenantAccessPolicy/partners/([^/]+)$`,
+		func(req *http.Request) (*http.Response, error) {
+			tenantID := httpmock.MustGetSubmatch(req, 1)
 
+			mockState.Lock()
+			defer mockState.Unlock()
+
+			if _, exists := mockState.partnerSettings[tenantID]; exists {
+				delete(mockState.partnerSettings, tenantID)
+				mockState.deletedTenants[tenantID] = true
+				mockState.policyDeletedTenants[tenantID] = true
+				return httpmock.NewStringResponse(204, ""), nil
+			}
+
+			return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Partner configuration not found"}}`), nil
+		},
+	)
+
+	// Policy deleted items are separate from directory deleted items.
+	httpmock.RegisterResponder("GET", `=~^https://graph\.microsoft\.com/beta/policies/deletedItems/crossTenantPartners/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
+		tenantID := httpmock.MustGetSubmatch(req, 1)
 		mockState.Lock()
 		defer mockState.Unlock()
-
-		if _, exists := mockState.partnerSettings[tenantID]; exists {
-			delete(mockState.partnerSettings, tenantID)
-			mockState.deletedTenants[tenantID] = true
-			return httpmock.NewStringResponse(204, ""), nil
+		if mockState.policyDeletedTenants[tenantID] {
+			return httpmock.NewJsonResponse(200, map[string]any{"tenantId": tenantID})
 		}
-
-		return httpmock.NewStringResponse(404, `{"error":{"code":"ResourceNotFound","message":"Partner configuration not found"}}`), nil
+		return httpmock.NewStringResponse(404, ""), nil
 	})
-
-	// DELETE /directory/deletedItems/{tenantId} - Hard delete partner configuration
-	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([^/]+)$`, func(req *http.Request) (*http.Response, error) {
-		return httpmock.NewStringResponse(204, ""), nil
-	})
+	httpmock.RegisterResponder(
+		"DELETE",
+		`=~^https://graph\.microsoft\.com/beta/policies/deletedItems/crossTenantPartners/([^/]+)$`,
+		func(req *http.Request) (*http.Response, error) {
+			tenantID := httpmock.MustGetSubmatch(req, 1)
+			mockState.Lock()
+			defer mockState.Unlock()
+			if !mockState.policyDeletedTenants[tenantID] {
+				return httpmock.NewStringResponse(404, ""), nil
+			}
+			delete(mockState.policyDeletedTenants, tenantID)
+			return httpmock.NewStringResponse(204, ""), nil
+		},
+	)
+	httpmock.RegisterResponder("DELETE", `=~^https://graph\.microsoft\.com/beta/directory/deletedItems/([^/]+)$`, httpmock.NewStringResponder(404, ""))
 }
 
 func (m *CrossTenantAccessPartnerSettingsMock) RegisterErrorMocks() {
@@ -215,6 +251,7 @@ func (m *CrossTenantAccessPartnerSettingsMock) CleanupMockState() {
 	defer mockState.Unlock()
 	mockState.partnerSettings = make(map[string]map[string]any)
 	mockState.deletedTenants = make(map[string]bool)
+	mockState.policyDeletedTenants = make(map[string]bool)
 	httpmock.Reset()
 }
 
