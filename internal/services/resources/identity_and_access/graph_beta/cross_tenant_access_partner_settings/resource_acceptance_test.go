@@ -1,9 +1,13 @@
 package graphBetaCrossTenantAccessPartnerSettings_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/acceptance/check"
@@ -11,9 +15,8 @@ import (
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/helpers"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/mocks"
+	grapherrors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
 	graphBetaCrossTenantAccessPartnerSettings "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/resources/identity_and_access/graph_beta/cross_tenant_access_partner_settings"
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/terraform"
 )
 
 const testTenantID = "a22ff489-2ea9-48de-8d58-fa130b532d5d"
@@ -289,10 +292,49 @@ func TestAccResourceCrossTenantAccessPartnerSettings_04_UpdateMaximalToMinimal(t
 	})
 }
 
-// testAccCheckCrossTenantAccessPartnerSettingsDestroy verifies that the partner configuration
-// has been deleted from the tenant (either soft or hard deleted).
+// testAccCheckCrossTenantAccessPartnerSettingsDestroy checks both actual stores.
+// Replica reads can briefly reappear after a 404, so require stable absence.
 func testAccCheckCrossTenantAccessPartnerSettingsDestroy(s *terraform.State) error {
-	// Since we're using hard_delete=true in tests, the configuration should be permanently removed
-	// No verification needed as the resource will be gone from both active and deleted items
+	client, err := acceptance.TestGraphClient()
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != resourceType {
+			continue
+		}
+		id := rs.Primary.Attributes["tenant_id"]
+		absentReads := 0
+		for absentReads < 3 {
+			_, activeErr := client.Policies().CrossTenantAccessPolicy().Partners().ByCrossTenantAccessPolicyConfigurationPartnerTenantId(id).Get(ctx, nil)
+			activeAbsent := activeErr != nil && grapherrors.GraphError(ctx, activeErr).StatusCode == 404
+			if activeErr != nil && !activeAbsent {
+				return fmt.Errorf("verify active partner absence: %w", activeErr)
+			}
+			deletedAbsent := true
+			if rs.Primary.Attributes["hard_delete"] == "true" {
+				_, deletedErr := client.Policies().DeletedItems().CrossTenantPartners().ByCrossTenantAccessPolicyConfigurationPartnerTenantId(id).Get(ctx, nil)
+				deletedAbsent = deletedErr != nil && grapherrors.GraphError(ctx, deletedErr).StatusCode == 404
+				if deletedErr != nil && !deletedAbsent {
+					return fmt.Errorf("verify permanent partner deletion: %w", deletedErr)
+				}
+			}
+			if activeAbsent && deletedAbsent {
+				absentReads++
+			} else {
+				absentReads = 0
+			}
+			if absentReads == 3 {
+				break
+			}
+			select {
+			case <-time.After(3 * time.Second):
+			case <-ctx.Done():
+				return fmt.Errorf("partner %s was not confirmed absent from the expected stores: %w", id, ctx.Err())
+			}
+		}
+	}
 	return nil
 }

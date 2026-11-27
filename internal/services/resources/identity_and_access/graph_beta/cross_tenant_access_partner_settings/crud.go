@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/constants"
 	"github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/crud"
 	errors "github.com/deploymenttheory/terraform-provider-microsoft365/internal/services/common/errors/kiota"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // readbackAttributes are the attributes readbackMatch compares.
@@ -69,7 +70,6 @@ func (r *CrossTenantAccessPartnerSettingsResource) Create(ctx context.Context, r
 		CrossTenantAccessPolicy().
 		Partners().
 		Post(ctx, requestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationCreate, r.WritePermissions)
 		return
@@ -86,12 +86,13 @@ func (r *CrossTenantAccessPartnerSettingsResource) Create(ctx context.Context, r
 	stateContainer := &crud.CreateResponseContainer{CreateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
+	opts.RetryInterval = 5 * time.Second
 	opts.Operation = constants.TfOperationCreate
 	opts.ResourceTypeName = ResourceName
 	// Without enforce_default_inheritance an unset setting keeps its remote value.
 	match := readbackMatch
 	match.IgnoreNullExpected = !object.EnforceDefaultInheritance.ValueBool()
-	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, match)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, match))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -142,7 +143,6 @@ func (r *CrossTenantAccessPartnerSettingsResource) Read(ctx context.Context, req
 		Partners().
 		ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).
 		Get(ctx, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, operation, r.ReadPermissions)
 		return
@@ -208,7 +208,6 @@ func (r *CrossTenantAccessPartnerSettingsResource) Update(ctx context.Context, r
 		Partners().
 		ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).
 		Patch(ctx, requestBody, nil)
-
 	if err != nil {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationUpdate, r.WritePermissions)
 		return
@@ -223,12 +222,13 @@ func (r *CrossTenantAccessPartnerSettingsResource) Update(ctx context.Context, r
 	stateContainer := &crud.UpdateResponseContainer{UpdateResponse: resp}
 
 	opts := crud.DefaultReadWithRetryOptions()
+	opts.RetryInterval = 5 * time.Second
 	opts.Operation = constants.TfOperationUpdate
 	opts.ResourceTypeName = ResourceName
 	// Without enforce_default_inheritance an unset setting keeps its remote value.
 	match := readbackMatch
 	match.IgnoreNullExpected = !plan.EnforceDefaultInheritance.ValueBool()
-	opts.ConsistencyPredicate = crud.AttributesMatchPredicate(resp.State, match)
+	opts.ConsistencyPredicate = crud.RequireStableReads(crud.AttributesMatchPredicate(resp.State, match))
 
 	err = crud.ReadWithRetry(ctx, r.Read, readReq, stateContainer, opts)
 	if err != nil {
@@ -242,113 +242,116 @@ func (r *CrossTenantAccessPartnerSettingsResource) Update(ctx context.Context, r
 	tflog.Debug(ctx, fmt.Sprintf("Finished Update Method: %s", ResourceName))
 }
 
-// Delete removes a partner-specific cross-tenant access configuration.
-//
-// This operation supports both soft delete (default) and hard delete (permanent):
-//   - false (default): Soft delete moves the configuration to deleted items (can be restored within 30 days)
-//   - true: Hard delete permanently removes the configuration from deleted items
+// Delete soft-deletes the active partner and, when requested, permanently deletes
+// it from the policy recycle bin. Directory deleted items are a different store.
 //
 // API Calls:
-//   - DELETE /policies/crossTenantAccessPolicy/partners/{tenantId} (soft delete)
-//   - DELETE /directory/deletedItems/{tenantId} (if hard_delete is true)
+//   - DELETE /policies/crossTenantAccessPolicy/partners/{tenantId}
+//   - GET /policies/crossTenantAccessPolicy/partners/{tenantId}
+//   - GET /policies/deletedItems/crossTenantPartners/{tenantId}
+//   - DELETE /policies/deletedItems/crossTenantPartners/{tenantId}
 //
-// Reference: https://learn.microsoft.com/en-us/graph/api/crosstenantaccesspolicyconfigurationpartner-delete?view=graph-rest-beta
 // Reference: https://learn.microsoft.com/en-us/graph/api/policydeletableitem-delete?view=graph-rest-beta
 func (r *CrossTenantAccessPartnerSettingsResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state CrossTenantAccessPartnerSettingsResourceModel
-
-	tflog.Debug(ctx, fmt.Sprintf("Starting deletion of resource: %s", ResourceName))
-
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	ctx, cancel := crud.HandleTimeout(ctx, state.Timeouts.Delete, DeleteTimeout*time.Second, &resp.Diagnostics)
 	if cancel == nil {
 		return
 	}
 	defer cancel()
-
 	tenantID := state.TenantID.ValueString()
 	hardDelete := state.HardDelete.ValueBool()
-
-	tflog.Info(ctx, fmt.Sprintf("Deleting partner configuration for tenant ID: %s (hard_delete: %t)", tenantID, hardDelete))
-
-	err := r.client.
-		Policies().
-		CrossTenantAccessPolicy().
-		Partners().
-		ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).
-		Delete(ctx, nil)
-
-	if err != nil {
+	err := r.client.Policies().CrossTenantAccessPolicy().Partners().ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).Delete(ctx, nil)
+	softDeleted := err == nil
+	if err != nil && errors.GraphError(ctx, err).StatusCode != 404 {
 		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
-
-	// The DELETE is eventually consistent — wait for the deletion to propagate before
-	// returning, so that a subsequent Create with the same tenantId does not get a 409.
+	// A retry can start with the partner already soft-deleted. Do not discard state
+	// on that active-store 404 before checking the policy recycle bin.
 	const deleteMaxRetries = 30
 	const deleteRetryInterval = 5 * time.Second
 	for attempt := 1; attempt <= deleteMaxRetries; attempt++ {
+		_, getErr := r.client.Policies().CrossTenantAccessPolicy().Partners().ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).Get(ctx, nil)
+		if getErr != nil {
+			if errors.GraphError(ctx, getErr).StatusCode != 404 {
+				errors.HandleKiotaGraphError(ctx, getErr, resp, constants.TfOperationDelete, r.ReadPermissions)
+				return
+			}
+			if !hardDelete {
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			_, deletedErr := r.client.Policies().DeletedItems().CrossTenantPartners().ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).Get(ctx, nil)
+			if deletedErr == nil {
+				break
+			}
+			if errors.GraphError(ctx, deletedErr).StatusCode != 404 {
+				errors.HandleKiotaGraphError(ctx, deletedErr, resp, constants.TfOperationDelete, r.ReadPermissions)
+				return
+			}
+			if !softDeleted {
+				// Both stores confirm absence, including a repeated destroy after a prior purge.
+				resp.State.RemoveResource(ctx)
+				return
+			}
+			// The policy recycle bin may lag behind the active-store deletion. A 404
+			// immediately after our soft delete is not evidence of permanent removal.
+		}
+		if attempt == deleteMaxRetries {
+			resp.Diagnostics.AddError(
+				"Partner deletion did not propagate",
+				"Could not confirm the expected partner deletion state. Terraform state is retained so deletion can be retried.",
+			)
+			return
+		}
 		select {
 		case <-time.After(deleteRetryInterval):
 		case <-ctx.Done():
-			resp.Diagnostics.AddError("Context cancelled while waiting for delete propagation", ctx.Err().Error())
+			resp.Diagnostics.AddError("Context cancelled while waiting for partner deletion", ctx.Err().Error())
 			return
 		}
-
-		_, getErr := r.client.
-			Policies().
-			CrossTenantAccessPolicy().
-			Partners().
-			ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).
-			Get(ctx, nil)
-
-		if getErr != nil {
-			errInfo := errors.GraphError(ctx, getErr)
-			if errInfo.StatusCode == 404 {
-				tflog.Debug(ctx, fmt.Sprintf("Partner configuration %s confirmed deleted (attempt %d)", tenantID, attempt))
-				break
-			}
-		}
-
-		if attempt == deleteMaxRetries {
-			tflog.Warn(ctx, fmt.Sprintf("Partner configuration %s still visible after %d attempts — proceeding anyway", tenantID, attempt))
-		} else {
-			tflog.Debug(ctx, fmt.Sprintf("Partner configuration %s still visible (attempt %d/%d), waiting for propagation", tenantID, attempt, deleteMaxRetries))
-		}
 	}
-
-	if !hardDelete {
-		tflog.Info(ctx, fmt.Sprintf("Soft delete complete for partner configuration %s", tenantID))
-		resp.State.RemoveResource(ctx)
-		tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
+	err = r.client.Policies().DeletedItems().CrossTenantPartners().ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).Delete(ctx, nil)
+	if err != nil && errors.GraphError(ctx, err).StatusCode != 404 {
+		errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
 		return
 	}
-
-	tflog.Info(ctx, fmt.Sprintf("Hard delete enabled - proceeding with permanent deletion of partner configuration %s from deleted items", tenantID))
-
-	err = r.client.
-		Directory().
-		DeletedItems().
-		ByDirectoryObjectId(tenantID).
-		Delete(ctx, nil)
-
-	if err != nil {
-		errorInfo := errors.GraphError(ctx, err)
-		if errorInfo.StatusCode == 404 || errorInfo.ErrorCode == "ResourceNotFound" || errorInfo.ErrorCode == "Request_ResourceNotFound" {
-			tflog.Info(ctx, fmt.Sprintf("Partner configuration %s not found in deleted items (already permanently deleted)", tenantID))
+	// Permanent deletion also propagates. Confirm absence in the same policy
+	// store before forgetting the partner; a successful DELETE can precede its GET.
+	absentReads := 0
+	const requiredAbsentReads = 3
+	for attempt := 1; attempt <= deleteMaxRetries; attempt++ {
+		_, getErr := r.client.Policies().DeletedItems().CrossTenantPartners().ByCrossTenantAccessPolicyConfigurationPartnerTenantId(tenantID).Get(ctx, nil)
+		if getErr != nil {
+			if errors.GraphError(ctx, getErr).StatusCode != 404 {
+				errors.HandleKiotaGraphError(ctx, getErr, resp, constants.TfOperationDelete, r.ReadPermissions)
+				return
+			}
+			absentReads++
+			if absentReads >= requiredAbsentReads {
+				resp.State.RemoveResource(ctx)
+				return
+			}
 		} else {
-			errors.HandleKiotaGraphError(ctx, err, resp, constants.TfOperationDelete, r.WritePermissions)
+			absentReads = 0
+		}
+		if attempt == deleteMaxRetries {
+			resp.Diagnostics.AddError(
+				"Permanent partner deletion did not propagate",
+				"The partner remains visible in policy deleted items. Terraform state is retained so deletion can be retried.",
+			)
 			return
 		}
-	} else {
-		tflog.Info(ctx, fmt.Sprintf("Hard delete successful for partner configuration %s", tenantID))
+		select {
+		case <-time.After(deleteRetryInterval):
+		case <-ctx.Done():
+			resp.Diagnostics.AddError("Context cancelled while waiting for permanent partner deletion", ctx.Err().Error())
+			return
+		}
 	}
-
-	resp.State.RemoveResource(ctx)
-
-	tflog.Debug(ctx, fmt.Sprintf("Finished Delete Method: %s", ResourceName))
 }
